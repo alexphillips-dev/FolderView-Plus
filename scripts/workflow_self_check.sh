@@ -108,6 +108,9 @@ if (!/fixture-browser:/.test(ciWorkflow) || !/--lane fixture-browser/.test(ciWor
 if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh'))) {
   fail('The deterministic fixture browser lane must enforce runtime performance budgets.');
 }
+if (!/test_runner_contract_guard\.mjs/.test(read('scripts/run_ci_suite.sh'))) {
+  fail('The shared lint lane must enforce split test-runner contracts.');
+}
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');
 }

@@ -70,7 +70,7 @@ test('mutation nonces are target-bound, single-use, and backed by transaction re
             echo json_encode($results);
         `, {
             FVPLUS_TEST_CONFIG_DIR: configDir,
-            FVPLUS_TEST_SOURCE_DIR: pluginRoot,
+            FVPLUS_TEST_SOURCE_DIR: path.join(temp, 'runtime'),
             FVPLUS_TEST_SECURITY_STATE_PATH: statePath
         });
         assert.deepEqual(result, {
@@ -105,7 +105,7 @@ test('mutation rate buckets fail closed with HTTP 429 semantics', () => {
             echo json_encode(['code'=>$code]);
         `, {
             FVPLUS_TEST_CONFIG_DIR: path.join(temp, 'config'),
-            FVPLUS_TEST_SOURCE_DIR: pluginRoot,
+            FVPLUS_TEST_SOURCE_DIR: path.join(temp, 'runtime'),
             FVPLUS_TEST_SECURITY_STATE_PATH: path.join(temp, 'state.json')
         });
         assert.equal(result.code, 429);
@@ -135,7 +135,7 @@ test('security audit records are HMAC chained and tampering is detected', () => 
             echo json_encode(['before'=>$before,'after'=>$after,'events'=>$events]);
         `, {
             FVPLUS_TEST_CONFIG_DIR: configDir,
-            FVPLUS_TEST_SOURCE_DIR: pluginRoot,
+            FVPLUS_TEST_SOURCE_DIR: path.join(temp, 'runtime'),
             FVPLUS_TEST_SECURITY_STATE_PATH: path.join(temp, 'state.json')
         });
         assert.equal(result.before.status, 'healthy');

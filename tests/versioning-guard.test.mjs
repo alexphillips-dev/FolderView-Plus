@@ -69,9 +69,22 @@ const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
-const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const browserSmokeNode = [
+    browserSmokeNodePath,
+    path.join(repoRoot, 'scripts/lib/browser-smoke-runtime-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-docker-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-dashboard-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-folder-editor-checks.mjs')
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const fixtureBrowserShell = fs.readFileSync(fixtureBrowserShellPath, 'utf8');
-const fixtureBrowserNode = fs.readFileSync(fixtureBrowserNodePath, 'utf8');
+const fixtureBrowserNode = [
+    fixtureBrowserNodePath,
+    path.join(repoRoot, 'scripts/lib/fixture-browser-server.mjs'),
+    path.join(repoRoot, 'scripts/lib/fixture-browser-runner.mjs'),
+    ...fs.readdirSync(path.join(repoRoot, 'tests/browser/cases'))
+        .filter((file) => file.endsWith('.mjs'))
+        .map((file) => path.join(repoRoot, 'tests/browser/cases', file))
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const runtimeBrowserFixture = fs.readFileSync(runtimeBrowserFixturePath, 'utf8');
 const folderEditorBrowserFixture = fs.readFileSync(folderEditorBrowserFixturePath, 'utf8');
 const importBrowserFixture = fs.readFileSync(importBrowserFixturePath, 'utf8');
@@ -87,7 +100,12 @@ const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'ut
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
-const themeMatrixSmokeNode = fs.readFileSync(themeMatrixSmokeNodePath, 'utf8');
+const themeMatrixSmokeNode = [
+    themeMatrixSmokeNodePath,
+    path.join(repoRoot, 'scripts/lib/theme-matrix-settings-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/theme-matrix-runtime-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/theme-matrix-folder-editor-checks.mjs')
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
 const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
@@ -444,6 +462,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /bash scripts\/browser_smoke\.sh/);
     assert.match(runCiSuite, /bash scripts\/fixture_browser_tests\.sh/);
     assert.match(runCiSuite, /bash scripts\/theme_matrix_smoke\.sh/);
+    assert.match(runCiSuite, /scripts\/test_runner_contract_guard\.mjs/);
     assert.match(runCiSuite, /"\$\{NPM_BIN\}" ci --ignore-scripts/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
     assert.match(runCiSuite, /Matching Playwright browsers already cached/);

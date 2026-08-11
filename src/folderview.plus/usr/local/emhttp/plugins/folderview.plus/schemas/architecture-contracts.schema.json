@@ -10,7 +10,7 @@
       "scripts/folderviewplus.js": { "limit": 12092, "target": 1200, "history": [12092] },
       "scripts/docker.js": { "limit": 8028, "target": 1000, "history": [8839, 8045, 8028] },
       "server/lib.php": { "limit": 7556, "target": 400, "history": [7556] },
-      "scripts/folder.js": { "limit": 5522, "target": 700, "history": [5522] },
+      "scripts/folder.js": { "limit": 4773, "target": 700, "history": [5522, 4773] },
       "scripts/folderviewplus.wizard.js": { "limit": 4849, "target": 500, "history": [4849] },
       "scripts/vm.js": { "limit": 3945, "target": 750, "history": [4010, 3945] },
       "scripts/dashboard.js": { "limit": 3152, "target": 600, "history": [3173, 3152] },
@@ -48,6 +48,8 @@
       "scripts/runtime.transport.docker-actions.js": { "limit": 223, "target": 200, "history": [223] },
       "scripts/runtime.folder-ordering.js": { "limit": 192, "target": 160, "history": [192] },
       "scripts/runtime.live-refresh.js": { "limit": 115, "target": 115, "history": [115] },
+      "scripts/folder.editor.regex-selection.js": { "limit": 274, "target": 250, "history": [274] },
+      "scripts/folder.editor.member-list.js": { "limit": 370, "target": 320, "history": [370] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
@@ -119,8 +121,8 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["folder-editor"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folder.editor.shared.js", "scripts/folder.editor.schema.js", "scripts/folder.editor.state.js", "scripts/folder.editor.members.js", "scripts/folder.editor.type-docker.js", "scripts/folder.editor.type-vm.js"],
-      "lifecycle": { "startup": "loader-managed-bootstrap", "teardown": "navigation-owned" },
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folder.editor.shared.js", "scripts/folder.editor.schema.js", "scripts/folder.editor.state.js", "scripts/folder.editor.members.js", "scripts/folder.editor.hierarchy.js", "scripts/folder.editor.regex-selection.js", "scripts/folder.editor.member-list.js", "scripts/folder.editor.type-docker.js", "scripts/folder.editor.type-vm.js"],
+      "lifecycle": { "startup": "loader-managed-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["submitForm", "updateForm", "updateRegex", "customAction"]
     },
     {
@@ -369,6 +371,38 @@
       "exports": ["createController"],
       "lifecycleFactories": [
         { "name": "createController", "exports": ["clear", "run", "schedule", "snapshot", "dispose"] }
+      ]
+    },
+    {
+      "file": "scripts/folder.editor.regex-selection.js",
+      "owner": "folder-editor-regex-selection",
+      "consumers": ["folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderEditorRegexSelection",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"],
+      "lifecycleFactories": [
+        { "name": "createApi", "exports": ["evaluateRegexSelection", "updateRegex", "runRegexMatch", "snapshot", "dispose"] }
+      ]
+    },
+    {
+      "file": "scripts/folder.editor.member-list.js",
+      "owner": "folder-editor-member-list",
+      "consumers": ["folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderEditorMemberList",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi", "normalizeChildFolderOrder"],
+      "lifecycleFactories": [
+        { "name": "createApi", "exports": ["setChildFolderOrder", "getChildFolderOrderIds", "updateList", "dispose"] }
       ]
     },
     {

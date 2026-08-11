@@ -239,6 +239,8 @@
         "scripts/folderviewplus.bulk-assignment.shared.js",
         "scripts/folder.editor.state.js",
         "scripts/folder.editor.members.js",
+        "scripts/folder.editor.regex-selection.js",
+        "scripts/folder.editor.member-list.js",
         "scripts/folder.editor.icons.js",
         "scripts/folder.editor.type-docker.js",
         "scripts/folder.editor.type-vm.js",

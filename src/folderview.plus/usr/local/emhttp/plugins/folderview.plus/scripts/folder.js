@@ -276,6 +276,8 @@ const folderEditorTypeVmModule = window.FolderViewPlusFolderEditorTypeVm || null
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
+const folderEditorRegexSelectionModule = window.FolderViewPlusFoundationModules?.folderEditorRegexSelection || null;
+const folderEditorMemberListModule = window.FolderViewPlusFoundationModules?.folderEditorMemberList || null;
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -391,6 +393,15 @@ if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'fu
 if (!folderEditorMembersModule || typeof folderEditorMembersModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.members.js');
 }
+if (!folderHierarchyModule || typeof folderHierarchyModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.hierarchy.js');
+}
+if (!folderEditorRegexSelectionModule || typeof folderEditorRegexSelectionModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.regex-selection.js');
+}
+if (!folderEditorMemberListModule || typeof folderEditorMemberListModule.createApi !== 'function' || typeof folderEditorMemberListModule.normalizeChildFolderOrder !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.member-list.js');
+}
 if (!bulkAssignmentSharedModule || typeof bulkAssignmentSharedModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folderviewplus.bulk-assignment.shared.js');
 }
@@ -429,6 +440,8 @@ let folderEditorRulesApi = null;
 let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
+let folderEditorRegexSelectionApi = null;
+let folderEditorMemberListApi = null;
 let folderEditorIconsApi = null;
 let folderEditorTypeApi = null;
 let folderBulkAssignmentSharedApi = null;
@@ -437,20 +450,13 @@ let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let editorRecalcTimer = null;
 let nameRegexSyncTimer = null;
-let regexInputSyncTimer = null;
 let lastNameRegexSyncValue = '';
-let memberListRenderToken = 0;
-let regexWorker = null;
-let regexWorkerRequestId = 0;
-let latestRegexEvaluationRequestId = 0;
-let pendingRegexWorkerJobs = new Map();
 let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
 let memberBulkMoveInFlight = false;
 let memberBulkMoveUndoState = null;
 let memberBulkMoveUndoInFlight = false;
-let childFolderOrder = [];
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
@@ -1533,7 +1539,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         const folders = allFoldersById || {};
         const getChildOrderForParent = (parentId) => {
             if (String(parentId || '').trim() === getActiveFolderIdForChildOrdering()) {
-                return normalizeChildFolderOrder(childFolderOrder);
+                return getFolderEditorMemberListApi().getChildFolderOrder();
             }
             const folderSettings = folders?.[parentId]?.settings || {};
             return normalizeChildFolderOrder(folderSettings.child_folder_order || folderSettings.childFolderOrder);
@@ -1732,6 +1738,13 @@ const registerBeforeUnloadGuard = () => {
         event.preventDefault();
         event.returnValue = '';
     });
+};
+
+const registerFolderEditorModuleTeardown = () => {
+    window.addEventListener('pagehide', () => {
+        folderEditorRegexSelectionApi?.dispose();
+        folderEditorMemberListApi?.dispose();
+    }, { once: true });
 };
 
 const resetStatusColorDefaults = () => {
@@ -2395,6 +2408,61 @@ const bindMemberDragReorder = () => {
     getFolderEditorMembersApi()?.bindMemberDragReorder();
 };
 
+const getFolderEditorMemberListApi = () => {
+    if (folderEditorMemberListApi) {
+        return folderEditorMemberListApi;
+    }
+    folderEditorMemberListApi = folderEditorMemberListModule.createApi({
+        window,
+        $,
+        escapeHtml,
+        translate: folderEditorT,
+        getMemberStateKey,
+        getMemberCollections: () => ({ selected, choose, selectedRegex, hiddenPreviewMembers }),
+        getAllFolders: () => allFoldersById,
+        getActiveFolderId: () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim(),
+        normalizeParentFolderId: (value) => getFolderHierarchyApi().normalizeParentFolderId(value),
+        normalizeFolderRecord: normalizeFolderRecordForEditor,
+        updateLiveSummary,
+        updateUnsavedIndicator,
+        moveMemberRow,
+        bindMemberDragReorder,
+        applyMemberFilters,
+        updateMemberStats,
+        updateRegexSimulator,
+        validateForm,
+        isFormInitialized: () => isFormInitialized,
+        defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
+        iconFallbackPath: ICON_FALLBACK_PATH,
+        renderChunkSize: MEMBER_LIST_RENDER_CHUNK_SIZE
+    });
+    return folderEditorMemberListApi;
+};
+
+const getFolderEditorRegexSelectionApi = () => {
+    if (folderEditorRegexSelectionApi) {
+        return folderEditorRegexSelectionApi;
+    }
+    folderEditorRegexSelectionApi = folderEditorRegexSelectionModule.createApi({
+        window,
+        getRegexField: () => getFormField(getForm(), 'regex'),
+        getFolderName: () => String(getFormField(getForm(), 'name')?.value || '').trim(),
+        getMemberCollections: () => ({ selected, choose, selectedRegex }),
+        setMemberCollections: ({ selected: nextSelected = [], choose: nextChoose = [], selectedRegex: nextSelectedRegex = [] } = {}) => {
+            selected = nextSelected;
+            choose = nextChoose;
+            selectedRegex = nextSelectedRegex;
+        },
+        syncMemberArraysFromTable,
+        updateList,
+        updateRegexSimulator,
+        isFormInitialized: () => isFormInitialized,
+        workerMinItems: REGEX_WORKER_MIN_ITEMS,
+        debounceMs: REGEX_INPUT_SYNC_DEBOUNCE_MS
+    });
+    return folderEditorRegexSelectionApi;
+};
+
 const normalizeEditorMode = () => 'advanced';
 
 const getVisibleEditorSectionKeys = () => Object.entries(SECTION_META)
@@ -3050,7 +3118,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     const safeFolderId = normalizeFolderId(folderRecordId);
     const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
     hiddenPreviewMembers = new Set(normalizedFolder.hiddenPreviewMembers || []);
-    childFolderOrder = normalizeChildFolderOrder(normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder);
+    getFolderEditorMemberListApi().setChildFolderOrder(
+        normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder
+    );
     const folders = utils.normalizeFolderMap(foldersMap);
     if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
         Reflect.deleteProperty(folders, safeFolderId);
@@ -3179,6 +3249,7 @@ const startFolderEditorRuntime = async () => {
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-start';
     folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
+    registerFolderEditorModuleTeardown();
     applySectionTags();
     initEditorChrome();
     folderThemeSurfaceBinding?.runApply('chrome-ready');
@@ -3510,234 +3581,12 @@ const updateIcon = (e) => {
     renderBuiltInIconPicker();
 };
 
-const scheduleAnimationFrameTask = (callback) => {
-    if (typeof callback !== 'function') {
-        return;
-    }
-    if (typeof window.requestAnimationFrame === 'function') {
-        window.requestAnimationFrame(callback);
-        return;
-    }
-    setTimeout(callback, 16);
-};
-
-const getRegexWorker = () => {
-    if (regexWorker) {
-        return regexWorker;
-    }
-    if (typeof Worker !== 'function' || typeof Blob !== 'function' || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
-        return null;
-    }
-    try {
-        const source = 'self.onmessage=function(e){var p=e&&e.data?e.data:{},id=+p.id||0,pt=String(p.pattern||""),n=Array.isArray(p.names)?p.names:[],r;try{r=new RegExp(pt)}catch(err){self.postMessage({id:id,error:String(err&&err.message?err.message:"Invalid regex")});return}var m=[];for(var i=0;i<n.length;i++){var s=String(n[i]||"");if(!s)continue;if(r.test(s))m.push(s);r.lastIndex=0}self.postMessage({id:id,matches:m})};';
-        const blob = new Blob([source], { type: 'application/javascript' });
-        const url = URL.createObjectURL(blob);
-        regexWorker = new Worker(url);
-        URL.revokeObjectURL(url);
-        regexWorker.onmessage = (event) => {
-            const data = event?.data || {};
-            const id = Number(data.id || 0);
-            const pending = pendingRegexWorkerJobs.get(id);
-            if (!pending) {
-                return;
-            }
-            pendingRegexWorkerJobs.delete(id);
-            if (data && data.error) {
-                pending.reject(new Error(String(data.error)));
-                return;
-            }
-            pending.resolve(Array.isArray(data.matches) ? data.matches : []);
-        };
-        regexWorker.onerror = () => {
-            const pendingEntries = Array.from(pendingRegexWorkerJobs.values());
-            pendingRegexWorkerJobs.clear();
-            pendingEntries.forEach((entry) => {
-                entry.reject(new Error('Regex worker failed.'));
-            });
-            try {
-                regexWorker.terminate();
-            } catch (_error) {
-                // no-op
-            }
-            regexWorker = null;
-        };
-        return regexWorker;
-    } catch (_error) {
-        regexWorker = null;
-        return null;
-    }
-};
-
-const runRegexMatch = async (pattern, names) => {
-    const safePattern = String(pattern || '');
-    const safeNames = Array.isArray(names) ? names.map((name) => String(name || '')) : [];
-    if (!safePattern || safeNames.length < REGEX_WORKER_MIN_ITEMS) {
-        const regex = new RegExp(safePattern);
-        const matches = [];
-        for (const name of safeNames) {
-            if (!name) {
-                continue;
-            }
-            if (regex.test(name)) {
-                matches.push(name);
-            }
-            regex.lastIndex = 0;
-        }
-        return matches;
-    }
-    const worker = getRegexWorker();
-    if (!worker) {
-        const regex = new RegExp(safePattern);
-        const matches = [];
-        for (const name of safeNames) {
-            if (!name) {
-                continue;
-            }
-            if (regex.test(name)) {
-                matches.push(name);
-            }
-            regex.lastIndex = 0;
-        }
-        return matches;
-    }
-    const requestId = ++regexWorkerRequestId;
-    const job = new Promise((resolve, reject) => {
-        pendingRegexWorkerJobs.set(requestId, { resolve, reject });
-    });
-    worker.postMessage({
-        id: requestId,
-        pattern: safePattern,
-        names: safeNames
-    });
-    return job;
-};
-
-const mergeMembersByName = (baseMembers, candidateMembers) => {
-    const map = new Map();
-    const ordered = [];
-    (Array.isArray(baseMembers) ? baseMembers : []).forEach((member) => {
-        const key = String(member?.Name || '').trim();
-        if (!key || map.has(key)) {
-            return;
-        }
-        map.set(key, member);
-        ordered.push(member);
-    });
-    (Array.isArray(candidateMembers) ? candidateMembers : []).forEach((member) => {
-        const key = String(member?.Name || '').trim();
-        if (!key || map.has(key)) {
-            return;
-        }
-        map.set(key, member);
-        ordered.push(member);
-    });
-    return ordered;
-};
-
-const evaluateRegexSelection = (e) => {
-    regexInputSyncTimer = null;
-    const regexField = e || getFormField(getForm(), 'regex');
-    if (!regexField) {
-        return false;
-    }
-    const requestId = ++latestRegexEvaluationRequestId;
-    syncMemberArraysFromTable();
-    choose = choose.concat(selectedRegex);
-    const fldName = ($('[name="name"]')[0].value || '').trim();
-    if (fldName) {
-        selectedRegex = choose.filter((el) => el.Label === fldName);
-        choose = choose.filter((el) => el.Label !== fldName);
-    } else {
-        selectedRegex = [];
-    }
-    const regexSource = String(regexField.value || '').trim();
-    if (!regexSource) {
-        updateList();
-        updateRegexSimulator();
-        return true;
-    }
-    let regex;
-    try {
-        regex = new RegExp(regexSource);
-    } catch (_error) {
-        updateList();
-        return false;
-    }
-
-    const baseChoose = choose.slice();
-    const applyMatchResult = (matchNames) => {
-        if (requestId !== latestRegexEvaluationRequestId) {
-            return;
-        }
-        const matched = new Set(Array.isArray(matchNames) ? matchNames : []);
-        const nextChoose = [];
-        const regexMatches = [];
-        baseChoose.forEach((member) => {
-            const memberName = String(member?.Name || '');
-            if (matched.has(memberName)) {
-                regexMatches.push(member);
-            } else {
-                nextChoose.push(member);
-            }
-        });
-        choose = nextChoose;
-        selectedRegex = mergeMembersByName(selectedRegex, regexMatches);
-        updateList();
-        updateRegexSimulator();
-    };
-
-    if (baseChoose.length < REGEX_WORKER_MIN_ITEMS) {
-        const matchedNames = [];
-        baseChoose.forEach((member) => {
-            if (regex.test(member.Name)) {
-                matchedNames.push(member.Name);
-            }
-            regex.lastIndex = 0;
-        });
-        applyMatchResult(matchedNames);
-        return true;
-    }
-
-    runRegexMatch(regexSource, baseChoose.map((member) => member.Name))
-        .then((matchedNames) => {
-            applyMatchResult(matchedNames);
-        })
-        .catch(() => {
-            if (requestId !== latestRegexEvaluationRequestId) {
-                return;
-            }
-            const matchedNames = [];
-            baseChoose.forEach((member) => {
-                if (regex.test(member.Name)) {
-                    matchedNames.push(member.Name);
-                }
-                regex.lastIndex = 0;
-            });
-            applyMatchResult(matchedNames);
-        });
-
-    updateRegexSimulator();
-    return true;
-};
-
 /**
  * Update the regex selection when editing the respective field
  * @param {*} e the element
  */
 const updateRegex = (e, options = {}) => {
-    const immediate = options && typeof options === 'object' && options.immediate === true;
-    if (regexInputSyncTimer) {
-        clearTimeout(regexInputSyncTimer);
-        regexInputSyncTimer = null;
-    }
-    latestRegexEvaluationRequestId += 1;
-    if (immediate || !isFormInitialized) {
-        return evaluateRegexSelection(e);
-    }
-    regexInputSyncTimer = setTimeout(() => {
-        evaluateRegexSelection(e);
-    }, REGEX_INPUT_SYNC_DEBOUNCE_MS);
-    return true;
+    return getFolderEditorRegexSelectionApi().updateRegex(e, options);
 };
 
 /**
@@ -3751,295 +3600,7 @@ function updateForm() {
     getFolderEditorPreviewRuntimeApi()?.updatePreviewConstraints();
 }
 
-const createFallbackFolderHierarchyApi = (deps = {}) => {
-    const jq = deps.$;
-    const getFallbackForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
-    const getFolderIdRef = typeof deps.getFolderId === 'function' ? deps.getFolderId : (() => '');
-    const getAllFoldersRef = typeof deps.getAllFolders === 'function' ? deps.getAllFolders : (() => ({}));
-    const updateFormRef = typeof deps.updateForm === 'function' ? deps.updateForm : (() => {});
-    const validateFormRef = typeof deps.validateForm === 'function' ? deps.validateForm : (() => {});
-    const updateLiveSummaryRef = typeof deps.updateLiveSummary === 'function' ? deps.updateLiveSummary : (() => {});
-    const updateRegexSimulatorRef = typeof deps.updateRegexSimulator === 'function' ? deps.updateRegexSimulator : (() => {});
-    const escapeHtmlRef = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
-    const smartDefaultFieldNames = deps.smartDefaultFieldNames instanceof Set ? deps.smartDefaultFieldNames : new Set();
-    const getParentDefaultsRef = typeof deps.getParentDefaults === 'function' ? deps.getParentDefaults : (() => ({}));
-
-    const state = {
-        currentFolderDescendantIds: new Set(),
-        smartDefaultTouchedFields: new Set(),
-        isApplyingParentDefaults: false
-    };
-
-    const normalizeParentFolderId = (value) => String(value || '').trim();
-    const computeFolderDescendantIds = (foldersMap, rootId) => {
-        const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
-        const rootFolderId = normalizeParentFolderId(rootId);
-        if (!rootFolderId) {
-            return new Set();
-        }
-        const descendants = new Set();
-        const queue = [rootFolderId];
-        while (queue.length > 0) {
-            const current = queue.shift();
-            for (const [id, folder] of Object.entries(source)) {
-                const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
-                if (parentId !== current || descendants.has(id)) {
-                    continue;
-                }
-                descendants.add(id);
-                queue.push(id);
-            }
-        }
-        descendants.delete(rootFolderId);
-        return descendants;
-    };
-    const buildNestedFolderOrder = (foldersMap) => {
-        const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
-        const ids = Object.keys(source);
-        if (ids.length <= 0) {
-            return [];
-        }
-        const indexById = new Map(ids.map((id, idx) => [id, idx]));
-        const childrenByParent = new Map();
-        for (const id of ids) {
-            const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || source[id]?.parent_id || '');
-            const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
-            const key = parentId || '__root__';
-            if (!childrenByParent.has(key)) {
-                childrenByParent.set(key, []);
-            }
-            childrenByParent.get(key).push(id);
-        }
-        const sortBySourceIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
-        for (const list of childrenByParent.values()) {
-            list.sort(sortBySourceIndex);
-        }
-        const rows = [];
-        const visiting = new Set();
-        const visited = new Set();
-        const visit = (id, depth) => {
-            if (!id || visited.has(id) || visiting.has(id)) {
-                return;
-            }
-            visiting.add(id);
-            rows.push({ id, folder: source[id], depth: Math.max(0, depth) });
-            for (const childId of (childrenByParent.get(id) || [])) {
-                visit(childId, depth + 1);
-            }
-            visiting.delete(id);
-            visited.add(id);
-        };
-        for (const rootId of (childrenByParent.get('__root__') || [])) {
-            visit(rootId, 0);
-        }
-        for (const id of ids) {
-            visit(id, 0);
-        }
-        return rows;
-    };
-    const buildParentFolderEntries = (foldersMap, blockedIds = new Set()) => {
-        const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-        const rows = buildNestedFolderOrder(foldersMap);
-        if (!rows.length) {
-            return [];
-        }
-        const pathById = new Map();
-        const entries = [];
-        for (const row of rows) {
-            const id = normalizeParentFolderId(row?.id || '');
-            if (!id || blocked.has(id)) {
-                continue;
-            }
-            const folder = row?.folder && typeof row.folder === 'object' ? row.folder : {};
-            const name = String(folder?.name || id).trim() || id;
-            const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
-            const parentPath = parentId && pathById.has(parentId) ? String(pathById.get(parentId) || '').trim() : '';
-            const path = parentPath ? `${parentPath} / ${name}` : name;
-            const depth = Math.max(0, Number(row?.depth || 0));
-            pathById.set(id, path);
-            entries.push({
-                id,
-                depth,
-                name,
-                path
-            });
-        }
-        return entries;
-    };
-    const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
-        const form = getFallbackForm();
-        const select = form?.parent_folder_id;
-        if (!select || typeof jq !== 'function') {
-            return;
-        }
-        const selected = normalizeParentFolderId(selectedParentId);
-        const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-        const options = ['<option value="">No parent (top level)</option>'];
-        for (const entry of buildParentFolderEntries(foldersMap, blocked)) {
-            options.push(`<option value="${escapeHtmlRef(entry.id)}">${escapeHtmlRef(entry.path)}</option>`);
-        }
-        jq(select).html(options.join(''));
-        select.value = (selected && !blocked.has(selected)) ? selected : '';
-    };
-    const getSiblingNameCollision = (nameValue, parentId, excludeFolderId = '') => {
-        const nameNeedle = String(nameValue || '').trim().toLowerCase();
-        if (!nameNeedle) {
-            return null;
-        }
-        const targetParent = normalizeParentFolderId(parentId);
-        const excludeId = normalizeParentFolderId(excludeFolderId);
-        for (const [id, folder] of Object.entries(getAllFoldersRef() || {})) {
-            const safeId = normalizeParentFolderId(id);
-            if (!safeId || (excludeId && safeId === excludeId)) {
-                continue;
-            }
-            const folderName = String(folder?.name || '').trim().toLowerCase();
-            if (!folderName || folderName !== nameNeedle) {
-                continue;
-            }
-            const folderParent = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
-            if (folderParent === targetParent) {
-                return {
-                    id: safeId,
-                    name: String(folder?.name || '').trim() || safeId
-                };
-            }
-        }
-        return null;
-    };
-    const suggestSiblingName = (baseName, parentId, excludeFolderId = '') => {
-        const trimmedBase = String(baseName || '').trim() || 'Folder';
-        if (!getSiblingNameCollision(trimmedBase, parentId, excludeFolderId)) {
-            return trimmedBase;
-        }
-        let index = 2;
-        while (index < 500) {
-            const candidate = `${trimmedBase} (${index})`;
-            if (!getSiblingNameCollision(candidate, parentId, excludeFolderId)) {
-                return candidate;
-            }
-            index += 1;
-        }
-        return `${trimmedBase} ${Date.now()}`;
-    };
-    const setParentDefaultsNote = (message = '', level = 'info') => {
-        if (typeof jq !== 'function') {
-            return;
-        }
-        const form = getFallbackForm();
-        const select = jq(form?.elements?.parent_folder_id);
-        if (!select.length) {
-            return;
-        }
-        const dd = select.closest('dd');
-        if (!dd.length) {
-            return;
-        }
-        let note = dd.find('.fv-parent-defaults-note');
-        if (!note.length) {
-            note = jq('<div class="fv-parent-defaults-note" data-fvplus-style="fv-u-xcjvns"></div>');
-            dd.append(note);
-        }
-        note.removeClass('is-info is-success is-warning').addClass(
-            level === 'success' ? 'is-success' : (level === 'warning' ? 'is-warning' : 'is-info')
-        );
-        const safeMessage = String(message || '').trim();
-        if (!safeMessage) {
-            note.hide().text('');
-            return;
-        }
-        note.text(safeMessage).show();
-    };
-    const applySmartDefaultsFromParent = (parentId, config = {}) => {
-        if (getFolderIdRef()) {
-            return 0;
-        }
-        const safeParentId = normalizeParentFolderId(parentId);
-        if (!safeParentId) {
-            setParentDefaultsNote('');
-            return 0;
-        }
-        const parentFolder = getAllFoldersRef()?.[safeParentId];
-        if (!parentFolder || typeof parentFolder !== 'object') {
-            setParentDefaultsNote('');
-            return 0;
-        }
-        const form = getFallbackForm();
-        if (!form) {
-            return 0;
-        }
-        const defaults = config.defaults && typeof config.defaults === 'object'
-            ? config.defaults
-            : getParentDefaultsRef(parentFolder, safeParentId, config);
-
-        let applied = 0;
-        state.isApplyingParentDefaults = true;
-        try {
-            for (const [fieldName, value] of Object.entries(defaults)) {
-                if (!smartDefaultFieldNames.has(fieldName)) {
-                    continue;
-                }
-                if (config.force !== true && state.smartDefaultTouchedFields.has(fieldName)) {
-                    continue;
-                }
-                const input = form.elements?.[fieldName];
-                if (!input) {
-                    continue;
-                }
-                if (typeof value === 'boolean') {
-                    input.checked = value;
-                    applied += 1;
-                    continue;
-                }
-                const nextValue = String(value || '');
-                if (!nextValue) {
-                    continue;
-                }
-                input.value = nextValue;
-                applied += 1;
-            }
-        } finally {
-            state.isApplyingParentDefaults = false;
-        }
-
-        if (applied > 0) {
-            const parentName = String(parentFolder?.name || safeParentId).trim() || safeParentId;
-            setParentDefaultsNote(`Inherited ${applied} default${applied === 1 ? '' : 's'} from parent "${parentName}".`, 'success');
-        } else {
-            setParentDefaultsNote('Parent selected. Existing custom values were kept.', 'info');
-        }
-
-        updateFormRef();
-        validateFormRef();
-        updateLiveSummaryRef();
-        updateRegexSimulatorRef();
-        return applied;
-    };
-    const markSmartDefaultFieldTouched = (fieldName) => {
-        const safeName = String(fieldName || '').trim();
-        if (!safeName || !smartDefaultFieldNames.has(safeName) || state.isApplyingParentDefaults) {
-            return;
-        }
-        state.smartDefaultTouchedFields.add(safeName);
-    };
-
-    return Object.freeze({
-        state,
-        normalizeParentFolderId,
-        computeFolderDescendantIds,
-        buildNestedFolderOrder,
-        buildParentFolderEntries,
-        populateParentFolderOptions,
-        getSiblingNameCollision,
-        suggestSiblingName,
-        setParentDefaultsNote,
-        applySmartDefaultsFromParent,
-        markSmartDefaultFieldTouched
-    });
-};
-const createFolderHierarchyApi = typeof folderHierarchyModule?.createApi === 'function'
-    ? folderHierarchyModule.createApi
-    : createFallbackFolderHierarchyApi;
+const createFolderHierarchyApi = folderHierarchyModule.createApi;
 const getFolderHierarchyApi = (() => {
     let cachedApi = null;
     return () => {
@@ -4177,323 +3738,13 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
     });
 };
 
-const normalizeChildFolderOrder = (value) => {
-    const source = Array.isArray(value) ? value : [];
-    const seen = new Set();
-    const result = [];
-    source.forEach((entry) => {
-        const id = String(entry || '').trim();
-        if (!id || seen.has(id)) {
-            return;
-        }
-        seen.add(id);
-        result.push(id);
-    });
-    return result;
-};
-
+const normalizeChildFolderOrder = (value) => folderEditorMemberListModule.normalizeChildFolderOrder(value);
 const getActiveFolderIdForChildOrdering = () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim();
-
-const getDirectChildFolderEntries = () => {
-    const parentId = getActiveFolderIdForChildOrdering();
-    if (!parentId) {
-        return [];
-    }
-    return Object.entries(allFoldersById || {})
-        .filter(([candidateId, candidateFolder]) => {
-            const childId = String(candidateId || '').trim();
-            if (!childId || childId === parentId || !candidateFolder || typeof candidateFolder !== 'object') {
-                return false;
-            }
-            return normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId;
-        })
-        .map(([candidateId, candidateFolder], sourceIndex) => {
-            const normalizedFolder = normalizeFolderRecordForEditor(candidateFolder);
-            return {
-                id: String(candidateId || '').trim(),
-                sourceIndex,
-                name: String(normalizedFolder.name || candidateId || '').trim(),
-                icon: String(normalizedFolder.icon || DEFAULT_FOLDER_ICON_PATH || ICON_FALLBACK_PATH || '').trim(),
-                memberCount: Array.isArray(normalizedFolder.containers) ? normalizedFolder.containers.length : 0
-            };
-        });
-};
-
-const sortChildFolderEntries = (entries, order = childFolderOrder) => {
-    const orderIndex = new Map(normalizeChildFolderOrder(order).map((id, index) => [id, index]));
-    return [...entries].sort((left, right) => {
-        const leftOrder = orderIndex.has(left.id) ? orderIndex.get(left.id) : Number.MAX_SAFE_INTEGER;
-        const rightOrder = orderIndex.has(right.id) ? orderIndex.get(right.id) : Number.MAX_SAFE_INTEGER;
-        if (leftOrder !== rightOrder) {
-            return leftOrder - rightOrder;
-        }
-        return left.sourceIndex - right.sourceIndex;
-    });
-};
-
-const syncChildFolderOrderFromTable = () => {
-    childFolderOrder = normalizeChildFolderOrder(
-        $('#fvFolderMembersBody > tr[data-child-folder-id]').map((_, row) => $(row).attr('data-child-folder-id')).get()
-    );
-    return childFolderOrder;
-};
-
-const getChildFolderOrderIds = () => {
-    const directIds = new Set(getDirectChildFolderEntries().map((entry) => entry.id));
-    return sortChildFolderEntries(getDirectChildFolderEntries())
-        .map((entry) => entry.id)
-        .filter((id) => directIds.has(id));
-};
-
-const moveChildFolderRow = (button, direction) => {
-    const row = $(button).closest('tr');
-    if (!row.length) {
-        return;
-    }
-    if (direction === 'up') {
-        const previous = row.prev('tr');
-        if (previous.length) {
-            previous.before(row);
-        }
-    } else if (direction === 'down') {
-        const next = row.next('tr');
-        if (next.length) {
-            next.after(row);
-        }
-    }
-    syncChildFolderOrderFromTable();
-    updateLiveSummary();
-    if (isFormInitialized) {
-        updateUnsavedIndicator();
-    }
-};
-
-const bindChildFolderDragReorder = () => {
-    const tableBody = $('#fvFolderMembersBody');
-    if (!tableBody.length) {
-        return;
-    }
-    tableBody.off('.fvChildFolderDrag');
-    let draggedRow = null;
-
-    tableBody
-        .on('dragstart.fvChildFolderDrag', '.folder-member-drag-handle', function(event) {
-            draggedRow = $(this).closest('tr')[0] || null;
-            if (!draggedRow) {
-                return;
-            }
-            $(draggedRow).addClass('is-dragging');
-            const originalEvent = event.originalEvent || event;
-            if (originalEvent.dataTransfer) {
-                originalEvent.dataTransfer.effectAllowed = 'move';
-                originalEvent.dataTransfer.setData('text/plain', $(draggedRow).attr('data-child-folder-id') || '');
-            }
-        })
-        .on('dragover.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
-            if (!draggedRow || draggedRow === this) {
-                return;
-            }
-            event.preventDefault();
-            const target = this;
-            const targetRect = target.getBoundingClientRect();
-            const originalEvent = event.originalEvent || event;
-            const beforeTarget = originalEvent.clientY < targetRect.top + (targetRect.height / 2);
-            if (beforeTarget) {
-                target.parentNode.insertBefore(draggedRow, target);
-            } else {
-                target.parentNode.insertBefore(draggedRow, target.nextSibling);
-            }
-        })
-        .on('drop.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
-            event.preventDefault();
-        })
-        .on('dragend.fvChildFolderDrag', '.folder-member-drag-handle', function() {
-            if (draggedRow) {
-                $(draggedRow).removeClass('is-dragging');
-            }
-            draggedRow = null;
-            syncChildFolderOrderFromTable();
-            updateLiveSummary();
-            if (isFormInitialized) {
-                updateUnsavedIndicator();
-            }
-        });
-};
-
-const renderFolderMembersSection = () => {
-    const section = $('#fvFolderMembersSection');
-    const body = $('#fvFolderMembersBody');
-    const empty = $('#fvFolderMembersEmpty');
-    const summary = $('#fvFolderMembersSummary');
-    if (!section.length || !body.length) {
-        return;
-    }
-    const entries = sortChildFolderEntries(getDirectChildFolderEntries());
-    const countLabel = `${entries.length} folder${entries.length === 1 ? '' : 's'}`;
-    section.prop('hidden', entries.length === 0);
-    summary.text(countLabel);
-    body.empty();
-    empty.prop('hidden', entries.length !== 0);
-    if (!entries.length) {
-        return;
-    }
-    const rows = entries.map((entry) => `
-        <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
-            <td class="order-col">
-                <div class="order-buttons">
-                    <button type="button" class="folder-member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button>
-                    <button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
-                    <button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                </div>
-            </td>
-            <td class="fv-folder-member-name">
-                <img src="${escapeHtml(entry.icon)}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';">
-                <span>${escapeHtml(entry.name)}</span>
-                <small>${entry.memberCount} item${entry.memberCount === 1 ? '' : 's'}</small>
-            </td>
-        </tr>
-    `).join('');
-    body.append($(rows));
-    body.find('.folder-member-move').off('click').on('click', function() {
-        moveChildFolderRow(this, $(this).data('direction'));
-    });
-    bindChildFolderDragReorder();
-};
+const getChildFolderOrderIds = () => getFolderEditorMemberListApi().getChildFolderOrderIds();
+const updateList = (afterRender = null) => getFolderEditorMemberListApi().updateList(afterRender);
 
 /**
- * Create the element select table
- */
-const updateList = (afterRender = null) => {
-    const table = $('.sortable > tbody');
-    table.empty();
-    const token = ++memberListRenderToken;
-    const rows = [];
-    selectedRegex.forEach((member) => rows.push({ member, membership: 'regex', checked: true, locked: true }));
-    selected.forEach((member) => rows.push({ member, membership: 'manual', checked: true, locked: false }));
-    choose.forEach((member) => rows.push({ member, membership: 'available', checked: false, locked: false }));
-
-    const renderRowHtml = ({ member, membership, checked, locked }) => {
-        const icon = escapeHtml(member.Icon || ICON_FALLBACK_PATH);
-        const name = escapeHtml(member.Name);
-        const stateKey = getMemberStateKey(member);
-        const previewVisible = !hiddenPreviewMembers.has(String(member.Name || '').trim());
-        const dragLabel = escapeHtml(folderEditorT('editor.members.drag-reorder', 'Drag to reorder'));
-        const orderControls = locked
-            ? `<span class="order-lock" title="${escapeHtml(folderEditorT('editor.members.auto-included', 'Auto-included by regex or label'))}"><i class="fa fa-lock" aria-hidden="true"></i></span>`
-            : `<div class="order-buttons"><button type="button" class="member-drag-handle fv-six-dot-drag-handle" draggable="true" title="${dragLabel}" aria-label="${dragLabel}"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="member-move" data-direction="up" title="${escapeHtml(folderEditorT('editor.members.move-up', 'Move up'))}"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="${escapeHtml(folderEditorT('editor.members.move-down', 'Move down'))}"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>`;
-        return `
-            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
-                <td class="order-col">${orderControls}</td>
-                <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
-                <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" data-fvplus-style="fv-u-569beu"></td>
-                <td><label class="fv-member-preview-toggle" title="${escapeHtml(folderEditorT('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(folderEditorT('editor.members.visible', 'Visible'))}</span></label></td>
-            </tr>
-        `;
-    };
-
-    const finalizeMemberListRender = () => {
-        if (token !== memberListRenderToken) {
-            return;
-        }
-        $('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
-        $('table.sortable > tbody > tr > td > input.container-switch:disabled').each(function() {
-            const input = $(this);
-            input.closest('td').find('*').css('opacity', '0.5').css('cursor', 'default').off();
-            this.checked = true;
-        });
-
-        $('.item').css('border-color', $('body').css('color'));
-
-        $('.member-move').off('click').on('click', function() {
-            moveMemberRow(this, $(this).data('direction'));
-        });
-        bindMemberDragReorder();
-        renderFolderMembersSection();
-
-        $('input.container-switch').off('change').on('change', function() {
-            const $row = $(this).closest('tr');
-            const previewInput = $row.find('input.member-preview-switch').get(0);
-            if (previewInput) {
-                previewInput.disabled = this.checked !== true;
-                if (this.checked !== true) {
-                    previewInput.checked = true;
-                    const name = String($row.attr('data-name') || '').trim();
-                    if (name) {
-                        hiddenPreviewMembers.delete(name);
-                    }
-                }
-            }
-            updateMemberStats();
-            updateLiveSummary();
-            if (isFormInitialized) {
-                validateForm();
-                updateUnsavedIndicator();
-            }
-        });
-        $('input.member-preview-switch').off('change').on('change', function() {
-            const name = String($(this).closest('tr').attr('data-name') || '').trim();
-            if (name) {
-                if (this.checked === true) {
-                    hiddenPreviewMembers.delete(name);
-                } else {
-                    hiddenPreviewMembers.add(name);
-                }
-            }
-            updateMemberStats();
-            updateLiveSummary();
-            if (isFormInitialized) {
-                validateForm();
-                updateUnsavedIndicator();
-            }
-        });
-
-        applyMemberFilters();
-        updateMemberStats();
-        updateLiveSummary();
-        updateRegexSimulator();
-
-        if (isFormInitialized) {
-            validateForm();
-            updateUnsavedIndicator();
-        }
-        if (typeof afterRender === 'function') {
-            afterRender();
-        }
-    };
-
-    if (rows.length <= MEMBER_LIST_RENDER_CHUNK_SIZE) {
-        if (rows.length > 0) {
-            const html = rows.map((row) => renderRowHtml(row)).join('');
-            table.append($(html));
-        }
-        finalizeMemberListRender();
-        return;
-    }
-
-    let offset = 0;
-    const appendChunk = () => {
-        if (token !== memberListRenderToken) {
-            return;
-        }
-        const chunk = rows.slice(offset, offset + MEMBER_LIST_RENDER_CHUNK_SIZE);
-        if (!chunk.length) {
-            finalizeMemberListRender();
-            return;
-        }
-        const html = chunk.map((row) => renderRowHtml(row)).join('');
-        table.append($(html));
-        offset += chunk.length;
-        if (offset < rows.length) {
-            scheduleAnimationFrameTask(appendChunk);
-            return;
-        }
-        finalizeMemberListRender();
-    };
-    appendChunk();
-};
-
-/**
- * Handle sthe form submission
+ * Handle the form submission
  * @param {*} e the form
  * @returns {bool} always false
  */

@@ -104,6 +104,10 @@ const folderMembersJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js'),
     'utf8'
 );
+const folderMemberListJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.member-list.js'),
+    'utf8'
+);
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
@@ -627,8 +631,8 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderCss, /\.member-drag-handle\s*\{[\s\S]*cursor:\s*grab;/);
     assert.match(folderCss, /\.item\.is-dragging\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface-active\);/);
     assert.match(folderCss, /\.member-drag-handle\.is-disabled\s*\{[\s\S]*cursor:\s*not-allowed;/);
-    assert.match(folderJs, /class="member-drag-handle fv-six-dot-drag-handle"/);
-    assert.match(folderJs, /bindMemberDragReorder\(\);/);
+    assert.match(folderMemberListJs, /class="member-drag-handle fv-six-dot-drag-handle"/);
+    assert.match(folderMemberListJs, /bindMemberDragReorder\(\);/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-switch/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-btn/);

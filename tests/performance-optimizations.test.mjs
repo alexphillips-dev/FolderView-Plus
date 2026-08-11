@@ -81,6 +81,14 @@ const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderEditorRegexSelectionJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.regex-selection.js'
+);
+const folderEditorMemberListJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.member-list.js'
+);
 const folderEditorTypeDockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'
@@ -122,6 +130,8 @@ const utilsFoundationJs = fs.readFileSync(utilsFoundationJsPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
+const folderEditorRegexSelectionJs = fs.readFileSync(folderEditorRegexSelectionJsPath, 'utf8');
+const folderEditorMemberListJs = fs.readFileSync(folderEditorMemberListJsPath, 'utf8');
 const folderEditorTypeDockerJs = fs.readFileSync(folderEditorTypeDockerJsPath, 'utf8');
 const folderEditorTypeVmJs = fs.readFileSync(folderEditorTypeVmJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
@@ -570,16 +580,16 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);
     assert.match(folderEditorJs, /const REGEX_INPUT_SYNC_DEBOUNCE_MS = \d+;/);
-    assert.match(folderEditorJs, /const getRegexWorker = \(\) =>/);
-    assert.match(folderEditorJs, /const runRegexMatch = async \(pattern,\s*names\) =>/);
-    assert.match(folderEditorJs, /const evaluateRegexSelection = \(e\) =>/);
+    assert.match(folderEditorRegexSelectionJs, /const getRegexWorker = \(\) =>/);
+    assert.match(folderEditorRegexSelectionJs, /const runRegexMatch = async \(pattern, names\) =>/);
+    assert.match(folderEditorRegexSelectionJs, /const evaluateRegexSelection = \(field = null\) =>/);
     assert.match(folderEditorJs, /const updateRegex = \(e,\s*options = \{\}\) =>/);
-    assert.match(folderEditorJs, /const mergeMembersByName = \(baseMembers,\s*candidateMembers\) =>/);
-    assert.match(folderEditorJs, /if \(rows\.length <= MEMBER_LIST_RENDER_CHUNK_SIZE\) \{/);
-    assert.match(folderEditorJs, /scheduleAnimationFrameTask\(appendChunk\)/);
+    assert.match(folderEditorRegexSelectionJs, /const mergeMembersByName = \(baseMembers, candidateMembers\) =>/);
+    assert.match(folderEditorMemberListJs, /if \(rows\.length <= renderChunkSize\) \{/);
+    assert.match(folderEditorMemberListJs, /scheduleTask\(appendChunk\)/);
     assert.match(folderEditorJs, /if \(fieldName === 'regex'\) \{\s*if \(event\.type === 'input'\) \{\s*markUnsavedIndicatorDirty\(\);\s*return;\s*\}\s*updateRegex\(form\.regex,\s*\{\s*immediate:\s*true\s*\}\);\s*return;\s*\}/);
-    assert.match(folderEditorJs, /regexInputSyncTimer = setTimeout\(\(\) => \{\s*evaluateRegexSelection\(e\);\s*\}, REGEX_INPUT_SYNC_DEBOUNCE_MS\);/);
-    assert.doesNotMatch(folderEditorJs, /runRegexMatch\(regexSource,\s*baseChoose\.map\(\(member\) => member\.Name\)\)\s*[\s\S]*updateList\(\);\s*updateRegexSimulator\(\);\s*return true;/);
+    assert.match(folderEditorRegexSelectionJs, /regexInputSyncTimer = setTimer\(\(\) => evaluateRegexSelection\(field\), debounceMs\);/);
+    assert.doesNotMatch(folderEditorJs, /const getRegexWorker|const runRegexMatch|let memberListRenderToken/);
 });
 
 test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {

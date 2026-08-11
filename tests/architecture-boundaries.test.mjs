@@ -15,13 +15,13 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 222);
+    assert.equal(result.referenceCount, 224);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 20);
+    assert.equal(architecture.moduleContracts.length, 22);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');
@@ -70,6 +70,24 @@ test('foundational utilities and transport have contracted child-module boundari
         assert.equal(contracts.get(file)?.global, 'FolderViewPlusFoundationModules');
         assert.ok(contracts.get(file)?.globalMember, `${file} must own one internal namespace member`);
     }
+});
+
+test('folder editor stateful subsystems have contracted lifecycle boundaries', () => {
+    const contracts = new Map(architecture.moduleContracts.map((contract) => [contract.file, contract]));
+    const editorContract = architecture.entrypointContracts.find((contract) => contract.file === 'scripts/folder.js');
+    for (const file of [
+        'scripts/folder.editor.hierarchy.js',
+        'scripts/folder.editor.regex-selection.js',
+        'scripts/folder.editor.member-list.js'
+    ]) {
+        assert.ok(editorContract?.dependsOn.includes(file), `${file} must be required by the folder editor entrypoint`);
+    }
+    for (const file of ['scripts/folder.editor.regex-selection.js', 'scripts/folder.editor.member-list.js']) {
+        assert.equal(contracts.get(file)?.global, 'FolderViewPlusFoundationModules');
+        assert.ok(contracts.get(file)?.globalMember);
+        assert.equal(contracts.get(file)?.stateModel, 'factory-owned');
+    }
+    assert.deepEqual(architecture.budgets.fileLineBudgets['scripts/folder.js'].history, [5522, 4773]);
 });
 
 test('file budgets have non-increasing audit histories and explicit reduction targets', () => {

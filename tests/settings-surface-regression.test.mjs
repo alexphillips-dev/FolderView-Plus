@@ -12,7 +12,11 @@ const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
 ].map((relativePath) => read(relativePath)).join('\n');
-const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPhp = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-workspace.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-github.php'
+].map(read).join('\n');
 const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
 const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');

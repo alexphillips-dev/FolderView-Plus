@@ -16,7 +16,7 @@ const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const installerPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh');
 const archivePreflightPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh');
 const endpointPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/third_party_icons.php');
-const diagnosticsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
+const diagnosticsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics-support-bundle.php');
 
 const plg = fs.readFileSync(plgPath, 'utf8');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');

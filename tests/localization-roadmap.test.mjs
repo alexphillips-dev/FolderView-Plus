@@ -223,7 +223,7 @@ test('browser smoke captures expanded and RTL pseudo-locale states', () => {
 
 test('diagnostics and support bundles expose localization readiness', () => {
     const diagnosticsUi = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.activity-diagnostics.js'), 'utf8');
-    const diagnosticsServer = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics.php'), 'utf8');
+    const diagnosticsServer = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics-support-bundle.php'), 'utf8');
     assert.match(diagnosticsUi, /buildLocalizationDiagnosticsSummaryCard/);
     assert.match(diagnosticsUi, /localeCoverage/);
     assert.match(diagnosticsUi, /potentiallyStaleMessages/);

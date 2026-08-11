@@ -16,7 +16,9 @@ const directWriteAllowlist = new Map([
         ['(debug-startup)', 1],
         ['fv3_write_json_cache_payload', 2],
         ['writeReadInfoCache', 2],
-        ['fvplus_log_api_exception', 1],
+        ['fvplus_log_api_exception', 1]
+    ])],
+    ['lib.docker-order.php', new Map([
         ['markDockerSyncOrderPending', 1]
     ])],
     ['lib.security.php', new Map([
@@ -25,8 +27,10 @@ const directWriteAllowlist = new Map([
     ['third_party_icons.php', new Map([
         ['writeThirdPartyIconCache', 2]
     ])],
-    ['upload_custom_icon.php', new Map([
+    ['lib.custom-icon-endpoint-foundation.php', new Map([
         ['writeCustomIconUploadRateBucket', 2],
+    ])],
+    ['lib.custom-icon-validation.php', new Map([
         ['validateAndNormalizeSvgContent', 1],
         ['writeInlineIconTempFile', 1]
     ])]
@@ -166,9 +170,16 @@ test('durable writer preserves committed data across every injected failure stag
 });
 
 test('durable configuration surfaces use the shared storage service', () => {
-    const lib = fs.readFileSync(libPath, 'utf8');
+    const lib = [
+        'lib.php',
+        'lib.storage.php',
+        'lib.theme-workspace.php',
+        'lib.folder-mutations.php',
+        'lib.docker-order.php',
+        'lib.custom-icon-storage.php'
+    ].map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8')).join('\n');
     const diagnostics = fs.readFileSync(path.join(serverRoot, 'lib.diagnostics.php'), 'utf8');
-    const iconUpload = fs.readFileSync(path.join(serverRoot, 'upload_custom_icon.php'), 'utf8');
+    const iconUpload = fs.readFileSync(path.join(serverRoot, 'lib.custom-icon-actions.php'), 'utf8');
     assert.match(lib, /writeDurableFileAtomic\(\$path, \$token, \['mode' => 0600\]\)/);
     assert.match(lib, /writeDurableFileAtomic\(getLegacyMigrationMarkerPath/);
     assert.match(lib, /writeJsonObjectWithLastGood\(getThemeWorkspacePath/);

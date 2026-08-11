@@ -49,7 +49,7 @@ const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPat
 const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsChrome = fs.readFileSync(settingsChromePath, 'utf8');

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.08">
-<!ENTITY md5 "539e608415683878386ab406929396c5">
-<!ENTITY sha256 "3a916739e205eb0dddaaa2cd922067dd86d25ce30b92d324cf3256a5e065293e">
+<!ENTITY version "2026.08.11.09">
+<!ENTITY md5 "cabe4403d5709d98cc43a0466c7a92f4">
+<!ENTITY sha256 "2feb6a018603987a524e23c7f5a1cd06ca8e2a792e01e62aa3fd5fe3a2d4bf4d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,21 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.09
+## FolderView Plus 2026.08.11.09
+This development build completes the PHP decomposition phase by moving server domains behind enforced request-scoped modules while preserving every public endpoint, request guard, response shape, and compatibility function name.
+### PHP compatibility boundaries
+- Refactor: Split release metadata, durable storage, theme workspace and GitHub import, environment transfer, backup scheduling and snapshots, folder rules and mutations, Docker ordering, custom-icon storage, and runtime information out of `server/lib.php`.
+- Refactor: Split diagnostics redaction, integrity collection, summary modeling, and support-bundle assembly out of `server/lib.diagnostics.php`.
+- Refactor: Keep `server/upload_custom_icon.php` as a thin compatibility dispatcher backed by separate foundation, validation, and action modules.
+- Reliability: Preserve the exact 30-endpoint API manifest and all 276 core, 74 diagnostics, and 56 custom-icon public function names.
+### Enforcement and regression coverage
+- Quality: Reduce `server/lib.php` from 7,556 to 2,649 lines, `server/lib.diagnostics.php` from 2,923 to 257 lines, and `server/upload_custom_icon.php` from 1,481 to 37 lines.
+- Quality: Add 19 server-module ownership contracts with loader validation, exact function-inventory hashes, dependency metadata, and ratcheted file budgets.
+- Reliability: Add executable facade-loading tests plus endpoint-manifest, backup, storage, diagnostics, Docker ordering, theme, runtime-information, and custom-icon regression coverage for the new ownership paths.
+- Security: Refresh the CSP readiness inventory for 199 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
 
 ###2026.08.11.08
 ## FolderView Plus 2026.08.11.08

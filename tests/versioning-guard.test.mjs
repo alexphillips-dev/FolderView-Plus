@@ -268,8 +268,9 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /update_notes\.php must return lines payload/);
     assert.match(releaseGuard, /update_notes\.php must return category payload/);
     assert.match(releaseGuard, /update_notes\.php must return headline payload/);
-    assert.match(releaseGuard, /lib\.php must define classifyChangesCategory/);
-    assert.match(releaseGuard, /lib\.php must define readCurrentVersionChangeSummary/);
+    assert.match(releaseGuard, /Missing lib\.release-notes\.php module/);
+    assert.match(releaseGuard, /lib\.release-notes\.php must define classifyChangesCategory/);
+    assert.match(releaseGuard, /lib\.release-notes\.php must define readCurrentVersionChangeSummary/);
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 

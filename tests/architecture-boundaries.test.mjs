@@ -22,8 +22,9 @@ test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
     assert.equal(architecture.moduleContracts.length, 25);
+    assert.equal(architecture.serverModuleContracts.length, 19);
     const allowedConsumers = new Set(architecture.consumerScopes);
-    for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts]) {
+    for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts, ...architecture.serverModuleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');
         assert.ok(contract.stateModel, `${contract.file} must declare its state model`);
         assert.ok(Array.isArray(contract.consumers) && contract.consumers.length > 0, `${contract.file} must declare consumers`);
@@ -31,6 +32,32 @@ test('entrypoints and contracted modules declare ownership boundaries', () => {
         assert.ok(Array.isArray(contract.dependsOn), `${contract.file} must declare dependencies`);
         assert.ok(Array.isArray(contract.compatibilityGlobals), `${contract.file} must declare compatibility globals`);
         assert.ok(fs.existsSync(path.join(pluginRoot, contract.file)), `${contract.file} must exist`);
+    }
+});
+
+test('PHP facades have contracted Phase 6 domain boundaries', () => {
+    const contracts = new Map(architecture.serverModuleContracts.map((contract) => [contract.file, contract]));
+    const coreContract = architecture.entrypointContracts.find((contract) => contract.file === 'server/lib.php');
+    const diagnosticsContract = architecture.entrypointContracts.find((contract) => contract.file === 'server/lib.diagnostics.php');
+    const iconContract = architecture.entrypointContracts.find((contract) => contract.file === 'server/upload_custom_icon.php');
+    assert.deepEqual(architecture.budgets.fileLineBudgets['server/lib.php'].history, [7556, 2649]);
+    assert.deepEqual(architecture.budgets.fileLineBudgets['server/lib.diagnostics.php'].history, [2923, 257]);
+    assert.deepEqual(architecture.budgets.fileLineBudgets['server/upload_custom_icon.php'].history, [1481, 37]);
+    for (const contract of architecture.serverModuleContracts) {
+        assert.ok(contract.owner, `${contract.file} must declare one owner`);
+        assert.ok(contract.loadedBy, `${contract.file} must declare its compatibility loader`);
+        assert.ok(Number.isInteger(contract.functionInventory?.count) && contract.functionInventory.count > 0);
+        assert.match(contract.functionInventory.sha256, /^[0-9a-f]{64}$/);
+        assert.ok(architecture.budgets.fileLineBudgets[contract.file], `${contract.file} must have a ratcheting line budget`);
+    }
+    for (const file of [...contracts.keys()].filter((file) => contracts.get(file).loadedBy === 'server/lib.php')) {
+        assert.ok(coreContract?.dependsOn.includes(file), `${file} must be required by the core facade`);
+    }
+    for (const file of [...contracts.keys()].filter((file) => contracts.get(file).loadedBy === 'server/lib.diagnostics.php')) {
+        assert.ok(diagnosticsContract?.dependsOn.includes(file), `${file} must be required by the diagnostics facade`);
+    }
+    for (const file of [...contracts.keys()].filter((file) => contracts.get(file).loadedBy === 'server/upload_custom_icon.php')) {
+        assert.ok(iconContract?.dependsOn.includes(file), `${file} must be required by the custom-icon endpoint`);
     }
 });
 

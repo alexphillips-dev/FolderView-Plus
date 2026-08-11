@@ -16,9 +16,12 @@ const readEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/read.php'), '
 const folderEditor = fs.readFileSync(path.join(pluginRoot, 'scripts/folder.js'), 'utf8');
 const folderEditorRules = fs.readFileSync(path.join(pluginRoot, 'scripts/folder.editor.rules.js'), 'utf8');
 const settingsRuntime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.activity-diagnostics.js'), 'utf8');
-const diagnosticsLib = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics.php'), 'utf8');
-const supportBundleLib = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics.php'), 'utf8');
-const iconEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/upload_custom_icon.php'), 'utf8');
+const diagnosticsLib = [
+    'lib.diagnostics.php',
+    'lib.diagnostics-integrity.php'
+].map((name) => fs.readFileSync(path.join(pluginRoot, 'server', name), 'utf8')).join('\n');
+const supportBundleLib = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics-support-bundle.php'), 'utf8');
+const iconEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/lib.custom-icon-endpoint-foundation.php'), 'utf8');
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 

@@ -714,16 +714,21 @@ if ! grep -q "'headline' =>" "${SERVER_DIR}/update_notes.php"; then
   echo "ERROR: update_notes.php must return headline payload." >&2
   exit 1
 fi
-if ! grep -q 'function classifyChangesCategory' "${SERVER_DIR}/lib.php"; then
-  echo "ERROR: lib.php must define classifyChangesCategory()." >&2
+RELEASE_NOTES_LIB="${SERVER_DIR}/lib.release-notes.php"
+if [[ ! -f "${RELEASE_NOTES_LIB}" ]]; then
+  echo "ERROR: Missing lib.release-notes.php module." >&2
   exit 1
 fi
-if ! grep -q 'function readCurrentVersionChangeSummary' "${SERVER_DIR}/lib.php"; then
-  echo "ERROR: lib.php must define readCurrentVersionChangeSummary()." >&2
+if ! grep -q 'function classifyChangesCategory' "${RELEASE_NOTES_LIB}"; then
+  echo "ERROR: lib.release-notes.php must define classifyChangesCategory()." >&2
+  exit 1
+fi
+if ! grep -q 'function readCurrentVersionChangeSummary' "${RELEASE_NOTES_LIB}"; then
+  echo "ERROR: lib.release-notes.php must define readCurrentVersionChangeSummary()." >&2
   exit 1
 fi
 current_version_notes_pattern="readChangesSummaryForVersion\\(readInstalledVersion\\(\\),[[:space:]]*\\\$maxLines,[[:space:]]*false\\)"
-if ! grep -Eq "${current_version_notes_pattern}" "${SERVER_DIR}/lib.php"; then
+if ! grep -Eq "${current_version_notes_pattern}" "${RELEASE_NOTES_LIB}"; then
   echo "ERROR: readCurrentVersionChangeSummary() must disable fallback so \"What Changed\" only shows current-version notes." >&2
   exit 1
 fi

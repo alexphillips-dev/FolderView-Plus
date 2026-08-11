@@ -20,13 +20,29 @@ const readInfoPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'
 );
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const readServerGraph = (names) => names
+    .map((name) => fs.readFileSync(path.join(path.dirname(libPath), name), 'utf8'))
+    .join('\n');
+const libPhp = readServerGraph([
+    'lib.php',
+    'lib.backup-snapshots.php',
+    'lib.folder-mutations.php',
+    'lib.custom-icon-storage.php',
+    'lib.docker-order.php',
+    'lib.runtime-info.php'
+]);
 const runtimeConflictBootstrap = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.conflict-bootstrap.js'
 ), 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
-const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const libDiagnosticsPhp = readServerGraph([
+    'lib.diagnostics.php',
+    'lib.diagnostics-redaction.php',
+    'lib.diagnostics-integrity.php',
+    'lib.diagnostics-summary.php',
+    'lib.diagnostics-support-bundle.php'
+]);
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const diagnosticsEndpointPath = path.join(
     repoRoot,

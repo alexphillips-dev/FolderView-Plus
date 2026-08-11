@@ -157,11 +157,47 @@ for (const contract of schema.entrypointContracts || []) {
     }
 }
 
+const serverFunctionOwners = new Map();
 for (const contract of schema.serverModuleContracts || []) {
     const file = String(contract?.file || '').trim();
     validateBoundaryMetadata(contract, file || 'server module', { requireOwner: true });
     if (!file.startsWith('server/') || !file.endsWith('.php')) fail(`Server module contract must target server/*.php: ${file || '(empty)'}.`);
-    if (!fs.existsSync(path.join(pluginRoot, file))) fail(`Server module contract file does not exist: ${file}.`);
+    const absolutePath = path.join(pluginRoot, file);
+    if (!fs.existsSync(absolutePath)) {
+        fail(`Server module contract file does not exist: ${file}.`);
+        continue;
+    }
+    const source = fs.readFileSync(absolutePath, 'utf8');
+    const functions = [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)]
+        .map((match) => match[1])
+        .sort();
+    const inventory = contract.functionInventory || {};
+    const functionHash = crypto.createHash('sha256').update(functions.join('\n')).digest('hex');
+    if (Number(inventory.count) !== functions.length) {
+        fail(`${file} function inventory count changed: ${functions.length} != ${inventory.count}.`);
+    }
+    if (String(inventory.sha256 || '') !== functionHash) {
+        fail(`${file} function inventory hash changed: ${functionHash} != ${inventory.sha256 || '(missing)'}.`);
+    }
+    const loadedBy = String(contract.loadedBy || '').trim();
+    if (!loadedBy.startsWith('server/') || !loadedBy.endsWith('.php')) {
+        fail(`${file} must declare a server/*.php loadedBy owner.`);
+    } else {
+        const loaderPath = path.join(pluginRoot, loadedBy);
+        if (!fs.existsSync(loaderPath)) {
+            fail(`${file} loader does not exist: ${loadedBy}.`);
+        } else {
+            const loaderSource = fs.readFileSync(loaderPath, 'utf8');
+            if (!loaderSource.includes(path.basename(file))) fail(`${loadedBy} does not load ${file}.`);
+        }
+    }
+    for (const functionName of functions) {
+        if (serverFunctionOwners.has(functionName)) {
+            fail(`Server function ${functionName} has multiple contracted owners: ${serverFunctionOwners.get(functionName)} and ${file}.`);
+        } else {
+            serverFunctionOwners.set(functionName, file);
+        }
+    }
 }
 
 const sources = new Map(fs.readdirSync(scriptsRoot)
@@ -371,4 +407,4 @@ validateLegacyInventory('Legacy browser script', legacyBrowserScripts, schema.mo
 validateLegacyInventory('Legacy server PHP', legacyServerPhp, schema.modulePolicy?.legacyUncontractedServerPhp);
 
 assert.equal(failures.length, 0, failures.join('\n'));
-console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} module contracts, ${schema.entrypointContracts?.length || 0} entrypoint contracts, ${ownersByGlobal.size} browser globals, ${registeredActions.size} registry actions (${registeredActionGlobals.length} compatibility globals), ${declarativeActions.size} declarative action names, ${Object.keys(fileLineBudgets).length} ratcheting file-line budgets, and function overlap ${overlapSummary.join(', ')} validated.`);
+console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} browser module contracts, ${schema.serverModuleContracts?.length || 0} server module contracts, ${schema.entrypointContracts?.length || 0} entrypoint contracts, ${ownersByGlobal.size} browser globals, ${registeredActions.size} registry actions (${registeredActionGlobals.length} compatibility globals), ${declarativeActions.size} declarative action names, ${Object.keys(fileLineBudgets).length} ratcheting file-line budgets, and function overlap ${overlapSummary.join(', ')} validated.`);

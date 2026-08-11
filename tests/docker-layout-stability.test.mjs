@@ -16,7 +16,7 @@ const dockerColumnControllerJs = read(`${pluginRoot}/scripts/docker.runtime.colu
 const dockerPage = read(`${pluginRoot}/folderview.plus.Docker.page`);
 const dockerLayoutBootstrap = read(`${pluginRoot}/scripts/docker.layout-bootstrap.js`);
 const dockerCss = read(`${pluginRoot}/styles/docker.css`);
-const serverLib = read(`${pluginRoot}/server/lib.php`);
+const serverLib = `${read(`${pluginRoot}/server/lib.php`)}\n${read(`${pluginRoot}/server/lib.runtime-info.php`)}`;
 const dockerRuntimeServerLib = read(`${pluginRoot}/server/lib.docker-runtime.php`);
 const snapshotLib = read(`${pluginRoot}/server/lib.runtime-snapshot.php`);
 

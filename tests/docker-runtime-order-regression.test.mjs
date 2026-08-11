@@ -9,10 +9,10 @@ const dockerJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
     'utf8'
 );
-const libPhp = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'),
-    'utf8'
-);
+const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
+const libPhp = ['lib.php', 'lib.docker-order.php']
+    .map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8'))
+    .join('\n');
 const require = createRequire(import.meta.url);
 const runtimeFolderOrdering = require(path.join(
     repoRoot,

@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UTILS_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js"
 LIB_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+STORAGE_LIB_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.storage.php"
 FIXTURE_DIR="${ROOT_DIR}/tests/fixtures/imports"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
@@ -12,6 +13,7 @@ fvplus::require_commands grep
 
 [[ -f "${UTILS_FILE}" ]] || fvplus::fail "Missing utils file: ${UTILS_FILE}"
 [[ -f "${LIB_FILE}" ]] || fvplus::fail "Missing lib file: ${LIB_FILE}"
+[[ -f "${STORAGE_LIB_FILE}" ]] || fvplus::fail "Missing storage lib file: ${STORAGE_LIB_FILE}"
 [[ -d "${FIXTURE_DIR}" ]] || fvplus::fail "Missing fixture directory: ${FIXTURE_DIR}"
 
 required_label_keys=(
@@ -65,9 +67,18 @@ for plugin_id in "${required_runtime_conflicts[@]}"; do
   fi
 done
 
-required_lib_helpers=(
+required_storage_helpers=(
   "function writeJsonObjectWithLastGood"
   "function recoverJsonObjectFromLastGood"
+)
+
+for helper in "${required_storage_helpers[@]}"; do
+  if ! grep -q "${helper}" "${STORAGE_LIB_FILE}"; then
+    fvplus::fail "Self-heal storage helper missing: ${helper}"
+  fi
+done
+
+required_lib_helpers=(
   "function normalizeFolderMapPayload"
 )
 

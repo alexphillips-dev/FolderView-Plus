@@ -110,7 +110,7 @@ const settingsPagePath = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'
 );
 
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.runtime-info.php'), 'utf8')}`;
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const dockerRuntimeServerLibPhp = fs.readFileSync(dockerRuntimeServerLibPath, 'utf8');
 const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');

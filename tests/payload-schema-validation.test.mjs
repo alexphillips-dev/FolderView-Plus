@@ -6,7 +6,10 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
-const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPhp = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.folder-mutations.php'
+].map(read).join('\n');
 const prefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/prefs.php');
 const validationPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
 

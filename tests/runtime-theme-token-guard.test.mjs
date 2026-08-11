@@ -161,7 +161,12 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
 test('theme resolver heals unusable host accents and fully manages folder editor theme bindings', () => {
     assert.match(themeResolverJs, /accent:\s*3\.0,/);
     assert.match(themeResolverJs, /const accentResolution = resolveThemeStatusColor\(/);
-    assert.match(themeResolverJs, /Host accent color was auto-healed to preserve contrast\./);
+    assert.match(themeResolverJs, /adjustments\.push\('Host accent color was auto-healed to preserve contrast\.'\)/);
+    assert.match(themeResolverJs, /tokens: buildThemeTokenMap\(\{ classification \}, selectedPalette\),\s*adjustments,\s*warnings/);
+    assert.match(diagnosticsJs, /const status = warnings\.length > 0 \? 'warning' : 'healthy';/);
+    assert.match(diagnosticsJs, /technicalDetails: \[\.\.\.warnings, \.\.\.adjustments\]/);
+    assert.match(diagnosticsJs, /const needsHeal = contrastFailures\.length > 0 \|\| statusFailures\.length > 0;/);
+    assert.doesNotMatch(diagnosticsJs, /const needsHeal =[^;]*autoHealed/);
     assert.match(themeResolverJs, /const classification = detectedClassification === 'mixed'/);
     assert.match(themeResolverJs, /themeSurfaceModule\.createBinding\(\{ \.\.\.options, applyResolvedThemeTokens \}\)/);
     assert.match(themeSurfaceJs, /const sampleRoot = options\.sampleRoot \?\? null;/);

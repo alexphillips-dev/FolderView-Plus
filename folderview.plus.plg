@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.11">
-<!ENTITY md5 "e9d3c009f958fd5c328592ff0ed6964b">
-<!ENTITY sha256 "5a96ae0d10f6402d1139202e95757c7f7dccd57683f162fecd72c08cc16f81b4">
+<!ENTITY version "2026.08.11.12">
+<!ENTITY md5 "843b840b94e80408dbda648c82c0d394">
+<!ENTITY sha256 "60324c479ebdbbcaa37cce5ddb62381fd4ab7e086c50869f5b8a7a26767f4324">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.12
+## FolderView Plus 2026.08.11.12
+This development build corrects a Diagnostics false positive where a successfully auto-healed host-theme accent reduced core health from 6/6 to 5/6.
+### Theme diagnostics
+- Fix: Treat successful compatibility adjustments as informational technical details instead of unresolved theme warnings.
+- Diagnostics: Keep missing tokens, indistinguishable runtime states, and failed final contrast checks actionable while reporting a fully recovered palette as healthy.
+- Reliability: Prevent the theme self-heal action from persisting a fallback mode when automatic token correction has already produced a compliant palette.
+- Accessibility: Preserve the resolver's contrast correction and support-bundle evidence, including the adjusted host accent and final contrast ratios.
+### Regression coverage
+- Test: Add contracts ensuring auto-heal telemetry does not reduce core health while unresolved contrast failures remain warnings.
+
 
 ###2026.08.11.11
 ## FolderView Plus 2026.08.11.11

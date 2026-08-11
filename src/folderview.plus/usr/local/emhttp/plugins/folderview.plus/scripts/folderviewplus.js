@@ -42,7 +42,7 @@ const resolveThemeModeWeight = (value) => {
 const buildThemeResolverSnapshot = (modeInput = null, options = {}) => (
     themeResolver && typeof themeResolver.buildResolvedThemeSnapshot === 'function'
         ? themeResolver.buildResolvedThemeSnapshot(modeInput, options)
-        : { requestedMode: 'auto', appliedMode: 'auto', classification: 'mixed', autoHealed: false, contrastChecks: [], statusChecks: {}, tokens: {}, warnings: [] }
+        : { requestedMode: 'auto', appliedMode: 'auto', classification: 'mixed', autoHealed: false, contrastChecks: [], statusChecks: {}, tokens: {}, adjustments: [], warnings: [] }
 );
 const applyThemeResolverTokens = (reason = 'runtime', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'

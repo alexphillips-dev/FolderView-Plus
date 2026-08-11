@@ -662,8 +662,9 @@
         selectedPalette.statusStopped = statusStopped.color;
 
         const warnings = [];
+        const adjustments = [];
         if (hostContrast < THEME_CONTRAST_RULES.textPrimary) {
-            warnings.push(`Host text contrast is low (${hostContrast.toFixed(2)}:1).`);
+            adjustments.push(`Host text contrast is low (${hostContrast.toFixed(2)}:1).`);
         }
         for (const check of contrastChecks) {
             if (!check.passed) {
@@ -671,10 +672,10 @@
             }
         }
         if (statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed) {
-            warnings.push('Status colors were auto-healed to preserve contrast.');
+            adjustments.push('Status colors were auto-healed to preserve contrast.');
         }
         if (accentResolution.autoHealed) {
-            warnings.push('Host accent color was auto-healed to preserve contrast.');
+            adjustments.push('Host accent color was auto-healed to preserve contrast.');
         }
 
         return {
@@ -697,6 +698,7 @@
                 stopped: { ratio: Number(statusStopped.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStopped, autoHealed: statusStopped.autoHealed }
             },
             tokens: buildThemeTokenMap({ classification }, selectedPalette),
+            adjustments,
             warnings
         };
     };

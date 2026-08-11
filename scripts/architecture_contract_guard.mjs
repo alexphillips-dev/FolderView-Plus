@@ -71,7 +71,8 @@ const loadModule = (contract, source, absolutePath) => {
             JSON
         });
         vm.runInContext(source, context, { filename: contract.file });
-        return window[contract.global];
+        const published = window[contract.global];
+        return contract.globalMember ? published?.[contract.globalMember] : published;
     }
     throw new Error(`Unsupported contract loader: ${contract.loader}`);
 };

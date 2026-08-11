@@ -65,9 +65,16 @@ test('privacy classifier distinguishes public and private IP values', () => {
 });
 
 test('runtime transport exposes capability-driven GraphQL, subscription, action, and diagnostics APIs', () => {
+    const coreSource = read(`${plugin}/scripts/runtime.transport.core.js`);
+    const subscriptionSource = read(`${plugin}/scripts/runtime.transport.subscription.js`);
+    const dockerActionsSource = read(`${plugin}/scripts/runtime.transport.docker-actions.js`);
     const source = read(`${plugin}/scripts/runtime.transport.js`);
     const window = { fetch() {}, setInterval, clearInterval };
-    vm.runInNewContext(source, { window, URL, Date, JSON, Promise, Error, Object, String, Number, Array, Math, setInterval, clearInterval });
+    const context = { window, URL, Date, JSON, Promise, Error, Object, String, Number, Array, Math, setInterval, clearInterval };
+    vm.runInNewContext(coreSource, context);
+    vm.runInNewContext(subscriptionSource, context);
+    vm.runInNewContext(dockerActionsSource, context);
+    vm.runInNewContext(source, context);
     const transport = window.FolderViewPlusRuntimeTransport;
     assert.equal(typeof transport.query, 'function');
     assert.equal(typeof transport.subscribe, 'function');

@@ -1712,9 +1712,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="import-safety-note"><i class="fa fa-shield" aria-hidden="true"></i><span><strong data-i18n="import.backup.title">Automatic backup included</strong><small data-i18n="import.backup.description">The current configuration is saved before a live import.</small></span></div>
         <label id="import-review-ack-row" class="import-review-ack" data-fvplus-style="fv-u-xcjvns"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
     </div>
-
 </div>
-
 <div id="backup-compare-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="backup-compare-head">
         <p class="import-preview-title">Snapshot comparison</p>
@@ -1751,16 +1749,15 @@ if (!empty($fvplusRuntimeConflicts)) {
     </div>
     <div class="import-apply-progress-note" id="import-apply-progress-note">Do not close this page until the operation completes.</div>
 </div>
-
 <div id="fv-setup-assistant-overlay" data-fvplus-style="fv-u-xcjvns"></div>
 <div id="fv-setup-assistant-dialog" data-fvplus-style="fv-u-xcjvns" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
     <div id="fv-setup-assistant-content"></div>
 </div>
 <div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
 </div>
-
 <?php
 $fvplusSettingsFoundationAssets = [
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
         '/plugins/folderview.plus/scripts/folderviewplus.request.js',
@@ -1800,6 +1797,9 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.core.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.subscription.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.docker-actions.js',
         '/plugins/folderview.plus/scripts/runtime.transport.js',
         '/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js',
         '/plugins/folderview.plus/scripts/folderviewplus.wizard.js',

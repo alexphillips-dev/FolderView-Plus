@@ -526,7 +526,12 @@ classify_changed_path_subsystems() {
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.core.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.subscription.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.docker-actions.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php|\

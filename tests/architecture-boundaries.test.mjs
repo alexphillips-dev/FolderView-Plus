@@ -15,13 +15,13 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 201);
+    assert.equal(result.referenceCount, 218);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 12);
+    assert.equal(architecture.moduleContracts.length, 18);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');
@@ -46,6 +46,30 @@ test('declarative actions are registry-owned with a ratcheted compatibility ceil
     assert.ok(actionRuntime?.exports.includes('unregisterOwner'));
     assert.deepEqual(settingsActions?.dependsOn, ['scripts/folderviewplus.csp-events.js']);
     assert.ok(settingsActions?.exports.includes('registerActions'));
+});
+
+test('foundational utilities and transport have contracted child-module boundaries', () => {
+    const contracts = new Map(architecture.moduleContracts.map((contract) => [contract.file, contract]));
+    assert.deepEqual(contracts.get('scripts/folderviewplus.utils.js')?.dependsOn, [
+        'scripts/folderviewplus.utils-foundation.js'
+    ]);
+    assert.deepEqual(contracts.get('scripts/runtime.transport.js')?.dependsOn, [
+        'scripts/runtime.transport.core.js',
+        'scripts/runtime.transport.subscription.js',
+        'scripts/runtime.transport.docker-actions.js'
+    ]);
+    assert.equal(architecture.budgets.fileLineBudgets['scripts/folderviewplus.utils.js'].limit, 2054);
+    assert.equal(architecture.budgets.fileLineBudgets['scripts/runtime.transport.js'].limit, 499);
+    assert.deepEqual(architecture.budgets.fileLineBudgets['scripts/runtime.transport.js'].history, [1060, 499]);
+    for (const file of [
+        'scripts/folderviewplus.utils-foundation.js',
+        'scripts/runtime.transport.core.js',
+        'scripts/runtime.transport.subscription.js',
+        'scripts/runtime.transport.docker-actions.js'
+    ]) {
+        assert.equal(contracts.get(file)?.global, 'FolderViewPlusFoundationModules');
+        assert.ok(contracts.get(file)?.globalMember, `${file} must own one internal namespace member`);
+    }
 });
 
 test('file budgets have non-increasing audit histories and explicit reduction targets', () => {
@@ -74,8 +98,8 @@ test('file budgets have non-increasing audit histories and explicit reduction ta
 
 test('new browser and PHP modules cannot silently expand the legacy inventory', () => {
     assert.deepEqual(architecture.modulePolicy.legacyUncontractedBrowserScripts, {
-        count: 98,
-        sha256: '22d53706609e0098112b6b19567bc181a0bd1378189c3e9b15f90ad1a3fdc45a'
+        count: 96,
+        sha256: '4975b2b3196fbade0722248292307f24effa2c8499d4cd403f38ef11e1bb6643'
     });
     assert.deepEqual(architecture.modulePolicy.legacyUncontractedServerPhp, {
         count: 40,

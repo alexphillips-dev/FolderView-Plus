@@ -117,6 +117,7 @@ try {
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>

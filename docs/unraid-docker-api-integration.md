@@ -19,7 +19,7 @@ Legacy runtime activation never waits for GraphQL discovery. Capability and aggr
 
 ## Capability matrix
 
-`scripts/runtime.transport.js` introspects field names, arguments, return types, deprecation state, Docker container fields, root mutations, nested Docker mutations, and subscriptions. Each supported operation has a capability record with:
+`scripts/runtime.transport.js` composes the transport child modules and introspects field names, arguments, return types, deprecation state, Docker container fields, root mutations, nested Docker mutations, and subscriptions. Request mechanics live in `runtime.transport.core.js`, subscription lifecycles in `runtime.transport.subscription.js`, and typed actions in `runtime.transport.docker-actions.js`. Each supported operation has a capability record with:
 
 - Availability.
 - Schema path.

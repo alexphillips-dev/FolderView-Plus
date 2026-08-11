@@ -15,7 +15,7 @@
       "scripts/vm.js": { "limit": 4010, "target": 750, "history": [4010] },
       "scripts/dashboard.js": { "limit": 3173, "target": 600, "history": [3173] },
       "server/lib.diagnostics.php": { "limit": 2923, "target": 300, "history": [2923] },
-      "scripts/folderviewplus.utils.js": { "limit": 2346, "target": 400, "history": [2346] },
+      "scripts/folderviewplus.utils.js": { "limit": 2054, "target": 400, "history": [2346, 2054] },
       "scripts/folderviewplus.activity-diagnostics.js": { "limit": 2336, "target": 500, "history": [2336] },
       "scripts/folder.editor.icons.js": { "limit": 2233, "target": 450, "history": [2233] },
       "scripts/docker.runtime.shared.js": { "limit": 1511, "target": 600, "history": [1511] },
@@ -26,7 +26,7 @@
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
       "scripts/folderviewplus.settings-workspaces.js": { "limit": 1101, "target": 500, "history": [1101] },
-      "scripts/runtime.transport.js": { "limit": 1060, "target": 500, "history": [1060] },
+      "scripts/runtime.transport.js": { "limit": 499, "target": 499, "history": [1060, 499] },
       "scripts/folderviewplus.bulk-assignment.js": { "limit": 1023, "target": 500, "history": [1023] },
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
       "scripts/docker.runtime.diagnostics.js": { "limit": 946, "target": 500, "history": [946] },
@@ -41,6 +41,10 @@
       "scripts/folderviewplus.request.js": { "limit": 757, "target": 600, "history": [757] },
       "scripts/folderviewplus.csp-events.js": { "limit": 300, "target": 240, "history": [300] },
       "scripts/folderviewplus.actions-support.js": { "limit": 255, "target": 200, "history": [255] },
+      "scripts/folderviewplus.utils-foundation.js": { "limit": 337, "target": 250, "history": [337] },
+      "scripts/runtime.transport.core.js": { "limit": 236, "target": 200, "history": [236] },
+      "scripts/runtime.transport.subscription.js": { "limit": 241, "target": 200, "history": [241] },
+      "scripts/runtime.transport.docker-actions.js": { "limit": 223, "target": 200, "history": [223] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
@@ -57,8 +61,8 @@
   "consumerScopes": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages", "server-endpoints"],
   "modulePolicy": {
     "legacyUncontractedBrowserScripts": {
-      "count": 98,
-      "sha256": "22d53706609e0098112b6b19567bc181a0bd1378189c3e9b15f90ad1a3fdc45a"
+      "count": 96,
+      "sha256": "4975b2b3196fbade0722248292307f24effa2c8499d4cd403f38ef11e1bb6643"
     },
     "legacyUncontractedServerPhp": {
       "count": 40,
@@ -159,6 +163,81 @@
   ],
   "serverModuleContracts": [],
   "moduleContracts": [
+    {
+      "file": "scripts/folderviewplus.utils-foundation.js",
+      "owner": "shared-utility-foundation",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
+      "stateModel": "singleton",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "utilityFoundation",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["bindEventOnce", "cloneJson", "createBatchedStorageWriter", "createFrameScheduler", "createIdleTaskQueue", "createSecureRuntimeId", "escapeHtml", "isPlainObject", "normalizeFolderId", "normalizeHexColor", "sanitizeImageSrc", "sanitizeImageUrl"]
+    },
+    {
+      "file": "scripts/folderviewplus.utils.js",
+      "owner": "shared-utility-facade",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js"],
+      "compatibilityGlobals": ["FolderViewPlusUtils"],
+      "global": "FolderViewPlusUtils",
+      "loader": "commonjs",
+      "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "bindEventOnce", "createFrameScheduler", "createIdleTaskQueue", "createBatchedStorageWriter", "createSecureRuntimeId", "escapeHtml", "sanitizeImageUrl", "sanitizeImageSrc", "normalizeFolderId", "normalizeFolderMap", "normalizeFolderMembers", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile", "normalizePrefs", "orderFoldersByPrefs", "getFolderStatusColors", "buildFullExportPayload", "buildSingleExportPayload", "parseImportPayload", "summarizeImport", "buildImportOperations", "buildImportDiffRows", "diffFolderFields", "ruleMatchesItem", "getAutoRuleDecision", "getAutoRuleMatches", "getAutoRuleFirstMatch", "getEffectiveFolderMembers", "planFolderRuntimeAction", "getFolderLabelValue", "getComposeProjectFromLabels", "isComposeManagedFromLabels", "getConflictReport"]
+    },
+    {
+      "file": "scripts/runtime.transport.core.js",
+      "owner": "runtime-transport-core",
+      "consumers": ["settings", "docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "transportCore",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createClient"]
+    },
+    {
+      "file": "scripts/runtime.transport.subscription.js",
+      "owner": "runtime-transport-subscriptions",
+      "consumers": ["settings", "docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/runtime.transport.core.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "transportSubscription",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createRuntime"]
+    },
+    {
+      "file": "scripts/runtime.transport.docker-actions.js",
+      "owner": "runtime-transport-docker-actions",
+      "consumers": ["settings", "docker", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/runtime.transport.core.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "transportDockerActions",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createRuntime"]
+    },
+    {
+      "file": "scripts/runtime.transport.js",
+      "owner": "runtime-transport-facade",
+      "consumers": ["settings", "docker", "vm", "dashboard"],
+      "stateModel": "singleton",
+      "dependsOn": ["scripts/runtime.transport.core.js", "scripts/runtime.transport.subscription.js", "scripts/runtime.transport.docker-actions.js"],
+      "compatibilityGlobals": ["FolderViewPlusRuntimeTransport"],
+      "global": "FolderViewPlusRuntimeTransport",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["GRAPHQL_ENDPOINT", "GRAPHQL_CAPABILITY_QUERY", "GRAPHQL_VERSION_QUERY", "DOCKER_MUTATION_OPERATIONS", "RuntimeTransportError", "query", "probeCapabilities", "getCapabilitySnapshot", "subscribe", "runDockerAction", "runDockerMutation", "capabilities", "diagnostics"]
+    },
     {
       "file": "scripts/folderviewplus.csp-events.js",
       "owner": "declarative-action-runtime",
@@ -331,7 +410,7 @@
   ],
   "browserGlobals": {
     "namespacePrefixes": ["FolderViewPlus", "FolderViewDocker", "FolderViewIconPickerRuntime", "FolderViewIconPicker"],
-    "multiOwnerGlobals": ["FolderViewPlusDockerCommandViewModuleLoaded", "FolderViewPlusDockerHostCompatibilityController", "FolderViewPlusDockerHostCompatibilityDecision", "FolderViewPlusEnsureAccentControlPlacement", "FolderViewPlusFatalRuntimeContext", "FolderViewPlusFolderEditorRuntimeBootStage", "FolderViewPlusFolderEditorRuntimeLastError", "FolderViewPlusFolderEditorRuntimeLoaded", "FolderViewPlusMemberIdentityDiagnostics", "FolderViewPlusRefreshModernEditorChromeLayout", "FolderViewPlusReportFolderEditorBootstrap", "FolderViewPlusRevealModernEditorStage"],
+    "multiOwnerGlobals": ["FolderViewPlusDockerCommandViewModuleLoaded", "FolderViewPlusDockerHostCompatibilityController", "FolderViewPlusDockerHostCompatibilityDecision", "FolderViewPlusEnsureAccentControlPlacement", "FolderViewPlusFatalRuntimeContext", "FolderViewPlusFolderEditorRuntimeBootStage", "FolderViewPlusFolderEditorRuntimeLastError", "FolderViewPlusFolderEditorRuntimeLoaded", "FolderViewPlusFoundationModules", "FolderViewPlusMemberIdentityDiagnostics", "FolderViewPlusRefreshModernEditorChromeLayout", "FolderViewPlusReportFolderEditorBootstrap", "FolderViewPlusRevealModernEditorStage"],
     "ambientFallbacks": ["CustomEvent", "EventSource", "IntersectionObserver", "WebSocket", "alert", "cancelAnimationFrame", "className", "fetch", "getComputedStyle", "hidden", "id", "innerHTML", "matchMedia", "name", "querySelectorAll", "requestAnimationFrame", "requestIdleCallback", "swal"],
     "hostCompatibilityGlobals": ["addDockerContainerContext", "addDockerFolderContext", "addVMContext", "addVMFolderContext", "ajaxVMDispatch", "ajaxVMDispatchconsole", "ajaxVMDispatchconsoleRV", "eventControl", "expandFolderDocker", "expandFolderVM", "folderi18n", "fvplusCpuCores", "listview", "listview_original", "loadlist", "loadlist_original", "openDocker", "openTerminal", "updateContainer"],
     "bridgeFiles": ["folderviewplus.activity-diagnostics.js", "folderviewplus.folder-editor.js", "folderviewplus.runtime-parity.js", "folderviewplus.settings-sections.js", "folderviewplus.setup-assistant.js", "folderviewplus.smart-detect-config.js", "folderviewplus.starter-templates.js"],

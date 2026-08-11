@@ -22,8 +22,14 @@ This document tracks the staged modularization of `docker.js` while preserving U
 - `scripts/docker.bootstrap.js`
   - Re-detects the fully parsed Docker host, prepares the selected provider, and loads the legacy runtime only after a complete legacy table contract is confirmed.
   - Keeps legacy CSS and custom Docker overrides disabled on native and unknown hosts.
+- `scripts/runtime.transport.core.js`
+  - Owns CSRF-aware GraphQL requests, normalized transport errors, stale/abort handling, and privacy-safe request diagnostics.
+- `scripts/runtime.transport.subscription.js`
+  - Owns WebSocket, server-sent-event, and polling subscription lifecycles with bounded reconnect and disposal.
+- `scripts/runtime.transport.docker-actions.js`
+  - Owns typed Docker lifecycle actions and capability-gated Docker mutations.
 - `scripts/runtime.transport.js`
-  - Owns CSRF-aware GraphQL requests, operation-signature capability detection, typed Docker actions and mutations, bounded subscription reconnect, stale/abort handling, and privacy-safe transport diagnostics.
+  - Preserves the public transport API and owns operation-signature capability detection while composing the request, subscription, and Docker-action modules.
 - `scripts/docker.runtime.shared.js`
   - `createRuntimeStateStore`: single source of truth for runtime UI state.
   - `createAsyncActionBoundary`: normalized async error handling and user-safe messaging.

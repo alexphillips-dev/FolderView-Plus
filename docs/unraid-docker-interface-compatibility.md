@@ -43,7 +43,7 @@ Legacy table hosts select the hybrid provider. It prefers GraphQL for schema-con
 
 ## GraphQL contract
 
-`scripts/runtime.transport.js` performs an availability and operation-signature capability probe before using Docker API operations. It supports both:
+`scripts/runtime.transport.js` performs an availability and operation-signature capability probe before using Docker API operations, then delegates requests, subscriptions, and typed actions to its focused transport child modules. It supports both:
 
 - Current schema shape: `docker { containers { ... } }`
 - Previously documented shape: `dockerContainers { ... }`

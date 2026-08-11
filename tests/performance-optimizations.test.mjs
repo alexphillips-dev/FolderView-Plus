@@ -89,9 +89,9 @@ const settingsImportJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
 );
-const utilsJsPath = path.join(
+const utilsFoundationJsPath = path.join(
     repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js'
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js'
 );
 const settingsPagePath = path.join(
     repoRoot,
@@ -113,12 +113,12 @@ const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const runtimeSharedJs = fs.readFileSync(runtimeSharedJsPath, 'utf8');
+const utilsFoundationJs = fs.readFileSync(utilsFoundationJsPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
 const folderEditorTypeDockerJs = fs.readFileSync(folderEditorTypeDockerJsPath, 'utf8');
 const folderEditorTypeVmJs = fs.readFileSync(folderEditorTypeVmJsPath, 'utf8');
-const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
@@ -487,7 +487,7 @@ test('import apply uses one atomic batch and performance diagnostics stay intern
 });
 
 test('settings/runtime scripts use batched localStorage writes', () => {
-    assert.match(utilsJs, /const createBatchedStorageWriter = \(storageRef = null,\s*options = \{\}\) =>/);
+    assert.match(utilsFoundationJs, /const createBatchedStorageWriter = \(storageRef = null,\s*options = \{\}\) =>/);
     assert.match(dockerJs, /const dockerStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
     assert.match(vmJs, /const vmStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
     assert.match(dashboardJs, /const dashboardStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);

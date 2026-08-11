@@ -311,7 +311,7 @@
                         <img id="fvHeroIcon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
                     </div>
                     <div class="fv-editor-hero-copy">
-                        <span class="fv-editor-kicker" style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">Folder editor</span>
+                        <span class="fv-editor-kicker" data-fvplus-style="fv-u-1g8734m">Folder editor</span>
                         <h2 id="fvHeroTitle">Configure folder</h2>
                         <p id="fvHeroSubtitle">A fully grouped folder editor with tabbed sections, live preview, and a dedicated action bar.</p>
                         <div class="fv-hero-meta">
@@ -394,10 +394,10 @@
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
-                            <span id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent</em><i id="fvSwatchAccent"></i></span>
+                            <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                     </div>
-                    <div id="fvDockerSignalsShell" class="fv-live-chip-panel" style="display:none;">
+                    <div id="fvDockerSignalsShell" class="fv-live-chip-panel" data-fvplus-style="fv-u-xcjvns">
                         <div class="fv-live-chip-panel-head">Docker signals</div>
                         <div id="fvDockerSignals" class="fv-docker-signals">
                         <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: loading…</span>
@@ -414,7 +414,7 @@
                         <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
                             <i class="fa ${meta.icon}" aria-hidden="true"></i>
                             <span>${meta.title}</span>
-                            <em class="fv-nav-count" style="display:none;"></em>
+                            <em class="fv-nav-count" data-fvplus-style="fv-u-xcjvns"></em>
                         </button>
                     `).join('')}
                 </div>
@@ -685,7 +685,7 @@
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
                                     <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
                                 </div>
-                                <h3 style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                                <h3 data-fvplus-style="fv-u-1g8734m">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>
                             </div>
                             <div class="fv-section-heading-tools">

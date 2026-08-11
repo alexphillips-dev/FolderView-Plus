@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
+const pageBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
@@ -85,9 +86,10 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(commandViewCssIndex >= 0, 'docker command-view stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
     assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/docker.member-menu.js'), false, 'docker member menu script include should be removed');
-    assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
-    assert.match(dockerPage, /page:\s*'Docker'/);
-    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host,\s*\.canvas'/);
+    assert.match(dockerPage, /emitJsonBootstrapMeta\('fvplus-runtime-context'/);
+    assert.match(dockerPage, /'page'\s*=>\s*'Docker'/);
+    assert.match(dockerPage, /'hostSelector'\s*=>\s*'#fvplus-docker-runtime-banner-host, \.canvas'/);
+    assert.match(pageBootstrapJs, /FolderViewPlusFatalRuntimeContext/);
     assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
     assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before docker.js');

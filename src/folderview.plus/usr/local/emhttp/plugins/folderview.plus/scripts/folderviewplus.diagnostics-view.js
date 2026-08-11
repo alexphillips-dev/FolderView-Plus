@@ -114,7 +114,7 @@
                             <dt>${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}</dt>
                             <dd>${escapeHtml(`${metrics.coreHealthy} / ${metrics.coreTotal}`)}</dd>
                             <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small></dd>
-                            <dd class="fv-diagnostics-core-progress-wrap"><span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span style="width: ${corePercent}%"></span></span></dd>
+                            <dd class="fv-diagnostics-core-progress-wrap"><span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span data-fv-progress-percent="${corePercent}"></span></span></dd>
                         </div>
                     </dl>
                 </section>
@@ -194,6 +194,11 @@
                 ${buildFindings(model)}
                 ${buildSection('fv-diagnostics-system-title', translate('diagnostics.sections.system', 'System health'), model.coreCards)}
             `;
+            const progressFill = host.querySelector('[data-fv-progress-percent]');
+            if (progressFill && typeof progressFill.style?.setProperty === 'function') {
+                const percent = Math.max(0, Math.min(100, Number(progressFill.dataset.fvProgressPercent) || 0));
+                progressFill.style.setProperty('--fv-diagnostics-progress-percent', `${percent}%`);
+            }
         };
 
         return Object.freeze({ render, buildCard, buildHero, buildFindings, buildSection });

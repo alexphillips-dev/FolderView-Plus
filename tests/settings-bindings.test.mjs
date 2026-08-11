@@ -13,6 +13,10 @@ const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhtt
 const settingsChromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js');
 
 const page = fs.readFileSync(pagePath, 'utf8');
+const settingsWatchdog = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js'),
+    'utf8'
+);
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.view-settings.js',
@@ -378,16 +382,17 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
 });
 
 test('settings blank watchdog reports silent startup failures with diagnostics', () => {
-    assert.match(page, /FolderViewPlusSettingsBlankWatchdogInstalled/);
-    assert.match(page, /FolderViewPlusSettingsBootstrapState/);
-    assert.match(page, /FolderViewPlusMarkSettingsBootstrapState/);
-    assert.match(page, /FVPLUS-SET-BLANK-001/);
-    assert.match(page, /Settings page rendered no visible FolderView Plus content before bootstrap completed\./);
-    assert.match(page, /visibleSections=/);
-    assert.match(page, /hiddenSections=/);
-    assert.match(page, /wizardOverlayVisible=/);
-    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-early'\), 3500\);/);
-    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-late'\), 8500\);/);
+    assert.match(page, /folderviewplus\.settings-watchdog\.js/);
+    assert.match(settingsWatchdog, /FolderViewPlusSettingsBlankWatchdogInstalled/);
+    assert.match(settingsWatchdog, /FolderViewPlusSettingsBootstrapState/);
+    assert.match(settingsWatchdog, /FolderViewPlusMarkSettingsBootstrapState/);
+    assert.match(settingsWatchdog, /FVPLUS-SET-BLANK-001/);
+    assert.match(settingsWatchdog, /Settings page rendered no visible FolderView Plus content before bootstrap completed\./);
+    assert.match(settingsWatchdog, /visibleSections=/);
+    assert.match(settingsWatchdog, /hiddenSections=/);
+    assert.match(settingsWatchdog, /wizardOverlayVisible=/);
+    assert.match(settingsWatchdog, /win\.setTimeout\(\(\) => runCheck\('watchdog-early'\), 3500\);/);
+    assert.match(settingsWatchdog, /win\.setTimeout\(\(\) => runCheck\('watchdog-late'\), 8500\);/);
     assert.match(script, /const markSettingsBootstrapState = \(patch = \{\}\) => \{/);
     assert.match(script, /FolderViewPlusMarkSettingsBootstrapState\(cleanPatch\)/);
     assert.match(script, /runtimeLoaded:\s*true/);

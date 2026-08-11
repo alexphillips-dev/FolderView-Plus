@@ -120,7 +120,7 @@ const registeredActions = new Set();
 
 for (const [file, source] of sources) {
     const names = new Set();
-    for (const match of source.matchAll(/\b(?:root|window|globalThis)\.([A-Za-z_$][\w$]*)\s*=/g)) names.add(match[1]);
+    for (const match of source.matchAll(/\b(?:root|window|globalThis)\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)) names.add(match[1]);
     for (const match of source.matchAll(/Object\.assign\(window,\s*\{([\s\S]*?)\}\);/g)) {
         for (const entry of match[1].matchAll(/^\s*([A-Za-z_$][\w$]*)\s*(?::|,)/gm)) names.add(entry[1]);
     }

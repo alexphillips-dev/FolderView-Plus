@@ -14,6 +14,7 @@ const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plu
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const hostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+const runtimePreflightBootstrap = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.preflight-bootstrap.js');
 
 test('server lib safely loads host dependencies and exposes runtime preflight helpers', () => {
     assert.match(libPhp, /function fvplus_safe_require_once\(string \$key, string \$path\): bool/);
@@ -36,13 +37,15 @@ test('server lib safely loads host dependencies and exposes runtime preflight he
 test('docker and vm pages seed runtime preflight into the fatal-banner context and stop on fatal preflight', () => {
     assert.match(dockerPage, /\$fvplusRuntimePreflight = collectRuntimePreflight\(\$type\);/);
     assert.match(dockerPage, /\$fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal\(\$fvplusRuntimePreflight\);/);
-    assert.match(dockerPage, /preflight:\s*<\?=json_encode\(\$fvplusRuntimePreflight,\s*JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\)\?>/);
+    assert.match(libPhp, /emitJsonBootstrapMeta\('fvplus-runtime-preflight'/);
+    assert.match(libPhp, /scripts\/runtime\.preflight-bootstrap\.js/);
+    assert.match(runtimePreflightBootstrap, /runtimeContext\.preflight = \{ issues \};/);
     assert.match(dockerPage, /emitRuntimePreflightBannerBootstrap\(\$fvplusRuntimePreflight,\s*'Docker'\);/);
     assert.match(dockerPage, /if \(\$fvplusRuntimePreflightHasFatal\) \{ return; \}/);
 
     assert.match(vmPage, /\$fvplusRuntimePreflight = collectRuntimePreflight\(\$type\);/);
     assert.match(vmPage, /\$fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal\(\$fvplusRuntimePreflight\);/);
-    assert.match(vmPage, /preflight:\s*<\?=json_encode\(\$fvplusRuntimePreflight,\s*JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\)\?>/);
+    assert.match(runtimePreflightBootstrap, /querySelector\?\.\('meta\[name="fvplus-runtime-preflight"\]'\)/);
     assert.match(vmPage, /emitRuntimePreflightBannerBootstrap\(\$fvplusRuntimePreflight,\s*'VMs'\);/);
     assert.match(vmPage, /if \(\$fvplusRuntimePreflightHasFatal\) \{ return; \}/);
 });

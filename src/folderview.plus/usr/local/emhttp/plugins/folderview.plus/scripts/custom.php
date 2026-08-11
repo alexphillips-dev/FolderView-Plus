@@ -1,6 +1,7 @@
 <?php
     require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
     echo '<script src="' . fvplus_asset_url('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js') . '"></script>';
+    echo '<script src="' . fvplus_asset_url('/plugins/folderview.plus/scripts/folderviewplus.safe-dom.js') . '"></script>';
     $conditionalDockerLegacyAssets = !empty($fvplusDockerLegacyConditionalAssets);
     $conditionalScriptUrls = [];
     $seen = [];
@@ -34,28 +35,9 @@
         }
     }
     if ($conditionalDockerLegacyAssets) {
-        echo '<script>'
-            . 'let fvplusDockerCustomScriptsPromise = null;'
-            . 'window.FolderViewPlusDockerLoadCustomScripts = () => {'
-            . 'if (fvplusDockerCustomScriptsPromise) { return fvplusDockerCustomScriptsPromise; }'
-            . 'fvplusDockerCustomScriptsPromise = (async () => {'
-            . 'const sources = '
-            . json_encode($conditionalScriptUrls, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
-            . ';'
-            . 'for (const src of sources) {'
-            . 'await new Promise((resolve, reject) => {'
-            . 'const script = document.createElement("script");'
-            . 'script.src = src;'
-            . 'script.async = false;'
-            . 'script.dataset.fvplusDockerLegacyCustom = "true";'
-            . 'script.onload = resolve;'
-            . 'script.onerror = () => reject(new Error("A Docker custom script could not be loaded."));'
-            . '(document.head || document.documentElement).appendChild(script);'
-            . '});'
-            . '}'
-            . '})();'
-            . 'return fvplusDockerCustomScriptsPromise;'
-            . '};'
-            . '</script>';
+        emitJsonBootstrapMeta('fvplus-docker-custom-scripts', $conditionalScriptUrls);
+        echo '<script src="'
+            . htmlspecialchars(fvplus_asset_url('/plugins/folderview.plus/scripts/runtime.custom-script-loader.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '"></script>';
     }
 ?>

@@ -117,7 +117,7 @@ test('diagnostics renderer provides SVG metric and card icons with a complete co
     assert.match(hero, /data-fv-icon="package"/);
     assert.match(hero, /role="progressbar"/);
     assert.match(hero, /aria-valuenow="6"/);
-    assert.match(hero, /style="width: 100%"/);
+    assert.match(hero, /data-fv-progress-percent="100"/);
     assert.match(card, /fv-diagnostics-health-card-icon is-docker/);
     assert.match(card, /data-fv-icon="boxes"/);
 });
@@ -141,7 +141,8 @@ test('diagnostics renderer omits healthy advisory and optional cards from the wo
     });
     const host = {
         innerHTML: '',
-        setAttribute() {}
+        setAttribute() {},
+        querySelector() { return null; }
     };
 
     view.render(host, model);

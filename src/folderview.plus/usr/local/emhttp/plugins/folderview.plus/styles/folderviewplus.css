@@ -1555,6 +1555,14 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     position: relative;
 }
 
+.fv-folder-depth-0 { --fv-folder-depth: 0; }
+.fv-folder-depth-1 { --fv-folder-depth: 1; }
+.fv-folder-depth-2 { --fv-folder-depth: 2; }
+.fv-folder-depth-3 { --fv-folder-depth: 3; }
+.fv-folder-depth-4 { --fv-folder-depth: 4; }
+.fv-folder-depth-5 { --fv-folder-depth: 5; }
+.fv-folder-depth-6 { --fv-folder-depth: 6; }
+
 .folder-tree-toggle,
 .folder-tree-toggle-spacer {
     width: 14px;
@@ -7101,6 +7109,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-core-progress > span {
     display: block;
+    width: var(--fv-diagnostics-progress-percent, 0%);
     height: 100%;
     border-radius: inherit;
     background: var(--fvplus-settings-chip-info);
@@ -12597,7 +12606,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-setup-progress-track > span {
     display: block;
     height: 100%;
-    width: 0%;
+    width: var(--fv-setup-progress-percent, 0%);
     border-radius: 999px;
     background: linear-gradient(90deg, var(--fv-wizard-progress-fill-start) 0%, var(--fv-wizard-progress-fill-end) 100%);
     transition: width 130ms ease;

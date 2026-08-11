@@ -512,35 +512,43 @@
         $scope = trim($surfaceLabel) !== ''
             ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             : 'this page';
-        echo '<div class="fv-runtime-conflict-banner" data-conflict-key="' . $conflictKey . '" data-conflict-plugins="' . $pluginData . '" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid var(--orange, #f0a30a);background:transparent;color:var(--text, currentColor);border-radius:10px;line-height:1.5;">';
-        echo '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-        echo '<i class="fa fa-exclamation-triangle" aria-hidden="true" style="font-size:1.2rem;color:var(--orange, #f0a30a);"></i>';
-        echo '<div style="font-size:1.34rem;font-weight:800;line-height:1.1;letter-spacing:0.01em;color:var(--orange, #f0a30a);">Safe mode active</div>';
+        echo '<link rel="stylesheet" href="'
+            . htmlspecialchars(fvplus_asset_url('/plugins/folderview.plus/styles/runtime.shared.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '">';
+        echo '<div class="fv-runtime-conflict-banner" data-conflict-key="' . $conflictKey . '" data-conflict-plugins="' . $pluginData . '">';
+        echo '<div class="fv-runtime-conflict-heading">';
+        echo '<i class="fa fa-exclamation-triangle fv-runtime-conflict-icon" aria-hidden="true"></i>';
+        echo '<div class="fv-runtime-conflict-title">Safe mode active</div>';
         echo '</div>';
         if ($isSettingsSurface) {
-            echo '<div style="margin-bottom:8px;">Runtime injection is paused because another Folder View plugin is installed. ';
+            echo '<div class="fv-runtime-conflict-copy">Runtime injection is paused because another Folder View plugin is installed. ';
             echo 'You can still review settings here, but Docker/VM/Dashboard folder rendering is disabled until the conflict is removed.</div>';
         } else {
-            echo '<div style="margin-bottom:8px;">Folder rendering is paused on <strong>' . $scope . '</strong> to prevent runtime conflicts.</div>';
+            echo '<div class="fv-runtime-conflict-copy">Folder rendering is paused on <strong>' . $scope . '</strong> to prevent runtime conflicts.</div>';
         }
-        echo '<div style="margin-bottom:8px;">Detected conflicting runtime plugin(s): <strong>' . $pluginText . '</strong>.</div>';
-        echo '<div style="margin-bottom:8px;">Keep <strong>FolderView Plus</strong> installed. Remove only the conflicting plugin listed above.</div>';
-        echo '<div style="font-weight:700;font-size:1.08rem;margin-bottom:4px;">How to fix</div>';
-        echo '<ol style="margin:0 0 10px 20px;padding:0;">';
+        echo '<div class="fv-runtime-conflict-copy">Detected conflicting runtime plugin(s): <strong>' . $pluginText . '</strong>.</div>';
+        echo '<div class="fv-runtime-conflict-copy">Keep <strong>FolderView Plus</strong> installed. Remove only the conflicting plugin listed above.</div>';
+        echo '<div class="fv-runtime-conflict-subtitle">How to fix</div>';
+        echo '<ol class="fv-runtime-conflict-steps">';
         echo '<li>Open <strong>Plugins</strong>.</li>';
         echo '<li>Remove: <strong>' . $pluginText . '</strong>.</li>';
         echo '<li>Refresh this page to re-enable FolderView Plus.</li>';
         echo '</ol>';
-        echo '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
-        echo '<button type="button" class="btn" data-fv-onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
-        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;align-self:center;line-height:1.2;margin:0;white-space:nowrap;">Support Thread</a>';
+        echo '<div class="fv-runtime-conflict-actions">';
+        echo '<button type="button" class="btn fv-runtime-conflict-button" data-fv-onclick="window.location.href=\'/Plugins\'">Open Plugins</button>';
+        echo '<a class="fv-runtime-conflict-support" href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer">Support Thread</a>';
         echo '</div>';
         echo '</div>';
         $conflictStorageKey = trim((string)$conflictKeyRaw);
         if ($conflictStorageKey === '') {
             $conflictStorageKey = 'runtime-conflict';
         }
-        echo '<script>(function(){try{localStorage.setItem(\'fv.runtimeConflict.active.v1\',' . json_encode($conflictStorageKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ');localStorage.removeItem(\'fv.runtimeConflict.resolvedPending.v1\');}catch(_fvErr){}})();</script>';
+        echo '<meta name="fvplus-runtime-conflict" content="'
+            . htmlspecialchars($conflictStorageKey, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '">';
+        echo '<script src="'
+            . htmlspecialchars(fvplus_asset_url('/plugins/folderview.plus/scripts/runtime.conflict-bootstrap.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '"></script>';
     }
 
     function ensureType(string $type): string {
@@ -905,32 +913,35 @@
         echo '<meta http-equiv="Expires" content="0">' . "\n";
     }
 
+    function emitJsonBootstrapMeta(string $name, $value, array $attributes = []): void {
+        $safeName = preg_replace('/[^A-Za-z0-9._:-]/', '', trim($name));
+        if (!is_string($safeName) || $safeName === '') {
+            return;
+        }
+        $encoded = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        if (!is_string($encoded)) {
+            return;
+        }
+        echo '<meta name="' . htmlspecialchars($safeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
+        foreach ($attributes as $attribute => $attributeValue) {
+            $safeAttribute = preg_replace('/[^A-Za-z0-9._:-]/', '', trim((string)$attribute));
+            if (!is_string($safeAttribute) || $safeAttribute === '') {
+                continue;
+            }
+            echo ' ' . $safeAttribute . '="' . htmlspecialchars((string)$attributeValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
+        }
+        echo ' content="' . htmlspecialchars($encoded, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">' . "\n";
+    }
+
     function emitPluginPageVersionSentinelScript(string $pageKey): void {
         $safePageKey = trim($pageKey);
         if ($safePageKey === '') {
             $safePageKey = 'page';
         }
-        $version = readInstalledVersion();
-        echo '<script>(function(){try{' .
-            'const win=window;' .
-            'if(!win||!win.sessionStorage){return;}' .
-            'const currentVersion=' . json_encode($version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
-            'const pageKey=' . json_encode($safePageKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
-            'const path=String(win.location&&win.location.pathname||pageKey);' .
-            'const storageKey=`fvplus.page-version:${pageKey}:${path}`;' .
-            'const reloadKey=`${storageKey}:reloaded`; ' .
-            'const previousVersion=String(win.sessionStorage.getItem(storageKey)||"").trim();' .
-            'const lastReloadedVersion=String(win.sessionStorage.getItem(reloadKey)||"").trim();' .
-            'win.sessionStorage.setItem(storageKey,currentVersion);' .
-            'if(previousVersion&&previousVersion!==currentVersion&&lastReloadedVersion!==currentVersion){' .
-                'win.sessionStorage.setItem(reloadKey,currentVersion);' .
-                'win.location.reload();' .
-                'return;' .
-            '}' .
-            'if(previousVersion===currentVersion&&lastReloadedVersion===currentVersion){' .
-                'win.sessionStorage.removeItem(reloadKey);' .
-            '}' .
-        '}catch(_error){}})();</script>' . "\n";
+        emitJsonBootstrapMeta('fvplus-page-version', [
+            'pageKey' => $safePageKey,
+            'version' => readInstalledVersion()
+        ]);
     }
 
     function emitRuntimePreflightBannerBootstrap(array $preflight, string $contextLabel = 'Runtime'): void {
@@ -938,60 +949,13 @@
         if (count($issues) === 0) {
             return;
         }
-        $encodedIssues = json_encode($issues, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $encodedContext = json_encode(trim($contextLabel) !== '' ? trim($contextLabel) : 'Runtime', JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if (!is_string($encodedIssues) || !is_string($encodedContext)) {
-            return;
-        }
-        echo '<script>(function(){try{' .
-            'const win=window;' .
-            'const banner=win.FolderViewPlusFatalBanner||null;' .
-            'const issues=' . $encodedIssues . ';' .
-            'const context=' . $encodedContext . ';' .
-            'if(!Array.isArray(issues)||issues.length===0){return;}' .
-            'const runtimeContext=(win.FolderViewPlusFatalRuntimeContext&&typeof win.FolderViewPlusFatalRuntimeContext==="object")?win.FolderViewPlusFatalRuntimeContext:{};' .
-            'runtimeContext.preflight={issues:issues};' .
-            'win.FolderViewPlusFatalRuntimeContext=runtimeContext;' .
-            'if(!banner){return;}' .
-            'if(typeof banner.setPhase==="function"){banner.setPhase("server-preflight");}' .
-            'if(typeof banner.recordAction==="function"){banner.recordAction(context+" runtime preflight reported diagnostics");}' .
-            'const fatalIssue=issues.find((issue)=>String(issue&&issue.severity||"").toLowerCase()==="fatal")||null;' .
-            'if(fatalIssue){' .
-                'const error=new Error(String(fatalIssue.message||fatalIssue.title||context+" runtime preflight failed"));' .
-                'error.fvplusBannerShown=true;' .
-                'banner.reportFatalError(error,{' .
-                    'context:context,' .
-                    'title:String(fatalIssue.title||context+" runtime preflight failed"),' .
-                    'message:String(fatalIssue.message||"FolderView Plus detected a fatal environment issue before the runtime could start."),' .
-                    'code:String(fatalIssue.code||"FVPLUS-RUN-ENV-001"),' .
-                    'phase:"server-preflight",' .
-                    'category:String(fatalIssue.category||"environment"),' .
-                    'detailLabel:"Diagnostics",' .
-                    'details:Array.isArray(fatalIssue.details)?fatalIssue.details:[]' .
-                '});' .
-                'return;' .
-            '}' .
-            'const details=[];' .
-            'issues.forEach((issue)=>{' .
-                'const title=String(issue&&issue.title||"Notice").trim();' .
-                'if(title){details.push(title);}' .
-                'const lines=Array.isArray(issue&&issue.details)?issue.details:[];' .
-                'lines.forEach((line)=>{' .
-                    'const normalized=String(line||"").trim();' .
-                    'if(normalized){details.push(normalized);}' .
-                '});' .
-            '});' .
-            'banner.reportDegradedState("Preflight warnings detected",{' .
-                'context:context,' .
-                'title:context+" troubleshooting notice",' .
-                'message:"FolderView Plus detected page conditions that may affect runtime behavior or supportability.",' .
-                'code:"FVPLUS-RUN-ENV-002",' .
-                'phase:"server-preflight",' .
-                'category:"environment-warning",' .
-                'detailLabel:"Checks to review",' .
-                'details:details' .
-            '});' .
-        '}catch(_error){}})();</script>' . "\n";
+        emitJsonBootstrapMeta('fvplus-runtime-preflight', [
+            'issues' => $issues,
+            'context' => trim($contextLabel) !== '' ? trim($contextLabel) : 'Runtime'
+        ]);
+        echo '<script src="'
+            . htmlspecialchars(fvplus_asset_url('/plugins/folderview.plus/scripts/runtime.preflight-bootstrap.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '"></script>' . "\n";
     }
 
     function validateOptionalRequestToken(): bool {

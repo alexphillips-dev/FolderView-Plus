@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
+const settingsWatchdogJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js');
 const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
@@ -40,7 +41,8 @@ test('settings first paint is cloaked until config-only folder data is ready', (
 });
 
 test('settings loading shell avoids false blank alarms and bootstrap request storms', () => {
-    assert.match(settingsPage, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
+    assert.match(settingsPage, /folderviewplus\.settings-watchdog\.js/);
+    assert.match(settingsWatchdogJs, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
     assert.match(settingsJs, /configureThemeResolverRuntimeApi\(\{\s*getMode: getEffectiveThemeCompatibilityMode,[\s\S]*trackEvent: null/);
     assert.doesNotMatch(settingsJs, /eventType: 'theme_reflow'/);
     const initializeBlock = diagnosticsJs.match(/const initializeClientDiagnosticsPanels = \(\) => \{[\s\S]*?\n\};/)?.[0] || '';

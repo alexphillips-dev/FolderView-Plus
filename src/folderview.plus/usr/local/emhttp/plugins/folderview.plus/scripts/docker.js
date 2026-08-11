@@ -1129,7 +1129,7 @@ const buildDockerPortMappingsHtml = (ports = []) => {
     if (entries.length > 10) {
         const allLines = lines.join('<br>');
         const previewLines = lines.slice(0, 10).join('<br>');
-        return `<span class="info-ports-more" style="display: none;">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-less">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-more">${$.i18n('expand')}</a></span>`;
+        return `<span class="info-ports-more" data-fvplus-style="fv-u-569beu">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-less">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-more">${$.i18n('expand')}</a></span>`;
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
 };
@@ -1192,7 +1192,7 @@ const buildDockerBindMountMappingsHtml = (mounts = []) => {
     if (entries.length > 10) {
         const allLines = lines.join('<br>');
         const previewLines = lines.slice(0, 10).join('<br>');
-        return `<span class="info-volumes-more" style="display: none;">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-less">${$.i18n('compress')}</a></span><span class="info-volumes-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-more">${$.i18n('expand')}</a></span>`;
+        return `<span class="info-volumes-more" data-fvplus-style="fv-u-569beu">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-less">${$.i18n('compress')}</a></span><span class="info-volumes-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-more">${$.i18n('expand')}</a></span>`;
     }
     return `<span class="info-volumes-mono">${lines.join('<br>')}</span>`;
 };
@@ -1320,7 +1320,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const shouldHidePreviewStatus = previewStatusMode === 'none';
     const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';
     const shouldGrayscaleByStatus = previewMode === 2 && previewStatusMode === 'grayscale' && entry?.state !== true;
-    const imageStyle = settings?.preview_grayscale || shouldGrayscaleByStatus ? ' style="filter: grayscale(100%);"' : '';
+    const imageStyle = settings?.preview_grayscale || shouldGrayscaleByStatus ? ' data-fvplus-style="fv-u-1opeemm"' : '';
     const onlyIconStatusMarkup = shouldShowOnlyIconStatus
         ? `<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${stateLabel}</span></span>`
         : '';
@@ -1335,7 +1335,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>`;
     const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text fv-preview-update-ready' : '';
     const textWidth = String(settings?.preview_text_width || '').trim();
-    const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
+    const textWidthData = textWidth ? ` data-fv-preview-text-width="${escapeHtml(textWidth)}"` : '';
     const autostartClass = autostart ? ' autostart' : '';
     let itemMarkup = '';
     let triggerSelector;
@@ -1356,7 +1356,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode} fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
-                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="appname${updateClass}"${textWidthData}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
                             ${compactStatusMarkup}
                             <span class="fv-preview-actions-compact"></span>
@@ -1372,7 +1372,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
-                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="appname${updateClass}"${textWidthData}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
                             ${compactStatusMarkup}
                             <span class="fv-preview-actions-compact"></span>
@@ -1406,7 +1406,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
+                        <span class="appname${updateClass}"${textWidthData}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -1416,7 +1416,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
+                        <span class="appname${updateClass}"${textWidthData}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -1428,7 +1428,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-1${autostartClass}">
                     <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
+                        <span class="appname${updateClass}"${textWidthData}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -2527,8 +2527,8 @@ const buildDockerTooltipContent = (ct) => {
                 <thead class="status-header"><tr><th class="status-header-version">${$.i18n('version')}</th><th class="status-header-stats">CPU/MEM</th><th class="status-header-autostart">${$.i18n('autostart')}</th></tr></thead>
                 <tbody><tr>
                     <td><div class="status-version">${tooltipUpdateHtml}<br><i class="fa fa-info-circle fa-fw"></i> ${safeImageVersion}</div></td>
-                    <td><div class="status-stats"><span class="cpu-${safeShortId}">0%</span><div class="usage-disk mm"><span id="cpu-${safeShortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${safeShortId}">0 / 0</span></div></td>
-                    <td><div class="status-autostart"><input type="checkbox" style="display:none" class="staus-autostart-checkbox"></div></td>
+                    <td><div class="status-stats"><span class="cpu-${safeShortId}">0%</span><div class="usage-disk mm"><span id="cpu-${safeShortId}" data-fvplus-style="fv-u-u73jk7"></span><span></span></div><br><span class="mem-${safeShortId}">0 / 0</span></div></td>
+                    <td><div class="status-autostart"><input type="checkbox" data-fvplus-style="fv-u-uydnfn" class="staus-autostart-checkbox"></div></td>
                 </tr></tbody>
             </table>
         </div>
@@ -2575,11 +2575,11 @@ const buildDockerTooltipContent = (ct) => {
                     <li><a class="tabs-ports localURL" href="#info-ports-${safeShortId}">${$.i18n('port-mappings')}</a></li>
                     <li><a class="tabs-volumes localURL" href="#info-volumes-${safeShortId}">${$.i18n('volume-mappings')}</a></li>
                 </ul>
-                <div class="comb-grapth-${safeShortId} comb-stat-grapth" id="comb-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
-                <div class="cpu-grapth-${safeShortId} cpu-stat-grapth" id="cpu-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
-                <div class="mem-grapth-${safeShortId} mem-stat-grapth" id="mem-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
-                <div class="info-ports" id="info-ports-${safeShortId}" style="display: none;">${buildDockerPortMappingsHtml(runtimeEntry.info.Ports)}</div>
-                <div class="info-volumes" id="info-volumes-${safeShortId}" style="display: none;">${buildDockerBindMountMappingsHtml(runtimeEntry.Mounts)}</div>
+                <div class="comb-grapth-${safeShortId} comb-stat-grapth" id="comb-grapth-${safeShortId}" data-fvplus-style="fv-u-569beu"><canvas></canvas></div>
+                <div class="cpu-grapth-${safeShortId} cpu-stat-grapth" id="cpu-grapth-${safeShortId}" data-fvplus-style="fv-u-569beu"><canvas></canvas></div>
+                <div class="mem-grapth-${safeShortId} mem-stat-grapth" id="mem-grapth-${safeShortId}" data-fvplus-style="fv-u-569beu"><canvas></canvas></div>
+                <div class="info-ports" id="info-ports-${safeShortId}" data-fvplus-style="fv-u-569beu">${buildDockerPortMappingsHtml(runtimeEntry.info.Ports)}</div>
+                <div class="info-volumes" id="info-volumes-${safeShortId}" data-fvplus-style="fv-u-569beu">${buildDockerBindMountMappingsHtml(runtimeEntry.Mounts)}</div>
             </div>
             </div>
         </div>
@@ -5948,7 +5948,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
     const pinnedIndicator = pinned ? buildDockerFolderPinnedIndicatorHtml() : '';
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const advancedVisibleClass = advanced ? ' fv-advanced-visible' : '';
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" data-fvplus-style="fv-u-569beu"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced${advancedVisibleClass}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced${advancedVisibleClass}"><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" data-fvplus-style="fv-u-sfjn3c"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" data-fvplus-style="fv-u-uydnfn"><div data-fvplus-style="fv-u-1gl0zeh"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {

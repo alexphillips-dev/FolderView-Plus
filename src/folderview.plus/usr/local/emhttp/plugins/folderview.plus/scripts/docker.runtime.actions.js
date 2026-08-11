@@ -618,55 +618,47 @@
             }, []);
 
         const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
-            const popupTextColor = 'var(--fvplus-runtime-menu-fg, var(--fvplus-theme-foreground, currentColor))';
-            const popupMutedColor = 'var(--fvplus-runtime-menu-muted, var(--fvplus-runtime-menu-fg, currentColor))';
-            const popupPanelBorder = 'var(--fvplus-runtime-menu-divider, var(--fvplus-runtime-menu-border, currentColor))';
-            const popupPanelBg = 'var(--fvplus-runtime-menu-header-bg, transparent)';
-            const popupLinkColor = 'var(--link, var(--fvplus-status-started, var(--fvplus-runtime-menu-fg, currentColor)))';
-            const popupOpenedColor = 'var(--fvplus-status-started, var(--fvplus-runtime-menu-fg, currentColor))';
-            const popupBlockedColor = 'var(--orange, var(--fvplus-runtime-menu-fg, currentColor))';
-            const popupTotalColor = 'var(--fvplus-runtime-menu-fg, currentColor)';
             const blockedList = Array.isArray(blockedUrls) ? blockedUrls.slice(0, 6) : [];
             const linkHtml = blockedList
-                .map((url) => `<li style="margin:0 0 8px; line-height:1.35;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:${popupLinkColor}; text-decoration:none;">${escapeHtml(url)}</a></li>`)
+                .map((url) => `<li data-fvplus-style="fv-u-1hp70hq"><a class="fv-popup-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`)
                 .join('');
             const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
             const overflowHint = overflowCount > 0
-                ? `<div style="margin-top:2px; opacity:.75;">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'} not shown</div>`
+                ? `<div data-fvplus-style="fv-u-hogw00">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'} not shown</div>`
                 : '';
             const host = escapeHtml(String(win?.location?.host || '').trim() || 'this Unraid server');
             const blockedCount = Math.max(0, totalCount - openedCount);
             const popupBody = [
-                `<div style="text-align:left; max-width:640px; margin:0 auto; color:${popupTextColor};">`,
-                `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0 12px;">`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupOpenedColor}; background:${popupPanelBg}; color:${popupOpenedColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Opened ${openedCount}</span>`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupBlockedColor}; background:${popupPanelBg}; color:${popupBlockedColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Blocked ${blockedCount}</span>`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; color:${popupTotalColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Total ${totalCount}</span>`,
+                `<div class="fv-popup-guide">`,
+                `<div data-fvplus-style="fv-u-3n5irl">`,
+                `<span class="fv-popup-count is-opened">Opened ${openedCount}</span>`,
+                `<span class="fv-popup-count is-blocked">Blocked ${blockedCount}</span>`,
+                `<span class="fv-popup-count is-total">Total ${totalCount}</span>`,
                 `</div>`,
-                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
-                `<div style="font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; color:${popupMutedColor};">Current Unraid Host</div>`,
-                `<div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; word-break:break-all;">${host}</div>`,
+                `<div class="fv-popup-panel">`,
+                `<div class="fv-popup-kicker">Current Unraid Host</div>`,
+                `<div data-fvplus-style="fv-u-tm1ak6">${host}</div>`,
                 `</div>`,
-                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
-                `<div style="font-weight:700; margin:0 0 6px;">Allow Popups Once</div>`,
-                `<ol style="margin:0; padding-left:18px; line-height:1.45;">`,
+                `<div class="fv-popup-panel">`,
+                `<div data-fvplus-style="fv-u-1qwy1qy">Allow Popups Once</div>`,
+                `<ol data-fvplus-style="fv-u-wbhnsm">`,
                 `<li>Click the popup-blocked icon in your browser address bar.</li>`,
                 `<li>Choose to always allow popups/redirects for this Unraid host.</li>`,
                 `<li>Run <strong>Open all WebUIs</strong> again.</li>`,
                 `</ol>`,
                 `</div>`,
-                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
-                `<div style="font-weight:700; margin:0 0 6px;">Browser Quick Guide</div>`,
-                `<ul style="margin:0; padding-left:18px; line-height:1.45;">`,
+                `<div class="fv-popup-panel">`,
+                `<div data-fvplus-style="fv-u-1qwy1qy">Browser Quick Guide</div>`,
+                `<ul data-fvplus-style="fv-u-wbhnsm">`,
                 `<li><strong>Chrome / Edge:</strong> address bar popup icon -> <em>Always allow pop-ups and redirects</em>.</li>`,
                 `<li><strong>Firefox:</strong> address bar popup indicator -> allow popups for this site.</li>`,
                 `<li><strong>Safari (iPhone):</strong> Settings -> Safari -> turn off <em>Block Pop-ups</em>.</li>`,
                 `</ul>`,
                 `</div>`,
                 linkHtml
-                    ? `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px;">`
-                        + `<div style="font-weight:700; margin:0 0 6px;">Blocked WebUIs (manual open)</div>`
-                        + `<ul style="max-height:140px; overflow:auto; margin:0; padding-left:18px;">${linkHtml}</ul>${overflowHint}`
+                    ? `<div class="fv-popup-panel is-last">`
+                        + `<div data-fvplus-style="fv-u-1qwy1qy">Blocked WebUIs (manual open)</div>`
+                        + `<ul data-fvplus-style="fv-u-vwcx5h">${linkHtml}</ul>${overflowHint}`
                         + `</div>`
                     : '',
                 `</div>`
@@ -737,11 +729,11 @@
             };
             const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
             const skippedHint = summary.droppedMemberBoundActionCount > 0
-                ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+                ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
                 : '';
             return [
                 `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
-                `<div style="margin-top:8px;"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
+                `<div data-fvplus-style="fv-u-1wnpfz0"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
                 skippedHint
             ].join('');
         };
@@ -803,7 +795,7 @@
                 }
                 const summaryHtml = [
                     `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
-                    `<div style="margin-top:10px;">${buildFolderSettingsSummaryHtml(clipboardEntry)}</div>`
+                    `<div data-fvplus-style="fv-u-1tei6ul">${buildFolderSettingsSummaryHtml(clipboardEntry)}</div>`
                 ].join('');
                 swalFn({
                     title: 'Paste folder settings',

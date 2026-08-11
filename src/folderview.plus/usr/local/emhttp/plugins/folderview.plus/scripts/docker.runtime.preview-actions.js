@@ -309,10 +309,10 @@
             }
             const safeContainerName = escapeInlineJsSingleQuotedValue(String(entry?.name || '').trim());
             if (state.statusToken === 'updateReady') {
-                return `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
+                return `<span class="orange-text folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
             }
             const forceUpdateHtml = state.actionToken === 'forceUpdate'
-                ? `<br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
+                ? `<br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
                 : '';
             return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span>${forceUpdateHtml}`;
         };

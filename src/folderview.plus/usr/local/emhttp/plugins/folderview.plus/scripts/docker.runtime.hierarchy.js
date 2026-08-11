@@ -308,28 +308,28 @@
 
             if (state.statusToken === 'composeAndThirdParty') {
                 $updateColumn.append(
-                    jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
+                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span><br><span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
                 );
                 return;
             }
             if (state.statusToken === 'compose') {
                 $updateColumn.append(
-                    jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span>`)
+                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span>`)
                 );
                 return;
             }
             if (state.statusToken === 'thirdParty') {
                 $updateColumn.append(
-                    jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
+                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
                 );
                 return;
             }
             if (state.statusToken === 'updateReady') {
                 $updateColumn.append(
-                    jq(`<div class="advanced" style="display: ${state.showAdvanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${jq.i18n('update-ready')}</span></div>`)
+                    jq(`<div class="advanced${state.showAdvanced ? ' fv-advanced-visible' : ''}"><span class="orange-text folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-flash fa-fw"></i> ${jq.i18n('update-ready')}</span></div>`)
                 );
                 $updateColumn.append(
-                    jq(`<a class="exec" data-fv-onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('apply-update')}</span></a>`)
+                    jq(`<a class="exec" data-fv-onclick="updateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('apply-update')}</span></a>`)
                 );
                 return;
             }
@@ -339,7 +339,7 @@
             );
             if (state.actionToken === 'forceUpdate') {
                 $updateColumn.append(
-                    jq(`<div class="advanced" style="display: ${state.showAdvanced ? 'block' : 'none'};"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('force-update')}</span></a></div>`)
+                    jq(`<div class="advanced${state.showAdvanced ? ' fv-advanced-visible' : ''}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('force-update')}</span></a></div>`)
                 );
             }
         };

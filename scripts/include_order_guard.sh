@@ -48,7 +48,10 @@ const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((
 
 const expectedOrder = [
   'folderviewplus.csp-events.js',
+  'folderviewplus.safe-dom.js',
+  'folderviewplus.page-bootstrap.js',
   'folderviewplus.fatal-banner.js',
+  'folderviewplus.settings-watchdog.js',
   'folderviewplus.utils.js',
   'folderviewplus.ui.js',
   'folderviewplus.request.js',
@@ -90,6 +93,7 @@ const expectedOrder = [
   'folderviewplus.updates.js',
   'folderviewplus.actions-support.js',
   'folderviewplus.js',
+  'folderviewplus.settings-manifest.js',
   'folderviewplus.settings-loader.js'
 ];
 

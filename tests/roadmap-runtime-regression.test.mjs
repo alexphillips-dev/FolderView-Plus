@@ -78,9 +78,11 @@ test('runtime transport exposes capability-driven GraphQL, subscription, action,
 
 test('Dashboard chart assets are loaded only when an advanced preview needs them', () => {
     const page = read(`${plugin}/folderview.plus.Dashboard.page`);
+    const pageBootstrap = read(`${plugin}/scripts/folderviewplus.page-bootstrap.js`);
     const loader = read(`${plugin}/scripts/runtime.asset-loader.js`);
     const preview = read(`${plugin}/scripts/dashboard.advanced-preview.js`);
-    assert.match(page, /FolderViewPlusAssetUrls/);
+    assert.match(page, /emitJsonBootstrapMeta\('fvplus-page-data'/);
+    assert.match(pageBootstrap, /win\.FolderViewPlusAssetUrls = Object\.freeze/);
     assert.match(page, /runtime\.asset-loader\.js/);
     assert.doesNotMatch(page, /<script src="<\?php fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/include\/chart\.min\.js/);
     assert.match(loader, /const ensureChartStack/);

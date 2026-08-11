@@ -2109,7 +2109,7 @@
                 const script = buildThirdPartyDuplicateCleanupScript();
                 swal({
                     title: 'Duplicate cleanup helper',
-                    text: `<div class="fv-custom-icon-ref-list"><p>Review these commands before running:</p><textarea style="width:100%;min-height:220px;">${escapeHtml(script)}</textarea></div>`,
+                    text: `<div class="fv-custom-icon-ref-list"><p>Review these commands before running:</p><textarea data-fvplus-style="fv-u-qso7pl">${escapeHtml(script)}</textarea></div>`,
                     html: true,
                     confirmButtonText: 'Close'
                 });

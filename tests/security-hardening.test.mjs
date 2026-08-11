@@ -32,6 +32,9 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const pageBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js');
+const settingsManifestJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-manifest.js');
+const folderRuntimeBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.runtime-bootstrap.js');
 const langScriptPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 const versionPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/version.php');
 const cpuPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/cpu.php');
@@ -87,8 +90,9 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
     assert.match(libPhp, /function fvplus_versioned_plugin_asset_path\(string \$path\): string/);
     assert.match(libPhp, /function fvplus_asset_url\(string \$path\): string/);
     assert.match(libPhp, /function fvplus_asset\(string \$path\): void/);
-    assert.match(libPhp, /fvplus\.page-version:/);
-    assert.match(libPhp, /win\.location\.reload\(\);/);
+    assert.match(libPhp, /emitJsonBootstrapMeta\('fvplus-page-version'/);
+    assert.match(pageBootstrapJs, /fvplus\.page-version:/);
+    assert.match(pageBootstrapJs, /win\.location\.reload\(\);/);
 });
 
 test('plugin pages use versioned asset helper for shipped plugin assets', () => {
@@ -109,6 +113,11 @@ test('language bootstrap version-tags plugin translation assets', () => {
     assert.match(langScriptPhp, /require_once\('\/usr\/local\/emhttp\/plugins\/folderview\.plus\/server\/lib\.php'\);/);
     assert.match(langScriptPhp, /fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/include\/jquery\.i18n\.js'\)/);
     assert.match(langScriptPhp, /fvplus_versioned_plugin_asset_path\('\/plugins\/folderview\.plus\/langs\/en\.json'\)/);
+    assert.match(langScriptPhp, /emitJsonBootstrapMeta\('fvplus-i18n-early'/);
+    assert.match(langScriptPhp, /emitJsonBootstrapMeta\('fvplus-i18n-config'/);
+    assert.match(langScriptPhp, /folderviewplus\.i18n-early-bootstrap\.js/);
+    assert.match(langScriptPhp, /folderviewplus\.i18n-bootstrap\.js/);
+    assert.doesNotMatch(langScriptPhp, /<script\s*>/);
 });
 
 test('live GET endpoints that drive page freshness emit no-cache headers', () => {
@@ -129,23 +138,16 @@ test('dashboard page loads quick-rail controller before dashboard runtime', () =
 });
 
 test('settings and folder pages load extracted support modules before their main runtimes', () => {
-    assert.match(settingsPage, /folderviewplus\.settings-tree\.js/);
-    assert.match(settingsPage, /folderviewplus\.row-details\.js/);
-    assert.match(settingsPage, /folderviewplus\.bulk-assignment\.js/);
-    assert.match(settingsPage, /folderviewplus\.runtime-actions\.js/);
-    assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
-    assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
-    assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
-    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
-    assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
-    assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
-    assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
-    assert.match(folderPage, /folder\.editor\.chrome\.js/);
-    assert.match(folderPage, /folder\.editor\.type-docker\.js/);
-    assert.match(folderPage, /folder\.editor\.type-vm\.js/);
-    assert.match(folderPage, /folder\.js/);
-    assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
+    const settingsBootstrapSource = `${settingsPage}\n${settingsManifestJs}`;
+    const folderBootstrapSource = `${folderPage}\n${folderRuntimeBootstrapJs}`;
+    assert.match(settingsBootstrapSource, /folderviewplus\.settings-tree\.js/);
+    assert.match(settingsBootstrapSource, /folderviewplus\.row-details\.js/);
+    assert.match(settingsBootstrapSource, /folderviewplus\.bulk-assignment\.js/);
+    assert.match(settingsBootstrapSource, /folderviewplus\.runtime-actions\.js/);
+    assert.match(settingsBootstrapSource, /folderviewplus\.wizard-smart-detect\.js/);
+    assert.match(settingsBootstrapSource, /folderviewplus\.actions-support\.js/);
+    assert.match(folderBootstrapSource, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
+    assert.doesNotMatch(folderBootstrapSource, /folder\.legacy\.js/);
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);

@@ -1824,7 +1824,7 @@ const setFieldError = (fieldName, message) => {
 
     let error = dd.find(`.fv-field-error[data-field="${fieldName}"]`);
     if (!error.length) {
-        error = $(`<div class="fv-field-error" data-field="${fieldName}" style="display:none;"></div>`);
+        error = $(`<div class="fv-field-error" data-field="${fieldName}" data-fvplus-style="fv-u-xcjvns"></div>`);
         dd.append(error);
     }
 
@@ -2829,7 +2829,7 @@ const initEditorChrome = () => {
                 <button type="button" data-target="${key}">
                     <i class="fa ${section.icon}" aria-hidden="true"></i>
                     <span>${section.title}</span>
-                    <em class="fv-nav-count" style="display:none;"></em>
+                    <em class="fv-nav-count" data-fvplus-style="fv-u-xcjvns"></em>
                 </button>
             `)
             .join('');
@@ -2886,9 +2886,9 @@ const initEditorChrome = () => {
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
-                            <span id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent</em><i id="fvSwatchAccent"></i></span>
+                            <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
-                        <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
+                        <div id="fvDockerSignals" class="fv-docker-signals" data-fvplus-style="fv-u-xcjvns">
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
                             <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
                         </div>
@@ -3937,7 +3937,7 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         }
         let note = dd.find('.fv-parent-defaults-note');
         if (!note.length) {
-            note = jq('<div class="fv-parent-defaults-note" style="display:none;"></div>');
+            note = jq('<div class="fv-parent-defaults-note" data-fvplus-style="fv-u-xcjvns"></div>');
             dd.append(note);
         }
         note.removeClass('is-info is-success is-warning').addClass(
@@ -4384,8 +4384,8 @@ const updateList = (afterRender = null) => {
         return `
             <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
-                <td class="name-col"><span style="cursor: pointer;" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
-                <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
+                <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
+                <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" data-fvplus-style="fv-u-569beu"></td>
                 <td><label class="fv-member-preview-toggle" title="${escapeHtml(folderEditorT('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(folderEditorT('editor.members.visible', 'Visible'))}</span></label></td>
             </tr>
         `;
@@ -4622,14 +4622,14 @@ const buildFolderSettingsSummaryHtml = (entry) => {
         labels: ['Folder settings']
     };
     const pillHtml = summary.labels.map((label) => (
-        `<span style="display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,154,60,0.22);background:rgba(255,154,60,0.10);margin:0 6px 6px 0;">${escapeHtml(label)}</span>`
+        `<span data-fvplus-style="fv-u-1i4smo6">${escapeHtml(label)}</span>`
     )).join('');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
-        `<div style="margin-top:8px;"><strong>Will apply:</strong> ${pillHtml || '<span>Folder settings</span>'}</div>`,
+        `<div data-fvplus-style="fv-u-1wnpfz0"><strong>Will apply:</strong> ${pillHtml || '<span>Folder settings</span>'}</div>`,
         skippedHint
     ].join('');
 };
@@ -4997,25 +4997,25 @@ function updateMemberBulkMoveUi() {
 const buildFolderSettingsApplyDialogHtml = (entry, targets) => {
     const summaryHtml = buildFolderSettingsSummaryHtml(entry);
     const targetHtml = targets.map((target) => `
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;text-align:left;">
-            <input class="fv-folder-settings-target" type="checkbox" value="${escapeHtml(target.id)}" style="margin-top:2px;">
+        <label data-fvplus-style="fv-u-vo5fty">
+            <input class="fv-folder-settings-target" type="checkbox" value="${escapeHtml(target.id)}" data-fvplus-style="fv-u-dc2vxe">
             <span>
                 <strong>${escapeHtml(target.name)}</strong>
-                <span style="display:block;opacity:0.72;">${escapeHtml(target.parentName)}</span>
+                <span data-fvplus-style="fv-u-3q0p6m">${escapeHtml(target.parentName)}</span>
             </span>
         </label>
     `).join('');
     return [
-        '<div class="fv-folder-settings-apply-dialog" style="text-align:left;">',
-        `<div style="margin-bottom:12px;">${summaryHtml}</div>`,
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">',
+        '<div class="fv-folder-settings-apply-dialog" data-fvplus-style="fv-u-18w5s3q">',
+        `<div data-fvplus-style="fv-u-tczc3j">${summaryHtml}</div>`,
+        '<div data-fvplus-style="fv-u-k1hi7u">',
         `<strong>Apply to ${targets.length} folder${targets.length === 1 ? '' : 's'}</strong>`,
         '<span>',
-        '<button type="button" class="btn btn-small" id="fv-folder-settings-select-all" style="margin-right:6px;">Select all</button>',
+        '<button type="button" class="btn btn-small" id="fv-folder-settings-select-all" data-fvplus-style="fv-u-1of1hjl">Select all</button>',
         '<button type="button" class="btn btn-small" id="fv-folder-settings-clear-all">Clear</button>',
         '</span>',
         '</div>',
-        '<div style="max-height:280px;overflow:auto;padding-right:4px;">',
+        '<div data-fvplus-style="fv-u-1g3cbq1">',
         targetHtml,
         '</div>',
         '</div>'

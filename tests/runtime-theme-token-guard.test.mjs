@@ -10,6 +10,7 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
+const cspUtilitiesCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/csp.utilities.css');
 const themeTokensCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -171,15 +172,15 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
     assert.match(dockerCss, /\.fv-preview-status-started\s*\{[^}]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
     assert.match(dockerCss, /\.fv-preview-status-paused\s*\{[^}]*var\(--fvplus-folder-status-paused,\s*var\(--fvplus-status-paused\)\)/);
     assert.match(dockerCss, /\.fv-preview-status-stopped\s*\{[^}]*var\(--fvplus-folder-status-stopped,\s*var\(--fvplus-status-stopped\)\)/);
-    assert.match(dockerRuntimeActionsJs, /const popupTextColor = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
-    assert.match(dockerRuntimeActionsJs, /const popupPanelBg = 'var\(--fvplus-runtime-menu-header-bg,\s*transparent\)'/);
+    assert.match(cspUtilitiesCss, /\.fv-popup-guide\s*\{[^}]*color:\s*var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)/);
+    assert.match(cspUtilitiesCss, /\.fv-popup-panel\s*\{[^}]*background:\s*var\(--fvplus-runtime-menu-header-bg,\s*transparent\)/);
     assert.doesNotMatch(dockerRuntimeActionsJs, /color:\s*#e8edf7/);
     assert.match(dockerJs, /panel\.style\.background = 'var\(--fvplus-runtime-menu-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\)'/);
     assert.match(dockerJs, /panel\.style\.color = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
     assert.match(fatalBannerJs, /border:\s*1px solid var\(--orange,\s*var\(--fvplus-theme-accent,\s*currentColor\)\);/);
     assert.match(fatalBannerJs, /background:\s*var\(--fvplus-theme-surface-panel,\s*transparent\);/);
     assert.match(fatalBannerJs, /color:\s*var\(--fvplus-theme-text-primary,\s*currentColor\);/);
-    assert.match(libPhp, /background:transparent;color:var\(--text,\s*currentColor\);/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-conflict-banner\s*\{[^}]*background:\s*transparent;[^}]*color:\s*var\(--text,\s*currentColor\);/);
     assert.doesNotMatch(libPhp, /background:linear-gradient\(180deg,\s*rgba\(120,60,0,0\.22\)/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{[^}]*background:\s*var\(--fvplus-editor-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\);/);
     assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content\s*\{[^}]*color:\s*var\(--fvplus-editor-text-primary,\s*var\(--fvplus-theme-text-primary,\s*currentColor\)\);/);

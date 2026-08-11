@@ -21,30 +21,20 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 ?>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('vms'); ?>
-<script>
-    window.FolderViewPlusFatalRuntimeContext = {
-        page: 'VMs',
-        hostSelector: '#fvplus-vm-runtime-banner-host',
-        pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>,
-        unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
-        channel: 'unknown',
-        preflight: <?=json_encode($fvplusRuntimePreflight, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>
-    };
-</script>
+<?php emitJsonBootstrapMeta('fvplus-runtime-context', [
+    'page' => 'VMs',
+    'hostSelector' => '#fvplus-vm-runtime-banner-host',
+    'pluginVersion' => readInstalledVersion() ?: 'unknown',
+    'unraidVersion' => readUnraidVersionString() ?: 'unknown',
+    'channel' => 'unknown',
+    'preflight' => $fvplusRuntimePreflight
+]); ?>
+<?php emitJsonBootstrapMeta('fvplus-page-i18n', ['mode' => 'vms']); ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
 <div id="fvplus-vm-runtime-banner-host" aria-live="polite"></div>
 <?php emitRuntimePreflightBannerBootstrap($fvplusRuntimePreflight, 'VMs'); ?>
 <?php if ($fvplusRuntimePreflightHasFatal) { return; } ?>
-<script>
-    $(document).ready(() => {
-        folderi18n = () => {
-            $('<input type="button" data-fv-onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">').insertAfter('table#kvm_table');
-            $('body').i18n();
-            $('[type="button"]').i18n();
-        }
-        folderi18n();
-    });
-</script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/customEvents.js')?>"></script>
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php') ?>
 
@@ -71,6 +61,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/vm.css')?>">
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php') ?>

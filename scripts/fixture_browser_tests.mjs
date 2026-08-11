@@ -114,6 +114,10 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'future-docker-host.html');
         } else if (requestUrl.pathname === '/docker-layout-stability') {
             filePath = path.join(fixtureDir, 'docker-layout-stability.html');
+        } else if (requestUrl.pathname === '/csp-hardening') {
+            filePath = path.join(fixtureDir, 'csp-hardening.html');
+        } else if (requestUrl.pathname.startsWith('/security-fixtures/')) {
+            filePath = safeResolve(path.join(rootDir, 'tests', 'fixtures', 'security'), requestUrl.pathname.slice('/security-fixtures/'.length));
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -148,8 +152,35 @@ const address = fixtureServer.address();
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
 const tests = [];
-const test = (name, handler) => tests.push({ name, handler });
+const test = (name, handler, { skipAccessibility = false } = {}) => tests.push({ name, handler, skipAccessibility });
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
+
+test('CSP and Trusted Types fixture renders malicious persisted values as inert text', async ({ page }) => {
+    await page.goto(`${baseUrl}/csp-hardening`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.__fvCspFixtureReady === true);
+    const evidence = await page.evaluate(() => ({
+        injection: window.__fvInjection,
+        rejected: window.__fvUnsafeAttributeRejected,
+        trustedTypesAvailable: window.__fvTrustedTypesAvailable,
+        values: [...document.querySelectorAll('.csp-malicious-value')].map((node) => ({
+            kind: node.getAttribute('data-value-kind'),
+            text: node.textContent,
+            childElements: node.children.length
+        }))
+    }));
+    assert.equal(evidence.injection, 0);
+    assert.equal(evidence.rejected, true);
+    assert.equal(evidence.values.length, 6);
+    assert.equal(evidence.values.every((entry) => entry.childElements === 0), true);
+    assert.deepEqual(evidence.values.map((entry) => entry.kind), [
+        'folderName',
+        'containerName',
+        'templateMetadata',
+        'importedConfiguration',
+        'translation',
+        'diagnostics'
+    ]);
+}, { skipAccessibility: true });
 
 test('Shared UI primitives provide accessible modal, action, status, and progress behavior', async ({ page }) => {
     await page.goto(`${baseUrl}/ui-primitives`, { waitUntil: 'load' });
@@ -245,7 +276,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1580);
+    assert.equal(snapshot.autoBoundMessageCount, 1581);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -1750,7 +1781,7 @@ try {
                 const result = { browser: browserName, name: entry.name, durationMs: 0, pass: false, errors: [] };
                 try {
                     await entry.handler({ page, context, browserName });
-                    if (accessibilityEnabled) {
+                    if (accessibilityEnabled && entry.skipAccessibility !== true) {
                         await page.addScriptTag({ path: axeScriptPath });
                         const violations = await page.evaluate(async () => {
                             const result = await window.axe.run(document, {

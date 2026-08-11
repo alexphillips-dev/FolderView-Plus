@@ -5,11 +5,6 @@ Tabs="true"
 Markdown="false"
 ---
 
-<script>
-    folderi18n = () => {
-        $('body').i18n();
-    }
-</script>
 <?php
 $fvplusI18nNamespaces = ['editor', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
@@ -83,493 +78,33 @@ try {
 }
 ?>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
-<script>
-    window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorResolvedMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorModeSource = <?php echo json_encode($folderEditorPageModeSource, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorTypePrefs = <?php echo json_encode($folderEditorTypePrefs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorPageBuildVersion = <?php echo json_encode($folderEditorPageBuildVersion, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    window.FolderViewPlusFolderEditorRuntimeLoaded = false;
-    window.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';
-    window.FolderViewPlusFolderEditorRuntimeLastError = '';
-    window.FolderViewPlusFolderEditorRuntimeScriptState = 'not-registered';
-    window.FolderViewPlusFolderEditorRuntimeScriptSource = '';
-    window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent = function markFolderEditorRuntimeScriptEvent(state, source) {
-        try {
-            window.FolderViewPlusFolderEditorRuntimeScriptState = String(state || '').trim() || 'unknown';
-            window.FolderViewPlusFolderEditorRuntimeScriptSource = String(source || '').trim();
-            if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function'
-                && window.FolderViewPlusFolderEditorRuntimeLoaded !== true
-                && (window.FolderViewPlusFolderEditorRuntimeScriptState === 'load'
-                    || window.FolderViewPlusFolderEditorRuntimeScriptState === 'error')) {
-                window.FolderViewPlusReportFolderEditorBootstrap({
-                    summary: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
-                        ? 'Folder editor runtime script failed to load.'
-                        : 'Folder editor runtime script loaded but did not start.',
-                    details: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
-                        ? 'The editor page could not load its runtime script file.'
-                        : 'The editor page loaded the runtime script file, but the runtime marker is still missing.',
-                    debug: [
-                        'build=' + String(window.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
-                        'pageMode=' + String(window.FolderViewPlusFolderEditorPageMode || '(empty)'),
-                        'pageType=' + String(window.FolderViewPlusFolderEditorPageType || '(empty)'),
-                        'pageRequested=' + String(window.FolderViewPlusFolderEditorRequestedId || '(empty)'),
-                        'pageResolved=' + String(window.FolderViewPlusFolderEditorResolvedId || '(empty)'),
-                        'runtimeState=' + String(window.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
-                        'runtimeSrc=' + String(window.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
-                        'runtimeLoaded=' + (window.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
-                        'stage=' + String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
-                    ].join('\n'),
-                    tone: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'invalid' : 'warning',
-                    stage: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'runtime-script-error' : 'runtime-script-loaded'
-                });
-            }
-        } catch (_error) {
-            // Best effort only.
-        }
-    };
-    window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    (function applyFolderEditorHostThemeName(rawThemeName) {
-        const safeThemeName = String(rawThemeName || '').trim().toLowerCase();
-        if (!safeThemeName) {
-            return;
-        }
-        const applyAttrs = () => {
-            try {
-                document.documentElement?.setAttribute('data-fvplus-host-theme', safeThemeName);
-                document.documentElement?.setAttribute('data-fv-host-theme', safeThemeName);
-                document.body?.setAttribute('data-fvplus-host-theme', safeThemeName);
-                document.body?.setAttribute('data-fv-host-theme', safeThemeName);
-            } catch (_error) {
-                // Best effort only.
-            }
-        };
-        applyAttrs();
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', applyAttrs, { once: true });
-        }
-    })(window.FolderViewPlusHostThemeName);
-</script>
-<script>
-window.FolderViewPlusFatalRuntimeContext = {
-    page: 'Folder Editor',
-    hostSelector: '.canvas',
-    pluginVersion: <?=json_encode($folderEditorPageBuildVersion ?: 'unknown')?>,
-    unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
-    channel: 'unknown',
-    presentation: 'embedded'
-};
-</script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
-<script>
-    (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
-        const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
-        const bannerState = {
-            summary: 'Folder editor bootstrap diagnostics are idle.',
-            details: 'No startup issues have been reported yet.',
-            debug: 'Bootstrap: waiting for folder editor runtime.',
-            tone: 'info'
-        };
-        const buildDiagnosticsSnapshot = () => ({
-            checkedAt: new Date().toISOString(),
-            summary: String(bannerState.summary || '(empty)'),
-            details: String(bannerState.details || '(empty)'),
-            tone: String(bannerState.tone || 'info'),
-            debug: String(bannerState.debug || 'none'),
-            environment: {
-                pageMode: String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
-                pageType: String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
-                requestedId: String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
-                resolvedId: String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
-                pluginVersion: String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
-                runtimeLoaded: win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no',
-                runtimeStage: String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)'),
-                runtimeState: String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
-                runtimeSrc: String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
-                url: String(win.location?.href || '(empty)')
-            }
-        });
-        const buildDiagnosticsText = () => {
-            const snapshot = buildDiagnosticsSnapshot();
-            return [
-                'FolderView Plus Folder Editor Bootstrap Diagnostics',
-                `summary: ${snapshot.summary}`,
-                `details: ${snapshot.details}`,
-                `severity: ${snapshot.tone}`,
-                '',
-                '[environment]',
-                `pageMode: ${snapshot.environment.pageMode}`,
-                `pageType: ${snapshot.environment.pageType}`,
-                `requestedId: ${snapshot.environment.requestedId}`,
-                `resolvedId: ${snapshot.environment.resolvedId}`,
-                `pluginVersion: ${snapshot.environment.pluginVersion}`,
-                `runtimeLoaded: ${snapshot.environment.runtimeLoaded}`,
-                `runtimeStage: ${snapshot.environment.runtimeStage}`,
-                `runtimeState: ${snapshot.environment.runtimeState}`,
-                `runtimeSrc: ${snapshot.environment.runtimeSrc}`,
-                `url: ${snapshot.environment.url}`,
-                '',
-                '[debug]',
-                snapshot.debug
-            ].join('\n');
-        };
-        const persistDiagnosticsSnapshot = () => {
-            try {
-                if (win.localStorage && typeof win.localStorage.setItem === 'function') {
-                    win.localStorage.setItem(EDITOR_DEBUG_SURFACE_STORAGE_KEY, JSON.stringify(buildDiagnosticsSnapshot()));
-                }
-            } catch (_error) {
-                // Bootstrap diagnostics are best-effort only.
-            }
-        };
-        win.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics() {
-            return buildDiagnosticsSnapshot();
-        };
-        const applySurfaceState = () => {
-            const host = doc.getElementById('fvFolderEditorBootstrapBanner');
-            const summaryNode = doc.getElementById('fvFolderEditorBootstrapSummary');
-            const detailsNode = doc.getElementById('fvFolderEditorBootstrapDetailsText');
-            const debugNode = doc.getElementById('fvFolderEditorBootstrapDebug');
-            const disclosure = doc.getElementById('fvFolderEditorBootstrapDisclosure');
-            if (!host || !summaryNode || !detailsNode || !debugNode || !disclosure) {
-                return;
-            }
-            const className = bannerState.tone === 'invalid'
-                ? 'invalid'
-                : bannerState.tone === 'warning'
-                    ? 'warning'
-                    : bannerState.tone === 'ready'
-                        ? 'ready'
-                        : 'info';
-            [summaryNode, detailsNode].forEach((node) => {
-                node.classList.remove('invalid', 'warning', 'info', 'ready');
-                node.classList.add(className);
-            });
-            summaryNode.textContent = String(bannerState.summary || '');
-            detailsNode.textContent = String(bannerState.details || '');
-            debugNode.textContent = String(bannerState.debug || '');
-            const shouldShow = bannerState.tone === 'invalid' || bannerState.tone === 'warning';
-            host.hidden = !shouldShow;
-            if (shouldShow) {
-                disclosure.open = true;
-            }
-        };
-        const syncSurfaceState = () => {
-            persistDiagnosticsSnapshot();
-            if (doc.readyState === 'loading') {
-                doc.addEventListener('DOMContentLoaded', applySurfaceState, { once: true });
-            } else {
-                applySurfaceState();
-            }
-        };
-        win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics() {
-            if (win.FolderViewPlusFatalBanner?.getStartupIncidentSnapshot?.()?.available === true) {
-                const copied = await win.FolderViewPlusFatalBanner.copyDiagnostics();
-                if (copied) {
-                    const incidentButton = doc.getElementById('fvFolderEditorBootstrapCopy');
-                    if (incidentButton) {
-                        const originalHtml = incidentButton.getAttribute('data-default-html') || incidentButton.innerHTML;
-                        incidentButton.setAttribute('data-default-html', originalHtml);
-                        incidentButton.textContent = 'Copied';
-                        win.setTimeout(() => { incidentButton.innerHTML = originalHtml; }, 1400);
-                    }
-                    return;
-                }
-            }
-            const text = buildDiagnosticsText();
-            try {
-                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    await navigator.clipboard.writeText(text);
-                } else {
-                    const textarea = doc.createElement('textarea');
-                    textarea.value = text;
-                    textarea.style.position = 'fixed';
-                    textarea.style.opacity = '0';
-                    doc.body.appendChild(textarea);
-                    textarea.select();
-                    doc.execCommand('copy');
-                    doc.body.removeChild(textarea);
-                }
-                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
-                if (button) {
-                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
-                    button.setAttribute('data-default-html', originalHtml);
-                    button.textContent = 'Copied';
-                    win.setTimeout(() => {
-                        button.innerHTML = originalHtml;
-                    }, 1400);
-                }
-            } catch (_error) {
-                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
-                if (button) {
-                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
-                    button.setAttribute('data-default-html', originalHtml);
-                    button.textContent = 'Copy failed';
-                    win.setTimeout(() => {
-                        button.innerHTML = originalHtml;
-                    }, 1800);
-                }
-            }
-        };
-        win.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap({
-            summary = '',
-            details = '',
-            debug = '',
-            tone = 'warning',
-            stage = ''
-        } = {}) {
-            if (summary) {
-                bannerState.summary = String(summary);
-            }
-            if (details) {
-                bannerState.details = String(details);
-            }
-            if (debug) {
-                bannerState.debug = String(debug);
-            }
-            bannerState.tone = tone === 'invalid'
-                ? 'invalid'
-                : tone === 'warning'
-                    ? 'warning'
-                    : tone === 'ready'
-                        ? 'ready'
-                        : 'info';
-            if (stage) {
-                win.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
-            }
-            if (bannerState.tone === 'invalid' || bannerState.tone === 'warning') {
-                const category = String(stage || '').includes('asset') || String(stage || '').includes('script')
-                    ? 'missing-asset'
-                    : 'runtime-failed';
-                win.FolderViewPlusFatalBanner?.captureIncident?.({
-                    context: 'Folder Editor',
-                    code: bannerState.tone === 'invalid' ? 'FVPLUS-EDT-BOOT-001' : 'FVPLUS-EDT-BOOT-002',
-                    phase: String(stage || 'folder-editor-bootstrap'),
-                    category,
-                    severity: bannerState.tone === 'invalid' ? 'fatal' : 'degraded',
-                    userTitle: String(bannerState.summary || 'Folder Editor startup problem'),
-                    userMessage: String(bannerState.details || 'The Folder Editor did not finish loading.'),
-                    details: stage ? [`Stage: ${String(stage)}`] : []
-                });
-            }
-            syncSurfaceState();
-        };
-        doc.addEventListener('click', (event) => {
-            const target = event.target instanceof Element
-                ? event.target.closest('#fvFolderEditorBootstrapCopy, #fvFolderEditorBootstrapRetry, #fvFolderEditorBootstrapReload, #fvFolderEditorBootstrapDownload')
-                : null;
-            if (!target) {
-                return;
-            }
-            event.preventDefault();
-            if (target.id === 'fvFolderEditorBootstrapRetry') {
-                void win.FolderViewPlusFatalBanner?.runRecovery?.('retry');
-            } else if (target.id === 'fvFolderEditorBootstrapReload') {
-                win.location.reload();
-            } else if (target.id === 'fvFolderEditorBootstrapDownload') {
-                win.FolderViewPlusFatalBanner?.downloadDiagnostics?.();
-            } else {
-                void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
-            }
-        });
-        syncSurfaceState();
-    })(window, document);
-</script>
-<script>
-    (function bootFolderEditorRuntimePage(win, doc) {
-        const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
-        const assetVersion = encodeURIComponent(buildVersion);
-        const runtimeMode = 'modern';
-        const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        let bootAttempt = 0;
-        const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
-        const scriptQueue = [
-            '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-            '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
-            '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
-            '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
-            '/plugins/folderview.plus/scripts/folder.editor.rules.js',
-            '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
-            '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
-            '/plugins/folderview.plus/scripts/folder.editor.state.js',
-            '/plugins/folderview.plus/scripts/folder.editor.members.js',
-            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
-            '/plugins/folderview.plus/scripts/folder.editor.type-docker.js',
-            '/plugins/folderview.plus/scripts/folder.editor.type-vm.js',
-            '/plugins/folderview.plus/scripts/folder.js'
-        ];
-        const formatDebug = () => [
-            'build=' + buildVersion,
-            'bootNonce=' + bootNonce,
-            'pageMode=' + String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
-            'pageType=' + String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
-            'pageRequested=' + String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
-            'pageResolved=' + String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
-            'runtimeState=' + String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
-            'runtimeSrc=' + String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
-            'runtimeLoaded=' + (win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
-            'stage=' + String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
-        ].join('\n');
-        const report = (summary, details, tone, stage) => {
-            if (typeof win.FolderViewPlusReportFolderEditorBootstrap === 'function') {
-                win.FolderViewPlusReportFolderEditorBootstrap({
-                    summary,
-                    details,
-                    debug: formatDebug(),
-                    tone,
-                    stage
-                });
-                return;
-            }
-            const apply = () => {
-                const summaryNode = doc.getElementById('fvValidationSummary');
-                const detailsNode = doc.getElementById('fvValidationDetails');
-                const debugNode = doc.getElementById('fvEditorBootstrapDebug');
-                [summaryNode, detailsNode].forEach((node) => {
-                    if (!node) {
-                        return;
-                    }
-                    node.classList.remove('invalid', 'warning', 'info', 'ready');
-                    node.classList.add(tone === 'invalid' ? 'invalid' : (tone === 'warning' ? 'warning' : 'info'));
-                });
-                if (summaryNode) {
-                    summaryNode.textContent = summary;
-                }
-                if (detailsNode) {
-                    detailsNode.textContent = details;
-                }
-                if (debugNode) {
-                    debugNode.textContent = formatDebug();
-                }
-            };
-            if (doc.readyState === 'loading') {
-                doc.addEventListener('DOMContentLoaded', apply, { once: true });
-            } else {
-                apply();
-            }
-        };
-        const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
-            const script = doc.createElement('script');
-            const separator = relativePath.includes('?') ? '&' : '?';
-            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}&attempt=${bootAttempt}`;
-            const moduleName = relativePath.split('/').pop() || relativePath;
-            const startedAt = new Date().toISOString();
-            const startedMs = Date.now();
-            let settled = false;
-            let timeoutId = null;
-            script.src = src;
-            script.async = false;
-            script.defer = false;
-            script.dataset.fvFolderEditorBootManaged = '1';
-            if (isRuntimeScript) {
-                script.id = 'fv-folder-editor-runtime-script';
-                script.dataset.runtime = runtimeMode;
-            }
-            win.FolderViewPlusFatalBanner?.recordModuleEvent?.({
-                name: moduleName,
-                stage: 'folder-editor-runtime',
-                outcome: 'loading',
-                startedAt,
-                version: buildVersion
-            });
-            const finish = (outcome, error = null) => {
-                if (settled) return;
-                settled = true;
-                if (timeoutId !== null) win.clearTimeout(timeoutId);
-                win.FolderViewPlusFatalBanner?.recordModuleEvent?.({
-                    name: moduleName,
-                    stage: 'folder-editor-runtime',
-                    outcome,
-                    startedAt,
-                    completedAt: new Date().toISOString(),
-                    durationMs: Date.now() - startedMs,
-                    version: buildVersion
-                });
-                if (outcome === 'loaded') {
-                    resolve();
-                    return;
-                }
-                script.remove();
-                reject(error || new Error(`Failed to load ${relativePath}`));
-            };
-            script.onload = () => {
-                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
-                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', src);
-                }
-                finish('loaded');
-            };
-            script.onerror = () => {
-                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
-                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', src);
-                }
-                finish('failed', new Error(`Failed to load ${relativePath}`));
-            };
-            timeoutId = win.setTimeout(() => {
-                finish('timed-out', new Error(`Timed out loading ${relativePath}`));
-            }, 8000);
-            doc.body.appendChild(script);
-        });
-        const run = ({ propagateFailure = false } = {}) => {
-            bootAttempt += 1;
-            win.FolderViewPlusFolderEditorRuntimeLoaded = false;
-            win.FolderViewPlusFolderEditorRuntimeBootStage = 'page-boot-loader';
-            win.FolderViewPlusFolderEditorRuntimeLastError = '';
-            win.FolderViewPlusFolderEditorRuntimeScriptState = 'injecting';
-            win.FolderViewPlusFolderEditorRuntimeScriptSource = '';
-            doc.querySelectorAll(managedSelector).forEach((node) => node.remove());
-            let chain = Promise.resolve();
-            scriptQueue.forEach((relativePath, index) => {
-                chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
-            });
-            return chain.catch((error) => {
-                report(
-                    'Folder editor runtime assets failed to load.',
-                    String(error?.message || error || 'Unknown runtime asset failure.'),
-                    'invalid',
-                    'runtime-asset-load-failed'
-                );
-                if (propagateFailure) {
-                    throw error;
-                }
-                return null;
-            });
-        };
-        win.FolderViewPlusFatalBanner?.registerRecoveryHandler?.('retry', () => run({ propagateFailure: true }));
-        if (doc.readyState === 'loading') {
-            doc.addEventListener('DOMContentLoaded', run, { once: true });
-        } else {
-            run();
-        }
-        win.setTimeout(() => {
-            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
-                return;
-            }
-            report(
-                'Folder editor runtime has not started yet.',
-                'The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.',
-                'warning',
-                'runtime-script-pending'
-            );
-        }, 900);
-        win.setTimeout(() => {
-            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
-                return;
-            }
-            report(
-                'Folder editor runtime still has not started.',
-                'The editor page has now attempted a direct runtime script injection and still did not receive a startup marker.',
-                'invalid',
-                'runtime-script-still-pending'
-            );
-        }, 2500);
-    })(window, document);
-</script>
-<?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
+<?php emitJsonBootstrapMeta('fvplus-folder-editor-context', [
+    'pageType' => $folderEditorPageType,
+    'pageMode' => $folderEditorPageMode,
+    'modeSource' => $folderEditorPageModeSource,
+    'requestedId' => $folderEditorRequestedId,
+    'resolvedId' => $folderEditorResolvedId,
+    'bootstrapContext' => $folderEditorBootstrapContext,
+    'typePrefs' => $folderEditorTypePrefs,
+    'buildVersion' => $folderEditorPageBuildVersion
+]); ?>
+<?php emitJsonBootstrapMeta('fvplus-runtime-context', [
+    'page' => 'Folder Editor',
+    'hostSelector' => '.canvas',
+    'pluginVersion' => $folderEditorPageBuildVersion ?: 'unknown',
+    'unraidVersion' => readUnraidVersionString() ?: 'unknown',
+    'channel' => 'unknown',
+    'presentation' => 'embedded'
+]); ?>
+<?php emitJsonBootstrapMeta('fvplus-host-theme', ['name' => (string)($display['theme'] ?? '')]); ?>
+<?php emitJsonBootstrapMeta('fvplus-page-i18n', ['mode' => 'folder-editor']); ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.page-bootstrap.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.runtime-bootstrap.js')?>"></script>
+<?php emitNoCacheMetaTags(); ?>
 <script src="<?php autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.ui.css')?>">
@@ -578,6 +113,7 @@ window.FolderViewPlusFatalRuntimeContext = {
 <?php endif; ?>
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
@@ -628,7 +164,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="name">Name:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <input type="text" name="name" value="" required>
                 </dd>
             </dl>
@@ -642,7 +178,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Parent folder:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <select name="parent_folder_id">
                         <option value="">No parent (top level)</option>
                     </select>
@@ -676,7 +212,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                             <button type="button" id="fv-icon-upload-cancel"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button>
                         </div>
                         <div class="fv-icon-upload-progress-track">
-                            <div id="fv-icon-upload-progress-fill" class="fv-icon-upload-progress-fill" style="width: 0%;"></div>
+                            <div id="fv-icon-upload-progress-fill" class="fv-icon-upload-progress-fill" data-fvplus-style="fv-u-u73jk7"></div>
                         </div>
                     </div>
                     <div id="fv-icon-upload-status" class="fv-icon-upload-status" aria-live="polite"></div>
@@ -817,21 +353,21 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="folder-webui">Folder WebUI:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
-                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
+                    <input class="basic-switch" name="folder_webui" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
                 <p data-i18n="[html]folder-webui-tooltip">Default folder WebUI URL.</p>
             </blockquote>
         </div>
-        <ul constraint="folder-webui" style="display: none;">
+        <ul constraint="folder-webui" data-fvplus-style="fv-u-569beu">
             <li>
                 <div class="basic">
                     <dl>
                         <dt data-i18n="folder-webui-url">WebUI URL:</dt>
                         <dd>
-                            <img class="img" style="visibility: hidden;">
+                            <img class="img" data-fvplus-style="fv-u-dyskmc">
                             <input type="text" name="folder_webui_url" value="" placeholder="http://...">
                         </dd>
                     </dl>
@@ -845,7 +381,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="preview">Preview:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <select name="preview" data-fv-onchange="updateForm()">
                         <option value="0" data-i18n="preview-option-0">None</option>
                         <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
@@ -867,7 +403,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-hover">Show preview only on hover:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_hover" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_hover" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -882,7 +418,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-update">Orange text on update:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_update" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_update" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -896,7 +432,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                 <div class="basic">
                     <dl>
                         <dt data-i18n="folder-update-highlight">Orange folder name on member update:</dt>
-                        <dd><input class="basic-switch" name="folder_update_highlight" type="checkbox" style="display: none;" /></dd>
+                        <dd><input class="basic-switch" name="folder_update_highlight" type="checkbox" data-fvplus-style="fv-u-569beu" /></dd>
                     </dl>
                     <blockquote class="inline_help"><p data-i18n="folder-update-highlight-tooltip">Highlight the folder title separately when at least one Docker member has an update available.</p></blockquote>
                 </div>
@@ -957,7 +493,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-grayscale">Preview icon grayscale:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_grayscale" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_grayscale" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1014,7 +550,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt>Show child folders in collapsed preview:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_hide_nested_items" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_hide_nested_items" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1049,7 +585,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_webui" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_webui" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1064,7 +600,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-logs">Add preview open logs:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_logs" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_logs" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1079,7 +615,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-console">Add preview open console:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_console" type="checkbox" style="display: none;" />
+                            <input class="basic-switch" name="preview_console" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1094,7 +630,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="preview-vertical-bars">Preview vertical bars:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1103,15 +639,15 @@ window.FolderViewPlusFatalRuntimeContext = {
                         </p>
                     </blockquote>
                 </div>
-                <ul constraint="bars-color" style="display: none;">
+                <ul constraint="bars-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
                                 <dt data-i18n="bars-color">Vertical bars color:</dt>
                                 <dd>
                                     <div class="fv-inline-control-row">
-                                        <input type="color" name="preview_vertical_bars_color" style="height:28px;vertical-align:middle;">
-                                        <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
+                                        <input type="color" name="preview_vertical_bars_color" data-fvplus-style="fv-u-88tzw1">
+                                        <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" data-fvplus-style="fv-u-bic1u6">
                                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBarDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
@@ -1135,16 +671,16 @@ window.FolderViewPlusFatalRuntimeContext = {
                 <div class="basic">
                     <dl>
                         <dt data-i18n="preview-row-separators">Preview row separators:</dt>
-                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" /></dd>
+                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" /></dd>
                     </dl>
                     <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
                 </div>
-                <ul constraint="preview-row-separator-color" style="display: none;">
+                <ul constraint="preview-row-separator-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
                                 <dt data-i18n="preview-row-separator-color">Row separator color:</dt>
-                                <dd><input type="color" name="preview_row_separator_color" value="#555555" style="height:28px;vertical-align:middle;"></dd>
+                                <dd><input type="color" name="preview_row_separator_color" value="#555555" data-fvplus-style="fv-u-88tzw1"></dd>
                             </dl>
                         </div>
                     </li>
@@ -1155,7 +691,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="border">Show preview border:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_border" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1164,15 +700,15 @@ window.FolderViewPlusFatalRuntimeContext = {
                         </p>
                     </blockquote>
                 </div>
-                <ul constraint="border-color" style="display: none;">
+                <ul constraint="border-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
                                 <dt data-i18n="border-color">Border color:</dt>
                                 <dd>
                                     <div class="fv-inline-control-row">
-                                        <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
-                                        <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
+                                        <input type="color" name="preview_border_color" data-fvplus-style="fv-u-88tzw1">
+                                        <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" data-fvplus-style="fv-u-bic1u6">
                                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBorderDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
@@ -1191,13 +727,13 @@ window.FolderViewPlusFatalRuntimeContext = {
                         </div>
                     </li>
                 </ul>
-                <ul constraint="border-color" style="display: none;">
+                <ul constraint="border-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
                                 <dt>Preview border glow:</dt>
                                 <dd>
-                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
+                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                                 </dd>
                             </dl>
                             <blockquote class="inline_help">
@@ -1214,7 +750,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt>Chevron style:</dt>
                         <dd>
-                            <img class="img" style="visibility: hidden;">
+                            <img class="img" data-fvplus-style="fv-u-dyskmc">
                             <select name="dropdown_style" data-fv-onchange="updateForm()">
                                 <option value="minimal" selected>Minimal</option>
                                 <option value="boxed">Boxed</option>
@@ -1237,8 +773,8 @@ window.FolderViewPlusFatalRuntimeContext = {
                                 <dt>Chevron colors:</dt>
                                 <dd>
                                     <div class="fv-inline-control-row">
-                                        <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
-                                        <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;">
+                                        <input type="color" name="dropdown_color" data-fvplus-style="fv-u-88tzw1">
+                                        <input type="color" name="dropdown_hover_color" data-fvplus-style="fv-u-88tzw1">
                                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetDropdownColorDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
@@ -1261,7 +797,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                     <dl>
                         <dt data-i18n="context">Preview Context:</dt>
                         <dd>
-                            <img class="img" style="visibility: hidden;">
+                            <img class="img" data-fvplus-style="fv-u-dyskmc">
                             <select name="context" data-fv-onchange="updateForm()">
                                 <option value="0" data-i18n="context-option-0">None</option>
                                 <option value="1" data-i18n="context-option-1" selected>Default</option>
@@ -1275,13 +811,13 @@ window.FolderViewPlusFatalRuntimeContext = {
                         </p>
                     </blockquote>
                 </div>
-                <ul constraint="context-2 docker" style="display: none;">
+                <ul constraint="context-2 docker" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
                                 <dt data-i18n="context-trigger">Activation mode:</dt>
                                 <dd>
-                                    <img class="img" style="visibility: hidden;">
+                                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                                     <select name="context_trigger">
                                         <option value="0" data-i18n="context-trigger-option-0" selected>Click</option>
                                         <option value="1" data-i18n="context-trigger-option-1">Hover</option>
@@ -1300,7 +836,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                             <dl>
                                 <dt data-i18n="context-graph">Graph mode:</dt>
                                 <dd>
-                                    <img class="img" style="visibility: hidden;">
+                                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                                     <select name="context_graph">
                                         <option value="0" data-i18n="context-graph-option-0">None</option>
                                         <option value="1" data-i18n="context-graph-option-1" selected>Combined</option>
@@ -1322,7 +858,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                             <dl>
                                 <dt data-i18n="context-graph-time">Time Frame (s):</dt>
                                 <dd>
-                                    <img class="img" style="visibility: hidden;">
+                                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                                     <input type="number" name="context_graph_time" value="60">
                                 </dd>
                             </dl>
@@ -1345,15 +881,15 @@ window.FolderViewPlusFatalRuntimeContext = {
                         <div class="folder-status-colors">
                             <label class="folder-status-color-item">
                                 <span>Started</span>
-                                <input type="color" name="status_color_started" style="height:28px;vertical-align:middle;">
+                                <input type="color" name="status_color_started" data-fvplus-style="fv-u-88tzw1">
                             </label>
                             <label class="folder-status-color-item">
                                 <span>Paused</span>
-                                <input type="color" name="status_color_paused" style="height:28px;vertical-align:middle;">
+                                <input type="color" name="status_color_paused" data-fvplus-style="fv-u-88tzw1">
                             </label>
                             <label class="folder-status-color-item">
                                 <span>Stopped</span>
-                                <input type="color" name="status_color_stopped" style="height:28px;vertical-align:middle;">
+                                <input type="color" name="status_color_stopped" data-fvplus-style="fv-u-88tzw1">
                             </label>
                         </div>
                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
@@ -1374,7 +910,7 @@ window.FolderViewPlusFatalRuntimeContext = {
         <div class="basic">
             <dl>
                 <dt data-i18n="status-color-lock">Lock status colors:</dt>
-                <dd><input class="basic-switch" name="status_color_lock" type="checkbox" style="display: none;" /></dd>
+                <dd><input class="basic-switch" name="status_color_lock" type="checkbox" data-fvplus-style="fv-u-569beu" /></dd>
             </dl>
             <blockquote class="inline_help"><p data-i18n="status-color-lock-tooltip">Keep this folder's selected status colors authoritative when themes or host styles change.</p></blockquote>
         </div>
@@ -1385,12 +921,12 @@ window.FolderViewPlusFatalRuntimeContext = {
                 <dd class="fv-accent-color-dd">
                     <div class="fv-accent-control-row">
                         <div class="fv-accent-enable-control">
-                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
+                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </div>
-                        <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
+                        <div class="fv-accent-inline-controls" constraint="accent-color" data-fvplus-style="fv-u-569beu">
                             <span class="fv-accent-inline-label">Bar color</span>
                             <div class="fv-inline-control-row">
-                                <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
+                                <input type="color" name="folder_accent_color" data-fvplus-style="fv-u-88tzw1">
                                 <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
                                     <i class="fa fa-repeat" aria-hidden="true"></i>
                                 </button>
@@ -1412,7 +948,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Health warn threshold (%):</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <input type="number" name="health_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
                 </dd>
             </dl>
@@ -1429,7 +965,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Health critical threshold (%):</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <input type="number" name="health_critical_stopped_percent" min="0" max="100" step="1" placeholder="Use global/profile threshold">
                 </dd>
             </dl>
@@ -1446,7 +982,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Health profile:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <select name="health_profile">
                         <option value="" selected>Use global profile</option>
                         <option value="strict">Strict</option>
@@ -1466,7 +1002,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Health updates mode:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <select name="health_updates_mode">
                         <option value="" selected>Use global mode</option>
                         <option value="maintenance">Maintenance</option>
@@ -1486,7 +1022,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Health all-stopped mode:</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <select name="health_all_stopped_mode">
                         <option value="" selected>Use global mode</option>
                         <option value="critical">Critical</option>
@@ -1505,7 +1041,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt>Status warn threshold (%):</dt>
                 <dd>
-                    <img class="img" style="visibility: hidden;">
+                    <img class="img" data-fvplus-style="fv-u-dyskmc">
                     <input type="number" name="status_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
                 </dd>
             </dl>
@@ -1522,7 +1058,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="update-column">Hide update column:</dt>
                 <dd>
-                    <input class="basic-switch" name="update_column" type="checkbox" style="display: none;" />
+                    <input class="basic-switch" name="update_column" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1535,7 +1071,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="override-default-actions">Override default actions:</dt>
                 <dd>
-                    <input class="basic-switch" name="override_default_actions" type="checkbox" style="display: none;" />
+                    <input class="basic-switch" name="override_default_actions" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1548,7 +1084,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="default-action">Hide default action button:</dt>
                 <dd>
-                    <input class="basic-switch" name="default_action" type="checkbox" style="display: none;" />
+                    <input class="basic-switch" name="default_action" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1561,7 +1097,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="expand-tab">Expanded on Docker/VM tab:</dt>
                 <dd>
-                    <input class="basic-switch" name="expand_tab" type="checkbox" style="display: none;" />
+                    <input class="basic-switch" name="expand_tab" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1574,7 +1110,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             <dl>
                 <dt data-i18n="expand-dashboard">Expanded on Dashboard tab:</dt>
                 <dd>
-                    <input class="basic-switch" name="expand_dashboard" type="checkbox" style="display: none;" />
+                    <input class="basic-switch" name="expand_dashboard" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1653,7 +1189,7 @@ window.FolderViewPlusFatalRuntimeContext = {
         <input class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
         <input class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" data-fv-onclick="cancelBtn()">
-        <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
+        <span id="unsavedIndicator" class="folder-unsaved-indicator" data-fvplus-style="fv-u-xcjvns">Unsaved changes</span>
         <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
             <dl>
                 <dt>Folder members:</dt>
@@ -1721,9 +1257,9 @@ window.FolderViewPlusFatalRuntimeContext = {
 </div>
 
 
-<div class="dialogCustomAction" style="display:none"></div>
+<div class="dialogCustomAction" data-fvplus-style="fv-u-uydnfn"></div>
 
-<div class="templateDialogCustomAction" style="display: none;">
+<div class="templateDialogCustomAction" data-fvplus-style="fv-u-569beu">
     <div class="fv-action-dialog-layout">
         <div class="fv-action-dialog-intro">
             <span class="fv-action-dialog-intro-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
@@ -1784,7 +1320,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                         <option value="1" data-i18n="custom-actions-cycle-1">Pause - resume</option>
                     </select>
                 </label>
-                <label class="fv-action-dialog-field set" constraint="action-standard-1" style="display:none;">
+                <label class="fv-action-dialog-field set" constraint="action-standard-1" data-fvplus-style="fv-u-xcjvns">
                     <span data-i18n="custom-actions-states">States:</span>
                     <select name="action_set">
                         <option value="0" data-i18n="custom-actions-set-0">Start</option>
@@ -1807,7 +1343,7 @@ window.FolderViewPlusFatalRuntimeContext = {
             </div>
         </section>
 
-        <section class="fv-action-dialog-section custom" constraint="action-type-1" style="display:none;" aria-label="User Script action">
+        <section class="fv-action-dialog-section custom" constraint="action-type-1" data-fvplus-style="fv-u-xcjvns" aria-label="User Script action">
             <div class="fv-action-dialog-section-head">
                 <span aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
                 <div><h3>User Script</h3><p>Run an installed User Scripts task from the folder menu.</p></div>
@@ -1825,7 +1361,7 @@ window.FolderViewPlusFatalRuntimeContext = {
                 </label>
                 <div class="fv-action-sync-field is-wide">
                     <div><strong data-i18n="custom-actions-script-sync">Wait for completion</strong><small>Keep the action in the foreground until the script finishes.</small></div>
-                    <input class="basic-switch-sync" name="action_script_sync" type="checkbox" style="display:none;">
+                    <input class="basic-switch-sync" name="action_script_sync" type="checkbox" data-fvplus-style="fv-u-xcjvns">
                 </div>
             </div>
         </section>

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.10.04">
-<!ENTITY md5 "53b95a84acfd75325696892acefdef34">
-<!ENTITY sha256 "a1580b0e720eda3480e389ac386202416bb69e6f3b03eac68d1f6b7305698269">
+<!ENTITY version "2026.08.10.05">
+<!ENTITY md5 "a0f9bf2f7bf99286762c7f6ef230e8cb">
+<!ENTITY sha256 "40b16e0e2bf06869b8e27fed8d18d429044bff770add7441c044412e8da8072c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,22 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.10.05
+## FolderView Plus 2026.08.10.05
+This development build completes the plugin-owned CSP and HTML-injection hardening pass while preserving compatibility with Unraid's shared webGUI document.
+### CSP readiness
+- Security: Externalize all plugin-owned page, Settings, folder-editor, runtime-conflict, preflight, custom-loader, Docker layout, and localization bootstrap scripts.
+- Security: Replace plugin-owned inline style attributes with scoped utility classes, finite state classes, or validated CSS custom properties.
+- Security: Expand the CSP readiness guard to cover localization PHP, reject inline script and style blocks, and publish line-level HTML-string sink risk inventory.
+- Compatibility: Keep CSP in report-only planning mode because enforcement must be coordinated with Unraid and peer plugins sharing the document.
+- Security: Evaluate Trusted Types only in an enforced browser fixture rather than imposing a plugin-level production policy.
+### Injection resistance and verification
+- Security: Add an allowlisted safe-DOM construction helper and migrate persisted folder names and bulk-assignment results away from HTML-string rendering.
+- Security: Add malicious persisted-value fixtures covering folder and container names, template metadata, imported configuration, translations, and diagnostics.
+- Quality: Preserve static layout and theme behavior through scoped CSP utility styles and externalized bootstrap contracts across Docker, VMs, Dashboard, Settings, and the folder editor.
+- Localization: Refresh all 27 generated locale surfaces for preflight diagnostics that are now visible to the JavaScript localization scanner.
+
 
 ###2026.08.10.04
 ## FolderView Plus 2026.08.10.04

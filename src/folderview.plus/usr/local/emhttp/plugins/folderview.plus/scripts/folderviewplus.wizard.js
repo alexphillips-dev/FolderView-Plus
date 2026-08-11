@@ -1205,8 +1205,8 @@ const ensureSetupAssistantDom = () => {
         return;
     }
     $('body').append(`
-        <div id="fv-setup-assistant-overlay" style="display:none;"></div>
-        <div id="fv-setup-assistant-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
+        <div id="fv-setup-assistant-overlay" data-fvplus-style="fv-u-xcjvns"></div>
+        <div id="fv-setup-assistant-dialog" data-fvplus-style="fv-u-xcjvns" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
             <div id="fv-setup-assistant-content"></div>
         </div>
     `);
@@ -2825,7 +2825,7 @@ const renderSetupAssistantTemplateTypeCard = (type) => {
         return `
             <label class="fv-setup-rule-row">
                 <input type="checkbox" data-fv-setup-template-item="${resolvedType}" data-fv-setup-template-name="${escapeHtml(folderName)}" ${checked ? 'checked' : ''} ${bootstrap.enabled ? '' : 'disabled'}>
-                <span class="fv-setup-rule-main"><img src="${escapeHtml(iconPath)}" alt="" style="width:14px;height:14px;object-fit:contain;margin-right:6px;vertical-align:text-bottom;">${escapeHtml(folderName)}</span>
+                <span class="fv-setup-rule-main"><img src="${escapeHtml(iconPath)}" alt="" data-fvplus-style="fv-u-1qrbyrk">${escapeHtml(folderName)}</span>
                 <span class="fv-setup-rule-help">Template folder for ${escapeHtml(title)} workload grouping.</span>
             </label>
         `;
@@ -3813,11 +3813,17 @@ const renderSetupAssistant = () => {
                         <span>${escapeHtml(setupAssistantState.progressLabel || '')}</span>
                         <span>${setupAssistantState.progressPercent}%</span>
                     </div>
-                    <div class="fv-setup-progress-track"><span style="width:${setupAssistantState.progressPercent}%;"></span></div>
+                    <div class="fv-setup-progress-track"><span data-fv-progress-percent="${setupAssistantState.progressPercent}"></span></div>
                 </div>
             </section>
         </div>
     `);
+
+    const progressFill = dialog.find('[data-fv-progress-percent]').get(0);
+    if (progressFill instanceof HTMLElement) {
+        const percent = Math.max(0, Math.min(100, Number(progressFill.dataset.fvProgressPercent) || 0));
+        progressFill.style.setProperty('--fv-setup-progress-percent', `${percent}%`);
+    }
 
     applySetupAssistantThemeSurface('render');
     overlay.show();

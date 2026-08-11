@@ -9,6 +9,7 @@ const scriptsRoot = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts'
 );
 const dockerJs = fs.readFileSync(path.join(scriptsRoot, 'docker.js'), 'utf8');
+const dockerColumnControllerJs = fs.readFileSync(path.join(scriptsRoot, 'docker.runtime.column-controller.js'), 'utf8');
 const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
@@ -43,12 +44,12 @@ test('full Docker runtime details begin only after the lightweight folder render
 test('Docker folder construction suppresses intermediate width measurements and performs one stabilized pass', () => {
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS = 280;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX = 3;/);
-    assert.match(dockerJs, /const beginDockerRuntimeWidthBootstrap = \(\) =>/);
-    assert.match(dockerJs, /const completeDockerRuntimeWidthBootstrap = \(generation, options = \{\}\) =>/);
-    assert.match(dockerJs, /if \(isDockerRuntimeWidthBootstrapActive\(\)\) \{\s*dockerRuntimeWidthState\.deferredReason/);
-    assert.match(dockerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{[\s\S]*isDockerRuntimeWidthBootstrapActive\(\)[\s\S]*resizerBindPending = true/);
-    assert.match(dockerJs, /dockerRuntimeResizerObserver = \{ disconnect \};/);
-    assert.match(dockerJs, /bindDockerRuntimeColumnResizers\(\{ scheduleReflow: false \}\);[\s\S]*runDockerRuntimeWidthReflow\('bootstrap-stable', \{[\s\S]*force: true,[\s\S]*minimumDelta: DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX/);
+    assert.match(dockerColumnControllerJs, /const beginDockerRuntimeWidthBootstrap = \(\) =>/);
+    assert.match(dockerColumnControllerJs, /const completeDockerRuntimeWidthBootstrap = \(generation, options = \{\}\) =>/);
+    assert.match(dockerColumnControllerJs, /if \(isDockerRuntimeWidthBootstrapActive\(\)\) \{\s*dockerRuntimeWidthState\.deferredReason/);
+    assert.match(dockerColumnControllerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{[\s\S]*isDockerRuntimeWidthBootstrapActive\(\)[\s\S]*resizerBindPending = true/);
+    assert.match(dockerColumnControllerJs, /controllerState\.resizerObserver = \{ disconnect \};/);
+    assert.match(dockerColumnControllerJs, /bindDockerRuntimeColumnResizers\(\{ scheduleReflow: false \}\);[\s\S]*runDockerRuntimeWidthReflow\('bootstrap-stable', \{[\s\S]*force: true,[\s\S]*minimumDelta: DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX/);
     assert.match(dockerJs, /const widthBootstrapGeneration = beginDockerRuntimeWidthBootstrap\(\);/);
     assert.match(dockerJs, /dockerRuntimeWidthState\.pendingRenderGeneration = widthBootstrapGeneration;/);
     assert.match(dockerJs, /const widthBootstrapGeneration = dockerRuntimeWidthState\.pendingRenderGeneration[\s\S]*\|\| beginDockerRuntimeWidthBootstrap\(\);/);

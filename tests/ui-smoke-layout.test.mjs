@@ -75,6 +75,10 @@ const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
 );
+const runtimeFolderOrderingJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.folder-ordering.js'
+);
 const dashboardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
@@ -125,6 +129,7 @@ const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8
 const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
 const dockerRuntimeActionsJs = fs.readFileSync(dockerRuntimeActionsJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
+const runtimeFolderOrderingJs = fs.readFileSync(runtimeFolderOrderingJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
@@ -461,7 +466,8 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_webui\)/);
     assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_console && containerName\)/);
     assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_logs && containerName\)/);
-    assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
+    assert.match(vmJs, /runtimeFolderOrdering\.buildFolderDepthById\(folders/);
+    assert.match(runtimeFolderOrderingJs, /const parentId = normalizeParent\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 
 test('folder editor uses the modern stylesheet without retired runtime alignment overrides', () => {

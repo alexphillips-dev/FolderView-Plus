@@ -533,6 +533,9 @@ classify_changed_path_subsystems() {
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.docker-actions.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.transport.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.folder-ordering.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.live-refresh.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php|\
     tests/*shared*|tests/*parity*|tests/request-client-contract.test.mjs|tests/extracted-module-bootstrap-guard.test.mjs)

@@ -16,6 +16,7 @@ const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
+const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
@@ -222,6 +223,8 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.info\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.preview-actions\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.hierarchy\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.column-controller\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('runtime\.live-refresh\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.actions\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.host-guards\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.diagnostics\.js'\)/);
@@ -266,7 +269,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
     assert.match(dockerJs, /const dockerExpandedStateController = runtimeStateObserverModule/);
-    assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
+    assert.match(dockerColumnControllerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);

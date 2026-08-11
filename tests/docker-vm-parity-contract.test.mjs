@@ -7,6 +7,8 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
+const dockerRuntimeSources = `${dockerJs}\n${dockerColumnControllerJs}`;
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -86,7 +88,7 @@ const parityContracts = [
 
 test('docker/vm runtime parity contracts remain aligned for core folder capabilities', () => {
     for (const contract of parityContracts) {
-        assert.match(dockerJs, contract.docker, `Docker missing parity contract: ${contract.name}`);
+        assert.match(dockerRuntimeSources, contract.docker, `Docker missing parity contract: ${contract.name}`);
         assert.match(vmJs, contract.vm, `VM missing parity contract: ${contract.name}`);
     }
 });

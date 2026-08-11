@@ -11,6 +11,7 @@ const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const libPrefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
@@ -120,7 +121,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(dockerJs, /fvplus-privacy-lan-ip-value/);
     assert.match(dockerJs, /fvplus-privacy-lan-port-value/);
     assert.match(dockerJs, /decorateDockerRuntimeLanEndpointValues\(\);/);
-    assert.match(dockerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{\s*decorateDockerRuntimeLanEndpointValues\(\);/);
+    assert.match(dockerColumnControllerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{\s*decorateDockerRuntimeLanEndpointValues\(\);/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime-mask-names/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

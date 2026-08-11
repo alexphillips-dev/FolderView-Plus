@@ -29,6 +29,10 @@ const dockerRuntimeHierarchyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
 );
+const dockerColumnControllerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js'
+);
 const runtimeColumnLayoutJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js'
@@ -104,6 +108,7 @@ const dockerRuntimeServerLibPhp = fs.readFileSync(dockerRuntimeServerLibPath, 'u
 const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
+const dockerColumnControllerJs = fs.readFileSync(dockerColumnControllerJsPath, 'utf8');
 const runtimeColumnLayoutJs = fs.readFileSync(runtimeColumnLayoutJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
@@ -196,7 +201,8 @@ test('performance policy applies adaptive and maximum refresh cadence with reduc
     assert.match(vmJs, /const policyMinSeconds = Number\(vmRuntimePerformanceProfile\?\.minLiveRefreshSeconds \|\| 0\)/);
     assert.match(dashboardJs, /scheduleDashboardTypeLiveRefresh\('docker'/);
     assert.match(dashboardJs, /scheduleDashboardTypeLiveRefresh\('vm'/);
-    assert.match(dashboardJs, /liveRefreshTimers = \{ docker: null, vm: null \}/);
+    assert.match(dashboardJs, /const dashboardLiveRefreshController = runtimeLiveRefreshModule\.createController\(\{/);
+    assert.match(dashboardJs, /keys:\s*\['docker', 'vm'\]/);
     assert.match(dockerCss, /body\.fvplus-performance-mode \.folder-preview/);
     assert.match(vmCss, /body\.fvplus-performance-mode \.folder-preview/);
     assert.match(dashboardCss, /body\.fvplus-performance-mode-docker tbody#docker_view \.folder-showcase/);
@@ -380,15 +386,15 @@ test('docker first paint keeps a lightweight loading shell and enriches state pa
 });
 
 test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
-    assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
-    assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
-    assert.match(dockerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
-    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct', options = \{\}\) =>/);
-    assert.match(dockerJs, /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
+    assert.match(dockerColumnControllerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
+    assert.match(dockerColumnControllerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
+    assert.match(dockerColumnControllerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
+    assert.match(dockerColumnControllerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct', options = \{\}\) =>/);
+    assert.match(dockerColumnControllerJs, /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_PHASES = Object\.freeze\(/);
     assert.match(dockerJs, /phase:\s*DOCKER_RUNTIME_WIDTH_PHASES\.idle/);
-    assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloor = null;/);
-    assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloorMode = null;/);
+    assert.match(dockerJs, /autoAppWidthFloor:\s*null/);
+    assert.match(dockerJs, /autoAppWidthFloorMode:\s*null/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;/);
@@ -397,34 +403,34 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION = 'content-aware-v2';/);
     assert.match(runtimeColumnLayoutJs, /const readCachedWidth = \(mode = 'standard', contentSignature = ''\) =>/);
     assert.match(runtimeColumnLayoutJs, /const writeCachedWidth = \(/);
-    assert.match(dockerJs, /const primeDockerRuntimeAppWidthBeforeRender = \(folders = null\) =>/);
+    assert.match(dockerColumnControllerJs, /const primeDockerRuntimeAppWidthBeforeRender = \(folders = null\) =>/);
     assert.match(runtimeColumnLayoutJs, /const resolveFolderBootstrap = \(\{[\s\S]*resolveBootstrapWidth\(\{[\s\S]*estimated:\s*estimate\.estimatedWidth,[\s\S]*cached:\s*cachedWidth/);
     assert.match(dockerJs, /runDockerRuntimeWidthReflow\('pre-visible-folder-commit', \{[\s\S]*force:\s*true/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
-    assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
-    assert.match(dockerJs, /widthNodes = \[/);
-    assert.match(dockerJs, /node\.scrollWidth/);
-    assert.match(dockerJs, /node\.clientWidth/);
-    assert.match(dockerJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
-    assert.match(dockerJs, /if \(clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
-    assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
-    assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
-    assert.match(dockerJs, /boundedFloor = dockerRuntimeAutoAppWidthFloor;/);
-    assert.match(dockerJs, /appliedWidth = Math\.max\(appliedWidth, boundedFloor\)/);
-    assert.match(dockerJs, /const nextFloor = appliedWidth;/);
-    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = decision\.nextFloor;/);
-    assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
+    assert.match(dockerColumnControllerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
+    assert.match(dockerColumnControllerJs, /widthNodes = \[/);
+    assert.match(dockerColumnControllerJs, /node\.scrollWidth/);
+    assert.match(dockerColumnControllerJs, /node\.clientWidth/);
+    assert.match(dockerColumnControllerJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
+    assert.match(dockerColumnControllerJs, /if \(clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
+    assert.match(dockerColumnControllerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
+    assert.match(dockerColumnControllerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
+    assert.match(dockerColumnControllerJs, /boundedFloor = controllerState\.autoAppWidthFloor;/);
+    assert.match(dockerColumnControllerJs, /appliedWidth = Math\.max\(appliedWidth, boundedFloor\)/);
+    assert.match(dockerColumnControllerJs, /const nextFloor = appliedWidth;/);
+    assert.match(dockerColumnControllerJs, /controllerState\.autoAppWidthFloor = decision\.nextFloor;/);
+    assert.match(dockerColumnControllerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
-    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null, options = \{\}\) =>/);
-    assert.match(dockerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
-    assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
-    assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
-    assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
-    assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
-    assert.match(dockerJs, /if \(index !== 1\) \{\s*return;\s*\}/);
-    assert.match(dockerJs, /applyDockerRuntimeAppColumnInlineWidth\(effectiveWidth\);/);
-    assert.doesNotMatch(dockerJs, /if \(!effectiveWidth\) \{[\s\S]*?removeProperty\('width'\)/);
+    assert.match(dockerColumnControllerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null, options = \{\}\) =>/);
+    assert.match(dockerColumnControllerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
+    assert.match(dockerColumnControllerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
+    assert.match(dockerColumnControllerJs, /nameSelector:\s*'\.folder-appname'/);
+    assert.match(dockerColumnControllerJs, /auxSelectors:\s*\['\.folder-state'\]/);
+    assert.match(dockerColumnControllerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
+    assert.match(dockerColumnControllerJs, /if \(index !== 1\) \{\s*return;\s*\}/);
+    assert.match(dockerColumnControllerJs, /applyDockerRuntimeAppColumnInlineWidth\(effectiveWidth\);/);
+    assert.doesNotMatch(dockerColumnControllerJs, /if \(!effectiveWidth\) \{[\s\S]*?removeProperty\('width'\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
     assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 12\)/);
@@ -434,12 +440,12 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
 
 test('docker runtime applies cached app-column width before first measured reflow', () => {
     assert.match(dockerJs, /const cachedAppWidth = dockerRuntimeColumnLayoutEngine\?\.readCachedWidth\?\.\(appColumnWidth\)/);
-    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = Math\.max\(Number\(dockerRuntimeAutoAppWidthFloor\) \|\| 0,\s*cachedAppWidth\);/);
+    assert.match(dockerJs, /dockerRuntimeColumnControllerState\.autoAppWidthFloor = Math\.max\(\s*Number\(dockerRuntimeColumnControllerState\.autoAppWidthFloor\) \|\| 0,\s*cachedAppWidth/);
     assert.match(dockerJs, /applyDockerRuntimeAppWidthVariables\(cachedAppWidth\);/);
     assert.match(dockerJs, /primeDockerRuntimeAppWidthBeforeRender\(folders\);/);
-    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = primedWidth;/);
-    assert.match(dockerJs, /applyDockerRuntimeAppColumnInlineWidth\(primedWidth\);/);
-    assert.match(dockerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
+    assert.match(dockerColumnControllerJs, /controllerState\.autoAppWidthFloor = primedWidth;/);
+    assert.match(dockerColumnControllerJs, /applyDockerRuntimeAppColumnInlineWidth\(primedWidth\);/);
+    assert.match(dockerColumnControllerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
 });
 
 test('docker post-render polish retries only when rows are still settling', () => {

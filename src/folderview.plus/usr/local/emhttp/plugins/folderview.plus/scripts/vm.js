@@ -7,6 +7,7 @@ const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
+const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
 const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('vm', {
     window,
@@ -340,6 +341,12 @@ if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !==
     setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'missing', 'folder ordering contract unavailable');
 } else {
     setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
+}
+if (!runtimeLiveRefreshModule || typeof runtimeLiveRefreshModule.createController !== 'function') {
+    vmBootstrapMissingModules.push('runtime.live-refresh.js');
+    setVmFatalBannerModuleStatus('runtime.live-refresh.js', 'missing', 'live refresh controller unavailable');
+} else {
+    setVmFatalBannerModuleStatus('runtime.live-refresh.js', 'ok', 'live refresh controller ready');
 }
 if (typeof runtimeShared.createFolderRowActionsController !== 'function') {
     vmBootstrapMissingModules.push('folder.runtime.row-actions.js');
@@ -1092,66 +1099,18 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
 
 const normalizeFolderParentId = (value) => String(value || '').trim();
 
-const buildFolderDepthById = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const ids = Object.keys(source);
-    if (!ids.length) {
-        return {};
-    }
-    const validIds = new Set(ids);
-    const depthById = {};
-    const resolveDepth = (id, chain = new Set()) => {
-        if (!validIds.has(id)) {
-            return 0;
-        }
-        if (Object.prototype.hasOwnProperty.call(depthById, id)) {
-            return depthById[id];
-        }
-        if (chain.has(id)) {
-            depthById[id] = 0;
-            return 0;
-        }
-        chain.add(id);
-        const parentId = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
-        let depth = 0;
-        if (parentId && parentId !== id && validIds.has(parentId)) {
-            depth = Math.min(8, resolveDepth(parentId, chain) + 1);
-        }
-        chain.delete(id);
-        depthById[id] = depth;
-        return depth;
-    };
-    for (const id of ids) {
-        resolveDepth(id, new Set());
-    }
-    return depthById;
-};
+const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepthById(folders, {
+    normalizeParentId: normalizeFolderParentId,
+    maxDepth: 8
+});
 
-const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
-    const order = Array.isArray(baseOrder)
-        ? baseOrder.map((item) => String(item || ''))
-        : Object.values(baseOrder || {}).map((item) => String(item || ''));
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
-        .map((id) => `folder-${id}`);
-    if (!desiredFolderTokens.length) {
-        return order;
-    }
-    let desiredIndex = 0;
-    return order.map((entry) => {
-        if (!folderRegex.test(entry)) {
-            return entry;
-        }
-        while (desiredIndex < desiredFolderTokens.length) {
-            const candidate = desiredFolderTokens[desiredIndex++];
-            const candidateId = candidate.replace(folderRegex, '');
-            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
-                return candidate;
-            }
-        }
-        return entry;
-    });
-};
+const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
+    runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
+        orderFolders: getPrefsOrderedFolderMap,
+        folderTokenPrefix: 'folder-',
+        isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+    })
+);
 
 const parseJsonPayloadSafe = (payload) => {
     if (payload && typeof payload === 'object') {
@@ -3226,9 +3185,6 @@ let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
 let vmRuntimeInfoByName = {};
-let liveRefreshTimer = null;
-let liveRefreshMs = 0;
-let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
@@ -3548,58 +3504,37 @@ vmLifecycleApi = vmLifecycleModule.createApi({
 });
 window.getVmLifecycleDiagnosticsSnapshot = () => vmLifecycleApi?.getSnapshot?.() || null;
 
-const clearLiveRefreshTimer = () => {
-    if (liveRefreshTimer) {
-        clearInterval(liveRefreshTimer);
-        liveRefreshTimer = null;
+const vmLiveRefreshController = runtimeLiveRefreshModule.createController({
+    window,
+    document,
+    keys: ['vm'],
+    isEnabled: () => folderTypePrefs?.liveRefreshEnabled === true && $('#kvm_list').length > 0,
+    tick: async () => {
+        let check = null;
+        try {
+            check = await fetchVmRuntimeSnapshotCheck();
+        } catch (_error) {
+            check = null;
+        }
+        if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
+            queueLoadlistRefresh();
+            return false;
+        }
+        if (check.notModified !== true) await refreshVmRuntimeStateInPlace();
+        return true;
     }
-    liveRefreshMs = 0;
-};
-
-const runLiveRefreshTick = () => {
-    if (liveRefreshInFlight || document.hidden) {
-        return;
-    }
-    liveRefreshInFlight = true;
-    Promise.resolve()
-        .then(async () => {
-            let check = null;
-            try {
-                check = await fetchVmRuntimeSnapshotCheck();
-            } catch (_error) {
-                check = null;
-            }
-            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-                queueLoadlistRefresh();
-                return;
-            }
-            if (check.notModified !== true) {
-                await refreshVmRuntimeStateInPlace();
-            }
-        })
-        .finally(() => {
-            setTimeout(() => {
-                liveRefreshInFlight = false;
-            }, 500);
-        });
-};
+});
 
 const scheduleLiveRefresh = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
-    if (normalized.liveRefreshEnabled !== true) {
-        clearLiveRefreshTimer();
-        return;
-    }
     const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
     const policyMinSeconds = Number(vmRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
     const seconds = Math.max(requestedSeconds, policyMinSeconds);
     const ms = seconds * 1000;
-    if (liveRefreshTimer && liveRefreshMs === ms) {
-        return;
-    }
-    clearLiveRefreshTimer();
-    liveRefreshMs = ms;
-    liveRefreshTimer = setInterval(runLiveRefreshTick, ms);
+    vmLiveRefreshController.schedule('vm', {
+        enabled: normalized.liveRefreshEnabled === true,
+        intervalMs: ms
+    });
 };
 
 const normalizeVmRuntimeAppColumnMode = (value) => {
@@ -3995,7 +3930,7 @@ addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
-    clearLiveRefreshTimer();
+    vmLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(vmRuntimeWidthReflowTimer);
     clearTimeout(vmZebraRefreshTimer);

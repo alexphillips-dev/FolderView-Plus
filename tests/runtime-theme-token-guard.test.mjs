@@ -14,6 +14,7 @@ const cspUtilitiesCss = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const themeTokensCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
@@ -97,8 +98,8 @@ test('runtime scripts avoid inline status color painting and use row-level css v
 });
 
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
-    assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule\.createThemeReflowController === 'function'/);
-    assert.match(dockerJs, /const bindDockerRuntimeThemeReflow/);
+    assert.match(dockerColumnControllerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule\.createThemeReflowController === 'function'/);
+    assert.match(dockerColumnControllerJs, /const bindDockerRuntimeThemeReflow/);
     assert.match(dockerJs, /const applyDockerThemeResolverTokens = \(reason = 'docker-runtime:initial', options = \{\}\) =>/);
     assert.match(vmJs, /const queueVmRuntimeThemeReflow/);
     assert.match(vmJs, /const bindVmRuntimeThemeReflow/);
@@ -175,8 +176,8 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
     assert.match(cspUtilitiesCss, /\.fv-popup-guide\s*\{[^}]*color:\s*var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)/);
     assert.match(cspUtilitiesCss, /\.fv-popup-panel\s*\{[^}]*background:\s*var\(--fvplus-runtime-menu-header-bg,\s*transparent\)/);
     assert.doesNotMatch(dockerRuntimeActionsJs, /color:\s*#e8edf7/);
-    assert.match(dockerJs, /panel\.style\.background = 'var\(--fvplus-runtime-menu-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\)'/);
-    assert.match(dockerJs, /panel\.style\.color = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
+    assert.match(dockerColumnControllerJs, /panel\.style\.background = 'var\(--fvplus-runtime-menu-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\)'/);
+    assert.match(dockerColumnControllerJs, /panel\.style\.color = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
     assert.match(fatalBannerJs, /border:\s*1px solid var\(--orange,\s*var\(--fvplus-theme-accent,\s*currentColor\)\);/);
     assert.match(fatalBannerJs, /background:\s*var\(--fvplus-theme-surface-panel,\s*transparent\);/);
     assert.match(fatalBannerJs, /color:\s*var\(--fvplus-theme-text-primary,\s*currentColor\);/);

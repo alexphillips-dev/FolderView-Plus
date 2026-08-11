@@ -12,6 +12,7 @@ const previewActionsJs = read(`${pluginRoot}/scripts/docker.runtime.preview-acti
 const runtimeInfoJs = read(`${pluginRoot}/scripts/docker.runtime.info.js`);
 const diagnosticsJs = read(`${pluginRoot}/scripts/docker.runtime.diagnostics.js`);
 const columnLayoutJs = read(`${pluginRoot}/scripts/runtime.column-layout.js`);
+const dockerColumnControllerJs = read(`${pluginRoot}/scripts/docker.runtime.column-controller.js`);
 const dockerPage = read(`${pluginRoot}/folderview.plus.Docker.page`);
 const dockerLayoutBootstrap = read(`${pluginRoot}/scripts/docker.layout-bootstrap.js`);
 const dockerCss = read(`${pluginRoot}/styles/docker.css`);
@@ -117,7 +118,7 @@ test('content-aware width bootstrap rejects narrow-cache authority before first 
     assert.match(dockerJs, /DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus\.runtime\.docker\.appWidth\.v2'/);
     assert.match(columnLayoutJs, /const hashInput =/);
     assert.match(columnLayoutJs, /const resolveFolderBootstrap =/);
-    assert.match(dockerJs, /dockerRuntimeWidthContentSignature = String\(bootstrap\.contentSignature/);
+    assert.match(dockerColumnControllerJs, /controllerState\.widthContentSignature = String\(bootstrap\.contentSignature/);
     assert.match(dockerJs, /runDockerRuntimeWidthReflow\('pre-visible-folder-commit'/);
     assert.match(dockerPage, /scripts\/docker\.layout-bootstrap\.js/);
     assert.match(dockerLayoutBootstrap, /localStorage\?\.getItem\('fvplus\.runtime\.docker\.appWidth\.v2'\)/);

@@ -8,12 +8,12 @@
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
       "scripts/folderviewplus.js": { "limit": 12092, "target": 1200, "history": [12092] },
-      "scripts/docker.js": { "limit": 8839, "target": 1000, "history": [8839] },
+      "scripts/docker.js": { "limit": 8028, "target": 1000, "history": [8839, 8045, 8028] },
       "server/lib.php": { "limit": 7556, "target": 400, "history": [7556] },
       "scripts/folder.js": { "limit": 5522, "target": 700, "history": [5522] },
       "scripts/folderviewplus.wizard.js": { "limit": 4849, "target": 500, "history": [4849] },
-      "scripts/vm.js": { "limit": 4010, "target": 750, "history": [4010] },
-      "scripts/dashboard.js": { "limit": 3173, "target": 600, "history": [3173] },
+      "scripts/vm.js": { "limit": 3945, "target": 750, "history": [4010, 3945] },
+      "scripts/dashboard.js": { "limit": 3152, "target": 600, "history": [3173, 3152] },
       "server/lib.diagnostics.php": { "limit": 2923, "target": 300, "history": [2923] },
       "scripts/folderviewplus.utils.js": { "limit": 2054, "target": 400, "history": [2346, 2054] },
       "scripts/folderviewplus.activity-diagnostics.js": { "limit": 2336, "target": 500, "history": [2336] },
@@ -38,6 +38,7 @@
       "scripts/folderviewplus.prefs-store.js": { "limit": 854, "target": 600, "history": [854] },
       "scripts/folder.editor.rules.js": { "limit": 830, "target": 500, "history": [830] },
       "scripts/docker.runtime.command-view.js": { "limit": 792, "target": 600, "history": [792] },
+      "scripts/docker.runtime.column-controller.js": { "limit": 847, "target": 500, "history": [847] },
       "scripts/folderviewplus.request.js": { "limit": 757, "target": 600, "history": [757] },
       "scripts/folderviewplus.csp-events.js": { "limit": 300, "target": 240, "history": [300] },
       "scripts/folderviewplus.actions-support.js": { "limit": 255, "target": 200, "history": [255] },
@@ -45,6 +46,8 @@
       "scripts/runtime.transport.core.js": { "limit": 236, "target": 200, "history": [236] },
       "scripts/runtime.transport.subscription.js": { "limit": 241, "target": 200, "history": [241] },
       "scripts/runtime.transport.docker-actions.js": { "limit": 223, "target": 200, "history": [223] },
+      "scripts/runtime.folder-ordering.js": { "limit": 192, "target": 160, "history": [192] },
+      "scripts/runtime.live-refresh.js": { "limit": 115, "target": 115, "history": [115] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
@@ -53,9 +56,9 @@
       "FolderViewPlus.page": { "limit": 1822, "target": 1600, "history": [1822] }
     },
     "functionNameOverlap": [
-      { "files": ["scripts/docker.js", "scripts/vm.js"], "limit": 46 },
-      { "files": ["scripts/docker.js", "scripts/dashboard.js"], "limit": 9 },
-      { "files": ["scripts/vm.js", "scripts/dashboard.js"], "limit": 8 }
+      { "files": ["scripts/docker.js", "scripts/vm.js"], "limit": 40 },
+      { "files": ["scripts/docker.js", "scripts/dashboard.js"], "limit": 6 },
+      { "files": ["scripts/vm.js", "scripts/dashboard.js"], "limit": 6 }
     ]
   },
   "consumerScopes": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages", "server-endpoints"],
@@ -86,7 +89,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -96,7 +99,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["vm"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/docker.runtime.shared.js", "scripts/vm.runtime.lifecycle.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/vm.runtime.lifecycle.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addVMFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -106,7 +109,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["dashboard"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/docker.runtime.shared.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["expandFolderDocker", "expandFolderVM"]
     },
@@ -347,9 +350,41 @@
       "moduleLoaded": "FolderViewPlusRuntimeFolderOrderingModuleLoaded",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["normalizeFolderToken", "isFolderToken", "buildCustomOrder", "createOrderCursor"],
+      "exports": ["normalizeFolderToken", "isFolderToken", "normalizeParentId", "buildFolderDepthById", "reorderFolderSlotsInBaseOrder", "reconcileOrderWithFolderSlots", "buildCustomOrder", "createOrderCursor"],
       "lifecycleFactories": [
         { "name": "createOrderCursor", "exports": ["destroy", "snapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/runtime.live-refresh.js",
+      "owner": "shared-runtime-refresh",
+      "consumers": ["docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimeLiveRefresh",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createController"],
+      "lifecycleFactories": [
+        { "name": "createController", "exports": ["clear", "run", "schedule", "snapshot", "dispose"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.column-controller.js",
+      "owner": "docker-runtime-layout",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/runtime.column-layout.js", "scripts/folder.runtime.state-observers.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerColumnController",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createController"],
+      "lifecycleFactories": [
+        { "name": "createController", "exports": ["runDockerRuntimeWidthReflow", "scheduleDockerRuntimeWidthReflow", "dispose"] }
       ]
     },
     {

@@ -61,6 +61,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.container-model.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.providers.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.folder-ordering.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.live-refresh.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.host-adapter.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.runtime-surface.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.state-store.js')?>"></script>

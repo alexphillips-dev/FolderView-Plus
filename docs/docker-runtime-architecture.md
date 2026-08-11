@@ -19,6 +19,15 @@ This document tracks the staged modularization of `docker.js` while preserving U
 - `scripts/docker.runtime.layout-geometry.js`
   - Owns DOM-independent geometry sampling and comparison used by Docker layout diagnostics.
   - Separates whole-row movement from action movement inside a row so delayed hydration evidence identifies the actual source of visual bounce.
+- `scripts/docker.runtime.column-controller.js`
+  - Owns Docker app-column measurement, cached-width bootstrap, gap enforcement, reflow scheduling, theme/viewport/font hooks, resizer observation, and teardown.
+  - Receives runtime state and host dependencies from `docker.js`; it does not own Docker rows, preferences, or render orchestration.
+- `scripts/runtime.folder-ordering.js`
+  - Owns deterministic folder depth, saved-order slot replacement, and Docker order reconciliation shared by Docker, VM, and Dashboard.
+  - Preserves live folder-slot order for the default created mode while applying explicit sort and pin preferences consistently.
+- `scripts/runtime.live-refresh.js`
+  - Owns interval cadence, visibility gating, in-flight exclusion, release delay, snapshots, and disposal for Docker, VM, and Dashboard.
+  - Each surface retains its own snapshot request, signature comparison, and incremental reconciliation callback.
 - `scripts/docker.bootstrap.js`
   - Re-detects the fully parsed Docker host, prepares the selected provider, and loads the legacy runtime only after a complete legacy table contract is confirmed.
   - Keeps legacy CSS and custom Docker overrides disabled on native and unknown hosts.
@@ -43,7 +52,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 ## Runtime Ownership
 
-- `docker.bootstrap.js` is the only production loader for `docker.js`, which starts only for the complete legacy table contract. The runtime keeps legacy Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter.
+- `docker.bootstrap.js` is the only production loader for `docker.js`, which starts only for the complete legacy table contract. The runtime keeps legacy Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter and the extracted column controller.
 - The native Docker component remains owned by Unraid. FolderView Plus does not overlay it or mutate the prerelease organizer.
 - On the legacy table, UI ownership remains unchanged while the hybrid provider prefers schema-confirmed GraphQL reads and statistics.
 - Dashboard advanced previews open GraphQL statistics lazily and fall back to the host `docker_load` stream.
@@ -72,7 +81,7 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 - Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
 - Preview hydration diagnostics record unavailable WebUI slots, disconnected targets, absolute movement, row movement, and movement relative to the owning row without retaining container or folder identities.
-- The main Docker runtime line budget is ratcheted below its prior ceiling; layout comparison logic and noisy first-render debug work remain outside the hot orchestration path.
+- The main Docker runtime line budget is ratcheted from 8,839 to 8,028 lines. Column layout/control moved behind a lifecycle-owned factory, while reusable ordering and live-refresh seams reduced duplicate ownership across Docker, VM, and Dashboard.
 
 ## Regression Prevention
 
@@ -82,6 +91,7 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
   - `tests/docker-folder-row-quick-actions.test.mjs`
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
   - `tests/docker-runtime-diagnostics-geometry.test.mjs`
+  - `tests/phase3-runtime-seams.test.mjs`
   - `tests/unraid-docker-future-compatibility.test.mjs`
   - `tests/unraid-upstream-monitor.test.mjs`
 - Deterministic native-host browser coverage:

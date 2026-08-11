@@ -1707,7 +1707,12 @@ test('Import selection applies group choices without mutating unrelated operatio
 
 test('Import progress dialog reports deterministic progress and closes cleanly', async ({ page }) => {
     await page.goto(`${baseUrl}/import`, { waitUntil: 'load' });
+    assert.equal(await page.locator('#import-apply-progress-overlay').isHidden(), true);
+    assert.equal(await page.locator('#import-apply-progress-dialog').isHidden(), true);
+    assert.equal(await page.locator('#import-apply-progress-dialog').getAttribute('aria-hidden'), 'true');
     await page.evaluate(() => window.fixtureImport.openProgress('docker', 4, { title: 'Applying Docker changes' }));
+    assert.equal(await page.locator('#import-apply-progress-overlay').isVisible(), true);
+    assert.equal(await page.locator('#import-apply-progress-dialog').isVisible(), true);
     assert.equal(await page.locator('#import-apply-progress-dialog').getAttribute('aria-hidden'), 'false');
     await page.evaluate(() => window.fixtureImport.updateProgress({ completed: 2, total: 4, label: 'Updating Media' }));
     assert.equal(await page.locator('#import-apply-progress-step').textContent(), 'Step 2 of 4');
@@ -1715,6 +1720,8 @@ test('Import progress dialog reports deterministic progress and closes cleanly',
     assert.equal(await page.locator('#import-apply-progress-bar').getAttribute('style'), 'width: 50%;');
     await page.evaluate(() => window.fixtureImport.closeProgress());
     assert.equal(await page.locator('#import-apply-progress-dialog').getAttribute('aria-hidden'), 'true');
+    assert.equal(await page.locator('#import-apply-progress-overlay').isHidden(), true);
+    assert.equal(await page.locator('#import-apply-progress-dialog').isHidden(), true);
 });
 
 test('Export download diagnostics report a missing file and retry from a direct user action', async ({ page }) => {

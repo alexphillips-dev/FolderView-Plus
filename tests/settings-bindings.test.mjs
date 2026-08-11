@@ -252,15 +252,18 @@ test('import preview requires acknowledgement for destructive or untrusted appli
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {
-    assert.match(page, /id="import-apply-progress-overlay"/);
-    assert.match(page, /id="import-apply-progress-dialog"/);
+    assert.match(page, /id="import-apply-progress-overlay" hidden aria-hidden="true"/);
+    assert.match(page, /id="import-apply-progress-dialog" hidden role="dialog"[^>]+aria-hidden="true"/);
     assert.match(page, /id="import-apply-progress-bar"/);
     assert.match(importScript, /const openImportApplyProgressDialog = \(type, totalSteps, options = \{\}\) =>/);
     assert.match(importScript, /const updateImportApplyProgressDialog = \(\{[\s\S]*completed = 0,[\s\S]*total = 1,[\s\S]*label = ''/);
     assert.match(importScript, /current = ''/);
     assert.match(importScript, /note = ''/);
-    assert.match(importScript, /overlay\.show\(\);/);
-    assert.match(importScript, /overlay\.hide\(\);/);
+    assert.match(importScript, /overlay\.prop\('hidden', false\);/);
+    assert.match(importScript, /overlay\.prop\('hidden', true\);/);
+    assert.match(importScript, /dialog\.prop\('hidden', false\)\.attr\('aria-hidden', 'false'\);/);
+    assert.match(importScript, /dialog\.prop\('hidden', true\)\.attr\('aria-hidden', 'true'\);/);
+    assert.match(settingsCss, /#import-apply-progress-overlay\[hidden\],[\s\S]*#import-apply-progress-dialog\[hidden\]\s*\{[\s\S]*display:\s*none/);
     assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, total, label \}\) =>/);
 });
 

@@ -9302,6 +9302,11 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
     color: #f4f7fb;
 }
 
+#import-apply-progress-overlay[hidden],
+#import-apply-progress-dialog[hidden] {
+    display: none;
+}
+
 .import-apply-progress-head {
     display: flex;
     align-items: flex-start;

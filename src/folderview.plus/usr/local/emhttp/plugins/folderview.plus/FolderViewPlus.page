@@ -1726,8 +1726,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div id="backup-compare-prefs" class="backup-compare-prefs"></div>
 </div>
 
-<div id="import-apply-progress-overlay" data-fvplus-style="fv-u-xcjvns"></div>
-<div id="import-apply-progress-dialog" data-fvplus-style="fv-u-xcjvns" role="dialog" aria-modal="true" aria-live="polite">
+<div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>
+<div id="import-apply-progress-dialog" hidden role="dialog" aria-modal="true" aria-live="polite" aria-hidden="true">
     <div class="import-apply-progress-head">
         <div>
             <div class="import-apply-progress-kicker" id="import-apply-progress-kicker">FolderView Plus</div>

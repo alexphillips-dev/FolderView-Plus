@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.05">
-<!ENTITY md5 "b744b8410959fa894815b35fb80f3f0f">
-<!ENTITY sha256 "5cdd793c2099304b6125bc30d8afae11e03fef52aae23c63ddaff353d483886c">
+<!ENTITY version "2026.08.11.06">
+<!ENTITY md5 "a95f1f19e0ef7e917d7fbdbcc182ef62">
+<!ENTITY sha256 "70912fe57290f0cdcb04d4c0b4f2273fcceaf9c88411c31f57415c8213c441fb">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.06
+## FolderView Plus 2026.08.11.06
+This development hotfix restores Docker folder rendering after the Phase 3 ordering extraction and strengthens undeclared-symbol enforcement for the Docker runtime.
+### Docker order diagnostics hotfix
+- Fix: Restore deterministic, privacy-safe Docker order fingerprints through `docker.runtime.diagnostics.js` so folder rendering no longer fails with `buildDockerOrderFingerprint is not defined`.
+- Reliability: Require the diagnostics fingerprint API during Docker bootstrap and directly verify stable fingerprint output and reconciliation telemetry.
+- Quality: Enable targeted `no-undef` linting for `docker.js` with explicit browser and Unraid host globals so dangling application helpers fail CI.
+- Security: Refresh reviewed CSP sink locations after the bootstrap contract line movement without adding inline events, inline scripts, or style attributes.
+
 
 ###2026.08.11.05
 ## FolderView Plus 2026.08.11.05

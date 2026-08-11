@@ -852,6 +852,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(themeRuntimeGuard, /docker inline status color painting/);
     assert.match(themeRuntimeGuard, /scripts loader path boundary check/);
     assert.match(eslintUnusedConfig, /no-unused-vars/);
+    assert.match(eslintUnusedConfig, /'no-undef': 'error'/);
+    assert.match(eslintUnusedConfig, /scripts\/docker\.js/);
     assert.match(eslintUnusedConfig, /scripts\/include/);
     assert.match(jsUnusedSymbolsGuard, /eslint@9/);
     assert.match(jsUnusedSymbolsGuard, /FVPLUS_JS_UNUSED_STRICT/);

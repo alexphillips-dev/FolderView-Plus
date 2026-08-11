@@ -483,6 +483,7 @@ if (
     window.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded !== true
     || !dockerRuntimeDiagnosticsModule
     || typeof dockerRuntimeDiagnosticsModule.createApi !== 'function'
+    || typeof dockerRuntimeDiagnosticsModule.buildOrderFingerprint !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.diagnostics.js');
     setDockerFatalBannerModuleStatus('docker.runtime.diagnostics.js', 'missing', 'Docker diagnostics helpers unavailable');
@@ -4774,11 +4775,10 @@ const createFolders = async () => {
         orderingInvariantSatisfied: reconciledOrder.order.every((entry, index, entries) => (
             !folderRegex.test(entry) || entries.slice(0, index).every((previous) => folderRegex.test(previous))
         )),
-        liveOrderFingerprint: buildDockerOrderFingerprint(liveOrderBeforeReconciliation),
-        savedOrderFingerprint: buildDockerOrderFingerprint(unraidOrder),
-        reconciledOrderFingerprint: buildDockerOrderFingerprint(reconciledOrder.order)
+        liveOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(liveOrderBeforeReconciliation),
+        savedOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(unraidOrder),
+        reconciledOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(reconciledOrder.order)
     };
-
 
     // debug mode, download the debug json file
     if(folderDebugMode) { // This is the existing folderDebugMode, not FOLDER_VIEW_DEBUG_MODE

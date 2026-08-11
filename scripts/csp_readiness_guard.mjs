@@ -45,8 +45,8 @@ const patterns = {
 };
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 const explicitHtmlSinkReviews = new Map([
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1285', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3464', 'The loading overlay contains plugin-authored static markup only.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1286', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3465', 'The loading overlay contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5252', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5284', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:266', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],

@@ -12,6 +12,8 @@ const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const runtimeSharedPrimitivesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-primitives.js');
+const runtimeSharedDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-diagnostics.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
@@ -184,24 +186,24 @@ test('docker extracted helper modules export createApi entry points with safe gl
 test('docker shared runtime module binds to the shared folder contract and exports runtime primitives', () => {
     assert.match(dockerSharedJs, /^\/\/ @ts-check/m);
     assert.match(folderContractJs, /window\.FolderViewPlusFolderContract = \{/);
-    assert.match(dockerSharedJs, /const folderContract = window\.FolderViewPlusFolderContract \|\| null;/);
+    assert.match(dockerSharedJs, /root\.FolderViewPlusFolderContract \|\| null/);
     assert.match(dockerSharedJs, /folderContract\?\.DEFAULT_PREVIEW_BORDER_COLOR \|\| '#afa89e'/);
     assert.match(dockerSharedJs, /const extractDropdownStyleValue = typeof folderContract\?\.extractDropdownStyleValue === 'function'/);
     assert.match(dockerSharedJs, /const normalizeDropdownStyle = typeof folderContract\?\.normalizeDropdownStyle === 'function'/);
     assert.match(dockerSharedJs, /const getDropdownStyleTokens = typeof folderContract\?\.getDropdownStyleTokens === 'function'/);
-    assert.match(dockerSharedJs, /const createRuntimeStateStore =/);
-    assert.match(dockerSharedJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
-    assert.match(dockerSharedJs, /const createAsyncActionBoundary =/);
-    assert.match(dockerSharedJs, /const createContextMenuQuickStripAdapter =/);
-    assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
-    assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
-    assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
-    assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
+    assert.match(runtimeSharedPrimitivesJs, /const createRuntimeStateStore =/);
+    assert.match(runtimeSharedDiagnosticsJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
+    assert.match(runtimeSharedPrimitivesJs, /const createAsyncActionBoundary =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createContextMenuQuickStripAdapter =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createRuntimePerfTelemetry =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createSafeUiActionRunner =/);
+    assert.match(runtimeSharedPrimitivesJs, /const resolveRuntimePerformanceProfile =/);
+    assert.match(runtimeSharedDiagnosticsJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
     assert.doesNotMatch(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
     assert.doesNotMatch(dockerSharedJs, /const alignHostToTable = \(host,\s*table\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
-    assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
-    assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
+    assert.match(runtimeSharedPrimitivesJs, /const runtimeContracts = Object\.freeze\(/);
+    assert.match(dockerSharedJs, /root\.FolderViewDockerRuntimeShared = factory\(/);
 });
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {

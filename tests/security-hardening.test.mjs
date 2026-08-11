@@ -22,6 +22,7 @@ const libSecurityPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folder
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const runtimeSharedControlsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
@@ -231,7 +232,7 @@ test('strict request guard requires the mutation marker, token, and same-origin 
 test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
     assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
-    assert.match(dockerRuntimeSharedJs, /const openWebuiInNewTab = \(url\) =>/);
+    assert.match(runtimeSharedControlsJs, /const openWebuiInNewTab = \(url\) =>/);
     assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
     assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
     assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI"/);
@@ -241,7 +242,7 @@ test('external links and popup actions enforce noopener protections', () => {
 });
 
 test('docker advanced popup sanitizes runtime metadata before rendering', () => {
-    assert.match(dockerRuntimeSharedJs, /const getSafeExternalUrl = \(value\) => \{/);
+    assert.match(runtimeSharedControlsJs, /const getSafeExternalUrl = \(value\) => \{/);
     assert.match(dockerJs, /const safeIcon = sanitizeImageSrc\(labels\['net\.unraid\.docker\.icon'\] \|\| ''\);/);
     assert.match(dockerJs, /const safeContainerName = escapeHtml\(containerName\);/);
     assert.match(dockerJs, /data-container-name="\$\{safeContainerName\}"/);

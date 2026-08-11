@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.09">
-<!ENTITY md5 "cabe4403d5709d98cc43a0466c7a92f4">
-<!ENTITY sha256 "2feb6a018603987a524e23c7f5a1cd06ca8e2a792e01e62aa3fd5fe3a2d4bf4d">
+<!ENTITY version "2026.08.11.10">
+<!ENTITY md5 "f6ca39db4d0a2e8ca0fd961396854c25">
+<!ENTITY sha256 "b5c53c38169731577390df05c1a2b5e3c1df4cfccb0a8e7d6be9ec2e064d3c7d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,20 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.10
+## FolderView Plus 2026.08.11.10
+This development build addresses second-generation JavaScript monoliths by moving shared utility and Docker/VM/Dashboard runtime domains behind bounded modules while preserving their established browser and CommonJS compatibility APIs.
+### Shared JavaScript boundaries
+- Refactor: Split normalization, preferences, ordering, import/export transfer, and runtime-rule logic out of `folderviewplus.utils.js` into five focused foundation modules.
+- Refactor: Split runtime primitives, diagnostics, and controls out of `docker.runtime.shared.js` into three shared modules used by Docker, VM, and Dashboard surfaces.
+- Compatibility: Retain the complete 49-name utility facade and the extensible shared runtime namespace used by later feature modules.
+### Enforcement and regression coverage
+- Quality: Reduce `folderviewplus.utils.js` from 2,054 to 88 lines and `docker.runtime.shared.js` from 1,511 to 460 lines.
+- Quality: Add eight browser-module ownership contracts, explicit page load-order contracts, dependency metadata, and ratcheted file budgets for every extracted module.
+- Reliability: Add Phase 7 facade and load-order regression coverage, update existing owner-location tests, and exercise the decomposed modules through browser fixtures and runtime-performance budgets.
+- Security: Refresh the CSP readiness inventory for 207 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
 
 ###2026.08.11.09
 ## FolderView Plus 2026.08.11.09

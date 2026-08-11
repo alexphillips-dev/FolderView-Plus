@@ -1757,7 +1757,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <?php
 $fvplusSettingsFoundationAssets = [
-        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
         '/plugins/folderview.plus/scripts/folderviewplus.request.js',

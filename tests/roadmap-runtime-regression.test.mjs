@@ -98,7 +98,7 @@ test('Dashboard chart assets are loaded only when an advanced preview needs them
 
 test('Dashboard adds and normalizes the Embossed layout and status color locking', () => {
     const settings = read(`${plugin}/FolderViewPlus.page`);
-    const utils = read(`${plugin}/scripts/folderviewplus.utils.js`);
+    const utils = read(`${plugin}/scripts/folderviewplus.utils-normalization.js`);
     const dashboardCss = read(`${plugin}/styles/dashboard.css`);
     const folderPage = read(`${plugin}/Folder.page`);
     const runtime = read(`${plugin}/scripts/docker.runtime.shared.js`);

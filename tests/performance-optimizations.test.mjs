@@ -69,6 +69,18 @@ const runtimeSharedJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'
 );
+const runtimeSharedPrimitivesJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-primitives.js'
+);
+const runtimeSharedDiagnosticsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-diagnostics.js'
+);
+const runtimeSharedControlsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'
+);
 const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
@@ -126,6 +138,9 @@ const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const runtimeSharedJs = fs.readFileSync(runtimeSharedJsPath, 'utf8');
+const runtimeSharedPrimitivesJs = fs.readFileSync(runtimeSharedPrimitivesJsPath, 'utf8');
+const runtimeSharedDiagnosticsJs = fs.readFileSync(runtimeSharedDiagnosticsJsPath, 'utf8');
+const runtimeSharedControlsJs = fs.readFileSync(runtimeSharedControlsJsPath, 'utf8');
 const utilsFoundationJs = fs.readFileSync(utilsFoundationJsPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
@@ -140,7 +155,9 @@ const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 
 const loadRuntimeShared = () => {
     const window = {};
-    vm.runInNewContext(runtimeSharedJs, { window, console, Map, Set, Object, Number, String, Boolean, Math, Date });
+    const context = { window, console, Map, Set, Object, Number, String, Boolean, Math, Date };
+    [runtimeSharedPrimitivesJs, runtimeSharedDiagnosticsJs, runtimeSharedControlsJs, runtimeSharedJs]
+        .forEach((source) => vm.runInNewContext(source, context));
     return window.FolderViewDockerRuntimeShared;
 };
 
@@ -204,9 +221,9 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
 });
 
 test('performance policy applies adaptive and maximum refresh cadence with reduced motion guards', () => {
-    assert.match(runtimeSharedJs, /const normalizePerformanceProfileMode =/);
-    assert.match(runtimeSharedJs, /mode === 'maximum'/);
-    assert.match(runtimeSharedJs, /largeLibrary/);
+    assert.match(runtimeSharedPrimitivesJs, /const normalizePerformanceProfileMode =/);
+    assert.match(runtimeSharedPrimitivesJs, /mode === 'maximum'/);
+    assert.match(runtimeSharedPrimitivesJs, /largeLibrary/);
     assert.match(dockerJs, /const policyMinSeconds = Number\(dockerRuntimePerformanceProfile\?\.minLiveRefreshSeconds \|\| 0\)/);
     assert.match(vmJs, /const policyMinSeconds = Number\(vmRuntimePerformanceProfile\?\.minLiveRefreshSeconds \|\| 0\)/);
     assert.match(dashboardJs, /scheduleDashboardTypeLiveRefresh\('docker'/);
@@ -297,7 +314,7 @@ test('performance mode preserves configured collapsed previews on every runtime 
     assert.doesNotMatch(vmCreateFolder, /folder\.settings\s*=\s*\{[\s\S]*?preview:\s*0/);
     assert.match(dockerCreateFolder, /dockerDeferredPreviewController\.defer\(previewElement/);
     assert.match(vmCreateFolder, /vmDeferredPreviewController\.defer\(previewElement/);
-    assert.match(runtimeSharedJs, /new window\.IntersectionObserver/);
+    assert.match(runtimeSharedPrimitivesJs, /new window\.IntersectionObserver/);
 });
 
 test('performance policy limits restored branches without overwriting saved expansion preferences', () => {

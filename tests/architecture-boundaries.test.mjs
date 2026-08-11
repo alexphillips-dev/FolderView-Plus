@@ -15,13 +15,13 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 227);
+    assert.equal(result.referenceCount, 261);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 25);
+    assert.equal(architecture.moduleContracts.length, 33);
     assert.equal(architecture.serverModuleContracts.length, 19);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts, ...architecture.serverModuleContracts]) {
@@ -78,14 +78,19 @@ test('declarative actions are registry-owned with a ratcheted compatibility ceil
 test('foundational utilities and transport have contracted child-module boundaries', () => {
     const contracts = new Map(architecture.moduleContracts.map((contract) => [contract.file, contract]));
     assert.deepEqual(contracts.get('scripts/folderviewplus.utils.js')?.dependsOn, [
-        'scripts/folderviewplus.utils-foundation.js'
+        'scripts/folderviewplus.utils-foundation.js',
+        'scripts/folderviewplus.utils-normalization.js',
+        'scripts/folderviewplus.utils-prefs.js',
+        'scripts/folderviewplus.utils-ordering.js',
+        'scripts/folderviewplus.utils-transfer.js',
+        'scripts/folderviewplus.utils-rules.js'
     ]);
     assert.deepEqual(contracts.get('scripts/runtime.transport.js')?.dependsOn, [
         'scripts/runtime.transport.core.js',
         'scripts/runtime.transport.subscription.js',
         'scripts/runtime.transport.docker-actions.js'
     ]);
-    assert.equal(architecture.budgets.fileLineBudgets['scripts/folderviewplus.utils.js'].limit, 2054);
+    assert.equal(architecture.budgets.fileLineBudgets['scripts/folderviewplus.utils.js'].limit, 88);
     assert.equal(architecture.budgets.fileLineBudgets['scripts/runtime.transport.js'].limit, 499);
     assert.deepEqual(architecture.budgets.fileLineBudgets['scripts/runtime.transport.js'].history, [1060, 499]);
     for (const file of [

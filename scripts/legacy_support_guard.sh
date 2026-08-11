@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-UTILS_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js"
+UTILS_NORMALIZATION_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js"
 LIB_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
 STORAGE_LIB_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.storage.php"
 FIXTURE_DIR="${ROOT_DIR}/tests/fixtures/imports"
@@ -11,7 +11,7 @@ source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands grep
 
-[[ -f "${UTILS_FILE}" ]] || fvplus::fail "Missing utils file: ${UTILS_FILE}"
+[[ -f "${UTILS_NORMALIZATION_FILE}" ]] || fvplus::fail "Missing utils normalization file: ${UTILS_NORMALIZATION_FILE}"
 [[ -f "${LIB_FILE}" ]] || fvplus::fail "Missing lib file: ${LIB_FILE}"
 [[ -f "${STORAGE_LIB_FILE}" ]] || fvplus::fail "Missing storage lib file: ${STORAGE_LIB_FILE}"
 [[ -d "${FIXTURE_DIR}" ]] || fvplus::fail "Missing fixture directory: ${FIXTURE_DIR}"
@@ -24,7 +24,7 @@ required_label_keys=(
 )
 
 for key in "${required_label_keys[@]}"; do
-  if ! grep -q "${key}" "${UTILS_FILE}"; then
+  if ! grep -q "${key}" "${UTILS_NORMALIZATION_FILE}"; then
     fvplus::fail "Legacy label key '${key}' missing from utils compatibility list."
   fi
   if ! grep -q "${key}" "${LIB_FILE}"; then

@@ -10,7 +10,7 @@
       "replacementSetting": "runtime.performanceProfile",
       "announcedRelease": "2026.07.22.10",
       "removalAfterRelease": null,
-      "sourceScopes": ["scripts/docker.runtime.shared.js", "scripts/folderviewplus.utils.js", "server/lib.prefs.php"],
+      "sourceScopes": ["scripts/runtime.shared-primitives.js", "scripts/folderviewplus.utils-prefs.js", "server/lib.prefs.php"],
       "note": "Boolean input remains readable and is derived from the canonical performance profile when preferences are saved."
     },
     {
@@ -21,7 +21,7 @@
       "replacementSetting": "dashboard.privacyMaskLocalIps",
       "announcedRelease": "2026.07.22.10",
       "removalAfterRelease": null,
-      "sourceScopes": ["scripts/folderviewplus.utils.js", "scripts/docker.js", "server/lib.prefs.php"],
+      "sourceScopes": ["scripts/folderviewplus.utils-prefs.js", "scripts/docker.js", "server/lib.prefs.php"],
       "note": "The compatibility key remains readable for existing profiles but is intentionally hidden from the settings UI."
     },
     {

@@ -12,15 +12,15 @@ const dockerRuntimeActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js'),
     'utf8'
 );
-const dockerRuntimeSharedScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'),
+const runtimeSharedControlsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'),
     'utf8'
 );
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
-    assert.match(dockerRuntimeSharedScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
+    assert.match(runtimeSharedControlsScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);

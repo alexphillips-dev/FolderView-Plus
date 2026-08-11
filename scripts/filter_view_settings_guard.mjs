@@ -9,11 +9,15 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const pluginRoot = path.join(repoRoot, 'src', 'folderview.plus', 'usr', 'local', 'emhttp', 'plugins', 'folderview.plus');
 const schemaPath = path.join(pluginRoot, 'schemas', 'filter-view-settings.schema.json');
 const pagePath = path.join(pluginRoot, 'FolderViewPlus.page');
-const clientNormalizerPath = path.join(pluginRoot, 'scripts', 'folderviewplus.utils.js');
+const clientNormalizerPaths = [
+    'folderviewplus.utils-normalization.js',
+    'folderviewplus.utils-prefs.js',
+    'folderviewplus.utils.js'
+].map((file) => path.join(pluginRoot, 'scripts', file));
 const serverPrefsPath = path.join(pluginRoot, 'server', 'lib.prefs.php');
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 const page = fs.readFileSync(pagePath, 'utf8');
-const clientNormalizer = fs.readFileSync(clientNormalizerPath, 'utf8');
+const clientNormalizer = clientNormalizerPaths.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const serverPrefs = fs.readFileSync(serverPrefsPath, 'utf8');
 const allowedTypes = new Set(schema.types || []);
 const allowedKinds = new Set(['boolean', 'integer', 'enum']);

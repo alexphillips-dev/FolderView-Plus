@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "مراقبة صحة المكونات الإضافية واستكشاف المشكلات وإصلاحها ومشاركة بيانات الدعم.",
     "diagnostics.actions.run": "تشغيل فحص الصحة",
     "diagnostics.actions.retest-performance": "إعادة اختبار الأداء",
-    "diagnostics.actions.check-again": "تحقق مرة أخرى",
     "diagnostics.summary.empty-title": "قم بتشغيل التحقق من الصحة لفحص حالة البرنامج المساعد.",
     "diagnostics.summary.empty-description": "سيتم التحقق من Docker وVM والتخزين والأيقونات المخصصة والتحديثات والموضوع معًا.",
     "diagnostics.state.not-checked": "لم يتم التحقق منها",

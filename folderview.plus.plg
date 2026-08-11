@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.13">
-<!ENTITY md5 "e7b1d190628958402e7c11f59eddfb17">
-<!ENTITY sha256 "f9087c1327a53b23660cc37ee168e2854c5eb86193eb3ccbe106b11794fbd88c">
+<!ENTITY version "2026.08.11.14">
+<!ENTITY md5 "005a18863193b5820cc3898389cd4823">
+<!ENTITY sha256 "24c6878599b11c4c605668f6a96a82b84d64246bc558acd208fd5ecc1d3a3f84">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.14
+## FolderView Plus 2026.08.11.14
+This development build clears the remaining release-blocking localization and CodeQL quality findings after the architecture decomposition work.
+### Release checks
+- Quality: Remove seven obsolete test source reads that became unused after their assertions moved to extracted modules.
+- Localization: Remove the unused Diagnostics `Check again` message from all 27 locale catalogs and regenerate aggregate catalog metadata.
+- Reliability: Restore strict language-usage and zero-open-alert readiness without changing plugin runtime behavior.
+### Regression coverage
+- Test: Update the localization surface contract for the reduced 2,060-message catalog and retain zero uncovered UI strings.
+
 
 ###2026.08.11.13
 ## FolderView Plus 2026.08.11.13

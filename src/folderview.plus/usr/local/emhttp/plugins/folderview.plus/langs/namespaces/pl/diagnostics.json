@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Monitoruj stan wtyczek, rozwiązuj problemy i udostępniaj dane pomocy technicznej.",
     "diagnostics.actions.run": "Uruchom kontrolę stanu zdrowia",
     "diagnostics.actions.retest-performance": "Przetestuj ponownie wydajność",
-    "diagnostics.actions.check-again": "Sprawdź ponownie",
     "diagnostics.summary.empty-title": "Uruchom kontrolę zdrowia, aby sprawdzić stan wtyczki.",
     "diagnostics.summary.empty-description": "Podsumowanie wskaże Docker, VM, problemy ze storagem, ikoną i aktualizacją bez najpierw zrzucania surowego JSON.",
     "diagnostics.state.not-checked": "Niesprawdzone",

@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Отслеживайте состояние плагина, устраняйте неполадки и делитесь данными поддержки.",
     "diagnostics.actions.run": "Запустить проверку состояния",
     "diagnostics.actions.retest-performance": "Повторное тестирование производительности",
-    "diagnostics.actions.check-again": "Проверьте еще раз",
     "diagnostics.summary.empty-title": "Выполните проверку состояния для инспекции состояния плагина.",
     "diagnostics.summary.empty-description": "Сводка будет указывать на Docker, VM, проблемы с хранением, значком и обновлением без предварительного вывода сырых JSON.",
     "diagnostics.state.not-checked": "Не проверено",

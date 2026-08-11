@@ -12,10 +12,6 @@ const libPrefsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
 );
-const libDiagnosticsPath = path.join(
-    repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php'
-);
 const readInfoPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'

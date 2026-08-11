@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "プラグインの状態を監視し、問題のトラブルシューティングを行い、サポート データを共有します。",
     "diagnostics.actions.run": "ヘルスチェックを実行する",
     "diagnostics.actions.retest-performance": "再テストのパフォーマンス",
-    "diagnostics.actions.check-again": "もう一度確認してください",
     "diagnostics.summary.empty-title": "プラグインの状態を確認するためにヘルスチェックを実行します。",
     "diagnostics.summary.empty-description": "要約では、生のJSONを最初に出力することなく、Docker、VM、ストレージ、アイコン、アップデートの問題を指摘します。",
     "diagnostics.state.not-checked": "未チェック",

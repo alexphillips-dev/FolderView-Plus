@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",
     "diagnostics.actions.run": "运行健康检查",
     "diagnostics.actions.retest-performance": "重新测试性能",
-    "diagnostics.actions.check-again": "再次检查",
     "diagnostics.summary.empty-title": "运行健康检查以检查插件状态。",
     "diagnostics.summary.empty-description": "摘要将指出Docker、VM、存储、图标和更新问题，而不会首先倾倒原始JSON。",
     "diagnostics.state.not-checked": "未检查",

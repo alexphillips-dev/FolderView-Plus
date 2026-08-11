@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",
     "diagnostics.actions.run": "Voer gezondheidscontrole uit",
     "diagnostics.actions.retest-performance": "Prestaties opnieuw testen",
-    "diagnostics.actions.check-again": "Controleer opnieuw",
     "diagnostics.summary.empty-title": "Voer een gezondheidscontrole uit om de status van de plug-in te controleren.",
     "diagnostics.summary.empty-description": "Het overzicht zal Docker, VM, opslag, pictogram en updateproblemen aangeven zonder eerst ruwe JSON te dumpen.",
     "diagnostics.state.not-checked": "Niet gecontroleerd",

@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Pārraugiet spraudņa stāvokli, novērsiet problēmas un kopīgojiet atbalsta datus.",
     "diagnostics.actions.run": "Veikt veselības pārbaudi",
     "diagnostics.actions.retest-performance": "Atkārtoti pārbaudiet veiktspēju",
-    "diagnostics.actions.check-again": "Pārbaudiet vēlreiz",
     "diagnostics.summary.empty-title": "Palaidiet veselības pārbaudi, lai pārbaudītu spraudņa stāvokli.",
     "diagnostics.summary.empty-description": "Docker, virtuālā mašīna, krātuve, pielāgotās ikonas, atjauninājumi un motīvs tiks pārbaudīti kopā.",
     "diagnostics.state.not-checked": "Nav pārbaudīts",

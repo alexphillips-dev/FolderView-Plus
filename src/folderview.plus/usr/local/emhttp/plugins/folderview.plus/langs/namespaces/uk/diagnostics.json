@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
     "diagnostics.actions.run": "Запустити перевірку стану здоров'я",
     "diagnostics.actions.retest-performance": "Перевірте продуктивність",
-    "diagnostics.actions.check-again": "Перевірте ще раз",
     "diagnostics.summary.empty-title": "Запустіть перевірку стану здоров’я, щоб перевірити стан плагіна.",
     "diagnostics.summary.empty-description": "У резюме будуть виділені Docker, VM, питання збереження, значок та оновлення без попереднього виводу сирого JSON.",
     "diagnostics.state.not-checked": "Не перевірено",

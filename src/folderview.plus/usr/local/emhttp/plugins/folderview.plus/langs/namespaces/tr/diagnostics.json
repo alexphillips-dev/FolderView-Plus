@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Eklenti sağlığını izleyin, sorunları giderin ve destek verilerini paylaşın.",
     "diagnostics.actions.run": "Sağlık kontrolü yap",
     "diagnostics.actions.retest-performance": "Performansı yeniden test edin",
-    "diagnostics.actions.check-again": "Tekrar kontrol et",
     "diagnostics.summary.empty-title": "Eklenti durumunu incelemek için sağlık kontrolünü çalıştırın.",
     "diagnostics.summary.empty-description": "Özet, ham JSON dökmeden önce Docker, VM, depolama, simge ve güncelleme sorunlarını belirtecektir.",
     "diagnostics.state.not-checked": "İşaretlenmedi",

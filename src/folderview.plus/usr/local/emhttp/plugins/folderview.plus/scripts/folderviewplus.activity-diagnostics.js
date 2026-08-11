@@ -1627,13 +1627,13 @@ const getDiagnosticsViewApi = () => {
         return null;
     }
     diagnosticsViewApi = diagnosticsViewModule.createApi({
+        window, document,
         escapeHtml: diagnosticsEscapeHtml,
         svgIcon: window.FolderViewPlusUI?.svgIcon,
-        t: diagnosticsT
-    });
+        t: diagnosticsT, runRepair: (action) => repairDiagnostics(action), setBusy: (busy) => setDiagnosticsWorkspaceBusy(busy), showError: diagnosticsShowError
+    }); diagnosticsViewApi.bindActions?.();
     return diagnosticsViewApi;
 };
-
 const setDiagnosticsWorkspaceBusy = (busy) => {
     const workspace = document.getElementById('fv-diagnostics-workspace');
     workspace?.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -1653,12 +1653,12 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
     const summary = hasResults && diagnostics.summary && typeof diagnostics.summary === 'object'
         ? diagnostics.summary
         : {};
-    const coreCards = hasResults
+    const rawCoreCards = hasResults
         ? (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
             ...card,
             freshness: String(card?.freshness || '').trim() || `Checked ${checkedAt}`
         }))
-        : [];
+        : []; const coreCards = viewApi.decorateCardsWithRecommendedActions(rawCoreCards, diagnostics, summary);
     const themeCard = hasResults ? buildThemeDiagnosticsSummaryCard() : null;
     if (themeCard) {
         coreCards.push(themeCard);

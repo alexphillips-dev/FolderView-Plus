@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -13,6 +16,7 @@ const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const cspUtilitiesCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/csp.utilities.css');
 const themeTokensCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
+const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
@@ -24,6 +28,11 @@ const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
+const themeSurfaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js');
+const themeSurfaceModule = require(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js'
+));
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
@@ -118,6 +127,7 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(themeResolverJs, /bindThemeAwareSurface/);
     assert.match(themeResolverJs, /'--fvplus-status-started':\s*tokens\.statusStarted \|\| ''/);
     assert.match(themeResolverJs, /'--fvplus-folder-status-started':\s*tokens\.statusStarted \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-editor-title-accent':\s*tokens\.editorTitleAccent \|\| ''/);
     assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolverModuleLoaded = true;/);
     assert.match(diagnosticsJs, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
     assert.match(diagnosticsJs, /const buildDiagnosticsThemeSnapshot = \(modeInput = null, options = \{\}\) =>/);
@@ -142,9 +152,74 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
     assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
     assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
     assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorTitleAccent:\s*themeRgbaToCss\(palette\.accent\),/);
     assert.match(themeResolverJs, /editorBg:\s*isLight[\s\S]*:\s*'#0f0f10'/);
     assert.match(themeResolverJs, /editorPanel:\s*isLight[\s\S]*:\s*'#1d1d1f'/);
     assert.match(themeResolverJs, /editorHeroIconBg:\s*isLight[\s\S]*:\s*'#242426'/);
+});
+
+test('theme resolver heals unusable host accents and fully manages folder editor theme bindings', () => {
+    assert.match(themeResolverJs, /accent:\s*3\.0,/);
+    assert.match(themeResolverJs, /const accentResolution = resolveThemeStatusColor\(/);
+    assert.match(themeResolverJs, /Host accent color was auto-healed to preserve contrast\./);
+    assert.match(themeResolverJs, /const classification = detectedClassification === 'mixed'/);
+    assert.match(themeResolverJs, /themeSurfaceModule\.createBinding\(\{ \.\.\.options, applyResolvedThemeTokens \}\)/);
+    assert.match(themeSurfaceJs, /const sampleRoot = options\.sampleRoot \?\? null;/);
+    assert.match(themeSurfaceJs, /sampleRoot,[\s\S]*extraTargets,[\s\S]*modeInput,/);
+    assert.match(themeSurfaceJs, /'data-fv-host-theme',[\s\S]*'data-fvplus-host-theme'/);
+    assert.match(themeSurfaceJs, /media\.removeEventListener\('change', mediaListener\)/);
+    assert.match(themeSurfaceJs, /media\.removeListener\(mediaListener\)/);
+    assert.match(folderJs, /folderThemeSurfaceBinding\?\.disconnect\(\);/);
+    assert.match(folderCss, /#fvEditorChrome\s*\{[\s\S]*background:\s*var\(--fv-editor-panel\);/);
+});
+
+test('theme surface forwards editor targets and removes observers and media listeners on teardown', () => {
+    const applied = [];
+    const observed = [];
+    const mediaEvents = [];
+    let observerDisconnected = false;
+    let observerCallback = null;
+    const media = {
+        addEventListener(name, handler) { mediaEvents.push(['add', name, handler]); },
+        removeEventListener(name, handler) { mediaEvents.push(['remove', name, handler]); }
+    };
+    class Observer {
+        constructor(callback) { observerCallback = callback; }
+        observe(target, options) { observed.push({ target, options }); }
+        disconnect() { observerDisconnected = true; }
+    }
+    const document = { documentElement: { id: 'html' }, body: { id: 'body' } };
+    const window = {
+        document,
+        MutationObserver: Observer,
+        matchMedia: () => media,
+        setTimeout(handler) { handler(); return 1; },
+        clearTimeout() {}
+    };
+    const binding = themeSurfaceModule.createBinding({
+        window,
+        document,
+        root: '.editor',
+        sampleRoot: 'body',
+        extraTargets: ['#chrome'],
+        applyResolvedThemeTokens: (reason, options) => {
+            applied.push({ reason, options });
+            return { classification: 'dark' };
+        }
+    });
+
+    binding.bind();
+    observerCallback([{ type: 'attributes', attributeName: 'data-color-scheme' }]);
+    binding.disconnect();
+
+    assert.equal(applied[0].options.sampleRoot, 'body');
+    assert.deepEqual(applied[0].options.extraTargets, ['#chrome']);
+    assert.equal(applied.at(-1).reason, 'surface:observer');
+    assert.equal(observed.length, 2);
+    assert.equal(observerDisconnected, true);
+    assert.equal(mediaEvents[0][0], 'add');
+    assert.equal(mediaEvents.at(-1)[0], 'remove');
+    assert.equal(mediaEvents[0][2], mediaEvents.at(-1)[2]);
 });
 
 test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {

@@ -58,6 +58,8 @@
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
       "scripts/docker.runtime.diagnostics.js": { "limit": 946, "target": 500, "history": [946] },
       "scripts/folderviewplus.theme-resolver.js": { "limit": 930, "target": 700, "history": [930] },
+      "scripts/folderviewplus.theme-surface.js": { "limit": 113, "target": 100, "history": [113] },
+      "scripts/folderviewplus.diagnostics-actions.js": { "limit": 176, "target": 160, "history": [176] },
       "scripts/folderviewplus.starter-templates.js": { "limit": 915, "target": 500, "history": [915] },
       "scripts/folderviewplus.folder-editor.js": { "limit": 888, "target": 600, "history": [888] },
       "scripts/docker.runtime.hierarchy.js": { "limit": 874, "target": 500, "history": [874] },
@@ -814,6 +816,38 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["createDebugLogger", "createRuntimeDiagnosticsBridge"]
+    },
+    {
+      "file": "scripts/folderviewplus.theme-surface.js",
+      "owner": "shared-theme-surface",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "themeSurface",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createBinding"],
+      "lifecycleFactories": [
+        { "name": "createBinding", "exports": ["bind", "runApply", "queueApply", "disconnect"] }
+      ]
+    },
+    {
+      "file": "scripts/folderviewplus.diagnostics-actions.js",
+      "owner": "settings-diagnostics-actions",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "diagnosticsActions",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi", "REPAIR_ACTIONS", "cardId"],
+      "lifecycleFactories": [
+        { "name": "createApi", "exports": ["cardId", "bindActions", "focusCard", "confirmRepair", "resolveRecommendedActionCardKey", "decorateCardsWithRecommendedActions", "buildFindings"] }
+      ]
     },
     {
       "file": "scripts/runtime.shared-controls.js",

@@ -324,16 +324,17 @@
             const safeTargetName = /^[_A-Za-z][A-Za-z0-9_.:-]{0,63}$/.test(String(targetName || ''))
                 ? String(targetName)
                 : '_blank';
-            const popup = win.open(safeUrl, safeTargetName, openRel);
-            if (!popup) {
-                return false;
-            }
+            const popup = win.open('', safeTargetName);
+            if (!popup) return false;
             try {
                 popup.opener = null;
+                if (typeof popup.location?.replace === 'function') popup.location.replace(safeUrl);
+                else popup.location.href = safeUrl;
+                return true;
             } catch (_error) {
-                // Cross-origin popup guards can throw after the tab opens; noopener is still requested.
+                try { popup.close?.(); } catch (_closeError) {}
+                return false;
             }
-            return true;
         };
         return Object.freeze({
             getSafeExternalUrl,
@@ -342,7 +343,6 @@
             openWebuiPopupWindow
         });
     };
-
 
     return Object.freeze({
         createStableToggleController,

@@ -1091,8 +1091,8 @@ const getDockerRuntimeReconcileApi = () => {
                 queueDockerSupportBundlePageSnapshot(reason, delayMs),
             getDockerHostGuardsApi: () => getDockerHostGuardsApi(),
             getDockerRuntimeContainerInfo: (containerName) => getDockerRuntimeContainerInfo(containerName),
-            initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
-            pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+            getDockerRuntimeInfoEntries: () => Object.values(dockerRuntimeInfoByName || {}), syncDockerVisibleFoldersFromRuntimeCache: (changedNames = null) => syncDockerVisibleFoldersFromRuntimeCache(changedNames),
+            initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS, pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
         });
     }
     return dockerRuntimeReconcileApi;

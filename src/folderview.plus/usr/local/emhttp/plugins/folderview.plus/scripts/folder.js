@@ -1739,9 +1739,9 @@ const registerBeforeUnloadGuard = () => {
         event.returnValue = '';
     });
 };
-
 const registerFolderEditorModuleTeardown = () => {
     window.addEventListener('pagehide', () => {
+        folderThemeSurfaceBinding?.disconnect();
         folderEditorRegexSelectionApi?.dispose();
         folderEditorMemberListApi?.dispose();
     }, { once: true });

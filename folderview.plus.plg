@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.10">
-<!ENTITY md5 "f6ca39db4d0a2e8ca0fd961396854c25">
-<!ENTITY sha256 "b5c53c38169731577390df05c1a2b5e3c1df4cfccb0a8e7d6be9ec2e064d3c7d">
+<!ENTITY version "2026.08.11.11">
+<!ENTITY md5 "e9d3c009f958fd5c328592ff0ed6964b">
+<!ENTITY sha256 "5a96ae0d10f6402d1139202e95757c7f7dccd57683f162fecd72c08cc16f81b4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,24 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.11
+## FolderView Plus 2026.08.11.11
+This development build fixes stale Docker folder actions, makes Diagnostics findings actionable, hardens host-theme reconciliation, and prevents successful WebUI popups from being reported as blocked.
+### Docker runtime and WebUI actions
+- Reliability: Reconcile expanded Docker-folder previews after container start, stop, pause, resume, and restart actions so WebUI, console, and log icons leave their busy state when the lifecycle settles.
+- Reliability: Resolve lifecycle state by canonical container name or normalized container ID and perform a targeted preview refresh instead of leaving stale browser state behind.
+- Compatibility: Open WebUI tabs through a blank browser-owned handle, isolate `window.opener`, and navigate the accepted handle so browsers that return `null` for `noopener` no longer trigger a false popup-blocked warning.
+### Diagnostics and repair guidance
+- UX: Turn priority findings into focusable controls that reveal the affected health card, technical details, recommended correction, and repair action.
+- Reliability: Require confirmation before supported repairs and explain that a backup is created before orphaned Docker member references or missing custom-icon references are changed.
+### Theme consistency
+- UI/UX: Add a shared host-theme surface that observes Unraid theme attributes, media-query changes, and extra sample targets across Docker, VM, Dashboard, Settings, and Folder Editor pages.
+- Accessibility: Auto-heal low-contrast host accents, expose the resolved editor title accent, clean up observers and media listeners on teardown, and align the Folder Editor top chrome with its dark panel surface.
+### Regression coverage
+- Quality: Add lifecycle, popup, Diagnostics action, theme observer, load-order, browser-fixture, and architecture-contract coverage for the corrected behavior.
+- Security: Refresh the CSP readiness inventory while retaining zero inline events, inline scripts, and style attributes.
+
 
 ###2026.08.11.10
 ## FolderView Plus 2026.08.11.10

@@ -119,6 +119,47 @@ test('Dashboard lifecycle reconciliation invokes one canonical fallback after St
     assert.equal(finalizedRequests[0].outcome.observedState.state, 'stopped');
 });
 
+test('Docker page lifecycle defaults resolve container ids and clear expanded preview action spinners', async () => {
+    const scheduled = [];
+    const traces = [];
+    const entry = {
+        shortId: 'abc123def456',
+        info: { Name: 'example-container', State: { Running: false, Paused: false } }
+    };
+    let busyIconCount = 3;
+    let syncedNames = null;
+    const api = reconcileModule.createApi({
+        window: {
+            setTimeout(handler, delayMs) {
+                scheduled.push({ handler, delayMs });
+                return scheduled.length;
+            }
+        },
+        document: { querySelectorAll: () => ({ length: busyIconCount }) },
+        refreshDockerRuntimeStateInPlace: async () => {
+            entry.info.State.Running = true;
+            return true;
+        },
+        getDockerRuntimeInfoEntries: () => [entry],
+        syncDockerVisibleFoldersFromRuntimeCache: (names) => {
+            syncedNames = names;
+            busyIconCount = 0;
+        },
+        appendDockerBulkUpdateTrace: (eventType, details) => traces.push({ eventType, details }),
+        lifecycleRefreshDelaysMs: [0]
+    });
+
+    api.runDockerLifecycleRefresh({ action: 'start', container: 'abc123def456' });
+    scheduled[0].handler();
+    await flushPromises();
+
+    assert.deepEqual(Array.from(syncedNames), ['example-container']);
+    const finalized = traces.find((trace) => trace.eventType === 'lifecycleSurfaceFinalized');
+    assert.equal(finalized.details.settled, true);
+    assert.equal(finalized.details.observedState.state, 'running');
+    assert.equal(finalized.details.remainingBusyPreviewActionIconCount, 0);
+});
+
 test('Dashboard stop followed by start cancels the stale stop tail and converges to running', async () => {
     const scheduled = [];
     const refreshStates = [false, false, true];

@@ -12,6 +12,10 @@ const dockerPreviewActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
 );
+const dockerReconcileScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'),
+    'utf8'
+);
 const dockerRuntimeHierarchyScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'),
     'utf8'
@@ -224,6 +228,26 @@ test('docker incremental lifecycle sync removes pending spinner classes from eve
         dockerPreviewActionsScript,
         /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) => \{[\s\S]*?\.removeClass\(`\$\{dockerRuntimeIconClassList\} \$\{dockerRuntimeStateClassList\}`\)[\s\S]*?\.addClass\(`fa \$\{statusMeta\.icon\}/
     );
+});
+
+test('docker lifecycle reconciliation restores expanded preview action icons from canonical state', () => {
+    assert.match(
+        dockerPreviewActionsScript,
+        /const dockerPreviewActionIconClassList = 'fa-globe fa-terminal fa-bars fa-refresh fa-spin fa-spinner fa-circle-o-notch';/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const normalizeDockerPreviewActionIcon = \(\$slot, expectedIconClass\) => \{[\s\S]*?\.removeClass\(dockerPreviewActionIconClassList\)[\s\S]*?\.addClass\(`fa \$\{expectedIconClass\}`\)/
+    );
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-globe'\);/);
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-terminal'\);/);
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-bars'\);/);
+    assert.match(dockerReconcileScript, /const defaultLifecycleStateSnapshot = \(request = \{\}\) => \{/);
+    assert.match(dockerReconcileScript, /const defaultLifecycleStateSettled = \(request = \{\}\) => \{/);
+    assert.match(dockerReconcileScript, /const defaultFinalizeLifecycleSurface = \(request = \{\}, outcome = \{\}\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(name \? new Set\(\[name\]\) : null\);/);
+    assert.match(dockerScript, /getDockerRuntimeInfoEntries: \(\) => Object\.values\(dockerRuntimeInfoByName \|\| \{\}\),/);
+    assert.match(dockerScript, /syncDockerVisibleFoldersFromRuntimeCache: \(changedNames = null\) => syncDockerVisibleFoldersFromRuntimeCache\(changedNames\),/);
+    assert.match(dockerReconcileScript, /remainingBusyPreviewActionIconCount:/);
 });
 
 test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {

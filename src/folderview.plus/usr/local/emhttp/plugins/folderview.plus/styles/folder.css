@@ -58,7 +58,7 @@
     padding: 0.72em 0.9em 0.68em;
     border: 1px solid var(--fv-editor-border);
     border-radius: 16px;
-    background: var(--fv-editor-bg);
+    background: var(--fv-editor-panel);
     box-shadow: var(--fv-editor-shadow);
     position: sticky;
     top: 12px;

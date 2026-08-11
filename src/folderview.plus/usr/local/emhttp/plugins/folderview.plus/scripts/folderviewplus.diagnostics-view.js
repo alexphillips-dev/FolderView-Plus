@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.diagnostics-actions.js'));
         return;
     }
-    root.FolderViewPlusDiagnosticsView = factory();
+    root.FolderViewPlusDiagnosticsView = factory(root.FolderViewPlusFoundationModules?.diagnosticsActions);
     root.FolderViewPlusDiagnosticsViewModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(ActionsModule) {
     const STATUS_CONFIG = Object.freeze({
         unchecked: Object.freeze({ label: 'Not checked', icon: 'minus-circle' }),
         healthy: Object.freeze({ label: 'Healthy', icon: 'check-circle' }),
@@ -21,8 +21,8 @@
         update: Object.freeze({ icon: 'upload' }),
         theme: Object.freeze({ icon: 'paintbrush' })
     });
-
     const createApi = (deps = {}) => {
+        const win = deps.window || (typeof window !== 'undefined' ? window : null);
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : ((value) => String(value ?? ''));
@@ -33,7 +33,25 @@
             ? deps.svgIcon
             : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
         const statusConfig = (status) => STATUS_CONFIG[status] || STATUS_CONFIG.healthy;
-        const cardId = (key) => `fv-diagnostics-card-${String(key || 'status').replace(/[^a-z0-9_-]/gi, '-')}`;
+        const actionData = (value) => escapeHtml(JSON.stringify(value || {}));
+        const actions = deps.actionsApi || ActionsModule?.createApi({
+            window: win,
+            document: deps.document,
+            runRepair: deps.runRepair,
+            setBusy: deps.setBusy,
+            showError: deps.showError,
+            escapeHtml,
+            translate,
+            svgIcon,
+            statusConfig,
+            actionData
+        }) || {};
+        const cardId = actions.cardId || ((key) => `fv-diagnostics-card-${String(key || 'status').replace(/[^a-z0-9_-]/gi, '-')}`);
+        const bindActions = actions.bindActions || (() => false);
+        const focusCard = actions.focusCard || (() => false);
+        const confirmRepair = actions.confirmRepair || (() => Promise.resolve(false));
+        const decorateCardsWithRecommendedActions = actions.decorateCardsWithRecommendedActions || ((cards) => cards);
+        const buildFindings = actions.buildFindings || (() => '');
 
         const buildTechnicalDetails = (card) => {
             if (!card.technicalDetails?.length) return '';
@@ -49,12 +67,12 @@
             const status = statusConfig(card.status);
             const config = CARD_CONFIG[card.key] || { icon: 'info-circle' };
             const iconTone = `is-${String(card.key || 'status').replace(/[^a-z0-9_-]/gi, '-')}`;
-            const action = config.action ? `
-                <button type="button" class="fv-diagnostics-context-action" data-fv-ui-action="${escapeHtml(config.action)}">
-                    ${svgIcon('refresh')}
-                    ${escapeHtml(translate('diagnostics.actions.check-again', 'Check again'))}
+            const actions = (Array.isArray(card.actions) ? card.actions : []).map((action) => `
+                <button type="button" class="fv-diagnostics-context-action" data-fv-ui-action="diagnostics-repair" data-fv-ui-action-data="${actionData(action)}">
+                    ${svgIcon('wrench')}
+                    ${escapeHtml(action.label || translate('common.confirm', 'Confirm'))}
                 </button>
-            ` : '';
+            `).join('');
             return `
                 <article id="${escapeHtml(cardId(card.key))}" class="fv-diagnostics-health-card is-${escapeHtml(card.status)}" tabindex="-1" data-fv-diagnostics-card="${escapeHtml(card.key)}">
                     <div class="fv-diagnostics-health-card-head">
@@ -66,7 +84,7 @@
                     ${card.detail ? `<p class="fv-diagnostics-health-card-detail">${escapeHtml(card.detail)}</p>` : ''}
                     <div class="fv-diagnostics-health-card-foot">
                         ${card.freshness ? `<span>${svgIcon('clock')}${escapeHtml(card.freshness)}</span>` : ''}
-                        ${action}
+                        ${actions}
                     </div>
                     ${buildTechnicalDetails(card)}
                 </article>
@@ -135,35 +153,6 @@
             return banners.join('');
         };
 
-        const buildFindings = (model) => {
-            if (!model.findings.length) {
-                return `
-                    <section class="fv-diagnostics-findings is-clear" aria-labelledby="fv-diagnostics-findings-title">
-                        <div class="fv-diagnostics-findings-head">
-                            <h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3>
-                        </div>
-                        <div class="fv-diagnostics-clear-result">${svgIcon('check-circle')}<span><strong>${escapeHtml(translate('diagnostics.findings.none-title', 'No urgent issues detected'))}</strong><small>${escapeHtml(translate('diagnostics.findings.none-detail', 'Your system is operating normally.'))}</small></span></div>
-                    </section>
-                `;
-            }
-            const coreCardKeys = new Set(model.coreCards.map((card) => card.key));
-            return `
-                <section class="fv-diagnostics-findings" aria-labelledby="fv-diagnostics-findings-title">
-                    <div class="fv-diagnostics-findings-head"><h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3><span>${escapeHtml(`${model.findings.length} ${model.findings.length === 1 ? 'finding' : 'findings'}`)}</span></div>
-                    <div class="fv-diagnostics-findings-list">
-                        ${model.findings.map((finding) => {
-                            const status = statusConfig(finding.status);
-                            const content = `${svgIcon(status.icon)}<span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span>`;
-                            if (coreCardKeys.has(finding.key)) {
-                                return `<a href="#${escapeHtml(cardId(finding.key))}" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}">${content}<i class="fa fa-angle-right" aria-hidden="true"></i></a>`;
-                            }
-                            return `<div class="fv-diagnostics-finding is-${escapeHtml(finding.status)} is-summary-only">${content}</div>`;
-                        }).join('')}
-                    </div>
-                </section>
-            `;
-        };
-
         const buildSection = (id, title, cards) => {
             if (!cards.length) return '';
             const healthy = cards.filter((card) => card.status === 'healthy').length;
@@ -201,7 +190,17 @@
             }
         };
 
-        return Object.freeze({ render, buildCard, buildHero, buildFindings, buildSection });
+        return Object.freeze({
+            render,
+            buildCard,
+            buildHero,
+            buildFindings,
+            buildSection,
+            bindActions,
+            focusCard,
+            confirmRepair,
+            decorateCardsWithRecommendedActions
+        });
     };
 
     return Object.freeze({ createApi, STATUS_CONFIG, CARD_CONFIG });

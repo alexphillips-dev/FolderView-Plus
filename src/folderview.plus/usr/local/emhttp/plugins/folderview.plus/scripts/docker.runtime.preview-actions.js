@@ -42,6 +42,7 @@
         const webuiLinkRel = String(deps.webuiLinkRel || 'noopener noreferrer').trim() || 'noopener noreferrer';
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
         const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';
+        const dockerPreviewActionIconClassList = 'fa-globe fa-terminal fa-bars fa-refresh fa-spin fa-spinner fa-circle-o-notch';
 
         const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui fv-preview-action-slot is-ready"></span>').append(
             jq('<a></a>')
@@ -140,6 +141,18 @@
             return $slot;
         };
 
+        const normalizeDockerPreviewActionIcon = ($slot, expectedIconClass) => {
+            const $icon = $slot?.find?.('i').first?.();
+            if (!$icon || !$icon.length) {
+                return false;
+            }
+            $icon
+                .removeClass(dockerPreviewActionIconClassList)
+                .addClass(`fa ${expectedIconClass}`)
+                .attr('aria-hidden', 'true');
+            return true;
+        };
+
         const syncDockerPreviewWebuiSlot = ($slot, webuiUrl = '', options = {}) => {
             const safeUrl = getSafeWebuiUrl(webuiUrl);
             const capability = typeof options?.webuiCapability === 'boolean'
@@ -154,6 +167,7 @@
                 .attr('aria-hidden', safeUrl ? 'false' : 'true');
 
             const $existingLink = $slot.children('a[data-fv-preview-action="webui"]').first();
+            normalizeDockerPreviewActionIcon($slot, 'fa-globe');
             if (safeUrl && $existingLink.length && String($existingLink.attr('data-webui-url') || '') === safeUrl) {
                 return;
             }
@@ -170,6 +184,7 @@
             const safeName = String(containerName || '').trim();
             const safeShell = String(shellValue || '/bin/sh').trim() || '/bin/sh';
             const $existingLink = $slot.children('a[data-fv-preview-action="console"]').first();
+            normalizeDockerPreviewActionIcon($slot, 'fa-terminal');
             if (
                 $existingLink.length
                 && String($existingLink.attr('data-container-name') || '') === safeName
@@ -183,6 +198,7 @@
         const syncDockerPreviewLogsSlot = ($slot, containerName) => {
             const safeName = String(containerName || '').trim();
             const $existingLink = $slot.children('a[data-fv-preview-action="logs"]').first();
+            normalizeDockerPreviewActionIcon($slot, 'fa-bars');
             if ($existingLink.length && String($existingLink.attr('data-container-name') || '') === safeName) {
                 return;
             }

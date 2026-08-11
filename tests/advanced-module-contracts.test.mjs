@@ -18,6 +18,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -110,7 +111,8 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusDiagnosticsViewModelModuleLoaded = true/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModel = factory\(\)/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModuleLoaded = true/);
-    assert.match(script, /FolderViewPlusDiagnosticsView = factory\(\)/);
+    assert.match(script, /FolderViewPlusFoundationModules\.diagnosticsActions = factory\(\)/);
+    assert.match(script, /FolderViewPlusDiagnosticsView = factory\(root\.FolderViewPlusFoundationModules\?\.diagnosticsActions\)/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);
     assert.match(script, /TABLE_COLUMN_SELECTOR_MAP/);
     assert.match(script, /buildEffectiveSettingsTableWidths/);

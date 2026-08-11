@@ -13477,18 +13477,6 @@ h2[data-fv-section].fv-search-match {
         0 8px 18px rgba(0, 0, 0, 0.32) !important;
 }
 
-#fv-settings-root .fv-advanced-tab.is-active::after {
-    content: "";
-    position: absolute;
-    left: 0.7em;
-    right: 0.7em;
-    bottom: 0.23em;
-    height: 3px;
-    border-radius: 999px;
-    background: #ffffff;
-    box-shadow: 0 0 10px color-mix(in srgb, var(--fvplus-settings-accent) 70%, transparent);
-}
-
 #fv-settings-root .fv-mode-toggle {
     gap: 0.2rem;
     padding: 0.18rem;

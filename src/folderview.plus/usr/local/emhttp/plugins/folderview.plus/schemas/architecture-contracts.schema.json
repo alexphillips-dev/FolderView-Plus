@@ -85,7 +85,7 @@
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
-      "styles/folderviewplus.css": { "limit": 14489, "target": 14489, "history": [14489] },
+      "styles/folderviewplus.css": { "limit": 14477, "target": 14477, "history": [14489, 14477] },
       "styles/folderviewplus.bootstrap.css": { "limit": 59, "target": 59, "history": [59] },
       "FolderViewPlus.page": { "limit": 1822, "target": 1600, "history": [1822] }
     },

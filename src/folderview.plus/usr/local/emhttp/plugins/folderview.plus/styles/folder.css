@@ -5389,20 +5389,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
         0 8px 18px rgba(0, 0, 0, 0.32) !important;
 }
 
-.fv-section-nav > button.is-active::after,
-.fv-section-nav > button[data-active="true"]::after,
-.fv-section-nav > button[aria-current="page"]::after {
-    content: "";
-    position: absolute;
-    left: 0.7em;
-    right: 0.7em;
-    bottom: 0.23em;
-    height: 3px;
-    border-radius: 999px;
-    background: #ffffff;
-    box-shadow: 0 0 10px color-mix(in srgb, var(--fv-editor-accent) 70%, transparent);
-}
-
 .fv-section-nav > button.is-active > i,
 .fv-section-nav > button.is-active > span,
 .fv-section-nav > button[data-active="true"] > i,

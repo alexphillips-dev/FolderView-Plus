@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.12">
-<!ENTITY md5 "843b840b94e80408dbda648c82c0d394">
-<!ENTITY sha256 "60324c479ebdbbcaa37cce5ddb62381fd4ab7e086c50869f5b8a7a26767f4324">
+<!ENTITY version "2026.08.11.13">
+<!ENTITY md5 "e7b1d190628958402e7c11f59eddfb17">
+<!ENTITY sha256 "f9087c1327a53b23660cc37ee168e2854c5eb86193eb3ccbe106b11794fbd88c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.13
+## FolderView Plus 2026.08.11.13
+This development build removes the redundant underline from selected tabs in the modern folder editor and the Advanced Settings workspace.
+### Tab selection
+- UI/UX: Remove the extra underline bar from selected modern folder editor tabs while retaining the selected border, background, text, and shadow treatment.
+- UI/UX: Remove the matching underline bar from selected Advanced Settings tabs while retaining their highlighted selected state.
+- Accessibility: Preserve keyboard focus indicators and the existing semantic active-tab state.
+### Regression coverage
+- Test: Add stylesheet contracts that reject either active-tab underline pseudo-element and confirm the highlighted active backgrounds remain present.
+- Quality: Ratchet the shared stylesheet line budget to its reduced size.
+
 
 ###2026.08.11.12
 ## FolderView Plus 2026.08.11.12

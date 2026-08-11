@@ -298,6 +298,13 @@ test('folder editor surfaces use graphite cards and fields instead of warm ornam
     assert.doesNotMatch(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*radial-gradient\(circle at top right,\s*rgba\(255,\s*154,\s*60,\s*0\.09\)/);
 });
 
+test('selected folder editor and advanced settings tabs do not render redundant underline bars', () => {
+    assert.doesNotMatch(folderCss, /\.fv-section-nav > button(?:\.is-active|\[data-active="true"\]|\[aria-current="page"\])::after/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active::after/);
+    assert.match(folderCss, /\.fv-section-nav > button\.is-active,[\s\S]*background: color-mix\(in srgb, var\(--fv-editor-accent\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active\s*\{[\s\S]*background: color-mix\(in srgb, var\(--fvplus-settings-accent\)/);
+});
+
 test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {
     assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-ui-page,\s*var\(--fvplus-graphite-page,\s*#0f0f10\)\)/);
     assert.match(settingsCss, /--fv-wizard-shell-sidebar-bg:\s*var\(--fv-wizard-surface-panel\)/);

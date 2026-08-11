@@ -60,22 +60,23 @@ test('settings topbar keeps search adjacent to mode controls without a save-stat
     assert.match(script, /window\.addEventListener\('fvplus:prefs-save-state'/);
 });
 
-test('settings page declarative handlers are exported on window', () => {
+test('settings page declarative handlers have registered or compatibility owners', () => {
     const handlers = [
         ...[...page.matchAll(/data-fv-onclick="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
         ...[...page.matchAll(/data-fv-oninput="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
         ...[...page.matchAll(/data-fv-onchange="([A-Za-z0-9_]+)\(/g)].map((m) => m[1])
     ];
     const onclickUnique = [...new Set(handlers)];
-    const exported = new Set([
+    const available = new Set([
         ...[...script.matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]),
         ...[...script.matchAll(/Object\.assign\(window,\s*\{([\s\S]*?)\}\);/g)]
             .flatMap((match) => [...match[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*(?::|,)/gm)].map((entry) => entry[1])),
-        ...[...script.matchAll(/registerWindowActions\(window,\s*\{([\s\S]*?)\}\);/g)]
+        ...[...script.matchAll(/registerActions\(window,\s*\{([\s\S]*?)\}\s*,\s*\{\s*owner:\s*'settings'/g)]
             .flatMap((match) => [...match[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*(?::|,)/gm)].map((entry) => entry[1]))
     ]);
-    const missing = onclickUnique.filter((name) => !exported.has(name));
+    const missing = onclickUnique.filter((name) => !available.has(name));
     assert.deepEqual(missing, []);
+    assert.match(script, /FolderViewPlusCspEvents\?\.unregisterOwner\?\.\('settings'\)/);
 });
 
 test('settings page loads extracted settings metadata before the main runtime', () => {
@@ -139,8 +140,8 @@ test('settings page exposes theme workspace and saved folder defaults controls',
     assert.match(script, /const scanThemeWorkspaceGithub = async \(\) => \{/);
     assert.match(script, /const updateThemeWorkspaceTheme = async \(themeId\) => getThemeWorkspaceApi\(\)\.updateTheme\(themeId\);/);
     assert.match(script, /const resetThemeWorkspaceTokens = async \(\) => getThemeWorkspaceApi\(\)\.resetTokens\(\);/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*importThemeWorkspaceGithub[\s\S]*saveFolderDefaultsFromSelection[\s\S]*\}\);/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*scanThemeWorkspaceGithub[\s\S]*updateThemeWorkspaceTheme[\s\S]*resetThemeWorkspaceTokens[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*importThemeWorkspaceGithub[\s\S]*saveFolderDefaultsFromSelection/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*scanThemeWorkspaceGithub[\s\S]*updateThemeWorkspaceTheme[\s\S]*resetThemeWorkspaceTokens/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
@@ -169,7 +170,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const getEffectiveThemeCompatibilityMode = \(\) =>/);
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.doesNotMatch(script, /run_theme_self_heal/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*runThemeSelfHeal/);
     assert.match(page, /folderviewplus\.prefs-store\.js/);
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
     assert.match(script, /const patch = key === 'performanceProfile'[\s\S]*\? \{ performanceProfile: next\.performanceProfile, performanceMode: next\.performanceMode \}[\s\S]*: \{ \[key\]: next\[key\] \};/);
@@ -323,7 +324,7 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry/);
 });
 
 test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {
@@ -484,7 +485,7 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /const createFolderReorderQueueState = \(\) => \(\{/);
     assert.match(script, /const queueFolderReorderPersist = \(type, \{/);
     assert.match(script, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode/);
     assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
     assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
     assert.match(script, /History: \$\{historyDepth\.undo\} undo \/ \$\{historyDepth\.redo\} redo\./);
@@ -545,7 +546,7 @@ test('nested folder branch actions stay context-aware while integrity tools rema
     assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
     assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);
     assert.match(script, /const run = async \(type, options = \{\}\) =>/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setFolderBranchCollapse[\s\S]*setFolderBranchPinned[\s\S]*exportFolderBranch[\s\S]*importFolderBranch[\s\S]*runTreeIntegrityCheck[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*setFolderBranchCollapse[\s\S]*setFolderBranchPinned[\s\S]*exportFolderBranch[\s\S]*importFolderBranch[\s\S]*runTreeIntegrityCheck/);
 });
 
 test('settings table layout uses preset-driven widths instead of drag-resize controls', () => {
@@ -659,7 +660,7 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
     assert.match(script, /const updateBulkSelectedCount = \(type\) =>/);
     assert.match(script, /const getBulkAssignmentApi = \(\(\) => \{/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
     assert.match(libPhp, /function bulkAssignItemsToFolders\(string \$type, array \$assignments\): array/);

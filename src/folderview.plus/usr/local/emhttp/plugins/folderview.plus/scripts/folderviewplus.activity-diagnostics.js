@@ -1332,7 +1332,7 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
         return;
     }
 
-    const activeType = (typeof window.getActiveRecoveryWorkspaceType === 'function' && window.getActiveRecoveryWorkspaceType() === 'vm')
+    const activeType = window.FolderViewPlusCspEvents?.getAction('getActiveRecoveryWorkspaceType')?.() === 'vm'
         ? 'vm'
         : 'docker';
     const typeLabel = activeType === 'docker' ? 'Docker' : 'VM';

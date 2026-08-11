@@ -106,6 +106,39 @@ test('declarative event bridge supports existing argument forms without evaluati
     assert.equal(event.prevented, true);
 });
 
+test('declarative action registry owns handlers, takes precedence over legacy globals, and supports teardown', () => {
+    const { api, window } = createBridge();
+    const element = createElement();
+    const calls = [];
+    window.changeStatusPref = () => calls.push('legacy');
+
+    const registered = api.registerActions({
+        changeStatusPref: (...args) => calls.push(['registry', ...args])
+    }, { owner: 'settings' });
+
+    assert.deepEqual([...registered], ['changeStatusPref']);
+    assert.equal(api.snapshot().count, 1);
+    assert.deepEqual([...api.snapshot().owners], ['settings']);
+    api.execute("changeStatusPref('docker', 'mode', this.value)", element, { preventDefault() {} });
+    assert.deepEqual(calls, [['registry', 'docker', 'mode', 'balanced']]);
+    assert.equal(api.unregisterOwner('settings'), 1);
+    api.execute("changeStatusPref('docker', 'mode', this.value)", element, { preventDefault() {} });
+    assert.deepEqual(calls, [['registry', 'docker', 'mode', 'balanced'], 'legacy']);
+});
+
+test('declarative action registry rejects invalid handlers and cross-owner collisions', () => {
+    const { api } = createBridge();
+    assert.throws(() => api.registerActions({}, {}), /owner is required/);
+    assert.throws(() => api.registerActions({ 'unsafe-name': () => {} }, { owner: 'settings' }), /Invalid declarative action name/);
+    assert.throws(() => api.registerActions({ changeStatusPref: true }, { owner: 'settings' }), /must be a function/);
+    api.registerActions({ changeStatusPref: () => {} }, { owner: 'settings' });
+    assert.throws(
+        () => api.registerActions({ hideAllTips: () => {}, changeStatusPref: () => {} }, { owner: 'docker' }),
+        /already owned by settings/
+    );
+    assert.equal(api.getAction('hideAllTips'), null);
+});
+
 test('declarative event bridge blocks arbitrary globals and unsafe image fallbacks', () => {
     const { api } = createBridge();
     const element = createElement();

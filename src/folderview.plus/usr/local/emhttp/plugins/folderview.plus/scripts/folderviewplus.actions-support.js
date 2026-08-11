@@ -236,14 +236,19 @@
         });
     };
 
-    const registerWindowActions = (target, actions = {}) => {
+    const registerActions = (target, actions = {}, options = {}) => {
         const host = target && typeof target === 'object' ? target : (fallbackWindow || {});
-        Object.assign(host, actions && typeof actions === 'object' ? actions : {});
-        return host;
+        const registry = host?.FolderViewPlusCspEvents;
+        if (!registry || typeof registry.registerActions !== 'function') {
+            throw new Error('FolderView Plus declarative action registry is unavailable.');
+        }
+        return registry.registerActions(actions, {
+            owner: String(options.owner || 'settings').trim() || 'settings'
+        });
     };
 
     return Object.freeze({
         createSupportActions,
-        registerWindowActions
+        registerActions
     });
 }));

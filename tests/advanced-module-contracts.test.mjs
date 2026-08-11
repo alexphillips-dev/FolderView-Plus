@@ -120,9 +120,9 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*FVPLUS_SMART_DETECT_MATCH_THRESHOLD/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*STARTER_TEMPLATE_BLUEPRINTS/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*postPrefs/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*openFolderRowQuickActions/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*openFolderRowQuickActions/);
     assert.match(script, /FolderViewPlusSettingsActionSupportModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsActionSupport = factory\(\)/);
     assert.match(script, /createSupportActions = \(deps = \{\}\) =>/);
-    assert.match(script, /registerWindowActions = \(target, actions = \{\}\) =>/);
+    assert.match(script, /registerActions = \(target, actions = \{\}, options = \{\}\) =>/);
 });

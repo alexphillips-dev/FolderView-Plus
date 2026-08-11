@@ -537,6 +537,7 @@ if (
     !settingsActionSupportModule
     || window.FolderViewPlusSettingsActionSupportModuleLoaded !== true
     || typeof settingsActionSupportModule.createSupportActions !== 'function'
+    || typeof settingsActionSupportModule.registerActions !== 'function'
 ) {
     bootstrapMissingModules.push('folderviewplus.actions-support.js');
     setFatalBannerModuleStatus('folderviewplus.actions-support.js', 'missing', 'support action exports unavailable');
@@ -7555,7 +7556,6 @@ const renderRuntimeControls = (type) => {
     renderPerformancePolicySummary(type, prefs);
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
 };
-
 const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecycle?.({ window, document, $ }) || null;
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
@@ -7563,6 +7563,7 @@ window.addEventListener('pagehide', () => {
     viewSettingsRangeLifecycle?.destroy?.();
     viewSettingsUiStateStore?.destroy?.();
     viewSettingsChangeController?.destroy?.();
+    window.FolderViewPlusCspEvents?.unregisterOwner?.('settings');
 }, { once: true });
 
 const renderStatusControls = (type) => {
@@ -11727,8 +11728,7 @@ const {
     clearDocker,
     clearVm
 } = settingsSupportActions;
-
-settingsActionSupportModule.registerWindowActions(window, {
+settingsActionSupportModule.registerActions(window, {
     downloadDocker,
     downloadVm,
     importDocker,
@@ -11874,7 +11874,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     setSettingsMode,
     exportEnvironmentSnapshot,
     importEnvironmentSnapshot,
-});
+}, { owner: 'settings' });
 
 if (window.FolderViewPlusUI?.registerAction) {
     window.FolderViewPlusUI.registerAction('diagnostics-run', () => runDiagnostics());

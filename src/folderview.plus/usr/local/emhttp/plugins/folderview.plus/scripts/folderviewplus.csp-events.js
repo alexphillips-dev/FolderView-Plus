@@ -32,6 +32,68 @@
         'updateRegex updateThemeWorkspaceTheme'
     ).split(/\s+/).filter(Boolean));
     const supportedEvents = ['click', 'change', 'input', 'keydown', 'submit', 'error'];
+    const actionRecords = new Map();
+    const actionNamePattern = /^[A-Za-z_$][\w$]*$/;
+
+    const normalizeOwner = (value) => {
+        const owner = String(value || '').trim();
+        if (!owner) {
+            throw new Error('Declarative action owner is required.');
+        }
+        return owner;
+    };
+
+    const registerActions = (actions = {}, options = {}) => {
+        if (!actions || typeof actions !== 'object' || Array.isArray(actions)) {
+            throw new Error('Declarative actions must be an object.');
+        }
+        const owner = normalizeOwner(options.owner);
+        const entries = Object.entries(actions);
+        for (const [name, handler] of entries) {
+            if (!actionNamePattern.test(name)) {
+                throw new Error(`Invalid declarative action name: ${name}.`);
+            }
+            if (typeof handler !== 'function') {
+                throw new Error(`Declarative action must be a function: ${name}.`);
+            }
+            const current = actionRecords.get(name);
+            if (current && current.owner !== owner) {
+                throw new Error(`Declarative action is already owned by ${current.owner}: ${name}.`);
+            }
+        }
+        const registered = [];
+        for (const [name, handler] of entries) {
+            actionRecords.set(name, Object.freeze({ handler, owner }));
+            registered.push(name);
+        }
+        return Object.freeze(registered.sort());
+    };
+
+    const unregisterOwner = (value) => {
+        const owner = normalizeOwner(value);
+        let removed = 0;
+        for (const [name, record] of actionRecords) {
+            if (record.owner !== owner) continue;
+            actionRecords.delete(name);
+            removed += 1;
+        }
+        return removed;
+    };
+
+    const getAction = (name) => actionRecords.get(String(name || ''))?.handler || null;
+
+    const resolveAction = (name) => {
+        const registered = getAction(name);
+        if (registered) return registered;
+        const legacy = win?.[name];
+        return typeof legacy === 'function' ? legacy : null;
+    };
+
+    const snapshot = () => Object.freeze({
+        count: actionRecords.size,
+        owners: Object.freeze([...new Set([...actionRecords.values()].map((record) => record.owner))].sort()),
+        actions: Object.freeze([...actionRecords.keys()].sort())
+    });
 
     const splitTopLevel = (source, delimiter) => {
         const output = [];
@@ -155,7 +217,7 @@
         if (!callMatch || !allowedHandlers.has(callMatch[1])) {
             throw new Error('Declarative event handler is not allowlisted.');
         }
-        const handler = win[callMatch[1]];
+        const handler = resolveAction(callMatch[1]);
         if (typeof handler !== 'function') {
             throw new Error('Declarative event handler is unavailable.');
         }
@@ -222,10 +284,15 @@
     const api = Object.freeze({
         allowedHandlers,
         execute,
+        getAction,
         install,
         parseArgument,
+        registerActions,
+        resolveAction,
+        snapshot,
         splitTopLevel,
-        supportedEvents: Object.freeze([...supportedEvents])
+        supportedEvents: Object.freeze([...supportedEvents]),
+        unregisterOwner
     });
     win.FolderViewPlusCspEvents = api;
     install();

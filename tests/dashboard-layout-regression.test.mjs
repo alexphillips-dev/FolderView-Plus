@@ -167,7 +167,7 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /extractFatalBannerTraceId/);
     assert.match(settingsScript, /extractFatalBannerStatus/);
     assert.match(settingsScript, /inferFatalBannerCategory/);
-    assert.match(settingsScript, /registerWindowActions\(window,\s*\{[\s\S]*changeDashboardPref[\s\S]*\}\);/);
+    assert.match(settingsScript, /registerActions\(window,\s*\{[\s\S]*changeDashboardPref/);
 });
 
 test('server normalizes compact matrix dashboard layout', () => {

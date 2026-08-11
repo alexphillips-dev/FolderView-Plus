@@ -41,7 +41,9 @@ const loadModule = (contract, source, absolutePath) => {
     }
     if (contract.loader === 'window') {
         const window = {
-            document: { documentElement: {} },
+            document: { addEventListener() {}, documentElement: {} },
+            console: { warn() {} },
+            location: { assign() {} },
             setTimeout,
             clearTimeout,
             performance: globalThis.performance
@@ -173,19 +175,26 @@ const bridgeFiles = new Set(policy.bridgeFiles || []);
 const diagnosticGlobals = new Set(policy.diagnosticGlobals || []);
 const runtimeUiGlobals = new Set(policy.runtimeUiGlobals || []);
 const removedGlobals = new Set(policy.removedGlobals || []);
+const removedActionRegistrars = new Set(policy.removedActionRegistrars || []);
 const ownersByGlobal = new Map();
 const registeredActions = new Set();
+const registeredActionOwners = new Map();
 
 for (const [file, source] of sources) {
+    for (const removedRegistrar of removedActionRegistrars) {
+        if (source.includes(removedRegistrar)) fail(`Removed action registrar remains in ${file}: ${removedRegistrar}`);
+    }
     const names = new Set();
     for (const match of source.matchAll(/\b(?:root|window|globalThis)\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)) names.add(match[1]);
     for (const match of source.matchAll(/Object\.assign\(window,\s*\{([\s\S]*?)\}\);/g)) {
         for (const entry of match[1].matchAll(/^\s*([A-Za-z_$][\w$]*)\s*(?::|,)/gm)) names.add(entry[1]);
     }
-    for (const match of source.matchAll(/registerWindowActions\(window,\s*\{([\s\S]*?)\}\);/g)) {
+    for (const match of source.matchAll(/registerActions\(window,\s*\{([\s\S]*?)\}\s*,\s*\{\s*owner:\s*(['"])([^'"]+)\2\s*\}\s*\);/g)) {
+        const owner = match[3];
         for (const entry of match[1].matchAll(/^\s*([A-Za-z_$][\w$]*)\s*(?::|,)/gm)) {
-            names.add(entry[1]);
             registeredActions.add(entry[1]);
+            if (!registeredActionOwners.has(entry[1])) registeredActionOwners.set(entry[1], new Set());
+            registeredActionOwners.get(entry[1]).add(owner);
         }
     }
     for (const name of names) {
@@ -203,6 +212,18 @@ const pageActions = new Set(pageSources.flatMap((page) => [
 const inlineActionOccurrences = pageSources.reduce((total, page) => (
     total + [...page.matchAll(/on(?:click|input|change|keydown|submit)="([A-Za-z_$][\w$]*)\(/g)].length
 ), 0);
+const declarativeActionSources = [...pageSources, ...sources.values()];
+const declarativeActions = new Set();
+for (const source of declarativeActionSources) {
+    for (const attribute of source.matchAll(/data-fv-on(?:click|change|input|keydown|submit|error)\s*=\s*(['"])([\s\S]*?)\1/gi)) {
+        for (const call of attribute[2].matchAll(/(?:^|[;`\s])(?:return\s+)?([A-Za-z_$][\w$]*)\s*\(/g)) {
+            if (call[1] !== 'event') declarativeActions.add(call[1]);
+        }
+    }
+}
+for (const [action, owners] of registeredActionOwners) {
+    if (owners.size > 1) fail(`Declarative action has multiple registry owners: ${action} (${[...owners].join(', ')})`);
+}
 
 for (const [name, owners] of ownersByGlobal) {
     if (removedGlobals.has(name)) {
@@ -230,7 +251,15 @@ for (const [name, owners] of ownersByGlobal) {
 }
 
 for (const action of pageActions) {
-    if (!ownersByGlobal.has(action)) fail(`Inline page action is not registered on window: ${action}`);
+    if (!ownersByGlobal.has(action) && !registeredActions.has(action)) {
+        fail(`Declarative page action has no registry or compatibility owner: ${action}`);
+    }
+}
+
+for (const action of declarativeActions) {
+    if (!ownersByGlobal.has(action) && !registeredActions.has(action) && !hostCompatibilityGlobals.has(action)) {
+        fail(`Generated declarative action has no registry or compatibility owner: ${action}`);
+    }
 }
 
 for (const removed of removedGlobals) {
@@ -248,6 +277,13 @@ if (Number.isFinite(Number(budgets.maxInlineActions)) && pageActions.size > Numb
 }
 if (Number.isFinite(Number(budgets.maxInlineActionOccurrences)) && inlineActionOccurrences > Number(budgets.maxInlineActionOccurrences)) {
     fail(`Inline action occurrence budget exceeded: ${inlineActionOccurrences} > ${budgets.maxInlineActionOccurrences}.`);
+}
+if (Number.isFinite(Number(budgets.minRegisteredActions)) && registeredActions.size < Number(budgets.minRegisteredActions)) {
+    fail(`Registered action floor missed: ${registeredActions.size} < ${budgets.minRegisteredActions}.`);
+}
+const registeredActionGlobals = [...registeredActions].filter((action) => ownersByGlobal.has(action));
+if (Number.isFinite(Number(budgets.maxRegisteredActionGlobals)) && registeredActionGlobals.length > Number(budgets.maxRegisteredActionGlobals)) {
+    fail(`Registered action global budget exceeded: ${registeredActionGlobals.length} > ${budgets.maxRegisteredActionGlobals}.`);
 }
 const fileLineBudgets = budgets.fileLineBudgets || {};
 for (const [relativePath, budget] of Object.entries(fileLineBudgets)) {
@@ -334,4 +370,4 @@ validateLegacyInventory('Legacy browser script', legacyBrowserScripts, schema.mo
 validateLegacyInventory('Legacy server PHP', legacyServerPhp, schema.modulePolicy?.legacyUncontractedServerPhp);
 
 assert.equal(failures.length, 0, failures.join('\n'));
-console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} module contracts, ${schema.entrypointContracts?.length || 0} entrypoint contracts, ${ownersByGlobal.size} browser globals, ${pageActions.size} inline action names/${inlineActionOccurrences} occurrences, ${Object.keys(fileLineBudgets).length} ratcheting file-line budgets, and function overlap ${overlapSummary.join(', ')} validated.`);
+console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} module contracts, ${schema.entrypointContracts?.length || 0} entrypoint contracts, ${ownersByGlobal.size} browser globals, ${registeredActions.size} registry actions (${registeredActionGlobals.length} compatibility globals), ${declarativeActions.size} declarative action names, ${Object.keys(fileLineBudgets).length} ratcheting file-line budgets, and function overlap ${overlapSummary.join(', ')} validated.`);

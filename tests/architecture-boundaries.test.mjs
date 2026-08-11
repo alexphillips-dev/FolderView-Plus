@@ -21,7 +21,7 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 10);
+    assert.equal(architecture.moduleContracts.length, 12);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');
@@ -32,6 +32,20 @@ test('entrypoints and contracted modules declare ownership boundaries', () => {
         assert.ok(Array.isArray(contract.compatibilityGlobals), `${contract.file} must declare compatibility globals`);
         assert.ok(fs.existsSync(path.join(pluginRoot, contract.file)), `${contract.file} must exist`);
     }
+});
+
+test('declarative actions are registry-owned with a ratcheted compatibility ceiling', () => {
+    assert.equal(architecture.budgets.maxBrowserGlobals, 375);
+    assert.equal(architecture.budgets.minRegisteredActions, 145);
+    assert.equal(architecture.budgets.maxRegisteredActionGlobals, 11);
+    assert.deepEqual(architecture.browserGlobals.removedActionRegistrars, ['registerWindowActions']);
+    const actionRuntime = architecture.moduleContracts.find((contract) => contract.file === 'scripts/folderviewplus.csp-events.js');
+    const settingsActions = architecture.moduleContracts.find((contract) => contract.file === 'scripts/folderviewplus.actions-support.js');
+    assert.equal(actionRuntime?.owner, 'declarative-action-runtime');
+    assert.ok(actionRuntime?.exports.includes('registerActions'));
+    assert.ok(actionRuntime?.exports.includes('unregisterOwner'));
+    assert.deepEqual(settingsActions?.dependsOn, ['scripts/folderviewplus.csp-events.js']);
+    assert.ok(settingsActions?.exports.includes('registerActions'));
 });
 
 test('file budgets have non-increasing audit histories and explicit reduction targets', () => {
@@ -60,8 +74,8 @@ test('file budgets have non-increasing audit histories and explicit reduction ta
 
 test('new browser and PHP modules cannot silently expand the legacy inventory', () => {
     assert.deepEqual(architecture.modulePolicy.legacyUncontractedBrowserScripts, {
-        count: 100,
-        sha256: '24ea139029c3517954c9e458142bca4e9f385b47f517b60422b62952d5d11df1'
+        count: 98,
+        sha256: '22d53706609e0098112b6b19567bc181a0bd1378189c3e9b15f90ad1a3fdc45a'
     });
     assert.deepEqual(architecture.modulePolicy.legacyUncontractedServerPhp, {
         count: 40,

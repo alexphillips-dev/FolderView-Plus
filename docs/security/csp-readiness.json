@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 177,
+    "scannedFiles": 180,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -352,17 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 2007,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "The settings search empty state contains plugin-authored static markup only."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6654,
+      "line": 6354,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -372,13 +362,23 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 8423,
+      "line": 8124,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "Contextual escaping or sanitization is visible at the interpolation boundary."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js",
+      "line": 281,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "The settings search empty state contains plugin-authored static markup only."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
@@ -462,7 +462,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js",
-      "line": 135,
+      "line": 137,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -734,7 +734,7 @@
       "evalCalls": 0,
       "functionConstructors": 0,
       "dynamicScriptCreation": 0,
-      "htmlStringSinks": 3
+      "htmlStringSinks": 2
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-loader.js",
@@ -747,6 +747,18 @@
       "functionConstructors": 0,
       "dynamicScriptCreation": 1,
       "htmlStringSinks": 0
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js",
+      "inlineEventAttributes": 0,
+      "inlineScriptBlocks": 0,
+      "externalScriptTags": 0,
+      "inlineStyleBlocks": 0,
+      "inlineStyleAttributes": 0,
+      "evalCalls": 0,
+      "functionConstructors": 0,
+      "dynamicScriptCreation": 0,
+      "htmlStringSinks": 1
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",

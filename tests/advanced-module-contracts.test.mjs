@@ -8,6 +8,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
@@ -66,9 +67,9 @@ test('settings search includes user-facing aliases for recent support terms', ()
     assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
     assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'support bundle'/);
     assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
-    assert.match(script, /const buildSettingsSearchIndex = \(\) => \{/);
-    assert.match(script, /getPrivacySafeSettingsSearchText\(target\)/);
-    assert.match(script, /matchesSettingsSearchTokens\(entry\.text, tokens\)/);
+    assert.match(script, /const buildIndex = \(\) => \{/);
+    assert.match(script, /getPrivacySafeText\(target\)/);
+    assert.match(script, /matchesTokens\(entry\.text, tokens\)/);
     assert.doesNotMatch(script, /getSectionSearchHaystack/);
 });
 

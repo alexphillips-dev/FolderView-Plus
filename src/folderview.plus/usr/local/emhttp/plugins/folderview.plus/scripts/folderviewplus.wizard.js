@@ -1,5 +1,7 @@
 // FolderView Plus setup assistant module.
 // Extracted from folderviewplus.js to keep core settings runtime easier to maintain.
+const wizardPersistenceModule = window.FolderViewPlusFoundationModules?.wizardPersistence || null;
+const wizardReviewModule = window.FolderViewPlusFoundationModules?.wizardReview || null;
 
 const setupAssistantT = (key, fallback = '', ...params) => {
     if (window.FolderViewPlusI18n?.t) {
@@ -637,397 +639,58 @@ const buildSetupAssistantTemplatePlanForType = (type) => {
     };
 };
 
-const serializeSetupAssistantDraft = () => ({
-    version: SETUP_ASSISTANT_VERSION,
-    savedAt: new Date().toISOString(),
-    step: Number(setupAssistantState.step) || 0,
-    route: String(setupAssistantState.route || 'new'),
-    mode: String(setupAssistantState.mode || 'basic'),
-    experienceMode: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode),
-    applySafetyMode: normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode),
-    selectedPresetId: String(setupAssistantState.selectedPresetId || ''),
-    presetDraftName: String(setupAssistantState.presetDraftName || ''),
-    quickPreset: normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset),
-    profile: String(setupAssistantState.profile || 'balanced'),
-    applyProfileDefaults: setupAssistantState.applyProfileDefaults === true,
-    environmentPreset: normalizeSetupAssistantEnvironmentPreset(setupAssistantState.environmentPreset),
-    applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
-    dryRunOnly: setupAssistantState.dryRunOnly === true,
-    focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    collapsedChipRows: setupAssistantState.collapsedChipRows && typeof setupAssistantState.collapsedChipRows === 'object'
-        ? { ...setupAssistantState.collapsedChipRows }
-        : {},
-    importPlans: {
-        docker: {
-            include: setupAssistantState.importPlans?.docker?.include === true,
-            mode: normalizeImportMode(setupAssistantState.importPlans?.docker?.mode),
-            fileName: String(setupAssistantState.importPlans?.docker?.fileName || ''),
-            fileSizeBytes: Number(setupAssistantState.importPlans?.docker?.fileSizeBytes) || 0,
-            fileLastModified: String(setupAssistantState.importPlans?.docker?.fileLastModified || ''),
-            parsed: setupAssistantState.importPlans?.docker?.parsed || null
-        },
-        vm: {
-            include: setupAssistantState.importPlans?.vm?.include === true,
-            mode: normalizeImportMode(setupAssistantState.importPlans?.vm?.mode),
-            fileName: String(setupAssistantState.importPlans?.vm?.fileName || ''),
-            fileSizeBytes: Number(setupAssistantState.importPlans?.vm?.fileSizeBytes) || 0,
-            fileLastModified: String(setupAssistantState.importPlans?.vm?.fileLastModified || ''),
-            parsed: setupAssistantState.importPlans?.vm?.parsed || null
+const getWizardPersistenceApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
         }
-    },
-    templateBootstrap: {
-        docker: {
-            enabled: setupAssistantState.templateBootstrap?.docker?.enabled === true,
-            category: normalizeSetupAssistantTemplateCategory('docker', setupAssistantState.templateBootstrap?.docker?.category || 'smart'),
-            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.docker?.selectedTemplateNames || []),
-            autoAssignExisting: setupAssistantState.templateBootstrap?.docker?.autoAssignExisting === true
-        },
-        vm: {
-            enabled: setupAssistantState.templateBootstrap?.vm?.enabled === true,
-            category: normalizeSetupAssistantTemplateCategory('vm', setupAssistantState.templateBootstrap?.vm?.category || 'smart'),
-            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.vm?.selectedTemplateNames || []),
-            autoAssignExisting: setupAssistantState.templateBootstrap?.vm?.autoAssignExisting === true
+        if (!wizardPersistenceModule || typeof wizardPersistenceModule.createApi !== 'function') {
+            throw new Error('FolderView Plus wizard bootstrap failed: missing folderviewplus.wizard-persistence.js');
         }
-    },
-    ruleBootstrap: {
-        docker: {
-            enabled: setupAssistantState.ruleBootstrap?.docker?.enabled === true,
-            suggestions: serializeSetupAssistantRuleSuggestions(setupAssistantState.ruleBootstrap?.docker?.suggestions || [])
-        },
-        vm: {
-            enabled: setupAssistantState.ruleBootstrap?.vm?.enabled === true,
-            suggestions: serializeSetupAssistantRuleSuggestions(setupAssistantState.ruleBootstrap?.vm?.suggestions || [])
-        }
-    },
-    behavior: {
-        docker: normalizeSetupAssistantBehaviorFromValue('docker', setupAssistantState.behavior?.docker || {}),
-        vm: normalizeSetupAssistantBehaviorFromValue('vm', setupAssistantState.behavior?.vm || {})
-    }
-});
-
-const persistSetupAssistantDraft = () => {
-    if (!setupAssistantState.open || setupAssistantState.applying) {
-        return;
-    }
-    try {
-        localStorage.setItem(SETUP_ASSISTANT_DRAFT_STORAGE_KEY, JSON.stringify(serializeSetupAssistantDraft()));
-    } catch (_error) {
-        // Ignore localStorage failures to keep setup flow functional.
-    }
-};
-
-const clearSetupAssistantDraft = () => {
-    try {
-        localStorage.removeItem(SETUP_ASSISTANT_DRAFT_STORAGE_KEY);
-    } catch (_error) {
-        // Ignore localStorage failures to keep setup flow functional.
-    }
-};
-
-const readSetupAssistantPresetStore = () => {
-    try {
-        const raw = localStorage.getItem(SETUP_ASSISTANT_PRESETS_STORAGE_KEY);
-        if (!raw) {
-            return [];
-        }
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) {
-            return [];
-        }
-        return parsed.filter((entry) => (
-            entry
-            && typeof entry === 'object'
-            && String(entry.id || '').trim()
-            && String(entry.name || '').trim()
-            && entry.payload
-            && typeof entry.payload === 'object'
-        )).slice(0, SETUP_ASSISTANT_PRESETS_MAX);
-    } catch (_error) {
-        return [];
-    }
-};
-
-const writeSetupAssistantPresetStore = (rows) => {
-    const safeRows = Array.isArray(rows) ? rows.slice(0, SETUP_ASSISTANT_PRESETS_MAX) : [];
-    try {
-        localStorage.setItem(SETUP_ASSISTANT_PRESETS_STORAGE_KEY, JSON.stringify(safeRows));
-    } catch (_error) {
-        // Ignore localStorage failures; wizard remains fully usable.
-    }
-};
-
-const buildSetupAssistantPresetPayload = () => ({
-    route: String(setupAssistantState.route || 'new'),
-    mode: String(setupAssistantState.mode || 'basic'),
-    experienceMode: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode),
-    applySafetyMode: normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode),
-    quickPreset: normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset),
-    profile: String(setupAssistantState.profile || 'balanced'),
-    applyProfileDefaults: setupAssistantState.applyProfileDefaults === true,
-    environmentPreset: normalizeSetupAssistantEnvironmentPreset(setupAssistantState.environmentPreset),
-    applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
-    dryRunOnly: setupAssistantState.dryRunOnly === true,
-    focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    importPlans: {
-        docker: {
-            include: setupAssistantState.importPlans?.docker?.include === true,
-            mode: normalizeImportMode(setupAssistantState.importPlans?.docker?.mode)
-        },
-        vm: {
-            include: setupAssistantState.importPlans?.vm?.include === true,
-            mode: normalizeImportMode(setupAssistantState.importPlans?.vm?.mode)
-        }
-    },
-    templateBootstrap: {
-        docker: {
-            enabled: setupAssistantState.templateBootstrap?.docker?.enabled === true,
-            category: normalizeSetupAssistantTemplateCategory('docker', setupAssistantState.templateBootstrap?.docker?.category || 'smart'),
-            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.docker?.selectedTemplateNames || []),
-            autoAssignExisting: setupAssistantState.templateBootstrap?.docker?.autoAssignExisting === true
-        },
-        vm: {
-            enabled: setupAssistantState.templateBootstrap?.vm?.enabled === true,
-            category: normalizeSetupAssistantTemplateCategory('vm', setupAssistantState.templateBootstrap?.vm?.category || 'smart'),
-            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.vm?.selectedTemplateNames || []),
-            autoAssignExisting: setupAssistantState.templateBootstrap?.vm?.autoAssignExisting === true
-        }
-    },
-    ruleBootstrap: {
-        docker: {
-            enabled: setupAssistantState.ruleBootstrap?.docker?.enabled === true
-        },
-        vm: {
-            enabled: setupAssistantState.ruleBootstrap?.vm?.enabled === true
-        }
-    },
-    behavior: {
-        docker: normalizeSetupAssistantBehaviorFromValue('docker', setupAssistantState.behavior?.docker || {}),
-        vm: normalizeSetupAssistantBehaviorFromValue('vm', setupAssistantState.behavior?.vm || {})
-    }
-});
-
-const applySetupAssistantPresetPayload = (payload) => {
-    if (!payload || typeof payload !== 'object') {
-        return false;
-    }
-    setupAssistantState.route = ['new', 'migrate', 'advanced'].includes(String(payload.route || ''))
-        ? String(payload.route)
-        : setupAssistantState.route;
-    setupAssistantState.mode = String(payload.mode || '').toLowerCase() === 'advanced' ? 'advanced' : 'basic';
-    setupAssistantState.experienceMode = normalizeSetupAssistantExperienceMode(payload.experienceMode);
-    setupAssistantState.applySafetyMode = normalizeSetupAssistantSafetyMode(payload.applySafetyMode);
-    setupAssistantState.quickPreset = normalizeSetupAssistantQuickPresetState(payload.quickPreset);
-    setupAssistantState.profile = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, String(payload.profile || ''))
-        ? String(payload.profile)
-        : setupAssistantState.profile;
-    setupAssistantState.applyProfileDefaults = payload.applyProfileDefaults === true;
-    setupAssistantState.environmentPreset = normalizeSetupAssistantEnvironmentPreset(payload.environmentPreset);
-    setupAssistantState.applyEnvironmentDefaults = payload.applyEnvironmentDefaults !== false;
-    setupAssistantState.dryRunOnly = payload.dryRunOnly === true;
-    setupAssistantState.focusModeEnabled = payload.focusModeEnabled !== false;
-    setupAssistantState.collapsedChipRows = {};
-
-    for (const type of ['docker', 'vm']) {
-        const incomingPlan = payload.importPlans?.[type];
-        if (incomingPlan && typeof incomingPlan === 'object') {
-            setupAssistantState.importPlans[type].include = incomingPlan.include === true;
-            setupAssistantState.importPlans[type].mode = normalizeImportMode(incomingPlan.mode);
-            summarizeSetupAssistantImportPlan(type);
-        }
-        const incomingTemplates = payload.templateBootstrap?.[type];
-        if (incomingTemplates && typeof incomingTemplates === 'object') {
-            const bootstrap = getSetupAssistantTemplateBootstrap(type);
-            bootstrap.enabled = incomingTemplates.enabled === true;
-            bootstrap.category = normalizeSetupAssistantTemplateCategory(type, incomingTemplates.category || 'smart');
-            bootstrap.selectedTemplateNames = serializeSetupAssistantTemplateSelections(incomingTemplates.selectedTemplateNames || []);
-            bootstrap.autoAssignExisting = incomingTemplates.autoAssignExisting === true;
-            refreshSetupAssistantTemplateSelection(type);
-        }
-        const incomingRules = payload.ruleBootstrap?.[type];
-        if (incomingRules && typeof incomingRules === 'object') {
-            setupAssistantState.ruleBootstrap[type].enabled = incomingRules.enabled === true;
-        }
-        const incomingBehavior = payload.behavior?.[type];
-        if (incomingBehavior && typeof incomingBehavior === 'object') {
-            setupAssistantState.behavior[type] = normalizeSetupAssistantBehaviorFromValue(type, incomingBehavior);
-        }
-    }
-    refreshSetupAssistantTemplateSelections();
-    clampSetupAssistantStep();
-    return true;
-};
-
-const saveCurrentSetupAssistantPreset = (name) => {
-    const label = String(name || '').trim();
-    if (!label) {
-        return {
-            ok: false,
-            error: 'Preset name is required.'
-        };
-    }
-    const nextEntry = {
-        id: `setup-preset-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-        name: label.slice(0, 60),
-        savedAt: new Date().toISOString(),
-        payload: buildSetupAssistantPresetPayload()
+        cachedApi = wizardPersistenceModule.createApi({
+            window,
+            getStorage: () => window.localStorage,
+            getState: () => setupAssistantState,
+            constants: {
+                version: SETUP_ASSISTANT_VERSION,
+                draftStorageKey: SETUP_ASSISTANT_DRAFT_STORAGE_KEY,
+                presetsStorageKey: SETUP_ASSISTANT_PRESETS_STORAGE_KEY,
+                presetsMax: SETUP_ASSISTANT_PRESETS_MAX,
+                draftMaxAgeMs: SETUP_ASSISTANT_DRAFT_MAX_AGE_MS,
+                setupDoneStorageKey: SETUP_ASSISTANT_DONE_STORAGE_KEY,
+                wizardDoneStorageKey: WIZARD_DONE_STORAGE_KEY
+            },
+            profilePresets: SETUP_ASSISTANT_PROFILE_PRESETS,
+            normalizeExperienceMode: normalizeSetupAssistantExperienceMode,
+            normalizeSafetyMode: normalizeSetupAssistantSafetyMode,
+            normalizeQuickPreset: normalizeSetupAssistantQuickPresetState,
+            normalizeEnvironmentPreset: normalizeSetupAssistantEnvironmentPreset,
+            normalizeImportMode,
+            normalizeTemplateCategory: normalizeSetupAssistantTemplateCategory,
+            normalizeTemplateSelections: serializeSetupAssistantTemplateSelections,
+            normalizeRuleSuggestions: serializeSetupAssistantRuleSuggestions,
+            normalizeBehavior: normalizeSetupAssistantBehaviorFromValue,
+            createImportPlan: createSetupAssistantImportPlan,
+            getTemplateBootstrap: getSetupAssistantTemplateBootstrap,
+            refreshTemplateSelection: refreshSetupAssistantTemplateSelection,
+            refreshTemplateSelections: refreshSetupAssistantTemplateSelections,
+            summarizeImportPlan: summarizeSetupAssistantImportPlan,
+            clampStep: clampSetupAssistantStep,
+            getStepSequence: getSetupAssistantStepSequence
+        });
+        return cachedApi;
     };
-    const existing = readSetupAssistantPresetStore();
-    const deduped = existing.filter((entry) => String(entry.name || '').trim().toLowerCase() !== nextEntry.name.toLowerCase());
-    deduped.unshift(nextEntry);
-    writeSetupAssistantPresetStore(deduped);
-    return {
-        ok: true,
-        id: nextEntry.id,
-        name: nextEntry.name
-    };
-};
-
-const loadSetupAssistantPresetById = (presetId) => {
-    const key = String(presetId || '').trim();
-    if (!key) {
-        return false;
-    }
-    const existing = readSetupAssistantPresetStore();
-    const selected = existing.find((entry) => String(entry.id || '') === key);
-    if (!selected) {
-        return false;
-    }
-    return applySetupAssistantPresetPayload(selected.payload || {});
-};
-
-const deleteSetupAssistantPresetById = (presetId) => {
-    const key = String(presetId || '').trim();
-    if (!key) {
-        return false;
-    }
-    const existing = readSetupAssistantPresetStore();
-    const next = existing.filter((entry) => String(entry.id || '') !== key);
-    if (next.length === existing.length) {
-        return false;
-    }
-    writeSetupAssistantPresetStore(next);
-    return true;
-};
-
-const restoreSetupAssistantDraftFromStorage = () => {
-    let parsed = null;
-    try {
-        const raw = localStorage.getItem(SETUP_ASSISTANT_DRAFT_STORAGE_KEY);
-        if (!raw) {
-            return false;
-        }
-        parsed = JSON.parse(raw);
-    } catch (_error) {
-        clearSetupAssistantDraft();
-        return false;
-    }
-    if (!parsed || typeof parsed !== 'object') {
-        clearSetupAssistantDraft();
-        return false;
-    }
-    const savedAt = Date.parse(String(parsed.savedAt || ''));
-    if (!Number.isFinite(savedAt) || (Date.now() - savedAt) > SETUP_ASSISTANT_DRAFT_MAX_AGE_MS) {
-        clearSetupAssistantDraft();
-        return false;
-    }
-
-    const restoredRoute = ['new', 'migrate', 'advanced'].includes(String(parsed.route || ''))
-        ? String(parsed.route)
-        : setupAssistantState.route;
-    setupAssistantState.route = restoredRoute;
-    const stepSequence = getSetupAssistantStepSequence(restoredRoute);
-    setupAssistantState.step = Math.max(0, Math.min(stepSequence.length - 1, Number(parsed.step) || 0));
-    setupAssistantState.mode = String(parsed.mode || '').toLowerCase() === 'advanced' ? 'advanced' : 'basic';
-    setupAssistantState.experienceMode = normalizeSetupAssistantExperienceMode(parsed.experienceMode);
-    setupAssistantState.applySafetyMode = normalizeSetupAssistantSafetyMode(parsed.applySafetyMode);
-    setupAssistantState.selectedPresetId = String(parsed.selectedPresetId || '');
-    setupAssistantState.presetDraftName = String(parsed.presetDraftName || '');
-    setupAssistantState.quickPreset = normalizeSetupAssistantQuickPresetState(parsed.quickPreset);
-    if (!setupAssistantState.presetDraftName) {
-        setupAssistantState.presetDraftName = `${setupAssistantState.quickPreset}-profile`;
-    }
-    setupAssistantState.profile = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, String(parsed.profile || ''))
-        ? String(parsed.profile)
-        : setupAssistantState.profile;
-    setupAssistantState.applyProfileDefaults = parsed.applyProfileDefaults === true;
-    setupAssistantState.environmentPreset = normalizeSetupAssistantEnvironmentPreset(parsed.environmentPreset);
-    setupAssistantState.applyEnvironmentDefaults = parsed.applyEnvironmentDefaults !== false;
-    setupAssistantState.dryRunOnly = parsed.dryRunOnly === true;
-    setupAssistantState.focusModeEnabled = parsed.focusModeEnabled !== false;
-    setupAssistantState.collapsedChipRows = parsed.collapsedChipRows && typeof parsed.collapsedChipRows === 'object'
-        ? { ...parsed.collapsedChipRows }
-        : {};
-
-    for (const type of ['docker', 'vm']) {
-        const incomingPlan = parsed.importPlans?.[type];
-        if (incomingPlan && typeof incomingPlan === 'object') {
-            setupAssistantState.importPlans[type] = {
-                ...createSetupAssistantImportPlan(),
-                include: incomingPlan.include === true,
-                mode: normalizeImportMode(incomingPlan.mode),
-                fileName: String(incomingPlan.fileName || ''),
-                fileSizeBytes: Math.max(0, Number(incomingPlan.fileSizeBytes) || 0),
-                fileLastModified: String(incomingPlan.fileLastModified || ''),
-                parsed: incomingPlan.parsed && typeof incomingPlan.parsed === 'object'
-                    ? incomingPlan.parsed
-                    : null
-            };
-        }
-        const incomingTemplates = parsed.templateBootstrap?.[type];
-        if (incomingTemplates && typeof incomingTemplates === 'object') {
-            const bootstrap = getSetupAssistantTemplateBootstrap(type);
-            bootstrap.enabled = incomingTemplates.enabled === true;
-            bootstrap.category = normalizeSetupAssistantTemplateCategory(type, incomingTemplates.category || 'smart');
-            bootstrap.selectedTemplateNames = serializeSetupAssistantTemplateSelections(incomingTemplates.selectedTemplateNames || []);
-            bootstrap.autoAssignExisting = incomingTemplates.autoAssignExisting === true;
-            refreshSetupAssistantTemplateSelection(type);
-        }
-        const incomingRules = parsed.ruleBootstrap?.[type];
-        if (incomingRules && typeof incomingRules === 'object') {
-            setupAssistantState.ruleBootstrap[type].enabled = incomingRules.enabled === true;
-            setupAssistantState.ruleBootstrap[type].suggestions = serializeSetupAssistantRuleSuggestions(incomingRules.suggestions || []).map((row, index) => ({
-                id: `setup-rule-${type}-draft-${index + 1}`,
-                enabled: row.enabled !== false,
-                folderIdHint: row.folderIdHint,
-                folderName: row.folderName,
-                kind: 'name_regex',
-                effect: 'include',
-                pattern: row.pattern,
-                note: `Matches names starting with "${String(row.pattern || '').replace(/^\^/, '')}".`
-            }));
-        }
-        const incomingBehavior = parsed.behavior?.[type];
-        if (incomingBehavior && typeof incomingBehavior === 'object') {
-            setupAssistantState.behavior[type] = normalizeSetupAssistantBehaviorFromValue(type, incomingBehavior);
-        }
-    }
-    refreshSetupAssistantTemplateSelections();
-
-    setupAssistantState.draftRestored = true;
-    setupAssistantState.restoredDraftSavedAt = String(parsed.savedAt || '');
-    return true;
-};
-
-const isSetupAssistantCompletedLocal = () => {
-    try {
-        return (
-            localStorage.getItem(SETUP_ASSISTANT_DONE_STORAGE_KEY) === '1'
-            || localStorage.getItem(WIZARD_DONE_STORAGE_KEY) === '1'
-        );
-    } catch (_error) {
-        return false;
-    }
-};
-
-const markSetupAssistantCompletedLocal = () => {
-    try {
-        localStorage.setItem(WIZARD_DONE_STORAGE_KEY, '1');
-        localStorage.setItem(SETUP_ASSISTANT_DONE_STORAGE_KEY, '1');
-        clearSetupAssistantDraft();
-    } catch (_error) {
-        // Local storage can be blocked; keep UX operational.
-    }
-};
+})();
+const persistSetupAssistantDraft = () => getWizardPersistenceApi().persistDraft();
+const clearSetupAssistantDraft = () => getWizardPersistenceApi().clearDraft();
+const readSetupAssistantPresetStore = () => getWizardPersistenceApi().readPresetStore();
+const saveCurrentSetupAssistantPreset = (name) => getWizardPersistenceApi().savePreset(name);
+const loadSetupAssistantPresetById = (presetId) => getWizardPersistenceApi().loadPreset(presetId);
+const deleteSetupAssistantPresetById = (presetId) => getWizardPersistenceApi().deletePreset(presetId);
+const restoreSetupAssistantDraftFromStorage = () => getWizardPersistenceApi().restoreDraft();
+const isSetupAssistantCompletedLocal = () => getWizardPersistenceApi().isCompleted();
+const markSetupAssistantCompletedLocal = () => getWizardPersistenceApi().markCompleted();
 
 const applyDetectedSetupAssistantDefaults = () => {
     setupAssistantState.route = ['new', 'migrate', 'advanced'].includes(setupAssistantState.suggestedRoute)
@@ -1476,387 +1139,40 @@ const previewSetupAssistantRuleOutcomesForType = (type) => {
     };
 };
 
-const buildSetupAssistantPrefsDiffForType = (type) => {
-    const current = utils.normalizePrefs(prefsByType[type] || {});
-    let next = utils.normalizePrefs({
-        ...current,
-        settingsMode: setupAssistantState.mode,
-        setupWizardCompleted: true
-    });
-    if (setupAssistantState.applyProfileDefaults) {
-        next = applySetupAssistantProfileToPrefs(next, setupAssistantState.profile);
-    }
-    next = applySetupAssistantBehaviorToPrefs(next, setupAssistantState.behavior[type]);
-
-    const changes = [];
-    const register = (label, currentValue, nextValue) => {
-        if (String(currentValue ?? '') !== String(nextValue ?? '')) {
-            changes.push(label);
+const getWizardReviewApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
         }
-    };
-    register('settings mode', current.settingsMode || 'basic', next.settingsMode || 'basic');
-    register('setup completed flag', current.setupWizardCompleted === true ? '1' : '0', next.setupWizardCompleted === true ? '1' : '0');
-    register('sort mode', current.sortMode || 'created', next.sortMode || 'created');
-    register('hide empty folders', current.hideEmptyFolders === true ? '1' : '0', next.hideEmptyFolders === true ? '1' : '0');
-    register('status mode', current?.status?.mode || 'summary', next?.status?.mode || 'summary');
-    register('status warn %', Number(current?.status?.warnStoppedPercent ?? 60), Number(next?.status?.warnStoppedPercent ?? 60));
-    register('health cards', current?.health?.cardsEnabled !== false ? '1' : '0', next?.health?.cardsEnabled !== false ? '1' : '0');
-    register('runtime badge', current?.health?.runtimeBadgeEnabled === true ? '1' : '0', next?.health?.runtimeBadgeEnabled === true ? '1' : '0');
-    register('health profile', current?.health?.profile || 'balanced', next?.health?.profile || 'balanced');
-    register('health updates mode', current?.health?.updatesMode || 'maintenance', next?.health?.updatesMode || 'maintenance');
-    register('health all stopped mode', current?.health?.allStoppedMode || 'critical', next?.health?.allStoppedMode || 'critical');
-    register('health critical %', Number(current?.health?.criticalStoppedPercent ?? 90), Number(next?.health?.criticalStoppedPercent ?? 90));
-    if (setupAssistantState.applyProfileDefaults) {
-        register('live refresh', current.liveRefreshEnabled === true ? '1' : '0', next.liveRefreshEnabled === true ? '1' : '0');
-        register('refresh interval', Number(current.liveRefreshSeconds ?? 20), Number(next.liveRefreshSeconds ?? 20));
-        register('performance profile', current.performanceProfile || (current.performanceMode === true ? 'adaptive' : 'standard'), next.performanceProfile || (next.performanceMode === true ? 'adaptive' : 'standard'));
-        register('deferred previews', current.lazyPreviewEnabled === true ? '1' : '0', next.lazyPreviewEnabled === true ? '1' : '0');
-        register('preview threshold', Number(current.lazyPreviewThreshold ?? 30), Number(next.lazyPreviewThreshold ?? 30));
-    }
-    return {
-        count: changes.length,
-        changes
-    };
-};
-
-const buildSetupAssistantImpactSummary = () => {
-    const importByType = {};
-    const importTotals = {
-        creates: 0,
-        updates: 0,
-        deletes: 0,
-        totalOps: 0
-    };
-    const prefByType = {};
-    let totalPrefChanges = 0;
-    const templateByType = {};
-    const templateTotals = {
-        selected: 0,
-        creatable: 0,
-        skippedExisting: 0,
-        autoAssignMatched: 0,
-        autoAssignUnmatched: 0,
-        autoAssignReviewNeeded: 0
-    };
-
-    for (const type of ['docker', 'vm']) {
-        const plan = setupAssistantState.importPlans[type];
-        const summary = plan?.summary || { creates: [], updates: [], deletes: [] };
-        const includeImport = plan?.include === true && plan?.parsed;
-        const creates = includeImport ? (summary.creates?.length || 0) : 0;
-        const updates = includeImport ? (summary.updates?.length || 0) : 0;
-        const deletes = includeImport ? (summary.deletes?.length || 0) : 0;
-        const totalOps = creates + updates + deletes;
-        importByType[type] = { creates, updates, deletes, totalOps };
-        importTotals.creates += creates;
-        importTotals.updates += updates;
-        importTotals.deletes += deletes;
-        importTotals.totalOps += totalOps;
-
-        const diff = buildSetupAssistantPrefsDiffForType(type);
-        prefByType[type] = diff;
-        totalPrefChanges += diff.count;
-
-        const templatePlan = buildSetupAssistantTemplatePlanForType(type);
-        templateByType[type] = {
-            enabled: templatePlan.enabled,
-            selected: templatePlan.selectedCount,
-            creatable: templatePlan.creatable,
-            skippedExisting: templatePlan.skippedExisting,
-            autoAssignEnabled: templatePlan.autoAssignEnabled,
-            autoAssignMatched: templatePlan.assignment?.matched || 0,
-            autoAssignUnmatched: templatePlan.assignment?.unmatched || 0,
-            autoAssignReviewNeeded: templatePlan.assignment?.reviewNeededCount || 0,
-            autoAssignReviewItems: Array.isArray(templatePlan.assignment?.reviewItems) ? templatePlan.assignment.reviewItems.slice(0, 8) : [],
-            autoAssignItemDetails: Array.isArray(templatePlan.assignment?.itemDetails) ? templatePlan.assignment.itemDetails.slice(0, 12) : []
-        };
-        templateTotals.selected += templateByType[type].selected;
-        templateTotals.creatable += templateByType[type].creatable;
-        templateTotals.skippedExisting += templateByType[type].skippedExisting;
-        templateTotals.autoAssignMatched += templateByType[type].autoAssignMatched;
-        templateTotals.autoAssignUnmatched += templateByType[type].autoAssignUnmatched;
-        templateTotals.autoAssignReviewNeeded += templateByType[type].autoAssignReviewNeeded;
-    }
-
-    const ruleDocker = previewSetupAssistantRuleOutcomesForType('docker');
-    const ruleVm = previewSetupAssistantRuleOutcomesForType('vm');
-    const rules = {
-        docker: ruleDocker,
-        vm: ruleVm,
-        selected: ruleDocker.selected + ruleVm.selected,
-        creatable: ruleDocker.creatable + ruleVm.creatable,
-        duplicates: ruleDocker.duplicates + ruleVm.duplicates,
-        unresolvedFolder: ruleDocker.unresolvedFolder + ruleVm.unresolvedFolder,
-        invalidPattern: ruleDocker.invalidPattern + ruleVm.invalidPattern
-    };
-    return {
-        imports: {
-            byType: importByType,
-            totals: importTotals
-        },
-        templates: {
-            byType: templateByType,
-            totals: templateTotals
-        },
-        prefs: {
-            byType: prefByType,
-            totalChanges: totalPrefChanges
-        },
-        rules,
-        totalPlannedChanges: importTotals.totalOps + totalPrefChanges + rules.creatable + templateTotals.creatable + templateTotals.autoAssignMatched
-    };
-};
-
-const getSetupAssistantImpactDelta = (currentImpact, baselineImpact = null) => {
-    const current = currentImpact && typeof currentImpact === 'object'
-        ? currentImpact
-        : buildSetupAssistantImpactSummary();
-    const baseline = baselineImpact && typeof baselineImpact === 'object'
-        ? baselineImpact
-        : (setupAssistantState.impactBaseline || {
-            imports: { totals: { totalOps: 0, creates: 0, updates: 0, deletes: 0 } },
-            templates: { totals: { creatable: 0, autoAssignMatched: 0 } },
-            prefs: { totalChanges: 0 },
-            rules: { creatable: 0 },
-            totalPlannedChanges: 0
+        if (!wizardReviewModule || typeof wizardReviewModule.createApi !== 'function') {
+            throw new Error('FolderView Plus wizard bootstrap failed: missing folderviewplus.wizard-review.js');
+        }
+        cachedApi = wizardReviewModule.createApi({
+            getState: () => setupAssistantState,
+            getPrefs: (type) => prefsByType[type] || {},
+            normalizePrefs: (value) => utils.normalizePrefs(value),
+            applyProfileToPrefs: applySetupAssistantProfileToPrefs,
+            applyBehaviorToPrefs: applySetupAssistantBehaviorToPrefs,
+            buildTemplatePlan: buildSetupAssistantTemplatePlanForType,
+            previewRuleOutcomes: previewSetupAssistantRuleOutcomesForType,
+            validateImportPlans: validateSetupAssistantImportPlans,
+            getTemplateBootstrap: getSetupAssistantTemplateBootstrap,
+            getStepSequence: getSetupAssistantStepSequence,
+            getCurrentStepKey: currentSetupAssistantStepKey,
+            escapeHtml,
+            profilePresets: SETUP_ASSISTANT_PROFILE_PRESETS,
+            environmentPresets: SETUP_ASSISTANT_ENV_PRESETS
         });
-    const currentImports = Number(current.imports?.totals?.totalOps) || 0;
-    const currentTemplates = Number(current.templates?.totals?.creatable || 0) + Number(current.templates?.totals?.autoAssignMatched || 0);
-    const currentPrefs = Number(current.prefs?.totalChanges) || 0;
-    const currentRules = Number(current.rules?.creatable) || 0;
-    const currentTotal = Number(current.totalPlannedChanges) || 0;
-    const baselineImports = Number(baseline.imports?.totals?.totalOps) || 0;
-    const baselineTemplates = Number(baseline.templates?.totals?.creatable || 0) + Number(baseline.templates?.totals?.autoAssignMatched || 0);
-    const baselinePrefs = Number(baseline.prefs?.totalChanges) || 0;
-    const baselineRules = Number(baseline.rules?.creatable) || 0;
-    const baselineTotal = Number(baseline.totalPlannedChanges) || 0;
-
-    return {
-        imports: currentImports - baselineImports,
-        templates: currentTemplates - baselineTemplates,
-        prefs: currentPrefs - baselinePrefs,
-        rules: currentRules - baselineRules,
-        total: currentTotal - baselineTotal
+        return cachedApi;
     };
-};
-
-const getSetupAssistantStepDeltaSummary = (stepKey, deltaSummary = null) => {
-    const delta = deltaSummary && typeof deltaSummary === 'object'
-        ? deltaSummary
-        : getSetupAssistantImpactDelta(buildSetupAssistantImpactSummary());
-    const chips = [];
-    const addChip = (label, value, className = '') => {
-        const amount = Number(value) || 0;
-        if (amount === 0) {
-            return;
-        }
-        const prefix = amount > 0 ? '+' : '-';
-        chips.push(`<span class="fv-setup-chip ${className}">${escapeHtml(label)} ${prefix}${Math.abs(amount)}</span>`);
-    };
-
-    if (stepKey === 'profile' || stepKey === 'behavior') {
-        addChip('Settings', delta.prefs, 'is-update');
-    } else if (stepKey === 'templates') {
-        addChip('Starter folders', delta.templates, delta.templates < 0 ? 'is-delete' : 'is-create');
-    } else if (stepKey === 'import') {
-        addChip('Import ops', delta.imports, delta.imports < 0 ? 'is-delete' : 'is-update');
-    } else if (stepKey === 'rules') {
-        addChip('Starter rules', delta.rules, delta.rules < 0 ? 'is-delete' : 'is-create');
-    } else if (stepKey === 'review' || stepKey === 'welcome') {
-        addChip('Net impact', delta.total, delta.total < 0 ? 'is-delete' : 'is-update');
-    }
-
-    if (!chips.length) {
-        return '<span class="fv-setup-chip">No delta on this step yet</span>';
-    }
-    return chips.join('');
-};
-
-const buildSetupAssistantStepStatusMap = () => {
-    const sequence = getSetupAssistantStepSequence();
-    return sequence.map((stepKey, index) => {
-        const isCurrent = index === setupAssistantState.step;
-        const isPast = index < setupAssistantState.step;
-        const validation = isCurrent
-            ? getSetupAssistantStepValidation(stepKey)
-            : { blockers: [], warnings: [] };
-        let status = 'ok';
-        if (isPast) {
-            status = 'complete';
-        } else if (!isCurrent) {
-            status = 'pending';
-        } else if (validation.blockers.length > 0) {
-            status = 'blocked';
-        } else if (validation.warnings.length > 0) {
-            status = 'warn';
-        }
-        return {
-            key: stepKey,
-            index,
-            status,
-            blockers: validation.blockers,
-            warnings: validation.warnings
-        };
-    });
-};
-
-const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey()) => {
-    const step = String(stepKey || '').trim();
-    const blockers = [];
-    const warnings = [];
-
-    if (step === 'profile') {
-        if (setupAssistantState.applyProfileDefaults === true
-            && !Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, setupAssistantState.profile)) {
-            blockers.push('Choose a valid profile preset.');
-        }
-        if (setupAssistantState.applyEnvironmentDefaults === true
-            && !Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_ENV_PRESETS, setupAssistantState.environmentPreset)) {
-            blockers.push('Choose a valid environment preset.');
-        }
-    }
-
-    if (step === 'import' || step === 'review') {
-        const importValidation = validateSetupAssistantImportPlans(setupAssistantState.importPlans);
-        blockers.push(...importValidation.blockers);
-        warnings.push(...importValidation.warnings);
-    }
-
-    if (step === 'templates' || step === 'review') {
-        for (const type of ['docker', 'vm']) {
-            const bootstrap = getSetupAssistantTemplateBootstrap(type);
-            if (bootstrap.enabled !== true) {
-                continue;
-            }
-            const plan = buildSetupAssistantTemplatePlanForType(type);
-            if (plan.selectedCount <= 0) {
-                blockers.push(`${type.toUpperCase()} templates are enabled with no selected folders.`);
-            }
-            if (bootstrap.autoAssignExisting === true && bootstrap.category !== 'smart') {
-                warnings.push(`${type.toUpperCase()} auto-assign works only with Smart category and is currently disabled.`);
-            }
-        }
-    }
-
-    if (step === 'behavior' || step === 'review') {
-        for (const type of ['docker', 'vm']) {
-            const behavior = setupAssistantState.behavior?.[type] || {};
-            const warn = Number(behavior.statusWarnStoppedPercent);
-            if (!Number.isFinite(warn) || warn < 0 || warn > 100) {
-                blockers.push(`${type.toUpperCase()} status warn threshold must be between 0 and 100.`);
-            }
-        }
-    }
-
-    if (step === 'rules' || step === 'review') {
-        for (const type of ['docker', 'vm']) {
-            const bootstrap = setupAssistantState.ruleBootstrap?.[type];
-            if (!bootstrap || bootstrap.enabled !== true) {
-                continue;
-            }
-            const selectedCount = (bootstrap.suggestions || []).filter((row) => row.enabled !== false).length;
-            if (selectedCount <= 0) {
-                warnings.push(`${type.toUpperCase()} starter rules are enabled with no selected entries.`);
-            }
-        }
-    }
-
-    if (step === 'review') {
-        const impact = buildSetupAssistantImpactSummary();
-        if (impact.totalPlannedChanges <= 0 && setupAssistantState.dryRunOnly !== true) {
-            warnings.push('No changes are currently planned. Enable imports/rules or adjust behavior before apply.');
-        }
-        if (setupAssistantState.dryRunOnly === true) {
-            warnings.push('Dry run mode is ON. Apply will preview only and will not persist changes.');
-        }
-    }
-
-    return {
-        blockers,
-        warnings
-    };
-};
-
-const buildSetupAssistantFixHints = (stepKey, validation) => {
-    const blockers = Array.isArray(validation?.blockers) ? validation.blockers : [];
-    const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
-    const hints = [];
-    const addHint = (text) => {
-        const value = String(text || '').trim();
-        if (!value || hints.includes(value)) {
-            return;
-        }
-        hints.push(value);
-    };
-
-    blockers.forEach((message) => {
-        if (/no file is selected/i.test(message)) {
-            addHint('Use "Select Docker/VM export" and keep Include enabled only for files you want to apply.');
-            return;
-        }
-        if (/between 0 and 100/i.test(message)) {
-            addHint('Set status warn threshold to a value from 0 to 100 (recommended: 60).');
-            return;
-        }
-        if (/valid profile preset/i.test(message)) {
-            addHint('Pick one of the available profile presets or disable "Apply profile defaults".');
-            return;
-        }
-        if (/valid environment preset/i.test(message)) {
-            addHint('Choose a listed environment preset or disable "Apply environment defaults".');
-            return;
-        }
-        if (/templates are enabled with no selected folders/i.test(message)) {
-            addHint('Use the Templates step to select at least one starter folder per enabled type.');
-            return;
-        }
-        addHint(`Resolve: ${message}`);
-    });
-
-    warnings.forEach((message) => {
-        if (/legacy format/i.test(message)) {
-            addHint('Legacy imports are supported, but inspect the diff and icon/settings fields before applying.');
-            return;
-        }
-        if (/replace mode will delete/i.test(message)) {
-            addHint('Switch import mode to Merge for a safer pass, or keep Replace only if cleanup is intentional.');
-            return;
-        }
-        if (/no changes are currently planned/i.test(message)) {
-            addHint('Enable imports/rules or adjust behavior to produce at least one planned change.');
-            return;
-        }
-        if (/dry run mode is on/i.test(message)) {
-            addHint('Turn off Dry run only when you are ready to persist changes.');
-            return;
-        }
-        if (/auto-assign works only with smart category/i.test(message)) {
-            addHint('Switch category to Smart before enabling auto-assign for detected workloads.');
-            return;
-        }
-    });
-
-    return hints.slice(0, 4);
-};
-
-const renderSetupAssistantInlineGuidance = (stepKey, validation) => {
-    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
-    if (!isBlocking) {
-        return '';
-    }
-    const hints = buildSetupAssistantFixHints(stepKey, validation);
-    if (!hints.length) {
-        return '';
-    }
-    return `
-        <section class="fv-setup-inline-guidance is-blocking" role="status" aria-live="polite" aria-atomic="true">
-            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> How to fix before continuing</div>
-            <ul>
-                ${hints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join('')}
-            </ul>
-        </section>
-    `;
-};
+})();
+const buildSetupAssistantImpactSummary = () => getWizardReviewApi().buildImpactSummary();
+const getSetupAssistantImpactDelta = (...args) => getWizardReviewApi().getImpactDelta(...args);
+const getSetupAssistantStepDeltaSummary = (...args) => getWizardReviewApi().getStepDeltaSummary(...args);
+const buildSetupAssistantStepStatusMap = () => getWizardReviewApi().buildStepStatusMap();
+const getSetupAssistantStepValidation = (...args) => getWizardReviewApi().getStepValidation(...args);
+const renderSetupAssistantInlineGuidance = (...args) => getWizardReviewApi().renderInlineGuidance(...args);
 
 const applySetupAssistantProfileToPrefs = (prefs, profileId) => {
     const preset = SETUP_ASSISTANT_PROFILE_PRESETS[profileId] || SETUP_ASSISTANT_PROFILE_PRESETS.balanced;

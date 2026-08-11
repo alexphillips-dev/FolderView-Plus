@@ -16,6 +16,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
@@ -28,6 +29,8 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-persistence.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-review.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js',
@@ -915,10 +918,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const retrySetupAssistantFailures = async \(failures = \[\]\) =>/);
     assert.match(settingsRuntime, /const restoreSetupAssistantDraftFromStorage = \(\) =>/);
     assert.match(settingsRuntime, /const buildSetupAssistantImpactSummary = \(\) =>/);
-    assert.match(settingsRuntime, /const getSetupAssistantImpactDelta = \(currentImpact, baselineImpact = null\) =>/);
+    assert.match(settingsRuntime, /const getImpactDelta = \(currentImpact, baselineImpact = null\) =>/);
     assert.match(settingsRuntime, /const buildSetupAssistantStepStatusMap = \(\) =>/);
     assert.match(settingsRuntime, /status = 'pending';/);
-    assert.match(settingsRuntime, /const getSetupAssistantStepValidation = \(stepKey = currentSetupAssistantStepKey\(\)\) =>/);
+    assert.match(settingsRuntime, /const getStepValidation = \(stepKey = getCurrentStepKey\(\)\) =>/);
     assert.match(settingsRuntime, /const previewSetupAssistantRuleMatches = \(type, pattern\) =>/);
     assert.match(settingsRuntime, /const handleSetupAssistantDialogKeydown = \(event\) =>/);
     assert.match(settingsRuntime, /const jumpSetupAssistantToStep = \(targetIndex\) =>/);

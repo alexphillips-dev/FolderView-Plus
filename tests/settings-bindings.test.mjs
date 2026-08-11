@@ -24,6 +24,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
@@ -39,6 +40,8 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-persistence.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-review.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -85,9 +88,10 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.runtime-parity\.js/);
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
+    assert.match(page, /folderviewplus\.settings-search\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
     assert.match(page, /folder\.settings-transfer\.js[\s\S]*folderviewplus\.theme-workspace\.js[\s\S]*folderviewplus\.chrome\.js/);
-    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-persistence\.js[\s\S]*folderviewplus\.wizard-review\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusFolderSettingsTransferModuleLoaded = true/);
     assert.match(script, /FolderViewPlusThemeWorkspaceModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);

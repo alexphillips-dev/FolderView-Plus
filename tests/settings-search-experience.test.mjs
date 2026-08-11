@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsSearchJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js');
 const chromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
@@ -22,26 +23,26 @@ test('settings search topbar exposes compact accessible controls and advanced sc
 
 test('settings search uses cached privacy-safe field indexing and word-token matching', () => {
     assert.match(settingsJs, /const SETTINGS_SEARCH_DEBOUNCE_MS = 90;/);
-    assert.match(settingsJs, /const buildSettingsSearchIndex = \(\) => \{/);
-    assert.match(settingsJs, /settingsUiState\.searchIndex\.length > 0/);
-    assert.match(settingsJs, /const tokenizeSettingsSearchQuery =/);
-    assert.match(settingsJs, /tokens\.every\(\(token\) => text\.includes\(token\)\)/);
-    assert.match(settingsJs, /section\.key,[\s\S]*section\.title,[\s\S]*getPrivacySafeSettingsSearchText\(target\)/);
-    assert.match(settingsJs, /SETTINGS_SEARCH_PRIVATE_SELECTOR/);
-    assert.match(settingsJs, /'tbody'[\s\S]*'\[role="listbox"\]'[\s\S]*'\[id\$="-output"\]'/);
-    assert.match(settingsJs, /clone\.querySelectorAll\([\s\S]*'input'[\s\S]*'select'[\s\S]*'textarea'/);
-    assert.match(settingsJs, /node !== element && node\.closest\?\.\(SETTINGS_SEARCH_PRIVATE_SELECTOR\)/);
+    assert.match(settingsSearchJs, /const buildIndex = \(\) => \{/);
+    assert.match(settingsSearchJs, /if \(index\.length > 0\)/);
+    assert.match(settingsSearchJs, /const tokenize = \(query\) =>/);
+    assert.match(settingsSearchJs, /tokens\.every\(\(token\) => text\.includes\(token\)\)/);
+    assert.match(settingsSearchJs, /section\.key,[\s\S]*section\.title,[\s\S]*getPrivacySafeText\(target\)/);
+    assert.match(settingsSearchJs, /SETTINGS_SEARCH_PRIVATE_SELECTOR/);
+    assert.match(settingsSearchJs, /'tbody'[\s\S]*'\[role="listbox"\]'[\s\S]*'\[id\$="-output"\]'/);
+    assert.match(settingsSearchJs, /clone\.querySelectorAll\([\s\S]*'input'[\s\S]*'select'[\s\S]*'textarea'/);
+    assert.match(settingsSearchJs, /node !== element && node\.closest\?\.\(SETTINGS_SEARCH_PRIVATE_SELECTOR\)/);
     assert.doesNotMatch(settingsJs, /getSectionSearchHaystack/);
 });
 
 test('settings search provides field highlighting navigation feedback and reset behavior', () => {
     assert.match(settingsJs, /const syncSettingsSearchMatchPresentation =/);
-    assert.match(settingsJs, /classList\.add\('fv-setting-search-match'\)/);
-    assert.match(settingsJs, /const focusFirstSettingsSearchMatch =/);
+    assert.match(settingsSearchJs, /classList\.add\('fv-setting-search-match'\)/);
+    assert.match(settingsSearchJs, /const focusFirstMatch =/);
     assert.match(settingsJs, /event\.key === 'Escape'[\s\S]*clearSettingsSearch\(\)/);
     assert.match(settingsJs, /event\.key === 'Enter'[\s\S]*focusFirstSettingsSearchMatch\(\)/);
-    assert.match(settingsJs, /No settings found/);
-    assert.match(settingsJs, /data-fv-clear-settings-search/);
+    assert.match(settingsSearchJs, /No settings found/);
+    assert.match(settingsSearchJs, /data-fv-clear-settings-search/);
     assert.match(settingsCss, /\.fv-setting-search-match\s*\{/);
     assert.match(settingsCss, /\.fv-settings-search-empty\s*\{/);
 });

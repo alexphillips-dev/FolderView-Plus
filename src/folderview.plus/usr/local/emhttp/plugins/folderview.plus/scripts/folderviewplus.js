@@ -58,6 +58,7 @@ const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
 const settingsRegistry = window.FolderViewPlusSettingsRegistry || null;
 const viewSettingsModule = window.FolderViewPlusViewSettings || null;
+const settingsSearchModule = window.FolderViewPlusFoundationModules?.settingsSearch || null;
 const viewSettingsChangeController = viewSettingsModule?.createChangeController?.({ registry: settingsRegistry })?.start?.() || null;
 const resolveViewSettingsChange = (handler, type, key, value, fallback) => (
     viewSettingsChangeController?.resolve?.(handler, type, key, value, fallback) || null
@@ -385,6 +386,12 @@ if (window.FolderViewPlusSettingsSectionsModuleLoaded !== true) {
 } else {
     setFatalBannerModuleStatus('folderviewplus.settings-sections.js', 'ok');
 }
+if (!settingsSearchModule || typeof settingsSearchModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-search.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-search.js', 'missing', 'settings search controller unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-search.js', 'ok', 'settings search controller ready');
+}
 if (!settingsTableModule || typeof settingsTableModule.normalizeSettingsTablePreset !== 'function') {
     bootstrapMissingModules.push('folderviewplus.settings-table.js');
     setFatalBannerModuleStatus('folderviewplus.settings-table.js', 'missing', 'settings table helpers unavailable');
@@ -510,6 +517,18 @@ if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
     setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'missing');
 } else {
     setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'ok');
+}
+if (typeof window.FolderViewPlusFoundationModules?.wizardPersistence?.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.wizard-persistence.js');
+    setFatalBannerModuleStatus('folderviewplus.wizard-persistence.js', 'missing', 'wizard persistence api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.wizard-persistence.js', 'ok', 'wizard persistence api ready');
+}
+if (typeof window.FolderViewPlusFoundationModules?.wizardReview?.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.wizard-review.js');
+    setFatalBannerModuleStatus('folderviewplus.wizard-review.js', 'missing', 'wizard review api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.wizard-review.js', 'ok', 'wizard review api ready');
 }
 if (
     !prefsStoreModule
@@ -811,11 +830,7 @@ const settingsUiState = {
         diagnostics: ''
     },
     searchAllAdvanced: false,
-    searchIndex: [],
-    searchIndexRevision: 0,
-    searchResultCache: null,
     searchDebounceTimer: null,
-    activeSearchMatches: [],
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
@@ -1730,347 +1745,32 @@ const getSectionSearchAliases = (section) => {
 };
 
 const SETTINGS_SEARCH_DEBOUNCE_MS = 90;
-const SETTINGS_SEARCH_FIELD_SELECTOR = [
-    '[data-fv-search-item]',
-    '.setting-toggle',
-    '.setting-select',
-    '.setting-inline-number',
-    '.setting-button-row',
-    '.fv-rule-builder-field',
-    '.bulk-row',
-    '.backup-compare-row',
-    '.schedule-row',
-    '.fv-theme-import-row',
-    'label'
-].join(',');
-const SETTINGS_SEARCH_CONTEXT_SELECTOR = [
-    '.settings-mini-card',
-    '.settings-privacy-section',
-    '.fv-rule-stage',
-    '.fv-recovery-stage',
-    '.fv-operations-stage',
-    '.bulk-stage-heading',
-    '.rules-header',
-    'summary'
-].join(',');
-const SETTINGS_SEARCH_PRIVATE_SELECTOR = [
-    'tbody',
-    'option',
-    'pre',
-    '[role="listbox"]',
-    '[data-fv-search-private]',
-    '[id$="-list"]',
-    '[id$="-output"]',
-    '[id$="-suggestions"]',
-    '[id$="-preview"]',
-    '[id$="-result"]',
-    '[id$="-summary"]',
-    '[id$="-status"]',
-    '[id$="-detail"]',
-    '.fv-rule-list',
-    '.bulk-items-list',
-    '.fv-activity-feed-list',
-    '.diagnostics-output',
-    '.status-line'
-].join(',');
-
-const normalizeSettingsSearchText = (value) => String(value || '')
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-const tokenizeSettingsSearchQuery = (query) => Array.from(new Set(
-    normalizeSettingsSearchText(query).split(' ').filter(Boolean)
-));
-
-const matchesSettingsSearchTokens = (text, tokens) => (
-    tokens.length > 0 && tokens.every((token) => text.includes(token))
-);
-
-const invalidateSettingsSearchIndex = () => {
-    settingsUiState.searchIndex = [];
-    settingsUiState.searchIndexRevision += 1;
-    settingsUiState.searchResultCache = null;
-};
-
-const getPrivacySafeSettingsSearchText = (element) => {
-    if (!(element instanceof Element)) {
-        return '';
-    }
-    const clone = element.cloneNode(true);
-    if (clone instanceof Element) {
-        clone.querySelectorAll([
-            SETTINGS_SEARCH_PRIVATE_SELECTOR,
-            'input',
-            'select',
-            'textarea',
-            'script',
-            'style'
-        ].join(',')).forEach((node) => node.remove());
-    }
-    const parts = [clone.textContent || ''];
-    const attributeNodes = [element, ...Array.from(element.querySelectorAll('[aria-label], [title], [placeholder], [data-fv-search]'))];
-    for (const node of attributeNodes) {
-        if (node !== element && node.closest?.(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
-            continue;
+const getSettingsSearchApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
         }
-        for (const attribute of ['aria-label', 'title', 'placeholder', 'data-fv-search']) {
-            const value = String(node.getAttribute?.(attribute) || '').trim();
-            if (value) {
-                parts.push(value);
-            }
+        if (!settingsSearchModule || typeof settingsSearchModule.createApi !== 'function') {
+            throw new Error('FolderView Plus Settings bootstrap failed: missing folderviewplus.settings-search.js');
         }
-    }
-    return normalizeSettingsSearchText(parts.join(' '));
-};
-
-const getSettingsSearchFieldTarget = (control) => {
-    if (!(control instanceof Element)) {
-        return null;
-    }
-    const field = control.closest(SETTINGS_SEARCH_FIELD_SELECTOR);
-    return field instanceof Element ? field : control;
-};
-
-const addSettingsSearchIndexEntry = (entries, seenTargets, section, target, kind = 'field') => {
-    if (!(target instanceof Element) || seenTargets.has(target)) {
-        return;
-    }
-    if (target.closest(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
-        return;
-    }
-    const text = normalizeSettingsSearchText([
-        section.key,
-        section.title,
-        getPrivacySafeSettingsSearchText(target)
-    ].join(' '));
-    if (!text) {
-        return;
-    }
-    seenTargets.add(target);
-    entries.push({
-        sectionKey: section.key,
-        section,
-        target,
-        kind,
-        text
-    });
-};
-
-const buildSettingsSearchIndex = () => {
-    if (settingsUiState.searchIndex.length > 0) {
-        return settingsUiState.searchIndex;
-    }
-    const entries = [];
-    for (const section of settingsUiState.sections) {
-        const seenTargets = new Set();
-        for (const sectionNode of section.nodes || []) {
-            if (!(sectionNode instanceof Element)) {
-                continue;
-            }
-            const controls = [];
-            if (sectionNode.matches?.('input, select, textarea, button')) {
-                controls.push(sectionNode);
-            }
-            controls.push(...Array.from(sectionNode.querySelectorAll('input, select, textarea, button')));
-            for (const control of controls) {
-                addSettingsSearchIndexEntry(entries, seenTargets, section, getSettingsSearchFieldTarget(control), 'field');
-            }
-
-            const fields = [];
-            if (sectionNode.matches?.(SETTINGS_SEARCH_FIELD_SELECTOR)) {
-                fields.push(sectionNode);
-            }
-            fields.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_FIELD_SELECTOR)));
-            for (const field of fields) {
-                addSettingsSearchIndexEntry(entries, seenTargets, section, field, 'field');
-            }
-
-            const contexts = [];
-            if (sectionNode.matches?.(SETTINGS_SEARCH_CONTEXT_SELECTOR)) {
-                contexts.push(sectionNode);
-            }
-            contexts.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_CONTEXT_SELECTOR)));
-            for (const context of contexts) {
-                addSettingsSearchIndexEntry(entries, seenTargets, section, context, 'context');
-            }
-        }
-        const sectionText = normalizeSettingsSearchText([
-            section.key,
-            section.title,
-            getSectionSearchAliases(section)
-        ].join(' '));
-        if (sectionText) {
-            entries.push({
-                sectionKey: section.key,
-                section,
-                target: section.heading,
-                kind: 'section',
-                text: sectionText
-            });
-        }
-    }
-    settingsUiState.searchIndex = entries;
-    return entries;
-};
-
-const getScopedSettingsSearchSections = () => settingsUiState.sections.filter((section) => {
-    if (settingsUiState.mode === 'basic') {
-        return isBasicWorkspaceSection(section);
-    }
-    if (isBasicWorkspaceSection(section)) {
-        return false;
-    }
-    return settingsUiState.searchAllAdvanced === true || section.advancedGroup === settingsUiState.advancedTab;
-});
-
-const reduceSettingsSearchMatchesToSpecificTargets = (matches) => matches.filter((entry, index) => (
-    !matches.some((candidate, candidateIndex) => (
-        candidateIndex !== index
-        && candidate.sectionKey === entry.sectionKey
-        && entry.target !== candidate.target
-        && entry.target.contains(candidate.target)
-    ))
-));
-
-const getSettingsSearchEvaluation = () => {
-    const tokens = tokenizeSettingsSearchQuery(settingsUiState.query);
-    const cacheKey = [
-        settingsUiState.searchIndexRevision,
-        settingsUiState.mode,
-        settingsUiState.advancedTab,
-        settingsUiState.searchAllAdvanced ? 'all' : 'current',
-        tokens.join('|')
-    ].join(':');
-    if (settingsUiState.searchResultCache?.key === cacheKey) {
-        return settingsUiState.searchResultCache.value;
-    }
-    if (tokens.length === 0) {
-        const empty = { tokens, matches: [], sectionKeys: new Set(), total: 0 };
-        settingsUiState.searchResultCache = { key: cacheKey, value: empty };
-        return empty;
-    }
-
-    const scopedSections = getScopedSettingsSearchSections();
-    const scopedKeys = new Set(scopedSections.map((section) => section.key));
-    const index = buildSettingsSearchIndex();
-    const matches = [];
-    for (const section of scopedSections) {
-        const sectionEntries = index.filter((entry) => entry.sectionKey === section.key);
-        const fieldMatches = sectionEntries.filter((entry) => (
-            entry.kind !== 'section' && matchesSettingsSearchTokens(entry.text, tokens)
-        ));
-        if (fieldMatches.length > 0) {
-            matches.push(...reduceSettingsSearchMatchesToSpecificTargets(fieldMatches));
-            continue;
-        }
-        const sectionMatch = sectionEntries.find((entry) => (
-            entry.kind === 'section' && matchesSettingsSearchTokens(entry.text, tokens)
-        ));
-        if (sectionMatch) {
-            matches.push(sectionMatch);
-        }
-    }
-    const uniqueMatches = matches.filter((entry, indexValue) => (
-        matches.findIndex((candidate) => candidate.target === entry.target) === indexValue
-        && scopedKeys.has(entry.sectionKey)
-    ));
-    const value = {
-        tokens,
-        matches: uniqueMatches,
-        sectionKeys: new Set(uniqueMatches.map((entry) => entry.sectionKey)),
-        total: uniqueMatches.length
+        cachedApi = settingsSearchModule.createApi({
+            window,
+            document,
+            getUiState: () => settingsUiState,
+            getSectionAliases: getSectionSearchAliases,
+            isBasicWorkspaceSection: (section) => isBasicWorkspaceSection(section)
+        });
+        return cachedApi;
     };
-    settingsUiState.searchResultCache = { key: cacheKey, value };
-    return value;
-};
-
-const restoreSearchOpenedDetails = () => {
-    document.querySelectorAll('details[data-fv-search-opened="1"]').forEach((details) => {
-        details.open = false;
-        delete details.dataset.fvSearchOpened;
-    });
-};
-
-const ensureSettingsSearchEmptyState = () => {
-    let emptyState = document.getElementById('fv-settings-search-empty');
-    if (emptyState instanceof HTMLElement) {
-        return emptyState;
-    }
-    emptyState = document.createElement('div');
-    emptyState.id = 'fv-settings-search-empty';
-    emptyState.className = 'fv-settings-search-empty';
-    emptyState.hidden = true;
-    emptyState.innerHTML = `
-        <i class="fa fa-search" aria-hidden="true"></i>
-        <div>
-            <strong>No settings found</strong>
-            <span>Try fewer words, another Advanced scope, or reset the search.</span>
-        </div>
-        <button type="button" data-fv-clear-settings-search><i class="fa fa-times" aria-hidden="true"></i> Reset search</button>
-    `;
-    const topbar = document.getElementById('fv-settings-topbar');
-    topbar?.insertAdjacentElement('afterend', emptyState);
-    return emptyState;
-};
-
-const renderSettingsSearchFeedback = (evaluation) => {
-    const hasQuery = tokenizeSettingsSearchQuery(settingsUiState.query).length > 0;
-    const total = Number(evaluation?.total || 0);
-    const status = document.getElementById('fv-settings-search-status');
-    const clearButton = document.getElementById('fv-settings-clear-search');
-    if (status) {
-        status.textContent = hasQuery
-            ? (total === 0 ? 'No settings found' : `${total} ${total === 1 ? 'setting' : 'settings'} found`)
-            : '';
-        status.title = total > 0 ? 'Press Enter to jump to the first matching setting' : '';
-    }
-    if (clearButton instanceof HTMLButtonElement) {
-        clearButton.hidden = !hasQuery;
-    }
-    const emptyState = ensureSettingsSearchEmptyState();
-    emptyState.hidden = !(hasQuery && total === 0);
-};
-
-const syncSettingsSearchMatchPresentation = () => {
-    document.querySelectorAll('.fv-setting-search-match').forEach((element) => {
-        element.classList.remove('fv-setting-search-match');
-    });
-    restoreSearchOpenedDetails();
-    const evaluation = getSettingsSearchEvaluation();
-    settingsUiState.activeSearchMatches = evaluation.matches.filter((entry) => entry.target?.isConnected);
-    for (const entry of settingsUiState.activeSearchMatches) {
-        entry.target.classList.add('fv-setting-search-match');
-        const details = entry.target.closest('details');
-        if (details instanceof HTMLDetailsElement && !details.open) {
-            details.open = true;
-            details.dataset.fvSearchOpened = '1';
-        }
-    }
-    renderSettingsSearchFeedback(evaluation);
-};
-
-const focusFirstSettingsSearchMatch = () => {
-    const firstMatch = settingsUiState.activeSearchMatches.find((entry) => entry.target?.isConnected);
-    if (!firstMatch) {
-        return false;
-    }
-    const target = firstMatch.target;
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const focusTarget = target.matches('input, select, textarea, button, summary')
-        ? target
-        : target.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), summary');
-    if (focusTarget instanceof HTMLElement) {
-        window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 180);
-    } else if (target instanceof HTMLElement) {
-        target.tabIndex = -1;
-        window.setTimeout(() => target.focus({ preventScroll: true }), 180);
-    }
-    return true;
-};
+})();
+const tokenizeSettingsSearchQuery = (...args) => getSettingsSearchApi().tokenize(...args);
+const invalidateSettingsSearchIndex = () => getSettingsSearchApi().invalidateIndex();
+const invalidateSettingsSearchResults = () => getSettingsSearchApi().invalidateResults();
+const getSettingsSearchEvaluation = () => getSettingsSearchApi().evaluate();
+const syncSettingsSearchMatchPresentation = () => getSettingsSearchApi().syncPresentation();
+const focusFirstSettingsSearchMatch = () => getSettingsSearchApi().focusFirstMatch();
+const disposeSettingsSearch = () => getSettingsSearchApi().dispose();
 
 const sectionContainsSelector = (section, selector) => {
     const nodes = Array.isArray(section?.nodes) ? section.nodes : [];
@@ -2399,7 +2099,7 @@ const setSettingsSearchQuery = (query) => {
     } else {
         settingsUiState.basicSearchQuery = settingsUiState.query;
     }
-    settingsUiState.searchResultCache = null;
+    invalidateSettingsSearchResults();
     persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
@@ -2434,7 +2134,7 @@ const clearSettingsSearch = ({ focus = true } = {}) => {
 
 const setSearchAllAdvanced = (enabled) => {
     settingsUiState.searchAllAdvanced = enabled === true;
-    settingsUiState.searchResultCache = null;
+    invalidateSettingsSearchResults();
     writeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0', { delayMs: 60, idle: true });
     persistTableUiState();
     if (settingsUiState.mode === 'advanced') {
@@ -7560,6 +7260,7 @@ const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecyc
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
 window.addEventListener('pagehide', () => {
+    disposeSettingsSearch();
     viewSettingsRangeLifecycle?.destroy?.();
     viewSettingsUiStateStore?.destroy?.();
     viewSettingsChangeController?.destroy?.();

@@ -47,6 +47,7 @@
             DOCKER_RUNTIME_VERSION_GAP_MIN,
             DOCKER_RUNTIME_VERSION_GAP_MAX,
             DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP,
+            DOCKER_RUNTIME_WIDTH_PHASES,
             DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS,
             DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS,
             DOCKER_RUNTIME_WIDTH_BOOTSTRAP_FONT_TIMEOUT_MS,
@@ -56,7 +57,6 @@
             DOCKER_RUNTIME_COLUMN_WIDTH_MAX,
             DOCKER_RUNTIME_APP_PRESET_WIDTHS
         } = deps.constants || {};
-
         const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
             const parsed = Number(value);
             if (!Number.isFinite(parsed)) {

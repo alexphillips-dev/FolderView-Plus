@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.04">
-<!ENTITY md5 "d04aea0950d57bc0c788619148a1d5d0">
-<!ENTITY sha256 "cdfb0d35461bde90f60fb976db28de50936381a149e2a388e8185d2a4625f02a">
+<!ENTITY version "2026.08.11.05">
+<!ENTITY md5 "b744b8410959fa894815b35fb80f3f0f">
+<!ENTITY sha256 "5cdd793c2099304b6125bc30d8afae11e03fef52aae23c63ddaff353d483886c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.05
+## FolderView Plus 2026.08.11.05
+This development hotfix restores Docker page startup after the Phase 3 column-controller extraction.
+### Docker startup hotfix
+- Fix: Inject the Docker width-phase contract into `docker.runtime.column-controller.js` so width bootstrap no longer fails with `DOCKER_RUNTIME_WIDTH_PHASES is not defined`.
+- Reliability: Execute the extracted width-bootstrap controller directly in regression coverage, including its initial phase and lifecycle state reset.
+- Quality: Preserve the existing Docker and column-controller architecture line ceilings without relaxing module boundaries.
+
 
 ###2026.08.11.04
 ## FolderView Plus 2026.08.11.04

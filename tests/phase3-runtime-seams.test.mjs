@@ -85,6 +85,37 @@ test('shared live refresh owns cadence, in-flight exclusion, visibility, and tea
     assert.equal(timeouts.size, 0);
 });
 
+test('Docker column controller executes width bootstrap with its injected phase contract', () => {
+    const phases = Object.freeze({
+        idle: 'idle',
+        debounce: 'debounce',
+        measure: 'measure',
+        apply: 'apply'
+    });
+    const widthState = {
+        phase: phases.measure,
+        debounceTimer: null,
+        bootstrapLocked: false,
+        stabilizationPending: true,
+        stabilizationGeneration: 0,
+        stabilizationTimer: null,
+        deferredReason: 'stale',
+        resizerBindPending: true
+    };
+    const controller = columnController.createController({
+        widthState,
+        controllerState: { resizerBindTimer: null },
+        constants: { DOCKER_RUNTIME_WIDTH_PHASES: phases }
+    });
+
+    assert.equal(controller.beginDockerRuntimeWidthBootstrap(), 1);
+    assert.equal(widthState.phase, phases.idle);
+    assert.equal(widthState.bootstrapLocked, true);
+    assert.equal(widthState.stabilizationPending, false);
+    assert.equal(widthState.deferredReason, '');
+    assert.equal(widthState.resizerBindPending, false);
+});
+
 test('Docker owns the extracted column controller while all surfaces reuse shared seams', () => {
     assert.equal(typeof columnController.createController, 'function');
     const docker = read('scripts/docker.js');
@@ -96,6 +127,7 @@ test('Docker owns the extracted column controller while all surfaces reuse share
     const dashboardPage = read('folderview.plus.Dashboard.page');
 
     assert.match(docker, /dockerRuntimeColumnControllerModule\.createController\(\{/);
+    assert.match(docker, /constants:\s*\{[\s\S]*DOCKER_RUNTIME_WIDTH_PHASES,/);
     assert.doesNotMatch(docker, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
     for (const source of [docker, vm, dashboard]) {
         assert.match(source, /runtimeLiveRefreshModule\.createController\(\{/);

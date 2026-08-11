@@ -47,7 +47,6 @@ if (dockerHostCompatibilityDecision.runtimeActivationAllowed !== true) {
     }
     return;
 }
-
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const pluginRequestClient = window.FolderViewPlusRequest || null;
@@ -747,6 +746,7 @@ const dockerRuntimeColumnControllerApi = dockerRuntimeColumnControllerModule.cre
         DOCKER_RUNTIME_VERSION_GAP_MIN,
         DOCKER_RUNTIME_VERSION_GAP_MAX,
         DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP,
+        DOCKER_RUNTIME_WIDTH_PHASES,
         DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS,
         DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS,
         DOCKER_RUNTIME_WIDTH_BOOTSTRAP_FONT_TIMEOUT_MS,

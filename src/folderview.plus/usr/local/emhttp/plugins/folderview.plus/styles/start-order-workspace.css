@@ -1,0 +1,59 @@
+.fv-docker-start-order-sequence > li {
+    grid-template-columns: 44px minmax(120px, 1fr) auto minmax(150px, auto) auto;
+}
+
+.fv-docker-start-order-wait {
+    display: inline-grid;
+    grid-template-columns: auto 74px;
+    align-items: center;
+    gap: 0.25rem 0.45rem;
+}
+
+.fv-docker-start-order-wait > input {
+    min-width: 0;
+    width: 74px;
+}
+
+.fv-docker-start-order-wait > small {
+    grid-column: 2;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-batch-tag {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-batch-summary,
+.fv-docker-start-order-disabled {
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 9px;
+    padding: 0.55rem 0.65rem;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-docker-start-order-batch-summary > div,
+.fv-docker-start-order-disabled > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.55rem;
+}
+
+.fv-docker-start-order-batch-summary > div {
+    justify-content: space-between;
+}
+
+.fv-docker-start-order-disabled button,
+.fv-docker-autostart-toggle {
+    min-height: 30px;
+}
+
+@media (max-width: 780px) {
+    .fv-docker-start-order-sequence > li {
+        grid-template-columns: 40px minmax(0, 1fr);
+    }
+
+    .fv-docker-start-order-sequence > li > :is(.fv-docker-start-order-batch-tag, .fv-docker-start-order-wait, .fv-docker-autostart-toggle) {
+        grid-column: 2;
+    }
+}

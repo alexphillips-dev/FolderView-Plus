@@ -8284,8 +8284,18 @@ const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplat
 
 const dockerStartOrderModel = window.FolderViewPlusFoundationModules?.startOrderModel;
 if (!dockerStartOrderModel || typeof dockerStartOrderModel.normalizePlan !== 'function') throw new Error('FolderView Plus start-order model is unavailable.');
+const dockerStartOrderWorkspace = window.FolderViewPlusFoundationModules?.startOrderWorkspace?.createApi({
+    escapeHtml,
+    getPlan: () => normalizeDockerStartOrderPrefsForUi(),
+    getInfo: () => infoByType.docker || {},
+    savePlan: (...args) => saveDockerStartOrderPlan(...args),
+    refreshPreview: (...args) => refreshDockerStartOrderPreview(...args),
+    runDockerMutation: (...args) => window.FolderViewPlusRuntimeTransport.runDockerMutation(...args),
+    showError,
+    setStatus: setUpdateStatus
+});
+if (!dockerStartOrderWorkspace) throw new Error('FolderView Plus start-order workspace is unavailable.');
 const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
-
 const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(utils.normalizePrefs(prefs || prefsByType.docker || {}).dockerStartOrder);
 
 const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
@@ -8435,6 +8445,9 @@ const updateDockerStartOrderRemaining = async (value) => {
         showError('Docker start order save failed', error);
     }
 };
+
+const updateDockerStartOrderWait = (...args) => dockerStartOrderWorkspace.updateWait(...args);
+const toggleDockerStartOrderAutostart = (...args) => dockerStartOrderWorkspace.toggleAutostart(...args);
 
 const addDockerStartOrderBatch = async () => {
     const plan = normalizeDockerStartOrderPrefsForUi();
@@ -8713,23 +8726,8 @@ const renderDockerStartOrderPreview = (preview) => {
     if (!host.length) {
         return;
     }
-    const order = Array.isArray(preview?.autostartOrder) ? preview.autostartOrder : [];
-    const warnings = Array.isArray(preview?.warnings) ? preview.warnings : [];
-    const stale = Array.isArray(preview?.staleAutostart) ? preview.staleAutostart : [];
-    const list = order.length
-        ? order.map((name, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(name)}</strong></li>`).join('')
-        : '<li><span>0</span><strong>No autostart containers detected.</strong></li>';
-    const warningsHtml = [...warnings, ...stale.map((name) => `Stale autostart entry will be removed: ${name}`)]
-        .map((warning) => `<div class="fv-docker-start-order-warning"><i class="fa fa-exclamation-triangle"></i> ${escapeHtml(warning)}</div>`)
-        .join('');
-    host.html(`
-        <div class="fv-docker-start-order-preview-head">
-            <strong><i class="fa fa-sort-amount-asc" aria-hidden="true"></i> Preview autostart order</strong>
-            <span class="fv-docker-start-order-count">${Number(preview?.autostartCount) || order.length} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span>
-        </div>
-        ${warningsHtml}
-        <ol class="fv-docker-start-order-list">${list}</ol>
-    `);
+    const disabledNames = Object.entries(infoByType.docker || {}).filter(([, row]) => !dockerStartOrderWorkspace.rowAutostart(row)).map(([name]) => name).sort((a, b) => a.localeCompare(b));
+    host.html(dockerStartOrderWorkspace.buildPreviewHtml(preview, { disabledNames }));
 };
 
 const refreshDockerStartOrderPreview = async (options = {}) => {
@@ -11562,6 +11560,8 @@ settingsActionSupportModule.registerActions(window, {
     clearFolderDefaults,
     updateDockerStartOrderMode,
     updateDockerStartOrderRemaining,
+    updateDockerStartOrderWait,
+    toggleDockerStartOrderAutostart,
     addDockerStartOrderBatch,
     updateDockerStartOrderBatch,
     moveDockerStartOrderBatch,

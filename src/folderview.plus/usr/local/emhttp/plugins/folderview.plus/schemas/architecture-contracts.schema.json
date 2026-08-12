@@ -22,6 +22,7 @@
       "scripts/folderviewplus.utils-transfer.js": { "limit": 645, "target": 620, "history": [717, 645] },
       "scripts/folderviewplus.utils-rules.js": { "limit": 533, "target": 500, "history": [598, 533] },
       "scripts/folderviewplus.start-order-model.js": { "limit": 99, "target": 99, "history": [99] },
+      "scripts/folderviewplus.start-order-workspace.js": { "limit": 104, "target": 104, "history": [104] },
       "scripts/folderviewplus.activity-diagnostics.js": { "limit": 2336, "target": 500, "history": [2336] },
       "scripts/folder.editor.icons.js": { "limit": 2233, "target": 450, "history": [2233] },
       "scripts/docker.runtime.shared.js": { "limit": 460, "target": 450, "history": [1511, 460] },
@@ -41,6 +42,7 @@
       "server/lib.diagnostics-summary.php": { "limit": 785, "target": 400, "history": [785] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
+      "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
       "server/lib.environment-snapshot.php": { "limit": 174, "target": 160, "history": [174] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
@@ -114,7 +116,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["settings"],
-      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
+      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.start-order-workspace.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
       "lifecycle": { "startup": "self-executing-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["FolderViewPlusRefreshCoreData"]
     },
@@ -174,7 +176,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -281,11 +283,21 @@
       "functionInventory": { "count": 4, "sha256": "42c2b7241bbda40524eb9ff57b77606a221c0c8927d699207c80d9fbe7ea19c0" }
     },
     {
+      "file": "server/lib.docker-start-order-sequence.php",
+      "owner": "server-docker-start-order-sequence",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.prefs.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 3, "sha256": "e8fe2a884e4b8ed890974351de1494f3af68ff55e6fb93050d503045b80e74c8" }
+    },
+    {
       "file": "server/lib.docker-order.php",
       "owner": "server-docker-start-order",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php"],
+      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 14, "sha256": "b3528416cb8b15ba5915ec62ca817f16b607a346bf511a352bab9de38ff576c6" }
@@ -830,6 +842,21 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["MODES", "REMAINING_MODES", "DEFAULT_PLAN", "normalizePlan", "patchPlan", "createId"]
+    },
+    {
+      "file": "scripts/folderviewplus.start-order-workspace.js",
+      "owner": "settings-docker-start-order-workspace",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.start-order-model.js", "scripts/runtime.transport.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "startOrderWorkspace",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["buildPreviewHtml", "buildAutostartMutationEntries", "rowAutostart", "updateWait", "toggleAutostart"]
     },
     {
       "file": "scripts/folderviewplus.theme-surface.js",

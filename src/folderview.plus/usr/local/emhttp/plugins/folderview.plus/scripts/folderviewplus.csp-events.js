@@ -28,7 +28,7 @@
         'toggleActivityCenterHistory toggleAllRuleSelections toggleAutoRule toggleBasicSettingsPanel toggleDockerUpdatesFilter ' +
         'toggleFolderPin toggleFolderTreeCollapse toggleHealthSeverityFilter toggleMobileTreeReorderMode toggleRuleKindFields ' +
         'toggleRuleSelection toggleStatusFilter undoActiveRecoveryChange updateBulkSelectedCount updateContainer ' +
-        'updateDockerStartOrderBatch updateDockerStartOrderMode updateDockerStartOrderRemaining updateFolder updateForm updateIcon ' +
+        'updateDockerStartOrderBatch updateDockerStartOrderMode updateDockerStartOrderRemaining updateDockerStartOrderWait toggleDockerStartOrderAutostart updateFolder updateForm updateIcon ' +
         'updateRegex updateThemeWorkspaceTheme'
     ).split(/\s+/).filter(Boolean));
     const supportedEvents = ['click', 'change', 'input', 'keydown', 'submit', 'error'];

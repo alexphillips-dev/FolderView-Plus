@@ -18,6 +18,8 @@ const utilsNormalizationJs = read('src/folderview.plus/usr/local/emhttp/plugins/
 const utilsPrefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const startOrderModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js');
+const startOrderWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js');
+const startOrderSequencePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-start-order-sequence.php');
 
 test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'dockerStartOrder'\s*=>\s*\[/);
@@ -44,6 +46,10 @@ test('server builds preview and sync order from Docker page or custom batches', 
     assert.match(libPhp, /custom-batches/);
     assert.match(libPhp, /fvplus_set_autostart_line_delay/);
     assert.match(libPhp, /autostartOrder/);
+    assert.match(libPhp, /buildDockerStartOrderSequence/);
+    assert.match(startOrderSequencePhp, /function buildDockerStartOrderSequence/);
+    assert.match(startOrderSequencePhp, /array_key_exists\(\$name, \$waits\)/);
+    assert.match(startOrderSequencePhp, /function applyDockerStartOrderSequenceWaits/);
     assert.match(libPhp, /skipped because Docker start order is unmanaged/);
     assert.match(libPhp, /'managed'\s*=>\s*\$mode !== 'unmanaged'/);
     assert.match(prefsEndpoint, /normalizeDockerStartOrderPrefs\(\$current\['dockerStartOrder'\]/);
@@ -65,8 +71,11 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsJs, /Follow Docker page order/);
     assert.match(settingsJs, /Custom batch order/);
     assert.match(settingsJs, /Remaining autostart containers/);
-    assert.match(settingsJs, /Preview autostart order/);
+    assert.match(startOrderWorkspaceJs, /Preview autostart sequence/);
     assert.match(settingsJs, /syncDockerStartOrderNow/);
+    assert.match(settingsJs, /toggleDockerStartOrderAutostart/);
+    assert.match(settingsJs, /updateDockerStartOrderWait/);
+    assert.match(startOrderWorkspaceJs, /updateAutostartConfiguration/);
 });
 
 test('Docker start-order workspace uses shared Settings dark-mode tokens', () => {

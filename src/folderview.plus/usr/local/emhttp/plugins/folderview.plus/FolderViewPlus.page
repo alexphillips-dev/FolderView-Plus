@@ -36,7 +36,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.diagnostics.css')?>">
-<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/start-order-workspace.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/start-order-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme-profiles.css')?>">
 
 <div id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true">
 <div id="fv-settings-bootstrap-shell" class="fv-settings-bootstrap-shell" role="status" aria-live="polite">
@@ -118,7 +118,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Managed themes</span>
                             <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
                         </div>
-                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
+                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button>
                     </div>
                     <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
                         <div class="fv-theme-empty-state">
@@ -132,9 +132,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="fv-theme-module-head">
                     <div>
                         <span class="settings-mini-title">Customization layer</span>
-                        <p>Token overrides are safer for common colors. Custom CSS is appended after the active managed theme when saved.</p>
+                        <p>Use named profiles and global or page-specific layers. Changes are previewed before an atomic save.</p>
                     </div>
-                </div>
+                </div><div id="fv-theme-profile-toolbar" class="fv-theme-profile-toolbar"></div>
                 <div class="fv-theme-customize-grid">
                     <div class="fv-theme-customize-card">
                         <div class="fv-theme-card-head">

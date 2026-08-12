@@ -60,6 +60,26 @@
 
         let workspace = normalizeWorkspace({});
         let pendingScan = null;
+        let activeScope = 'global';
+
+        const getActiveProfile = () => themeProfiles.getActiveProfile(workspace);
+        const getEditingLayer = () => themeProfiles.normalizeLayer(getActiveProfile().layers?.[activeScope]);
+        const syncEditingAliases = () => {
+            const layer = getEditingLayer();
+            workspace = { ...workspace, variables: layer.variables, customCss: layer.customCss };
+            return layer;
+        };
+        const updateEditingLayer = (patch = {}) => {
+            const profileId = workspace.activeProfileId;
+            workspace = {
+                ...workspace,
+                profiles: workspace.profiles.map((profile) => profile.id !== profileId ? profile : {
+                    ...profile,
+                    layers: { ...profile.layers, [activeScope]: { ...themeProfiles.normalizeLayer(profile.layers?.[activeScope]), ...patch } }
+                })
+            };
+            return syncEditingAliases();
+        };
 
         const setStatus = (message) => {
             if (!documentRef) {
@@ -79,11 +99,12 @@
             if (!node) {
                 return;
             }
+            const resolvedLayer = themeProfiles.resolveLayer(workspace, activeScope);
             TOKEN_DEFINITIONS.forEach((definition) => {
                 const token = definition.token;
                 const value = String(
-                    Object.prototype.hasOwnProperty.call(workspace.variables || {}, token)
-                        ? workspace.variables[token]
+                    Object.prototype.hasOwnProperty.call(resolvedLayer.variables || {}, token)
+                        ? resolvedLayer.variables[token]
                         : (definition.fallback || '')
                 ).trim();
                 if (value) {
@@ -121,6 +142,20 @@
 
         const getActiveTheme = () => workspace.themes.find((theme) => theme.id === workspace.activeThemeId) || null;
 
+        const renderProfileControls = () => {
+            if (!documentRef) return;
+            const toolbar = documentRef.getElementById('fv-theme-profile-toolbar');
+            if (toolbar && !documentRef.getElementById('fv-theme-profile-select')) {
+                toolbar.innerHTML = '<label><span>Profile</span><select id="fv-theme-profile-select"></select></label><label><span>Scope</span><select id="fv-theme-profile-scope"><option value="global">All pages</option><option value="docker">Docker</option><option value="vm">VMs</option><option value="dashboard">Dashboard</option></select></label><label><span>New profile name</span><input id="fv-theme-profile-name" type="text" maxlength="96" placeholder="Example: OLED dark"></label><button id="fv-theme-profile-create" type="button"><i class="fa fa-plus"></i> Add profile</button><button id="fv-theme-profile-delete" type="button"><i class="fa fa-trash"></i> Delete profile</button><span id="fv-theme-profile-plan" class="rules-help" aria-live="polite"></span>';
+            }
+            const profileSelect = documentRef.getElementById('fv-theme-profile-select');
+            const scopeSelect = documentRef.getElementById('fv-theme-profile-scope');
+            if (profileSelect) {
+                profileSelect.innerHTML = workspace.profiles.map((profile) => `<option value="${escapeHtml(profile.id)}" ${profile.id === workspace.activeProfileId ? 'selected' : ''}>${escapeHtml(profile.name)}</option>`).join('');
+            }
+            if (scopeSelect) scopeSelect.value = activeScope;
+        };
+
         const renderSummary = () => {
             if (!documentRef) {
                 return;
@@ -136,6 +171,7 @@
             const targets = ['docker', 'vm', 'dashboard'].filter((target) => activeFiles.some((file) => Array.isArray(file.tabs) && file.tabs.includes(target)));
             host.innerHTML = [
                 ['Active theme', activeTheme ? (activeTheme.name || activeTheme.id) : 'None'],
+                ['Profile / scope', `${getActiveProfile().name} / ${activeScope}`],
                 ['Managed themes', String(workspace.themes.length)],
                 ['Last checked', formatDateShort(workspace.lastCheckedAt)],
                 ['Customization', `${overrideCount} tokens, ${formatBytes(customCssBytes)} CSS`],
@@ -276,6 +312,8 @@
         };
 
         const renderWorkspace = () => {
+            syncEditingAliases();
+            renderProfileControls();
             renderSummary();
             renderThemeList();
             renderVariableGrid();
@@ -353,11 +391,32 @@
 
         const saveCustomize = async () => {
             const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value || '');
-            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
-                action: 'save_customize',
+            const payload = {
+                profileId: workspace.activeProfileId,
+                scope: activeScope,
                 variables: JSON.stringify(collectVariablesFromUi()),
                 customCss
-            });
+            };
+            const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
+            const planNode = documentRef?.getElementById('fv-theme-profile-plan');
+            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : 'No generated output changes.';
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
+            return setWorkspace(response.workspace || {});
+        };
+
+        const createProfile = async (name) => {
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'create_profile', name });
+            activeScope = 'global';
+            return setWorkspace(response.workspace || {});
+        };
+
+        const activateProfile = async (profileId) => {
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'activate_profile', profileId });
+            return setWorkspace(response.workspace || {});
+        };
+
+        const deleteProfile = async (profileId) => {
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'delete_profile', profileId });
             return setWorkspace(response.workspace || {});
         };
 
@@ -377,11 +436,17 @@
             return setWorkspace(response.workspace || {});
         };
 
+        const updateAvailableThemes = async () => {
+            const themeIds = workspace.themes.filter((theme) => theme.updateAvailable).map((theme) => theme.id);
+            const payload = { themeIds: JSON.stringify(themeIds) };
+            const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_theme_updates', ...payload });
+            setStatus(`Updating ${Number(preview?.plan?.updateCount) || 0} managed theme(s) atomically...`);
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'update_themes', ...payload });
+            return setWorkspace(response.workspace || {});
+        };
+
         const resetTokens = () => {
-            workspace = {
-                ...workspace,
-                variables: {}
-            };
+            updateEditingLayer({ variables: {} });
             renderWorkspace();
             setStatus('Token overrides reset. Save the customization layer to apply this change.');
             return workspace;
@@ -397,13 +462,7 @@
                 if (!token || !value) {
                     return;
                 }
-                workspace = {
-                    ...workspace,
-                    variables: {
-                        ...(workspace.variables || {}),
-                        [token]: value
-                    }
-                };
+                updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } });
                 renderVariableGrid();
                 applyPreviewCss();
                 renderSummary();
@@ -415,19 +474,32 @@
                 }
                 const nextVariables = { ...(workspace.variables || {}) };
                 delete nextVariables[token];
-                workspace = {
-                    ...workspace,
-                    variables: nextVariables
-                };
+                updateEditingLayer({ variables: nextVariables });
                 renderWorkspace();
                 setStatus('Token override reset. Save the customization layer to apply this change.');
             });
             $(documentRef).off('input.fvthemecustomcss', '#fv-theme-custom-css').on('input.fvthemecustomcss', '#fv-theme-custom-css', () => {
-                workspace = {
-                    ...workspace,
-                    customCss: String(documentRef.getElementById('fv-theme-custom-css')?.value || '')
-                };
+                updateEditingLayer({ customCss: String(documentRef.getElementById('fv-theme-custom-css')?.value || '') });
                 renderSummary();
+            });
+            $(documentRef).off('change.fvthemeprofile', '#fv-theme-profile-select').on('change.fvthemeprofile', '#fv-theme-profile-select', (event) => {
+                safeAction('Profile activation', () => activateProfile(String(event?.target?.value || '')), 'Appearance profile activated.').catch(() => {});
+            });
+            $(documentRef).off('change.fvthemescope', '#fv-theme-profile-scope').on('change.fvthemescope', '#fv-theme-profile-scope', (event) => {
+                const scope = String(event?.target?.value || 'global');
+                activeScope = themeProfiles.SCOPES.includes(scope) ? scope : 'global';
+                renderWorkspace();
+            });
+            $(documentRef).off('click.fvthemeprofilecreate', '#fv-theme-profile-create').on('click.fvthemeprofilecreate', '#fv-theme-profile-create', () => {
+                const input = documentRef.getElementById('fv-theme-profile-name');
+                const name = String(input?.value || '').trim();
+                safeAction('Profile creation', () => createProfile(name), 'Appearance profile created.').then(() => { if (input) input.value = ''; }).catch(() => {});
+            });
+            $(documentRef).off('click.fvthemeprofiledelete', '#fv-theme-profile-delete').on('click.fvthemeprofiledelete', '#fv-theme-profile-delete', () => {
+                safeAction('Profile deletion', () => deleteProfile(workspace.activeProfileId), 'Appearance profile deleted.').catch(() => {});
+            });
+            $(documentRef).off('click.fvthemeupdateavailable', '#fv-theme-update-available').on('click.fvthemeupdateavailable', '#fv-theme-update-available', () => {
+                safeAction('Managed theme batch update', updateAvailableThemes, 'Available managed themes updated.').catch(() => {});
             });
         };
 

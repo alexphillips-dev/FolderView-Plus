@@ -53,6 +53,9 @@
       "server/lib.theme-github.php": { "limit": 425, "target": 380, "history": [425] },
       "server/lib.theme-workspace.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.theme-profiles.php": { "limit": 109, "target": 109, "history": [109] },
+      "server/lib.theme-update-plan.php": { "limit": 65, "target": 65, "history": [65] },
+      "server/lib.theme-profile-actions.php": { "limit": 62, "target": 62, "history": [62] },
+      "server/lib.theme-bulk-update.php": { "limit": 49, "target": 49, "history": [49] },
       "scripts/folderviewplus.fatal-banner.js": { "limit": 1412, "target": 500, "history": [1412] },
       "scripts/docker.runtime.actions.js": { "limit": 1157, "target": 600, "history": [1157] },
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
@@ -178,7 +181,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -235,14 +238,24 @@
       "functionInventory": { "count": 8, "sha256": "fa1a5f629465e9dc1d108dd4ed74022406ff5126fa5a53390eb256a49cfbd1a8" }
     },
     {
-      "file": "server/lib.theme-workspace.php",
-      "owner": "server-theme-workspace-storage",
+      "file": "server/lib.theme-update-plan.php",
+      "owner": "server-theme-update-transaction",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
       "dependsOn": ["server/lib.storage.php", "server/lib.theme-profiles.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 15, "sha256": "85ee13db1e5e47519f77938e21303c1dcf0ed9ba0109991305fbed87109b3992" }
+      "functionInventory": { "count": 5, "sha256": "1144fe726cd32b70b8134e82073b9b04921f98e14d4a6ea7fc271580aba32798" }
+    },
+    {
+      "file": "server/lib.theme-workspace.php",
+      "owner": "server-theme-workspace-storage",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 15, "sha256": "8ba7c8c7cdf66842d8550b98af6af2c9f54fdf90707f10b255c1b7aa8637f217" }
     },
     {
       "file": "server/lib.environment-snapshot.php",
@@ -263,6 +276,26 @@
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 16, "sha256": "b758e769455216bc41802ba9ae46cf3212159bb2811a3fd123c88c841c1e91e7" }
+    },
+    {
+      "file": "server/lib.theme-profile-actions.php",
+      "owner": "server-theme-profile-actions",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-github.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 5, "sha256": "058de61f31262783e913c1645cec18280253e87b05946fa101e4a4106165d085" }
+    },
+    {
+      "file": "server/lib.theme-bulk-update.php",
+      "owner": "server-theme-bulk-update",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-update-plan.php", "server/lib.theme-github.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 2, "sha256": "d3d9aa2bcdc489bf9d148a6a6b53babec078021208faae5c10f493c1c882b8bc" }
     },
     {
       "file": "server/lib.backup-schedule.php",

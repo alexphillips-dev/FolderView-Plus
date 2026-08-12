@@ -206,7 +206,7 @@ function getThemeWorkspacePath(): string {
         return implode("\n", $lines);
     }
 
-    function writeThemeWorkspaceManagedAssets(array $workspace): void {
+    function writeThemeWorkspaceManagedAssetsUnprotected(array $workspace): void {
         $normalized = normalizeThemeWorkspacePayload($workspace);
         $activeTheme = null;
         foreach ((array)($normalized['themes'] ?? []) as $theme) {
@@ -268,14 +268,12 @@ function getThemeWorkspacePath(): string {
 
     function writeThemeWorkspace(array $workspace): array {
         $normalized = normalizeThemeWorkspacePayload($workspace);
-        writeJsonObjectWithLastGood(getThemeWorkspacePath(), $normalized);
-        writeThemeWorkspaceManagedAssets($normalized);
-        return $normalized;
+        return fvplusThemeWorkspaceApplyAtomic($normalized, true);
     }
 
     function ensureThemeWorkspaceManagedAssets(): array {
         $workspace = normalizeThemeWorkspacePayload(readJsonObjectFile(getThemeWorkspacePath()) ?? defaultThemeWorkspace());
-        writeThemeWorkspaceManagedAssets($workspace);
+        fvplusThemeWorkspaceApplyAtomic($workspace, false);
         return $workspace;
     }
 
@@ -297,6 +295,6 @@ function getThemeWorkspacePath(): string {
         if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
             return writeThemeWorkspace($normalized);
         }
-        writeThemeWorkspaceManagedAssets($normalized);
+        fvplusThemeWorkspaceApplyAtomic($normalized, false);
         return $normalized;
     }

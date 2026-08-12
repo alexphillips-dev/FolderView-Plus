@@ -171,7 +171,14 @@
         "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.delete"},
         "save_customize": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["variables"], "auditCategory": "theme.customize"},
         "check_updates": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "theme.update-check"},
-        "update_theme": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.update"}
+        "update_theme": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.update"},
+        "preview_theme_updates": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["themeIds"], "auditCategory": "theme.update.preview"},
+        "update_themes": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeIds"], "auditCategory": "theme.update.batch"},
+        "create_profile": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name"], "auditCategory": "theme.profile.create"},
+        "activate_profile": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["profileId"], "auditCategory": "theme.profile.activate"},
+        "delete_profile": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["profileId"], "auditCategory": "theme.profile.delete"},
+        "preview_profile": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["profileId", "scope", "variables"], "auditCategory": "theme.profile.preview"},
+        "save_profile": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["profileId", "scope", "variables"], "auditCategory": "theme.profile.save"}
       }
     },
     "third_party_icons.php": {

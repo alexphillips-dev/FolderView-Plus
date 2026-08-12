@@ -11,7 +11,7 @@
 
     const createApi = (deps = {}) => {
         const rowIdentity = (row) => String(row?.Id || row?.id || row?.shortId || row?.info?.Id || '').trim();
-        const rowAutostart = (row) => row?.info?.State?.Autostart === true || row?.State?.Autostart === true;
+        const rowAutostart = (row) => [true, 1, '1', 'true', 'yes', 'on'].includes(row?.autostart ?? row?.autoStart ?? row?.info?.State?.Autostart ?? row?.State?.Autostart);
         const buildAutostartMutationEntries = (infoByName, plan, targetName, enabled) => {
             const waits = plan?.containerWaits && typeof plan.containerWaits === 'object' ? plan.containerWaits : {};
             return Object.entries(infoByName || {}).map(([name, row]) => ({
@@ -43,6 +43,7 @@
             }
             try {
                 await deps.runDockerMutation({ operation: 'updateAutostartConfiguration', entries, persistUserPreferences: true });
+                row.autostart = enabled === true;
                 if (row?.info?.State) row.info.State.Autostart = enabled === true;
                 if (row?.State) row.State.Autostart = enabled === true;
                 await deps.refreshPreview({ flush: false });

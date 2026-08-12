@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.05">
-<!ENTITY md5 "7cc087a78804ef06a9f04d1538bfb0d9">
-<!ENTITY sha256 "4ad7e0839e54e948181bd7d415a7df5bdf51fd11663ac533756ac71287065c79">
+<!ENTITY version "2026.08.12.06">
+<!ENTITY md5 "26a1a4e976c3bfac7da7abf3edb9fb51">
+<!ENTITY sha256 "6cc76433f0dd221c9fc2af4667bbffc0e8a30c0544ce01b5afd44194f0ff73c4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.06
+- Fix: Detect Docker autostart from the lightweight runtime rows used by Settings so the Start Order summary no longer reports zero enabled containers.
+- Reliability: Preserve every peer container's actual autostart state when toggling one container instead of treating lightweight rows as disabled.
+- Compatibility: Keep support for full Docker detail rows while normalizing top-level `autostart` and `autoStart` state representations.
+- Test: Exercise the production lightweight payload in unit and Chromium fixtures, including visible totals, disabled classification, peer-state mutation preservation, and full-payload compatibility.
+
 
 ###2026.08.12.05
 - UI/UX: Load the Docker autostart sequence automatically whenever the Start Order tab is opened while keeping Preview order available as an explicit refresh action.

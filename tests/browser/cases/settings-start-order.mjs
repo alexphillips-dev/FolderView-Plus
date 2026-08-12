@@ -10,7 +10,7 @@ test('Docker start order matches the responsive workspace mockup without page ov
         const table = fixture.querySelector('.fv-start-order-table');
         const tableWrap = fixture.querySelector('.fv-start-order-table-wrap');
         return {
-            summaryMetrics: summary.querySelectorAll('.fv-start-order-summary-metric').length,
+            summaryMetrics: summary.querySelectorAll('.fv-start-order-summary-metric').length, summaryValues: [...summary.querySelectorAll('.fv-start-order-summary-metric strong')].map((node) => node.textContent.trim()),
             topColumns: getComputedStyle(top).gridTemplateColumns.split(' ').filter(Boolean).length,
             controlColumns: getComputedStyle(controls).gridTemplateColumns.split(' ').filter(Boolean).length, helpCompact: help.offsetHeight < top.offsetHeight && Math.abs(help.getBoundingClientRect().top - top.getBoundingClientRect().top) <= 1,
             tableColumns: getComputedStyle(table.querySelector('.fv-start-order-table-head')).gridTemplateColumns.split(' ').filter(Boolean).length,
@@ -27,7 +27,7 @@ test('Docker start order matches the responsive workspace mockup without page ov
     await page.setViewportSize({ width: 1500, height: 980 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readLayout();
-    assert.equal(layout.summaryMetrics, 2);
+    assert.equal(layout.summaryMetrics, 2); assert.deepEqual(layout.summaryValues, ['7', '5']);
     assert.equal(layout.topColumns, 2);
     assert.equal(layout.controlColumns, 2); assert.equal(layout.helpCompact, true);
     assert.equal(layout.tableColumns, 5);

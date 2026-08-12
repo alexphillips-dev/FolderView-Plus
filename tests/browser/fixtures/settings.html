@@ -62,13 +62,13 @@
         document.getElementById('fv-settings-topbar').innerHTML = window.FolderViewPlusSettingsChrome.getTopbarHtml();
         const startOrderView = window.FolderViewPlusFoundationModules.startOrderView.createApi();
         const startOrderInfo = {
-            audiobookshelf: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-audio.svg' }, info: { State: { Autostart: true } } },
-            qbittorrentvpn: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-broadcast.svg' }, info: { State: { Autostart: true } } },
-            sonarr: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-arrs.svg' }, info: { State: { Autostart: true } } },
-            radarr: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-camera.svg' }, info: { State: { Autostart: true } } },
-            prowlarr: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-control.svg' }, info: { State: { Autostart: true } } },
-            adminer: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-code2.svg' }, info: { State: { Autostart: false } } },
-            nextcloud: { Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-backup.svg' }, info: { State: { Autostart: false } } }
+            audiobookshelf: { id: 'audio-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-audio.svg' } },
+            qbittorrentvpn: { id: 'qb-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-broadcast.svg' } },
+            sonarr: { id: 'sonarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-arrs.svg' } },
+            radarr: { id: 'radarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-camera.svg' } },
+            prowlarr: { id: 'prowlarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-control.svg' } },
+            adminer: { id: 'adminer-id', autostart: false, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-code2.svg' } },
+            nextcloud: { id: 'nextcloud-id', autostart: false, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-backup.svg' } }
         };
         document.getElementById('docker-start-order-summary').innerHTML = startOrderView.buildHeaderSummaryHtml(startOrderInfo);
         document.getElementById('docker-start-order-workspace').innerHTML = [

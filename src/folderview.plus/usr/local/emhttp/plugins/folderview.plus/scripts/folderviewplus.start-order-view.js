@@ -16,7 +16,7 @@
             : (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
         const encodeName = (value) => encodeURIComponent(String(value || '')).replace(/'/g, '%27');
         const text = (key, fallback) => escapeHtml(translate(key, fallback));
-        const rowAutostart = (row) => row?.info?.State?.Autostart === true || row?.State?.Autostart === true;
+        const rowAutostart = (row) => [true, 1, '1', 'true', 'yes', 'on'].includes(row?.autostart ?? row?.autoStart ?? row?.info?.State?.Autostart ?? row?.State?.Autostart);
         const iconFallback = '/plugins/dynamix.docker.manager/images/question.png';
         const rowIcon = (row) => {
             const labels = row?.info?.Config?.Labels || row?.Labels || {};

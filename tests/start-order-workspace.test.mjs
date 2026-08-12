@@ -29,13 +29,34 @@ test('start-order sequence preview exposes app rows, waits, switches, and safe e
 
 test('autostart mutation entries preserve every current state and only send explicit waits', () => {
     const entries = api.buildAutostartMutationEntries({
-        alpha: { Id: 'sha-alpha', info: { State: { Autostart: true } } },
-        beta: { shortId: 'beta-id', info: { State: { Autostart: false } } }
+        alpha: { id: 'sha-alpha', autostart: true },
+        beta: { shortId: 'beta-id', autostart: false }
     }, { containerWaits: { alpha: 12 } }, 'beta', true);
     assert.deepEqual(entries, [
         { id: 'sha-alpha', autoStart: true, wait: 12 },
         { id: 'beta-id', autoStart: true }
     ]);
+});
+
+test('lightweight and full Docker rows report the same autostart state', () => {
+    assert.equal(api.rowAutostart({ autostart: true }), true);
+    assert.equal(api.rowAutostart({ autostart: false }), false);
+    assert.equal(api.rowAutostart({ info: { State: { Autostart: true } } }), true);
+    assert.equal(api.rowAutostart({ State: { Autostart: false } }), false);
+    const summary = view.buildHeaderSummaryHtml({ alpha: { autostart: true }, beta: { autostart: false } });
+    assert.match(summary, /<strong>1<\/strong><small>Autostart containers<\/small>/);
+});
+
+test('autostart toggle preserves peer lightweight states and updates the local row', async () => {
+    const info = { alpha: { id: 'alpha-id', autostart: true }, beta: { id: 'beta-id', autostart: false } };
+    let mutation = null;
+    const controller = moduleApi.createApi({
+        getInfo: () => info, getPlan: () => ({}), runDockerMutation: async (payload) => { mutation = payload; },
+        refreshPreview: async () => {}, setStatus: () => {}, showError: (message, error) => { throw error || new Error(message); }
+    });
+    await controller.toggleAutostart('beta', true);
+    assert.deepEqual(mutation.entries, [{ id: 'alpha-id', autoStart: true }, { id: 'beta-id', autoStart: true }]);
+    assert.equal(info.beta.autostart, true);
 });
 
 test('preview activation hydrates once per visit and permits a fresh load after re-entry', () => {

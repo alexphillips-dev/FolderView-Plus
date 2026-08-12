@@ -74,10 +74,14 @@ merge_commit_allowed() {
   local parent_index=0
   local parent_commit=""
   local allowed_ref=""
+  local stable_release_pr=0
 
   subject="$(git show -s --format=%s "${commit}" 2>/dev/null || true)"
   if [[ "${subject}" =~ ^Merge\ pull\ request\ #[0-9]+ ]]; then
     return 0
+  fi
+  if [[ "${subject}" =~ ^Stable\ release\ [0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2,}\ \(#[0-9]+\)$ ]]; then
+    stable_release_pr=1
   fi
 
   parent_refs="$(git show -s --format=%P "${commit}" 2>/dev/null || true)"
@@ -94,6 +98,12 @@ merge_commit_allowed() {
         continue
       fi
       if git merge-base --is-ancestor "${parent_commit}" "${allowed_ref}"; then
+        return 0
+      fi
+      # A stable release PR adds the main-channel package commit after merging
+      # dev. Accept that release tip only when it still contains current dev.
+      if [[ "${stable_release_pr}" -eq 1 ]] \
+        && git merge-base --is-ancestor "${allowed_ref}" "${parent_commit}"; then
         return 0
       fi
     done

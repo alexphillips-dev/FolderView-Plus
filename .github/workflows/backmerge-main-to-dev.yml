@@ -31,6 +31,9 @@ jobs:
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
 
+      - name: Install Node validation dependencies
+        run: npm ci --ignore-scripts
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
@@ -44,6 +47,15 @@ jobs:
         run: |
           chmod +x scripts/prepare_backmerge_dev_package.sh
           bash scripts/prepare_backmerge_dev_package.sh
+
+      - name: Commit synchronized dev package
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No dev package changes to commit."
+          else
+            git commit --no-verify -m "Rebuild dev package after main sync"
+          fi
 
       - name: Validate merged dev state before push
         env:

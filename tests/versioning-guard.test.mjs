@@ -51,6 +51,7 @@ const releaseNoteCategoryContractPath = path.join(repoRoot, 'src/folderview.plus
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const syncMainToDevPath = path.join(repoRoot, 'scripts/sync_main_to_dev.sh');
+const prepareBackmergeDevPackagePath = path.join(repoRoot, 'scripts/prepare_backmerge_dev_package.sh');
 const prePushHookPath = path.join(repoRoot, '.githooks/pre-push');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const jsUnusedSymbolsGuardPath = path.join(repoRoot, 'scripts/js_unused_symbols_guard.mjs');
@@ -64,6 +65,7 @@ const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const devFinalize = fs.readFileSync(devFinalizePath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
+const prepareBackmergeDevPackage = fs.readFileSync(prepareBackmergeDevPackagePath, 'utf8');
 const simulateMainRelease = fs.readFileSync(simulateMainReleasePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
@@ -552,8 +554,11 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
+    assert.match(backmergeWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
     assert.match(backmergeWorkflow, /bash scripts\/prepare_backmerge_dev_package\.sh/);
+    assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
+    assert.match(prepareBackmergeDevPackage, /FVPLUS_EXPECT_PLUGIN_BRANCH=dev[\s\S]*bash pkg_build\.sh --branch dev/);
     assert.doesNotMatch(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
@@ -691,7 +696,9 @@ test('release-on-main workflow auto-publishes validated releases from current pl
 test('back-merge workflow validates merged dev state before pushing', () => {
     assert.match(backmergeWorkflow, /name:\s*Back-Merge Main To Dev/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
+    assert.match(backmergeWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
     assert.match(backmergeWorkflow, /Sync main into dev/);
+    assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /Push back-merge branch when updated/);
     assert.match(backmergeWorkflow, /Create or update back-merge PR/);
@@ -899,6 +906,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
     assert.match(mainBranchHistoryGuard, /merge_commit_allowed/);
     assert.match(mainBranchHistoryGuard, /Merge\\ pull\\ request\\ #\[0-9\]\+/);
+    assert.ok(mainBranchHistoryGuard.includes('^Stable\\ release\\ [0-9]{4}'));
+    assert.match(mainBranchHistoryGuard, /git merge-base --is-ancestor "\$\{allowed_ref\}" "\$\{parent_commit\}"/);
     assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev history/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);

@@ -8282,12 +8282,11 @@ const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectO
 const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
 const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
 
-const createDockerStartOrderId = (prefix = 'batch') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
+const dockerStartOrderModel = window.FolderViewPlusFoundationModules?.startOrderModel;
+if (!dockerStartOrderModel || typeof dockerStartOrderModel.normalizePlan !== 'function') throw new Error('FolderView Plus start-order model is unavailable.');
+const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
 
-const normalizeDockerStartOrderPrefsForUi = (prefs = null) => {
-    const source = utils.normalizePrefs(prefs || prefsByType.docker || {});
-    return source.dockerStartOrder || { mode: 'docker-page', remaining: 'after', batches: [] };
-};
+const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(utils.normalizePrefs(prefs || prefsByType.docker || {}).dockerStartOrder);
 
 const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
     .map((name) => String(name || '').trim())
@@ -8420,7 +8419,7 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
 };
 
 const updateDockerStartOrderMode = async (mode) => {
-    const normalized = String(mode || '').trim() === 'custom-batches' ? 'custom-batches' : 'docker-page';
+    const normalized = dockerStartOrderModel.MODES.includes(String(mode || '').trim()) ? String(mode || '').trim() : 'docker-page';
     try {
         await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
     } catch (error) {
@@ -8639,6 +8638,7 @@ const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
         <label class="setting-select">
             <span>Start order mode</span>
             <select id="docker-start-order-mode" data-fv-onchange="updateDockerStartOrderMode(this.value)">
+                <option value="unmanaged" ${plan.mode === 'unmanaged' ? 'selected' : ''}>Leave Unraid order unmanaged</option>
                 <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
                 <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
             </select>
@@ -8655,8 +8655,8 @@ const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
     <div class="fv-docker-start-order-help" data-fv-start-order-region="help">
         <i class="fa fa-info-circle" aria-hidden="true"></i>
         <div>
-            <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
-            <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
+            <strong>${plan.mode === 'unmanaged' ? 'Unraid owns the start order.' : (customVisible ? 'Custom batches are active.' : 'Docker page order is active.')}</strong>
+            <span>${plan.mode === 'unmanaged' ? 'FolderView Plus will preview the native order but will not rewrite the Docker autostart file.' : (customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.')}</span>
         </div>
     </div>
 `;
@@ -8665,7 +8665,7 @@ const buildDockerStartOrderToolbarHtml = (customVisible) => `
     <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
         ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" data-fv-onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
         <button type="button" data-fv-onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-        <button type="button" data-fv-onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
+        <button type="button" data-fv-onclick="syncDockerStartOrderNow()" ${normalizeDockerStartOrderPrefsForUi().mode === 'unmanaged' ? 'disabled title="Unraid owns this order in unmanaged mode"' : ''}><i class="fa fa-refresh"></i> Sync now</button>
     </div>
 `;
 

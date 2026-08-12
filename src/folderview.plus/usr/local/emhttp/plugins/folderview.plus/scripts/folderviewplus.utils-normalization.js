@@ -77,7 +77,7 @@
     const DEFAULT_DOCKER_START_ORDER = {
         mode: 'docker-page',
         remaining: 'after',
-        batches: []
+        batches: [], containerWaits: {}
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({

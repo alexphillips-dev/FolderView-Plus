@@ -17,6 +17,7 @@ const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const utilsNormalizationJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js');
 const utilsPrefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const startOrderModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js');
 
 test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'dockerStartOrder'\s*=>\s*\[/);
@@ -28,6 +29,10 @@ test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(validationPhp, /dockerStartOrder\.batches/);
     assert.match(utilsNormalizationJs, /DEFAULT_DOCKER_START_ORDER/);
     assert.match(utilsPrefsJs, /dockerStartOrder/);
+    assert.match(prefsPhp, /'unmanaged'/);
+    assert.match(prefsPhp, /'containerWaits'\s*=>\s*\$containerWaits/);
+    assert.match(startOrderModelJs, /const MODES = Object\.freeze\(\['unmanaged', 'docker-page', 'custom-batches'\]\)/);
+    assert.match(startOrderModelJs, /modules\.startOrderModel = factory\(\)/);
 });
 
 test('server builds preview and sync order from Docker page or custom batches', () => {
@@ -39,6 +44,8 @@ test('server builds preview and sync order from Docker page or custom batches', 
     assert.match(libPhp, /custom-batches/);
     assert.match(libPhp, /fvplus_set_autostart_line_delay/);
     assert.match(libPhp, /autostartOrder/);
+    assert.match(libPhp, /skipped because Docker start order is unmanaged/);
+    assert.match(libPhp, /'managed'\s*=>\s*\$mode !== 'unmanaged'/);
     assert.match(prefsEndpoint, /normalizeDockerStartOrderPrefs\(\$current\['dockerStartOrder'\]/);
     assert.match(startOrderEndpoint, /dockerStartOrderPreview\(\)/);
     assert.match(startOrderEndpoint, /syncContainerOrder\('docker'\)/);
@@ -54,6 +61,7 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(buildDockerStartOrderBatchesHtml\(batches, customVisible\)\);/);
     assert.match(settingsJs, /dockerStartOrderFolderOptionsCache/);
     assert.match(settingsJs, /dockerStartOrderContainerOptionsCache/);
+    assert.match(settingsJs, /Leave Unraid order unmanaged/);
     assert.match(settingsJs, /Follow Docker page order/);
     assert.match(settingsJs, /Custom batch order/);
     assert.match(settingsJs, /Remaining autostart containers/);

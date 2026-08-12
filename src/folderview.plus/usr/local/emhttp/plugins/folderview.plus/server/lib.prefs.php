@@ -217,7 +217,7 @@
     function normalizeDockerStartOrderPrefs($value): array {
         $incoming = is_array($value) ? $value : [];
         $mode = strtolower(trim((string)($incoming['mode'] ?? 'docker-page')));
-        if (!in_array($mode, ['docker-page', 'custom-batches'], true)) {
+        if (!in_array($mode, ['unmanaged', 'docker-page', 'custom-batches'], true)) {
             $mode = 'docker-page';
         }
         $remaining = strtolower(trim((string)($incoming['remaining'] ?? 'after')));
@@ -282,11 +282,26 @@
             }
         }
 
+        $containerWaits = [];
+        $rawContainerWaits = is_array($incoming['containerWaits'] ?? null) ? $incoming['containerWaits'] : [];
+        foreach (array_slice($rawContainerWaits, 0, 2000, true) as $containerName => $delay) {
+            $containerName = truncateUtf8String(trim((string)$containerName), 255);
+            if ($containerName !== '') {
+                $containerWaits[$containerName] = normalizeIntInRange($delay, 0, 3600, 0);
+            }
+        }
+
         return [
             'mode' => $mode,
             'remaining' => $remaining,
-            'batches' => $batches
+            'batches' => $batches,
+            'containerWaits' => $containerWaits
         ];
+    }
+
+    function dockerStartOrderIsManaged(): bool {
+        $prefs = readTypePrefs('docker');
+        return (normalizeDockerStartOrderPrefs($prefs['dockerStartOrder'] ?? [])['mode'] ?? 'docker-page') !== 'unmanaged';
     }
 
     function normalizeBadgePrefs($badges): array {

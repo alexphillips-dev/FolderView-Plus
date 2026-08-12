@@ -306,8 +306,7 @@ function dockerSyncOrderLockPath(): string {
         $warnings = [];
         $batches = [];
         $remaining = [];
-
-        if ($mode === 'custom-batches') {
+        if ($mode === 'unmanaged') { $order = array_keys($autoStartMap); } elseif ($mode === 'custom-batches') {
             $custom = buildDockerCustomStartOrder($context, $plan);
             $order = (array)($custom['order'] ?? []);
             $warnings = (array)($custom['warnings'] ?? []);
@@ -316,7 +315,6 @@ function dockerSyncOrderLockPath(): string {
         } else {
             $order = buildDockerPageStartOrder($context);
         }
-
         $autoStartOrder = [];
         foreach ($order as $name) {
             if (isset($autoStartMap[$name])) {
@@ -328,9 +326,9 @@ function dockerSyncOrderLockPath(): string {
                 $autoStartOrder[] = $name;
             }
         }
-
         return [
             'mode' => $mode,
+            'managed' => $mode !== 'unmanaged',
             'remainingMode' => (string)($plan['remaining'] ?? 'after'),
             'order' => array_values($order),
             'autostartOrder' => $autoStartOrder,
@@ -353,6 +351,7 @@ function dockerSyncOrderLockPath(): string {
         // Docker userprefs.cfg is owned by Unraid and is only read here.
         $context = buildDockerStartOrderContext();
         $plan = buildDockerStartOrderPlan($context);
+        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return; }
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $autoStartFile = (string)($context['autoStartFile'] ?? "/var/lib/docker/unraid-autostart");
         if (file_exists($autoStartFile)) {
@@ -403,6 +402,7 @@ function dockerSyncOrderLockPath(): string {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
         if ($type !== 'docker') { return; }
+        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return; }
 
         $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
         if (!is_resource($lockHandle)) {

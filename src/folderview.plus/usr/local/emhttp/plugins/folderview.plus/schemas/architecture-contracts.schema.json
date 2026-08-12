@@ -21,6 +21,7 @@
       "scripts/folderviewplus.utils-ordering.js": { "limit": 185, "target": 180, "history": [270, 185] },
       "scripts/folderviewplus.utils-transfer.js": { "limit": 645, "target": 620, "history": [717, 645] },
       "scripts/folderviewplus.utils-rules.js": { "limit": 533, "target": 500, "history": [598, 533] },
+      "scripts/folderviewplus.start-order-model.js": { "limit": 99, "target": 99, "history": [99] },
       "scripts/folderviewplus.activity-diagnostics.js": { "limit": 2336, "target": 500, "history": [2336] },
       "scripts/folder.editor.icons.js": { "limit": 2233, "target": 450, "history": [2233] },
       "scripts/docker.runtime.shared.js": { "limit": 460, "target": 450, "history": [1511, 460] },
@@ -113,7 +114,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["settings"],
-      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
+      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
       "lifecycle": { "startup": "self-executing-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["FolderViewPlusRefreshCoreData"]
     },
@@ -816,6 +817,19 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["createDebugLogger", "createRuntimeDiagnosticsBridge"]
+    },
+    {
+      "file": "scripts/folderviewplus.start-order-model.js",
+      "owner": "settings-docker-start-order-model",
+      "consumers": ["settings"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "startOrderModel",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["MODES", "REMAINING_MODES", "DEFAULT_PLAN", "normalizePlan", "patchPlan", "createId"]
     },
     {
       "file": "scripts/folderviewplus.theme-surface.js",

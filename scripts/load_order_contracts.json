@@ -52,6 +52,7 @@
         "scripts/folderviewplus.folder-editor.js",
         "scripts/folderviewplus.row-details.js",
         "scripts/folderviewplus.settings-health.js",
+        "scripts/folderviewplus.start-order-model.js",
         "scripts/folderviewplus.settings-workspaces.js",
         "scripts/folderviewplus.bulk-assignment.shared.js",
         "scripts/folderviewplus.bulk-assignment.js",

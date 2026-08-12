@@ -1518,7 +1518,7 @@
 
     require_once(__DIR__ . '/lib.theme-profiles.php'); require_once(__DIR__ . '/lib.theme-update-plan.php'); require_once(__DIR__ . '/lib.theme-workspace.php');
 
-    require_once(__DIR__ . '/lib.environment-snapshot.php');
+    require_once(__DIR__ . '/lib.environment-snapshot.php'); require_once(__DIR__ . '/lib.folderview3-migration.php');
 
     require_once(__DIR__ . '/lib.theme-github.php'); require_once(__DIR__ . '/lib.theme-profile-actions.php'); require_once(__DIR__ . '/lib.theme-bulk-update.php');
 

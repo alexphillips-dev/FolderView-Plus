@@ -26,6 +26,23 @@ fvplus_json_try(function (): array {
         ];
     }
 
+    if ($action === 'detect_folderview3') {
+        return [
+            'detection' => detectFolderView3Installation()
+        ];
+    }
+
+    if ($action === 'preview_folderview3') {
+        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export')));
+        $sourceName = (string)($_POST['fileName'] ?? '');
+        $bundle = $sourceKind === 'installed'
+            ? fvplusFolderView3ReadInstalledBundle()
+            : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
+        return [
+            'report' => previewFolderView3Migration($bundle, $sourceName)
+        ];
+    }
+
     $payload = decodeEnvironmentSnapshotPayloadString((string)($_POST['payload'] ?? ''));
     $sourceName = (string)($_POST['fileName'] ?? '');
 

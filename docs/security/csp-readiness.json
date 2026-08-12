@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 221,
+    "scannedFiles": 223,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -27,10 +27,10 @@
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 42
+    "htmlStringSinks": 43
   },
   "sinkControlSummary": {
-    "controlled": 42,
+    "controlled": 43,
     "review-required": 0
   },
   "readiness": {
@@ -339,6 +339,16 @@
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "Folder identity and path values are escaped, status values are normalized counts, and action groups use guarded builders."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
+      "line": 224,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "FolderView3 report text is escaped at every interpolation boundary; counts and selected states are normalized before markup is mounted."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
@@ -722,6 +732,18 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js",
+      "inlineEventAttributes": 0,
+      "inlineScriptBlocks": 0,
+      "externalScriptTags": 0,
+      "inlineStyleBlocks": 0,
+      "inlineStyleAttributes": 0,
+      "evalCalls": 0,
+      "functionConstructors": 0,
+      "dynamicScriptCreation": 0,
+      "htmlStringSinks": 1
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
       "externalScriptTags": 0,

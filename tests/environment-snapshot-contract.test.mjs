@@ -41,3 +41,9 @@ test('environment snapshot endpoint wraps export, preview, and apply in JSON hel
     assert.match(endpointPhp, /previewEnvironmentSnapshotPayload/);
     assert.match(endpointPhp, /'import'\s*=>\s*importEnvironmentSnapshotPayload/);
 });
+
+test('environment snapshot endpoint exposes read-only FolderView3 discovery and preview', () => {
+    assert.match(endpointPhp, /detectFolderView3Installation\(\)/);
+    assert.match(endpointPhp, /previewFolderView3Migration\(\$bundle, \$sourceName\)/);
+    assert.match(endpointPhp, /decodeFolderView3BundlePayloadString/);
+});

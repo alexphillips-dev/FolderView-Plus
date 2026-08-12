@@ -173,6 +173,7 @@ test('durable configuration surfaces use the shared storage service', () => {
     const lib = [
         'lib.php',
         'lib.storage.php',
+        'lib.theme-update-plan.php',
         'lib.theme-workspace.php',
         'lib.folder-mutations.php',
         'lib.docker-order.php',

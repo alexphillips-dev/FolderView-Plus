@@ -31,6 +31,9 @@ jobs:
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
 
+      - name: Install Node validation dependencies
+        run: npm ci --ignore-scripts
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"

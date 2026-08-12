@@ -66,7 +66,7 @@ test('mobile compact mode keeps optional tree reorder controls and path hints fo
     assert.match(settingsJs, /const toggleMobileTreeReorderMode = \(type\) =>/);
     assert.match(settingsJs, /class="folder-tree-action fv-mobile-reorder-step"[\s\S]*moveFolderRow\('\$\{type\}','\$\{escapeHtml\(id\)\}',-1\)/);
     assert.match(settingsJs, /class="folder-tree-action fv-mobile-reorder-step"[\s\S]*moveFolderRow\('\$\{type\}','\$\{escapeHtml\(id\)\}',1\)/);
-    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
+    assert.match(settingsJs, /registerActions\(window,\s*\{[\s\S]*toggleMobileTreeReorderMode/);
 });
 
 test('folder action sheet remains iPhone safe-area bounded and scroll-safe', () => {

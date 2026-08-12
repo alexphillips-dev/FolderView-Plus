@@ -554,7 +554,7 @@
                                 </div>
                             `).join('');
                             return `
-                                <article class="fv-docker-command-card" data-folder-id="${escapeHtml(card.folderId)}" style="--fv-docker-command-depth:${card.depth};">
+                                <article class="fv-docker-command-card fv-docker-command-depth-${Math.max(0, Math.min(8, Number(card.depth) || 0))}" data-folder-id="${escapeHtml(card.folderId)}">
                                     <div class="fv-docker-command-card-head">
                                         <div>
                                             <div class="fv-docker-command-card-title"><img src="${folderIcon}" class="fv-docker-command-card-title-icon" alt="" loading="lazy" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON}"'> ${escapeHtml(card.folder?.name || `Folder ${card.folderId}`)}</div>

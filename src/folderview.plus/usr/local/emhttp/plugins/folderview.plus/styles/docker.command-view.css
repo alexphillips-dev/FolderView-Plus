@@ -161,6 +161,16 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     margin-left: calc(var(--fv-docker-command-depth, 0) * 18px);
 }
 
+.fv-docker-command-depth-0 { --fv-docker-command-depth: 0; }
+.fv-docker-command-depth-1 { --fv-docker-command-depth: 1; }
+.fv-docker-command-depth-2 { --fv-docker-command-depth: 2; }
+.fv-docker-command-depth-3 { --fv-docker-command-depth: 3; }
+.fv-docker-command-depth-4 { --fv-docker-command-depth: 4; }
+.fv-docker-command-depth-5 { --fv-docker-command-depth: 5; }
+.fv-docker-command-depth-6 { --fv-docker-command-depth: 6; }
+.fv-docker-command-depth-7 { --fv-docker-command-depth: 7; }
+.fv-docker-command-depth-8 { --fv-docker-command-depth: 8; }
+
 .fv-docker-command-card-head {
     display: flex;
     justify-content: space-between;

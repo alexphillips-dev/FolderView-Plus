@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "플러그인 상태를 모니터링하고, 문제를 해결하고, 지원 데이터를 공유하세요.",
     "diagnostics.actions.run": "건강 검진 실행",
     "diagnostics.actions.retest-performance": "성능 재테스트",
-    "diagnostics.actions.check-again": "다시 확인하세요",
     "diagnostics.summary.empty-title": "플러그인 상태를 확인하기 위해 건강 검사를 실행하십시오.",
     "diagnostics.summary.empty-description": "요약에서는 먼저 원시 JSON를 덤프하지 않고 Docker, VM, 저장소, 아이콘, 업데이트 문제를 호출합니다.",
     "diagnostics.state.not-checked": "체크하지 않음",

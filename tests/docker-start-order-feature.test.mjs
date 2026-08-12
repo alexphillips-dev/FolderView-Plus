@@ -6,7 +6,7 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
-const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-order.php');
 const prefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const validationPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
 const prefsEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/prefs.php');
@@ -14,7 +14,8 @@ const startOrderEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/fo
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
-const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+const utilsNormalizationJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js');
+const utilsPrefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 
 test('Docker start-order preferences are normalized and accepted', () => {
@@ -25,8 +26,8 @@ test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'batches'\s*=>\s*\$batches/);
     assert.match(validationPhp, /'dockerStartOrder'/);
     assert.match(validationPhp, /dockerStartOrder\.batches/);
-    assert.match(utilsJs, /DEFAULT_DOCKER_START_ORDER/);
-    assert.match(utilsJs, /dockerStartOrder/);
+    assert.match(utilsNormalizationJs, /DEFAULT_DOCKER_START_ORDER/);
+    assert.match(utilsPrefsJs, /dockerStartOrder/);
 });
 
 test('server builds preview and sync order from Docker page or custom batches', () => {

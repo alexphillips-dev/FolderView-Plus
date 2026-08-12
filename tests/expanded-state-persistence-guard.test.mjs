@@ -8,7 +8,8 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const libPrefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
-const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+const utilsNormalizationJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js');
+const utilsPrefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
@@ -30,9 +31,9 @@ test('server prefs contract keeps expandedFolderState default and normalization'
 });
 
 test('shared prefs normalizer keeps expandedFolderState map support', () => {
-    assert.match(utilsJs, /const normalizeExpandedFolderStateMap = \(value\) =>/);
-    assert.match(utilsJs, /const expandedFolderState = normalizeExpandedFolderStateMap\(incoming\.expandedFolderState\);/);
-    assert.match(utilsJs, /expandedFolderState,\s*[\r\n]+\s*hideEmptyFolders,/);
+    assert.match(utilsNormalizationJs, /const normalizeExpandedFolderStateMap = \(value\) =>/);
+    assert.match(utilsPrefsJs, /const expandedFolderState = normalizeExpandedFolderStateMap\(incoming\.expandedFolderState\);/);
+    assert.match(utilsPrefsJs, /expandedFolderState,\s*[\r\n]+\s*hideEmptyFolders,/);
 });
 
 test('docker runtime keeps server-backed expanded state sync contract', () => {

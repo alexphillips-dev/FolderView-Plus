@@ -5,18 +5,271 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.10.02">
-<!ENTITY md5 "2c32d0a5dde4e6d43273366b463090ac">
-<!ENTITY sha256 "fd4768fbbb8a5434cf0b7bbb220e31301a4ed5af44bb49a50d58316fc110f3ae">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.08.11.14">
+<!ENTITY md5 "005a18863193b5820cc3898389cd4823">
+<!ENTITY sha256 "24c6878599b11c4c605668f6a96a82b84d64246bc558acd208fd5ecc1d3a3f84">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.14
+## FolderView Plus 2026.08.11.14
+This development build clears the remaining release-blocking localization and CodeQL quality findings after the architecture decomposition work.
+### Release checks
+- Quality: Remove seven obsolete test source reads that became unused after their assertions moved to extracted modules.
+- Localization: Remove the unused Diagnostics `Check again` message from all 27 locale catalogs and regenerate aggregate catalog metadata.
+- Reliability: Restore strict language-usage and zero-open-alert readiness without changing plugin runtime behavior.
+### Regression coverage
+- Test: Update the localization surface contract for the reduced 2,060-message catalog and retain zero uncovered UI strings.
+
+
+###2026.08.11.13
+## FolderView Plus 2026.08.11.13
+This development build removes the redundant underline from selected tabs in the modern folder editor and the Advanced Settings workspace.
+### Tab selection
+- UI/UX: Remove the extra underline bar from selected modern folder editor tabs while retaining the selected border, background, text, and shadow treatment.
+- UI/UX: Remove the matching underline bar from selected Advanced Settings tabs while retaining their highlighted selected state.
+- Accessibility: Preserve keyboard focus indicators and the existing semantic active-tab state.
+### Regression coverage
+- Test: Add stylesheet contracts that reject either active-tab underline pseudo-element and confirm the highlighted active backgrounds remain present.
+- Quality: Ratchet the shared stylesheet line budget to its reduced size.
+
+
+###2026.08.11.12
+## FolderView Plus 2026.08.11.12
+This development build corrects a Diagnostics false positive where a successfully auto-healed host-theme accent reduced core health from 6/6 to 5/6.
+### Theme diagnostics
+- Fix: Treat successful compatibility adjustments as informational technical details instead of unresolved theme warnings.
+- Diagnostics: Keep missing tokens, indistinguishable runtime states, and failed final contrast checks actionable while reporting a fully recovered palette as healthy.
+- Reliability: Prevent the theme self-heal action from persisting a fallback mode when automatic token correction has already produced a compliant palette.
+- Accessibility: Preserve the resolver's contrast correction and support-bundle evidence, including the adjusted host accent and final contrast ratios.
+### Regression coverage
+- Test: Add contracts ensuring auto-heal telemetry does not reduce core health while unresolved contrast failures remain warnings.
+
+
+###2026.08.11.11
+## FolderView Plus 2026.08.11.11
+This development build fixes stale Docker folder actions, makes Diagnostics findings actionable, hardens host-theme reconciliation, and prevents successful WebUI popups from being reported as blocked.
+### Docker runtime and WebUI actions
+- Reliability: Reconcile expanded Docker-folder previews after container start, stop, pause, resume, and restart actions so WebUI, console, and log icons leave their busy state when the lifecycle settles.
+- Reliability: Resolve lifecycle state by canonical container name or normalized container ID and perform a targeted preview refresh instead of leaving stale browser state behind.
+- Compatibility: Open WebUI tabs through a blank browser-owned handle, isolate `window.opener`, and navigate the accepted handle so browsers that return `null` for `noopener` no longer trigger a false popup-blocked warning.
+### Diagnostics and repair guidance
+- UX: Turn priority findings into focusable controls that reveal the affected health card, technical details, recommended correction, and repair action.
+- Reliability: Require confirmation before supported repairs and explain that a backup is created before orphaned Docker member references or missing custom-icon references are changed.
+### Theme consistency
+- UI/UX: Add a shared host-theme surface that observes Unraid theme attributes, media-query changes, and extra sample targets across Docker, VM, Dashboard, Settings, and Folder Editor pages.
+- Accessibility: Auto-heal low-contrast host accents, expose the resolved editor title accent, clean up observers and media listeners on teardown, and align the Folder Editor top chrome with its dark panel surface.
+### Regression coverage
+- Quality: Add lifecycle, popup, Diagnostics action, theme observer, load-order, browser-fixture, and architecture-contract coverage for the corrected behavior.
+- Security: Refresh the CSP readiness inventory while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.10
+## FolderView Plus 2026.08.11.10
+This development build addresses second-generation JavaScript monoliths by moving shared utility and Docker/VM/Dashboard runtime domains behind bounded modules while preserving their established browser and CommonJS compatibility APIs.
+### Shared JavaScript boundaries
+- Refactor: Split normalization, preferences, ordering, import/export transfer, and runtime-rule logic out of `folderviewplus.utils.js` into five focused foundation modules.
+- Refactor: Split runtime primitives, diagnostics, and controls out of `docker.runtime.shared.js` into three shared modules used by Docker, VM, and Dashboard surfaces.
+- Compatibility: Retain the complete 49-name utility facade and the extensible shared runtime namespace used by later feature modules.
+### Enforcement and regression coverage
+- Quality: Reduce `folderviewplus.utils.js` from 2,054 to 88 lines and `docker.runtime.shared.js` from 1,511 to 460 lines.
+- Quality: Add eight browser-module ownership contracts, explicit page load-order contracts, dependency metadata, and ratcheted file budgets for every extracted module.
+- Reliability: Add Phase 7 facade and load-order regression coverage, update existing owner-location tests, and exercise the decomposed modules through browser fixtures and runtime-performance budgets.
+- Security: Refresh the CSP readiness inventory for 207 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.09
+## FolderView Plus 2026.08.11.09
+This development build completes the PHP decomposition phase by moving server domains behind enforced request-scoped modules while preserving every public endpoint, request guard, response shape, and compatibility function name.
+### PHP compatibility boundaries
+- Refactor: Split release metadata, durable storage, theme workspace and GitHub import, environment transfer, backup scheduling and snapshots, folder rules and mutations, Docker ordering, custom-icon storage, and runtime information out of `server/lib.php`.
+- Refactor: Split diagnostics redaction, integrity collection, summary modeling, and support-bundle assembly out of `server/lib.diagnostics.php`.
+- Refactor: Keep `server/upload_custom_icon.php` as a thin compatibility dispatcher backed by separate foundation, validation, and action modules.
+- Reliability: Preserve the exact 30-endpoint API manifest and all 276 core, 74 diagnostics, and 56 custom-icon public function names.
+### Enforcement and regression coverage
+- Quality: Reduce `server/lib.php` from 7,556 to 2,649 lines, `server/lib.diagnostics.php` from 2,923 to 257 lines, and `server/upload_custom_icon.php` from 1,481 to 37 lines.
+- Quality: Add 19 server-module ownership contracts with loader validation, exact function-inventory hashes, dependency metadata, and ratcheted file budgets.
+- Reliability: Add executable facade-loading tests plus endpoint-manifest, backup, storage, diagnostics, Docker ordering, theme, runtime-information, and custom-icon regression coverage for the new ownership paths.
+- Security: Refresh the CSP readiness inventory for 199 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.08
+## FolderView Plus 2026.08.11.08
+This development build finishes the current Settings and Setup Wizard decomposition phase by moving search state, local persistence, and review modeling behind enforced module boundaries without changing saved preferences or setup behavior.
+### Settings and Wizard boundaries
+- Refactor: Move privacy-safe Settings search indexing, token matching, cached results, match presentation, focus navigation, and disposal into `folderviewplus.settings-search.js`.
+- Refactor: Move Setup Wizard draft recovery, saved presets, completion flags, storage fallbacks, and payload normalization into `folderviewplus.wizard-persistence.js`.
+- Refactor: Move Setup Wizard preference diffs, impact summaries, step validation, delta chips, and corrective guidance into `folderviewplus.wizard-review.js`.
+- Reliability: Require all three extracted modules during Settings bootstrap and preserve graceful operation when browser storage is blocked.
+### Enforcement and regression coverage
+- Quality: Reduce `folderviewplus.js` from 12,092 to 11,793 lines and `folderviewplus.wizard.js` from 4,849 to 4,165 lines with ratcheted budgets for all new modules.
+- Quality: Add explicit ownership, lifecycle, load-order, package, and line-budget contracts without increasing the 375-global browser baseline.
+- Reliability: Add direct search normalization, Wizard storage/deduplication, blocked-storage, impact-delta, validation-hint, and extraction-ownership tests.
+- Security: Refresh CSP sink ownership for 180 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.07
+## FolderView Plus 2026.08.11.07
+This development build finishes the current Folder Editor decomposition phase by moving stateful selection and member-list lifecycles behind enforced module boundaries while preserving the existing editor actions and saved-folder behavior.
+### Folder Editor runtime boundaries
+- Refactor: Move regex matching, worker ownership, stale-result rejection, input debouncing, and disposal into `folder.editor.regex-selection.js`.
+- Refactor: Move member-table rendering, chunk scheduling, direct-child discovery, child-folder ordering, drag handling, and disposal into `folder.editor.member-list.js`.
+- Reliability: Require the extracted hierarchy module during bootstrap and remove the duplicate 286-line hierarchy fallback from `folder.js`.
+- Compatibility: Preserve the existing `updateRegex`, `updateForm`, `submitForm`, member ordering, nested preview ordering, and Docker/VM editor contracts.
+### Enforcement and regression coverage
+- Quality: Reduce `folder.js` from 5,522 to 4,773 lines and ratchet the two new factory-owned modules at 274 and 370 lines.
+- Quality: Add explicit ownership, lifecycle, load-order, package, and line-budget contracts for the new modules without increasing the 375-global browser baseline.
+- Reliability: Add direct regex-selection, debounce disposal, child-order reconciliation, hierarchy ownership, browser fixture, localization, and extreme-library performance coverage.
+- Security: Refresh CSP readiness for 177 scanned first-party files while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.06
+## FolderView Plus 2026.08.11.06
+This development hotfix restores Docker folder rendering after the Phase 3 ordering extraction and strengthens undeclared-symbol enforcement for the Docker runtime.
+### Docker order diagnostics hotfix
+- Fix: Restore deterministic, privacy-safe Docker order fingerprints through `docker.runtime.diagnostics.js` so folder rendering no longer fails with `buildDockerOrderFingerprint is not defined`.
+- Reliability: Require the diagnostics fingerprint API during Docker bootstrap and directly verify stable fingerprint output and reconciliation telemetry.
+- Quality: Enable targeted `no-undef` linting for `docker.js` with explicit browser and Unraid host globals so dangling application helpers fail CI.
+- Security: Refresh reviewed CSP sink locations after the bootstrap contract line movement without adding inline events, inline scripts, or style attributes.
+
+
+###2026.08.11.05
+## FolderView Plus 2026.08.11.05
+This development hotfix restores Docker page startup after the Phase 3 column-controller extraction.
+### Docker startup hotfix
+- Fix: Inject the Docker width-phase contract into `docker.runtime.column-controller.js` so width bootstrap no longer fails with `DOCKER_RUNTIME_WIDTH_PHASES is not defined`.
+- Reliability: Execute the extracted width-bootstrap controller directly in regression coverage, including its initial phase and lifecycle state reset.
+- Quality: Preserve the existing Docker and column-controller architecture line ceilings without relaxing module boundaries.
+
+
+###2026.08.11.04
+## FolderView Plus 2026.08.11.04
+This development build reduces the Docker runtime monolith first, then reuses the proven ordering and live-refresh seams in VM and Dashboard without changing host-page ownership.
+### Docker-first runtime boundaries
+- Refactor: Move Docker app-column measurement, cached-width bootstrap, gap enforcement, reflow scheduling, theme/viewport/font hooks, resizer observation, and teardown into `docker.runtime.column-controller.js`.
+- Refactor: Extend `runtime.folder-ordering.js` with shared folder-depth, slot-ordering, and order-reconciliation primitives used by Docker, VM, and Dashboard.
+- Refactor: Add `runtime.live-refresh.js` to own cadence, page-visibility gating, in-flight exclusion, release delay, snapshots, and disposal while each surface retains its own fetch and reconciliation policy.
+- Reliability: Preserve default created-order behavior, explicit sort and pin ordering, Docker new-container reconciliation, incremental runtime refresh, and pagehide cleanup.
+### Enforcement and regression coverage
+- Quality: Ratchet `docker.js` from 8,839 to 8,028 lines, `vm.js` from 4,010 to 3,945 lines, and `dashboard.js` from 3,173 to 3,152 lines.
+- Quality: Reduce cross-entrypoint function-name overlap from 46/9/8 to 40/6/6 and add explicit lifecycle, load-order, package, and line-budget contracts for the extracted modules.
+- Quality: Add direct ordering, refresh lifecycle, extraction ownership, Docker layout, privacy, and browser fixture coverage for the new boundaries.
+- Security: Regenerate CSP readiness after Docker line movement while retaining zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.03
+## FolderView Plus 2026.08.11.03
+This development build splits foundational utilities and GraphQL transport into enforceable modules while preserving the existing browser and CommonJS APIs.
+### Foundational module boundaries
+- Refactor: Move dependency-free scheduling, storage, escaping, identifier, and URL-sanitization helpers into `folderviewplus.utils-foundation.js` while keeping `FolderViewPlusUtils` as the compatibility facade.
+- Refactor: Split GraphQL request mechanics, subscription lifecycle management, and typed Docker actions into focused transport child modules while keeping `FolderViewPlusRuntimeTransport` as the public facade.
+- Compatibility: Load the new child modules in dependency order across Settings, Docker, VMs, Dashboard, Folder Editor, and deterministic browser fixtures.
+- Reliability: Preserve stale-request rejection, abort behavior, bounded subscription reconnect, CSRF headers, capability gating, and privacy-safe aggregate transport diagnostics.
+### Enforcement and regression coverage
+- Quality: Reduce the utility facade from 2,346 to 2,054 lines and the transport facade from 1,060 to 499 lines, with ratcheted budgets for every new child module.
+- Quality: Add explicit architecture contracts, namespace-member ownership, page load-order checks, compatibility-facade identity checks, and package smoke requirements for all extracted scripts.
+- Quality: Update Docker transport architecture documentation and CSP readiness metadata for the new module graph.
+- Security: Keep CSP readiness at zero inline events, inline scripts, and style attributes while retaining sanitized URL, error, and diagnostic behavior.
+
+
+###2026.08.11.02
+## FolderView Plus 2026.08.11.02
+This development build removes the Settings global-action bottleneck while preserving the existing declarative event and Unraid host compatibility contracts.
+### Registry-owned actions
+- Refactor: Move all 145 Settings actions from broad `window` publication into the owner-scoped declarative action registry.
+- Reliability: Resolve registered handlers before legacy host globals, reject invalid registrations and cross-owner collisions atomically, and release Settings-owned actions during page teardown.
+- Compatibility: Keep the legacy global fallback for current Docker, VM, Dashboard, Folder Editor, and Unraid host actions while reducing measured browser globals from 509 to 375.
+- Quality: Route the recovery diagnostics workspace through the action registry instead of a direct Settings global.
+### Enforcement and regression coverage
+- Quality: Ratchet the action architecture to at least 145 registered actions, no more than 11 registry/global overlaps, and a maximum of 375 browser globals.
+- Quality: Reject the retired broad `registerWindowActions` helper and require every static or generated declarative action to have a registry, plugin compatibility, or documented Unraid host owner.
+- Quality: Add module contracts and line budgets for the action runtime and Settings action-support module, reducing the uncontracted browser-script inventory from 100 to 98.
+- Security: Add registry precedence, teardown, validation, collision, and atomic-failure tests while keeping CSP source checks at zero inline events, inline scripts, and style attributes.
+
+
+###2026.08.11.01
+## FolderView Plus 2026.08.11.01
+This development build establishes enforceable architecture boundaries for the staged monolith-reduction program without changing plugin runtime behavior.
+### Architecture boundaries
+- Quality: Record ownership, consumers, dependencies, state models, lifecycle responsibility, and compatibility globals for existing contracted modules and primary browser/server entrypoints.
+- Quality: Replace permissive line ceilings with 38 exact, non-increasing budget histories and explicit reduction targets for primary entrypoints and oversized first-party modules.
+- Quality: Freeze the current browser-global, inline-action, and Docker/VM/Dashboard function-name overlap baselines so future coupling cannot grow silently.
+- Quality: Require newly extracted browser and PHP modules to enter a reviewed contract instead of expanding the legacy uncontracted inventory.
+### Load-order protection
+- Quality: Expand load-order validation from Settings alone to all five plugin pages, shared localization/custom bootstraps, and the Folder Editor dynamic runtime queue.
+- Quality: Validate 201 ordered script references and verify that every referenced plugin script and page entrypoint exists.
+- Quality: Add focused regression tests for page-graph coverage, boundary metadata, ratcheting histories, and legacy module inventory fingerprints.
+
+
+###2026.08.10.07
+## FolderView Plus 2026.08.10.07
+This development build fixes a Settings regression that could leave an inactive import progress dialog visible immediately after page load.
+### Settings import progress
+- Fix: Keep the import progress overlay and dialog hidden until an import or related operation explicitly opens them.
+- Accessibility: Synchronize the dialog's semantic `hidden` state with `aria-hidden` throughout its open and close lifecycle.
+- Security: Preserve CSP compatibility without restoring inline display styles.
+- Quality: Mirror the production CSS cascade in the browser fixture and verify the complete hidden, open, and closed lifecycle.
+
+
+###2026.08.10.06
+## FolderView Plus 2026.08.10.06
+This development build closes the remote CI findings from the CSP hardening release and strengthens its regression coverage.
+### DOM injection hardening
+- Security: Restore the folder-editor diagnostics copy button from cloned DOM nodes instead of reinterpreting saved button markup through `innerHTML`.
+- Security: Remove the obsolete HTML-valued button attribute and make the inline-script regression assertion case-insensitive.
+- Security: Reduce the reviewed first-party HTML-string sink inventory from 43 to 40 while retaining zero unreviewed sinks.
+### Validation reliability
+- Quality: Teach the strict localization usage guard to recognize programmatic `dataset.i18n` and `setAttribute('data-i18n', ...)` references.
+- Quality: Add source contracts that prevent the folder-editor diagnostics bootstrap from reintroducing HTML-string button restoration.
+
+
+###2026.08.10.05
+## FolderView Plus 2026.08.10.05
+This development build completes the plugin-owned CSP and HTML-injection hardening pass while preserving compatibility with Unraid's shared webGUI document.
+### CSP readiness
+- Security: Externalize all plugin-owned page, Settings, folder-editor, runtime-conflict, preflight, custom-loader, Docker layout, and localization bootstrap scripts.
+- Security: Replace plugin-owned inline style attributes with scoped utility classes, finite state classes, or validated CSS custom properties.
+- Security: Expand the CSP readiness guard to cover localization PHP, reject inline script and style blocks, and publish line-level HTML-string sink risk inventory.
+- Compatibility: Keep CSP in report-only planning mode because enforcement must be coordinated with Unraid and peer plugins sharing the document.
+- Security: Evaluate Trusted Types only in an enforced browser fixture rather than imposing a plugin-level production policy.
+### Injection resistance and verification
+- Security: Add an allowlisted safe-DOM construction helper and migrate persisted folder names and bulk-assignment results away from HTML-string rendering.
+- Security: Add malicious persisted-value fixtures covering folder and container names, template metadata, imported configuration, translations, and diagnostics.
+- Quality: Preserve static layout and theme behavior through scoped CSP utility styles and externalized bootstrap contracts across Docker, VMs, Dashboard, Settings, and the folder editor.
+- Localization: Refresh all 27 generated locale surfaces for preflight diagnostics that are now visible to the JavaScript localization scanner.
+
+
+###2026.08.10.04
+## FolderView Plus 2026.08.10.04
+This development build strengthens scheduled compatibility monitoring and clears the existing CodeQL quality backlog.
+### Monitoring and workflow reliability
+- Fix: Prove the scheduled cross-browser workflow in Chromium, Firefox, and WebKit and report when encrypted live-Unraid validation targets are not configured.
+- Maintenance: Add a daily watchdog that opens a deduplicated alert when either weekly monitoring workflow lacks a recent successful run and closes the alert after recovery.
+- Compatibility: Review Unraid API v4.37.0, confirm the Docker GraphQL signature is unchanged and the native Docker activation gate remains disabled, and advance the tracked upstream baseline.
+- Maintenance: Close resolved upstream compatibility alerts automatically after a reviewed baseline succeeds.
+### Code quality and security analysis
+- Security: Remove the environment-derived repository root from the archive preflight test that triggered CodeQL's shell-command flow warning.
+- Quality: Correct all existing first-party and vendored JavaScript CodeQL findings without dismissing alerts, including undeclared variables, unused assignments, ignored arguments, and semicolon hazards.
+- Security: Enforce a zero-open-CodeQL-alert policy for every newly analyzed commit before strengthening main-branch merge protection.
+- Security: Regenerate the runtime SBOM and explicitly identify the three locally corrected vendored libraries as modified snapshots.
+
+
+###2026.08.10.03
+## FolderView Plus 2026.08.10.03
+This development build restores the `dev` update channel after publishing stable `2026.08.10.02`.
+### Release and supply-chain reliability
+- Maintenance: Restore dev-channel manifest and package URLs while preserving the complete stable release source.
+- Fix: Install Node validation dependencies before release checks and require live Unraid, browser, and theme targets whenever their repository secrets are configured.
+- Security: Add a deterministic SHA-256 UUIDv8 serial to the CycloneDX SBOM so GitHub can publish a valid SBOM attestation without weak cryptographic algorithms.
+- Quality: Retain the full stable release validation, deterministic package, checksum, provenance, and release-note contracts on the continuing development branch.
+
 
 ###2026.08.10.02
 ## FolderView Plus 2026.08.10.02
@@ -8247,7 +8500,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

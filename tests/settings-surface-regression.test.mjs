@@ -7,11 +7,17 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
+const settingsWatchdogJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js');
 const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.diagnostics.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
 ].map((relativePath) => read(relativePath)).join('\n');
-const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPhp = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-workspace.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-github.php'
+].map(read).join('\n');
 const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
 const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
@@ -40,7 +46,8 @@ test('settings first paint is cloaked until config-only folder data is ready', (
 });
 
 test('settings loading shell avoids false blank alarms and bootstrap request storms', () => {
-    assert.match(settingsPage, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
+    assert.match(settingsPage, /folderviewplus\.settings-watchdog\.js/);
+    assert.match(settingsWatchdogJs, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
     assert.match(settingsJs, /configureThemeResolverRuntimeApi\(\{\s*getMode: getEffectiveThemeCompatibilityMode,[\s\S]*trackEvent: null/);
     assert.doesNotMatch(settingsJs, /eventType: 'theme_reflow'/);
     const initializeBlock = diagnosticsJs.match(/const initializeClientDiagnosticsPanels = \(\) => \{[\s\S]*?\n\};/)?.[0] || '';
@@ -212,6 +219,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.doesNotMatch(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{|repair_orphaned_members:\s*Object\.freeze\(\{|repairMissingIconsAction/);
     assert.match(diagnosticsJs, /const themeCard = hasResults \? buildThemeDiagnosticsSummaryCard\(\) : null;/);
+    assert.match(diagnosticsJs, /viewApi\.decorateCardsWithRecommendedActions\(rawCoreCards, diagnostics, summary\)/);
+    assert.match(diagnosticsJs, /diagnosticsViewApi\.bindActions\?\.\(\);/);
+    assert.match(settingsCss, /button\.fv-diagnostics-finding/);
+    assert.match(settingsCss, /\.fv-diagnostics-health-card\.is-focused/);
     assert.match(diagnosticsJs, /return response;/);
     assert.match(diagnosticsJs, /\['theme diagnostics', runThemeDiagnostics\],\s*\['diagnostics panels', initializeClientDiagnosticsPanels\]/);
     assert.match(diagnosticsJs, /for \(const \[label, action\] of startupActions\) \{\s*try \{\s*const result = action\(\);[\s\S]*result\.catch\(\(error\) => \{[\s\S]*diagnosticsShowError\(`Unable to initialize \$\{label\}`, error\);/);

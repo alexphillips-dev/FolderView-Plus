@@ -15,6 +15,7 @@ const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-m
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
+const scheduledWorkflowHealthPath = path.join(repoRoot, '.github/workflows/scheduled-workflow-health.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
@@ -57,7 +58,6 @@ const jsUnusedSymbolsBaselinePath = path.join(repoRoot, 'scripts/js_unused_symbo
 const eslintUnusedConfigPath = path.join(repoRoot, 'scripts/eslint-unused.config.mjs');
 const phpUnusedHelpersGuardPath = path.join(repoRoot, 'scripts/php_unused_helpers_guard.php');
 const phpUnusedHelpersBaselinePath = path.join(repoRoot, 'scripts/php_unused_helpers_baseline.json');
-const readmePath = path.join(repoRoot, 'README.md');
 const visualRuntimeContractPath = path.join(repoRoot, 'docs/visual-runtime-contract.md');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
@@ -69,9 +69,22 @@ const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
-const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const browserSmokeNode = [
+    browserSmokeNodePath,
+    path.join(repoRoot, 'scripts/lib/browser-smoke-runtime-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-docker-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-dashboard-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/browser-smoke-folder-editor-checks.mjs')
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const fixtureBrowserShell = fs.readFileSync(fixtureBrowserShellPath, 'utf8');
-const fixtureBrowserNode = fs.readFileSync(fixtureBrowserNodePath, 'utf8');
+const fixtureBrowserNode = [
+    fixtureBrowserNodePath,
+    path.join(repoRoot, 'scripts/lib/fixture-browser-server.mjs'),
+    path.join(repoRoot, 'scripts/lib/fixture-browser-runner.mjs'),
+    ...fs.readdirSync(path.join(repoRoot, 'tests/browser/cases'))
+        .filter((file) => file.endsWith('.mjs'))
+        .map((file) => path.join(repoRoot, 'tests/browser/cases', file))
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const runtimeBrowserFixture = fs.readFileSync(runtimeBrowserFixturePath, 'utf8');
 const folderEditorBrowserFixture = fs.readFileSync(folderEditorBrowserFixturePath, 'utf8');
 const importBrowserFixture = fs.readFileSync(importBrowserFixturePath, 'utf8');
@@ -83,10 +96,16 @@ const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
 const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
+const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
-const themeMatrixSmokeNode = fs.readFileSync(themeMatrixSmokeNodePath, 'utf8');
+const themeMatrixSmokeNode = [
+    themeMatrixSmokeNodePath,
+    path.join(repoRoot, 'scripts/lib/theme-matrix-settings-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/theme-matrix-runtime-checks.mjs'),
+    path.join(repoRoot, 'scripts/lib/theme-matrix-folder-editor-checks.mjs')
+].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
 const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
@@ -112,7 +131,6 @@ const jsUnusedSymbolsBaseline = JSON.parse(fs.readFileSync(jsUnusedSymbolsBaseli
 const eslintUnusedConfig = fs.readFileSync(eslintUnusedConfigPath, 'utf8');
 const phpUnusedHelpersGuard = fs.readFileSync(phpUnusedHelpersGuardPath, 'utf8');
 const phpUnusedHelpersBaseline = JSON.parse(fs.readFileSync(phpUnusedHelpersBaselinePath, 'utf8'));
-const readme = fs.readFileSync(readmePath, 'utf8');
 const visualRuntimeContract = fs.readFileSync(visualRuntimeContractPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
@@ -268,8 +286,9 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /update_notes\.php must return lines payload/);
     assert.match(releaseGuard, /update_notes\.php must return category payload/);
     assert.match(releaseGuard, /update_notes\.php must return headline payload/);
-    assert.match(releaseGuard, /lib\.php must define classifyChangesCategory/);
-    assert.match(releaseGuard, /lib\.php must define readCurrentVersionChangeSummary/);
+    assert.match(releaseGuard, /Missing lib\.release-notes\.php module/);
+    assert.match(releaseGuard, /lib\.release-notes\.php must define classifyChangesCategory/);
+    assert.match(releaseGuard, /lib\.release-notes\.php must define readCurrentVersionChangeSummary/);
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 
@@ -443,6 +462,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /bash scripts\/browser_smoke\.sh/);
     assert.match(runCiSuite, /bash scripts\/fixture_browser_tests\.sh/);
     assert.match(runCiSuite, /bash scripts\/theme_matrix_smoke\.sh/);
+    assert.match(runCiSuite, /scripts\/test_runner_contract_guard\.mjs/);
     assert.match(runCiSuite, /"\$\{NPM_BIN\}" ci --ignore-scripts/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
     assert.match(runCiSuite, /Matching Playwright browsers already cached/);
@@ -465,7 +485,18 @@ test('scheduled validation runs cross-browser fixtures and uses live Unraid targ
     assert.match(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
     assert.match(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
     assert.match(scheduledValidationWorkflow, /live_configured/);
+    assert.match(scheduledValidationWorkflow, /Live Unraid validation configuration required/);
     assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
+});
+
+test('scheduled workflow watchdog alerts on missing weekly successes and closes recovered alerts', () => {
+    assert.match(scheduledWorkflowHealth, /schedule:/);
+    assert.match(scheduledWorkflowHealth, /workflow_dispatch:/);
+    assert.match(scheduledWorkflowHealth, /actions:\s*read/);
+    assert.match(scheduledWorkflowHealth, /issues:\s*write/);
+    assert.match(scheduledWorkflowHealth, /node scripts\/scheduled_workflow_health\.mjs/);
+    assert.match(scheduledWorkflowHealth, /Scheduled workflow health requires attention/);
+    assert.match(scheduledWorkflowHealth, /gh issue close/);
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {
@@ -841,6 +872,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(themeRuntimeGuard, /docker inline status color painting/);
     assert.match(themeRuntimeGuard, /scripts loader path boundary check/);
     assert.match(eslintUnusedConfig, /no-unused-vars/);
+    assert.match(eslintUnusedConfig, /'no-undef': 'error'/);
+    assert.match(eslintUnusedConfig, /scripts\/docker\.js/);
     assert.match(eslintUnusedConfig, /scripts\/include/);
     assert.match(jsUnusedSymbolsGuard, /eslint@9/);
     assert.match(jsUnusedSymbolsGuard, /FVPLUS_JS_UNUSED_STRICT/);

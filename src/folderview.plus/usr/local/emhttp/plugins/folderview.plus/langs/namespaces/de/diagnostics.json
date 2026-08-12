@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Überwachen Sie den Plugin-Zustand, beheben Sie Probleme und teilen Sie Supportdaten.",
     "diagnostics.actions.run": "Führen Sie eine Gesundheitsprüfung durch",
     "diagnostics.actions.retest-performance": "Leistung erneut testen",
-    "diagnostics.actions.check-again": "Überprüfen Sie es noch einmal",
     "diagnostics.summary.empty-title": "Führen Sie eine Gesundheitsprüfung durch, um den Plugin-Status zu überprüfen.",
     "diagnostics.summary.empty-description": "In der Zusammenfassung werden Docker, VM, Speicher-, Symbol- und Update-Probleme angezeigt, ohne vorher Rohdaten von JSON zu löschen.",
     "diagnostics.state.not-checked": "Nicht geprüft",

@@ -15,9 +15,10 @@ const actionBarModule = require(path.join(
 ));
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
+const pageBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js');
 
 test('Docker page mounts one responsive FolderView action bar instead of a standalone add button', () => {
-    assert.match(dockerPage, /id=\"fvplus-docker-action-bar\"/);
+    assert.match(pageBootstrapJs, /actionBar\.id = 'fvplus-docker-action-bar'/);
     assert.doesNotMatch(dockerPage, /id=\"fvplus-docker-add-folder-btn\"/);
     assert.match(dockerPage, /scripts\/docker\.runtime\.action-bar\.js/);
     assert.match(actionBarJs, /const ensureHost = \(\) => \{/);

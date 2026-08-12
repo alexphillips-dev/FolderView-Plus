@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Figyelemmel kísérheti a beépülő modulok állapotát, elháríthatja a problémákat, és megoszthatja a támogatási adatokat.",
     "diagnostics.actions.run": "Futtassa le az állapotfelmérést",
     "diagnostics.actions.retest-performance": "Tesztelje újra a teljesítményt",
-    "diagnostics.actions.check-again": "Ellenőrizze újra",
     "diagnostics.summary.empty-title": "Futtassa az állapotellenőrzést a beépülő modul állapotának ellenőrzéséhez.",
     "diagnostics.summary.empty-description": "A Docker, a virtuális gép, a tárhely, az egyéni ikonok, a frissítések és a téma együtt kerülnek ellenőrzésre.",
     "diagnostics.state.not-checked": "Nincs bejelölve",

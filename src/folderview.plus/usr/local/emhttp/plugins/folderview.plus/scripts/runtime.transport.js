@@ -4,14 +4,47 @@
         ? window
         : (typeof globalThis !== 'undefined' ? globalThis : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory(
+            fallbackWindow,
+            require('./runtime.transport.core.js'),
+            require('./runtime.transport.subscription.js'),
+            require('./runtime.transport.docker-actions.js')
+        );
         return;
     }
-    root.FolderViewPlusRuntimeTransport = factory(fallbackWindow);
-    root.FolderViewPlusRuntimeTransportModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function runtimeTransportFactory(fallbackWindow) {
+    root.FolderViewPlusRuntimeTransport = factory(
+        fallbackWindow,
+        root.FolderViewPlusFoundationModules?.transportCore,
+        root.FolderViewPlusFoundationModules?.transportSubscription,
+        root.FolderViewPlusFoundationModules?.transportDockerActions
+    );
+}(typeof window !== 'undefined' ? window : {}, function runtimeTransportFactory(fallbackWindow, transportCoreModule, subscriptionModule, dockerActionsModule) {
     'use strict';
-
+    if (!transportCoreModule || typeof transportCoreModule.createClient !== 'function') {
+        throw new Error('FolderView Plus runtime transport core is unavailable.');
+    }
+    if (!subscriptionModule || typeof subscriptionModule.createRuntime !== 'function') {
+        throw new Error('FolderView Plus runtime subscription transport is unavailable.');
+    }
+    if (!dockerActionsModule || typeof dockerActionsModule.createRuntime !== 'function') {
+        throw new Error('FolderView Plus Docker action transport is unavailable.');
+    }
+    const requestCore = transportCoreModule.createClient(fallbackWindow);
+    const {
+        RuntimeTransportError,
+        clone,
+        csrfToken,
+        query,
+        record
+    } = requestCore;
+    const subscriptionRuntime = subscriptionModule.createRuntime({
+        fallbackWindow,
+        graphqlEndpoint: '/graphql',
+        RuntimeTransportError,
+        csrfToken,
+        record
+    });
+    const { subscribe } = subscriptionRuntime;
     const GRAPHQL_ENDPOINT = '/graphql';
     const GRAPHQL_CAPABILITY_QUERY = `
         query FVPlusDockerCapabilities {
@@ -68,16 +101,6 @@
     `;
     const GRAPHQL_CURRENT_SHAPE_PROBE = 'query FVPlusDockerShape { docker { containers { __typename } } }';
     const GRAPHQL_LEGACY_SHAPE_PROBE = 'query FVPlusLegacyDockerShape { dockerContainers { __typename } }';
-    const DOCKER_ACTIONS = Object.freeze({
-        start: 'start',
-        stop: 'stop',
-        restart: 'restart',
-        pause: 'pause',
-        resume: 'unpause',
-        unpause: 'unpause'
-    });
-    const diagnostics = [];
-    const staleGenerations = new Map();
     let capabilityProbePromise = null;
     let capabilitySnapshot = Object.freeze({
         schemaVersion: 3,
@@ -130,211 +153,6 @@
         }),
         lastErrorCategory: null
     });
-
-    class RuntimeTransportError extends Error {
-        constructor(message, options = {}) {
-            super(String(message || 'Runtime transport request failed.'));
-            this.name = 'RuntimeTransportError';
-            this.category = String(options.category || 'request-failed');
-            this.status = Number.isFinite(Number(options.status)) ? Number(options.status) : 0;
-            this.retryable = options.retryable === true;
-            this.partialData = options.partialData || null;
-        }
-    }
-
-    const clone = (value) => {
-        try {
-            return JSON.parse(JSON.stringify(value));
-        } catch (_error) {
-            return null;
-        }
-    };
-    const record = (event, details = {}) => {
-        diagnostics.push({
-            event: String(event || 'runtime-transport'),
-            at: new Date().toISOString(),
-            ...details
-        });
-        if (diagnostics.length > 100) diagnostics.splice(0, diagnostics.length - 100);
-    };
-    const csrfToken = (win = fallbackWindow) => String(win?.csrf_token || '').trim();
-    const buildHeaders = (options = {}, win = fallbackWindow) => {
-        const headers = {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        };
-        const token = String(options.csrfToken || csrfToken(win)).trim();
-        if (token && !Object.keys(headers).some((name) => name.toLowerCase() === 'x-csrf-token')) {
-            headers['x-csrf-token'] = token;
-        }
-        return headers;
-    };
-    const classifyHttpError = (status) => {
-        if (status === 401) return { category: 'authentication-required', message: 'GraphQL authentication is required.', retryable: false };
-        if (status === 403) return { category: 'permission-denied', message: 'GraphQL permission was denied.', retryable: false };
-        if (status === 429) return { category: 'rate-limited', message: 'GraphQL request was rate limited.', retryable: true };
-        if (status >= 500) return { category: 'service-unavailable', message: 'The GraphQL service is unavailable.', retryable: true };
-        return { category: 'http-error', message: 'The GraphQL request was rejected.', retryable: false };
-    };
-    const classifyGraphqlErrors = (errors = []) => {
-        const text = errors.map((entry) => String(entry?.message || '')).join(' ').toLowerCase();
-        const codes = errors.map((entry) => String(entry?.extensions?.code || '').toLowerCase());
-        if (codes.some((code) => code.includes('unauth')) || /authenticat|not logged/.test(text)) {
-            return { category: 'authentication-required', message: 'GraphQL authentication is required.', retryable: false };
-        }
-        if (codes.some((code) => code.includes('forbidden')) || /forbidden|permission|not authorized/.test(text)) {
-            return { category: 'permission-denied', message: 'GraphQL permission was denied.', retryable: false };
-        }
-        if (/cannot query field|unknown (?:field|argument|type)|validation/.test(text)) {
-            return { category: 'capability-unavailable', message: 'The requested GraphQL capability is unavailable.', retryable: false };
-        }
-        return { category: 'graphql-error', message: 'The GraphQL operation failed.', retryable: false };
-    };
-    const createAbortBoundary = (options = {}, win = fallbackWindow) => {
-        const timeoutMs = Math.max(0, Number(options.timeoutMs) || 0);
-        const externalSignal = options.signal || null;
-        const Controller = win?.AbortController || (typeof AbortController !== 'undefined' ? AbortController : null);
-        if (!Controller || (!timeoutMs && !externalSignal)) {
-            return { signal: externalSignal || undefined, cleanup: () => {}, timedOut: () => false };
-        }
-        const controller = new Controller();
-        let didTimeout = false;
-        let timer = null;
-        const abortFromExternal = () => controller.abort(externalSignal?.reason);
-        if (externalSignal?.aborted) abortFromExternal();
-        else externalSignal?.addEventListener?.('abort', abortFromExternal, { once: true });
-        if (timeoutMs) {
-            timer = win.setTimeout(() => {
-                didTimeout = true;
-                controller.abort();
-            }, timeoutMs);
-        }
-        return {
-            signal: controller.signal,
-            timedOut: () => didTimeout,
-            cleanup: () => {
-                if (timer !== null) win.clearTimeout(timer);
-                externalSignal?.removeEventListener?.('abort', abortFromExternal);
-            }
-        };
-    };
-
-    const query = async (document, variables = {}, options = {}) => {
-        const win = options.window || fallbackWindow;
-        if (typeof win?.fetch !== 'function') {
-            throw new RuntimeTransportError('Fetch is unavailable.', {
-                category: 'fetch-unavailable',
-                retryable: false
-            });
-        }
-        const operation = String(options.operation || 'graphql').trim() || 'graphql';
-        const endpoint = String(options.endpoint || GRAPHQL_ENDPOINT);
-        const staleKey = String(options.staleKey || '').trim();
-        const generation = staleKey
-            ? (staleGenerations.get(staleKey) || 0) + 1
-            : 0;
-        if (staleKey) staleGenerations.set(staleKey, generation);
-        const abortBoundary = createAbortBoundary(options, win);
-        const startedAt = Date.now();
-        try {
-            const response = await win.fetch(endpoint, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: buildHeaders(options, win),
-                body: JSON.stringify({
-                    query: String(document || ''),
-                    variables: variables && typeof variables === 'object' ? variables : {}
-                }),
-                signal: abortBoundary.signal
-            });
-            if (staleKey && staleGenerations.get(staleKey) !== generation) {
-                throw new RuntimeTransportError('A newer request replaced this response.', {
-                    category: 'stale-response',
-                    retryable: false
-                });
-            }
-            const payload = await response.json().catch(() => null);
-            if (staleKey && staleGenerations.get(staleKey) !== generation) {
-                throw new RuntimeTransportError('A newer request replaced this response.', {
-                    category: 'stale-response',
-                    retryable: false
-                });
-            }
-            const durationMs = Date.now() - startedAt;
-            if (!response.ok) {
-                const classification = classifyHttpError(response.status);
-                record('graphql', {
-                    operation,
-                    ok: false,
-                    status: response.status,
-                    durationMs,
-                    category: classification.category
-                });
-                throw new RuntimeTransportError(classification.message, {
-                    ...classification,
-                    status: response.status
-                });
-            }
-            if (!payload || typeof payload !== 'object') {
-                record('graphql', {
-                    operation,
-                    ok: false,
-                    status: response.status,
-                    durationMs,
-                    category: 'invalid-response'
-                });
-                throw new RuntimeTransportError('The GraphQL service returned an invalid response.', {
-                    category: 'invalid-response',
-                    retryable: true
-                });
-            }
-            if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-                const classification = classifyGraphqlErrors(payload.errors);
-                const partialData = payload.data && typeof payload.data === 'object' ? payload.data : null;
-                record('graphql', {
-                    operation,
-                    ok: options.allowPartialData === true && Boolean(partialData),
-                    partial: Boolean(partialData),
-                    status: response.status,
-                    durationMs,
-                    category: classification.category
-                });
-                if (options.allowPartialData === true && partialData) return partialData;
-                throw new RuntimeTransportError(classification.message, {
-                    ...classification,
-                    partialData
-                });
-            }
-            record('graphql', {
-                operation,
-                ok: true,
-                status: response.status,
-                durationMs
-            });
-            return payload.data || {};
-        } catch (rawError) {
-            if (rawError instanceof RuntimeTransportError) throw rawError;
-            const aborted = rawError?.name === 'AbortError';
-            const category = aborted
-                ? (abortBoundary.timedOut() ? 'timeout' : 'aborted')
-                : 'offline';
-            record('graphql', {
-                operation,
-                ok: false,
-                status: 0,
-                durationMs: Date.now() - startedAt,
-                category
-            });
-            throw new RuntimeTransportError(
-                category === 'timeout'
-                    ? 'The GraphQL request timed out.'
-                    : (category === 'aborted' ? 'The GraphQL request was cancelled.' : 'The GraphQL service could not be reached.'),
-                { category, retryable: category === 'timeout' || category === 'offline' }
-            );
-        } finally {
-            abortBoundary.cleanup();
-        }
-    };
 
     const typeRefToString = (typeRef) => {
         if (!typeRef || typeof typeRef !== 'object') return 'unknown';
@@ -640,398 +458,19 @@
         return capabilityProbePromise;
     };
 
-    const resolveWebSocketUrl = (options = {}, win = fallbackWindow) => {
-        if (options.webSocketUrl) return String(options.webSocketUrl);
-        if (options.autoWebSocket !== true || !win?.location?.href) return '';
-        try {
-            const url = new URL(String(options.endpoint || GRAPHQL_ENDPOINT), win.location.href);
-            url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-            return url.toString();
-        } catch (_error) {
-            return '';
-        }
-    };
-    const subscribe = (options = {}) => {
-        const win = options.window || fallbackWindow;
-        const onData = typeof options.onData === 'function' ? options.onData : () => {};
-        const onError = typeof options.onError === 'function' ? options.onError : () => {};
-        const onStatus = typeof options.onStatus === 'function' ? options.onStatus : () => {};
-        const requestedMaxReconnects = Number(options.maxReconnects);
-        const maxReconnects = Math.max(
-            0,
-            Math.min(10, Number.isFinite(requestedMaxReconnects) ? requestedMaxReconnects : 4)
-        );
-        const webSocketUrl = resolveWebSocketUrl(options, win);
-        const subscriptionId = String(options.subscriptionId || 'fvplus-runtime');
-        let disposed = false;
-        let socket = null;
-        let socketAckTimer = null;
-        let eventSource = null;
-        let reconnectTimer = null;
-        let reconnectCount = 0;
-        let pollTimer = null;
-        let pollActive = false;
-        let transport = 'none';
-        let status = 'idle';
-
-        const setStatus = (nextStatus, details = {}) => {
-            status = nextStatus;
-            onStatus({ status, transport, reconnectCount, ...details });
-        };
-        const scheduleReconnect = () => {
-            if (disposed || reconnectCount >= maxReconnects) {
-                setStatus(disposed ? 'closed' : 'failed');
-                return;
-            }
-            const delayMs = Math.min(30000, Math.max(250, Number(options.reconnectBaseMs) || 500) * (2 ** reconnectCount));
-            reconnectCount += 1;
-            setStatus('reconnecting', { delayMs });
-            reconnectTimer = win.setTimeout(openWebSocket, delayMs);
-        };
-        const openWebSocket = () => {
-            if (disposed || !webSocketUrl || typeof win?.WebSocket !== 'function') return;
-            transport = 'websocket';
-            setStatus(reconnectCount > 0 ? 'reconnecting' : 'connecting');
-            try {
-                socket = new win.WebSocket(webSocketUrl, 'graphql-transport-ws');
-            } catch (_error) {
-                onError(new RuntimeTransportError('The GraphQL subscription could not be opened.', {
-                    category: 'subscription-open-failed',
-                    retryable: true
-                }));
-                scheduleReconnect();
-                return;
-            }
-            socket.addEventListener('open', () => {
-                const params = { ...(options.connectionParams || {}) };
-                const token = String(options.csrfToken || csrfToken(win)).trim();
-                if (token) params['x-csrf-token'] = token;
-                socket.send(JSON.stringify({ type: 'connection_init', payload: params }));
-                setStatus('authenticating');
-                socketAckTimer = win.setTimeout(() => {
-                    socketAckTimer = null;
-                    if (socket?.readyState <= 1 && status === 'authenticating') {
-                        socket.close(4408, 'GraphQL connection acknowledgement timed out');
-                    }
-                }, Math.max(1000, Number(options.connectionAckTimeoutMs) || 6000));
-            });
-            socket.addEventListener('message', (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.type === 'connection_ack') {
-                        if (socketAckTimer !== null) win.clearTimeout(socketAckTimer);
-                        socketAckTimer = null;
-                        reconnectCount = 0;
-                        socket.send(JSON.stringify({
-                            id: subscriptionId,
-                            type: 'subscribe',
-                            payload: {
-                                query: String(options.document || ''),
-                                variables: options.variables || {}
-                            }
-                        }));
-                        setStatus('active');
-                    } else if (message.type === 'next') {
-                        onData(message.payload?.data || message.payload);
-                    } else if (message.type === 'error') {
-                        onError(new RuntimeTransportError('The GraphQL subscription reported an error.', {
-                            category: 'subscription-error',
-                            retryable: false
-                        }));
-                    } else if (message.type === 'complete') {
-                        setStatus('complete');
-                    } else if (message.type === 'ping') {
-                        socket.send(JSON.stringify({ type: 'pong', payload: message.payload }));
-                    }
-                } catch (_error) {
-                    onError(new RuntimeTransportError('The GraphQL subscription returned invalid data.', {
-                        category: 'invalid-subscription-response',
-                        retryable: true
-                    }));
-                }
-            });
-            socket.addEventListener('error', () => {
-                onError(new RuntimeTransportError('The GraphQL subscription connection failed.', {
-                    category: 'subscription-offline',
-                    retryable: true
-                }));
-            });
-            socket.addEventListener('close', (event) => {
-                if (socketAckTimer !== null) win.clearTimeout(socketAckTimer);
-                socketAckTimer = null;
-                socket = null;
-                if (disposed || event?.code === 1000) {
-                    setStatus('closed');
-                    return;
-                }
-                scheduleReconnect();
-            });
-            record('subscription-open', { transport });
-        };
-        const startEventSource = () => {
-            transport = 'sse';
-            setStatus('connecting');
-            eventSource = new win.EventSource(String(options.sseUrl), { withCredentials: true });
-            eventSource.onopen = () => setStatus('active');
-            eventSource.onmessage = (event) => {
-                try {
-                    onData(JSON.parse(event.data));
-                } catch (_error) {
-                    onData(event.data);
-                }
-            };
-            eventSource.onerror = () => {
-                onError(new RuntimeTransportError('The event stream connection failed.', {
-                    category: 'subscription-offline',
-                    retryable: true
-                }));
-                setStatus('degraded');
-            };
-            record('subscription-open', { transport });
-        };
-        const startPoll = () => {
-            transport = 'poll';
-            const interval = Math.max(1000, Number(options.pollIntervalMs) || 5000);
-            const tick = async () => {
-                if (disposed || pollActive) return;
-                pollActive = true;
-                try {
-                    const data = await options.poll();
-                    if (disposed) return;
-                    onData(data);
-                    setStatus('active');
-                } catch (_error) {
-                    if (disposed) return;
-                    onError(new RuntimeTransportError('The Docker polling request failed.', {
-                        category: 'poll-failed',
-                        retryable: true
-                    }));
-                    setStatus('degraded');
-                } finally {
-                    pollActive = false;
-                }
-            };
-            setStatus('connecting');
-            tick();
-            pollTimer = win.setInterval(tick, interval);
-            record('subscription-open', { transport });
-        };
-
-        if (webSocketUrl && typeof win?.WebSocket === 'function') openWebSocket();
-        else if (options.sseUrl && typeof win?.EventSource === 'function') startEventSource();
-        else if (typeof options.poll === 'function') startPoll();
-        else {
-            setStatus('unavailable');
-            record('subscription-skipped', { reason: 'no-compatible-adapter' });
-        }
-        const dispose = () => {
-            if (disposed) return;
-            disposed = true;
-            if (reconnectTimer !== null) win.clearTimeout(reconnectTimer);
-            if (pollTimer !== null) win.clearInterval(pollTimer);
-            if (socketAckTimer !== null) win.clearTimeout(socketAckTimer);
-            eventSource?.close?.();
-            eventSource = null;
-            if (socket?.readyState === 1) {
-                try {
-                    socket.send(JSON.stringify({ id: subscriptionId, type: 'complete' }));
-                } catch (_error) {
-                    // The socket is closing; completion is best effort.
-                }
-            }
-            if (socket?.readyState <= 1) socket.close(1000, 'FolderView Plus closed');
-            socket = null;
-            setStatus('closed');
-            record('subscription-close', { transport });
-        };
-        options.signal?.addEventListener?.('abort', dispose, { once: true });
-        dispose.snapshot = () => ({
-            transport,
-            status,
-            reconnectCount,
-            disposed
-        });
-        return dispose;
-    };
-
-    const buildDockerActionMutation = (action) => `
-        mutation FVPlusDocker${action.charAt(0).toUpperCase()}${action.slice(1)}($id: PrefixedID!) {
-            docker {
-                ${action}(id: $id) { id names state status }
-            }
-        }
-    `;
-    const runDockerAction = async (request = {}, options = {}) => {
-        const win = options.window || fallbackWindow;
-        const requestedAction = String(request.action || '').trim().toLowerCase();
-        const action = DOCKER_ACTIONS[requestedAction] || '';
-        const container = String(request.containerId || request.container || '').trim();
-        if (!action || !container) {
-            return Promise.reject(new RuntimeTransportError('Docker action and container are required.', {
-                category: 'invalid-action-request',
-                retryable: false
-            }));
-        }
-        if (typeof options.graphqlMutation === 'string' && options.graphqlMutation.trim()) {
-            const data = await query(options.graphqlMutation, options.variables || { action, container }, {
-                ...options,
-                window: win,
-                operation: `docker-${action}`
-            });
-            return { transport: 'graphql', data };
-        }
-        const useGraphql = options.forceGraphql === true || typeof win?.eventControl !== 'function';
-        if (useGraphql) {
-            const capabilities = options.capabilitySnapshot || await probeCapabilities({
-                ...options,
-                window: win
-            });
-            if (capabilities.mutation?.[action] !== true
-                || !operationAcceptsArguments(capabilities.operations?.[action], { id: 'PrefixedID!' })) {
-                throw new RuntimeTransportError(`Docker ${action} is unavailable through this Unraid API version.`, {
-                    category: 'capability-unavailable',
-                    retryable: false
-                });
-            }
-            const data = await query(buildDockerActionMutation(action), { id: container }, {
-                ...options,
-                window: win,
-                operation: `docker-${action}`
-            });
-            record('docker-action', { transport: 'graphql', action, ok: true });
-            return { transport: 'graphql', data };
-        }
-        win.eventControl({ action: requestedAction, container }, options.refreshTarget || 'loadlist');
-        record('docker-action', { transport: 'host-event-control', action: requestedAction, ok: true });
-        return { transport: 'host-event-control' };
-    };
-
-    const DOCKER_MUTATION_OPERATIONS = Object.freeze({
-        removeContainer: {
-            document: `mutation FVPlusDockerRemove($id: PrefixedID!, $withImage: Boolean) {
-                docker { removeContainer(id: $id, withImage: $withImage) }
-            }`,
-            variables: (request) => ({
-                id: String(request.containerId || request.container || '').trim(),
-                withImage: request.withImage === true
-            })
-        },
-        updateContainer: {
-            document: `mutation FVPlusDockerUpdate($id: PrefixedID!) {
-                docker { updateContainer(id: $id) { id names state status } }
-            }`,
-            variables: (request) => ({
-                id: String(request.containerId || request.container || '').trim()
-            })
-        },
-        updateContainers: {
-            document: `mutation FVPlusDockerUpdateMany($ids: [PrefixedID!]!) {
-                docker { updateContainers(ids: $ids) { id names state status } }
-            }`,
-            variables: (request) => ({
-                ids: (Array.isArray(request.containerIds) ? request.containerIds : [])
-                    .map((value) => String(value || '').trim())
-                    .filter(Boolean)
-            })
-        },
-        updateAllContainers: {
-            document: `mutation FVPlusDockerUpdateAll {
-                docker { updateAllContainers { id names state status } }
-            }`,
-            variables: () => ({})
-        },
-        updateAutostartConfiguration: {
-            document: `mutation FVPlusDockerAutostart(
-                $entries: [DockerAutostartEntryInput!]!,
-                $persistUserPreferences: Boolean
-            ) {
-                docker {
-                    updateAutostartConfiguration(
-                        entries: $entries,
-                        persistUserPreferences: $persistUserPreferences
-                    )
-                }
-            }`,
-            variables: (request) => ({
-                entries: (Array.isArray(request.entries) ? request.entries : []).map((entry) => ({
-                    id: String(entry?.id || '').trim(),
-                    autoStart: entry?.autoStart === true,
-                    ...(Number.isFinite(Number(entry?.wait))
-                        ? { wait: Math.max(0, Math.trunc(Number(entry.wait))) }
-                        : {})
-                })).filter((entry) => Boolean(entry.id)),
-                persistUserPreferences: request.persistUserPreferences !== false
-            })
-        },
-        refreshDockerDigests: {
-            document: 'mutation FVPlusRefreshDockerDigests { refreshDockerDigests }',
-            variables: () => ({})
-        }
+    const dockerActionRuntime = dockerActionsModule.createRuntime({
+        fallbackWindow,
+        RuntimeTransportError,
+        operationAcceptsArguments,
+        probeCapabilities,
+        query,
+        record
     });
-    const DOCKER_MUTATION_ARGUMENTS = Object.freeze({
-        removeContainer: { id: 'PrefixedID!', withImage: 'Boolean' },
-        updateContainer: { id: 'PrefixedID!' },
-        updateContainers: { ids: '[PrefixedID!]!' },
-        updateAllContainers: {},
-        updateAutostartConfiguration: { entries: '[DockerAutostartEntryInput!]!', persistUserPreferences: 'Boolean' },
-        refreshDockerDigests: {}
-    });
-    const runDockerMutation = async (request = {}, options = {}) => {
-        const win = options.window || fallbackWindow;
-        const operation = String(request.operation || '').trim();
-        const definition = DOCKER_MUTATION_OPERATIONS[operation];
-        if (!definition) {
-            throw new RuntimeTransportError('The requested Docker mutation is not supported.', {
-                category: 'invalid-action-request',
-                retryable: false
-            });
-        }
-        const capabilities = options.capabilitySnapshot || await probeCapabilities({
-            ...options,
-            window: win
-        });
-        const available = operation === 'refreshDockerDigests'
-            ? capabilities.rootMutation?.refreshDockerDigests === true
-            : capabilities.mutation?.[operation] === true;
-        if (!available || !operationAcceptsArguments(
-            capabilities.operations?.[operation],
-            DOCKER_MUTATION_ARGUMENTS[operation]
-        )) {
-            throw new RuntimeTransportError(`Docker ${operation} is unavailable through this Unraid API.`, {
-                category: 'capability-unavailable',
-                retryable: false
-            });
-        }
-        const variables = definition.variables(request);
-        if (
-            ['removeContainer', 'updateContainer'].includes(operation)
-            && !String(variables.id || '').trim()
-        ) {
-            throw new RuntimeTransportError('A Docker container identity is required.', {
-                category: 'invalid-action-request',
-                retryable: false
-            });
-        }
-        if (operation === 'updateContainers' && variables.ids.length === 0) {
-            throw new RuntimeTransportError('At least one Docker container identity is required.', {
-                category: 'invalid-action-request',
-                retryable: false
-            });
-        }
-        if (operation === 'updateAutostartConfiguration' && variables.entries.length === 0) {
-            throw new RuntimeTransportError('At least one Docker autostart entry is required.', {
-                category: 'invalid-action-request',
-                retryable: false
-            });
-        }
-        const data = await query(definition.document, variables, {
-            ...options,
-            window: win,
-            operation: `docker-${operation}`
-        });
-        record('docker-mutation', { transport: 'graphql', operation, ok: true });
-        return { transport: 'graphql', operation, data };
-    };
+    const {
+        DOCKER_MUTATION_OPERATIONS,
+        runDockerAction,
+        runDockerMutation
+    } = dockerActionRuntime;
 
     const capabilities = (win = fallbackWindow) => Object.freeze({
         graphql: typeof win?.fetch === 'function',
@@ -1054,6 +493,6 @@
         runDockerAction,
         runDockerMutation,
         capabilities,
-        diagnostics: () => diagnostics.map((entry) => ({ ...entry }))
+        diagnostics: requestCore.diagnostics
     });
 }));

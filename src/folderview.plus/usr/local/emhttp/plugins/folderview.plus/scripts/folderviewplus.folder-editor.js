@@ -674,7 +674,7 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
 
     const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
     const orderWithoutSource = fullOrder.filter((id) => id !== sourceId);
-    let insertIndex = orderWithoutSource.length;
+    let insertIndex;
     if (mode === 'before') {
         const targetIndex = orderWithoutSource.indexOf(targetId);
         insertIndex = targetIndex >= 0 ? targetIndex : orderWithoutSource.length;

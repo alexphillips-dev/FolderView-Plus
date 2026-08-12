@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Övervaka plugin-tillståndet, felsök problem och dela supportdata.",
     "diagnostics.actions.run": "Kör hälsokontroll",
     "diagnostics.actions.retest-performance": "Testa om prestanda",
-    "diagnostics.actions.check-again": "Kontrollera igen",
     "diagnostics.summary.empty-title": "Kör hälsokontroll för att inspektera pluginens tillstånd.",
     "diagnostics.summary.empty-description": "Sammanfattningen kommer att påpeka Docker, VM, lagring, ikon och uppdateringsproblem utan att först dumpa råa JSON.",
     "diagnostics.state.not-checked": "Ej kontrollerat",

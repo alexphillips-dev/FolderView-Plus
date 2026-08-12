@@ -12,17 +12,33 @@ const libPrefsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
 );
-const libDiagnosticsPath = path.join(
-    repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php'
-);
 const readInfoPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'
 );
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const readServerGraph = (names) => names
+    .map((name) => fs.readFileSync(path.join(path.dirname(libPath), name), 'utf8'))
+    .join('\n');
+const libPhp = readServerGraph([
+    'lib.php',
+    'lib.backup-snapshots.php',
+    'lib.folder-mutations.php',
+    'lib.custom-icon-storage.php',
+    'lib.docker-order.php',
+    'lib.runtime-info.php'
+]);
+const runtimeConflictBootstrap = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.conflict-bootstrap.js'
+), 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
-const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const libDiagnosticsPhp = readServerGraph([
+    'lib.diagnostics.php',
+    'lib.diagnostics-redaction.php',
+    'lib.diagnostics-integrity.php',
+    'lib.diagnostics-summary.php',
+    'lib.diagnostics-support-bundle.php'
+]);
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const diagnosticsEndpointPath = path.join(
     repoRoot,
@@ -198,10 +214,11 @@ test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.doesNotMatch(libPhp, /class="notice"/);
     assert.match(libPhp, /Keep <strong>FolderView Plus<\/strong> installed/);
     assert.match(libPhp, /target="_blank" rel="noopener noreferrer"[^>]*>Support Thread/);
-    assert.match(libPhp, /<button type="button" class="btn"/);
+    assert.match(libPhp, /<button type="button" class="btn fv-runtime-conflict-button"/);
     assert.match(libPhp, /window\.location\.href=\\'\/Plugins\\'/);
-    assert.match(libPhp, /localStorage\.setItem\([^)]*fv\.runtimeConflict\.active\.v1/);
-    assert.match(libPhp, /localStorage\.removeItem\([^)]*fv\.runtimeConflict\.resolvedPending\.v1/);
+    assert.match(libPhp, /runtime\.conflict-bootstrap\.js/);
+    assert.match(runtimeConflictBootstrap, /localStorage\?\.setItem\('fv\.runtimeConflict\.active\.v1'/);
+    assert.match(runtimeConflictBootstrap, /localStorage\?\.removeItem\('fv\.runtimeConflict\.resolvedPending\.v1'/);
     assert.doesNotMatch(libPhp, /Remove either FolderView Plus/);
 });
 

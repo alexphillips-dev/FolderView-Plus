@@ -733,7 +733,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
         swal({
             title: `Choose ${typeLabel} starter templates`,
-            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help"><strong>Smart</strong> uses detected ${typeLabel === 'Docker' ? 'container' : 'VM'} names to pre-pick relevant folders. Pick a category, then choose what to deploy. Existing matching folder names will be skipped.</div><div class="fv-starter-template-categories">${categoryHtml}</div><div class="fv-starter-template-options">${optionsHtml}</div><div class="fv-starter-template-empty" style="display:none;">No templates in this category.</div></div>`,
+            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help"><strong>Smart</strong> uses detected ${typeLabel === 'Docker' ? 'container' : 'VM'} names to pre-pick relevant folders. Pick a category, then choose what to deploy. Existing matching folder names will be skipped.</div><div class="fv-starter-template-categories">${categoryHtml}</div><div class="fv-starter-template-options">${optionsHtml}</div><div class="fv-starter-template-empty" data-fvplus-style="fv-u-xcjvns">No templates in this category.</div></div>`,
             html: true,
             type: 'info',
             showCancelButton: true,

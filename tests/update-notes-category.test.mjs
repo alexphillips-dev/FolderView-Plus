@@ -8,7 +8,10 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
-const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPhp = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.release-notes.php'
+].map(read).join('\n');
 const updateNotesPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/update_notes.php');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');

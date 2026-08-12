@@ -384,7 +384,7 @@
 
 			// Check if the restore to Latin number flag is set:
 			if ( integer ) {
-				if ( parseFloat( num, 10 ) === num ) {
+				if ( parseFloat( num ) === num ) {
 					return num;
 				}
 
@@ -405,7 +405,7 @@
 				}
 			}
 
-			return integer ? parseFloat( convertedNumber, 10 ) : convertedNumber;
+			return integer ? parseFloat( convertedNumber ) : convertedNumber;
 		},
 
 		/**

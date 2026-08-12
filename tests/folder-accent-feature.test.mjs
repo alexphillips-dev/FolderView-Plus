@@ -50,8 +50,8 @@ test('modern folder editor persists accent color settings end to end', () => {
     assert.match(folderPreviewJs, /const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);/);
     assert.match(folderPreviewJs, /const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);/);
     assert.match(folderPreviewJs, /has-accent/);
-    assert.match(folderChromeJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
-    assert.match(folderJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderChromeJs, /id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderJs, /id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
     assert.match(folderPreviewJs, /\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);/);
     assert.match(folderPreviewJs, /\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
     assert.match(folderPreviewJs, /const updateLiveSummary = \(\) => \{[\s\S]*const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);[\s\S]*const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);[\s\S]*\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);[\s\S]*\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);

@@ -33,6 +33,7 @@ for (const relativePath of [
   '.github/workflows/dependency-review.yml',
   '.github/workflows/scorecard.yml',
   '.github/workflows/scheduled-validation.yml',
+  '.github/workflows/scheduled-workflow-health.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml',
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
@@ -45,6 +46,8 @@ for (const relativePath of [
   'scripts/runtime_performance_benchmarks.mjs',
   'scripts/runtime_perf_budgets.json',
   'scripts/runtime_perf_baseline.json',
+  'scripts/scheduled_workflow_health.mjs',
+  'scripts/codeql_alert_guard.mjs',
   'scripts/build_release_notes.sh',
   'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
@@ -61,6 +64,7 @@ const codeqlWorkflow = read('.github/workflows/codeql.yml');
 const dependencyReviewWorkflow = read('.github/workflows/dependency-review.yml');
 const scorecardWorkflow = read('.github/workflows/scorecard.yml');
 const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
+const scheduledWorkflowHealthWorkflow = read('.github/workflows/scheduled-workflow-health.yml');
 const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
 const jobBlock = (workflow, jobName) => {
   const match = workflow.match(new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'));
@@ -103,6 +107,9 @@ if (!/fixture-browser:/.test(ciWorkflow) || !/--lane fixture-browser/.test(ciWor
 }
 if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh'))) {
   fail('The deterministic fixture browser lane must enforce runtime performance budgets.');
+}
+if (!/test_runner_contract_guard\.mjs/.test(read('scripts/run_ci_suite.sh'))) {
+  fail('The shared lint lane must enforce split test-runner contracts.');
 }
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');
@@ -163,6 +170,9 @@ if (!/permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*atte
 }
 if ((codeqlWorkflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length !== 3) {
   fail('CodeQL must use commit-pinned v4 init, autobuild, and analyze actions.');
+}
+if (!/node scripts\/codeql_alert_guard\.mjs --commit-sha/.test(codeqlWorkflow)) {
+  fail('CodeQL must enforce zero open alerts for the analyzed commit.');
 }
 if (!/actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/.test(dependencyReviewWorkflow)
     || !/fail-on-severity:\s*high/.test(dependencyReviewWorkflow)
@@ -247,6 +257,26 @@ if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
 if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
   fail('Unraid Docker upstream monitor must be able to open a deduplicated compatibility alert.');
 }
+if (!/Close resolved compatibility alert/.test(upstreamMonitorWorkflow) || !/gh issue close/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid Docker upstream monitor must close its compatibility alert after a reviewed recovery.');
+}
+if (!/issues:\s*write/.test(scheduledValidationWorkflow)
+    || !/Live Unraid validation configuration required/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation must report missing live-Unraid secret configuration without exposing secret values.');
+}
+if (!/gh issue list[\s\S]*--repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
+    || !/gh issue create --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
+    || !/gh issue close "\$\{issue_number\}" --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation issue operations must target GITHUB_REPOSITORY without relying on a checkout.');
+}
+if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
+    || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
+    || !/actions:\s*read/.test(scheduledWorkflowHealthWorkflow)
+    || !/issues:\s*write/.test(scheduledWorkflowHealthWorkflow)
+    || !/scripts\/scheduled_workflow_health\.mjs/.test(scheduledWorkflowHealthWorkflow)
+    || !/Scheduled workflow health requires attention/.test(scheduledWorkflowHealthWorkflow)) {
+  fail('Scheduled workflow health must check run freshness and maintain a deduplicated recovery alert.');
+}
 for (const [workflowName, workflow, jobNames] of [
   ['release-on-main', releaseOnMainWorkflow, ['release']],
   ['backmerge-main-to-dev', backmergeWorkflow, ['backmerge']],
@@ -254,6 +284,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
   ['scorecard', scorecardWorkflow, ['analysis']],
   ['scheduled-validation', scheduledValidationWorkflow, ['configuration', 'cross-browser-fixtures', 'live-unraid']],
+  ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
   ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
 ]) {
   for (const jobName of jobNames) {
@@ -281,6 +312,7 @@ for (const workflowPath of [
   '.github/workflows/ci.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
+  '.github/workflows/scheduled-workflow-health.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml'
 ]) {
   const content = read(workflowPath);

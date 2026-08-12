@@ -12,6 +12,10 @@ const dockerPreviewActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
 );
+const dockerReconcileScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'),
+    'utf8'
+);
 const dockerRuntimeHierarchyScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'),
     'utf8'
@@ -226,6 +230,26 @@ test('docker incremental lifecycle sync removes pending spinner classes from eve
     );
 });
 
+test('docker lifecycle reconciliation restores expanded preview action icons from canonical state', () => {
+    assert.match(
+        dockerPreviewActionsScript,
+        /const dockerPreviewActionIconClassList = 'fa-globe fa-terminal fa-bars fa-refresh fa-spin fa-spinner fa-circle-o-notch';/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const normalizeDockerPreviewActionIcon = \(\$slot, expectedIconClass\) => \{[\s\S]*?\.removeClass\(dockerPreviewActionIconClassList\)[\s\S]*?\.addClass\(`fa \$\{expectedIconClass\}`\)/
+    );
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-globe'\);/);
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-terminal'\);/);
+    assert.match(dockerPreviewActionsScript, /normalizeDockerPreviewActionIcon\(\$slot, 'fa-bars'\);/);
+    assert.match(dockerReconcileScript, /const defaultLifecycleStateSnapshot = \(request = \{\}\) => \{/);
+    assert.match(dockerReconcileScript, /const defaultLifecycleStateSettled = \(request = \{\}\) => \{/);
+    assert.match(dockerReconcileScript, /const defaultFinalizeLifecycleSurface = \(request = \{\}, outcome = \{\}\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(name \? new Set\(\[name\]\) : null\);/);
+    assert.match(dockerScript, /getDockerRuntimeInfoEntries: \(\) => Object\.values\(dockerRuntimeInfoByName \|\| \{\}\),/);
+    assert.match(dockerScript, /syncDockerVisibleFoldersFromRuntimeCache: \(changedNames = null\) => syncDockerVisibleFoldersFromRuntimeCache\(changedNames\),/);
+    assert.match(dockerReconcileScript, /remainingBusyPreviewActionIconCount:/);
+});
+
 test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {
     assert.match(dockerScript, /const refreshDockerPreviewTooltipContent = \(changedNames = null\) =>/);
     assert.match(dockerScript, /const runtimeEntry = getDockerRuntimeContainerInfo\(name\);/);
@@ -244,7 +268,7 @@ test('docker hydration refresh updates collapsed folder update columns from runt
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*forceUpdateFolder\('\$\{id\}'\);/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('update-ready'\)/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('up-to-date'\)/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*display: \$\{state\.showAdvanced \? 'block' : 'none'\}/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*state\.showAdvanced \? ' fv-advanced-visible' : ''/);
     assert.match(dockerScript, /const createFolder = \(folder,\s*id,\s*positionInMainOrder,\s*liveOrderArray,\s*containersInfo,\s*foldersDone,\s*matchCacheEntry = null,\s*depthLevel = 0\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\),\s*managerTypes,\s*upToDate,\s*managed\);/);
     assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*hierarchyApi\.updateFolderRowStatusFromContainers\(id,\s*folder,\s*runtimeContainers\);/);
     assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*const \$updateColumn = \$folderRow\.find\('td\.updatecolumn'\);/);

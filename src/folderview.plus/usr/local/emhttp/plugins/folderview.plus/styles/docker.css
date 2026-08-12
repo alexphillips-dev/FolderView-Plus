@@ -1472,9 +1472,17 @@ div.folder-preview-4 span.outer {
         min-height: 220px;
     }
 
-    td.updatecolumn.folder-update .advanced {
+td.updatecolumn.folder-update .advanced {
         display: none !important;
     }
+}
+
+.advanced.fv-advanced-visible {
+    display: block;
+}
+
+td.advanced.fv-advanced-visible {
+    display: table-cell;
 }
 /* Sensitive-value privacy classes preserve source text, making toggles instant and reversible. */
 body.fvplus-privacy-docker-sensitive-volumePaths .fvplus-sensitive-volume-path,

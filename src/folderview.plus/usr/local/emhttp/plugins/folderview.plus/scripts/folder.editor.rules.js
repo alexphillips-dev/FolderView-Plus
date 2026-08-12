@@ -48,7 +48,7 @@
                     rules: ruleList,
                     name,
                     infoByName,
-                    type: String(itemTypeFromItems(sourceItems) || 'docker')
+                    type: itemTypeFromItems(sourceItems)
                 });
                 const assignedFolderId = String(decision?.assignedRule?.folderId || '').trim();
                 if (decision?.blockedBy || (assignedFolderId && assignedFolderId !== targetFolderId)) {

@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Monitorizați starea pluginului, remediați problemele și partajați date de asistență.",
     "diagnostics.actions.run": "Rulează verificarea sănătății",
     "diagnostics.actions.retest-performance": "Retestați performanța",
-    "diagnostics.actions.check-again": "Verificați din nou",
     "diagnostics.summary.empty-title": "Rulează verificarea stării pentru a inspecta starea pluginului.",
     "diagnostics.summary.empty-description": "Rezumatul va semnala problemele legate de Docker, VM, stocare, pictogramă și actualizare fără a afișa mai întâi JSON brut.",
     "diagnostics.state.not-checked": "Neverificat",

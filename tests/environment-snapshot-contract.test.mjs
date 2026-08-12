@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const libPhp = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'),
-    'utf8'
-);
+const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
+const libPhp = ['lib.php', 'lib.environment-snapshot.php', 'lib.backup-schedule.php']
+    .map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8'))
+    .join('\n');
 const endpointPhp = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/environment_snapshot.php'),
     'utf8'

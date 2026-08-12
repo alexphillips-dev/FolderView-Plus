@@ -50,6 +50,7 @@
       "version": "vendored-snapshot",
       "license": "MIT",
       "source": "https://github.com/santhoshtr/CLDRPluralRuleParser",
+      "modified": true,
       "files": [
         "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"
       ]
@@ -59,6 +60,7 @@
       "version": "vendored-snapshot",
       "license": "MIT OR GPL-2.0-or-later",
       "source": "https://github.com/wikimedia/jquery.i18n",
+      "modified": true,
       "files": [
         "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.bidi.js",
         "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.js",

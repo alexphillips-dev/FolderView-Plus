@@ -31,6 +31,7 @@ const dockerProviderHealthSource = fs.readFileSync(
 );
 const dockerPage = fs.readFileSync(path.join(pluginRoot, 'folderview.plus.Docker.page'), 'utf8');
 const dashboardPage = fs.readFileSync(path.join(pluginRoot, 'folderview.plus.Dashboard.page'), 'utf8');
+const dockerPageBootstrapSource = fs.readFileSync(path.join(scriptsRoot, 'docker.page-bootstrap.js'), 'utf8');
 
 const createDocument = (presentSelectors = []) => {
     const present = new Set(presentSelectors);
@@ -1034,10 +1035,10 @@ test('Docker and Dashboard pages load compatibility and provider modules in depe
         }
         assert.ok(runtimeIndex > providersIndex, `${label} runtime must load after provider registration`);
     }
-    assert.match(dockerPage, /window\.FolderViewPlusDockerHostCompatibilityDecision\s*=/);
+    assert.match(dockerPageBootstrapSource, /FolderViewPlusDockerHostCompatibilityDecision\s*=/);
     assert.match(dockerPage, /\$fvplusDockerLegacyConditionalAssets = true;/);
     assert.match(dockerPage, /data-fvplus-docker-legacy-style="true"/);
-    assert.match(dockerPage, /link\.media = 'all'/);
+    assert.match(bootstrapSource, /link\.media = 'all'/);
 });
 
 test('Dashboard actions use provider capabilities and contain rejected action promises', () => {

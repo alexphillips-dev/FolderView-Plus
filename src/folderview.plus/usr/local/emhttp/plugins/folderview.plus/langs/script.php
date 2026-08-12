@@ -95,13 +95,13 @@
         }
     }
 ?>
-<script>
-window.FolderViewPlusEarlyI18n = Object.freeze(<?php echo json_encode([
+<?php emitJsonBootstrapMeta('fvplus-i18n-early', [
     'locale' => $resolvedLocale,
     'direction' => $localeResolution['direction'] ?? 'ltr',
     'messages' => $earlyMessages
-], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>);
-</script>
+]); ?>
+<?php emitJsonBootstrapMeta('fvplus-i18n-config', $i18nBootstrap); ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.i18n-early-bootstrap.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js')?>"></script>
@@ -111,11 +111,4 @@ window.FolderViewPlusEarlyI18n = Object.freeze(<?php echo json_encode([
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.bidi.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.i18n.js')?>"></script>
-<script>
-    if(typeof folderi18n === 'undefined' ) {
-        folderi18n = () => {};
-    }
-    window.FolderViewPlusI18n.configure(<?php echo json_encode($i18nBootstrap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>).catch((error) => {
-        console.warn('[FolderView Plus] Localization initialization failed; English fallback remains active.', error);
-    });
-</script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.i18n-bootstrap.js')?>"></script>

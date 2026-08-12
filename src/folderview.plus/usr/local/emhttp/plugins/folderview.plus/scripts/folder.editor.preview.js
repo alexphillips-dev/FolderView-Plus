@@ -122,15 +122,14 @@
                 const memberIcon = escapeHtml(member?.Icon || deps.iconFallbackPath || '');
                 const state = buildSampleMemberState(member, index);
                 const stateLabel = escapeHtml(state.label);
-                const stateColor = escapeHtml(state.color);
-                const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' style="filter: grayscale(100%);"' : '';
+                const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' data-fvplus-style="fv-u-1opeemm"' : '';
                 return `
-                    <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
+                    <span class="fv-live-member fv-live-member-preview-${previewMode}" data-fv-preview-member-index="${index}">
                         <img src="${memberIcon}" alt="" data-fv-onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
                         ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
                         ${previewMode === 2
-                            ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" style="color:${stateColor};" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
-                            : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
+                            ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
+                            : `<span class="fv-live-member-status">${stateLabel}</span>`}
                     </span>
                 `;
             });
@@ -175,7 +174,7 @@
             const surfaceClass = deps.wrapPreviewSurface === false ? '' : 'fv-live-preview-surface';
             canvas.html(`
                 ${surfaceClass ? `<div class="${surfaceClass}">` : ''}
-                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-preview-border-glow:0 0 10px ${borderColor}, 0 0 18px ${borderColor};--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
+                    <div class="${rowClass}">
                         <div class="fv-live-folder-head">
                             <div class="fv-live-folder-anchor">
                                 <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" data-fv-onerror="this.src='${deps.defaultFolderIconPath || ''}';">
@@ -195,6 +194,12 @@
             const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
             const liveChevron = canvas.find('.fv-live-chevron').get(0);
             if (livePreviewRow && liveChevron && Array.isArray(deps.supportedDropdownStyles)) {
+                livePreviewRow.style.setProperty('--fv-preview-border-color', borderColor);
+                livePreviewRow.style.setProperty('--fv-preview-border-width', `${borderWidth}px`);
+                livePreviewRow.style.setProperty('--fv-preview-border-glow', `0 0 10px ${borderColor}, 0 0 18px ${borderColor}`);
+                livePreviewRow.style.setProperty('--fv-folder-accent-color', accentColor);
+                livePreviewRow.style.setProperty('--fv-chevron-color', dropdownColor);
+                livePreviewRow.style.setProperty('--fv-chevron-hover', dropdownHoverColor);
                 deps.supportedDropdownStyles.forEach((styleName) => livePreviewRow.classList.remove(`is-${styleName}`));
                 livePreviewRow.classList.add(`is-${dropdownStyle}`);
                 livePreviewRow.style.setProperty('--fv-live-chevron-color', dropdownColor);
@@ -218,6 +223,19 @@
                 liveChevron.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
                 liveChevron.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
             }
+            canvas.find('[data-fv-preview-member-index]').each((_, memberNode) => {
+                const memberIndex = Number(memberNode.getAttribute('data-fv-preview-member-index'));
+                const memberState = buildSampleMemberState(sampleMembers[memberIndex], memberIndex);
+                const safeStateColor = normalizeHexColor(memberState.color, deps.defaultStoppedColor || '#ff4d4d');
+                if (dividerEnabled && memberIndex < sampleMembers.length - 1) {
+                    memberNode.style.setProperty('--fv-divider-color', dividerColor);
+                    memberNode.style.setProperty('--fv-divider-width', `${dividerWidth}px`);
+                }
+                const statusNode = memberNode.querySelector('.fv-live-member-status');
+                if (statusNode instanceof HTMLElement) {
+                    statusNode.style.color = safeStateColor;
+                }
+            });
         };
 
         const updateLiveSummary = () => {

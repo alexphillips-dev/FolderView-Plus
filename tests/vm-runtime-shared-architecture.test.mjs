@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
+const pageBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
@@ -41,9 +42,10 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet missing from VMs page');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet missing from VMs page');
     assert.ok(vmCssIndex >= 0, 'vm stylesheet missing from VMs page');
-    assert.match(vmPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
-    assert.match(vmPage, /page:\s*'VMs'/);
-    assert.match(vmPage, /hostSelector:\s*'#fvplus-vm-runtime-banner-host'/);
+    assert.match(vmPage, /emitJsonBootstrapMeta\('fvplus-runtime-context'/);
+    assert.match(vmPage, /'page'\s*=>\s*'VMs'/);
+    assert.match(vmPage, /'hostSelector'\s*=>\s*'#fvplus-vm-runtime-banner-host'/);
+    assert.match(pageBootstrapJs, /FolderViewPlusFatalRuntimeContext/);
     assert.match(vmPage, /<div id="fvplus-vm-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'vm fatal banner must load before folder contract/runtime scripts');
     assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before vm.js');

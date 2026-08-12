@@ -12,6 +12,8 @@ const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugin
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
+const folderRuntimeBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.runtime-bootstrap.js');
+const folderDiagnosticsBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js');
 const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
 test('folder editor runtime accepts query and hash bootstrap identity fallbacks', () => {
@@ -54,22 +56,26 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorPageMode = 'modern';/);
     assert.match(folderPage, /\$folderEditorPageModeSource = 'modern-only';/);
-    assert.match(folderPage, /const runtimeMode = 'modern';/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.parent-picker\.js[\s\S]*folder\.editor\.rules\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
+    assert.match(folderRuntimeBootstrapJs, /const runtimeMode = 'modern';/);
+    assert.match(folderRuntimeBootstrapJs, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.parent-picker\.js[\s\S]*folder\.editor\.rules\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
-    assert.match(folderPage, /win\.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics\(\)/);
-    assert.match(folderPage, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
-    assert.match(folderPage, /const buildDiagnosticsSnapshot = \(\) => \(\{/);
-    assert.match(folderPage, /win\.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics\(\)/);
-    assert.match(folderPage, /win\.localStorage\.setItem\(EDITOR_DEBUG_SURFACE_STORAGE_KEY,\s*JSON\.stringify\(buildDiagnosticsSnapshot\(\)\)\);/);
-    assert.match(folderPage, /win\.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap\(\{/);
+    assert.match(folderDiagnosticsBootstrapJs, /win\.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics\(\)/);
+    assert.match(folderDiagnosticsBootstrapJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
+    assert.match(folderDiagnosticsBootstrapJs, /const buildDiagnosticsSnapshot = \(\) => \(\{/);
+    assert.match(folderDiagnosticsBootstrapJs, /win\.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics\(\)/);
+    assert.match(folderDiagnosticsBootstrapJs, /win\.localStorage\.setItem\(EDITOR_DEBUG_SURFACE_STORAGE_KEY,\s*JSON\.stringify\(buildDiagnosticsSnapshot\(\)\)\);/);
+    assert.match(folderDiagnosticsBootstrapJs, /win\.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap\(\{/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapBanner"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapSummary"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapDetailsText"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapDebug"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapCopy"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapDisclosure"/);
-    assert.match(folderPage, /syncSurfaceState\(\);/);
+    assert.doesNotMatch(folderPage, /data-default-html=/);
+    assert.match(folderDiagnosticsBootstrapJs, /button\.replaceChildren\(doc\.createTextNode/);
+    assert.match(folderDiagnosticsBootstrapJs, /button\.replaceChildren\(\.\.\.template\.map/);
+    assert.doesNotMatch(folderDiagnosticsBootstrapJs, /\.innerHTML\s*=/);
+    assert.match(folderDiagnosticsBootstrapJs, /syncSurfaceState\(\);/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /const pageReportFolderEditorBootstrap = typeof root\.FolderViewPlusReportFolderEditorBootstrap === 'function'/);
     assert.match(folderEditorChromeJs, /pageReportFolderEditorBootstrap\(\{\s*summary,\s*details,\s*debug,\s*tone,\s*stage: String\(root\.FolderViewPlusFolderEditorRuntimeBootStage \|\| ''\)\s*\}\);/);

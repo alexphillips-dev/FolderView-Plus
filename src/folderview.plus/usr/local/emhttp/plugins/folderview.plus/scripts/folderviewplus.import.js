@@ -13,9 +13,11 @@ const closeImportApplyProgressDialog = () => {
     if (!dialog.length) {
         return;
     }
-    overlay.hide();
-    dialog.hide().attr('aria-hidden', 'true');
+    overlay.prop('hidden', true);
+    dialog.prop('hidden', true).attr('aria-hidden', 'true');
 };
+
+closeImportApplyProgressDialog();
 
 const updateImportApplyProgressDialog = ({
     completed = 0,
@@ -79,8 +81,8 @@ const openImportApplyProgressDialog = (type, totalSteps, options = {}) => {
         current: options.current || 'Preparing operation...',
         note: options.note || undefined
     });
-    overlay.show();
-    dialog.show().attr('aria-hidden', 'false');
+    overlay.prop('hidden', false);
+    dialog.prop('hidden', false).attr('aria-hidden', 'false');
 };
 
 const readFileAsText = (file) => new Promise((resolve, reject) => {

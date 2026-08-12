@@ -16,7 +16,7 @@ const script = fs.readFileSync(jsPath, 'utf8');
 const importScript = fs.readFileSync(importJsPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const css = fs.readFileSync(cssPath, 'utf8');
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.backup-snapshots.php'), 'utf8')}`;
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 
 test('type prefs include server-side import presets', () => {

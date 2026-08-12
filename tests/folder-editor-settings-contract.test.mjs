@@ -21,11 +21,16 @@ const folderStateJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js'
 );
+const folderPageBootstrapJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.page-bootstrap.js'
+);
 
 const schemaSource = fs.readFileSync(schemaPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const folderStateJs = fs.readFileSync(folderStateJsPath, 'utf8');
+const folderPageBootstrapJs = fs.readFileSync(folderPageBootstrapJsPath, 'utf8');
 
 const schemaContext = { window: {} };
 vm.createContext(schemaContext);
@@ -87,7 +92,7 @@ test('modern folder editor save path references every schema-backed field', () =
 });
 
 test('modern folder editor create mode receives server prefs and can apply saved folder defaults', () => {
-    assert.match(folderPage, /window\.FolderViewPlusFolderEditorTypePrefs =/);
+    assert.match(folderPageBootstrapJs, /FolderViewPlusFolderEditorTypePrefs =/);
     assert.match(folderPage, /\$folderEditorTypePrefs = readTypePrefs\(\$folderEditorPageType\);/);
     assert.match(folderJs, /const folderEditorTypePrefs = window\.FolderViewPlusFolderEditorTypePrefs/);
     assert.match(folderJs, /const getSavedFolderDefaultsProfile = \(\) => \{/);

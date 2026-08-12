@@ -15,171 +15,29 @@ emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 ?>
 
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script><script>
-    folderi18n = () => {
-        $('body').i18n();
-    }
-</script>
-<script>
-    window.FolderViewPlusFatalRuntimeContext = {
-        page: 'Settings',
-        hostSelector: '#fv-settings-root',
-        pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>, unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
-        channel: 'unknown'
-    };
-</script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
-<script>
-    (function installSettingsBlankWatchdog(win, doc) {
-        if (!win || !doc || win.FolderViewPlusSettingsBlankWatchdogInstalled === true) {
-            return;
-        }
-        win.FolderViewPlusSettingsBlankWatchdogInstalled = true;
-        const state = win.FolderViewPlusSettingsBootstrapState = Object.assign({
-            runtimeLoaded: false,
-            ready: false,
-            failed: false,
-            degraded: false,
-            lastPhase: 'page-shell',
-            lastAction: 'Settings page shell loaded',
-            lastStep: 'Settings page shell loaded',
-            lastUpdatedAt: new Date().toISOString()
-        }, win.FolderViewPlusSettingsBootstrapState || {});
-        win.FolderViewPlusMarkSettingsBootstrapState = function markSettingsBootstrapState(patch) {
-            const update = patch && typeof patch === 'object' ? patch : {};
-            Object.assign(state, update, { lastUpdatedAt: new Date().toISOString() });
-            return state;
-        };
-        const isVisible = (node) => {
-            if (!node || node.nodeType !== 1) {
-                return false;
-            }
-            const style = win.getComputedStyle ? win.getComputedStyle(node) : null;
-            if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) {
-                return false;
-            }
-            const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-            return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
-        };
-        const collectBlankDetails = (root) => {
-            const topbar = doc.getElementById('fv-settings-topbar');
-            const visibleSections = root ? root.querySelectorAll('h2[data-fv-section]:not(.fv-section-hidden)').length : 0;
-            const hiddenSections = root ? root.querySelectorAll('h2[data-fv-section].fv-section-hidden').length : 0;
-            const visibleRows = root ? root.querySelectorAll('tbody#docker tr:not(.fv-section-hidden), tbody#vms tr:not(.fv-section-hidden)').length : 0;
-            const wizardOverlay = doc.getElementById('fv-setup-assistant-overlay');
-            return [
-                'runtimeLoaded=' + (state.runtimeLoaded === true ? 'yes' : 'no'),
-                'ready=' + (state.ready === true ? 'yes' : 'no'),
-                'failed=' + (state.failed === true ? 'yes' : 'no'),
-                'degraded=' + (state.degraded === true ? 'yes' : 'no'),
-                'lastPhase=' + String(state.lastPhase || '(empty)'),
-                'lastAction=' + String(state.lastAction || '(empty)'),
-                'lastStep=' + String(state.lastStep || '(empty)'),
-                'rootChildren=' + (root ? root.children.length : 0),
-                'topbarChildren=' + (topbar ? topbar.children.length : 0),
-                'visibleSections=' + visibleSections,
-                'hiddenSections=' + hiddenSections,
-                'visibleRows=' + visibleRows,
-                'wizardOverlayVisible=' + (isVisible(wizardOverlay) ? 'yes' : 'no')
-            ];
-        };
-        const hasVisibleSettingsContent = (root) => {
-            if (!root || !isVisible(root)) {
-                return false;
-            }
-            if (root.querySelector('#fvplus-fatal-banner')) {
-                return true;
-            }
-            const selectors = [
-                '#fv-settings-topbar > *',
-                'h2[data-fv-section]:not(.fv-section-hidden)',
-                '.settings-mini-card:not(.fv-section-hidden)',
-                '.folder-table:not(.fv-section-hidden)',
-                'tbody#docker tr:not(.fv-section-hidden)',
-                'tbody#vms tr:not(.fv-section-hidden)',
-                '#fv-setup-assistant-overlay',
-                '#fv-first-run-panel:not([style*="display:none"])'
-            ];
-            for (const selector of selectors) {
-                const nodes = root.querySelectorAll(selector);
-                for (const node of nodes) {
-                    if (isVisible(node)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-        const runCheck = (reason) => {
-            if (state.ready === true || state.failed === true) {
-                return;
-            }
-            const root = doc.getElementById('fv-settings-root');
-            if (!root) {
-                return;
-            }
-            const loadingShell = doc.getElementById('fv-settings-bootstrap-shell');
-            // A visible bootstrap shell is intentional progress, not a blank
-            // page. The later watchdog still reports a genuine startup stall.
-            if (String(reason || '') === 'watchdog-early' && isVisible(loadingShell)) {
-                return;
-            }
-            if (hasVisibleSettingsContent(root)) {
-                return;
-            }
-            state.failed = true;
-            state.lastPhase = state.lastPhase || 'blank-watchdog';
-            state.lastAction = 'Settings blank watchdog fired';
-            state.lastStep = String(reason || 'watchdog');
-            const fatalBanner = win.FolderViewPlusFatalBanner || null;
-            if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
-                fatalBanner.reportFatalError(new Error('Settings page rendered no visible FolderView Plus content before bootstrap completed.'), {
-                    context: 'Settings',
-                    hostSelector: '#fv-settings-root',
-                    title: 'Settings page is blank',
-                    message: 'FolderView Plus detected that the Settings page became blank before initialization completed.',
-                    code: 'FVPLUS-SET-BLANK-001',
-                    phase: state.lastPhase || 'blank-watchdog',
-                    category: 'blank-page',
-                    detailLabel: 'Blank page diagnostics',
-                    details: collectBlankDetails(root)
-                });
-            }
-        };
-        win.setTimeout(() => runCheck('watchdog-early'), 3500);
-        win.setTimeout(() => runCheck('watchdog-late'), 8500);
-    })(window, document);
-</script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.safe-dom.js')?>"></script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('settings'); ?>
+<?php emitJsonBootstrapMeta('fvplus-runtime-context', [
+    'page' => 'Settings',
+    'hostSelector' => '#fv-settings-root',
+    'pluginVersion' => readInstalledVersion() ?: 'unknown',
+    'unraidVersion' => readUnraidVersionString() ?: 'unknown',
+    'channel' => 'unknown'
+]); ?>
+<?php emitJsonBootstrapMeta('fvplus-page-i18n', ['mode' => 'settings']); ?>
+<?php emitJsonBootstrapMeta('fvplus-host-theme', ['name' => (string)($display['theme'] ?? '')]); ?>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js')?>"></script>
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
-<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.diagnostics.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>">
-<script>
-    window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    (function applySettingsHostThemeName(rawThemeName) {
-        const safeThemeName = String(rawThemeName || '').trim().toLowerCase();
-        if (!safeThemeName) {
-            return;
-        }
-        const applyAttrs = () => {
-            try {
-                document.documentElement?.setAttribute('data-fvplus-host-theme', safeThemeName);
-                document.documentElement?.setAttribute('data-fv-host-theme', safeThemeName);
-                document.body?.setAttribute('data-fvplus-host-theme', safeThemeName);
-                document.body?.setAttribute('data-fv-host-theme', safeThemeName);
-            } catch (_error) {
-                // Best effort only.
-            }
-        };
-        applyAttrs();
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', applyAttrs, { once: true });
-        }
-    })(window.FolderViewPlusHostThemeName);
-</script>
+
 <div id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true">
 <div id="fv-settings-bootstrap-shell" class="fv-settings-bootstrap-shell" role="status" aria-live="polite">
     <div class="fv-settings-bootstrap-shell-card">
@@ -196,8 +54,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     fvplus_render_runtime_conflict_notice('Settings');
 }
 ?>
-<div id="fv-runtime-resolved-panel" class="fv-runtime-resolved-panel" style="display:none"></div>
-<div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
+<div id="fv-runtime-resolved-panel" class="fv-runtime-resolved-panel" data-fvplus-style="fv-u-uydnfn"></div>
+<div id="fv-update-notes-panel" class="fv-update-notes-panel" data-fvplus-style="fv-u-uydnfn"></div>
 <div id="fv-activity-feed-panel" class="fv-activity-feed-panel">
     <div class="fv-activity-center-head">
         <div class="fv-activity-center-title">
@@ -220,13 +78,13 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <span class="fv-activity-latest-time">Ready</span>
     </div>
-    <ul id="fv-activity-feed-list" class="fv-activity-feed-list" style="display:none;"></ul>
+    <ul id="fv-activity-feed-list" class="fv-activity-feed-list" data-fvplus-style="fv-u-xcjvns"></ul>
 </div>
 
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
 </div>
-<div id="fv-first-run-panel" class="fv-first-run-panel" style="display:none;"></div>
+<div id="fv-first-run-panel" class="fv-first-run-panel" data-fvplus-style="fv-u-xcjvns"></div>
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
@@ -301,10 +159,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                                 </div>
                             </div>
                             <div class="fv-theme-preview-bars">
-                                <span style="height:45%"></span>
-                                <span style="height:65%"></span>
-                                <span style="height:38%"></span>
-                                <span style="height:78%"></span>
+                                <span data-fvplus-style="fv-u-xrbxgi"></span>
+                                <span data-fvplus-style="fv-u-1puszjc"></span>
+                                <span data-fvplus-style="fv-u-17m2xru"></span>
+                                <span data-fvplus-style="fv-u-dhsvi6"></span>
                             </div>
                         </div>
                     </div>
@@ -1057,11 +915,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="fv-rule-builder-field">
                     <label for="docker-rule-label-key">Label key</label>
-                    <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
+                    <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" data-fvplus-style="fv-u-xcjvns">
                 </div>
                 <div class="fv-rule-builder-field">
                     <label for="docker-rule-label-value">Label value</label>
-                    <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
+                    <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" data-fvplus-style="fv-u-xcjvns">
                 </div>
             </div>
             <div class="fv-rule-builder-actions">
@@ -1771,7 +1629,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<div id="import-preview-dialog" style="display:none;">
+<div id="import-preview-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="import-preview-head">
         <div class="import-preview-head-icon" aria-hidden="true"><i class="fa fa-upload"></i></div>
         <div class="import-preview-head-copy">
@@ -1852,12 +1710,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 
     <div class="import-confirm-strip">
         <div class="import-safety-note"><i class="fa fa-shield" aria-hidden="true"></i><span><strong data-i18n="import.backup.title">Automatic backup included</strong><small data-i18n="import.backup.description">The current configuration is saved before a live import.</small></span></div>
-        <label id="import-review-ack-row" class="import-review-ack" style="display:none;"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
+        <label id="import-review-ack-row" class="import-review-ack" data-fvplus-style="fv-u-xcjvns"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
     </div>
-
 </div>
-
-<div id="backup-compare-dialog" style="display:none;">
+<div id="backup-compare-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="backup-compare-head">
         <p class="import-preview-title">Snapshot comparison</p>
         <p class="import-preview-subtitle">Review exactly what changed between two configuration snapshots.</p>
@@ -1868,8 +1724,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div id="backup-compare-prefs" class="backup-compare-prefs"></div>
 </div>
 
-<div id="import-apply-progress-overlay" style="display:none;"></div>
-<div id="import-apply-progress-dialog" style="display:none;" role="dialog" aria-modal="true" aria-live="polite">
+<div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>
+<div id="import-apply-progress-dialog" hidden role="dialog" aria-modal="true" aria-live="polite" aria-hidden="true">
     <div class="import-apply-progress-head">
         <div>
             <div class="import-apply-progress-kicker" id="import-apply-progress-kicker">FolderView Plus</div>
@@ -1893,64 +1749,73 @@ if (!empty($fvplusRuntimeConflicts)) {
     </div>
     <div class="import-apply-progress-note" id="import-apply-progress-note">Do not close this page until the operation completes.</div>
 </div>
-
-<div id="fv-setup-assistant-overlay" style="display:none;"></div>
-<div id="fv-setup-assistant-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
+<div id="fv-setup-assistant-overlay" data-fvplus-style="fv-u-xcjvns"></div>
+<div id="fv-setup-assistant-dialog" data-fvplus-style="fv-u-xcjvns" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
     <div id="fv-setup-assistant-content"></div>
 </div>
 <div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
 </div>
-
-<script>
-window.FolderViewPlusSettingsLoaderManifest = Object.freeze({ moduleTimeoutMs: 12000,
-    foundation: Object.freeze([
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"
-    ]),
-    workspace: Object.freeze([
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.view-settings.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>",
-        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"
-    ])
-});
-</script>
+<?php
+$fvplusSettingsFoundationAssets = [
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.request.js',
+        '/plugins/folderview.plus/scripts/runtime.performance-telemetry.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js',
+        '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.chrome.js'
+];
+$fvplusSettingsWorkspaceAssets = [
+        '/plugins/folderview.plus/scripts/folderviewplus.dirty.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.view-settings.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js', '/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js', '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-actions.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.row-details.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.core.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.subscription.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.docker-actions.js',
+        '/plugins/folderview.plus/scripts/runtime.transport.js', '/plugins/folderview.plus/scripts/folderviewplus.wizard-persistence.js', '/plugins/folderview.plus/scripts/folderviewplus.wizard-review.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.wizard.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.import.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.updates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.js'
+];
+$fvplusResolveSettingsAsset = static function (string $assetPath): string {
+    return html_entity_decode(fvplus_asset_url($assetPath), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+};
+emitJsonBootstrapMeta('fvplus-settings-loader-manifest', [
+    'moduleTimeoutMs' => 12000,
+    'foundation' => array_map($fvplusResolveSettingsAsset, $fvplusSettingsFoundationAssets),
+    'workspace' => array_map($fvplusResolveSettingsAsset, $fvplusSettingsWorkspaceAssets)
+]);
+?>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-manifest.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-loader.js')?>"></script>

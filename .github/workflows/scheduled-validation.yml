@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: folderview-plus-scheduled-validation
@@ -47,6 +48,63 @@ jobs:
               echo "- Action required: configure FVPLUS_UNRAID_MATRIX, FVPLUS_BROWSER_SMOKE_URL, and FVPLUS_THEME_MATRIX_URLS repository secrets."
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Report missing live Unraid validation configuration
+        if: steps.detect.outputs.live_configured != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Live Unraid validation configuration required"
+          body_file="$(mktemp)"
+          {
+            echo "The scheduled cross-browser fixtures remain active, but the live-Unraid validation lane is skipped until all required repository secrets are configured."
+            echo
+            echo "Required Actions secrets:"
+            echo "- \`FVPLUS_UNRAID_MATRIX\`"
+            echo "- \`FVPLUS_BROWSER_SMOKE_URL\`"
+            echo "- \`FVPLUS_THEME_MATRIX_URLS\`"
+            echo
+            echo "Store only test-system targets and credentials in encrypted GitHub Actions secrets. Do not place them in repository variables, workflow files, logs, or issue comments."
+            echo
+            echo "Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "${body_file}"
+          issue_number="$(
+            gh issue list \
+              --repo "${GITHUB_REPOSITORY}" \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue comment "${issue_number}" --repo "${GITHUB_REPOSITORY}" --body-file "${body_file}"
+          else
+            gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body-file "${body_file}"
+          fi
+
+      - name: Close resolved live Unraid configuration alert
+        if: steps.detect.outputs.live_configured == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Live Unraid validation configuration required"
+          issue_number="$(
+            gh issue list \
+              --repo "${GITHUB_REPOSITORY}" \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue close "${issue_number}" --repo "${GITHUB_REPOSITORY}" --comment "All required live-Unraid validation secrets are now configured."
+          fi
 
   cross-browser-fixtures:
     runs-on: ubuntu-latest

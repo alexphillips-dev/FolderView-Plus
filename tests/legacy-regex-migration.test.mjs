@@ -11,7 +11,7 @@ const endpointPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/p
 const chromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
 const rulesSource = fs.readFileSync(rulesPath, 'utf8');
-const libSource = fs.readFileSync(libPath, 'utf8');
+const libSource = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
 const endpointSource = fs.readFileSync(endpointPath, 'utf8');
 const chromeSource = fs.readFileSync(chromePath, 'utf8');
 const sandboxWindow = {};

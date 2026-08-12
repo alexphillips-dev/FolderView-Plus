@@ -17,7 +17,7 @@ const contributingGuide = read('.github/CONTRIBUTING.md');
 const securityPolicy = read('.github/SECURITY.md');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsSections = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
-const runtimeShared = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const runtimeSharedPrimitives = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-primitives.js');
 const dockerRuntime = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerActionBar = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js');
 const docsGuard = read('scripts/docs_metadata_guard.sh');
@@ -48,7 +48,7 @@ test('performance profile metadata matches Settings, runtime, and architecture d
     assert.deepEqual(optionsFor('docker'), expected);
     assert.deepEqual(optionsFor('vm'), expected);
     for (const profile of state.performanceProfiles) {
-        assert.match(runtimeShared, new RegExp(`['"]${profile.id}['"]`));
+        assert.match(runtimeSharedPrimitives, new RegExp(`['"]${profile.id}['"]`));
         for (const docPath of state.documentationContracts.performanceArchitectureDocs) {
             const source = read(docPath);
             assert.ok(source.includes(`**${profile.name}**`), `${docPath} should describe ${profile.name}`);

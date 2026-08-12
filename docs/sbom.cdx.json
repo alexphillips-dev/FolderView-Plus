@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:79296f90-5837-8b83-94fb-a126bdc7bfd5",
+  "serialNumber": "urn:uuid:e3fc5ce9-de03-8ac3-8990-1532b473c999",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.08.10.02",
+      "version": "2026.08.11.14",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -96,6 +96,19 @@
       "version": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "scope": "optional",
       "purl": "pkg:github/actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "github/codeql-action",
+      "version": "5595ccaf912efad79be6eef63a5619ff05969be3",
+      "scope": "optional",
+      "purl": "pkg:github/github/codeql-action@5595ccaf912efad79be6eef63a5619ff05969be3",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -269,7 +282,7 @@
     {
       "type": "library",
       "name": "axe-core",
-      "version": "4.12.1",
+      "version": "4.13.0",
       "scope": "optional",
       "licenses": [
         {
@@ -278,7 +291,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/axe-core@4.12.1"
+      "purl": "pkg:npm/axe-core@4.13.0"
     },
     {
       "type": "library",
@@ -444,7 +457,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14b18aeaae42b0c79c6992e464a22c8c261a3de1f15d0c1fb317cf6db5fdb449"
+          "content": "ea016afc19b76b01d630dbef09fe886b8f1db318a669fa5591911566aa8f7b96"
         }
       ],
       "licenses": [
@@ -469,7 +482,7 @@
         },
         {
           "name": "folderview-plus:modified",
-          "value": "false"
+          "value": "true"
         }
       ]
     },
@@ -737,7 +750,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0d8bc7fbe00e9368bf52e3c91616cbd70c34de2f62b9e79645b81493ca8ac7c"
+          "content": "ad98a9efe0ecd128fb1a153c0045d50a941a43ebc9785c02561c3c977af3edcb"
         }
       ],
       "licenses": [
@@ -824,7 +837,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc99c2f4b2f1942dca4a7f121dd7ac731dae4c7750e2031b7bdb963f4a5c2ebd"
+          "content": "6869c1bad5a6cc92c448dd5a238cd29377252e492bc00336b2a57db2f90830a2"
         }
       ],
       "licenses": [
@@ -849,7 +862,7 @@
         },
         {
           "name": "folderview-plus:modified",
-          "value": "false"
+          "value": "true"
         }
       ]
     },
@@ -1048,7 +1061,7 @@
     {
       "type": "library",
       "name": "playwright-core",
-      "version": "1.62.0",
+      "version": "1.62.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1057,12 +1070,12 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.62.0"
+      "purl": "pkg:npm/playwright-core@1.62.1"
     },
     {
       "type": "library",
       "name": "playwright",
-      "version": "1.62.0",
+      "version": "1.62.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1071,7 +1084,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.62.0"
+      "purl": "pkg:npm/playwright@1.62.1"
     },
     {
       "type": "library",

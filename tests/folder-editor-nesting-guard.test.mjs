@@ -63,7 +63,9 @@ test('folder editor validates duplicate names within the selected parent path', 
     assert.match(folderHierarchyScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderEditorScript, /const getFolderHierarchyApi = \(\(\) =>/);
     assert.match(folderEditorScript, /cachedApi = createFolderHierarchyApi\(/);
-    assert.match(folderEditorScript, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorScript, /const createFolderHierarchyApi = folderHierarchyModule\.createApi;/);
+    assert.match(folderEditorScript, /folderEditorBootstrapMissingModules\.push\('folder\.editor\.hierarchy\.js'\);/);
+    assert.doesNotMatch(folderEditorScript, /createFallbackFolderHierarchyApi/);
     assert.match(folderEditorScript, /const buildParentFolderEntries = \(\.\.\.args\) => getFolderHierarchyApi\(\)\.buildParentFolderEntries\(\.\.\.args\);/);
     assert.match(folderEditorScript, /form\.parent_folder_id\?\.value/);
     assert.match(folderEditorScript, /A sibling with this name already exists under/);

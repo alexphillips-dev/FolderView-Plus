@@ -14,6 +14,10 @@ const wizardSource = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
 ), 'utf8');
+const wizardReviewSource = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-review.js'
+), 'utf8');
 
 const loadSupport = () => {
     const context = { window: {}, Object, Set, String, Array };
@@ -32,7 +36,8 @@ test('migration flow can skip the optional import step when no plans are enabled
     assert.deepEqual(Array.from(result.blockers), []);
     assert.deepEqual(Array.from(result.warnings), []);
     assert.deepEqual(Array.from(result.includeTypes), []);
-    assert.match(wizardSource, /validateSetupAssistantImportPlans\(setupAssistantState\.importPlans\)/);
+    assert.match(wizardSource, /validateImportPlans: validateSetupAssistantImportPlans/);
+    assert.match(wizardReviewSource, /validateImportPlans\(state\.importPlans\)/);
     assert.doesNotMatch(wizardSource, /Migrate route requires at least one enabled import/);
 });
 

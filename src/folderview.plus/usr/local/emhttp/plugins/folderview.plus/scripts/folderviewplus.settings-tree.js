@@ -654,7 +654,7 @@ const moveFolderRow = async (type, folderId, direction) => {
     const targetSubtreeIds = [targetSiblingId, ...(hierarchyMeta.descendantsById[targetSiblingId] || [])];
     const sourceSubtreeSet = new Set(sourceSubtreeIds);
     const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(String(id || '')));
-    let insertIndex = orderWithoutSource.length;
+    let insertIndex;
     if (direction < 0) {
         const firstTargetIndex = orderWithoutSource.findIndex((id) => targetSubtreeIds.includes(String(id || '')));
         insertIndex = firstTargetIndex >= 0 ? firstTargetIndex : orderWithoutSource.length;

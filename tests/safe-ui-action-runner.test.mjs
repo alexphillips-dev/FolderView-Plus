@@ -4,17 +4,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-const source = fs.readFileSync(
-    path.resolve(
-        process.cwd(),
-        'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'
-    ),
-    'utf8'
-);
+const scriptsRoot = path.resolve(process.cwd(), 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
+const sources = [
+    'runtime.shared-primitives.js',
+    'runtime.shared-diagnostics.js',
+    'runtime.shared-controls.js',
+    'docker.runtime.shared.js'
+].map((file) => fs.readFileSync(path.join(scriptsRoot, file), 'utf8'));
 
 const loadRuntimeShared = () => {
     const window = { setTimeout, clearTimeout };
-    vm.runInNewContext(source, {
+    const context = {
         window,
         document: {},
         Element: class {},
@@ -34,7 +34,8 @@ const loadRuntimeShared = () => {
         performance,
         setTimeout,
         clearTimeout
-    });
+    };
+    sources.forEach((source) => vm.runInNewContext(source, context));
     return window.FolderViewDockerRuntimeShared;
 };
 

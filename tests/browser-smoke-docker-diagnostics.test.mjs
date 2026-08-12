@@ -4,8 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const browserSmokePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
-const browserSmoke = fs.readFileSync(browserSmokePath, 'utf8');
+const browserSmoke = [
+    'scripts/browser_smoke.mjs',
+    'scripts/lib/browser-smoke-runtime-checks.mjs',
+    'scripts/lib/browser-smoke-docker-checks.mjs',
+    'scripts/lib/browser-smoke-dashboard-checks.mjs',
+    'scripts/lib/browser-smoke-folder-editor-checks.mjs'
+].map((file) => fs.readFileSync(path.join(repoRoot, file), 'utf8')).join('\n');
 
 test('browser smoke includes Docker diagnostics and loadlist rebuild coverage', () => {
     assert.match(browserSmoke, /const dockerDiagnosticsReports = \[\];/);

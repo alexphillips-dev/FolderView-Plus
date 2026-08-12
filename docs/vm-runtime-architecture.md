@@ -8,6 +8,8 @@
 - `createSafeUiActionRunner`
 - `resolveRuntimePerformanceProfile`
 - `runtime.host-adapter.js` for host table discovery, structure validation, row observation, and lifecycle hook ownership
+- `runtime.folder-ordering.js` for folder depth and deterministic folder-slot ordering
+- `runtime.live-refresh.js` for cadence, visibility gating, in-flight exclusion, and teardown
 
 ## Runtime State
 
@@ -21,7 +23,9 @@ Store-backed VM runtime state tracks:
 
 - Shared runtime script is included in `folderview.plus.VMs.page` before `vm.js`.
 - The shared host adapter is included before `vm.js`; VM code no longer maintains a separate selector preflight or `loadlist` wrapper.
+- The ordering and live-refresh modules are included before `vm.js`; VM retains its snapshot/reconciliation policy but no longer owns timer or in-flight lifecycle state.
 - Folder actions/custom actions run through guarded async boundaries and in-flight dedupe.
+- The VM entrypoint line budget is ratcheted from 4,010 to 3,945 lines. Dashboard reuses the same seams and is ratcheted from 3,173 to 3,152 lines.
 
 ## Performance Profiles
 

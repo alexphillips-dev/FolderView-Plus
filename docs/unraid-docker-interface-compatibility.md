@@ -2,7 +2,7 @@
 
 This document defines how FolderView Plus coexists with the current table-based Unraid Docker page and the native component/API replacement being developed by Unraid.
 
-The upstream implementation was last reviewed on 2026-07-25. At that point, Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The implementation is therefore treated as prerelease and its organizer fields are not a stable third-party contract.
+The upstream implementation was last reviewed on 2026-08-10 against Unraid API v4.37.0. The generated Docker GraphQL contract retained the reviewed signature, and Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The v4.37.0 release was limited to consolidated web-header changes, so the Docker implementation remains prerelease and its organizer fields are not a stable third-party contract.
 
 ## Host generations
 
@@ -43,7 +43,7 @@ Legacy table hosts select the hybrid provider. It prefers GraphQL for schema-con
 
 ## GraphQL contract
 
-`scripts/runtime.transport.js` performs an availability and operation-signature capability probe before using Docker API operations. It supports both:
+`scripts/runtime.transport.js` performs an availability and operation-signature capability probe before using Docker API operations, then delegates requests, subscriptions, and typed actions to its focused transport child modules. It supports both:
 
 - Current schema shape: `docker { containers { ... } }`
 - Previously documented shape: `dockerContainers { ... }`

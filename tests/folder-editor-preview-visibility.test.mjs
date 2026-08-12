@@ -18,7 +18,7 @@ const createPreviewHarness = ({ previewNames, includedNames }) => {
             return this;
         },
         find() {
-            return { get: () => null };
+            return { get: () => null, each: () => null };
         }
     };
     const $ = (selector) => selector === '#fvLivePreviewCanvas' ? canvas : { length: 0 };

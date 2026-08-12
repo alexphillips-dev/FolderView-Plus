@@ -106,7 +106,7 @@ test('VM members reconcile by UUID and live members backfill their identities', 
 test('editor, server, and runtime wire identity and per-member preview persistence', () => {
     const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
     const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
-    const serverLib = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+    const serverLib = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.folder-mutations.php');
     const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
     const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 

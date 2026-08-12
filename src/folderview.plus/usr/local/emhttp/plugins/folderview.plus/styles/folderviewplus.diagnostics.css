@@ -1,0 +1,25 @@
+button.fv-diagnostics-finding {
+    appearance: none;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--fvplus-settings-text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+button.fv-diagnostics-finding:hover,
+button.fv-diagnostics-finding:focus-visible {
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-diagnostics-health-card.is-focused {
+    outline: 2px solid var(--fvplus-settings-focus-ring);
+    outline-offset: 3px;
+}

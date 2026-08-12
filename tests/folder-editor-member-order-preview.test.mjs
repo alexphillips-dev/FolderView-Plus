@@ -10,6 +10,7 @@ const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const folderPreviewModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.preview-model.js');
 const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
 const folderMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
+const folderMemberListJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.member-list.js');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
@@ -54,25 +55,25 @@ test('modern folder editor exposes separate child-folder ordering above app memb
     assert.match(folderPage, /id="fvFolderMembersSection"/);
     assert.match(folderPage, /class="fv-folder-members-table"/);
     assert.match(folderPage, /id="fvFolderMembersBody"/);
-    assert.match(folderJs, /let childFolderOrder = \[\];/);
-    assert.match(folderJs, /const renderFolderMembersSection = \(\) => \{/);
-    assert.match(folderJs, /const bindChildFolderDragReorder = \(\) => \{/);
-    assert.match(folderJs, /const syncChildFolderOrderFromTable = \(\) => \{/);
-    assert.match(folderJs, /const getChildFolderOrderIds = \(\) => \{/);
+    assert.match(folderMemberListJs, /let childFolderOrder = \[\];/);
+    assert.match(folderMemberListJs, /const renderFolderMembersSection = \(\) => \{/);
+    assert.match(folderMemberListJs, /const bindChildFolderDragReorder = \(\) => \{/);
+    assert.match(folderMemberListJs, /const syncChildFolderOrderFromTable = \(\) => \{/);
+    assert.match(folderJs, /const getChildFolderOrderIds = \(\) => getFolderEditorMemberListApi\(\)\.getChildFolderOrderIds\(\);/);
     assert.match(folderJs, /markSection\('#fvFolderMembersSection', 'members'\);/);
     assert.match(folderChromeJs, /form\.querySelector\('#fvFolderMembersSection'\)/);
     assert.match(folderChromeJs, /key:\s*'folder-members'/);
-    assert.match(folderJs, /childFolderOrder = normalizeChildFolderOrder\(normalizedFolder\.settings\.child_folder_order \|\| normalizedFolder\.settings\.childFolderOrder\);/);
-    assert.match(folderJs, /renderFolderMembersSection\(\);/);
-    assert.match(folderJs, /#fvFolderMembersBody > tr\[data-child-folder-id\]/);
-    assert.match(folderJs, /\.folder-member-drag-handle/);
+    assert.match(folderJs, /getFolderEditorMemberListApi\(\)\.setChildFolderOrder\(/);
+    assert.match(folderMemberListJs, /renderFolderMembersSection\(\);/);
+    assert.match(folderMemberListJs, /#fvFolderMembersBody > tr\[data-child-folder-id\]/);
+    assert.match(folderMemberListJs, /\.folder-member-drag-handle/);
     assert.match(folderCss, /\.fv-folder-members-section\[hidden\]/);
     assert.match(folderCss, /\.fv-folder-members-table/);
     assert.match(folderCss, /\.folder-member-drag-handle\s*\{[\s\S]*cursor:\s*grab;/);
 });
 
 test('modern members tab uses the Settings six-dot grip for every drag handle', () => {
-    const dragHandles = [...folderJs.matchAll(/<button type="button" class="(?:folder-member-drag-handle|member-drag-handle) fv-six-dot-drag-handle"[\s\S]*?<\/button>/g)]
+    const dragHandles = [...folderMemberListJs.matchAll(/<button type="button" class="(?:folder-member-drag-handle|member-drag-handle) fv-six-dot-drag-handle"[\s\S]*?<\/button>/g)]
         .map((match) => match[0]);
     assert.equal(dragHandles.length, 2);
     dragHandles.forEach((markup) => {

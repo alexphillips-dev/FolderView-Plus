@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Pratite stanje dodataka, rješavajte probleme i dijelite podatke podrške.",
     "diagnostics.actions.run": "Pokrenite provjeru zdravlja",
     "diagnostics.actions.retest-performance": "Ponovno testirajte performanse",
-    "diagnostics.actions.check-again": "Provjerite ponovno",
     "diagnostics.summary.empty-title": "Pokrenite provjeru ispravnosti da provjerite stanje dodatka.",
     "diagnostics.summary.empty-description": "Docker, VM, pohrana, prilagođene ikone, ažuriranja i tema provjeravat će se zajedno.",
     "diagnostics.state.not-checked": "Nije provjereno",

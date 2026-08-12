@@ -11,7 +11,6 @@
     root.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;
 }(typeof window !== 'undefined' ? window : {}, function dockerRuntimeDiagnosticsFactory(fallbackWindow) {
     'use strict';
-
     const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
     const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
     const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.requestBundleTrace.v1';
@@ -30,7 +29,19 @@
             ? require('./docker.runtime.layout-geometry.js')
             : null);
     let activeLayoutStabilityTracker = null;
-
+    const buildOrderFingerprint = (order) => {
+        const input = (Array.isArray(order) ? order : []).map((entry) => String(entry || '')).join('\u001f');
+        let hashA = 0x811c9dc5;
+        let hashB = 0x9e3779b9;
+        for (let index = 0; index < input.length; index++) {
+            const code = input.charCodeAt(index);
+            hashA ^= code;
+            hashA = Math.imul(hashA, 0x01000193) >>> 0;
+            hashB ^= code + index + 1;
+            hashB = Math.imul(hashB, 0x85ebca6b) >>> 0;
+        }
+        return `${hashA.toString(16).padStart(8, '0')}${hashB.toString(16).padStart(8, '0')}`;
+    };
     const createLayoutStabilityTracker = (deps = {}) => {
         activeLayoutStabilityTracker?.destroy?.();
         const win = deps.window || fallbackWindow;
@@ -78,24 +89,21 @@
             }
         };
         let layoutShiftObserver = null;
-
         const elapsedMs = () => {
             const now = typeof win.performance?.now === 'function' ? win.performance.now() : Date.now();
             return Math.max(0, Math.round((now - startedAt) * 10) / 10);
         };
-
         const normalizeDetails = (details = {}) => {
             const normalized = {};
             Object.entries(details && typeof details === 'object' ? details : {}).forEach(([key, value]) => {
                 if (typeof value === 'boolean' || typeof value === 'string') {
                     normalized[key] = value;
-                } else if (value !== null && value !== '' && Number.isFinite(Number(value))) {
+                } else if (value !== null && Number.isFinite(Number(value))) {
                     normalized[key] = Math.round(Number(value) * 10) / 10;
                 }
             });
             return normalized;
         };
-
         const markPhase = (phase, details = {}) => {
             const safePhase = String(phase || '').trim();
             if (!safePhase) {
@@ -111,7 +119,6 @@
             };
             state.capturedAt = new Date().toISOString();
         };
-
         const recordWidth = (stage, details = {}) => {
             Object.entries(details && typeof details === 'object' ? details : {}).forEach(([key, value]) => {
                 if (key === 'contentSignature') {
@@ -128,7 +135,6 @@
             }
             markPhase(`width-${String(stage || '').trim()}`, details);
         };
-
         const summarizeActionSlots = () => {
             const targets = Array.from(doc?.querySelectorAll?.('.folder-preview .fv-preview-action-slot') || []);
             const webuiSlots = targets.filter((node) => node.classList?.contains('folder-element-webui'));
@@ -139,7 +145,6 @@
                 unavailableWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-unavailable')).length
             };
         };
-
         const captureActionGeometry = () => {
             const geometry = new Map();
             doc?.querySelectorAll?.(
@@ -152,7 +157,6 @@
             });
             return geometry;
         };
-
         const compareActionGeometry = (beforeGeometry) => {
             if (!(beforeGeometry instanceof Map)) {
                 return;
@@ -233,7 +237,6 @@
                 maximumRowShiftPx
             });
         };
-
         const getSnapshot = () => {
             try {
                 return JSON.parse(JSON.stringify({ ...state, capturedAt: new Date().toISOString() }));
@@ -241,7 +244,6 @@
                 return { schemaVersion: 2, available: false };
             }
         };
-
         if (typeof win.PerformanceObserver === 'function') {
             try {
                 layoutShiftObserver = new win.PerformanceObserver((list) => {
@@ -267,7 +269,6 @@
                 layoutShiftObserver = null;
             }
         }
-
         const tracker = Object.freeze({
             markPhase,
             recordWidth,
@@ -289,7 +290,6 @@
         activeLayoutStabilityTracker = tracker;
         return tracker;
     };
-
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win.document || null;
@@ -313,7 +313,6 @@
         const getLayoutStabilityDiagnostics = typeof deps.getLayoutStabilityDiagnostics === 'function'
             ? deps.getLayoutStabilityDiagnostics
             : (() => ({ available: false }));
-
         const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
         const measureBytes = (value) => {
             try {
@@ -939,6 +938,7 @@
         DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY,
         DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY,
         DOCKER_TRACE_HEALTH_STORAGE_KEY,
+        buildOrderFingerprint,
         createLayoutStabilityTracker,
         createApi
     };

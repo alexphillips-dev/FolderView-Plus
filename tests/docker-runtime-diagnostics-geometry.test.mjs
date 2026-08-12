@@ -20,6 +20,13 @@ const createClassList = (...tokens) => {
     };
 };
 
+test('order diagnostics build stable privacy-safe fingerprints', () => {
+    assert.equal(diagnostics.buildOrderFingerprint(['folder-a', 'container-b']), 'bf4644c023531be6');
+    assert.equal(diagnostics.buildOrderFingerprint(['folder-a', 'container-b']), diagnostics.buildOrderFingerprint(['folder-a', 'container-b']));
+    assert.notEqual(diagnostics.buildOrderFingerprint(['folder-a']), diagnostics.buildOrderFingerprint(['folder-b']));
+    assert.match(diagnostics.buildOrderFingerprint([]), /^[0-9a-f]{16}$/);
+});
+
 const createFixture = () => {
     const ownerRect = { left: 100, top: 40 };
     const consoleRect = { left: 120, top: 50 };

@@ -2959,7 +2959,6 @@ const addVMFolderContext = (id) => {
         right: false,
         above: false
     });
-
     const folderData = globalFolders[id];
     const hasChildren = folderHasChildren(id);
     const focused = vmFocusedFolderId === id;
@@ -3060,7 +3059,6 @@ const addVMFolderContext = (id) => {
         });
         appendDivider();
     }
-
     if (hasChildren) {
         const branchSubMenu = [
             {
@@ -3109,13 +3107,16 @@ const addVMFolderContext = (id) => {
             appendDivider();
         }
     }
-
     opts.push({
         text: $.i18n('edit'),
         icon: 'fa-wrench',
         action: (evt) => { evt.preventDefault(); editFolder(id); }
     });
-
+    opts.push({
+        text: 'Capture page diagnostics',
+        icon: 'fa-camera',
+        action: (evt) => { evt.preventDefault(); window.FolderViewPlusFoundationModules?.runtimePageDiagnostics?.captureAndAnnounce?.({ surface: 'vm', variant: 'default', trigger: 'manual', root: document.querySelector('#kvm_list, #vm_view') }); }
+    });
     opts.push({
         text: 'Clone',
         icon: 'fa-clone',
@@ -3175,7 +3176,6 @@ const addVMFolderContext = (id) => {
     queueVmFolderContextQuickIcons();
     vmPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
 };
-
 // Global variables
 let loadedFolder = false;
 let globalFolders = {};

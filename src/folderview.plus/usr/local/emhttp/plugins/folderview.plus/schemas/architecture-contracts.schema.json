@@ -32,6 +32,7 @@
       "scripts/docker.runtime.shared.js": { "limit": 460, "target": 450, "history": [1511, 460] },
       "scripts/runtime.shared-primitives.js": { "limit": 525, "target": 500, "history": [525] },
       "scripts/runtime.shared-diagnostics.js": { "limit": 270, "target": 240, "history": [270] },
+      "scripts/runtime.page-diagnostics.js": { "limit": 210, "target": 200, "history": [210] },
       "scripts/runtime.shared-controls.js": { "limit": 353, "target": 320, "history": [353] },
       "scripts/folderviewplus.import.js": { "limit": 1486, "target": 500, "history": [1486] },
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
@@ -134,7 +135,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -144,7 +145,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["vm"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/vm.runtime.lifecycle.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/vm.runtime.lifecycle.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addVMFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -154,7 +155,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["dashboard"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/docker.runtime.shared.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["expandFolderDocker", "expandFolderVM"]
     },
@@ -864,6 +865,21 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["createRuntimeStateStore", "createAsyncActionBoundary", "createContextMenuQuickStripAdapter", "createRuntimePerfTelemetry", "createDeferredPreviewController", "createSafeUiActionRunner", "resolveRuntimePerformanceProfile", "normalizePerformanceProfileMode", "runtimeContracts"]
+    },
+    {
+      "file": "scripts/runtime.page-diagnostics.js",
+      "owner": "shared-runtime-page-diagnostics",
+      "consumers": ["docker", "vm", "dashboard", "settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimePageDiagnostics",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["SCHEMA_VERSION", "STORAGE_KEY", "MAX_CAPTURES_PER_SURFACE", "TTL_MS", "SURFACES", "normalizeSnapshot", "readRecord", "buildSnapshot", "capture", "captureAndAnnounce", "createController"],
+      "apiFactory": "createController",
+      "apiExports": ["capture", "read"]
     },
     {
       "file": "scripts/runtime.shared-diagnostics.js",

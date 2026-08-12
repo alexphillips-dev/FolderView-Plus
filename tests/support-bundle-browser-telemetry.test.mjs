@@ -184,6 +184,33 @@ test('support bundle browser telemetry exports fresh privacy-safe Dashboard visu
     assert.equal(JSON.stringify(visual).includes('private-container'), false);
 });
 
+test('support bundle browser telemetry re-allowlists shared runtime page diagnostics', () => {
+    const capturedAt = new Date().toISOString();
+    const collectors = loadBrowserModule({}).createCollectors({
+        storageKeys: { runtimePageDiagnostics: 'runtime-pages' },
+        readClientDiagnosticsStorageRecord(key) {
+            return key === 'runtime-pages' ? {
+                surfaces: {
+                    docker: [{
+                        capturedAt,
+                        surface: 'docker',
+                        variant: 'folderview',
+                        trigger: 'manual',
+                        privateUrl: 'http://private-host/',
+                        state: { visibleRows: 5, spinningControls: 2, rawDom: '<secret>' }
+                    }]
+                }
+            } : null;
+        }
+    });
+    const result = collectors.collectRuntimePageDiagnostics(null);
+    assert.equal(result.available, true);
+    assert.equal(result.surfaces.docker[0].state.visibleRows, 5);
+    assert.equal(result.surfaces.docker[0].state.spinningControls, 2);
+    assert.equal(JSON.stringify(result).includes('private-host'), false);
+    assert.equal(JSON.stringify(result).includes('rawDom'), false);
+});
+
 test('browser error telemetry separates current-session failures from historical records', () => {
     const root = {
         FolderViewPlusFatalBanner: {

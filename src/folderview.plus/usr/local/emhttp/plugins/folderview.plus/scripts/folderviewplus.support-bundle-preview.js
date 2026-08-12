@@ -110,12 +110,17 @@
 
         const buildDashboardCaptureStatusHtml = (bundle) => {
             const visual = bundle?.uiTelemetry?.dashboardVisual || {};
+            const runtimePages = bundle?.uiTelemetry?.runtimePageDiagnostics || {};
             const entries = ['docker', 'vm'].map((type) => ({
                 type,
                 value: visual?.[type] || {}
             }));
             const available = entries.filter((entry) => entry.value?.available === true);
-            if (!available.length) {
+            const runtimeEntries = ['docker', 'vm', 'dashboard'].map((surface) => ({
+                surface,
+                value: runtimePages?.surfaces?.[surface]?.at?.(-1) || null
+            })).filter((entry) => entry.value);
+            if (!available.length && !runtimeEntries.length) {
                 return `
                     <article class="fv-diagnostics-capture-card is-missing">
                         <div class="fv-diagnostics-support-card-head">
@@ -131,7 +136,7 @@
                     </article>
                 `;
             }
-            const rows = available.map(({ type, value }) => {
+            const visualRows = available.map(({ type, value }) => {
                 const latest = value.latest || {};
                 const verdict = String(latest.verdict?.status || 'unknown');
                 const viewport = latest.environment?.viewport || {};
@@ -153,22 +158,32 @@
                         <span>${escapeHtml(`${freshness}; ${formatAge(value.ageMs)}; ${viewportLabel}; ${touchLabel}; render ${verdict}.`)}</span>
                     </div>
                 `;
-            }).join('');
+            });
+            const runtimeRows = runtimeEntries.map(({ surface, value }) => {
+                const state = value.state || {};
+                const attention = state.spinningControls > 0 || state.errorIndicators > 0 || state.horizontalOverflow === true;
+                return `
+                    <div class="fv-support-bundle-capture-row ${attention ? 'is-attention' : 'is-ready'}">
+                        <strong>${escapeHtml(`${surface === 'vm' ? 'VM' : (surface === 'docker' ? 'Docker' : 'Dashboard')} page`)}</strong>
+                        <span>${escapeHtml(`${value.viewport?.class || 'unknown'} viewport; ${state.folderRows || 0} folders; ${state.visibleMembers || 0} members; ${state.spinningControls || 0} spinning controls.`)}</span>
+                    </div>`;
+            });
+            const rows = [...visualRows, ...runtimeRows].join('');
             const hasEnvironmentMismatch = available.some((entry) => entry.value?.environmentComparison?.differs === true);
             const needsCaptureReview = hasEnvironmentMismatch || available.some((entry) => (
                 String(entry.value?.freshness || 'unknown') !== 'fresh'
                 || String(entry.value?.latest?.verdict?.status || 'unknown') !== 'healthy'
-            ));
+            )) || runtimeEntries.some(({ value }) => value.state?.spinningControls > 0 || value.state?.errorIndicators > 0 || value.state?.horizontalOverflow === true);
             const mismatch = hasEnvironmentMismatch
                 ? `<span class="fv-support-bundle-capture-warning">${escapeHtml(translate('diagnostics.capture.environment-warning', 'The export environment differs from at least one captured Dashboard environment.'))}</span>`
                 : '';
             return `
                 <article class="fv-diagnostics-capture-card">
                     <div class="fv-diagnostics-support-card-head">
-                        <div>${svgIcon('monitor')}<strong>${escapeHtml(translate('diagnostics.capture.title', 'Dashboard visual evidence'))}</strong></div>
+                        <div>${svgIcon('monitor')}<strong>${escapeHtml(translate('diagnostics.capture.title', 'Runtime page evidence'))}</strong></div>
                         <span class="fv-diagnostics-status-badge ${needsCaptureReview ? 'is-warning' : 'is-healthy'}">${escapeHtml(needsCaptureReview ? translate('diagnostics.capture.review', 'Review') : translate('diagnostics.capture.ready', 'Ready'))}</span>
                     </div>
-                    <p>${escapeHtml(translate('diagnostics.capture.help', 'These captures preserve the rendered Dashboard geometry after navigation to Settings.'))}</p>
+                    <p>${escapeHtml(translate('diagnostics.capture.help', 'These sanitized captures preserve comparable Docker, VM, and Dashboard state after navigation to Settings.'))}</p>
                     <div class="fv-support-bundle-capture-rows">${rows}</div>
                     ${mismatch}
                     <a class="fv-ui-button fv-dashboard-capture-guide-action" href="/Dashboard"><i class="fa fa-refresh" aria-hidden="true"></i>${escapeHtml(translate('diagnostics.capture.capture-again', 'Capture again'))}</a>

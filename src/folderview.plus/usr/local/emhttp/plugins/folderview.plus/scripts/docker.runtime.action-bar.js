@@ -56,6 +56,11 @@
         const translate = typeof deps.translate === 'function'
             ? deps.translate
             : ((key, fallback = '') => win?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
+        const pageDiagnostics = win?.FolderViewPlusFoundationModules?.runtimePageDiagnostics?.createController?.({
+            window: win,
+            document: doc,
+            surface: 'docker'
+        }) || null;
         let actionMenuOpen = '';
         let folderFilterMode = 'all';
         let eventsBound = false;
@@ -201,6 +206,9 @@
                 </button>
                 <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="refresh">
                     <i class="fa fa-refresh" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.refresh-state', 'Refresh folder state'))}</span>
+                </button>
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="capture-diagnostics">
+                    <i class="fa fa-camera" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.capture-diagnostics', 'Capture page diagnostics'))}</span>
                 </button>
                 <span class="fvplus-docker-action-menu-divider" role="separator"></span>
                 <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-route="bulk">
@@ -447,6 +455,17 @@
                     sync();
                 }
                 if (tool === 'refresh') runTask(refreshRuntimeView);
+                if (tool === 'capture-diagnostics') {
+                    const snapshot = pageDiagnostics?.capture?.({
+                        variant: resolvePageViewMode(getPrefs()),
+                        trigger: 'manual',
+                        root: doc?.querySelector?.('#docker_list, #docker_view')
+                    });
+                    win?.FolderViewPlusUI?.announce?.({
+                        title: snapshot ? 'Docker diagnostics captured' : 'Docker diagnostics unavailable',
+                        message: snapshot ? 'The sanitized snapshot is ready for the next support bundle.' : 'The Docker page was not ready to capture.'
+                    });
+                }
                 if (tool === 'reset') resetView();
                 return;
             }

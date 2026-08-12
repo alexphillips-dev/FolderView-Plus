@@ -404,6 +404,7 @@
             docker: { available: false, freshness: 'unavailable' },
             vm: { available: false, freshness: 'unavailable' }
         }));
+        const collectRuntimePageDiagnostics = browserCollectors?.collectRuntimePageDiagnostics || (() => ({ available: false, surfaces: {} }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
         const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
         const collectDownloadAttempts = downloadCollectors?.collectDownloadAttempts || (() => ({
@@ -556,6 +557,7 @@
             existingUiTelemetry.dashboardVisual = collectDashboardVisualDiagnostics(uiRedactor, {
                 pluginVersion: payload.bundleMeta?.pluginVersion || ''
             });
+            existingUiTelemetry.runtimePageDiagnostics = collectRuntimePageDiagnostics(uiRedactor);
             existingUiTelemetry.dashboardLifecycle = collectDashboardLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.vmLifecycle = collectVmLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.downloadAttempts = collectDownloadAttempts(uiRedactor);

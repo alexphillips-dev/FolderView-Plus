@@ -49,7 +49,7 @@ const explicitHtmlSinkReviews = new Map([
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3465', 'The loading overlay contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5252', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5284', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:266', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:274', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js:504', 'Names, identifiers, states, actions, and error text are escaped; counts are normalized numbers and image sources are sanitized.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js:221', 'The stable-toggle controller accepts only plugin-owned markup builders and validates the expected input after mounting.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:471', 'buildTopChrome returns plugin-authored editor chrome with no persisted-value interpolation.'],

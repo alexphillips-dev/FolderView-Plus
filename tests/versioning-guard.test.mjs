@@ -899,6 +899,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
     assert.match(mainBranchHistoryGuard, /merge_commit_allowed/);
     assert.match(mainBranchHistoryGuard, /Merge\\ pull\\ request\\ #\[0-9\]\+/);
+    assert.ok(mainBranchHistoryGuard.includes('^Stable\\ release\\ [0-9]{4}'));
+    assert.match(mainBranchHistoryGuard, /git merge-base --is-ancestor "\$\{allowed_ref\}" "\$\{parent_commit\}"/);
     assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev history/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);

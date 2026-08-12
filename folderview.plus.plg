@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.14">
-<!ENTITY md5 "005a18863193b5820cc3898389cd4823">
-<!ENTITY sha256 "24c6878599b11c4c605668f6a96a82b84d64246bc558acd208fd5ecc1d3a3f84">
+<!ENTITY version "2026.08.12.01">
+<!ENTITY md5 "03d5d75402ad7d2fe769db10510ce265">
+<!ENTITY sha256 "89803ec73f426b65172c40eaadce4aa94bd50f41ee1a201a86d2430c6112a9e5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.01
+- Maintenance: Synchronized stable source and workflow fixes from main back into dev.
+- Quality: Rebuilt the dev package so the shipped archive exactly matches the synchronized source.
+- Test: Revalidated the complete dev state without allowing packaged-source drift.
+
 
 ###2026.08.11.14
 ## FolderView Plus 2026.08.11.14

@@ -93,7 +93,7 @@
         const buildDisabledHtml = (disabledNames) => {
             const names = Array.isArray(disabledNames) ? disabledNames : [];
             if (!names.length) return '';
-            return `<section class="fv-docker-start-order-disabled"><h4><i class="fa fa-ban" aria-hidden="true"></i> ${text('settings.start-order.disabled', 'Autostart disabled')} (${names.length})</h4><div>${names.map((name) => `<button type="button" data-fv-onclick="toggleDockerStartOrderAutostart('${encodeName(name)}', true)"><i class="fa fa-ban" aria-hidden="true"></i><span>${escapeHtml(name)}</span></button>`).join('')}</div></section>`;
+            return `<details class="fv-docker-start-order-disabled"><summary><span><i class="fa fa-ban" aria-hidden="true"></i> ${text('settings.start-order.disabled', 'Autostart disabled')} (${names.length})</span><i class="fa fa-chevron-down" aria-hidden="true"></i></summary><div>${names.map((name) => `<button type="button" data-fv-onclick="toggleDockerStartOrderAutostart('${encodeName(name)}', true)"><i class="fa fa-ban" aria-hidden="true"></i><span>${escapeHtml(name)}</span></button>`).join('')}</div></details>`;
         };
         const buildPreviewHtml = (preview, options = {}) => {
             const warnings = Array.isArray(preview?.warnings) ? preview.warnings : [];

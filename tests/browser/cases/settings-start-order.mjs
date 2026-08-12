@@ -17,13 +17,13 @@ test('Docker start order matches the responsive workspace mockup without page ov
             sequenceRows: table.querySelectorAll('.fv-docker-start-order-sequence > li').length,
             appIcons: table.querySelectorAll('.fv-start-order-container > img').length,
             enabledSwitches: table.querySelectorAll('.fv-start-order-switch input:checked').length,
-            disabledChips: fixture.querySelectorAll('.fv-docker-start-order-disabled button').length,
+            disabledChips: fixture.querySelectorAll('.fv-docker-start-order-disabled button').length, disabledOpen: fixture.querySelector('.fv-docker-start-order-disabled').open,
+            minimumTextPx: Math.min(...[...fixture.querySelectorAll('h2, p, summary, button, label, input, select, small, strong, span')].map((node) => parseFloat(getComputedStyle(node).fontSize))),
             tableScrollContained: tableWrap.scrollWidth >= tableWrap.clientWidth,
             scrollWidth: document.documentElement.scrollWidth,
             clientWidth: document.documentElement.clientWidth
         };
     });
-
     await page.setViewportSize({ width: 1500, height: 980 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readLayout();
@@ -34,8 +34,9 @@ test('Docker start order matches the responsive workspace mockup without page ov
     assert.equal(layout.sequenceRows, 5);
     assert.equal(layout.appIcons, 5);
     assert.equal(layout.enabledSwitches, 5);
-    assert.equal(layout.disabledChips, 2);
+    assert.equal(layout.disabledChips, 2); assert.equal(layout.disabledOpen, false); assert.ok(layout.minimumTextPx >= 19.2, 'all start-order text must be at least 1.2rem');
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop start-order workspace must not overflow the page');
+    await page.locator('.fv-docker-start-order-disabled > summary').click(); layout = await readLayout(); assert.equal(layout.disabledOpen, true); assert.ok(layout.minimumTextPx >= 19.2);
 
     await page.setViewportSize({ width: 700, height: 900 });
     layout = await readLayout();

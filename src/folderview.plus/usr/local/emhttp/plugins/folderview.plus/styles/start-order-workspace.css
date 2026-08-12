@@ -10,6 +10,11 @@
     min-width: 0;
 }
 
+#fv-settings-root .fv-docker-start-order-heading-row :is(p, span, small, button, label, input, select, summary),
+#fv-settings-root .fv-docker-start-order-workspace :is(p, span, small, button, label, input, select, summary) {
+    font-size: 1.2rem;
+}
+
 #fv-settings-root .fv-docker-start-order-heading-copy > h2 {
     display: flex;
     gap: 0.65rem;
@@ -22,7 +27,7 @@
 .fv-docker-start-order-heading-copy > p {
     margin: 0.6rem 0 0;
     color: var(--fvplus-settings-text-muted);
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-summary {
@@ -74,7 +79,7 @@
 .fv-start-order-summary-metric small {
     margin-top: 0.18rem;
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     white-space: nowrap;
 }
 
@@ -107,6 +112,7 @@
     gap: 0;
     padding: 1.35rem;
     background: transparent;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-top {
@@ -135,7 +141,7 @@
 
 .fv-docker-start-order-controls .setting-select > span:first-child {
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.92rem;
+    font-size: 1.2rem;
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
@@ -168,7 +174,7 @@
     background: transparent;
     color: var(--fvplus-settings-text-primary);
     box-shadow: none;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 600;
 }
 
@@ -208,7 +214,7 @@
 .fv-docker-start-order-help strong {
     margin: 0.12rem 0 0.35rem;
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.94rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-help span {
@@ -232,7 +238,7 @@
     background: var(--fvplus-settings-button-quiet-top);
     color: var(--fvplus-settings-text-primary);
     box-shadow: var(--fvplus-settings-button-quiet-shadow);
-    font-size: 0.88rem;
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: none;
 }
@@ -269,12 +275,12 @@
     gap: 0.55rem;
     align-items: center;
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.02rem;
+    font-size: 1.2rem;
 }
 
 .fv-start-order-section-head > strong > .fa,
 .fv-docker-start-order-preview-head > strong > .fa,
-.fv-docker-start-order-disabled h4 > .fa {
+.fv-docker-start-order-disabled > summary .fa-ban {
     color: var(--fvplus-settings-accent);
 }
 
@@ -320,13 +326,13 @@
 
 .fv-docker-start-order-empty strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.95rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-empty small {
     margin-top: 0.25rem;
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.88rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-batch,
@@ -357,6 +363,7 @@
     border-radius: 7px;
     background: var(--fvplus-settings-surface-field);
     color: var(--fvplus-settings-text-primary);
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-batch-actions,
@@ -372,6 +379,7 @@
 .fv-docker-start-order-item-actions > button {
     min-width: 32px;
     min-height: 30px;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-batch-settings {
@@ -406,7 +414,7 @@
 
 .fv-docker-start-order-kind {
     color: var(--fvplus-settings-accent);
-    font-size: 0.72rem;
+    font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -435,7 +443,7 @@
     gap: 0.55rem;
     align-items: center;
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.94rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-count {
@@ -444,7 +452,7 @@
     border-radius: 7px;
     background: var(--fvplus-settings-surface-muted);
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.78rem;
+    font-size: 1.2rem;
 }
 
 .fv-start-order-table-wrap {
@@ -473,7 +481,7 @@
     border-bottom: 1px solid var(--fvplus-settings-border-faint);
     background: var(--fvplus-settings-surface-card);
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.82rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-sequence {
@@ -528,6 +536,7 @@
 
 .fv-start-order-container > small {
     color: var(--fvplus-settings-text-muted);
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-wait {
@@ -548,6 +557,7 @@
     color: var(--fvplus-settings-text-primary);
     text-align: right;
     box-shadow: none;
+    font-size: 1.2rem;
 }
 
 .fv-start-order-switch {
@@ -609,19 +619,43 @@
     padding: 0.7rem;
 }
 
-.fv-docker-start-order-disabled h4 {
+.fv-docker-start-order-disabled > summary {
     display: flex;
+    justify-content: space-between;
     gap: 0.55rem;
     align-items: center;
-    margin: 0 0 0.65rem;
+    margin: 0;
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.94rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.fv-docker-start-order-disabled > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fv-docker-start-order-disabled > summary > span {
+    display: inline-flex;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-disabled > summary > .fa-chevron-down {
+    color: var(--fvplus-settings-text-muted);
+    transition: transform 140ms ease;
+}
+
+.fv-docker-start-order-disabled[open] > summary > .fa-chevron-down {
+    transform: rotate(180deg);
 }
 
 .fv-docker-start-order-disabled > div {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+    margin-top: 0.65rem;
 }
 
 #fv-settings-root .fv-docker-start-order-disabled button {
@@ -635,7 +669,7 @@
     background: var(--fvplus-settings-surface-strong);
     color: var(--fvplus-settings-text-muted);
     box-shadow: none;
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     text-transform: none;
 }
 
@@ -651,7 +685,7 @@
     padding-top: 0.75rem;
     border-top: 1px solid var(--fvplus-settings-border-faint);
     color: var(--fvplus-settings-text-dim);
-    font-size: 0.82rem;
+    font-size: 1.2rem;
 }
 
 .fv-docker-start-order-warning {
@@ -731,6 +765,7 @@
 @media (prefers-reduced-motion: reduce) {
     .fv-start-order-switch > span,
     .fv-start-order-switch > span::after,
+    .fv-docker-start-order-disabled > summary > .fa-chevron-down,
     #fv-settings-root .fv-docker-start-order-toolbar > button,
     #fv-settings-root .fv-start-order-section-head > button {
         transition: none;

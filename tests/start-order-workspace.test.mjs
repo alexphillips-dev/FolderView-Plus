@@ -21,6 +21,8 @@ test('start-order sequence preview exposes app rows, waits, switches, and safe e
     assert.match(html, /alpha%27box/);
     assert.doesNotMatch(html, /decodeURIComponent/);
     assert.match(html, /Autostart disabled \(1\)/);
+    assert.match(html, /<details class="fv-docker-start-order-disabled"><summary>/);
+    assert.doesNotMatch(html, /<details class="fv-docker-start-order-disabled"[^>]*\sopen/);
     assert.match(html, /src="\/icons\/alpha\.png"/);
     assert.match(html, /class="fv-start-order-switch"/);
 });

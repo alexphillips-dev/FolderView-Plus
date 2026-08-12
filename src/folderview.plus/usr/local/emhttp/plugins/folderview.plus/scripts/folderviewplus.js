@@ -8285,6 +8285,11 @@ const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplat
 
 const dockerStartOrderModel = window.FolderViewPlusFoundationModules?.startOrderModel;
 if (!dockerStartOrderModel || typeof dockerStartOrderModel.normalizePlan !== 'function') throw new Error('FolderView Plus start-order model is unavailable.');
+const dockerStartOrderView = window.FolderViewPlusFoundationModules?.startOrderView?.createApi({
+    escapeHtml,
+    translate: translateSettingsText
+});
+if (!dockerStartOrderView) throw new Error('FolderView Plus start-order view is unavailable.');
 const dockerStartOrderWorkspace = window.FolderViewPlusFoundationModules?.startOrderWorkspace?.createApi({
     escapeHtml,
     getPlan: () => normalizeDockerStartOrderPrefsForUi(),
@@ -8596,130 +8601,29 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
     }
 };
 
-const buildDockerStartOrderBatchHtml = (batch, index) => {
-    const safeId = String(batch?.id || '');
-    const items = Array.isArray(batch?.items) ? batch.items : [];
-    const folderOptionsCache = getDockerStartOrderFolderOptionsCached();
-    const folderSelectOptions = folderOptionsCache.html;
-    const containerSelectOptions = getDockerStartOrderContainerOptionsCached().html;
-    const itemHtml = items.length
-        ? items.map((item, itemIndex) => {
-            const isFolder = item?.type === 'folder';
-            const label = isFolder
-                ? (folderOptionsCache.byId.get(String(item.id))?.name || item.id || 'Folder')
-                : (item?.name || 'Container');
-            return `
-                <div class="fv-docker-start-order-item">
-                    <span class="fv-docker-start-order-kind"><i class="fa ${isFolder ? 'fa-folder-o' : 'fa-cube'}"></i> ${isFolder ? 'Folder' : 'Container'}</span>
-                    <strong>${escapeHtml(label)}</strong>
-                    <div class="fv-docker-start-order-item-actions">
-                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'up')" ${itemIndex === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'down')" ${itemIndex >= items.length - 1 ? 'disabled' : ''}><i class="fa fa-chevron-down"></i></button>
-                        <button type="button" data-fv-onclick="removeDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex})"><i class="fa fa-times"></i></button>
-                    </div>
-                </div>
-            `;
-        }).join('')
-        : '<div class="fv-docker-start-order-empty">Add folders or containers to this batch.</div>';
-    return `
-        <section class="fv-docker-start-order-batch">
-            <div class="fv-docker-start-order-batch-head">
-                <input type="text" value="${escapeHtml(batch?.name || `Start batch ${index + 1}`)}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'name', this.value)" aria-label="Batch name">
-                <div class="fv-docker-start-order-batch-actions">
-                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'up')" ${index === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'down')"><i class="fa fa-chevron-down"></i></button>
-                    <button type="button" data-fv-onclick="removeDockerStartOrderBatch('${escapeHtml(safeId)}')"><i class="fa fa-trash"></i></button>
-                </div>
-            </div>
-            <div class="fv-docker-start-order-batch-settings">
-                <label>Delay after batch <input type="number" min="0" max="3600" step="1" value="${Number(batch?.delay) || 0}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'delay', this.value)"></label>
-                <label><input type="checkbox" ${batch?.useFolderOrder === false ? '' : 'checked'} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'useFolderOrder', this.checked)"> Use folder member order</label>
-                <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
-            </div>
-            <div class="fv-docker-start-order-add-row">
-                <select data-fv-start-folder="${escapeHtml(safeId)}">${folderSelectOptions}</select>
-                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
-                <select data-fv-start-container="${escapeHtml(safeId)}">${containerSelectOptions}</select>
-                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
-            </div>
-            <div class="fv-docker-start-order-items">${itemHtml}</div>
-        </section>
-    `;
-};
-
-const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
-    <div class="fv-docker-start-order-controls" data-fv-start-order-region="controls">
-        <label class="setting-select">
-            <span>Start order mode</span>
-            <select id="docker-start-order-mode" data-fv-onchange="updateDockerStartOrderMode(this.value)">
-                <option value="unmanaged" ${plan.mode === 'unmanaged' ? 'selected' : ''}>${translateSettingsText('settings.start-order.unmanaged', 'Leave Unraid order unmanaged')}</option>
-                <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
-                <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
-            </select>
-        </label>
-        <label class="setting-select">
-            <span>Remaining autostart containers</span>
-            <select id="docker-start-order-remaining" data-fv-onchange="updateDockerStartOrderRemaining(this.value)">
-                <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
-                <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
-                <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
-            </select>
-        </label>
-    </div>
-    <div class="fv-docker-start-order-help" data-fv-start-order-region="help">
-        <i class="fa fa-info-circle" aria-hidden="true"></i>
-        <div>
-            <strong>${plan.mode === 'unmanaged' ? 'Unraid owns the start order.' : (customVisible ? 'Custom batches are active.' : 'Docker page order is active.')}</strong>
-            <span>${plan.mode === 'unmanaged' ? 'FolderView Plus will preview the native order but will not rewrite the Docker autostart file.' : (customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.')}</span>
-        </div>
-    </div>
-`;
-
-const buildDockerStartOrderToolbarHtml = (customVisible) => `
-    <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
-        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" data-fv-onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
-        <button type="button" data-fv-onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-        <button type="button" data-fv-onclick="syncDockerStartOrderNow()" ${normalizeDockerStartOrderPrefsForUi().mode === 'unmanaged' ? `disabled title="${escapeHtml(translateSettingsText('settings.start-order.unmanaged-title', 'Unraid owns this order in unmanaged mode'))}"` : ''}><i class="fa fa-refresh"></i> Sync now</button>
-    </div>
-`;
-
-const buildDockerStartOrderBatchesHtml = (batches, customVisible) => `
-    <div class="fv-docker-start-order-batches" data-fv-start-order-region="batches" ${customVisible ? '' : 'hidden'}>
-        ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
-    </div>
-`;
-
-const buildDockerStartOrderPreviewPlaceholderHtml = () => `
-    <div id="docker-start-order-preview" class="fv-docker-start-order-preview" data-fv-start-order-region="preview">
-        <div class="fv-recovery-empty-state">
-            <strong>Preview has not loaded yet.</strong>
-            <span>Use Preview order to inspect the exact autostart sequence.</span>
-        </div>
-    </div>
-`;
-
 const renderDockerStartOrderWorkspace = (options = {}) => {
     const host = $('#docker-start-order-workspace');
     if (!host.length) {
         return;
     }
     const plan = normalizeDockerStartOrderPrefsForUi();
-    const customVisible = plan.mode === 'custom-batches';
     const batches = Array.isArray(plan.batches) ? plan.batches : [];
+    const batchOptions = {
+        folderOptionsCache: getDockerStartOrderFolderOptionsCached(),
+        containerOptionsHtml: getDockerStartOrderContainerOptionsCached().html
+    };
+    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
     const preservePreview = options.preservePreview === true && host.find('#docker-start-order-preview').length > 0;
     if (!preservePreview) {
         host.html([
-            buildDockerStartOrderControlsHtml(plan, customVisible),
-            buildDockerStartOrderToolbarHtml(customVisible),
-            buildDockerStartOrderBatchesHtml(batches, customVisible),
-            buildDockerStartOrderPreviewPlaceholderHtml()
+            dockerStartOrderView.buildControlsHtml(plan),
+            dockerStartOrderView.buildBatchesHtml(batches, batchOptions),
+            dockerStartOrderView.buildPreviewPlaceholderHtml()
         ].join(''));
         return;
     }
-    host.find('[data-fv-start-order-region="controls"], [data-fv-start-order-region="help"]').remove();
-    host.find('[data-fv-start-order-region="toolbar"]').replaceWith(buildDockerStartOrderToolbarHtml(customVisible));
-    host.find('[data-fv-start-order-region="batches"]').replaceWith(buildDockerStartOrderBatchesHtml(batches, customVisible));
-    host.prepend(buildDockerStartOrderControlsHtml(plan, customVisible));
+    host.find('[data-fv-start-order-region="top"]').replaceWith(dockerStartOrderView.buildControlsHtml(plan));
+    host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
 };
 
 const renderDockerStartOrderPreview = (preview) => {
@@ -8728,7 +8632,8 @@ const renderDockerStartOrderPreview = (preview) => {
         return;
     }
     const disabledNames = Object.entries(infoByType.docker || {}).filter(([, row]) => !dockerStartOrderWorkspace.rowAutostart(row)).map(([name]) => name).sort((a, b) => a.localeCompare(b));
-    host.html(dockerStartOrderWorkspace.buildPreviewHtml(preview, { disabledNames }));
+    host.html(dockerStartOrderView.buildPreviewHtml(preview, { disabledNames, infoByName: infoByType.docker || {} }));
+    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
 };
 
 const refreshDockerStartOrderPreview = async (options = {}) => {

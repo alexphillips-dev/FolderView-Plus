@@ -13,6 +13,7 @@
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
         "../tests/browser/cases/settings.mjs",
+        "../tests/browser/cases/settings-start-order.mjs",
         "../tests/browser/cases/folder-editor.mjs",
         "../tests/browser/cases/import.mjs"
       ]
@@ -54,6 +55,7 @@
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" }
   ],
@@ -65,6 +67,7 @@
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/settings.mjs",
+        "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/import.mjs"
       ],
@@ -73,10 +76,10 @@
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs"
       ],
-      "testCount": 37,
-      "assertionCount": 466,
-      "pageEvaluateCount": 98,
-      "orderedTitleSha256": "d1cc33dfe0dfdacc21c133325036c77832423bdf0177b1d623d56ea1fca31182"
+      "testCount": 38,
+      "assertionCount": 479,
+      "pageEvaluateCount": 99,
+      "orderedTitleSha256": "88c78644d82b0f5442af30e919f7ab5dbb3edc0f96c3f4431e7fe5928b28e2ba"
     },
     "browserSmoke": {
       "files": [

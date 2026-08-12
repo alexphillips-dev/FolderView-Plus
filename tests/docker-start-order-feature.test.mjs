@@ -13,11 +13,12 @@ const prefsEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/folderv
 const startOrderEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/docker_start_order.php');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
-const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const startOrderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/start-order-workspace.css');
 const utilsNormalizationJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js');
 const utilsPrefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const startOrderModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js');
+const startOrderViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js');
 const startOrderWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js');
 const startOrderSequencePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-start-order-sequence.php');
 
@@ -61,17 +62,20 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsPage, /id="docker-start-order-stage"/);
     assert.match(settingsPage, /Docker start order/);
     assert.match(settingsJs, /const renderDockerStartOrderWorkspace = \(options = \{\}\) =>/);
-    assert.match(settingsJs, /data-fv-start-order-region="preview"/);
+    assert.match(startOrderViewJs, /data-fv-start-order-region="preview"/);
     assert.match(settingsJs, /const preservePreview = options\.preservePreview === true && host\.find\('#docker-start-order-preview'\)\.length > 0;/);
-    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="toolbar"\]'\)\.replaceWith\(buildDockerStartOrderToolbarHtml\(customVisible\)\);/);
-    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(buildDockerStartOrderBatchesHtml\(batches, customVisible\)\);/);
+    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="top"\]'\)\.replaceWith\(dockerStartOrderView\.buildControlsHtml\(plan\)\);/);
+    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(dockerStartOrderView\.buildBatchesHtml\(batches, batchOptions\)\);/);
     assert.match(settingsJs, /dockerStartOrderFolderOptionsCache/);
     assert.match(settingsJs, /dockerStartOrderContainerOptionsCache/);
-    assert.match(settingsJs, /Leave Unraid order unmanaged/);
-    assert.match(settingsJs, /Follow Docker page order/);
-    assert.match(settingsJs, /Custom batch order/);
-    assert.match(settingsJs, /Remaining autostart containers/);
-    assert.match(startOrderWorkspaceJs, /Preview autostart sequence/);
+    assert.match(startOrderViewJs, /Leave Unraid order unmanaged/);
+    assert.match(startOrderViewJs, /Follow Docker page order/);
+    assert.match(startOrderViewJs, /Custom batch order/);
+    assert.match(startOrderViewJs, /Remaining autostart containers/);
+    assert.match(startOrderViewJs, /Preview autostart sequence/);
+    assert.match(startOrderViewJs, /fv-start-order-table/);
+    assert.match(startOrderViewJs, /fv-start-order-switch/);
+    assert.match(startOrderViewJs, /net\.unraid\.docker\.icon/);
     assert.match(settingsJs, /syncDockerStartOrderNow/);
     assert.match(settingsJs, /toggleDockerStartOrderAutostart/);
     assert.match(settingsJs, /updateDockerStartOrderWait/);
@@ -79,20 +83,12 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
 });
 
 test('Docker start-order workspace uses shared Settings dark-mode tokens', () => {
-    const startOrderCss = settingsCss.slice(
-        settingsCss.indexOf('.fv-docker-start-order-shell'),
-        settingsCss.indexOf('@media (max-width: 1100px)', settingsCss.indexOf('.fv-docker-start-order-shell'))
-    );
-    const startOrderButtonCss = settingsCss.slice(
-        settingsCss.indexOf('/* Start Order keeps its actions readable'),
-        settingsCss.indexOf('#fv-settings-root :is(', settingsCss.indexOf('/* Start Order keeps its actions readable'))
-    );
-    assert.match(startOrderCss, /\.fv-docker-start-order-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\) !important;/);
-    assert.match(startOrderCss, /\.fv-docker-start-order-workspace\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
-    assert.match(startOrderCss, /\.fv-docker-start-order-help,[\s\S]*\.fv-docker-start-order-batch\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
-    assert.match(startOrderButtonCss, /background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);
+    assert.match(startOrderCss, /\.fv-docker-start-order-panel\s*\{[\s\S]*var\(--fvplus-settings-surface-panel\)/);
+    assert.match(startOrderCss, /\.fv-docker-start-order-workspace\s*\{[\s\S]*background:\s*transparent;/);
+    assert.match(startOrderCss, /\.fv-docker-start-order-batch,[\s\S]*\.fv-docker-start-order-disabled\s*\{[\s\S]*var\(--fvplus-settings-surface-card\)/);
+    assert.match(startOrderCss, /background:\s*var\(--fvplus-settings-button-quiet-top\);/);
     assert.doesNotMatch(startOrderCss, /background:\s*#(?:181b20|1a1d22|1c2026|202329|20242a|101216)/);
-    assert.doesNotMatch(startOrderButtonCss, /linear-gradient\(180deg,\s*#31353d/);
+    assert.doesNotMatch(startOrderCss, /linear-gradient\(180deg,\s*#31353d/);
 });
 
 test('Docker page sync hook is guarded and triggers autostart sync after relevant saves', () => {

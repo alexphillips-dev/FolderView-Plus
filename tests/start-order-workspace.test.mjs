@@ -5,21 +5,24 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const moduleApi = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js');
 const api = moduleApi.createApi();
+const viewModule = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js');
+const view = viewModule.createApi();
 
-test('start-order sequence preview exposes waits, sources, batches, and safe encoded actions', () => {
-    const html = api.buildPreviewHtml({
+test('start-order sequence preview exposes app rows, waits, switches, and safe encoded actions', () => {
+    const html = view.buildPreviewHtml({
         managed: true,
         autostartCount: 1,
         containerCount: 2,
-        sequence: [{ name: "alpha'box", wait: 15, waitSource: 'container', batchId: 'core' }],
-        batches: [{ name: 'Core', delay: 10, containers: ["alpha'box"] }]
-    }, { disabledNames: ['beta'] });
+        sequence: [{ name: "alpha'box", wait: 15, waitSource: 'container', batchId: 'core' }]
+    }, { disabledNames: ['beta'], infoByName: { "alpha'box": { Labels: { 'net.unraid.docker.icon': '/icons/alpha.png' } } } });
     assert.match(html, /Preview autostart sequence/);
     assert.match(html, /value="15"/);
-    assert.match(html, />explicit</);
+    assert.match(html, /title="container"/);
     assert.match(html, /alpha%27box/);
     assert.doesNotMatch(html, /decodeURIComponent/);
     assert.match(html, /Autostart disabled \(1\)/);
+    assert.match(html, /src="\/icons\/alpha\.png"/);
+    assert.match(html, /class="fv-start-order-switch"/);
 });
 
 test('autostart mutation entries preserve every current state and only send explicit waits', () => {
@@ -34,5 +37,19 @@ test('autostart mutation entries preserve every current state and only send expl
 });
 
 test('unmanaged sequence previews are visibly read-only', () => {
-    assert.match(api.buildPreviewHtml({ managed: false, sequence: [] }), /Unmanaged mode: this sequence is read-only/);
+    assert.match(view.buildPreviewHtml({ managed: false, sequence: [] }), /Unmanaged mode: this sequence is read-only/);
+});
+
+test('start-order view escapes names and rejects executable icon URLs', () => {
+    const html = view.buildPreviewHtml({
+        sequence: [{ name: '<img src=x onerror=alert(1)>', wait: 0 }]
+    }, {
+        infoByName: {
+            '<img src=x onerror=alert(1)>': { Labels: { 'net.unraid.docker.icon': 'javascript:alert(1)' } }
+        }
+    });
+    assert.doesNotMatch(html, /src="javascript:/);
+    assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/);
+    assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+    assert.match(html, /dynamix\.docker\.manager\/images\/question\.png/);
 });

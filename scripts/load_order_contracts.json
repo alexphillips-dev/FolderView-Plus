@@ -56,6 +56,7 @@
         "scripts/folderviewplus.row-details.js",
         "scripts/folderviewplus.settings-health.js",
         "scripts/folderviewplus.start-order-model.js",
+        "scripts/folderviewplus.start-order-view.js",
         "scripts/folderviewplus.start-order-workspace.js",
         "scripts/folderviewplus.folderview3-apply.js",
         "scripts/folderviewplus.folderview3-migration.js",

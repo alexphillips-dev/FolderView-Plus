@@ -19,6 +19,10 @@ const wizardRuntimePath = path.join(
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const startOrderCss = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/start-order-workspace.css'),
+    'utf8'
+);
 const wizardRuntime = fs.readFileSync(wizardRuntimePath, 'utf8');
 const pageBootstrap = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js'),
@@ -151,7 +155,7 @@ test('settings dark mode buttons use visible white outline tokens', () => {
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(190,\s*107,\s*24,\s*0\.12\);/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(122,\s*102,\s*72,\s*0\.18\);/);
     assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-docker-start-order-toolbar > button,[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(startOrderCss, /#fv-settings-root \.fv-docker-start-order-toolbar > button,[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\);/);
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.health-breakdown-btn,[\s\S]*\.updates-chip[\s\S]*\)\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
 });
 

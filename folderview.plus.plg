@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.02">
-<!ENTITY md5 "ea7c8bd40f593289ea58a412cbbe373d">
-<!ENTITY sha256 "f87ce77ad94ca0c320b74ce37ddfad46d1c3b956accaab260fa5b52c0b83696c">
+<!ENTITY version "2026.08.12.03">
+<!ENTITY md5 "8485da9e61aea2036b1b31f256af85be">
+<!ENTITY sha256 "67b7eb711c29b0ab902701106e535f9abc7743f1acd9a4c56d778c525d313f09">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.03
+- UI/UX: Rebuilt the Advanced Settings Docker start-order workspace to match the approved modern mockup with a descriptive header, live container totals, two-column configuration controls, contextual ownership guidance, and dedicated startup-batch actions.
+- UI/UX: Replaced the dense sequence list with a structured preview table showing order, application icon and name, editable wait time, accessible autostart switch, and compact row affordance.
+- UI/UX: Reworked disabled-autostart containers into readable action chips and added the next-service-start notice directly beneath the sequence.
+- Accessibility: Added responsive desktop, tablet, and mobile layouts, contained table scrolling, visible keyboard focus, reduced-motion handling, and contrast-safe text for the orange primary action.
+- Security: Restrict Docker icon rendering to HTTP(S) or root-relative paths, fall back to the Unraid Docker placeholder for unsafe values, and escape persisted container and batch content before rendering.
+- Quality: Extracted start-order presentation into a dedicated contracted view module while reducing the mutation workspace controller and the main Settings entrypoint.
+- Localization: Regenerated all 27 locale catalogs for the updated start-order surface with zero uncovered UI strings.
+- Test: Added focused rendering, unsafe-value, theme-token, architecture, and desktop/mobile browser-fixture coverage for the redesigned workspace.
+
 
 ###2026.08.12.02
 - Feature: Added explicit Docker start-order ownership modes so Unraid order can remain unmanaged, follow the Docker page, or use custom startup batches.

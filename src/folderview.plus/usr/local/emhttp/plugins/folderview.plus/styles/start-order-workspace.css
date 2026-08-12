@@ -1,59 +1,738 @@
-.fv-docker-start-order-sequence > li {
-    grid-template-columns: 44px minmax(120px, 1fr) auto minmax(150px, auto) auto;
-}
-
-.fv-docker-start-order-wait {
-    display: inline-grid;
-    grid-template-columns: auto 74px;
+.fv-docker-start-order-heading-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
     align-items: center;
-    gap: 0.25rem 0.45rem;
+    margin: 0 0 1rem;
 }
 
-.fv-docker-start-order-wait > input {
+.fv-docker-start-order-heading-copy {
     min-width: 0;
-    width: 74px;
 }
 
-.fv-docker-start-order-wait > small {
-    grid-column: 2;
+#fv-settings-root .fv-docker-start-order-heading-copy > h2 {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    margin: 0;
+    font-size: clamp(2rem, 2.2vw, 2.65rem);
+    line-height: 1.08;
+}
+
+.fv-docker-start-order-heading-copy > p {
+    margin: 0.6rem 0 0;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1rem;
+}
+
+.fv-docker-start-order-summary {
+    flex: 0 0 auto;
+}
+
+.fv-start-order-summary-card {
+    display: flex;
+    align-items: stretch;
+    min-width: 380px;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--fvplus-settings-surface-card), var(--fvplus-settings-surface-muted));
+    box-shadow: var(--fvplus-theme-shadow, 0 12px 30px rgba(0, 0, 0, 0.22));
+}
+
+.fv-start-order-summary-metric {
+    display: grid;
+    grid-template-columns: 34px auto;
+    gap: 0.7rem;
+    align-items: center;
+    flex: 1 1 0;
+}
+
+.fv-start-order-summary-metric > .fa {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1rem;
+}
+
+.fv-start-order-summary-metric > span,
+.fv-start-order-summary-metric strong,
+.fv-start-order-summary-metric small {
+    display: block;
+}
+
+.fv-start-order-summary-metric strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.25rem;
+    line-height: 1.1;
+}
+
+.fv-start-order-summary-metric small {
+    margin-top: 0.18rem;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.fv-start-order-summary-divider {
+    width: 1px;
+    margin: 0 1rem;
+    background: var(--fvplus-settings-border-faint);
+}
+
+.fv-docker-start-order-shell {
+    margin-top: 0;
+}
+
+.fv-docker-start-order-panel {
+    overflow: hidden;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--fvplus-settings-surface-panel), var(--fvplus-settings-surface-muted));
+    box-shadow: var(--fvplus-theme-shadow, 0 18px 42px rgba(0, 0, 0, 0.28));
+}
+
+.fv-docker-start-order-panel .fv-operations-section-body,
+.fv-docker-start-order-panel .fv-operations-stage {
+    border: 0;
+    background: transparent;
+}
+
+.fv-docker-start-order-workspace {
+    display: grid;
+    gap: 0;
+    padding: 1.35rem;
+    background: transparent;
+}
+
+.fv-docker-start-order-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-docker-start-order-config {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.fv-docker-start-order-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.fv-docker-start-order-controls .setting-select {
+    display: grid;
+    gap: 0.48rem;
+}
+
+.fv-docker-start-order-controls .setting-select > span:first-child {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.fv-start-order-select-shell {
+    position: relative;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 18px;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-field);
     color: var(--fvplus-settings-text-muted);
 }
 
-.fv-docker-start-order-batch-tag {
+.fv-start-order-select-shell:focus-within {
+    border-color: var(--fvplus-settings-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fvplus-settings-accent) 18%, transparent);
+}
+
+#fv-settings-root .fv-start-order-select-shell > select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 0.55rem;
+    border: 0;
+    appearance: none;
+    background: transparent;
+    color: var(--fvplus-settings-text-primary);
+    box-shadow: none;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.fv-start-order-select-shell > .fa-chevron-down {
+    pointer-events: none;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-help {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: start;
+    min-height: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-border-subtle));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 7%, var(--fvplus-settings-surface-card));
+}
+
+.fv-docker-start-order-help > .fa {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border: 1px solid var(--fvplus-settings-accent);
+    border-radius: 999px;
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-docker-start-order-help strong,
+.fv-docker-start-order-help span {
+    display: block;
+}
+
+.fv-docker-start-order-help strong {
+    margin: 0.12rem 0 0.35rem;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.94rem;
+}
+
+.fv-docker-start-order-help span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.5;
+}
+
+.fv-docker-start-order-toolbar {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button,
+#fv-settings-root .fv-start-order-section-head > button,
+#fv-settings-root .fv-docker-start-order-add-row > button {
+    min-height: 39px;
+    padding: 0 1rem;
+    border: 1px solid var(--fvplus-settings-button-outline);
+    border-radius: 7px;
+    background: var(--fvplus-settings-button-quiet-top);
+    color: var(--fvplus-settings-text-primary);
+    box-shadow: var(--fvplus-settings-button-quiet-shadow);
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-transform: none;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
+    border-color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent);
+    color: #20140a;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--fvplus-settings-accent) 26%, transparent);
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button:not(:disabled):hover,
+#fv-settings-root .fv-start-order-section-head > button:hover,
+#fv-settings-root .fv-docker-start-order-add-row > button:not(:disabled):hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.fv-docker-start-order-batch-section {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.15rem 0 0.2rem;
+}
+
+.fv-start-order-section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.fv-start-order-section-head > strong {
+    display: inline-flex;
+    gap: 0.55rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.02rem;
+}
+
+.fv-start-order-section-head > strong > .fa,
+.fv-docker-start-order-preview-head > strong > .fa,
+.fv-docker-start-order-disabled h4 > .fa {
+    color: var(--fvplus-settings-accent);
+}
+
+#fv-settings-root .fv-start-order-section-head > button {
+    border-color: var(--fvplus-settings-accent);
+    background: transparent;
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-docker-start-order-batches {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.fv-docker-start-order-empty {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    min-height: 84px;
+    padding: 0.8rem 1rem;
+    border: 1px dashed var(--fvplus-settings-border-subtle);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--fvplus-settings-surface-card) 72%, transparent);
     color: var(--fvplus-settings-text-muted);
 }
 
-.fv-docker-start-order-batch-summary,
+.fv-docker-start-order-empty-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1.25rem;
+}
+
+.fv-docker-start-order-empty strong,
+.fv-docker-start-order-empty small {
+    display: block;
+}
+
+.fv-docker-start-order-empty strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.95rem;
+}
+
+.fv-docker-start-order-empty small {
+    margin-top: 0.25rem;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.88rem;
+}
+
+.fv-docker-start-order-batch,
+.fv-docker-start-order-preview,
 .fv-docker-start-order-disabled {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--fvplus-settings-surface-card) 82%, transparent);
+}
+
+.fv-docker-start-order-batch {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.9rem;
+}
+
+.fv-docker-start-order-batch-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.7rem;
+}
+
+.fv-docker-start-order-batch-head > input,
+.fv-docker-start-order-add-row > select,
+.fv-docker-start-order-batch-settings input[type="number"] {
+    min-height: 34px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 7px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-batch-actions,
+.fv-docker-start-order-item-actions,
+.fv-docker-start-order-batch-settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-batch-actions > button,
+.fv-docker-start-order-item-actions > button {
+    min-width: 32px;
+    min-height: 30px;
+}
+
+.fv-docker-start-order-batch-settings {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-batch-settings input[type="number"] {
+    width: 72px;
+}
+
+.fv-docker-start-order-add-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) auto minmax(150px, 1fr) auto;
+    gap: 0.65rem;
+}
+
+.fv-docker-start-order-items {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.fv-docker-start-order-item {
+    display: grid;
+    grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.5rem 0.6rem;
     border: 1px solid var(--fvplus-settings-border-faint);
-    border-radius: 9px;
-    padding: 0.55rem 0.65rem;
+    border-radius: 8px;
     background: var(--fvplus-settings-surface-muted);
 }
 
-.fv-docker-start-order-batch-summary > div,
+.fv-docker-start-order-kind {
+    color: var(--fvplus-settings-accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.fv-docker-start-order-preview {
+    display: grid;
+    gap: 0;
+    overflow: hidden;
+    margin-top: 0.9rem;
+    padding: 0;
+}
+
+.fv-docker-start-order-preview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    min-height: 45px;
+    padding: 0 0.8rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-docker-start-order-preview-head > strong {
+    display: inline-flex;
+    gap: 0.55rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.94rem;
+}
+
+.fv-docker-start-order-count {
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 7px;
+    background: var(--fvplus-settings-surface-muted);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.78rem;
+}
+
+.fv-start-order-table-wrap {
+    max-height: 360px;
+    overflow: auto;
+}
+
+.fv-start-order-table {
+    min-width: 680px;
+}
+
+.fv-start-order-table-head,
+.fv-docker-start-order-sequence > li {
+    display: grid;
+    grid-template-columns: 92px minmax(240px, 1fr) 120px 100px 28px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.fv-start-order-table-head {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    min-height: 36px;
+    padding: 0 1.1rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-card);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.82rem;
+}
+
+.fv-docker-start-order-sequence {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fv-docker-start-order-sequence > li {
+    min-height: 42px;
+    padding: 0 1.1rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+    background: color-mix(in srgb, var(--fvplus-settings-surface-card) 86%, transparent);
+}
+
+.fv-docker-start-order-sequence > li:last-child {
+    border-bottom: 0;
+}
+
+.fv-start-order-number {
+    display: grid;
+    width: 46px;
+    height: 27px;
+    place-items: center;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-primary);
+    font-weight: 700;
+}
+
+.fv-start-order-container {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    min-width: 0;
+}
+
+.fv-start-order-container > img {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.fv-start-order-container > strong {
+    overflow: hidden;
+    color: var(--fvplus-settings-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-start-order-container > small {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-wait {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    color: var(--fvplus-settings-text-muted);
+}
+
+#fv-settings-root .fv-docker-start-order-wait > input {
+    width: 48px;
+    min-height: 28px;
+    padding: 0 0.25rem;
+    border: 0;
+    border-bottom: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 0;
+    background: transparent;
+    color: var(--fvplus-settings-text-primary);
+    text-align: right;
+    box-shadow: none;
+}
+
+.fv-start-order-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+.fv-start-order-switch > input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.fv-start-order-switch > span {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: var(--fvplus-settings-border-subtle);
+    cursor: pointer;
+    transition: background 140ms ease;
+}
+
+.fv-start-order-switch > span::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    content: "";
+    transition: transform 140ms ease;
+}
+
+.fv-start-order-switch > input:checked + span {
+    background: var(--fvplus-settings-accent);
+}
+
+.fv-start-order-switch > input:checked + span::after {
+    transform: translateX(18px);
+}
+
+.fv-start-order-switch > input:focus-visible + span {
+    outline: 2px solid var(--fvplus-settings-accent);
+    outline-offset: 2px;
+}
+
+.fv-start-order-overflow {
+    color: var(--fvplus-settings-text-muted);
+    text-align: center;
+}
+
+.fv-docker-start-order-disabled {
+    margin: 0.7rem;
+    padding: 0.7rem;
+}
+
+.fv-docker-start-order-disabled h4 {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    margin: 0 0 0.65rem;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.94rem;
+}
+
 .fv-docker-start-order-disabled > div {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
-    margin-top: 0.55rem;
 }
 
-.fv-docker-start-order-batch-summary > div {
-    justify-content: space-between;
+#fv-settings-root .fv-docker-start-order-disabled button {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    min-height: 29px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
+    box-shadow: none;
+    font-size: 0.8rem;
+    text-transform: none;
 }
 
-.fv-docker-start-order-disabled button,
-.fv-docker-autostart-toggle {
-    min-height: 30px;
+#fv-settings-root .fv-docker-start-order-disabled button > .fa {
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-start-order-notice {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    margin: 0.2rem 0.7rem 0.7rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+    color: var(--fvplus-settings-text-dim);
+    font-size: 0.82rem;
+}
+
+.fv-docker-start-order-warning {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.7rem 0.7rem 0;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 44%, var(--fvplus-settings-border-subtle));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 7%, var(--fvplus-settings-surface-card));
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .fv-docker-start-order-top {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-docker-start-order-help {
+        min-height: 0;
+    }
+
+    .fv-docker-start-order-add-row {
+        grid-template-columns: 1fr auto;
+    }
 }
 
 @media (max-width: 780px) {
-    .fv-docker-start-order-sequence > li {
-        grid-template-columns: 40px minmax(0, 1fr);
+    .fv-docker-start-order-heading-row {
+        align-items: stretch;
+        flex-direction: column;
     }
 
-    .fv-docker-start-order-sequence > li > :is(.fv-docker-start-order-batch-tag, .fv-docker-start-order-wait, .fv-docker-autostart-toggle) {
-        grid-column: 2;
+    .fv-start-order-summary-card {
+        min-width: 0;
+    }
+
+    .fv-docker-start-order-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-docker-start-order-workspace {
+        padding: 0.85rem;
+    }
+
+    .fv-start-order-section-head,
+    .fv-docker-start-order-preview-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fv-docker-start-order-preview-head {
+        padding: 0.7rem;
+    }
+
+    .fv-docker-start-order-count {
+        align-self: flex-start;
+    }
+
+    .fv-docker-start-order-batch-head,
+    .fv-docker-start-order-add-row,
+    .fv-docker-start-order-item {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fv-start-order-switch > span,
+    .fv-start-order-switch > span::after,
+    #fv-settings-root .fv-docker-start-order-toolbar > button,
+    #fv-settings-root .fv-start-order-section-head > button {
+        transition: none;
     }
 }

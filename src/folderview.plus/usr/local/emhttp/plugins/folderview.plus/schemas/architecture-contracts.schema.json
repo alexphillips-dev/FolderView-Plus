@@ -23,6 +23,7 @@
       "scripts/folderviewplus.utils-rules.js": { "limit": 533, "target": 500, "history": [598, 533] },
       "scripts/folderviewplus.start-order-model.js": { "limit": 99, "target": 99, "history": [99] },
       "scripts/folderviewplus.start-order-workspace.js": { "limit": 104, "target": 104, "history": [104] },
+      "scripts/folderviewplus.start-order-view.js": { "limit": 110, "target": 110, "history": [110] },
       "scripts/folderviewplus.rule-templates.js": { "limit": 195, "target": 180, "history": [195] },
       "scripts/folder.editor.legacy-rule-model.js": { "limit": 96, "target": 90, "history": [96] },
       "scripts/folder.editor.rule-template-workspace.js": { "limit": 158, "target": 150, "history": [158] },
@@ -130,7 +131,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["settings"],
-      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.start-order-workspace.js", "scripts/folderviewplus.rule-templates.js", "scripts/folderviewplus.folderview3-apply.js", "scripts/folderviewplus.folderview3-migration.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
+      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.start-order-view.js", "scripts/folderviewplus.start-order-workspace.js", "scripts/folderviewplus.rule-templates.js", "scripts/folderviewplus.folderview3-apply.js", "scripts/folderviewplus.folderview3-migration.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
       "lifecycle": { "startup": "self-executing-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["FolderViewPlusRefreshCoreData"]
     },
@@ -1009,6 +1010,21 @@
       ]
     },
     {
+      "file": "scripts/folderviewplus.start-order-view.js",
+      "owner": "settings-docker-start-order-presentation",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "startOrderView",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["buildHeaderSummaryHtml", "buildControlsHtml", "buildBatchesHtml", "buildPreviewPlaceholderHtml", "buildPreviewHtml"]
+    },
+    {
       "file": "scripts/folderviewplus.start-order-workspace.js",
       "owner": "settings-docker-start-order-workspace",
       "consumers": ["settings"],
@@ -1021,7 +1037,7 @@
       "typeChecked": true,
       "exports": ["createApi"],
       "apiFactory": "createApi",
-      "apiExports": ["buildPreviewHtml", "buildAutostartMutationEntries", "rowAutostart", "updateWait", "toggleAutostart"]
+      "apiExports": ["buildAutostartMutationEntries", "rowAutostart", "updateWait", "toggleAutostart"]
     },
     {
       "file": "scripts/folderviewplus.theme-profiles.js",

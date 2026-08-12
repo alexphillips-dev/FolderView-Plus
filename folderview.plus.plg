@@ -5,18 +5,82 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.11.14">
-<!ENTITY md5 "005a18863193b5820cc3898389cd4823">
-<!ENTITY sha256 "24c6878599b11c4c605668f6a96a82b84d64246bc558acd208fd5ecc1d3a3f84">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.11.15">
+<!ENTITY md5 "e87349725bbfeb9637dc6f32c5ca256b">
+<!ENTITY sha256 "ddfd73a831c99f90510f8025bdde14f2432de51ac9acf084047f64b0d5d02f5a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.11.15
+## FolderView Plus 2026.08.11.15
+This stable release promotes every validated development change since stable `2026.08.10.02`. It completes the planned monolith-reduction program, strengthens security and release controls, and includes the Docker, Diagnostics, popup, theme, localization, and editor corrections proven during development testing.
+### Runtime architecture and maintainability
+- Quality: Establish enforceable ownership, dependency, lifecycle, load-order, browser-global, inline-action, overlap, and non-increasing file-size contracts for primary browser and server entrypoints.
+- Refactor: Move all 145 Settings actions from broad `window` publication into the owner-scoped declarative action registry with atomic collision rejection and teardown.
+- Refactor: Split foundational scheduling, storage, escaping, identifier, URL sanitization, normalization, preferences, ordering, transfer, and runtime-rule utilities into focused modules while retaining the complete compatibility facade.
+- Refactor: Split GraphQL request mechanics, subscription ownership, and Docker actions into transport modules while preserving stale-request rejection, abort behavior, reconnect limits, CSRF headers, and privacy-safe diagnostics.
+- Refactor: Extract Docker column measurement and lifecycle control, then share deterministic folder ordering and visibility-aware live refresh across Docker, VM, and Dashboard without moving host-page ownership.
+- Refactor: Split Folder Editor regex selection, worker/debounce lifecycle, hierarchy, member rendering, drag ordering, preview bootstrap, page bootstrap, and runtime bootstrap into bounded modules while preserving saved-folder and nested-folder behavior.
+- Refactor: Split Settings search plus Setup Wizard persistence and review modeling into focused modules with blocked-storage fallbacks and unchanged saved-preference behavior.
+- Refactor: Decompose PHP release metadata, storage, themes, environment transfer, backups, folder rules and mutations, Docker ordering, runtime information, diagnostics, and custom-icon handling behind compatibility facades.
+- Refactor: Split second-generation shared utility and Docker/VM/Dashboard runtime monoliths into normalization, preference, ordering, transfer, rule, primitive, diagnostics, and control modules.
+- Refactor: Split the fixture-browser and browser-smoke runners by domain while preserving the original scenarios, assertions, browser matrix, artifacts, and test intent.
+- Quality: Ratchet every extracted module and compatibility facade with ownership contracts, dependency metadata, package inclusion, page load order, namespace identity, public API inventories, and exact or non-increasing size budgets.
+### Docker, VM, and Dashboard reliability
+- Fix: Restore Docker startup after the column-controller extraction by injecting the width-phase contract and directly testing bootstrap state.
+- Fix: Restore Docker folder rendering after the ordering extraction by moving deterministic, privacy-safe order fingerprints into the diagnostics module and enforcing its bootstrap contract.
+- Reliability: Reconcile expanded Docker-folder previews after start, stop, pause, resume, and restart so WebUI, console, and log actions leave their busy state when the lifecycle settles.
+- Reliability: Resolve lifecycle state through canonical container names or normalized IDs and refresh only the affected preview instead of broadly reloading the host page.
+- Reliability: Preserve Docker created-order behavior, explicit sort and pin ordering, new-container reconciliation, incremental refresh, width caching, gap enforcement, and teardown across navigation.
+- Reliability: Reuse the proven ordering and live-refresh seams in VM and Dashboard while retaining each surface's fetch and reconciliation policy.
+- Quality: Add direct runtime ordering, refresh lifecycle, layout determinism, action-state, Docker/VM parity, Dashboard lifecycle, large-data performance, and browser-fixture coverage.
+### Diagnostics, themes, and browser actions
+- UX: Turn Diagnostics priority findings into keyboard-focusable controls that reveal the affected health card, technical evidence, recommended correction, and supported repair action.
+- Reliability: Require confirmation for supported repairs and explain the backup created before orphaned Docker members or missing custom-icon references are changed.
+- Fix: Treat a successfully auto-healed host-theme accent as healthy instead of reducing core health from 6/6 to 5/6.
+- Accessibility: Keep unresolved missing tokens, indistinguishable status colors, and failed final contrast checks actionable while retaining final contrast evidence in sanitized support bundles.
+- UI/UX: Add a shared host-theme surface that observes Unraid theme attributes, media queries, and representative targets across Docker, VM, Dashboard, Settings, and Folder Editor.
+- UI/UX: Align Folder Editor top chrome with the surrounding dark surface and preserve contrast-corrected host accents across navigation and theme changes.
+- Compatibility: Open WebUI tabs through browser-owned blank handles, isolate `window.opener`, and navigate accepted handles so browsers that return `null` for `noopener` no longer produce false popup-blocked warnings.
+- UI/UX: Remove redundant active-tab underline bars from the modern Folder Editor and Advanced Settings while retaining highlighted active states and keyboard focus indicators.
+### Settings and localization corrections
+- Fix: Keep the Settings import progress overlay hidden until an import-related operation opens it, and synchronize the semantic `hidden` and `aria-hidden` states throughout the lifecycle.
+- Localization: Preserve complete Unraid language coverage across 27 catalogs while refreshing generated surfaces for extracted bootstraps and Diagnostics behavior.
+- Localization: Remove the unused Diagnostics `Check again` message and regenerate the 2,060-message aggregate catalogs with zero uncovered UI strings.
+- Quality: Preserve Simplified and Traditional Chinese locale mapping, strict language usage, generated catalog metadata, and browser-fixture coverage.
+### Security and CSP readiness
+- Security: Externalize plugin-owned page, Settings, Folder Editor, runtime conflict, preflight, custom-loader, Docker layout, and localization bootstraps instead of relying on inline scripts.
+- Security: Replace plugin-owned inline styles with scoped utilities, finite state classes, or validated CSS custom properties while keeping CSP in coordinated report-only readiness for the shared Unraid document.
+- Security: Add allowlisted safe-DOM construction and migrate persisted folder names, bulk-assignment results, and diagnostics button restoration away from HTML-string interpretation.
+- Security: Add malicious persisted-value fixtures covering folders, containers, templates, imports, translations, and diagnostics.
+- Security: Reduce and continuously guard the reviewed first-party HTML-string sink inventory while retaining zero plugin-owned inline events, inline scripts, and style attributes.
+- Security: Clear all first-party and locally corrected vendor CodeQL findings without dismissals, including shell-command flow, undeclared variables, unused assignments, ignored arguments, and semicolon hazards.
+- Security: Enforce zero open CodeQL alerts for analyzed commits and retain high-severity main-branch merge protection plus PR dependency review.
+- Security: Regenerate the CycloneDX SBOM, identify locally modified vendored snapshots, and use a deterministic SHA-256 UUIDv8 serial compatible with GitHub SBOM attestation.
+### CI, monitoring, and release integrity
+- Reliability: Restore the dev-channel manifest after the prior stable release while preserving stable source history and deterministic package contracts.
+- Reliability: Add a daily watchdog for stale weekly validation and Docker-upstream workflows, with deduplicated issue creation and automatic closure after recovery.
+- Compatibility: Review Unraid API v4.37.0, confirm the Docker GraphQL signature remains compatible, keep the native activation gate disabled, and advance the reviewed upstream baseline.
+- Quality: Expand change-aware lint, test, guard, fixture-browser, browser-smoke, theme, workflow, documentation, localization, dead-code, performance, package, and release-preview enforcement.
+- Quality: Add targeted undefined-symbol linting for the Docker runtime and source contracts that prevent extracted bootstrap or diagnostics dependencies from silently regressing.
+- Maintenance: Preserve deterministic archives, checksums, install smoke tests, explicit release notes, remote publication checks, provenance attestations, SBOM attestations, and main-to-dev back-merge validation.
+### Compatibility
+- Compatibility: Preserve the five plugin page entrypoints, 201 validated script references, browser/CommonJS facades, 30 public PHP endpoints, 276 core functions, 74 diagnostics functions, and 56 custom-icon functions.
+- Compatibility: Preserve current Docker, VM, Dashboard, Settings, Folder Editor, import/export, backup, custom-icon, theme, localization, and Setup Wizard persisted contracts.
+- Compatibility: Preserve legacy host-global fallback outside the migrated Settings action owner while preventing new undocumented coupling from growing.
+### Validation
+- Test: Retain comprehensive Node contract, lifecycle, integration, security, privacy, localization, package, and regression coverage after every extraction.
+- Test: Exercise the decomposed runtime through Chromium fixture scenarios plus Docker, VM, Dashboard, Settings, Folder Editor, import, CSP, theme, and responsive-layout fixtures.
+- Test: Enforce deterministic runtime-performance budgets, observer/timer disposal, repeated-navigation safety, request ownership, and package reproducibility.
+- Quality: Remove seven obsolete test source reads and finish the release with zero open CodeQL alerts on the development branch.
+
 
 ###2026.08.11.14
 ## FolderView Plus 2026.08.11.14
@@ -8500,7 +8564,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

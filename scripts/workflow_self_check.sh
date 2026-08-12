@@ -221,6 +221,9 @@ if (!/upload-artifact@[0-9a-f]{40}\s+# v7/.test(backmergeWorkflow)) {
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
 }
+if (!/Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must install locked Node validation dependencies before running the full suite.');
+}
 if (!/bash scripts\/prepare_backmerge_dev_package\.sh/.test(backmergeWorkflow) ||
     /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must package merged source instead of bypassing packaged/source drift validation.');

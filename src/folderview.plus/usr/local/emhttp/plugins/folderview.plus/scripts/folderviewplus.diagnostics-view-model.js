@@ -6,18 +6,14 @@
     root.FolderViewPlusDiagnosticsViewModel = factory();
     root.FolderViewPlusDiagnosticsViewModelModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
-    const DEFAULT_STALE_AFTER_MS = 15 * 60 * 1000;
+    const DEFAULT_STALE_AFTER_MS = 15*60*1000;
     const VALID_STATUSES = new Set(['healthy', 'info', 'warning', 'error']);
-
     const normalizeStatus = (value, fallback = 'healthy') => {
         const normalized = String(value || '').trim().toLowerCase();
         return VALID_STATUSES.has(normalized) ? normalized : fallback;
     };
-
     const normalizeCard = (card, checkedAtLabel = '') => {
-        if (!card || typeof card !== 'object') {
-            return null;
-        }
+        if (!card || typeof card !== 'object') return null;
         const key = String(card.key || 'status').trim() || 'status';
         return Object.freeze({
             ...card,
@@ -33,10 +29,22 @@
                 (Array.isArray(card.technicalDetails) ? card.technicalDetails : [])
                     .map((detail) => String(detail || '').trim())
                     .filter(Boolean)
+            ),
+            actions: Object.freeze(
+                (Array.isArray(card.actions) ? card.actions : [])
+                    .map((action) => {
+                        const actionName = String(action?.action || '').trim();
+                        if (!/^[a-z][a-z0-9_]{0,63}$/.test(actionName)) return null;
+                        return Object.freeze({
+                            action: actionName,
+                            label: String(action?.label || 'Run recommended repair').trim(),
+                            reason: String(action?.reason || '').trim()
+                        });
+                    })
+                    .filter(Boolean)
             )
         });
     };
-
     const countByStatus = (cards, statuses) => cards.filter((card) => statuses.includes(card.status)).length;
 
     const derivePriorityFindings = (coreCards, advisoryCards) => (

@@ -89,7 +89,7 @@ const normalizeDiagnosticsThemeMode = (value) => {
 const buildDiagnosticsThemeSnapshot = (modeInput = null, options = {}) => (
     diagnosticsThemeResolver && typeof diagnosticsThemeResolver.buildResolvedThemeSnapshot === 'function'
         ? diagnosticsThemeResolver.buildResolvedThemeSnapshot(modeInput, options)
-        : { requestedMode: 'auto', appliedMode: 'auto', classification: 'mixed', autoHealed: false, contrastChecks: [], statusChecks: {}, tokens: {}, warnings: [] }
+        : { requestedMode: 'auto', appliedMode: 'auto', classification: 'mixed', autoHealed: false, contrastChecks: [], statusChecks: {}, tokens: {}, adjustments: [], warnings: [] }
 );
 const applyDiagnosticsThemeTokens = (reason = 'runtime', options = {}) => (
     diagnosticsThemeResolver && typeof diagnosticsThemeResolver.applyResolvedThemeTokens === 'function'
@@ -1332,7 +1332,7 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
         return;
     }
 
-    const activeType = (typeof window.getActiveRecoveryWorkspaceType === 'function' && window.getActiveRecoveryWorkspaceType() === 'vm')
+    const activeType = window.FolderViewPlusCspEvents?.getAction('getActiveRecoveryWorkspaceType')?.() === 'vm'
         ? 'vm'
         : 'docker';
     const typeLabel = activeType === 'docker' ? 'Docker' : 'VM';
@@ -1453,10 +1453,11 @@ const buildThemeDiagnosticsSummaryCard = () => {
     const warnings = Array.isArray(lastThemeDiagnostics.warnings)
         ? lastThemeDiagnostics.warnings.map((warning) => String(warning || '').trim()).filter(Boolean)
         : [];
+    const adjustments = Array.isArray(lastThemeDiagnostics.adjustments) ? lastThemeDiagnostics.adjustments.map((entry) => String(entry || '').trim()).filter(Boolean) : [];
     const resolver = lastThemeDiagnostics.resolver && typeof lastThemeDiagnostics.resolver === 'object'
         ? lastThemeDiagnostics.resolver
         : {};
-    const status = warnings.length > 0 || resolver.autoHealed === true ? 'warning' : 'healthy';
+    const status = warnings.length > 0 ? 'warning' : 'healthy';
     const appliedMode = String(resolver.appliedMode || '').trim() || normalizeDiagnosticsThemeMode(lastThemeDiagnostics.modeByType?.effective);
     return {
         key: 'theme',
@@ -1470,7 +1471,7 @@ const buildThemeDiagnosticsSummaryCard = () => {
             : 'Theme compatibility checks did not report any warnings.',
         count: warnings.length,
         freshness: `Checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
-        technicalDetails: warnings
+        technicalDetails: [...warnings, ...adjustments]
     };
 };
 
@@ -1627,13 +1628,13 @@ const getDiagnosticsViewApi = () => {
         return null;
     }
     diagnosticsViewApi = diagnosticsViewModule.createApi({
+        window, document,
         escapeHtml: diagnosticsEscapeHtml,
         svgIcon: window.FolderViewPlusUI?.svgIcon,
-        t: diagnosticsT
-    });
+        t: diagnosticsT, runRepair: (action) => repairDiagnostics(action), setBusy: (busy) => setDiagnosticsWorkspaceBusy(busy), showError: diagnosticsShowError
+    }); diagnosticsViewApi.bindActions?.();
     return diagnosticsViewApi;
 };
-
 const setDiagnosticsWorkspaceBusy = (busy) => {
     const workspace = document.getElementById('fv-diagnostics-workspace');
     workspace?.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -1653,12 +1654,12 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
     const summary = hasResults && diagnostics.summary && typeof diagnostics.summary === 'object'
         ? diagnostics.summary
         : {};
-    const coreCards = hasResults
+    const rawCoreCards = hasResults
         ? (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
             ...card,
             freshness: String(card?.freshness || '').trim() || `Checked ${checkedAt}`
         }))
-        : [];
+        : []; const coreCards = viewApi.decorateCardsWithRecommendedActions(rawCoreCards, diagnostics, summary);
     const themeCard = hasResults ? buildThemeDiagnosticsSummaryCard() : null;
     if (themeCard) {
         coreCards.push(themeCard);
@@ -2049,7 +2050,7 @@ const collectThemeDiagnostics = () => {
         .map((node) => String(node.getAttribute('src') || '').trim())
         .filter((src) => src.includes('/plugins/folderview.plus/'));
 
-    const warnings = [];
+    const warnings = [], adjustments = [];
     const htmlTokens = readThemeTokenSnapshot(htmlStyle);
     const startedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'started');
     const stoppedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'stopped');
@@ -2064,12 +2065,9 @@ const collectThemeDiagnostics = () => {
     if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
         warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
     }
-    if (resolverSnapshot?.autoHealed) {
-        warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
-    }
-    if (Array.isArray(resolverSnapshot?.warnings)) {
-        warnings.push(...resolverSnapshot.warnings);
-    }
+    if (resolverSnapshot?.autoHealed) adjustments.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
+    if (Array.isArray(resolverSnapshot?.warnings)) warnings.push(...resolverSnapshot.warnings);
+    if (Array.isArray(resolverSnapshot?.adjustments)) adjustments.push(...resolverSnapshot.adjustments);
 
     return {
         generatedAt: new Date().toISOString(),
@@ -2115,6 +2113,7 @@ const collectThemeDiagnostics = () => {
             stylesheets: customStyleLinks,
             scripts: customScriptLinks
         },
+        adjustments,
         warnings
     };
 };
@@ -2153,7 +2152,7 @@ const runThemeSelfHeal = async () => {
             snapshot?.statusChecks?.paused,
             snapshot?.statusChecks?.stopped
         ].filter((check) => check && Number(check.ratio || 0) < Number(check.minRatio || 0));
-        const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
+        const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0;
         if (!needsHeal) {
             applyDiagnosticsThemeTokens('self-heal-noop');
             diagnosticsSwal({

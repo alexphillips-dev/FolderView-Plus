@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Superviseu l'estat dels connectors, solucioneu problemes i compartiu dades d'assistència.",
     "diagnostics.actions.run": "Executar un control de salut",
     "diagnostics.actions.retest-performance": "Torna a provar el rendiment",
-    "diagnostics.actions.check-again": "Comproveu de nou",
     "diagnostics.summary.empty-title": "Executeu la comprovació de salut per inspeccionar l'estat del connector.",
     "diagnostics.summary.empty-description": "Docker, VM, emmagatzematge, icones personalitzades, actualitzacions i el tema es comprovaran conjuntament.",
     "diagnostics.state.not-checked": "No comprovat",

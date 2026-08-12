@@ -71,3 +71,20 @@ test('settings support actions use shared confirmation and alert primitives', as
     assert.equal(calls.at(-1)[0], 'alert');
     assert.equal(calls.at(-1)[1].tone, 'success');
 });
+
+test('settings support actions register through the declarative registry without broad window assignment', () => {
+    const calls = [];
+    const target = {
+        FolderViewPlusCspEvents: {
+            registerActions(actions, options) {
+                calls.push({ actions, options });
+                return Object.keys(actions);
+            }
+        }
+    };
+    const handler = () => {};
+    assert.deepEqual(actionSupport.registerActions(target, { save: handler }, { owner: 'settings-test' }), ['save']);
+    assert.deepEqual(calls, [{ actions: { save: handler }, options: { owner: 'settings-test' } }]);
+    assert.equal(target.save, undefined);
+    assert.throws(() => actionSupport.registerActions({}, { save: handler }), /registry is unavailable/);
+});

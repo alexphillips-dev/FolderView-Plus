@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const stylesCustomPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');
 const scriptsCustomPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
+const customScriptLoader = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.custom-script-loader.js');
 
 test('custom style loader resolves and validates paths against base override dir', () => {
     assert.match(stylesCustomPhp, /\$baseDir = realpath\(\$stylesDir\);/);
@@ -27,9 +28,11 @@ test('Docker native compatibility mode keeps legacy custom assets inert', () => 
     assert.match(stylesCustomPhp, /\$fvplusDockerLegacyConditionalAssets/);
     assert.match(stylesCustomPhp, /media=\\"not all\\" data-fvplus-docker-legacy-style=\\"true\\"/);
     assert.match(scriptsCustomPhp, /\$fvplusDockerLegacyConditionalAssets/);
-    assert.match(scriptsCustomPhp, /FolderViewPlusDockerLoadCustomScripts/);
-    assert.match(scriptsCustomPhp, /fvplusDockerCustomScriptsPromise/);
-    assert.match(scriptsCustomPhp, /JSON_HEX_TAG \| JSON_HEX_AMP \| JSON_HEX_APOS \| JSON_HEX_QUOT/);
-    assert.match(scriptsCustomPhp, /document\.createElement\("script"\)/);
+    assert.match(scriptsCustomPhp, /emitJsonBootstrapMeta\('fvplus-docker-custom-scripts'/);
+    assert.match(scriptsCustomPhp, /runtime\.custom-script-loader\.js/);
+    assert.match(customScriptLoader, /FolderViewPlusDockerLoadCustomScripts/);
+    assert.match(customScriptLoader, /customScriptsPromise/);
+    assert.match(customScriptLoader, /document\.createElement\('script'\)/);
     assert.doesNotMatch(scriptsCustomPhp, /document\.write/);
+    assert.doesNotMatch(customScriptLoader, /document\.write/);
 });

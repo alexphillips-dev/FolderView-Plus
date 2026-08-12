@@ -27,10 +27,24 @@
         const win = deps.window || fallbackWindow;
         const documentRef = deps.document || win?.document || null;
         const $ = deps.$ || win?.jQuery || win?.$ || null;
+        const safeDom = deps.safeDom || win?.FolderViewPlusSafeDom || null;
         const utils = deps.utils || {};
         const sharedModule = deps.sharedModule || win?.FolderViewPlusBulkAssignmentShared || null;
         const swal = typeof deps.swal === 'function' ? deps.swal : (() => {});
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
+        const createSafeElement = (tagName, options = {}) => {
+            if (safeDom && typeof safeDom.create === 'function') {
+                return safeDom.create(documentRef, tagName, options);
+            }
+            const node = documentRef.createElement(tagName);
+            if (options.className) node.className = String(options.className);
+            if (Object.prototype.hasOwnProperty.call(options, 'text')) node.textContent = String(options.text ?? '');
+            for (const [name, value] of Object.entries(options.attributes || {})) {
+                if (value !== false && value !== null && value !== undefined) node.setAttribute(name, value === true ? '' : String(value));
+            }
+            for (const child of options.children || []) node.appendChild(child);
+            return node;
+        };
         const normalizeManagedType = typeof deps.normalizeManagedType === 'function'
             ? deps.normalizeManagedType
             : ((value) => String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
@@ -236,19 +250,22 @@
             const safeNames = Array.isArray(names)
                 ? names.map((name) => sanitizeBulkItemName(name)).filter(Boolean)
                 : [];
+            selectEl.replaceChildren();
             if (!safeNames.length) {
-                selectEl.innerHTML = '<option value="" disabled>(No items detected yet)</option>';
+                selectEl.appendChild(createSafeElement('option', {
+                    text: '(No items detected yet)',
+                    attributes: { value: '', disabled: true }
+                }));
                 selectEl.disabled = true;
                 return;
             }
             const selected = state.selected || new Set();
-            const options = safeNames
-                .map((name) => {
-                    const isSelected = selected.has(name) ? ' selected' : '';
-                    return `<option value="${escapeHtml(name)}"${isSelected}>${escapeHtml(name)}</option>`;
-                })
-                .join('');
-            selectEl.innerHTML = options;
+            const fragment = documentRef.createDocumentFragment();
+            safeNames.forEach((name) => fragment.appendChild(createSafeElement('option', {
+                text: name,
+                attributes: { value: name, selected: selected.has(name) }
+            })));
+            selectEl.appendChild(fragment);
             selectEl.disabled = disabled === true;
         };
 
@@ -341,8 +358,8 @@
             const state = getBulkState(type);
             const folderSelect = documentRef?.getElementById?.(`${type}-bulk-folder`);
             const folderSelectDisabled = folderSelect instanceof HTMLSelectElement && folderSelect.disabled === true;
-            let icon = 'fa-list-alt';
-            let label = 'Preview changes';
+            let icon;
+            let label;
             let disabled = false;
             if (state.applying === true) {
                 icon = 'fa-spinner fa-spin';
@@ -370,7 +387,10 @@
                 label = `Apply ${changeCount} change${changeCount === 1 ? '' : 's'}`;
                 disabled = false;
             }
-            button.innerHTML = `<i class="fa ${icon}"></i> ${escapeHtml(label)}`;
+            button.replaceChildren(
+                createSafeElement('i', { className: `fa ${icon}` }),
+                documentRef.createTextNode(` ${label}`)
+            );
             button.disabled = disabled;
             button.setAttribute('data-fv-bulk-state', state.applying === true ? 'applying' : (disabled ? 'idle' : 'ready'));
         };
@@ -485,26 +505,32 @@
                 panel.addClass('is-progress');
             }
             const lines = Array.isArray(result.lines) ? result.lines.slice(0, 220) : [];
+            const summaryNode = createSafeElement('div', {
+                className: 'bulk-result-summary',
+                text: String(result.summary || (lines.length ? 'Bulk assignment update' : 'No updates.'))
+            });
             if (!lines.length) {
-                panel.html(`<div class="bulk-result-summary">${escapeHtml(String(result.summary || 'No updates.'))}</div>`);
+                panel.get(0).replaceChildren(summaryNode);
                 syncBulkWorkflowUi(type);
                 return;
             }
-            const rowHtml = lines.map((line) => {
+            const listNode = createSafeElement('ul', { className: 'bulk-result-list' });
+            lines.forEach((line) => {
                 const status = String(line.status || 'info').trim().toLowerCase();
+                const safeStatus = ['success', 'skip', 'invalid', 'failed', 'info'].includes(status) ? status : 'info';
                 const label = status === 'success'
                     ? 'Assigned'
                     : (status === 'skip' ? 'Skipped' : (status === 'invalid' ? 'Invalid' : (status === 'failed' ? 'Failed' : 'Info')));
-                return `<li class="bulk-result-line is-${escapeHtml(status)}">
-            <span class="bulk-result-badge">${escapeHtml(label)}</span>
-            <span class="bulk-result-name">${escapeHtml(String(line.name || ''))}</span>
-            <span class="bulk-result-detail">${escapeHtml(String(line.detail || ''))}</span>
-        </li>`;
-            }).join('');
-            panel.html(`
-        <div class="bulk-result-summary">${escapeHtml(String(result.summary || 'Bulk assignment update'))}</div>
-        <ul class="bulk-result-list">${rowHtml}</ul>
-    `);
+                listNode.appendChild(createSafeElement('li', {
+                    className: `bulk-result-line is-${safeStatus}`,
+                    children: [
+                        createSafeElement('span', { className: 'bulk-result-badge', text: label }),
+                        createSafeElement('span', { className: 'bulk-result-name', text: String(line.name || '') }),
+                        createSafeElement('span', { className: 'bulk-result-detail', text: String(line.detail || '') })
+                    ]
+                }));
+            });
+            panel.get(0).replaceChildren(summaryNode, listNode);
             syncBulkWorkflowUi(type);
         };
 

@@ -8,8 +8,8 @@ const require = createRequire(import.meta.url);
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
 const repoRoot = path.resolve(process.cwd());
-const libPhp = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'),
+const backupPhp = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.backup-snapshots.php'),
     'utf8'
 );
 
@@ -27,22 +27,22 @@ const restoreStateSnapshot = (state, snapshot) => {
 };
 
 test('backup payload contract includes full folders + prefs metadata', () => {
-    assert.match(libPhp, /'schemaVersion'\s*=>\s*FVPLUS_EXPORT_SCHEMA_VERSION/);
-    assert.match(libPhp, /'mode'\s*=>\s*'full'/);
-    assert.match(libPhp, /'reason'\s*=>\s*\$reason/);
-    assert.match(libPhp, /'traceId'\s*=>\s*getRequestTraceId\(\)/);
-    assert.match(libPhp, /'transactionId'\s*=>\s*getRequestTransactionId\(\)/);
-    assert.match(libPhp, /'folders'\s*=>\s*\$folders/);
-    assert.match(libPhp, /'prefs'\s*=>\s*\$prefs/);
+    assert.match(backupPhp, /'schemaVersion'\s*=>\s*FVPLUS_EXPORT_SCHEMA_VERSION/);
+    assert.match(backupPhp, /'mode'\s*=>\s*'full'/);
+    assert.match(backupPhp, /'reason'\s*=>\s*\$reason/);
+    assert.match(backupPhp, /'traceId'\s*=>\s*getRequestTraceId\(\)/);
+    assert.match(backupPhp, /'transactionId'\s*=>\s*getRequestTransactionId\(\)/);
+    assert.match(backupPhp, /'folders'\s*=>\s*\$folders/);
+    assert.match(backupPhp, /'prefs'\s*=>\s*\$prefs/);
 });
 
 test('restore path validates type and performs ordered rollback-safe writes', () => {
-    assert.match(libPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
-    assert.match(libPhp, /writeRawFolderMap\(\$type, is_array\(\$folders\) \? \$folders : \[\]\);/);
-    assert.match(libPhp, /syncManualOrderWithFolders\(\$type, is_array\(\$folders\) \? \$folders : \[\]\);/);
-    assert.match(libPhp, /if \(\$type === 'docker'\) \{\s*syncContainerOrder\('docker'\);/);
-    assert.match(libPhp, /function restoreLatestUndoBackupSnapshot\(string \$type\): array/);
-    assert.match(libPhp, /if \(!isUndoBackupReason\(\$reason\)\) \{\s*continue;\s*\}/);
+    assert.match(backupPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
+    assert.match(backupPhp, /writeRawFolderMap\(\$type, is_array\(\$folders\) \? \$folders : \[\]\);/);
+    assert.match(backupPhp, /syncManualOrderWithFolders\(\$type, is_array\(\$folders\) \? \$folders : \[\]\);/);
+    assert.match(backupPhp, /if \(\$type === 'docker'\) \{\s*syncContainerOrder\('docker'\);/);
+    assert.match(backupPhp, /function restoreLatestUndoBackupSnapshot\(string \$type\): array/);
+    assert.match(backupPhp, /if \(!isUndoBackupReason\(\$reason\)\) \{\s*continue;\s*\}/);
 });
 
 for (const type of ['docker', 'vm']) {

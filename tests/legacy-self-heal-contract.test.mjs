@@ -12,7 +12,7 @@ const prefsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
 );
-const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.storage.php'), 'utf8')}`;
 const libPrefsPhp = fs.readFileSync(prefsPath, 'utf8');
 
 test('legacy labels and legacy config directories remain supported', () => {

@@ -16,10 +16,15 @@ const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
 );
+const dockerColumnControllerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js'
+);
 
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const runtimeSharedCss = fs.readFileSync(runtimeSharedCssPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const dockerColumnControllerJs = fs.readFileSync(dockerColumnControllerJsPath, 'utf8');
 
 test('docker mobile app-name width contract keeps long names visible before ellipsis', () => {
     assert.match(dockerCss, /--fvplus-docker-app-column-width-mobile:\s*118px/);
@@ -41,10 +46,10 @@ test('docker runtime keeps width-gap guardrails for long-name and version alignm
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP = 64;/);
-    assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
-    assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
-    assert.match(dockerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
-    assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
-    assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
-    assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
+    assert.match(dockerColumnControllerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
+    assert.match(dockerColumnControllerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
+    assert.match(dockerColumnControllerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
+    assert.match(dockerColumnControllerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
+    assert.match(dockerColumnControllerJs, /auxSelectors:\s*\['\.folder-state'\]/);
+    assert.match(dockerColumnControllerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
 });

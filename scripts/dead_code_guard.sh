@@ -46,7 +46,9 @@ const nonCssFiles = allFiles.filter((file) => (
 const selectorUsage = new Map();
 const generatedSelectorPrefixes = [
   '.fv-mobile-tree-reorder-',
-  '#fv-mobile-tree-reorder-'
+  '#fv-mobile-tree-reorder-',
+  '.fv-docker-command-depth-',
+  '.fv-folder-depth-'
 ];
 const generatedSelectorMatchers = [
   {

@@ -14,7 +14,7 @@ const importPath = path.join(pluginRoot, 'scripts/folderviewplus.import.js');
 const endpoint = fs.readFileSync(endpointPath, 'utf8');
 const settings = fs.readFileSync(settingsPath, 'utf8');
 const importRuntime = fs.readFileSync(importPath, 'utf8');
-const lib = fs.readFileSync(libPath, 'utf8');
+const lib = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(pluginRoot, 'server/lib.folder-mutations.php'), 'utf8')}`;
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 

@@ -107,7 +107,7 @@ const collectPage = async (context, url, surface) => {
     await page.evaluate(() => window.FolderViewPlusPerformanceFixture.ready);
     let snapshot;
     if (surface === 'runtime') {
-        snapshot = await page.evaluate(() => window.FolderViewPlusPerformanceFixture.runLifecycleBenchmarks());
+        await page.evaluate(() => window.FolderViewPlusPerformanceFixture.runLifecycleBenchmarks());
         await page.evaluate(() => globalThis.gc?.());
         const heapBefore = await page.evaluate(() => Number(performance.memory?.usedJSHeapSize || 0));
         await page.evaluate(() => window.FolderViewPlusPerformanceFixture.switchViews(30));

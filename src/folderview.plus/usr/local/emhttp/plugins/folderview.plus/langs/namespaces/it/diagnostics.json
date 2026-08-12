@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Monitora lo stato dei plugin, risolvi i problemi e condividi i dati di supporto.",
     "diagnostics.actions.run": "Esegui controllo salute",
     "diagnostics.actions.retest-performance": "Ritestare le prestazioni",
-    "diagnostics.actions.check-again": "Controlla di nuovo",
     "diagnostics.summary.empty-title": "Esegui il controllo dello stato di salute per ispezionare lo stato del plugin.",
     "diagnostics.summary.empty-description": "Il riepilogo segnalerà Docker, VM, problemi di archiviazione, icona e aggiornamento senza prima scaricare i dati grezzi JSON.",
     "diagnostics.state.not-checked": "Non controllato",

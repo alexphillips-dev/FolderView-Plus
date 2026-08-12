@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",
     "diagnostics.actions.run": "執行健康檢查",
     "diagnostics.actions.retest-performance": "重新測試效能",
-    "diagnostics.actions.check-again": "再次檢查",
     "diagnostics.summary.empty-title": "執行健康檢查以檢查外掛狀態。",
     "diagnostics.summary.empty-description": "Docker、VM、儲存、自訂圖示、更新和主題將一起檢查。",
     "diagnostics.state.not-checked": "未檢查",

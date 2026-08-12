@@ -18,7 +18,7 @@ const wizardPath = path.join(scriptRoot, 'folderviewplus.wizard.js');
 const treeIntegrityPath = path.join(scriptRoot, 'folderviewplus.tree-integrity.js');
 
 const read = (filePath) => fs.readFileSync(filePath, 'utf8');
-const lib = read(libPath);
+const lib = `${read(libPath)}\n${read(path.join(pluginRoot, 'server/lib.folder-rules.php'))}`;
 const endpoint = read(endpointPath);
 const settings = read(settingsPath);
 const starter = read(starterPath);

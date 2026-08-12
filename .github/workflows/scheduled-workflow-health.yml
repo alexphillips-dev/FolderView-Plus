@@ -1,0 +1,110 @@
+name: Scheduled Workflow Health
+
+on:
+  schedule:
+    - cron: '23 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: folderview-plus-scheduled-workflow-health
+  cancel-in-progress: true
+
+jobs:
+  watchdog:
+    name: Verify scheduled workflow freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout FolderView Plus
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Evaluate scheduled workflow health
+        id: health
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set +e
+          node scripts/scheduled_workflow_health.mjs \
+            --github-output "${GITHUB_OUTPUT}" \
+            --report "${RUNNER_TEMP}/scheduled-workflow-health.md"
+          health_exit=$?
+          set -e
+          if [[ ! -s "${RUNNER_TEMP}/scheduled-workflow-health.md" ]]; then
+            {
+              echo "# Scheduled workflow health"
+              echo
+              echo "The watchdog could not retrieve or evaluate the monitored workflow history."
+              echo
+              echo "Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            } > "${RUNNER_TEMP}/scheduled-workflow-health.md"
+          fi
+          if ! grep -q '^status=' "${GITHUB_OUTPUT}"; then
+            echo "status=unhealthy" >> "${GITHUB_OUTPUT}"
+            echo "unhealthy_count=unknown" >> "${GITHUB_OUTPUT}"
+          fi
+          exit "${health_exit}"
+
+      - name: Publish watchdog summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "${RUNNER_TEMP}/scheduled-workflow-health.md" ]]; then
+            cat "${RUNNER_TEMP}/scheduled-workflow-health.md" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+      - name: Create or update workflow health alert
+        if: steps.health.outputs.status != 'healthy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Scheduled workflow health requires attention"
+          issue_number="$(
+            gh issue list \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue edit "${issue_number}" --body-file "${RUNNER_TEMP}/scheduled-workflow-health.md"
+          else
+            gh issue create --title "${title}" --body-file "${RUNNER_TEMP}/scheduled-workflow-health.md"
+          fi
+
+      - name: Close recovered workflow health alert
+        if: steps.health.outputs.status == 'healthy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Scheduled workflow health requires attention"
+          issue_number="$(
+            gh issue list \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue close "${issue_number}" --comment "All monitored workflows have recovered and completed successfully inside their expected interval."
+          fi
+
+      - name: Enforce healthy scheduled workflows
+        if: steps.health.outputs.status != 'healthy'
+        shell: bash
+        run: |
+          echo "::error title=Scheduled workflow health failed::One or more scheduled workflows lack a recent successful run."
+          exit 1

@@ -84,6 +84,25 @@ test('SBOM purl normalization replaces every encoded scope marker', () => {
     assert.doesNotMatch(generator, /encodeURIComponent\(name\)\.replace\('%40', '@'\)/);
 });
 
+test('SBOM inventories nested GitHub Actions by repository and pinned revision', () => {
+    const sbom = JSON.parse(read('docs/sbom.cdx.json'));
+    const expectedActions = workflows.flatMap(({ source }) =>
+        [...source.matchAll(/uses:\s*([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)(?:\/[A-Za-z0-9_.-]+)*@([0-9a-f]{40})/g)]
+            .map(([, name, revision]) => `${name}@${revision}`)
+    );
+    const inventoriedActions = new Set(
+        sbom.components
+            .filter((component) => component.properties?.some(
+                (property) => property.name === 'folderview-plus:usage'
+                    && property.value === 'build-only-github-action'
+            ))
+            .map((component) => `${component.name}@${component.version}`)
+    );
+
+    assert.ok(expectedActions.some((action) => action.startsWith('github/codeql-action@')));
+    for (const action of expectedActions) assert.ok(inventoriedActions.has(action), `Missing GitHub Action from SBOM: ${action}`);
+});
+
 test('CycloneDX SBOM has a deterministic SHA-256 UUIDv8 serial accepted by the attestation action', () => {
     const sbom = JSON.parse(read('docs/sbom.cdx.json'));
     assert.equal(sbom.bomFormat, 'CycloneDX');

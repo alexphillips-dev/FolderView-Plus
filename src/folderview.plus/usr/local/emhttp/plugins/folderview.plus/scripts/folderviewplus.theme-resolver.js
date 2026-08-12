@@ -5,6 +5,7 @@
     let themeColorParserCanvasContext = null;
     let configuredModeResolver = null;
     let configuredTrackEvent = null;
+    const themeSurfaceModule = window.FolderViewPlusFoundationModules?.themeSurface || null;
 
     const THEME_COMPATIBILITY_MODE_OPTIONS = Object.freeze(['auto', 'host', 'safe', 'highcontrast']);
     const THEME_COMPATIBILITY_MODE_WEIGHT = Object.freeze({
@@ -17,6 +18,7 @@
         textPrimary: 4.5,
         textMuted: 3.0,
         textDim: 2.7,
+        accent: 3.0,
         statusStarted: 3.0,
         statusPaused: 3.0,
         statusStopped: 3.0
@@ -60,6 +62,8 @@
         return themeColorParserCanvasContext;
     };
 
+    const setThemeColorParserFillStyle = (context, value) => Reflect.set(context, 'fillStyle', value);
+
     const parseThemeColorToRgba = (value) => {
         const raw = String(value || '').trim();
         if (!raw || raw === 'transparent' || raw === 'currentcolor') {
@@ -99,8 +103,8 @@
         if (!parserContext) {
             return null;
         }
-        parserContext.fillStyle = '#000000';
-        parserContext.fillStyle = raw;
+        setThemeColorParserFillStyle(parserContext, '#000000');
+        setThemeColorParserFillStyle(parserContext, raw);
         const normalized = String(parserContext.fillStyle || '').trim();
         if (!normalized) {
             return null;
@@ -450,6 +454,7 @@
             editorMuted: themeRgbaToCss(palette.textMuted),
             editorDim: themeRgbaToCss(palette.textDim),
             editorAccent: themeRgbaToCss(palette.accent),
+            editorTitleAccent: themeRgbaToCss(palette.accent),
             editorAccentSoft: themeRgbaToCss(palette.accentSoft),
             editorSuccess: isLight ? '#287a43' : '#8ce69b',
             editorWarning: isLight ? '#9a6b00' : '#ffbe76',
@@ -535,6 +540,9 @@
             options.hostThemeName
             || window.FolderViewPlusHostThemeName
             || doc.documentElement?.getAttribute?.('data-fv-host-theme')
+            || doc.documentElement?.getAttribute?.('data-fvplus-host-theme')
+            || doc.body?.getAttribute?.('data-fv-host-theme')
+            || doc.body?.getAttribute?.('data-fvplus-host-theme')
             || ''
         ).trim();
         const rootBackground = resolveThemeSurfaceColor(
@@ -556,12 +564,15 @@
         const backgroundLuminance = themeRgbaLuminance(rootBackground);
         const foregroundLuminance = themeRgbaLuminance(hostForeground);
         const hostThemeClassification = inferThemeClassificationFromHostTheme(hostThemeName);
-        const classification = hostThemeClassification || (backgroundLuminance <= 0.45
+        const detectedClassification = hostThemeClassification || (backgroundLuminance <= 0.45
             ? 'dark'
             : (backgroundLuminance >= 0.58 ? 'light' : 'mixed'));
         const hostContrast = themeContrastRatio(hostForeground, rootBackground);
         const prefersDark = typeof win.matchMedia === 'function'
             && win.matchMedia('(prefers-color-scheme: dark)').matches;
+        const classification = detectedClassification === 'mixed'
+            ? (prefersDark ? 'dark' : 'light')
+            : detectedClassification;
 
         const paletteByMode = buildThemePaletteForMode({
             mode: requestedMode === 'auto' ? 'host' : requestedMode,
@@ -575,18 +586,30 @@
             classification,
             hostText: hostForeground,
             hostBackground: rootBackground,
-            accent: hostAccent
+            accent: null
         });
         const highContrastPalette = buildThemePaletteForMode({
             mode: 'highcontrast',
             classification,
             hostText: hostForeground,
             hostBackground: rootBackground,
-            accent: hostAccent
+            accent: null
         });
 
         let selectedPalette = paletteByMode;
         let modeApplied = requestedMode;
+        const accentResolution = resolveThemeStatusColor(
+            'accent',
+            selectedPalette.accent,
+            rootBackground,
+            THEME_CONTRAST_RULES.accent,
+            [safePalette.accent, highContrastPalette.accent]
+        );
+        selectedPalette = {
+            ...selectedPalette,
+            accent: accentResolution.color,
+            accentSoft: { ...accentResolution.color, a: 0.14 }
+        };
         const contrastChecks = [];
         const evaluateChecks = (palette) => {
             const checks = [];
@@ -598,6 +621,7 @@
             evaluate('textPrimary', palette.textPrimary, THEME_CONTRAST_RULES.textPrimary);
             evaluate('textMuted', palette.textMuted, THEME_CONTRAST_RULES.textMuted);
             evaluate('textDim', palette.textDim, THEME_CONTRAST_RULES.textDim);
+            evaluate('accent', palette.accent, THEME_CONTRAST_RULES.accent);
             return checks;
         };
 
@@ -638,8 +662,9 @@
         selectedPalette.statusStopped = statusStopped.color;
 
         const warnings = [];
+        const adjustments = [];
         if (hostContrast < THEME_CONTRAST_RULES.textPrimary) {
-            warnings.push(`Host text contrast is low (${hostContrast.toFixed(2)}:1).`);
+            adjustments.push(`Host text contrast is low (${hostContrast.toFixed(2)}:1).`);
         }
         for (const check of contrastChecks) {
             if (!check.passed) {
@@ -647,7 +672,10 @@
             }
         }
         if (statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed) {
-            warnings.push('Status colors were auto-healed to preserve contrast.');
+            adjustments.push('Status colors were auto-healed to preserve contrast.');
+        }
+        if (accentResolution.autoHealed) {
+            adjustments.push('Host accent color was auto-healed to preserve contrast.');
         }
 
         return {
@@ -656,12 +684,13 @@
             appliedMode: modeApplied,
             prefersDark,
             classification,
+            detectedClassification,
             hostThemeName,
             sampleRootSelector: typeof options.sampleRoot === 'string' ? options.sampleRoot : '',
             rootLuminance: Number(backgroundLuminance.toFixed(4)),
             hostTextLuminance: Number(foregroundLuminance.toFixed(4)),
             hostContrast: Number(hostContrast.toFixed(3)),
-            autoHealed: modeApplied !== requestedMode || statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed,
+            autoHealed: modeApplied !== requestedMode || accentResolution.autoHealed || statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed,
             contrastChecks,
             statusChecks: {
                 started: { ratio: Number(statusStarted.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStarted, autoHealed: statusStarted.autoHealed },
@@ -669,6 +698,7 @@
                 stopped: { ratio: Number(statusStopped.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStopped, autoHealed: statusStopped.autoHealed }
             },
             tokens: buildThemeTokenMap({ classification }, selectedPalette),
+            adjustments,
             warnings
         };
     };
@@ -744,6 +774,7 @@
             '--fvplus-editor-muted': tokens.editorMuted || '',
             '--fvplus-editor-dim': tokens.editorDim || '',
             '--fvplus-editor-accent': tokens.editorAccent || '',
+            '--fvplus-editor-title-accent': tokens.editorTitleAccent || '',
             '--fvplus-editor-accent-soft': tokens.editorAccentSoft || '',
             '--fvplus-editor-success': tokens.editorSuccess || '',
             '--fvplus-editor-warning': tokens.editorWarning || '',
@@ -821,93 +852,16 @@
         }
     };
 
-    const bindThemeAwareSurface = ({
-        root = null,
-        modeInput = null,
-        getMode = undefined,
-        trackEvent = undefined,
-        reasonPrefix = 'surface',
-        applyDelayMs = 48,
-        onApply = null,
-        document: doc = document,
-        window: win = window
-    } = {}) => {
-        let timer = null;
-        let observer = null;
-        let bound = false;
-
-        const runApply = (reasonValue = 'initial') => {
-            const snapshot = applyResolvedThemeTokens(`${reasonPrefix}:${reasonValue}`, {
-                root,
-                modeInput,
-                getMode,
-                trackEvent,
-                document: doc,
-                window: win
-            });
-            if (typeof onApply === 'function') {
-                onApply(snapshot, reasonValue);
-            }
-            return snapshot;
-        };
-
-        const queueApply = (reasonValue = 'theme-change') => {
-            if (timer !== null) {
-                win.clearTimeout(timer);
-            }
-            timer = win.setTimeout(() => {
-                timer = null;
-                runApply(reasonValue);
-            }, Number.isFinite(Number(applyDelayMs)) ? Math.max(0, Number(applyDelayMs)) : 48);
-        };
-
-        const bind = () => {
-            runApply('initial');
-            if (bound) {
-                return;
-            }
-            bound = true;
-            if (typeof MutationObserver === 'function') {
-                observer = new MutationObserver((mutations) => {
-                    for (const mutation of mutations || []) {
-                        if (mutation.type !== 'attributes') {
-                            continue;
-                        }
-                        const attr = String(mutation.attributeName || '').toLowerCase();
-                        if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                            queueApply('observer');
-                            return;
-                        }
-                    }
-                });
-                if (doc.documentElement) {
-                    observer.observe(doc.documentElement, {
-                        attributes: true,
-                        attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-                    });
-                }
-                if (doc.body) {
-                    observer.observe(doc.body, {
-                        attributes: true,
-                        attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-                    });
-                }
-            }
-            if (typeof win.matchMedia === 'function') {
-                const media = win.matchMedia('(prefers-color-scheme: dark)');
-                if (media && typeof media.addEventListener === 'function') {
-                    media.addEventListener('change', () => queueApply('prefers-color-scheme'));
-                } else if (media && typeof media.addListener === 'function') {
-                    media.addListener(() => queueApply('prefers-color-scheme'));
-                }
-            }
-        };
-
+    const bindThemeAwareSurface = (options = {}) => {
+        if (themeSurfaceModule && typeof themeSurfaceModule.createBinding === 'function') {
+            return themeSurfaceModule.createBinding({ ...options, applyResolvedThemeTokens });
+        }
+        const runApply = (reason = 'initial') => applyResolvedThemeTokens(`surface:${reason}`, options);
         return Object.freeze({
-            bind,
+            bind: () => runApply('initial'),
             runApply,
-            queueApply,
-            disconnect: () => observer?.disconnect()
+            queueApply: (reason = 'theme-change') => runApply(reason),
+            disconnect: () => {}
         });
     };
 

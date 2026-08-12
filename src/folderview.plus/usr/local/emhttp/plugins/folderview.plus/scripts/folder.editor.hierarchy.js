@@ -196,7 +196,7 @@
             }
             let note = dd.find('.fv-parent-defaults-note');
             if (!note.length) {
-                note = jq('<div class="fv-parent-defaults-note" style="display:none;"></div>');
+                note = jq('<div class="fv-parent-defaults-note" data-fvplus-style="fv-u-xcjvns"></div>');
                 dd.append(note);
             }
             note.removeClass('is-info is-success is-warning').addClass(

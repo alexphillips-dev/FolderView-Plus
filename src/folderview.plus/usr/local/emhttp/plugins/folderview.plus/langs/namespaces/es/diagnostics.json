@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Supervise el estado de los complementos, solucione problemas y comparta datos de soporte.",
     "diagnostics.actions.run": "Ejecutar chequeo de salud",
     "diagnostics.actions.retest-performance": "Volver a probar el rendimiento",
-    "diagnostics.actions.check-again": "comprobar de nuevo",
     "diagnostics.summary.empty-title": "Ejecute una verificación de salud para inspeccionar el estado del complemento.",
     "diagnostics.summary.empty-description": "El resumen señalará Docker, VM, problemas de almacenamiento, icono y actualización sin volcar primero el JSON en bruto.",
     "diagnostics.state.not-checked": "No comprobado",

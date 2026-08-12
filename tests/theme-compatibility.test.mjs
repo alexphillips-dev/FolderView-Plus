@@ -20,6 +20,10 @@ const wizardRuntimePath = path.join(
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const wizardRuntime = fs.readFileSync(wizardRuntimePath, 'utf8');
+const pageBootstrap = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js'),
+    'utf8'
+);
 const wizardDialogBlocks = Array.from(settingsCss.matchAll(/#fv-setup-assistant-dialog\s*\{[\s\S]*?\n\}/g)).map((match) => match[0]);
 const wizardTokenBlock = wizardDialogBlocks.find((block) => /--fv-wizard-text-primary/.test(block)) || '';
 const wizardCardBlock = (settingsCss.match(/\.fv-setup-card\s*\{[\s\S]*?\n\}/) || [''])[0];
@@ -152,9 +156,10 @@ test('settings dark mode buttons use visible white outline tokens', () => {
 });
 
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
-    assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
-    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
-    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
-    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
-    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /emitJsonBootstrapMeta\('fvplus-host-theme'/);
+    assert.match(pageBootstrap, /FolderViewPlusHostThemeName = hostThemeName/);
+    assert.match(pageBootstrap, /documentElement\?\.setAttribute\('data-fvplus-host-theme', hostThemeName\)/);
+    assert.match(pageBootstrap, /documentElement\?\.setAttribute\('data-fv-host-theme', hostThemeName\)/);
+    assert.match(pageBootstrap, /body\?\.setAttribute\('data-fvplus-host-theme', hostThemeName\)/);
+    assert.match(pageBootstrap, /body\?\.setAttribute\('data-fv-host-theme', hostThemeName\)/);
 });

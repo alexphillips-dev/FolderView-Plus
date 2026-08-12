@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "Overvåg plugin-sundhed, fejlfind problemer, og del supportdata.",
     "diagnostics.actions.run": "Kør sundhedstjek",
     "diagnostics.actions.retest-performance": "Gentest ydeevne",
-    "diagnostics.actions.check-again": "Tjek igen",
     "diagnostics.summary.empty-title": "Kør sundhedstjek for at inspicere plugin-tilstanden.",
     "diagnostics.summary.empty-description": "Docker, VM, storage, brugerdefinerede ikoner, opdateringer og tema vil blive tjekket sammen.",
     "diagnostics.state.not-checked": "Ikke kontrolleret",

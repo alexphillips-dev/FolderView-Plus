@@ -7,14 +7,18 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
+const pageBootstrapJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.page-bootstrap.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const runtimeSharedPrimitivesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-primitives.js');
+const runtimeSharedDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-diagnostics.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
+const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
@@ -85,9 +89,10 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(commandViewCssIndex >= 0, 'docker command-view stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
     assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/docker.member-menu.js'), false, 'docker member menu script include should be removed');
-    assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
-    assert.match(dockerPage, /page:\s*'Docker'/);
-    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host,\s*\.canvas'/);
+    assert.match(dockerPage, /emitJsonBootstrapMeta\('fvplus-runtime-context'/);
+    assert.match(dockerPage, /'page'\s*=>\s*'Docker'/);
+    assert.match(dockerPage, /'hostSelector'\s*=>\s*'#fvplus-docker-runtime-banner-host, \.canvas'/);
+    assert.match(pageBootstrapJs, /FolderViewPlusFatalRuntimeContext/);
     assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
     assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before docker.js');
@@ -181,24 +186,24 @@ test('docker extracted helper modules export createApi entry points with safe gl
 test('docker shared runtime module binds to the shared folder contract and exports runtime primitives', () => {
     assert.match(dockerSharedJs, /^\/\/ @ts-check/m);
     assert.match(folderContractJs, /window\.FolderViewPlusFolderContract = \{/);
-    assert.match(dockerSharedJs, /const folderContract = window\.FolderViewPlusFolderContract \|\| null;/);
+    assert.match(dockerSharedJs, /root\.FolderViewPlusFolderContract \|\| null/);
     assert.match(dockerSharedJs, /folderContract\?\.DEFAULT_PREVIEW_BORDER_COLOR \|\| '#afa89e'/);
     assert.match(dockerSharedJs, /const extractDropdownStyleValue = typeof folderContract\?\.extractDropdownStyleValue === 'function'/);
     assert.match(dockerSharedJs, /const normalizeDropdownStyle = typeof folderContract\?\.normalizeDropdownStyle === 'function'/);
     assert.match(dockerSharedJs, /const getDropdownStyleTokens = typeof folderContract\?\.getDropdownStyleTokens === 'function'/);
-    assert.match(dockerSharedJs, /const createRuntimeStateStore =/);
-    assert.match(dockerSharedJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
-    assert.match(dockerSharedJs, /const createAsyncActionBoundary =/);
-    assert.match(dockerSharedJs, /const createContextMenuQuickStripAdapter =/);
-    assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
-    assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
-    assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
-    assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
+    assert.match(runtimeSharedPrimitivesJs, /const createRuntimeStateStore =/);
+    assert.match(runtimeSharedDiagnosticsJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
+    assert.match(runtimeSharedPrimitivesJs, /const createAsyncActionBoundary =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createContextMenuQuickStripAdapter =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createRuntimePerfTelemetry =/);
+    assert.match(runtimeSharedPrimitivesJs, /const createSafeUiActionRunner =/);
+    assert.match(runtimeSharedPrimitivesJs, /const resolveRuntimePerformanceProfile =/);
+    assert.match(runtimeSharedDiagnosticsJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
     assert.doesNotMatch(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
     assert.doesNotMatch(dockerSharedJs, /const alignHostToTable = \(host,\s*table\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
-    assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
-    assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
+    assert.match(runtimeSharedPrimitivesJs, /const runtimeContracts = Object\.freeze\(/);
+    assert.match(dockerSharedJs, /root\.FolderViewDockerRuntimeShared = factory\(/);
 });
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
@@ -220,6 +225,8 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.info\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.preview-actions\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.hierarchy\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.column-controller\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('runtime\.live-refresh\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.actions\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.host-guards\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.diagnostics\.js'\)/);
@@ -264,7 +271,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
     assert.match(dockerJs, /const dockerExpandedStateController = runtimeStateObserverModule/);
-    assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
+    assert.match(dockerColumnControllerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);

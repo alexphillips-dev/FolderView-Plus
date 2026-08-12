@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const repoRoot = path.resolve(process.cwd());
 const dockerScript = fs.readFileSync(
@@ -12,15 +15,19 @@ const dockerRuntimeActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js'),
     'utf8'
 );
-const dockerRuntimeSharedScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'),
+const runtimeSharedControlsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'),
     'utf8'
 );
+const runtimeSharedControls = require(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'
+));
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
-    assert.match(dockerRuntimeSharedScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
+    assert.match(runtimeSharedControlsScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
@@ -33,6 +40,40 @@ test('docker folder context supports open-all-webui actions with scoped options'
     assert.match(dockerRuntimeActionsScript, /Blocked WebUIs \(manual open\)/);
     assert.match(dockerScript, /dockerRuntimeInfoByName/);
     assert.match(dockerScript, /openFolderWebuisFromMenu\(id, true, false\)/);
+});
+
+test('open-all WebUI popup detection uses a secured blank handle before navigation', () => {
+    const calls = [];
+    const popup = {
+        opener: {},
+        location: {
+            replace(url) {
+                calls.push(['replace', url]);
+            }
+        }
+    };
+    const window = {
+        open(url, target, features) {
+            calls.push(['open', url, target, features]);
+            return popup;
+        }
+    };
+    const api = runtimeSharedControls.createSecureNavigationApi({ window });
+
+    assert.equal(api.openWebuiPopupWindow('http://10.0.0.2:8080/', 'fvw-test-0'), true);
+    assert.deepEqual(calls, [
+        ['open', '', 'fvw-test-0', undefined],
+        ['replace', 'http://10.0.0.2:8080/']
+    ]);
+    assert.equal(popup.opener, null);
+});
+
+test('open-all WebUI popup detection reports only a missing browser handle as blocked', () => {
+    const api = runtimeSharedControls.createSecureNavigationApi({
+        window: { open: () => null }
+    });
+
+    assert.equal(api.openWebuiPopupWindow('https://example.test/', 'fvw-test-1'), false);
 });
 
 test('docker folder context supports clone-folder action flow', () => {

@@ -159,7 +159,7 @@
                     return;
                 }
                 seen.add(rawUrl);
-                let pathname = rawUrl;
+                let pathname;
                 let rawVersionQuery = '';
                 let versionQuery = '';
                 let bootQuery = '';

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-07-25",
-  "latestReviewedApiRelease": "v4.36.1",
+  "reviewedAt": "2026-08-10",
+  "latestReviewedApiRelease": "v4.37.0",
   "schemaSignature": "dc036a1ef8b075d8f193831554cb93c0b2bbce6e1bffb45752841ffaa2aa6d0f",
   "requiredTokens": [
     "containers(skipCache: Boolean! = false @deprecated(reason: \"Caching has been removed; this parameter is now ignored\")): [DockerContainer!]!",

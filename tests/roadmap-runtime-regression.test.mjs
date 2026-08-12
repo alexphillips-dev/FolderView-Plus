@@ -65,9 +65,16 @@ test('privacy classifier distinguishes public and private IP values', () => {
 });
 
 test('runtime transport exposes capability-driven GraphQL, subscription, action, and diagnostics APIs', () => {
+    const coreSource = read(`${plugin}/scripts/runtime.transport.core.js`);
+    const subscriptionSource = read(`${plugin}/scripts/runtime.transport.subscription.js`);
+    const dockerActionsSource = read(`${plugin}/scripts/runtime.transport.docker-actions.js`);
     const source = read(`${plugin}/scripts/runtime.transport.js`);
     const window = { fetch() {}, setInterval, clearInterval };
-    vm.runInNewContext(source, { window, URL, Date, JSON, Promise, Error, Object, String, Number, Array, Math, setInterval, clearInterval });
+    const context = { window, URL, Date, JSON, Promise, Error, Object, String, Number, Array, Math, setInterval, clearInterval };
+    vm.runInNewContext(coreSource, context);
+    vm.runInNewContext(subscriptionSource, context);
+    vm.runInNewContext(dockerActionsSource, context);
+    vm.runInNewContext(source, context);
     const transport = window.FolderViewPlusRuntimeTransport;
     assert.equal(typeof transport.query, 'function');
     assert.equal(typeof transport.subscribe, 'function');
@@ -78,9 +85,11 @@ test('runtime transport exposes capability-driven GraphQL, subscription, action,
 
 test('Dashboard chart assets are loaded only when an advanced preview needs them', () => {
     const page = read(`${plugin}/folderview.plus.Dashboard.page`);
+    const pageBootstrap = read(`${plugin}/scripts/folderviewplus.page-bootstrap.js`);
     const loader = read(`${plugin}/scripts/runtime.asset-loader.js`);
     const preview = read(`${plugin}/scripts/dashboard.advanced-preview.js`);
-    assert.match(page, /FolderViewPlusAssetUrls/);
+    assert.match(page, /emitJsonBootstrapMeta\('fvplus-page-data'/);
+    assert.match(pageBootstrap, /win\.FolderViewPlusAssetUrls = Object\.freeze/);
     assert.match(page, /runtime\.asset-loader\.js/);
     assert.doesNotMatch(page, /<script src="<\?php fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/include\/chart\.min\.js/);
     assert.match(loader, /const ensureChartStack/);
@@ -89,7 +98,7 @@ test('Dashboard chart assets are loaded only when an advanced preview needs them
 
 test('Dashboard adds and normalizes the Embossed layout and status color locking', () => {
     const settings = read(`${plugin}/FolderViewPlus.page`);
-    const utils = read(`${plugin}/scripts/folderviewplus.utils.js`);
+    const utils = read(`${plugin}/scripts/folderviewplus.utils-normalization.js`);
     const dashboardCss = read(`${plugin}/styles/dashboard.css`);
     const folderPage = read(`${plugin}/Folder.page`);
     const runtime = read(`${plugin}/scripts/docker.runtime.shared.js`);

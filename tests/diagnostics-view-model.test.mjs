@@ -117,7 +117,7 @@ test('diagnostics renderer provides SVG metric and card icons with a complete co
     assert.match(hero, /data-fv-icon="package"/);
     assert.match(hero, /role="progressbar"/);
     assert.match(hero, /aria-valuenow="6"/);
-    assert.match(hero, /style="width: 100%"/);
+    assert.match(hero, /data-fv-progress-percent="100"/);
     assert.match(card, /fv-diagnostics-health-card-icon is-docker/);
     assert.match(card, /data-fv-icon="boxes"/);
 });
@@ -141,7 +141,8 @@ test('diagnostics renderer omits healthy advisory and optional cards from the wo
     });
     const host = {
         innerHTML: '',
-        setAttribute() {}
+        setAttribute() {},
+        querySelector() { return null; }
     };
 
     view.render(host, model);
@@ -168,4 +169,66 @@ test('advisory findings remain visible without linking to a hidden card', () => 
     assert.match(findings, /fv-diagnostics-finding is-warning is-summary-only/);
     assert.match(findings, /Performance Budgets/);
     assert.doesNotMatch(findings, /href="#fv-diagnostics-card-performanceBudget"/);
+});
+
+test('core findings focus an actionable card and render server-recommended repairs', () => {
+    const model = modelModule.buildDiagnosticsViewModel({
+        hasResults: true,
+        coreCards: [{
+            key: 'docker',
+            label: 'Docker config',
+            status: 'error',
+            headline: '1 issue needs attention.',
+            detail: 'One saved member no longer exists.',
+            technicalDetails: ['One orphaned member reference was found.'],
+            actions: [{
+                action: 'repair_orphaned_members',
+                label: 'Remove orphaned member refs',
+                reason: 'Saved folder members reference items that no longer exist.'
+            }]
+        }]
+    });
+    const view = viewModule.createApi({
+        escapeHtml: uiModule.escapeHtml,
+        svgIcon: uiModule.svgIcon
+    });
+    const findings = view.buildFindings(model);
+    const card = view.buildCard(model.coreCards[0]);
+
+    assert.match(findings, /data-fv-ui-action="diagnostics-focus-card"/);
+    assert.match(findings, /aria-controls="fv-diagnostics-card-docker"/);
+    assert.doesNotMatch(findings, /href=/);
+    assert.match(card, /data-fv-ui-action="diagnostics-repair"/);
+    assert.match(card, /repair_orphaned_members/);
+    assert.match(card, /Remove orphaned member refs/);
+    assert.match(card, /One orphaned member reference was found\./);
+});
+
+test('diagnostics view maps server recommendations and confirms repairs without window globals', async () => {
+    const handlers = new Map();
+    const repairs = [];
+    const view = viewModule.createApi({
+        window: {
+            FolderViewPlusUI: {
+                registerAction(name, handler) { handlers.set(name, handler); },
+                confirm: async () => true
+            }
+        },
+        document: {},
+        escapeHtml: uiModule.escapeHtml,
+        svgIcon: uiModule.svgIcon,
+        runRepair: async (action) => { repairs.push(action); return true; }
+    });
+    const cards = view.decorateCardsWithRecommendedActions(
+        [{ key: 'docker', status: 'error', technicalDetails: [] }],
+        { types: { docker: { integrityChecks: { issuesCount: 1, orphanedMembers: { count: 1 } } } } },
+        { recommendedActions: [{ action: 'repair_orphaned_members', label: 'Remove orphaned member refs', reason: 'One saved member is missing.' }] }
+    );
+
+    assert.equal(cards[0].actions[0].action, 'repair_orphaned_members');
+    assert.deepEqual(cards[0].technicalDetails, ['One saved member is missing.']);
+    assert.equal(view.bindActions(), true);
+    assert.equal(view.bindActions(), false);
+    assert.equal(await handlers.get('diagnostics-repair')({ data: cards[0].actions[0] }), true);
+    assert.deepEqual(repairs, ['repair_orphaned_members']);
 });

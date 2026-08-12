@@ -38,6 +38,10 @@ const folderEditorIconsScript = fs.readFileSync(folderEditorIconsScriptPath, 'ut
 const folderChromeJs = fs.readFileSync(folderChromeScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
+const folderEditorRuntimeBootstrap = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.runtime-bootstrap.js'
+), 'utf8');
 
 function getCssRuleBlock(css, selector) {
     const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -111,7 +115,8 @@ test('folder editor runtime keeps using shared icon picker helpers in the shippe
     assert.match(folderScript, /getFolderEditorIconsApi\(\)\?\.bindIconPickerEvents\(\);/);
     assert.match(folderEditorIconsScript, /root\.FolderViewPlusFolderEditorIcons = factory\(\);/);
     assert.match(folderEditorIconsScript, /root\.FolderViewPlusFolderEditorIconsModuleLoaded = true;/);
-    assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /folder\.editor\.runtime-bootstrap\.js/);
+    assert.match(folderEditorRuntimeBootstrap, /folder\.editor\.chrome\.js[\s\S]*folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
 });
 

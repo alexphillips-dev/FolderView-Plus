@@ -7,6 +7,7 @@ const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
+const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
 const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('vm', {
     window,
@@ -340,6 +341,12 @@ if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !==
     setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'missing', 'folder ordering contract unavailable');
 } else {
     setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
+}
+if (!runtimeLiveRefreshModule || typeof runtimeLiveRefreshModule.createController !== 'function') {
+    vmBootstrapMissingModules.push('runtime.live-refresh.js');
+    setVmFatalBannerModuleStatus('runtime.live-refresh.js', 'missing', 'live refresh controller unavailable');
+} else {
+    setVmFatalBannerModuleStatus('runtime.live-refresh.js', 'ok', 'live refresh controller ready');
 }
 if (typeof runtimeShared.createFolderRowActionsController !== 'function') {
     vmBootstrapMissingModules.push('folder.runtime.row-actions.js');
@@ -1092,66 +1099,18 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
 
 const normalizeFolderParentId = (value) => String(value || '').trim();
 
-const buildFolderDepthById = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const ids = Object.keys(source);
-    if (!ids.length) {
-        return {};
-    }
-    const validIds = new Set(ids);
-    const depthById = {};
-    const resolveDepth = (id, chain = new Set()) => {
-        if (!validIds.has(id)) {
-            return 0;
-        }
-        if (Object.prototype.hasOwnProperty.call(depthById, id)) {
-            return depthById[id];
-        }
-        if (chain.has(id)) {
-            depthById[id] = 0;
-            return 0;
-        }
-        chain.add(id);
-        const parentId = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
-        let depth = 0;
-        if (parentId && parentId !== id && validIds.has(parentId)) {
-            depth = Math.min(8, resolveDepth(parentId, chain) + 1);
-        }
-        chain.delete(id);
-        depthById[id] = depth;
-        return depth;
-    };
-    for (const id of ids) {
-        resolveDepth(id, new Set());
-    }
-    return depthById;
-};
+const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepthById(folders, {
+    normalizeParentId: normalizeFolderParentId,
+    maxDepth: 8
+});
 
-const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
-    const order = Array.isArray(baseOrder)
-        ? baseOrder.map((item) => String(item || ''))
-        : Object.values(baseOrder || {}).map((item) => String(item || ''));
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
-        .map((id) => `folder-${id}`);
-    if (!desiredFolderTokens.length) {
-        return order;
-    }
-    let desiredIndex = 0;
-    return order.map((entry) => {
-        if (!folderRegex.test(entry)) {
-            return entry;
-        }
-        while (desiredIndex < desiredFolderTokens.length) {
-            const candidate = desiredFolderTokens[desiredIndex++];
-            const candidateId = candidate.replace(folderRegex, '');
-            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
-                return candidate;
-            }
-        }
-        return entry;
-    });
-};
+const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
+    runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
+        orderFolders: getPrefsOrderedFolderMap,
+        folderTokenPrefix: 'folder-',
+        isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+    })
+);
 
 const parseJsonPayloadSafe = (payload) => {
     if (payload && typeof payload === 'object') {
@@ -1919,7 +1878,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" data-fvplus-style="fv-u-uydnfn"></td></tr><tr child-id="${id}" id="name-${id}" data-fvplus-style="fv-u-uydnfn"><td colspan="${totalCols}" data-fvplus-style="fv-u-lwesut"></td></tr>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -2156,7 +2115,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     $folderIcon.show();
-    let folderStatusKind = 'stopped';
+    let folderStatusKind;
     if (started > 0) {
         folderStatusKind = 'running';
         $folderIcon.attr('class', 'fa fa-play started folder-load-status');
@@ -2708,11 +2667,11 @@ const folderCustomAction = async (id, action) => {
                 } else if(act.type === 1) {
                     const args = act.script_args || '';
                     if(act.script_sync) {
-                        let scriptVariables = {}
-                        let rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-                        rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1] });
+                        const scriptVariables = {};
+                        const rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
+                        rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1]; });
                         if(scriptVariables['directPHP']) {
-                            $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}})
+                            $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}});
                         } else {
                             $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}});
                         }
@@ -2788,11 +2747,11 @@ const buildVmFolderSettingsSummaryHtml = (entry) => {
     };
     const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
-        `<div style="margin-top:8px;"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
+        `<div data-fvplus-style="fv-u-1wnpfz0"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
         skippedHint
     ].join('');
 };
@@ -2856,7 +2815,7 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
         }
         const summaryHtml = [
             `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
-            `<div style="margin-top:10px;">${buildVmFolderSettingsSummaryHtml(clipboardEntry)}</div>`
+            `<div data-fvplus-style="fv-u-1tei6ul">${buildVmFolderSettingsSummaryHtml(clipboardEntry)}</div>`
         ].join('');
         swal({
             title: 'Paste folder settings',
@@ -3226,9 +3185,6 @@ let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
 let vmRuntimeInfoByName = {};
-let liveRefreshTimer = null;
-let liveRefreshMs = 0;
-let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
@@ -3548,58 +3504,37 @@ vmLifecycleApi = vmLifecycleModule.createApi({
 });
 window.getVmLifecycleDiagnosticsSnapshot = () => vmLifecycleApi?.getSnapshot?.() || null;
 
-const clearLiveRefreshTimer = () => {
-    if (liveRefreshTimer) {
-        clearInterval(liveRefreshTimer);
-        liveRefreshTimer = null;
+const vmLiveRefreshController = runtimeLiveRefreshModule.createController({
+    window,
+    document,
+    keys: ['vm'],
+    isEnabled: () => folderTypePrefs?.liveRefreshEnabled === true && $('#kvm_list').length > 0,
+    tick: async () => {
+        let check = null;
+        try {
+            check = await fetchVmRuntimeSnapshotCheck();
+        } catch (_error) {
+            check = null;
+        }
+        if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
+            queueLoadlistRefresh();
+            return false;
+        }
+        if (check.notModified !== true) await refreshVmRuntimeStateInPlace();
+        return true;
     }
-    liveRefreshMs = 0;
-};
-
-const runLiveRefreshTick = () => {
-    if (liveRefreshInFlight || document.hidden) {
-        return;
-    }
-    liveRefreshInFlight = true;
-    Promise.resolve()
-        .then(async () => {
-            let check = null;
-            try {
-                check = await fetchVmRuntimeSnapshotCheck();
-            } catch (_error) {
-                check = null;
-            }
-            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-                queueLoadlistRefresh();
-                return;
-            }
-            if (check.notModified !== true) {
-                await refreshVmRuntimeStateInPlace();
-            }
-        })
-        .finally(() => {
-            setTimeout(() => {
-                liveRefreshInFlight = false;
-            }, 500);
-        });
-};
+});
 
 const scheduleLiveRefresh = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
-    if (normalized.liveRefreshEnabled !== true) {
-        clearLiveRefreshTimer();
-        return;
-    }
     const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
     const policyMinSeconds = Number(vmRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
     const seconds = Math.max(requestedSeconds, policyMinSeconds);
     const ms = seconds * 1000;
-    if (liveRefreshTimer && liveRefreshMs === ms) {
-        return;
-    }
-    clearLiveRefreshTimer();
-    liveRefreshMs = ms;
-    liveRefreshTimer = setInterval(runLiveRefreshTick, ms);
+    vmLiveRefreshController.schedule('vm', {
+        enabled: normalized.liveRefreshEnabled === true,
+        intervalMs: ms
+    });
 };
 
 const normalizeVmRuntimeAppColumnMode = (value) => {
@@ -3963,7 +3898,7 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
         let num = "";
         for (let index = 0; index < containers.length - 1; index++) {
             containers[index] = containers[index].replace(folderFixRegex, '');
-            num += index + ';'
+            num += index + ';';
         }
         data.set('names', containers.join(';'));
         data.set('index', num);
@@ -3992,10 +3927,10 @@ addEventListener("keydown", (e) => {
         folderDebugMode = true;
         loadlist();
     }
-})
+});
 
 window.addEventListener('pagehide', () => {
-    clearLiveRefreshTimer();
+    vmLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(vmRuntimeWidthReflowTimer);
     clearTimeout(vmZebraRefreshTimer);

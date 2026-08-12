@@ -70,7 +70,13 @@ class FakeIntersectionObserver {
 }
 
 const loadSharedRuntime = () => {
-    const source = fs.readFileSync(path.join(process.cwd(), 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'), 'utf8');
+    const scriptsRoot = path.join(process.cwd(), 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
+    const sources = [
+        'runtime.shared-primitives.js',
+        'runtime.shared-diagnostics.js',
+        'runtime.shared-controls.js',
+        'docker.runtime.shared.js'
+    ].map((file) => fs.readFileSync(path.join(scriptsRoot, file), 'utf8'));
     const document = {
         documentElement: { clientHeight: 800 },
         createDocumentFragment: () => new FakeFragment(),
@@ -78,7 +84,8 @@ const loadSharedRuntime = () => {
     };
     const window = { document, innerHeight: 800, IntersectionObserver: FakeIntersectionObserver, setTimeout };
     window.window = window;
-    vm.runInNewContext(source, { window, document, Element: FakeElement, console, Map, Set, WeakMap, Object, Array, String, Number, Boolean, Date, Math, JSON, Promise, performance, setTimeout, clearTimeout });
+    const context = { window, document, Element: FakeElement, console, Map, Set, WeakMap, Object, Array, String, Number, Boolean, Date, Math, JSON, Promise, performance, setTimeout, clearTimeout };
+    sources.forEach((source) => vm.runInNewContext(source, context));
     return window.FolderViewDockerRuntimeShared;
 };
 

@@ -316,7 +316,7 @@ test('localized HTML uses an allowlist sanitizer instead of assigning translated
 test('server loader resolves full locale tags and support bundles include localization diagnostics', () => {
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
     const registry = fs.readFileSync(path.join(langsRoot, 'registry.php'), 'utf8');
-    const diagnostics = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics.php'), 'utf8');
+    const diagnostics = fs.readFileSync(path.join(pluginRoot, 'server/lib.diagnostics-support-bundle.php'), 'utf8');
     const telemetry = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.support-bundle-telemetry.js'), 'utf8');
 
     assert.doesNotMatch(loader, /substr\s*\([^\n]*locale/i);

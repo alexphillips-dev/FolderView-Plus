@@ -167,7 +167,7 @@
                         <div class="fv-dashboard-advanced-preview-field">
                             <div class="fv-dashboard-advanced-preview-label">CPU/MEM</div>
                             <span class="fv-dashboard-advanced-preview-value cpu-${shortId}">0%</span>
-                            <div class="usage-disk mm"><span id="cpu-${shortId}" style="width: 0%;"></span><span></span></div>
+                            <div class="usage-disk mm"><span id="cpu-${shortId}" data-fvplus-style="fv-u-u73jk7"></span><span></span></div>
                             <span class="fv-dashboard-advanced-preview-value mem-${shortId}">0 / 0</span>
                         </div>
                     </div>

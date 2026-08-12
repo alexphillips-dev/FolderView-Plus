@@ -8,6 +8,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
@@ -17,6 +18,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -66,9 +68,9 @@ test('settings search includes user-facing aliases for recent support terms', ()
     assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
     assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'support bundle'/);
     assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
-    assert.match(script, /const buildSettingsSearchIndex = \(\) => \{/);
-    assert.match(script, /getPrivacySafeSettingsSearchText\(target\)/);
-    assert.match(script, /matchesSettingsSearchTokens\(entry\.text, tokens\)/);
+    assert.match(script, /const buildIndex = \(\) => \{/);
+    assert.match(script, /getPrivacySafeText\(target\)/);
+    assert.match(script, /matchesTokens\(entry\.text, tokens\)/);
     assert.doesNotMatch(script, /getSectionSearchHaystack/);
 });
 
@@ -109,7 +111,8 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusDiagnosticsViewModelModuleLoaded = true/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModel = factory\(\)/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModuleLoaded = true/);
-    assert.match(script, /FolderViewPlusDiagnosticsView = factory\(\)/);
+    assert.match(script, /FolderViewPlusFoundationModules\.diagnosticsActions = factory\(\)/);
+    assert.match(script, /FolderViewPlusDiagnosticsView = factory\(root\.FolderViewPlusFoundationModules\?\.diagnosticsActions\)/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);
     assert.match(script, /TABLE_COLUMN_SELECTOR_MAP/);
     assert.match(script, /buildEffectiveSettingsTableWidths/);
@@ -120,9 +123,9 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*FVPLUS_SMART_DETECT_MATCH_THRESHOLD/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*STARTER_TEMPLATE_BLUEPRINTS/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*postPrefs/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*openFolderRowQuickActions/);
+    assert.match(script, /registerActions\(window,\s*\{[\s\S]*openFolderRowQuickActions/);
     assert.match(script, /FolderViewPlusSettingsActionSupportModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsActionSupport = factory\(\)/);
     assert.match(script, /createSupportActions = \(deps = \{\}\) =>/);
-    assert.match(script, /registerWindowActions = \(target, actions = \{\}\) =>/);
+    assert.match(script, /registerActions = \(target, actions = \{\}, options = \{\}\) =>/);
 });

@@ -1,13 +1,10 @@
 // @ts-check
 (function dockerRuntimeContainerModelModule(root, factory) {
-    const fallbackWindow = typeof window !== 'undefined'
-        ? window
-        : (typeof globalThis !== 'undefined' ? globalThis : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory();
         return;
     }
-    root.FolderViewPlusDockerContainerModel = factory(fallbackWindow);
+    root.FolderViewPlusDockerContainerModel = factory();
 }(typeof window !== 'undefined' ? window : {}, function dockerRuntimeContainerModelFactory() {
     'use strict';
 

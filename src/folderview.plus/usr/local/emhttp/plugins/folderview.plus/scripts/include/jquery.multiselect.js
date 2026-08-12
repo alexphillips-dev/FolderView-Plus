@@ -986,7 +986,7 @@
           'ui-multiselect-collapseall': 'collapseAll',
           'ui-multiselect-expandall': 'expandAll',
         };
-        for (hdgClass in headerLinks) {
+        for (var hdgClass in headerLinks) {
           if ( this.classList.contains(hdgClass) ) {
             // headerLinks[hdgClass] is the click handler name
               self[headerLinks[hdgClass]]();

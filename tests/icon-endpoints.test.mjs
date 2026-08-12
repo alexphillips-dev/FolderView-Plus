@@ -19,7 +19,12 @@ const libPath = path.join(
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
 
 const thirdPartyPhp = fs.readFileSync(thirdPartyEndpointPath, 'utf8');
-const uploadPhp = fs.readFileSync(uploadEndpointPath, 'utf8');
+const uploadPhp = [
+    'upload_custom_icon.php',
+    'lib.custom-icon-endpoint-foundation.php',
+    'lib.custom-icon-validation.php',
+    'lib.custom-icon-actions.php'
+].map((name) => fs.readFileSync(path.join(path.dirname(uploadEndpointPath), name), 'utf8')).join('\n');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 

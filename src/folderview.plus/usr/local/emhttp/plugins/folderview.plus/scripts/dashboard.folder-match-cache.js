@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./runtime.folder-ordering.js'));
         return;
     }
-    root.FolderViewPlusDashboardFolderMatchCache = factory();
+    root.FolderViewPlusDashboardFolderMatchCache = factory(root.FolderViewPlusRuntimeFolderOrdering);
     root.FolderViewPlusDashboardFolderMatchCacheModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(runtimeFolderOrdering) {
     const createApi = (deps = {}) => {
         const utils = deps.utils || {};
         const folderRegex = deps.folderRegex || /^folder-/;
@@ -142,28 +142,13 @@
         };
 
         const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
-            const order = Array.isArray(baseOrder)
-                ? baseOrder.map((item) => String(item || ''))
-                : Object.values(baseOrder || {}).map((item) => String(item || ''));
-            const folderMap = folders && typeof folders === 'object' ? folders : {};
-            const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
-                .map((id) => `folder-${id}`);
-            if (!desiredFolderTokens.length) {
-                return order;
+            if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.reorderFolderSlotsInBaseOrder !== 'function') {
+                throw new Error('FolderView Plus runtime folder ordering is unavailable.');
             }
-            let desiredIndex = 0;
-            return order.map((entry) => {
-                if (!folderRegex.test(entry)) {
-                    return entry;
-                }
-                while (desiredIndex < desiredFolderTokens.length) {
-                    const candidate = desiredFolderTokens[desiredIndex++];
-                    const candidateId = candidate.replace(folderRegex, '');
-                    if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
-                        return candidate;
-                    }
-                }
-                return entry;
+            return runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
+                orderFolders: getPrefsOrderedFolderMap,
+                folderTokenPrefix: 'folder-',
+                isFolderToken: (entry) => folderRegex.test(String(entry || ''))
             });
         };
 

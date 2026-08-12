@@ -15,6 +15,7 @@ const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
+const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
 const dashboardHostAdapterModule = window.FolderViewPlusDashboardHostAdapter || null;
 const dashboardRuntimeSurfaceModule = window.FolderViewPlusDashboardRuntimeSurface || null;
 const dashboardStateStoreModule = window.FolderViewPlusDashboardStateStore || null;
@@ -297,6 +298,9 @@ if (!runtimeHostAdapters || typeof runtimeHostAdapters.getOrCreate !== 'function
 }
 if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !== 'function') {
     dashboardBootstrapMissingModules.push('runtime.folder-ordering.js');
+}
+if (!runtimeLiveRefreshModule || typeof runtimeLiveRefreshModule.createController !== 'function') {
+    dashboardBootstrapMissingModules.push('runtime.live-refresh.js');
 }
 if (!window.FolderViewPlusDashboardFolderMatchCache || typeof window.FolderViewPlusDashboardFolderMatchCache.createApi !== 'function') {
     dashboardBootstrapMissingModules.push('dashboard.folder-match-cache.js');
@@ -1969,7 +1973,9 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
         const statusColor = allStartedArePaused ? statusColors.paused : statusColors.started;
         const statusLabel = allStartedArePaused ? $.i18n('paused') : $.i18n('started');
         sel.parent().removeClass('stopped paused started').addClass(statusClass);
-        $statusIcon.replaceWith($(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-docker" style="color:${statusColor}"></i>`));
+        const $nextStatusIcon = $(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-docker"></i>`);
+        $nextStatusIcon.css('color', statusColor);
+        $statusIcon.replaceWith($nextStatusIcon);
         $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
     }
 
@@ -2094,7 +2100,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" role="button" tabindex="0" data-fv-dashboard-folder-toggle data-fv-dashboard-type="vm" aria-expanded="false" aria-controls="folder-showcase-vm-${id}" aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" alt="" aria-hidden="true" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><span class="fv-dashboard-expand-toggle-btn" aria-hidden="true"><i class="fa fa-chevron-down" aria-hidden="true"></i></span><div class="folder-storage" style="display:none"></div></span><div id="folder-showcase-vm-${id}" class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" role="button" tabindex="0" data-fv-dashboard-folder-toggle data-fv-dashboard-type="vm" aria-expanded="false" aria-controls="folder-showcase-vm-${id}" aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" alt="" aria-hidden="true" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><span class="fv-dashboard-expand-toggle-btn" aria-hidden="true"><i class="fa fa-chevron-down" aria-hidden="true"></i></span><div class="folder-storage" data-fvplus-style="fv-u-uydnfn"></div></span><div id="folder-showcase-vm-${id}" class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -2224,7 +2230,9 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
         const statusColor = allStartedArePaused ? statusColors.paused : statusColors.started;
         const statusLabel = allStartedArePaused ? $.i18n('paused') : $.i18n('started');
         sel.parent().removeClass('stopped paused started').addClass(statusClass);
-        $statusIcon.replaceWith($(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-vm" style="color:${statusColor}"></i>`));
+        const $nextStatusIcon = $(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-vm"></i>`);
+        $nextStatusIcon.css('color', statusColor);
+        $statusIcon.replaceWith($nextStatusIcon);
         $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
     }
 
@@ -2409,9 +2417,6 @@ let folderReq = {
     docker: [],
     vm: []
 };
-let liveRefreshTimers = { docker: null, vm: null };
-let liveRefreshMsByType = { docker: 0, vm: 0 };
-let liveRefreshInFlightByType = { docker: false, vm: false };
 let dashboardPerformancePolicies = { docker: null, vm: null };
 let dashboardDockerRuntimeReconcileApi = null;
 const dashboardDockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
@@ -2906,65 +2911,43 @@ const getDashboardDockerRuntimeReconcileApi = () => {
     return dashboardDockerRuntimeReconcileApi;
 };
 
-const clearLiveRefreshTimer = (type = null) => {
-    const types = type === 'docker' || type === 'vm' ? [type] : ['docker', 'vm'];
-    types.forEach((resolvedType) => {
-        if (liveRefreshTimers[resolvedType]) {
-            clearInterval(liveRefreshTimers[resolvedType]);
-            liveRefreshTimers[resolvedType] = null;
+const dashboardLiveRefreshController = runtimeLiveRefreshModule.createController({
+    window,
+    document,
+    keys: ['docker', 'vm'],
+    isEnabled: (type) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
+        return $(tbodySelector).length > 0 && folderTypePrefs?.[resolvedType]?.liveRefreshEnabled === true;
+    },
+    tick: async (type) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        let check = null;
+        try {
+            check = await fetchDashboardTypeSnapshotCheck(resolvedType);
+        } catch (_error) {
+            check = null;
         }
-        liveRefreshMsByType[resolvedType] = 0;
-        liveRefreshInFlightByType[resolvedType] = false;
-    });
-};
-
-const runLiveRefreshTick = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    if (liveRefreshInFlightByType[resolvedType] || document.hidden) {
-        return;
+        if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
+            queueLoadlistRefresh();
+            return false;
+        }
+        if (check.notModified !== true) {
+            const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType);
+            if (patched !== true) queueLoadlistRefresh();
+        }
+        return true;
     }
-    liveRefreshInFlightByType[resolvedType] = true;
-    Promise.resolve()
-        .then(async () => {
-            const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
-            if ($(tbodySelector).length === 0 || folderTypePrefs?.[resolvedType]?.liveRefreshEnabled !== true) {
-                return;
-            }
-            let check = null;
-            try {
-                check = await fetchDashboardTypeSnapshotCheck(resolvedType);
-            } catch (_error) {
-                check = null;
-            }
-            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-                queueLoadlistRefresh();
-                return;
-            }
-            if (check.notModified !== true) {
-                const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType);
-                if (patched !== true) queueLoadlistRefresh();
-            }
-        })
-        .finally(() => {
-            setTimeout(() => {
-                liveRefreshInFlightByType[resolvedType] = false;
-            }, 500);
-        });
-};
+});
 
 const scheduleDashboardTypeLiveRefresh = (type, prefs, policy) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
-    if ($(tbodySelector).length === 0 || prefs.liveRefreshEnabled !== true) {
-        clearLiveRefreshTimer(resolvedType);
-        return;
-    }
     const requestedSeconds = Math.max(10, Math.min(300, Number(prefs.liveRefreshSeconds) || 20));
     const intervalMs = Math.max(requestedSeconds, Number(policy?.minLiveRefreshSeconds || 0)) * 1000;
-    if (liveRefreshTimers[resolvedType] && liveRefreshMsByType[resolvedType] === intervalMs) return;
-    clearLiveRefreshTimer(resolvedType);
-    liveRefreshMsByType[resolvedType] = intervalMs;
-    liveRefreshTimers[resolvedType] = setInterval(() => runLiveRefreshTick(resolvedType), intervalMs);
+    dashboardLiveRefreshController.schedule(resolvedType, {
+        enabled: prefs.liveRefreshEnabled === true,
+        intervalMs
+    });
 };
 
 const applyDashboardRuntimePrefs = () => {
@@ -3024,7 +3007,7 @@ bindDashboardPreferenceSync();
 window.getDashboardRuntimePerformancePolicySnapshot = () => ({
     docker: { ...(dashboardPerformancePolicies.docker || {}) },
     vm: { ...(dashboardPerformancePolicies.vm || {}) },
-    refreshMsByType: { ...liveRefreshMsByType }
+    refreshMsByType: { ...dashboardLiveRefreshController.snapshot().intervalMsByKey }
 });
 
 const refreshDashboardDockerCpuCores = () => requestClient.getText('/plugins/folderview.plus/server/cpu.php')
@@ -3158,7 +3141,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
-    clearLiveRefreshTimer();
+    dashboardLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dashboardThemeReflowTimer);
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });

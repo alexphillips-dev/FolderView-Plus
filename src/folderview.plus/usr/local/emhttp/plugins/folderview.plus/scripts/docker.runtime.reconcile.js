@@ -55,18 +55,80 @@
         const getDockerRuntimeContainerInfo = typeof deps.getDockerRuntimeContainerInfo === 'function'
             ? deps.getDockerRuntimeContainerInfo
             : (() => null);
+        const getDockerRuntimeInfoEntries = typeof deps.getDockerRuntimeInfoEntries === 'function'
+            ? deps.getDockerRuntimeInfoEntries
+            : (() => []);
+        const syncDockerVisibleFoldersFromRuntimeCache = typeof deps.syncDockerVisibleFoldersFromRuntimeCache === 'function'
+            ? deps.syncDockerVisibleFoldersFromRuntimeCache
+            : (() => 0);
+        const resolveDockerLifecycleEntry = (request = {}) => {
+            const token = String(request?.container || '').replace(/^sha256:/i, '').trim();
+            if (!token) return null;
+            const direct = getDockerRuntimeContainerInfo(token);
+            if (direct) return direct;
+            return (getDockerRuntimeInfoEntries() || []).find((entry) => {
+                const id = String(entry?.info?.Id || entry?.id || entry?.shortId || '').replace(/^sha256:/i, '').trim();
+                return id === token || (id.length >= 12 && id.slice(0, 12) === token.slice(0, 12));
+            }) || null;
+        };
+        const defaultLifecycleStateSnapshot = (request = {}) => {
+            const state = resolveDockerLifecycleEntry(request)?.info?.State;
+            if (!state || typeof state.Running !== 'boolean') return null;
+            const active = state.Running === true;
+            const paused = state.Paused === true;
+            return { state: paused ? 'paused' : (active ? 'running' : 'stopped'), active, paused };
+        };
+        const defaultLifecycleStateSettled = (request = {}) => {
+            const action = String(request?.action || '').trim().toLowerCase();
+            const state = defaultLifecycleStateSnapshot(request);
+            if (!state) return false;
+            if (action === 'stop') return state.active !== true;
+            if (action === 'pause') return state.active === true && state.paused === true;
+            return ['start', 'resume', 'restart'].includes(action) && state.active === true && state.paused !== true;
+        };
+        const countBusyPreviewActionIcons = () => doc?.querySelectorAll?.([
+            '.folder-preview .fv-preview-action-slot i.fa-spin',
+            '.folder-preview .fv-preview-action-slot i.fa-spinner',
+            '.folder-preview .fv-preview-action-slot i.fa-circle-o-notch'
+        ].join(', ')).length || 0;
+        const defaultPrepareLifecycleSurface = (request = {}) => {
+            appendDockerBulkUpdateTrace('lifecycleSurfacePrepared', {
+                action: String(request?.action || '').trim().toLowerCase(),
+                observedState: defaultLifecycleStateSnapshot(request),
+                busyPreviewActionIconCount: countBusyPreviewActionIcons()
+            });
+            return true;
+        };
+        const defaultFinalizeLifecycleSurface = (request = {}, outcome = {}) => {
+            const entry = resolveDockerLifecycleEntry(request);
+            const name = String(entry?.info?.Name || '').trim();
+            syncDockerVisibleFoldersFromRuntimeCache(name ? new Set([name]) : null);
+            const remainingBusyIconCount = countBusyPreviewActionIcons();
+            appendDockerBulkUpdateTrace('lifecycleSurfaceFinalized', {
+                action: String(request?.action || '').trim().toLowerCase(),
+                reason: String(outcome?.reason || '').trim() || 'unknown',
+                settled: outcome?.settled === true,
+                success: outcome?.success === true,
+                attempt: Number(outcome?.attempt || 0),
+                observedState: outcome?.observedState || defaultLifecycleStateSnapshot(request),
+                matchedRuntimeEntry: Boolean(entry),
+                remainingBusyPreviewActionIconCount: remainingBusyIconCount
+            });
+            queueDockerSupportBundlePageSnapshot('lifecycle-surface-finalized', 80);
+            return remainingBusyIconCount === 0;
+        };
         const isDockerLifecycleStateSettled = typeof deps.isDockerLifecycleStateSettled === 'function'
             ? deps.isDockerLifecycleStateSettled
-            : null;
+            : defaultLifecycleStateSettled;
         const prepareDockerLifecycleSurface = typeof deps.prepareDockerLifecycleSurface === 'function'
             ? deps.prepareDockerLifecycleSurface
-            : (() => false);
+            : defaultPrepareLifecycleSurface;
         const getDockerLifecycleStateSnapshot = typeof deps.getDockerLifecycleStateSnapshot === 'function'
             ? deps.getDockerLifecycleStateSnapshot
-            : (() => null);
+            : defaultLifecycleStateSnapshot;
         const finalizeDockerLifecycleSurface = typeof deps.finalizeDockerLifecycleSurface === 'function'
             ? deps.finalizeDockerLifecycleSurface
-            : (() => false);
+            : defaultFinalizeLifecycleSurface;
         const dockerLifecycleRefreshDelaysMs = Array.isArray(deps.lifecycleRefreshDelaysMs)
             && deps.lifecycleRefreshDelaysMs.length > 0
             ? Object.freeze(deps.lifecycleRefreshDelaysMs.map((delayMs) => Math.max(0, Number(delayMs) || 0)))

@@ -103,3 +103,23 @@ jobs:
           else
             gh issue create --title "${title}" --body-file "${body_file}"
           fi
+
+      - name: Close resolved compatibility alert
+        if: steps.monitor.outputs.status == 'dormant'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Unraid Docker upstream compatibility review required"
+          issue_number="$(
+            gh issue list \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue close "${issue_number}" --comment "The current Unraid API release and Docker schema have been reviewed and now match the compatibility baseline."
+          fi

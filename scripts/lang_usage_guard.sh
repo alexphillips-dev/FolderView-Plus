@@ -128,6 +128,20 @@ for (const fullPath of sourceFiles.sort()) {
     }
   }
 
+  const dynamicDataI18nRegexes = [
+    /\.dataset\.i18n\s*=\s*["']([^"']+)["']/g,
+    /\.setAttribute\(\s*["']data-i18n["']\s*,\s*["']([^"']+)["']/g
+  ];
+  for (const dynamicDataI18nRegex of dynamicDataI18nRegexes) {
+    while ((match = dynamicDataI18nRegex.exec(source)) !== null) {
+      for (const key of normalizeKey(match[1])) {
+        const line = lineNumberAt(source, match.index);
+        if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+        referencedKeys.get(key).push(`${relPath}:${line}`);
+      }
+    }
+  }
+
   const i18nCallRegexes = [
     /\$\.i18n\(\s*['"]([^'"]+)['"]/g,
     /\bjq\.i18n\(\s*['"]([^'"]+)['"]/g

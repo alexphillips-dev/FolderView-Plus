@@ -8,7 +8,6 @@
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",
     "diagnostics.actions.run": "স্বাস্থ্য পরীক্ষা চালান",
     "diagnostics.actions.retest-performance": "কর্মক্ষমতা পুনরায় পরীক্ষা করুন",
-    "diagnostics.actions.check-again": "আবার চেক করুন",
     "diagnostics.summary.empty-title": "প্লাগইন অবস্থা পরিদর্শন স্বাস্থ্য পরীক্ষা চালান.",
     "diagnostics.summary.empty-description": "ডকার, ভিএম, স্টোরেজ, কাস্টম আইকন, আপডেট এবং থিম একসাথে চেক করা হবে।",
     "diagnostics.state.not-checked": "চেক করা হয়নি",

@@ -59,6 +59,7 @@ const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
 const settingsRegistry = window.FolderViewPlusSettingsRegistry || null;
 const viewSettingsModule = window.FolderViewPlusViewSettings || null;
 const settingsSearchModule = window.FolderViewPlusFoundationModules?.settingsSearch || null;
+const ruleTemplatesModule = window.FolderViewPlusFoundationModules?.ruleTemplates || null;
 const viewSettingsChangeController = viewSettingsModule?.createChangeController?.({ registry: settingsRegistry })?.start?.() || null;
 const resolveViewSettingsChange = (handler, type, key, value, fallback) => (
     viewSettingsChangeController?.resolve?.(handler, type, key, value, fallback) || null
@@ -7965,7 +7966,7 @@ const saveSelectedSmartRuleSuggestions = async (type) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, utils.normalizePrefs({
             ...prefsByType[resolvedType],
-            autoRules: [...existingRules, ...nextRules]
+            autoRules: ruleTemplatesModule?.insertBeforeCatchAll?.(existingRules, nextRules) || [...existingRules, ...nextRules]
         }));
         smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
         renderSmartRuleSuggestions(resolvedType);
@@ -10334,12 +10335,10 @@ const addAutoRule = async (type) => {
     const labelValue = String($(`#${type}-rule-label-value`).val() || '').trim();
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-
     if (!folderId) {
         swal({ title: 'Error', text: 'Select a folder before adding a rule.', type: 'error' });
         return;
     }
-
     if ((regexKinds.includes(kind) || RULE_SIMPLE_KINDS.includes(kind)) && !pattern) {
         swal({ title: 'Error', text: 'Match value cannot be empty.', type: 'error' });
         return;
@@ -10385,7 +10384,7 @@ const addAutoRule = async (type) => {
     try {
         const nextPrefs = utils.normalizePrefs({
             ...prefsByType[type],
-            autoRules: [...(prefsByType[type].autoRules || []), nextRule]
+            autoRules: ruleTemplatesModule?.insertBeforeCatchAll?.(prefsByType[type].autoRules || [], nextRule) || [...(prefsByType[type].autoRules || []), nextRule]
         });
         prefsByType[type] = await postPrefs(type, nextPrefs);
 
@@ -10449,11 +10448,12 @@ const moveAutoRule = async (type, ruleId, direction) => {
 
     const [moved] = rules.splice(index, 1);
     rules.splice(newIndex, 0, moved);
+    const orderedRules = ruleTemplatesModule?.isExplicitCatchAll ? [...rules.filter((rule) => !ruleTemplatesModule.isExplicitCatchAll(rule)), ...rules.filter(ruleTemplatesModule.isExplicitCatchAll)] : rules;
 
     try {
         prefsByType[type] = await postPrefs(type, {
             ...prefsByType[type],
-            autoRules: rules
+            autoRules: orderedRules
         });
         renderRulesTable(type);
     } catch (error) {

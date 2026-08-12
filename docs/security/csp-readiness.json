@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 217,
+    "scannedFiles": 220,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -232,7 +232,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js",
-      "line": 500,
+      "line": 442,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -242,13 +242,13 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js",
-      "line": 620,
+      "line": 563,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
-      "controlEvidence": "Contextual escaping or sanitization is visible at the interpolation boundary."
+      "controlEvidence": "Rule, template, status, and folder values are contextually escaped by the owning markup builders before the panel is mounted."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
@@ -342,7 +342,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6354,
+      "line": 6355,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -352,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 8124,
+      "line": 8125,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

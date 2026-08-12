@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "Choisissez les valeurs par défaut",
     "legacy.surface.c6e831e5e0616787": "Match sur",
     "legacy.surface.c6ecdc0ca70cc70b": "Les règles de démarrage surveillent les conteneurs Docker ou les machines virtuelles correspondants et les placent dans le bon dossier lorsque la configuration est appliquée. Vous pouvez modifier ou supprimer des règles ultérieurement.",
-    "legacy.surface.c700488a5c98570e": "Temps d'attente",
     "legacy.surface.c707ee4ecc240442": "Source :",
     "legacy.surface.c76ae86ad3014c85": "Survolez",
     "legacy.surface.c7a6c90935f3a5f7": "Arrêter la branche ($1)",

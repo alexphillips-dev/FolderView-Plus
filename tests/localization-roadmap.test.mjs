@@ -75,7 +75,7 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    assert.equal(report.extraction.autoBoundMessageCount, 1575);
+    assert.equal(report.extraction.autoBoundMessageCount, 1574);
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);
     assert.equal(report.locales.en.coveragePercent, 100);
@@ -102,7 +102,11 @@ test('Simplified Chinese includes native labels across every primary plugin surf
         docker: { 'docker.actions.add-folder': '添加文件夹' },
         editor: { 'editor.actions.add-custom': '添加自定义操作' },
         import: { 'import.mode.merge.title': '安全合并' },
-        settings: { 'settings.search.placeholder': '搜索设置' },
+        settings: {
+            'settings.search.placeholder': '搜索设置',
+            'settings.start-order.summary': 'Docker 容器摘要',
+            'settings.start-order.preview': '预览顺序'
+        },
         wizard: { 'wizard.title': '设置助手' }
     };
     for (const [namespace, expectedMessages] of Object.entries(cases)) {

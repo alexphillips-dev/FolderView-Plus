@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "選擇預設值",
     "legacy.surface.c6e831e5e0616787": "比賽開始",
     "legacy.surface.c6ecdc0ca70cc70b": "啟動規則會監視相符的 Docker 容器或虛擬機器，並在套用設定時將它們放入正確的資料夾中。您可以稍後編輯或刪除規則。",
-    "legacy.surface.c700488a5c98570e": "等待時間",
     "legacy.surface.c707ee4ecc240442": "來源：",
     "legacy.surface.c76ae86ad3014c85": "懸停",
     "legacy.surface.c7a6c90935f3a5f7": "停止分支 ($1)",

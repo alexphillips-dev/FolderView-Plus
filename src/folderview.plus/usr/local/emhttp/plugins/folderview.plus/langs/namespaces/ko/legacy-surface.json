@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "기본값 선택",
     "legacy.surface.c6e831e5e0616787": "경기 시작",
     "legacy.surface.c6ecdc0ca70cc70b": "시작 규칙은 일치하는 Docker 컨테이너 또는 VM을 감시하고 설정이 적용될 때 이를 올바른 폴더에 배치합니다. 나중에 규칙을 편집하거나 제거할 수 있습니다.",
-    "legacy.surface.c700488a5c98570e": "대기 시간",
     "legacy.surface.c707ee4ecc240442": "출처:",
     "legacy.surface.c76ae86ad3014c85": "호버",
     "legacy.surface.c7a6c90935f3a5f7": "지점 중지($1)",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.06">
-<!ENTITY md5 "26a1a4e976c3bfac7da7abf3edb9fb51">
-<!ENTITY sha256 "6cc76433f0dd221c9fc2af4667bbffc0e8a30c0544ce01b5afd44194f0ff73c4">
+<!ENTITY version "2026.08.12.07">
+<!ENTITY md5 "08de81b150ab3112a6eeceb634d48fe0">
+<!ENTITY sha256 "1ff4f2820ca614b560d7ac1a3738f2eef2f5f87098508118bd43828a11bae58a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.07
+- Fix: Add the complete Docker Start Order message set to the Settings localization catalog so visiting the tab no longer records missing-key diagnostics.
+- Localization: Ship the 27 Start Order labels in every supported language while preserving English fallback behavior and complete locale coverage.
+- Reliability: Register the Start Order translation wrapper with the localization usage guard so future missing catalog keys fail validation before release.
+- Test: Verify every Start Order key exists and is non-empty across all 27 locale catalogs, alongside runtime, browser localization, and responsive Settings coverage.
+
 
 ###2026.08.12.06
 - Fix: Detect Docker autostart from the lightweight runtime rows used by Settings so the Start Order summary no longer reports zero enabled containers.

@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "选择默认值",
     "legacy.surface.c6e831e5e0616787": "比赛开始",
     "legacy.surface.c6ecdc0ca70cc70b": "启动规则会监视匹配的 Docker 容器或虚拟机，并在应用设置时将它们放入正确的文件夹中。您可以稍后编辑或删除规则。",
-    "legacy.surface.c700488a5c98570e": "Wait time",
     "legacy.surface.c707ee4ecc240442": "来源：",
     "legacy.surface.c76ae86ad3014c85": "悬停",
     "legacy.surface.c7a6c90935f3a5f7": "停止分行（$1）",

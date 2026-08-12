@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "Trieu els valors predeterminats",
     "legacy.surface.c6e831e5e0616787": "Partit activat",
     "legacy.surface.c6ecdc0ca70cc70b": "Les regles d'inici vigilen la concordança de contenidors o màquines virtuals de Docker i col·loqueu-los a la carpeta correcta quan s'apliqui la configuració. Podeu editar o eliminar regles més endavant.",
-    "legacy.surface.c700488a5c98570e": "Temps d'espera",
     "legacy.surface.c707ee4ecc240442": "Font:",
     "legacy.surface.c76ae86ad3014c85": "Passa el cursor",
     "legacy.surface.c7a6c90935f3a5f7": "Atura la branca ($1)",

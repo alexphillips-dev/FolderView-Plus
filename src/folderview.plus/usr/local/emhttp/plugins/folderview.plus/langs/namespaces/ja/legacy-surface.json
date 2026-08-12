@@ -1216,7 +1216,6 @@
     "legacy.surface.c6db427002ba3bc4": "デフォルトを選択する",
     "legacy.surface.c6e831e5e0616787": "マッチオン",
     "legacy.surface.c6ecdc0ca70cc70b": "スターター ルールは、一致する Docker コンテナまたは VM を監視し、セットアップの適用時にそれらを適切なフォルダーに配置します。ルールは後で編集または削除できます。",
-    "legacy.surface.c700488a5c98570e": "待ち時間",
     "legacy.surface.c707ee4ecc240442": "出典:",
     "legacy.surface.c76ae86ad3014c85": "ホバー",
     "legacy.surface.c7a6c90935f3a5f7": "支店を停止 ($1)",

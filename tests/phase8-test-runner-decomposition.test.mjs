@@ -25,7 +25,7 @@ test('Phase 8 runner contract preserves fixture and live smoke intent inventorie
         encoding: 'utf8'
     });
     assert.match(output, /38 ordered fixture cases/);
-    assert.equal(contract.intent.fixture.assertionCount, 483);
+    assert.equal(contract.intent.fixture.assertionCount, 484);
     assert.equal(contract.intent.browserSmoke.checkFunctions.length, 9);
     assert.equal(contract.intent.themeMatrix.checkFunctions.length, 5);
 });

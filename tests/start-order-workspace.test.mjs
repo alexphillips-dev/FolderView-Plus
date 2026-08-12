@@ -38,6 +38,20 @@ test('autostart mutation entries preserve every current state and only send expl
     ]);
 });
 
+test('preview activation hydrates once per visit and permits a fresh load after re-entry', () => {
+    let refreshCount = 0;
+    const activation = moduleApi.createPreviewActivation(() => { refreshCount += 1; });
+    assert.equal(activation.hydrate(), false);
+    activation.setActive(true);
+    assert.equal(activation.hydrate(), true);
+    assert.equal(activation.hydrate(), false);
+    assert.equal(refreshCount, 1);
+    activation.setActive(false);
+    activation.setActive(true);
+    assert.equal(activation.hydrate(), true);
+    assert.equal(refreshCount, 2);
+});
+
 test('unmanaged sequence previews are visibly read-only', () => {
     assert.match(view.buildPreviewHtml({ managed: false, sequence: [] }), /Unmanaged mode: this sequence is read-only/);
 });

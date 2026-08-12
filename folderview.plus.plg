@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.04">
-<!ENTITY md5 "c61396e77b9a2b48e4863f4041f8f773">
-<!ENTITY sha256 "3f6f3af6655e2587b59badffcaa6b7211f4f5790ae760fa12d53fa6e98685d8a">
+<!ENTITY version "2026.08.12.05">
+<!ENTITY md5 "7cc087a78804ef06a9f04d1538bfb0d9">
+<!ENTITY sha256 "4ad7e0839e54e948181bd7d415a7df5bdf51fd11663ac533756ac71287065c79">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.05
+- UI/UX: Load the Docker autostart sequence automatically whenever the Start Order tab is opened while keeping Preview order available as an explicit refresh action.
+- Performance: Hydrate the preview only once per tab visit, then permit a fresh automatic request after leaving and reopening Start Order.
+- UI/UX: Keep the active-order notice aligned to the top controls row and size it to its content instead of stretching into an oversized panel with blank space.
+- Test: Cover preview activation and re-entry, the manual refresh contract, compact notice geometry, responsive overflow, and runtime performance budgets.
+
 
 ###2026.08.12.04
 - Accessibility: Raise every visible Docker start-order label, metric, control, table value, badge, chip, and notice to a minimum computed size of 1.2rem.

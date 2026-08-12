@@ -119,6 +119,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
     gap: 1.5rem;
+    align-items: start;
     padding-bottom: 1.25rem;
     border-bottom: 1px solid var(--fvplus-settings-border-faint);
 }
@@ -188,7 +189,8 @@
     grid-template-columns: 28px minmax(0, 1fr);
     gap: 0.8rem;
     align-items: start;
-    min-height: 100%;
+    align-self: start;
+    min-height: 0;
     padding: 1rem;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-border-subtle));

@@ -573,7 +573,7 @@ test('settings bootstrap renders core surfaces together while later refreshes ca
     assert.match(settingsJs, /const scheduleActiveAdvancedSecondarySurfaces = \(\{ immediate = false \} = \{\}\) => \{/);
     assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingSecondarySurfaceFrameByType\[resolvedType\] = null;\s*renderSettingsSecondarySurfaces\(resolvedType\);/);
     assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingActiveAdvancedSurfaceFrame = null;\s*renderActiveAdvancedSecondarySurfaces\(\);/);
-    assert.match(settingsJs, /if \(resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup\('startup'\)\) \{\s*renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);/);
+    assert.match(settingsJs, /if \(resolvedType === 'docker'\) \{\s*const startOrderActive = shouldRefreshSecondaryAdvancedGroup\('startup'\);\s*dockerStartOrderPreviewActivation\.setActive\(startOrderActive\);\s*if \(startOrderActive\) \{\s*renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);\s*if \(runtimeHydrationStateByType\.docker !== 'pending'\) dockerStartOrderPreviewActivation\.hydrate\(\);/);
     assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('operations'\)\) \{[\s\S]*renderTemplateRows\(resolvedType\);[\s\S]*renderOperationsWorkspace\(\);/);
     assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('rules'\)\) \{[\s\S]*renderRulesTable\(resolvedType\);[\s\S]*syncRulesWorkspaceUi\(\);/);
     assert.match(settingsJs, /setAdvancedTab\(tab\);[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\);/);

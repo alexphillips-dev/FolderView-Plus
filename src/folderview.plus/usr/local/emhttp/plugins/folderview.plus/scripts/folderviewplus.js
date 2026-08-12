@@ -8290,7 +8290,8 @@ const dockerStartOrderView = window.FolderViewPlusFoundationModules?.startOrderV
     translate: translateSettingsText
 });
 if (!dockerStartOrderView) throw new Error('FolderView Plus start-order view is unavailable.');
-const dockerStartOrderWorkspace = window.FolderViewPlusFoundationModules?.startOrderWorkspace?.createApi({
+const dockerStartOrderWorkspaceModule = window.FolderViewPlusFoundationModules?.startOrderWorkspace;
+const dockerStartOrderWorkspace = dockerStartOrderWorkspaceModule?.createApi({
     escapeHtml,
     getPlan: () => normalizeDockerStartOrderPrefsForUi(),
     getInfo: () => infoByType.docker || {},
@@ -8301,6 +8302,7 @@ const dockerStartOrderWorkspace = window.FolderViewPlusFoundationModules?.startO
     setStatus: setUpdateStatus
 });
 if (!dockerStartOrderWorkspace) throw new Error('FolderView Plus start-order workspace is unavailable.');
+const dockerStartOrderPreviewActivation = dockerStartOrderWorkspaceModule.createPreviewActivation(() => refreshDockerStartOrderPreview());
 const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
 const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(utils.normalizePrefs(prefs || prefsByType.docker || {}).dockerStartOrder);
 
@@ -8702,8 +8704,13 @@ const renderSettingsSecondarySurfaces = (type) => {
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
     }
-    if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
-        renderDockerStartOrderWorkspace({ preservePreview: true });
+    if (resolvedType === 'docker') {
+        const startOrderActive = shouldRefreshSecondaryAdvancedGroup('startup');
+        dockerStartOrderPreviewActivation.setActive(startOrderActive);
+        if (startOrderActive) {
+            renderDockerStartOrderWorkspace({ preservePreview: true });
+            if (runtimeHydrationStateByType.docker !== 'pending') dockerStartOrderPreviewActivation.hydrate();
+        }
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
@@ -8712,6 +8719,7 @@ const renderSettingsSecondarySurfaces = (type) => {
 
 const renderActiveAdvancedSecondarySurfaces = () => {
     if (settingsUiState.mode !== 'advanced') {
+        dockerStartOrderPreviewActivation.setActive(false);
         refreshSettingsUx({ renderSecondaryWorkspaces: false });
         return;
     }
@@ -8736,8 +8744,11 @@ const renderActiveAdvancedSecondarySurfaces = () => {
         renderTemplateRows('vm');
         renderOperationsWorkspace();
     }
-    if (shouldRefreshSecondaryAdvancedGroup('startup')) {
+    const startOrderActive = shouldRefreshSecondaryAdvancedGroup('startup');
+    dockerStartOrderPreviewActivation.setActive(startOrderActive);
+    if (startOrderActive) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
+        if (runtimeHydrationStateByType.docker !== 'pending') dockerStartOrderPreviewActivation.hydrate();
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });

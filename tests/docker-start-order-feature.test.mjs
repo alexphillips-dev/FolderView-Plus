@@ -75,8 +75,12 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(startOrderViewJs, /Preview autostart sequence/);
     assert.match(startOrderViewJs, /fv-start-order-table/);
     assert.match(startOrderViewJs, /fv-start-order-switch/);
+    assert.match(startOrderViewJs, /data-fv-onclick="refreshDockerStartOrderPreview\(\)"/);
     assert.match(startOrderViewJs, /net\.unraid\.docker\.icon/);
     assert.match(settingsJs, /syncDockerStartOrderNow/);
+    assert.match(settingsJs, /dockerStartOrderPreviewActivation\.hydrate\(\)/);
+    assert.match(settingsJs, /runtimeHydrationStateByType\.docker !== 'pending'/);
+    assert.match(startOrderWorkspaceJs, /const createPreviewActivation = \(refresh\) =>/);
     assert.match(settingsJs, /toggleDockerStartOrderAutostart/);
     assert.match(settingsJs, /updateDockerStartOrderWait/);
     assert.match(startOrderWorkspaceJs, /updateAutostartConfiguration/);

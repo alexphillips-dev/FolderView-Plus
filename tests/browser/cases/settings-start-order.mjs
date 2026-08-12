@@ -6,13 +6,13 @@ test('Docker start order matches the responsive workspace mockup without page ov
         const fixture = document.getElementById('start-order-fixture');
         const summary = fixture.querySelector('.fv-start-order-summary-card');
         const top = fixture.querySelector('.fv-docker-start-order-top');
-        const controls = fixture.querySelector('.fv-docker-start-order-controls');
+        const controls = fixture.querySelector('.fv-docker-start-order-controls'); const help = fixture.querySelector('.fv-docker-start-order-help');
         const table = fixture.querySelector('.fv-start-order-table');
         const tableWrap = fixture.querySelector('.fv-start-order-table-wrap');
         return {
             summaryMetrics: summary.querySelectorAll('.fv-start-order-summary-metric').length,
             topColumns: getComputedStyle(top).gridTemplateColumns.split(' ').filter(Boolean).length,
-            controlColumns: getComputedStyle(controls).gridTemplateColumns.split(' ').filter(Boolean).length,
+            controlColumns: getComputedStyle(controls).gridTemplateColumns.split(' ').filter(Boolean).length, helpCompact: help.offsetHeight < top.offsetHeight && Math.abs(help.getBoundingClientRect().top - top.getBoundingClientRect().top) <= 1,
             tableColumns: getComputedStyle(table.querySelector('.fv-start-order-table-head')).gridTemplateColumns.split(' ').filter(Boolean).length,
             sequenceRows: table.querySelectorAll('.fv-docker-start-order-sequence > li').length,
             appIcons: table.querySelectorAll('.fv-start-order-container > img').length,
@@ -29,7 +29,7 @@ test('Docker start order matches the responsive workspace mockup without page ov
     let layout = await readLayout();
     assert.equal(layout.summaryMetrics, 2);
     assert.equal(layout.topColumns, 2);
-    assert.equal(layout.controlColumns, 2);
+    assert.equal(layout.controlColumns, 2); assert.equal(layout.helpCompact, true);
     assert.equal(layout.tableColumns, 5);
     assert.equal(layout.sequenceRows, 5);
     assert.equal(layout.appIcons, 5);

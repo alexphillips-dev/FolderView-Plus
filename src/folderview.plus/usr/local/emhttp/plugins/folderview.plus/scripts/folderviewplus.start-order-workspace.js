@@ -55,5 +55,22 @@
         return Object.freeze({ buildAutostartMutationEntries, rowAutostart, updateWait, toggleAutostart });
     };
 
-    return Object.freeze({ createApi });
+    const createPreviewActivation = (refresh) => {
+        let active = false;
+        let hydrated = false;
+        const setActive = (nextActive) => {
+            const next = nextActive === true;
+            if (next && !active) hydrated = false;
+            active = next;
+        };
+        const hydrate = () => {
+            if (!active || hydrated) return false;
+            hydrated = true;
+            if (typeof refresh === 'function') void refresh();
+            return true;
+        };
+        return Object.freeze({ hydrate, setActive });
+    };
+
+    return Object.freeze({ createApi, createPreviewActivation });
 }));

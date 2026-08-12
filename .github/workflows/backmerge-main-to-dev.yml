@@ -48,6 +48,15 @@ jobs:
           chmod +x scripts/prepare_backmerge_dev_package.sh
           bash scripts/prepare_backmerge_dev_package.sh
 
+      - name: Commit synchronized dev package
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No dev package changes to commit."
+          else
+            git commit --no-verify -m "Rebuild dev package after main sync"
+          fi
+
       - name: Validate merged dev state before push
         env:
           FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'

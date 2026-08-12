@@ -23,6 +23,7 @@
       "scripts/folderviewplus.utils-rules.js": { "limit": 533, "target": 500, "history": [598, 533] },
       "scripts/folderviewplus.start-order-model.js": { "limit": 99, "target": 99, "history": [99] },
       "scripts/folderviewplus.start-order-workspace.js": { "limit": 104, "target": 104, "history": [104] },
+      "scripts/folderviewplus.theme-profiles.js": { "limit": 69, "target": 69, "history": [69] },
       "scripts/folderviewplus.activity-diagnostics.js": { "limit": 2336, "target": 500, "history": [2336] },
       "scripts/folder.editor.icons.js": { "limit": 2233, "target": 450, "history": [2233] },
       "scripts/docker.runtime.shared.js": { "limit": 460, "target": 450, "history": [1511, 460] },
@@ -51,6 +52,7 @@
       "server/lib.storage.php": { "limit": 479, "target": 400, "history": [479] },
       "server/lib.theme-github.php": { "limit": 425, "target": 380, "history": [425] },
       "server/lib.theme-workspace.php": { "limit": 303, "target": 280, "history": [303] },
+      "server/lib.theme-profiles.php": { "limit": 109, "target": 109, "history": [109] },
       "scripts/folderviewplus.fatal-banner.js": { "limit": 1412, "target": 500, "history": [1412] },
       "scripts/docker.runtime.actions.js": { "limit": 1157, "target": 600, "history": [1157] },
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
@@ -176,7 +178,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.theme-github.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -223,11 +225,21 @@
       "functionInventory": { "count": 27, "sha256": "fdd98614a0fabe6770a03ee51a208b69530b9325bc5287e7076f39cb3a23ffb0" }
     },
     {
+      "file": "server/lib.theme-profiles.php",
+      "owner": "server-theme-profile-schema",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.storage.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 8, "sha256": "fa1a5f629465e9dc1d108dd4ed74022406ff5126fa5a53390eb256a49cfbd1a8" }
+    },
+    {
       "file": "server/lib.theme-workspace.php",
       "owner": "server-theme-workspace-storage",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.theme-profiles.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 15, "sha256": "85ee13db1e5e47519f77938e21303c1dcf0ed9ba0109991305fbed87109b3992" }
@@ -247,7 +259,7 @@
       "owner": "server-theme-github-import",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.remote.php"],
+      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.remote.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 16, "sha256": "b758e769455216bc41802ba9ae46cf3212159bb2811a3fd123c88c841c1e91e7" }
@@ -857,6 +869,19 @@
       "exports": ["createApi"],
       "apiFactory": "createApi",
       "apiExports": ["buildPreviewHtml", "buildAutostartMutationEntries", "rowAutostart", "updateWait", "toggleAutostart"]
+    },
+    {
+      "file": "scripts/folderviewplus.theme-profiles.js",
+      "owner": "settings-theme-profile-model",
+      "consumers": ["settings"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "themeProfiles",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["SCOPES", "defaultProfile", "normalizeLayer", "normalizeProfile", "normalizeState", "getActiveProfile", "resolveLayer"]
     },
     {
       "file": "scripts/folderviewplus.theme-surface.js",

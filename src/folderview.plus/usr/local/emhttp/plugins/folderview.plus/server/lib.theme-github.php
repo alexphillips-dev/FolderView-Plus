@@ -348,8 +348,7 @@ function fvplusThemeWorkspaceScanCss(string $css): array {
         if (count((array)($scan['severe'] ?? [])) > 0) {
             throw new RuntimeException(implode(' ', (array)$scan['severe']));
         }
-        $workspace['variables'] = fvplusThemeWorkspaceNormalizeVariableMap($variables);
-        $workspace['customCss'] = truncateUtf8String($customCss, FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES);
+        $workspace = fvplusThemeProfileUpdateLayer($workspace, (string)$workspace['activeProfileId'], 'global', $variables, $customCss);
         return writeThemeWorkspace($workspace);
     }
 

@@ -25,6 +25,7 @@
         "scripts/folderviewplus.theme-surface.js",
         "scripts/folderviewplus.theme-resolver.js",
         "scripts/folder.settings-transfer.js",
+        "scripts/folderviewplus.theme-profiles.js",
         "scripts/folderviewplus.theme-workspace.js",
         "scripts/folderviewplus.chrome.js",
         "scripts/folderviewplus.dirty.js",

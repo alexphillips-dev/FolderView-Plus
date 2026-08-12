@@ -1,11 +1,14 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.theme-profiles.js'));
         return;
     }
-    root.FolderViewPlusThemeWorkspace = factory();
+    root.FolderViewPlusThemeWorkspace = factory(root.FolderViewPlusFoundationModules?.themeProfiles);
     root.FolderViewPlusThemeWorkspaceModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(themeProfiles) {
+    if (!themeProfiles || typeof themeProfiles.normalizeState !== 'function') {
+        throw new Error('FolderView Plus theme profiles are unavailable.');
+    }
     const TOKEN_DEFINITIONS = Object.freeze([
         Object.freeze({ token: '--fvplus-theme-accent', label: 'Accent', fallback: '#f0a030' }),
         Object.freeze({ token: '--fvplus-theme-surface-panel', label: 'Surface panel', fallback: '#1b1d20' }),
@@ -33,13 +36,16 @@
                 files: Array.isArray(theme.files) ? theme.files : []
             }))
             .filter((theme) => theme.id);
-        const variables = source.variables && typeof source.variables === 'object' ? { ...source.variables } : {};
+        const profileState = themeProfiles.normalizeState(source);
+        const activeProfile = themeProfiles.getActiveProfile(profileState);
+        const globalLayer = themeProfiles.normalizeLayer(activeProfile.layers.global);
         return {
-            schemaVersion: Number(source.schemaVersion || 1),
+            schemaVersion: Number(source.schemaVersion || 2),
             activeThemeId: String(source.activeThemeId || '').trim(),
             themes,
-            variables,
-            customCss: String(source.customCss || ''),
+            ...profileState,
+            variables: globalLayer.variables,
+            customCss: globalLayer.customCss,
             lastCheckedAt: String(source.lastCheckedAt || '').trim()
         };
     };

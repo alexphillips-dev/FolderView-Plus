@@ -382,7 +382,7 @@
     const FVPLUS_MUTATION_TRANSACTION_MAX = 1000;
     const FVPLUS_SECURITY_AUDIT_HISTORY_MAX = 200;
     const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
-    const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
+    const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 2;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
     const FVPLUS_THEME_WORKSPACE_MAX_THEMES = 24;
@@ -1516,7 +1516,7 @@
 
     require_once(__DIR__ . '/lib.storage.php');
 
-    require_once(__DIR__ . '/lib.theme-workspace.php');
+    require_once(__DIR__ . '/lib.theme-profiles.php'); require_once(__DIR__ . '/lib.theme-workspace.php');
 
     require_once(__DIR__ . '/lib.environment-snapshot.php');
 

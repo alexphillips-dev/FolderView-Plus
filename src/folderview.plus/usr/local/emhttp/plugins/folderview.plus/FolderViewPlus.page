@@ -1765,7 +1765,7 @@ $fvplusSettingsFoundationAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js',
         '/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js',
         '/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js',
-        '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+        '/plugins/folderview.plus/scripts/folder.settings-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-profiles.js',
         '/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
         '/plugins/folderview.plus/scripts/folderviewplus.chrome.js'
 ];

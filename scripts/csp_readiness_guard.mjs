@@ -61,7 +61,7 @@ const explicitHtmlSinkReviews = new Map([
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js:343', 'Folder identity and path values are escaped, status values are normalized counts, and action groups use guarded builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js:281', 'The settings search empty state contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js:6354', 'Summary-card values pass through buildBasicSummaryCardHtml, which escapes every interpolated value.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js:226', 'Theme names, source metadata, warnings, identifiers, and statuses are escaped at their interpolation boundaries.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js:232', 'Theme names, source metadata, warnings, identifiers, and statuses are escaped at their interpolation boundaries.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js:137', 'The only dynamic value is a normalized numeric hidden-item count.']
 ]);
 const usedExplicitHtmlSinkReviews = new Set();

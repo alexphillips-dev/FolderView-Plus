@@ -43,5 +43,7 @@ if [[ ! -f "${notes_path}" ]]; then
   } > "${notes_path}"
 fi
 
-FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 bash pkg_build.sh --branch dev
+FVPLUS_EXPECT_PLUGIN_BRANCH=dev \
+FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
+bash pkg_build.sh --branch dev
 echo "Prepared back-merge dev package ${version}."

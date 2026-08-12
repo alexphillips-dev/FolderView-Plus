@@ -15,14 +15,14 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 278);
+    assert.equal(result.referenceCount, 279);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 43);
-    assert.equal(architecture.serverModuleContracts.length, 25);
+    assert.equal(architecture.moduleContracts.length, 44);
+    assert.equal(architecture.serverModuleContracts.length, 27);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts, ...architecture.serverModuleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');

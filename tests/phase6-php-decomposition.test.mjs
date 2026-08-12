@@ -35,12 +35,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     assert.deepEqual(Object.keys(JSON.parse(manifestSource).endpoints).sort(), expectedEndpoints);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        '0df09131a8851b90e7c37aa6fb4345c5bfd5391dd8b80d4490efe8b942e82541'
+        'f1d94e849a07d0f5bbceab16dd3b053550f101f77dff2f1953c1e9c6a29049e3'
     );
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 25);
+    assert.equal(architecture.serverModuleContracts.length, 27);
     for (const contract of architecture.serverModuleContracts) {
         const loader = contract.loadedBy === 'server/lib.php'
             ? coreFacade
@@ -56,7 +56,7 @@ test('facades load every contracted PHP module without retaining extracted imple
 
 test('decomposition preserves every historical public PHP function name', () => {
     const expected = {
-        'server/lib.php': { count: 313, sha256: 'ac84dbb3b614d1d0d200d7303c9c081be8767cffe7fe342eec509d537277784b' },
+        'server/lib.php': { count: 324, sha256: '3628845284cb56be4da96cc2fc1617abf0a6a5fd01f37436cbc6b2609bf48a25' },
         'server/lib.diagnostics.php': { count: 74, sha256: 'a1d008eb74affc973be697a63837347f992ff932591d6aa630b2a4d022a24b1a' },
         'server/upload_custom_icon.php': { count: 56, sha256: '825b3fbb5288c76f83a4976a55967e8a9a205e5496581f3a0c842789083f530e' }
     };

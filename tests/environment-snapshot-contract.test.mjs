@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
 const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
-const libPhp = ['lib.php', 'lib.environment-snapshot.php', 'lib.backup-schedule.php']
+const libPhp = ['lib.php', 'lib.environment-snapshot.php', 'lib.environment-transaction.php', 'lib.backup-schedule.php']
     .map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8'))
     .join('\n');
 const endpointPhp = fs.readFileSync(
@@ -21,13 +21,15 @@ test('environment snapshot helpers export folders, prefs, and theme workspace to
     assert.match(libPhp, /'themeWorkspace'\s*=>\s*readThemeWorkspace\(\)/);
 });
 
-test('environment snapshot import creates rollback and per-type safety backups before apply', () => {
+test('environment snapshot import routes through the atomic rollback and verification transaction', () => {
     assert.match(libPhp, /function importEnvironmentSnapshotPayload\(array \$snapshot, string \$sourceName = ''\): array/);
-    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-environment-import'\)/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-environment-import'\)/);
+    assert.match(libPhp, /applyEnvironmentSnapshotTransaction\(\$normalized, \$sourceName/);
+    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason\)/);
     assert.match(libPhp, /writeRawFolderMap\(\$type, \$folders\);/);
     assert.match(libPhp, /writeTypePrefs\(\$type, \$prefs\);/);
-    assert.match(libPhp, /writeThemeWorkspace\(\$normalized\['themeWorkspace'\] \?\? defaultThemeWorkspace\(\)\);/);
+    assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized\);/);
+    assert.match(libPhp, /fvplusEnvironmentRestoreFiles\(\$snapshots\);/);
 });
 
 test('global rollback snapshots now include theme workspace state', () => {
@@ -46,4 +48,10 @@ test('environment snapshot endpoint exposes read-only FolderView3 discovery and 
     assert.match(endpointPhp, /detectFolderView3Installation\(\)/);
     assert.match(endpointPhp, /previewFolderView3Migration\(\$bundle, \$sourceName\)/);
     assert.match(endpointPhp, /decodeFolderView3BundlePayloadString/);
+});
+
+test('FolderView3 apply is mutation-guarded and requires a preview digest', () => {
+    assert.match(endpointPhp, /\$mutatingActions = \['apply', 'apply_folderview3'\]/);
+    assert.match(endpointPhp, /applyFolderView3Migration/);
+    assert.match(endpointPhp, /expectedDigest/);
 });

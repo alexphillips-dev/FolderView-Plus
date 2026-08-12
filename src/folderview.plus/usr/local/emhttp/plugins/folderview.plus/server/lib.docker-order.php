@@ -121,8 +121,7 @@ function dockerSyncOrderLockPath(): string {
             $assignedContainers = array_merge($assignedContainers, $members);
         }
 
-        $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
-        $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
+        $autoStartFile = fvplusEnvironmentDockerAutostartPath();
         $autoStartLines = file_exists($autoStartFile)
             ? (@file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [])
             : [];

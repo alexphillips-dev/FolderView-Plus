@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -11,6 +12,8 @@ const serverRoot = path.join(pluginRoot, 'server');
 const endpointSource = fs.readFileSync(path.join(serverRoot, 'environment_snapshot.php'), 'utf8');
 const pageSource = fs.readFileSync(path.join(pluginRoot, 'FolderViewPlus.page'), 'utf8');
 const phpString = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+const browserModulePath = path.join(pluginRoot, 'scripts/folderviewplus.folderview3-migration.js');
+const applyModulePath = path.join(pluginRoot, 'scripts/folderviewplus.folderview3-apply.js');
 
 const fixture = {
     fv3_export_version: 1,
@@ -90,7 +93,7 @@ const runPhpPlan = (bundle) => {
 test('FolderView3 preview actions remain read-only endpoint contracts', () => {
     assert.match(endpointSource, /if \(\$action === 'detect_folderview3'\)/);
     assert.match(endpointSource, /if \(\$action === 'preview_folderview3'\)/);
-    assert.doesNotMatch(endpointSource, /\$mutatingActions\s*=\s*\[[^\]]*folderview3/);
+    assert.match(endpointSource, /\$mutatingActions\s*=\s*\['apply', 'apply_folderview3'\]/);
     assert.match(pageSource, /data-fv-folderview3-action="detect"/);
     assert.match(pageSource, /data-fv-folderview3-action="preview-export"/);
 });
@@ -162,4 +165,43 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
+});
+
+test('FolderView3 browser apply requires confirmation, reuses the preview digest, and defaults native autostart off', async () => {
+    const require = createRequire(import.meta.url);
+    delete require.cache[require.resolve(browserModulePath)];
+    const moduleApi = require(browserModulePath);
+    const applyModule = require(applyModulePath);
+    const host = { innerHTML: '' };
+    const posts = [];
+    const report = {
+        kind: 'folderview3_migration_plan',
+        source: { kind: 'installed', digest: 'a'.repeat(64) },
+        summary: { dockerFolderCount: 1, vmFolderCount: 1, nativeAutostartCount: 2 },
+        operations: [{ id: 'native-autostart', label: 'Native autostart', selected: false, count: 2 }],
+        warnings: []
+    };
+    const document = {
+        querySelector: (selector) => selector === '#fv-recovery-folderview3-summary' ? host : null,
+        contains: () => true
+    };
+    const api = moduleApi.createApi({
+        window: { document, confirm: () => true, FolderViewPlusRequest: {} },
+        document,
+        applyModule,
+        apiPostJson: async (_url, payload) => {
+            posts.push(payload);
+            return payload.action === 'preview_folderview3'
+                ? { report }
+                : { migration: { report, transaction: { verified: true } } };
+        }
+    });
+    await api.previewInstalled();
+    const result = await api.applyMigration();
+    assert.equal(result.transaction.verified, true);
+    assert.equal(posts.length, 2);
+    assert.equal(posts[1].action, 'apply_folderview3');
+    assert.equal(posts[1].expectedDigest, 'a'.repeat(64));
+    assert.equal(posts[1].includeNativeAutostart, '0');
+    assert.match(host.innerHTML, /Applied and verified/);
 });

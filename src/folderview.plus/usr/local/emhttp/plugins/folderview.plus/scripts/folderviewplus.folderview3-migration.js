@@ -27,6 +27,7 @@
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? '')
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'));
         const request = windowRef?.FolderViewPlusRequest;
+        const applyModule = deps.applyModule || windowRef?.FolderViewPlusFoundationModules?.folderView3Apply;
         const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : ((url, options = {}) => request.getJson(url, options));
         const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : ((url, data = {}, options = {}) => request.postJson(url, data, options));
         const selectJsonFile = typeof deps.selectJsonFile === 'function' ? deps.selectJsonFile : (() => new Promise((resolve, reject) => {
@@ -71,6 +72,7 @@
         let detection = null;
         let report = null;
         let selectedSource = null;
+        let migrationResult = null;
 
         const normalizeDetection = (value) => {
             const source = value && typeof value === 'object' ? value : {};
@@ -170,50 +172,7 @@
         };
 
         const buildReportHtml = () => {
-            if (!report) {
-                return buildDetectionHtml();
-            }
-            const summary = report.summary;
-            const selected = report.operations.filter((entry) => entry.selected);
-            const unselected = report.operations.filter((entry) => !entry.selected);
-            const operationHtml = report.operations.map((entry) => `
-                <div class="fv-recovery-callout${entry.selected ? '' : ' is-warning'}">
-                    <strong>${escapeHtml(entry.selected ? 'Included' : 'Not selected')}</strong>
-                    <span>${escapeHtml(`${entry.label} (${entry.count})`)}</span>
-                </div>
-            `).join('');
-            const warningHtml = report.warnings.map((warning) => `
-                <div class="fv-recovery-callout is-warning">${escapeHtml(warning)}</div>
-            `).join('');
-            return `
-                <article class="fv-recovery-history-card fv-recovery-environment-card">
-                    <div class="fv-recovery-history-head">
-                        <div>
-                            <div class="fv-recovery-history-title">FolderView3 migration preview</div>
-                            <div class="fv-recovery-history-copy">${escapeHtml(report.source.sourceName || (report.source.kind === 'installed' ? 'Installed FolderView3 configuration' : 'FolderView3 export'))}</div>
-                        </div>
-                        <span class="fv-recovery-history-badge">No changes made</span>
-                    </div>
-                    <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(`Docker ${summary.dockerFolderCount} folders / ${summary.dockerRuleCount} rules`)}</span>
-                        <span>${escapeHtml(`VM ${summary.vmFolderCount} folders / ${summary.vmRuleCount} rules`)}</span>
-                        <span>${escapeHtml(`Start order: ${summary.startOrderMode}`)}</span>
-                        <span>${escapeHtml(`Appearance inactive: ${summary.appearanceProfileActive ? 'no' : 'yes'}`)}</span>
-                        <span>${escapeHtml(`${selected.length} included / ${unselected.length} excluded operations`)}</span>
-                    </div>
-                    <div class="fv-recovery-environment-meta">
-                        <span>${escapeHtml(`Source plugin ${report.source.pluginVersion || 'unknown'}`)}</span>
-                        <span>${escapeHtml(report.source.exportedAt ? `Exported ${formatTimestamp(report.source.exportedAt)}` : 'Export time unavailable')}</span>
-                        <span>${escapeHtml(`${summary.nativeAutostartCount} optional native autostart entries`)}</span>
-                        <span>${escapeHtml(`${summary.organizerRegistryCount} unmapped organizer entries`)}</span>
-                    </div>
-                    <div class="fv-folderview3-operation-list">${operationHtml}</div>
-                    ${warningHtml}
-                    <div class="backup-actions fv-recovery-environment-actions">
-                        <button type="button" data-fv-folderview3-action="download-report"><i class="fa fa-download"></i> Download migration report</button>
-                    </div>
-                </article>
-            `;
+            return applyModule?.buildReportHtml?.({ report, migrationResult, escapeHtml, formatTimestamp, fallbackHtml: buildDetectionHtml }) || buildDetectionHtml();
         };
 
         const render = () => {
@@ -221,14 +180,15 @@
             if (!host) {
                 return;
             }
-            host.innerHTML = mode === 'loading'
-                ? '<div class="fv-recovery-empty-state"><strong>Inspecting FolderView3 configuration...</strong><span>This read-only preview may take a moment when custom styles are present.</span></div>'
+            host.innerHTML = mode === 'loading' || mode === 'applying'
+                ? applyModule.loadingHtml(mode === 'applying')
                 : buildReportHtml();
         };
 
         const detectInstalled = async () => {
             mode = 'loading';
             report = null;
+            migrationResult = null;
             render();
             try {
                 const response = await apiGetJson('/plugins/folderview.plus/server/environment_snapshot.php', {
@@ -249,6 +209,7 @@
         const previewSource = async (source) => {
             mode = 'loading';
             report = null;
+            migrationResult = null;
             render();
             try {
                 const response = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
@@ -304,6 +265,32 @@
             downloadFile(`FolderView3 Migration Report ${stamp}.json`, toPrettyJson(report));
         };
 
+        const applyMigration = async () => {
+            const includeNativeAutostart = Boolean(documentRef?.querySelector?.('[data-fv-folderview3-native-autostart]')?.checked);
+            mode = 'applying';
+            render();
+            try {
+                const response = await applyModule.runApply({ report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef), postJson: apiPostJson });
+                if (!response) { mode = 'preview'; render(); return null; }
+                migrationResult = response?.migration || null;
+                report = normalizeReport(migrationResult?.report || report);
+                mode = 'applied';
+                render();
+                showToastMessage({
+                    title: 'FolderView3 migration applied',
+                    message: 'The migration was verified and rollback checkpoints are available in Recovery.',
+                    level: 'success',
+                    durationMs: 5200
+                });
+                return migrationResult;
+            } catch (error) {
+                mode = 'preview';
+                render();
+                showError('FolderView3 migration failed', error);
+                throw error;
+            }
+        };
+
         const handleClick = (event) => {
             const button = event.target?.closest?.('[data-fv-folderview3-action]');
             if (!button || !documentRef?.contains?.(button)) {
@@ -318,6 +305,8 @@
                 previewExport();
             } else if (action === 'download-report') {
                 downloadReport();
+            } else if (action === 'apply') {
+                applyMigration();
             }
         };
 
@@ -344,8 +333,10 @@
             previewInstalled,
             previewExport,
             downloadReport,
+            applyMigration,
             getReport: () => report,
-            getSelectedSource: () => selectedSource
+            getSelectedSource: () => selectedSource,
+            getMigrationResult: () => migrationResult
         });
     };
 

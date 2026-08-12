@@ -90,6 +90,7 @@
         "preview": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["payload"], "auditCategory": "environment.preview"},
         "detect_folderview3": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "environment.folderview3-detect"},
         "preview_folderview3": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "auditCategory": "environment.folderview3-preview"},
+        "apply_folderview3": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["expectedDigest", "sourceKind"], "auditCategory": "environment.folderview3-apply"},
         "apply": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["payload"], "auditCategory": "environment.apply"}
       }
     },

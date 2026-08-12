@@ -49,7 +49,9 @@
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
       "server/lib.environment-snapshot.php": { "limit": 174, "target": 160, "history": [174] },
+      "server/lib.environment-transaction.php": { "limit": 162, "target": 150, "history": [162] },
       "server/lib.folderview3-migration.php": { "limit": 462, "target": 400, "history": [462] },
+      "server/lib.folderview3-apply.php": { "limit": 76, "target": 75, "history": [76] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
       "server/lib.release-notes.php": { "limit": 464, "target": 400, "history": [464] },
@@ -67,6 +69,7 @@
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
       "scripts/folderviewplus.settings-workspaces.js": { "limit": 1101, "target": 500, "history": [1101] },
       "scripts/folderviewplus.folderview3-migration.js": { "limit": 354, "target": 320, "history": [354] },
+      "scripts/folderviewplus.folderview3-apply.js": { "limit": 98, "target": 90, "history": [98] },
       "scripts/runtime.transport.js": { "limit": 499, "target": 499, "history": [1060, 499] },
       "scripts/folderviewplus.bulk-assignment.js": { "limit": 1023, "target": 500, "history": [1023] },
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
@@ -127,7 +130,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["settings"],
-      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.start-order-workspace.js", "scripts/folderviewplus.rule-templates.js", "scripts/folderviewplus.folderview3-migration.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
+      "dependsOn": ["scripts/folderviewplus.csp-events.js", "scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folderviewplus.prefs-store.js", "scripts/folderviewplus.settings-registry.js", "scripts/folderviewplus.settings-search.js", "scripts/folderviewplus.settings-table.js", "scripts/folderviewplus.settings-health.js", "scripts/folderviewplus.start-order-model.js", "scripts/folderviewplus.start-order-workspace.js", "scripts/folderviewplus.rule-templates.js", "scripts/folderviewplus.folderview3-apply.js", "scripts/folderviewplus.folderview3-migration.js", "scripts/folderviewplus.wizard.js", "scripts/folderviewplus.import.js", "scripts/folderviewplus.actions-support.js"],
       "lifecycle": { "startup": "self-executing-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["FolderViewPlusRefreshCoreData"]
     },
@@ -187,7 +190,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.folderview3-migration.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -282,6 +285,26 @@
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 14, "sha256": "f9b1d241386991a429805a895e24f67ae2075d720ecd61f82afebe2089260993" }
+    },
+    {
+      "file": "server/lib.environment-transaction.php",
+      "owner": "server-environment-transaction",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 8, "sha256": "bc3468f590c2bbb3b212290162aa27cf9639ea168f2b7063efcaa60361176713" }
+    },
+    {
+      "file": "server/lib.folderview3-apply.php",
+      "owner": "server-folderview3-apply",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.folderview3-migration.php", "server/lib.environment-transaction.php", "server/lib.storage.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 3, "sha256": "5a1c5adadfd2f11897815543992e86c165729d85336b0e88199ad3414d31ca09" }
     },
     {
       "file": "server/lib.theme-github.php",
@@ -957,18 +980,30 @@
       "exports": ["MODES", "REMAINING_MODES", "DEFAULT_PLAN", "normalizePlan", "patchPlan", "createId"]
     },
     {
+      "file": "scripts/folderviewplus.folderview3-apply.js",
+      "owner": "settings-folderview3-migration-apply",
+      "consumers": ["settings"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folderviewplus.request.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderView3Apply",
+      "loader": "commonjs",
+      "exports": ["buildReportHtml", "loadingHtml", "runApply"]
+    },
+    {
       "file": "scripts/folderviewplus.folderview3-migration.js",
       "owner": "settings-folderview3-migration-preview",
       "consumers": ["settings"],
       "stateModel": "factory-owned",
-      "dependsOn": ["scripts/folderviewplus.request.js"],
+      "dependsOn": ["scripts/folderviewplus.request.js", "scripts/folderviewplus.folderview3-apply.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "folderView3Migration",
       "loader": "commonjs",
       "exports": ["createApi"],
       "apiFactory": "createApi",
-      "apiExports": ["bind", "disconnect", "render", "detectInstalled", "previewInstalled", "previewExport", "downloadReport", "getReport", "getSelectedSource"],
+      "apiExports": ["bind", "disconnect", "render", "detectInstalled", "previewInstalled", "previewExport", "downloadReport", "applyMigration", "getReport", "getSelectedSource", "getMigrationResult"],
       "lifecycleFactories": [
         { "name": "createApi", "exports": ["bind", "disconnect"] }
       ]

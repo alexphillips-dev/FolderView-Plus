@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "蒙版名稱和圖示",
     "settings.privacy.mask-lan-ips": "遮罩 LAN IP",
     "settings.privacy.mask-ports": "面罩埠",
-    "settings.privacy.lan-help": "LAN IP 遮罩適用於 Docker 頁面的 LAN IP:PORT 欄位的 IP 部分。連線埠部分使用 Mask ports。"
+    "settings.privacy.lan-help": "LAN IP 遮罩適用於 Docker 頁面的 LAN IP:PORT 欄位的 IP 部分。連線埠部分使用 Mask ports。",
+    "settings.theme.profiles-help": "使用命名配置檔案和全域性或特定於頁面的層。在原子儲存之前預覽更改。",
+    "settings.theme.scope-all-pages": "所有頁面",
+    "settings.theme.new-profile-name": "新的個人資料名稱",
+    "settings.theme.new-profile-placeholder": "範例：OLED 深色",
+    "settings.start-order.unmanaged": "讓 Unraid 訂單不受管理",
+    "settings.start-order.unmanaged-title": "Unraid 在非託管模式下擁有此訂單",
+    "settings.start-order.wait": "等等",
+    "settings.start-order.enable-autostart-help": "為容器啟用 Docker 自動啟動以將其包含在序列中。"
 }

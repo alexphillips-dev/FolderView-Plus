@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Inclòs automàticament per expressió regular o etiqueta",
     "editor.members.drag-reorder": "Arrossegueu per reordenar",
     "editor.members.move-up": "Mou cap amunt",
-    "editor.members.move-down": "Mou cap avall"
+    "editor.members.move-down": "Mou cap avall",
+    "editor.rules.templates.title": "Plantilles de regles",
+    "editor.rules.templates.help": "Creeu una regla compatible, previsualitzeu el seu efecte actual o afegiu-ne un últim. Els membres de la carpeta manual no es canvien mai.",
+    "editor.rules.templates.template-label": "Plantilla",
+    "editor.rules.templates.name-prefix": "El nom comença per",
+    "editor.rules.templates.name-prefix-placeholder": "Prefix (exemple: mitjans-)",
+    "editor.rules.templates.name-contains": "El nom conté",
+    "editor.rules.templates.name-contains-placeholder": "Text al nom (exemple: arr)",
+    "editor.rules.templates.image-repository": "El repositori d'imatges conté",
+    "editor.rules.templates.image-repository-placeholder": "Repositori (exemple: linuxserver/)",
+    "editor.rules.templates.compose-project": "Redacta el projecte igual",
+    "editor.rules.templates.compose-project-placeholder": "Nom del projecte (exemple: mitjans de comunicació)",
+    "editor.rules.templates.label-equals": "L'etiqueta Docker és igual",
+    "editor.rules.templates.label-equals-placeholder": "Etiqueta clau=valor"
 }

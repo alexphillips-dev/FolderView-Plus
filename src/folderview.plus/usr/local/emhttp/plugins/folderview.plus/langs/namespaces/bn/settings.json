@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "মুখোশের নাম এবং আইকন",
     "settings.privacy.mask-lan-ips": "ল্যান আইপি মাস্ক করুন",
     "settings.privacy.mask-ports": "মাস্ক পোর্ট",
-    "settings.privacy.lan-help": "LAN IP মাস্কিং ডকার পৃষ্ঠার LAN IP:PORT কলামের IP অংশে প্রযোজ্য। পোর্ট অংশের জন্য মাস্ক পোর্ট ব্যবহার করুন।"
+    "settings.privacy.lan-help": "LAN IP মাস্কিং ডকার পৃষ্ঠার LAN IP:PORT কলামের IP অংশে প্রযোজ্য। পোর্ট অংশের জন্য মাস্ক পোর্ট ব্যবহার করুন।",
+    "settings.theme.profiles-help": "নামযুক্ত প্রোফাইল এবং গ্লোবাল বা পৃষ্ঠা-নির্দিষ্ট স্তর ব্যবহার করুন। একটি পারমাণবিক সংরক্ষণের আগে পরিবর্তনগুলি পূর্বরূপ দেখা হয়।",
+    "settings.theme.scope-all-pages": "সমস্ত পৃষ্ঠা",
+    "settings.theme.new-profile-name": "নতুন প্রোফাইল নাম",
+    "settings.theme.new-profile-placeholder": "উদাহরণ: OLED অন্ধকার",
+    "settings.start-order.unmanaged": "Unraid আদেশ অব্যবস্থাপিত ছেড়ে দিন",
+    "settings.start-order.unmanaged-title": "Unraid নিয়ন্ত্রণহীন মোডে এই অর্ডারটির মালিক",
+    "settings.start-order.wait": "অপেক্ষা করুন",
+    "settings.start-order.enable-autostart-help": "ক্রমানুসারে এটিকে অন্তর্ভুক্ত করতে একটি ধারকটির জন্য ডকার অটোস্টার্ট সক্ষম করুন।"
 }

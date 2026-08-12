@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Masker namen en pictogrammen",
     "settings.privacy.mask-lan-ips": "Masker LAN IPs",
     "settings.privacy.mask-ports": "Poorten maskeren",
-    "settings.privacy.lan-help": "LAN IP maskering is van toepassing op het IP gedeelte van de Docker pagina's LAN IP:POORT kolom. Gebruik Poorten maskeren voor het poortgedeelte."
+    "settings.privacy.lan-help": "LAN IP maskering is van toepassing op het IP gedeelte van de Docker pagina's LAN IP:POORT kolom. Gebruik Poorten maskeren voor het poortgedeelte.",
+    "settings.theme.profiles-help": "Gebruik benoemde profielen en globale of paginaspecifieke lagen. Wijzigingen worden vooraf bekeken voordat ze atomair worden opgeslagen.",
+    "settings.theme.scope-all-pages": "Alle pagina's",
+    "settings.theme.new-profile-name": "Nieuwe profielnaam",
+    "settings.theme.new-profile-placeholder": "Voorbeeld: OLED donker",
+    "settings.start-order.unmanaged": "Laat Unraid-bestelling onbeheerd",
+    "settings.start-order.unmanaged-title": "Unraid is eigenaar van deze bestelling in onbeheerde modus",
+    "settings.start-order.wait": "Wacht",
+    "settings.start-order.enable-autostart-help": "Schakel Docker automatisch starten in voor een container om deze in de reeks op te nemen."
 }

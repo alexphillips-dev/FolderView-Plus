@@ -342,7 +342,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
-      "line": 183,
+      "line": 184,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -382,17 +382,17 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 149,
+      "line": 150,
       "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "risk": "reviewed",
+      "dataClass": "static-or-controlled-ui-template",
+      "requiredControl": "Keep the sink limited to plugin-authored markup and escaped dynamic values.",
       "controlStatus": "controlled",
-      "controlEvidence": "The appearance profile toolbar is plugin-authored static markup with no persisted interpolation."
+      "controlEvidence": "The appearance profile toolbar uses plugin-authored markup and escapes localized catalog values before mounting."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 154,
+      "line": 155,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -402,7 +402,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 172,
+      "line": 173,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -412,7 +412,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 197,
+      "line": 198,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -422,7 +422,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 206,
+      "line": 207,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -432,7 +432,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 235,
+      "line": 236,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -442,7 +442,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 260,
+      "line": 261,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -452,7 +452,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 268,
+      "line": 269,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Incluso automaticamente da regex o etichetta",
     "editor.members.drag-reorder": "Trascina per riordinare",
     "editor.members.move-up": "Sposta su",
-    "editor.members.move-down": "Sposta giù"
+    "editor.members.move-down": "Sposta giù",
+    "editor.rules.templates.title": "Modelli di regole",
+    "editor.rules.templates.help": "Crea una regola compatibile, visualizza in anteprima il suo effetto attuale o aggiungi un ultimo elemento generale. I membri della cartella manuale non vengono mai modificati.",
+    "editor.rules.templates.template-label": "Modello",
+    "editor.rules.templates.name-prefix": "Il nome inizia con",
+    "editor.rules.templates.name-prefix-placeholder": "Prefisso (esempio: media-)",
+    "editor.rules.templates.name-contains": "Il nome contiene",
+    "editor.rules.templates.name-contains-placeholder": "Testo nel nome (esempio: arr)",
+    "editor.rules.templates.image-repository": "Il repository di immagini contiene",
+    "editor.rules.templates.image-repository-placeholder": "Repository (esempio: linuxserver/)",
+    "editor.rules.templates.compose-project": "Componi progetto uguale",
+    "editor.rules.templates.compose-project-placeholder": "Nome del progetto (esempio: media)",
+    "editor.rules.templates.label-equals": "L'etichetta Docker è uguale a",
+    "editor.rules.templates.label-equals-placeholder": "Etichetta chiave=valore"
 }

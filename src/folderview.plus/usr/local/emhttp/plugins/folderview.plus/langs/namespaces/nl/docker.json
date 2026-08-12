@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Verberg image-registries",
     "docker.privacy.mask-public-ips": "Verberg openbare IPs",
     "docker.privacy.mask-network-interfaces": "Verberg netwerkinterfaces",
-    "docker.privacy.mask-external-urls": "Verberg externe URL's"
+    "docker.privacy.mask-external-urls": "Verberg externe URL's",
+    "docker.actions.capture-diagnostics": "Paginadiagnostiek vastleggen"
 }

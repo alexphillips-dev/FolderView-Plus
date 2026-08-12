@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Preuzimanje nije uspjelo",
     "diagnostics.bootstrap.retrying": "Ponovni pokušaj…",
     "diagnostics.bootstrap.retry-succeeded": "Učitavanje nastavljeno",
-    "diagnostics.bootstrap.retry-failed": "Ponovni pokušaj nije uspio"
+    "diagnostics.bootstrap.retry-failed": "Ponovni pokušaj nije uspio",
+    "diagnostics.capture.page-action": "Dijagnostika stranice snimanja"
 }

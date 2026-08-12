@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Download mislukt",
     "diagnostics.bootstrap.retrying": "Opnieuw proberen…",
     "diagnostics.bootstrap.retry-succeeded": "Laden hervat",
-    "diagnostics.bootstrap.retry-failed": "Opnieuw proberen mislukt"
+    "diagnostics.bootstrap.retry-failed": "Opnieuw proberen mislukt",
+    "diagnostics.capture.page-action": "Paginadiagnostiek vastleggen"
 }

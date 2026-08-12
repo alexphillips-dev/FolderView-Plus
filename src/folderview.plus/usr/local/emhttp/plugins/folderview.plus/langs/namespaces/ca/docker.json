@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Registres d'imatges de màscares",
     "docker.privacy.mask-public-ips": "Enmascarar les IP públiques",
     "docker.privacy.mask-network-interfaces": "Enmascarar interfícies de xarxa",
-    "docker.privacy.mask-external-urls": "Enmascarar URL externs"
+    "docker.privacy.mask-external-urls": "Enmascarar URL externs",
+    "docker.actions.capture-diagnostics": "Captura el diagnòstic de la pàgina"
 }

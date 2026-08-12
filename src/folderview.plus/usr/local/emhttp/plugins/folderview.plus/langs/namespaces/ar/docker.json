@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "سجلات صورة القناع",
     "docker.privacy.mask-public-ips": "إخفاء عناوين IP العامة",
     "docker.privacy.mask-network-interfaces": "قناع واجهات الشبكة",
-    "docker.privacy.mask-external-urls": "إخفاء عناوين URL الخارجية"
+    "docker.privacy.mask-external-urls": "إخفاء عناوين URL الخارجية",
+    "docker.actions.capture-diagnostics": "التقاط تشخيصات الصفحة"
 }

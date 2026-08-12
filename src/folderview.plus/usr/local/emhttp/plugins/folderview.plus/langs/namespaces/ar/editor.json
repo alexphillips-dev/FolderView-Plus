@@ -14,5 +14,18 @@
     "editor.members.auto-included": "يتم تضمينه تلقائيًا بواسطة regex أو التصنيف",
     "editor.members.drag-reorder": "اسحب لإعادة الترتيب",
     "editor.members.move-up": "تحرك للأعلى",
-    "editor.members.move-down": "تحرك للأسفل"
+    "editor.members.move-down": "تحرك للأسفل",
+    "editor.rules.templates.title": "قوالب القواعد",
+    "editor.rules.templates.help": "أنشئ قاعدة متوافقة، أو قم بمعاينة تأثيرها الحالي، أو قم بإضافة ملف شامل نهائي. لا يتم تغيير أعضاء المجلد اليدوي أبدًا.",
+    "editor.rules.templates.template-label": "القالب",
+    "editor.rules.templates.name-prefix": "الاسم يبدأ ب",
+    "editor.rules.templates.name-prefix-placeholder": "البادئة (مثال: الوسائط-)",
+    "editor.rules.templates.name-contains": "يحتوي الاسم",
+    "editor.rules.templates.name-contains-placeholder": "نص في الاسم (مثال: arr)",
+    "editor.rules.templates.image-repository": "يحتوي مستودع الصور",
+    "editor.rules.templates.image-repository-placeholder": "المستودع (مثال: linuxserver/)",
+    "editor.rules.templates.compose-project": "يؤلف المشروع يساوي",
+    "editor.rules.templates.compose-project-placeholder": "اسم المشروع (مثال: الوسائط)",
+    "editor.rules.templates.label-equals": "تسمية عامل الميناء يساوي",
+    "editor.rules.templates.label-equals-placeholder": "مفتاح التسمية = القيمة"
 }

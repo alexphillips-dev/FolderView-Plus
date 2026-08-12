@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Download mislykkedes",
     "diagnostics.bootstrap.retrying": "Prøver igen…",
     "diagnostics.bootstrap.retry-succeeded": "Indlæsning genoptaget",
-    "diagnostics.bootstrap.retry-failed": "Nyt forsøg mislykkedes"
+    "diagnostics.bootstrap.retry-failed": "Nyt forsøg mislykkedes",
+    "diagnostics.capture.page-action": "Optag sidediagnostik"
 }

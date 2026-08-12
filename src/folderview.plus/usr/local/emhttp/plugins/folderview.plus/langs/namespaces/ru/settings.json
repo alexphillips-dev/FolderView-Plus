@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Скрывать имена и иконки",
     "settings.privacy.mask-lan-ips": "Скрывать LAN IPs",
     "settings.privacy.mask-ports": "Маскирование портов",
-    "settings.privacy.lan-help": "LAN IP маскирование применяется к IP части Docker страницы LAN IP:СТОЛБЕЦ ПОРТА. Используйте Маскирование портов для части порта."
+    "settings.privacy.lan-help": "LAN IP маскирование применяется к IP части Docker страницы LAN IP:СТОЛБЕЦ ПОРТА. Используйте Маскирование портов для части порта.",
+    "settings.theme.profiles-help": "Используйте именованные профили и глобальные или специфичные для страниц слои. Изменения просматриваются перед атомарным сохранением.",
+    "settings.theme.scope-all-pages": "Все страницы",
+    "settings.theme.new-profile-name": "Новое имя профиля",
+    "settings.theme.new-profile-placeholder": "Пример: темный OLED",
+    "settings.start-order.unmanaged": "Оставить заказ Unraid неуправляемым",
+    "settings.start-order.unmanaged-title": "Этот заказ принадлежит Unraid в неуправляемом режиме.",
+    "settings.start-order.wait": "Подожди",
+    "settings.start-order.enable-autostart-help": "Включите автозапуск Docker для контейнера, чтобы включить его в последовательность."
 }

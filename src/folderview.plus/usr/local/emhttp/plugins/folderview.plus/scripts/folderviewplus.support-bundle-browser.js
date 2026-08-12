@@ -454,38 +454,15 @@
 
         const collectRuntimePageDiagnostics = (uiRedactor) => {
             const record = readClientDiagnosticsStorageRecord(storageKeys.runtimePageDiagnostics || '');
-            const surfaces = {};
-            ['docker', 'vm', 'dashboard'].forEach((surface) => {
-                const snapshots = Array.isArray(record?.surfaces?.[surface]) ? record.surfaces[surface] : [];
-                surfaces[surface] = snapshots
-                    .filter((snapshot) => Date.parse(String(snapshot?.capturedAt || '')) >= Date.now() - (30 * 60 * 1000))
-                    .slice(-3)
-                    .map((snapshot) => ({
-                    schemaVersion: 1,
-                    surface,
-                    variant: normalizeEnum(snapshot?.variant, ['default', 'docker', 'vm', 'folderview', 'host', 'command'], 'default'),
-                    trigger: normalizeEnum(snapshot?.trigger, ['manual', 'visual-capture', 'runtime-error', 'support-request'], 'manual'),
-                    capturedAt: normalizeIsoTimestamp(snapshot?.capturedAt),
-                    viewport: {
-                        class: normalizeEnum(snapshot?.viewport?.class, ['phone', 'tablet', 'desktop'], 'desktop'),
-                        widthBucket: normalizeEnum(snapshot?.viewport?.widthBucket, ['0-600', '601-1024', '1025-1440', '1441-1920', '1921+'], '0-600'),
-                        heightBucket: normalizeEnum(snapshot?.viewport?.heightBucket, ['0-600', '601-1024', '1025-1440', '1441-1920', '1921+'], '0-600'),
-                        touchCapable: snapshot?.viewport?.touchCapable === true,
-                        reducedMotion: snapshot?.viewport?.reducedMotion === true
-                    },
-                    appearance: {
-                        darkScheme: snapshot?.appearance?.darkScheme === true,
-                        highContrast: snapshot?.appearance?.highContrast === true
-                    },
-                    state: Object.fromEntries(['visibleRows', 'folderRows', 'expandedFolders', 'visibleMembers', 'loadingIndicators', 'spinningControls', 'errorIndicators'].map((key) => [key, Math.min(10000, Math.max(0, Number(snapshot?.state?.[key]) || 0))]).concat([['horizontalOverflow', snapshot?.state?.horizontalOverflow === true]]))
-                    }));
-            });
+            const runtimeDiagnostics = deps.runtimePageDiagnostics || root?.FolderViewPlusFoundationModules?.runtimePageDiagnostics;
+            const normalized = runtimeDiagnostics?.normalizeRecord?.(record) || { schemaVersion: 1, expiresAfterMs: 0, maxCapturesPerSurface: 0, surfaces: { docker: [], vm: [], dashboard: [] } };
+            const surfaces = normalized.surfaces;
             const count = Object.values(surfaces).reduce((total, entries) => total + entries.length, 0);
             return sanitizeUiRecord(uiRedactor, 'uiTelemetry.runtimePageDiagnostics', 'runtimePageDiagnostics', {
                 available: count > 0,
-                schemaVersion: 1,
-                expiresAfterMs: 30 * 60 * 1000,
-                maxCapturesPerSurface: 3,
+                schemaVersion: normalized.schemaVersion,
+                expiresAfterMs: normalized.expiresAfterMs,
+                maxCapturesPerSurface: normalized.maxCapturesPerSurface,
                 count,
                 surfaces
             });

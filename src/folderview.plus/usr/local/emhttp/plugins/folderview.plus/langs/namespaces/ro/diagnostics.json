@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Descărcarea a eșuat",
     "diagnostics.bootstrap.retrying": "Se încearcă din nou…",
     "diagnostics.bootstrap.retry-succeeded": "Încărcarea a fost reluată",
-    "diagnostics.bootstrap.retry-failed": "Reîncercarea a eșuat"
+    "diagnostics.bootstrap.retry-failed": "Reîncercarea a eșuat",
+    "diagnostics.capture.page-action": "Capturați diagnosticarea paginii"
 }

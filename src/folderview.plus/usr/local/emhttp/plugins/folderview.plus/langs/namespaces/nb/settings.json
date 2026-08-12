@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Maskenavn og ikoner",
     "settings.privacy.mask-lan-ips": "Maske LAN-IP-er",
     "settings.privacy.mask-ports": "Maskeporter",
-    "settings.privacy.lan-help": "LAN IP-maskering gjelder for IP-delen av Docker-sidens LAN IP:PORT-kolonne. Bruk maskeporter for portdelen."
+    "settings.privacy.lan-help": "LAN IP-maskering gjelder for IP-delen av Docker-sidens LAN IP:PORT-kolonne. Bruk maskeporter for portdelen.",
+    "settings.theme.profiles-help": "Bruk navngitte profiler og globale eller sidespesifikke lag. Endringer forhåndsvises før en atomlagring.",
+    "settings.theme.scope-all-pages": "Alle sider",
+    "settings.theme.new-profile-name": "Nytt profilnavn",
+    "settings.theme.new-profile-placeholder": "Eksempel: OLED mørk",
+    "settings.start-order.unmanaged": "La Unraid-ordren være uadministrert",
+    "settings.start-order.unmanaged-title": "Unraid eier denne ordren i uadministrert modus",
+    "settings.start-order.wait": "Vent",
+    "settings.start-order.enable-autostart-help": "Aktiver Docker autostart for en beholder for å inkludere den i sekvensen."
 }

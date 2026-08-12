@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.01">
-<!ENTITY md5 "03d5d75402ad7d2fe769db10510ce265">
-<!ENTITY sha256 "89803ec73f426b65172c40eaadce4aa94bd50f41ee1a201a86d2430c6112a9e5">
+<!ENTITY version "2026.08.12.02">
+<!ENTITY md5 "ea7c8bd40f593289ea58a412cbbe373d">
+<!ENTITY sha256 "f87ce77ad94ca0c320b74ce37ddfad46d1c3b956accaab260fa5b52c0b83696c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,22 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.12.02
+- Feature: Added explicit Docker start-order ownership modes so Unraid order can remain unmanaged, follow the Docker page, or use custom startup batches.
+- Feature: Added Docker autostart sequence controls with ordered batches, per-item waits, remaining-container policy, preview, and guarded persistence.
+- Feature: Replaced the single Theme Workspace customization model with named appearance profiles, global and Docker, VM, or Dashboard layers, inactive imports, and scoped preview controls.
+- Feature: Added atomic appearance-profile create, rename, activate, layer-save, bulk-update, GitHub-import, and delete actions with readback-safe normalization.
+- Feature: Added reusable, preview-first folder rule templates for common Docker name, image, Compose project, and label patterns while preserving manual membership.
+- Feature: Added a privacy-safe runtime diagnostics model shared by Docker, VM, and Dashboard, including bounded page captures and sanitized support-bundle summaries.
+- Feature: Added read-only FolderView3 installed-config discovery and export preview with compatible folder, rule, defaults, start-order, and inactive appearance-profile conversion.
+- Feature: Added confirmed FolderView3 migration apply with source-digest freshness checks; native Docker autostart replacement remains explicitly opt-in.
+- Security: FolderView3 custom CSS is bounded and scanned before conversion, preview reports exclude raw target configuration, and migration endpoints use the standard mutation guard.
+- Reliability: Environment imports and FolderView3 migrations now run under one configuration lock with global and per-type safety backups, exact file snapshots, readback verification, and automatic rollback of folders, preferences, metadata, theme assets, and Docker autostart state.
+- Quality: Split start-order, rule-template, theme-profile, page-diagnostics, FolderView3 preview, FolderView3 apply, and environment-transaction responsibilities into enforceable browser and PHP module boundaries.
+- Quality: Expanded generated localization catalogs across all 27 shipped locales for the new workspaces, previews, warnings, and migration states.
+- Test: Added regression coverage for start-order modeling, autostart workspace behavior, rule conversion/templates, theme profiles/actions, runtime diagnostics, FolderView3 conversion, mutation confirmation, digest validation, failure injection, and full transaction rollback.
+
 
 ###2026.08.12.01
 - Maintenance: Synchronized stable source and workflow fixes from main back into dev.

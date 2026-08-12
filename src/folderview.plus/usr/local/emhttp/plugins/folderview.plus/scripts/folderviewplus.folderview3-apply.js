@@ -13,6 +13,7 @@
         }
         const escapeHtml = options.escapeHtml;
         const formatTimestamp = options.formatTimestamp;
+        const translate = options.translate || ((key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
         const summary = report.summary;
         const selected = report.operations.filter((entry) => entry.selected);
         const unselected = report.operations.filter((entry) => !entry.selected);
@@ -28,7 +29,7 @@
         const nativeOptionHtml = summary.nativeAutostartCount > 0 ? `
             <label class="fv-recovery-callout is-warning">
                 <input type="checkbox" data-fv-folderview3-native-autostart>
-                <span><strong>Also replace native Docker autostart entries and waits</strong><br>This host-level operation is optional and participates in automatic rollback.</span>
+                <span><strong>${escapeHtml(translate('import.folderview3.native-autostart', 'Also replace native Docker autostart entries and waits'))}</strong><br>${escapeHtml(translate('import.folderview3.native-autostart-help', 'This host-level operation is optional and participates in automatic rollback.'))}</span>
             </label>
         ` : '';
         const applyHtml = options.migrationResult ? '' : `
@@ -39,7 +40,7 @@
             <article class="fv-recovery-history-card fv-recovery-environment-card">
                 <div class="fv-recovery-history-head">
                     <div>
-                        <div class="fv-recovery-history-title">FolderView3 migration preview</div>
+                        <div class="fv-recovery-history-title">${escapeHtml(translate('import.folderview3.preview-title', 'FolderView3 migration preview'))}</div>
                         <div class="fv-recovery-history-copy">${escapeHtml(report.source.sourceName || (report.source.kind === 'installed' ? 'Installed FolderView3 configuration' : 'FolderView3 export'))}</div>
                     </div>
                     <span class="fv-recovery-history-badge">${escapeHtml(options.migrationResult ? 'Applied and verified' : 'No changes made')}</span>
@@ -66,11 +67,9 @@
             </article>
         `;
     };
-
-    const loadingHtml = (applying) => applying
-        ? '<div class="fv-recovery-empty-state"><strong>Applying FolderView3 migration...</strong><span>Keep this page open while configuration is written, verified, or automatically restored.</span></div>'
-        : '<div class="fv-recovery-empty-state"><strong>Inspecting FolderView3 configuration...</strong><span>This read-only preview may take a moment when custom styles are present.</span></div>';
-
+    const loadingHtml = (applying, translate = (key, fallback) => fallback || key) => applying
+        ? `<div class="fv-recovery-empty-state"><strong>${translate('import.folderview3.applying', 'Applying FolderView3 migration...')}</strong><span>${translate('import.folderview3.applying-help', 'Keep this page open while configuration is written, verified, or automatically restored.')}</span></div>`
+        : `<div class="fv-recovery-empty-state"><strong>${translate('import.folderview3.inspecting', 'Inspecting FolderView3 configuration...')}</strong><span>${translate('import.folderview3.inspecting-help', 'This read-only preview may take a moment when custom styles are present.')}</span></div>`;
     const runApply = async (options = {}) => {
         const report = options.report;
         const source = options.selectedSource;
@@ -78,8 +77,9 @@
             return null;
         }
         const includeNative = options.includeNativeAutostart === true;
-        const nativeWarning = includeNative ? ' Native Docker autostart enablement and waits will also be replaced.' : '';
-        const message = `Replace current FolderView Plus Docker folders, VM folders, compatible settings, start-order ownership, and Theme Workspace profile data? A rollback checkpoint and per-type backups will be created first.${nativeWarning}`;
+        const translate = options.translate || ((key, fallback) => fallback || key);
+        const nativeWarning = includeNative ? translate('import.folderview3.confirm-native-suffix', ' Native Docker autostart enablement and waits will also be replaced.') : '';
+        const message = `${translate('import.folderview3.confirm-apply', 'Replace current FolderView Plus Docker folders, VM folders, compatible settings, start-order ownership, and Theme Workspace profile data? A rollback checkpoint and per-type backups will be created first.')}${nativeWarning}`;
         if (typeof options.confirm !== 'function' || !options.confirm(message)) {
             return null;
         }

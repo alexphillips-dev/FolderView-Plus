@@ -911,7 +911,7 @@
       "globalMember": "runtimePageDiagnostics",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["SCHEMA_VERSION", "STORAGE_KEY", "MAX_CAPTURES_PER_SURFACE", "TTL_MS", "SURFACES", "normalizeSnapshot", "readRecord", "buildSnapshot", "capture", "captureAndAnnounce", "createController"],
+      "exports": ["SCHEMA_VERSION", "STORAGE_KEY", "MAX_CAPTURES_PER_SURFACE", "TTL_MS", "SURFACES", "normalizeSnapshot", "normalizeRecord", "readRecord", "buildSnapshot", "capture", "captureAndAnnounce", "createController"],
       "apiFactory": "createController",
       "apiExports": ["capture", "read"]
     },

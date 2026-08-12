@@ -12,7 +12,7 @@ settingsRuntimePerformanceTelemetry?.begin?.('settingsBootstrap');
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
-const themeResolver = window.FolderViewPlusThemeResolver || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null, translateSettingsText = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
 const compareLocalizedText = (left, right, options = {}) => (
     window.FolderViewPlusI18n?.compare?.(left, right, options)
     ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
@@ -8652,7 +8652,7 @@ const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
         <label class="setting-select">
             <span>Start order mode</span>
             <select id="docker-start-order-mode" data-fv-onchange="updateDockerStartOrderMode(this.value)">
-                <option value="unmanaged" ${plan.mode === 'unmanaged' ? 'selected' : ''}>Leave Unraid order unmanaged</option>
+                <option value="unmanaged" ${plan.mode === 'unmanaged' ? 'selected' : ''}>${translateSettingsText('settings.start-order.unmanaged', 'Leave Unraid order unmanaged')}</option>
                 <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
                 <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
             </select>
@@ -8679,7 +8679,7 @@ const buildDockerStartOrderToolbarHtml = (customVisible) => `
     <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
         ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" data-fv-onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
         <button type="button" data-fv-onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-        <button type="button" data-fv-onclick="syncDockerStartOrderNow()" ${normalizeDockerStartOrderPrefsForUi().mode === 'unmanaged' ? 'disabled title="Unraid owns this order in unmanaged mode"' : ''}><i class="fa fa-refresh"></i> Sync now</button>
+        <button type="button" data-fv-onclick="syncDockerStartOrderNow()" ${normalizeDockerStartOrderPrefsForUi().mode === 'unmanaged' ? `disabled title="${escapeHtml(translateSettingsText('settings.start-order.unmanaged-title', 'Unraid owns this order in unmanaged mode'))}"` : ''}><i class="fa fa-refresh"></i> Sync now</button>
     </div>
 `;
 

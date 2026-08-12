@@ -14,5 +14,18 @@
     "editor.members.auto-included": "通過正規表示式或標籤自動包含",
     "editor.members.drag-reorder": "拖曳以重新排序",
     "editor.members.move-up": "向上移動",
-    "editor.members.move-down": "下移"
+    "editor.members.move-down": "下移",
+    "editor.rules.templates.title": "規則模板",
+    "editor.rules.templates.help": "建立相容的規則，預覽其當前效果，或新增一個最終的包羅永珍的規則。手動資料夾成員永遠不會更改。",
+    "editor.rules.templates.template-label": "範本",
+    "editor.rules.templates.name-prefix": "名稱開頭為",
+    "editor.rules.templates.name-prefix-placeholder": "字首（例如：media-）",
+    "editor.rules.templates.name-contains": "名稱包含",
+    "editor.rules.templates.name-contains-placeholder": "名稱中的文字（範例：arr）",
+    "editor.rules.templates.image-repository": "影像儲存庫包含",
+    "editor.rules.templates.image-repository-placeholder": "儲存庫（範例：linuxserver/）",
+    "editor.rules.templates.compose-project": "撰寫專案等於",
+    "editor.rules.templates.compose-project-placeholder": "專案名稱（例如：媒體）",
+    "editor.rules.templates.label-equals": "Docker 標籤等於",
+    "editor.rules.templates.label-equals-placeholder": "標籤鍵=值"
 }

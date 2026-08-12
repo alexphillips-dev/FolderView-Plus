@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Stahování se nezdařilo",
     "diagnostics.bootstrap.retrying": "Probíhá další pokus…",
     "diagnostics.bootstrap.retry-succeeded": "Načítání pokračuje",
-    "diagnostics.bootstrap.retry-failed": "Další pokus se nezdařil"
+    "diagnostics.bootstrap.retry-failed": "Další pokus se nezdařil",
+    "diagnostics.capture.page-action": "Diagnostika snímací stránky"
 }

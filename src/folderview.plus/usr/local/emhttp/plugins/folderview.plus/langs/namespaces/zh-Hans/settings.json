@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "隐藏名称和图标",
     "settings.privacy.mask-lan-ips": "隐藏 LAN IPs",
     "settings.privacy.mask-ports": "屏蔽端口",
-    "settings.privacy.lan-help": "LAN IP 屏蔽适用于Docker页面的LANIP:PORT列的IP部分。端口部分使用屏蔽端口。"
+    "settings.privacy.lan-help": "LAN IP 屏蔽适用于Docker页面的LANIP:PORT列的IP部分。端口部分使用屏蔽端口。",
+    "settings.theme.profiles-help": "使用命名配置文件和全局或特定于页面的层。在原子保存之前预览更改。",
+    "settings.theme.scope-all-pages": "所有页面",
+    "settings.theme.new-profile-name": "新的个人资料名称",
+    "settings.theme.new-profile-placeholder": "示例：OLED 深色",
+    "settings.start-order.unmanaged": "让 Unraid 订单不受管理",
+    "settings.start-order.unmanaged-title": "Unraid 在非托管模式下拥有此订单",
+    "settings.start-order.wait": "等等",
+    "settings.start-order.enable-autostart-help": "为容器启用 Docker 自动启动以将其包含在序列中。"
 }

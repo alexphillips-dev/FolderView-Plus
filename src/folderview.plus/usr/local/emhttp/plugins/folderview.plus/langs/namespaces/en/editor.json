@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Auto-included by regex or label",
     "editor.members.drag-reorder": "Drag to reorder",
     "editor.members.move-up": "Move up",
-    "editor.members.move-down": "Move down"
+    "editor.members.move-down": "Move down",
+    "editor.rules.templates.title": "Rule templates",
+    "editor.rules.templates.help": "Build a compatible rule, preview its current effect, or add one final catch-all. Manual folder members are never changed.",
+    "editor.rules.templates.template-label": "Template",
+    "editor.rules.templates.name-prefix": "Name starts with",
+    "editor.rules.templates.name-prefix-placeholder": "Prefix (example: media-)",
+    "editor.rules.templates.name-contains": "Name contains",
+    "editor.rules.templates.name-contains-placeholder": "Text in the name (example: arr)",
+    "editor.rules.templates.image-repository": "Image repository contains",
+    "editor.rules.templates.image-repository-placeholder": "Repository (example: linuxserver/)",
+    "editor.rules.templates.compose-project": "Compose project equals",
+    "editor.rules.templates.compose-project-placeholder": "Project name (example: media)",
+    "editor.rules.templates.label-equals": "Docker label equals",
+    "editor.rules.templates.label-equals-placeholder": "Label key=value"
 }

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Inclus automatiquement par regex ou étiquette",
     "editor.members.drag-reorder": "Glisser pour réorganiser",
     "editor.members.move-up": "Monter",
-    "editor.members.move-down": "Descendre"
+    "editor.members.move-down": "Descendre",
+    "editor.rules.templates.title": "Modèles de règles",
+    "editor.rules.templates.help": "Créez une règle compatible, prévisualisez son effet actuel ou ajoutez un dernier fourre-tout. Les membres de dossiers manuels ne sont jamais modifiés.",
+    "editor.rules.templates.template-label": "Modèle",
+    "editor.rules.templates.name-prefix": "Le nom commence par",
+    "editor.rules.templates.name-prefix-placeholder": "Préfixe (exemple : media-)",
+    "editor.rules.templates.name-contains": "Le nom contient",
+    "editor.rules.templates.name-contains-placeholder": "Texte dans le nom (exemple : arr)",
+    "editor.rules.templates.image-repository": "Le référentiel d'images contient",
+    "editor.rules.templates.image-repository-placeholder": "Dépôt (exemple : linuxserver/)",
+    "editor.rules.templates.compose-project": "Composer un projet est égal à",
+    "editor.rules.templates.compose-project-placeholder": "Nom du projet (exemple : média)",
+    "editor.rules.templates.label-equals": "L'étiquette Docker est égale à",
+    "editor.rules.templates.label-equals-placeholder": "Clé d'étiquette = valeur"
 }

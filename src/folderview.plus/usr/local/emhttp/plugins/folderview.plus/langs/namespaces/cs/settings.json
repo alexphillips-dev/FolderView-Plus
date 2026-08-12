@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Jména a ikony masek",
     "settings.privacy.mask-lan-ips": "Maska LAN IPs",
     "settings.privacy.mask-ports": "Porty masky",
-    "settings.privacy.lan-help": "Maskování LAN IP se vztahuje na část IP na stránce Docker ve sloupci LAN IP:PORT. Pro část portu použijte masky portů."
+    "settings.privacy.lan-help": "Maskování LAN IP se vztahuje na část IP na stránce Docker ve sloupci LAN IP:PORT. Pro část portu použijte masky portů.",
+    "settings.theme.profiles-help": "Použijte pojmenované profily a globální vrstvy nebo vrstvy specifické pro stránku. Před atomickým uložením se zobrazí náhled změn.",
+    "settings.theme.scope-all-pages": "Všechny stránky",
+    "settings.theme.new-profile-name": "Nový název profilu",
+    "settings.theme.new-profile-placeholder": "Příklad: OLED tmavý",
+    "settings.start-order.unmanaged": "Nechte rozkaz Unraid nespravovaný",
+    "settings.start-order.unmanaged-title": "Unraid vlastní tuto objednávku v nespravovaném režimu",
+    "settings.start-order.wait": "Počkejte",
+    "settings.start-order.enable-autostart-help": "Povolte automatické spuštění Dockeru pro kontejner, aby byl zahrnut do sekvence."
 }

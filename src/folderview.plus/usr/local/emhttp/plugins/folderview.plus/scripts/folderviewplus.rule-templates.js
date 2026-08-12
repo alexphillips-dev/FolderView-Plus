@@ -10,43 +10,42 @@
 
     const TEMPLATE_DEFINITIONS = Object.freeze({
         'name-prefix': Object.freeze({
-            label: 'Name starts with',
+            labelKey: 'editor.rules.templates.name-prefix', labelFallback: 'Name starts with',
             types: Object.freeze(['docker', 'vm']),
             kind: 'name_regex',
-            placeholder: 'Prefix (example: media-)',
+            placeholderKey: 'editor.rules.templates.name-prefix-placeholder', placeholderFallback: 'Prefix (example: media-)',
             patternMode: 'prefix'
         }),
         'name-contains': Object.freeze({
-            label: 'Name contains',
+            labelKey: 'editor.rules.templates.name-contains', labelFallback: 'Name contains',
             types: Object.freeze(['docker', 'vm']),
             kind: 'name_regex',
-            placeholder: 'Text in the name (example: arr)',
+            placeholderKey: 'editor.rules.templates.name-contains-placeholder', placeholderFallback: 'Text in the name (example: arr)',
             patternMode: 'contains'
         }),
         'image-repository': Object.freeze({
-            label: 'Image repository contains',
+            labelKey: 'editor.rules.templates.image-repository', labelFallback: 'Image repository contains',
             types: Object.freeze(['docker']),
             kind: 'image_regex',
-            placeholder: 'Repository (example: linuxserver/)',
+            placeholderKey: 'editor.rules.templates.image-repository-placeholder', placeholderFallback: 'Repository (example: linuxserver/)',
             patternMode: 'contains'
         }),
         'compose-project': Object.freeze({
-            label: 'Compose project equals',
+            labelKey: 'editor.rules.templates.compose-project', labelFallback: 'Compose project equals',
             types: Object.freeze(['docker']),
             kind: 'compose_project_regex',
-            placeholder: 'Project name (example: media)',
+            placeholderKey: 'editor.rules.templates.compose-project-placeholder', placeholderFallback: 'Project name (example: media)',
             patternMode: 'exact'
         }),
         'label-equals': Object.freeze({
-            label: 'Docker label equals',
+            labelKey: 'editor.rules.templates.label-equals', labelFallback: 'Docker label equals',
             types: Object.freeze(['docker']),
             kind: 'label',
-            placeholder: 'Label key=value',
+            placeholderKey: 'editor.rules.templates.label-equals-placeholder', placeholderFallback: 'Label key=value',
             patternMode: 'label'
         })
     });
-
-    const normalizeType = (type) => type === 'vm' ? 'vm' : 'docker';
+    const normalizeType = (type) => type === 'vm' ? 'vm' : 'docker', translate = (key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
     const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const createRuleId = (prefix = 'template-rule') => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 
@@ -54,7 +53,8 @@
         const normalizedType = normalizeType(type);
         return Object.entries(TEMPLATE_DEFINITIONS)
             .filter(([, definition]) => definition.types.includes(normalizedType))
-            .map(([id, definition]) => Object.freeze({ id, ...definition }));
+            .map(([id, definition]) => Object.freeze({ id, ...definition,
+                label: translate(definition.labelKey, definition.labelFallback), placeholder: translate(definition.placeholderKey, definition.placeholderFallback) }));
     };
 
     const parseLabelValue = (value) => {

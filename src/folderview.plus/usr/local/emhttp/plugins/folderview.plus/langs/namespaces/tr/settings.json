@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "İsimleri ve simgeleri gizle",
     "settings.privacy.mask-lan-ips": "LAN IPs gizle",
     "settings.privacy.mask-ports": "Portları maskele",
-    "settings.privacy.lan-help": "LAN IP maskelenmesi, Docker sayfasının LAN IP:PORT sütununun IP kısmına uygulanır. Port kısmı için Portları maskelemeyi kullanın."
+    "settings.privacy.lan-help": "LAN IP maskelenmesi, Docker sayfasının LAN IP:PORT sütununun IP kısmına uygulanır. Port kısmı için Portları maskelemeyi kullanın.",
+    "settings.theme.profiles-help": "Adlandırılmış profilleri ve genel veya sayfaya özgü katmanları kullanın. Değişiklikler atomik kaydetmeden önce önizlenir.",
+    "settings.theme.scope-all-pages": "Tüm sayfalar",
+    "settings.theme.new-profile-name": "Yeni profil adı",
+    "settings.theme.new-profile-placeholder": "Örnek: OLED koyu",
+    "settings.start-order.unmanaged": "Unraid siparişini yönetilmeden bırakın",
+    "settings.start-order.unmanaged-title": "Unraid, yönetilmeyen modda bu siparişin sahibidir",
+    "settings.start-order.wait": "Bekle",
+    "settings.start-order.enable-autostart-help": "Bir kapsayıcının diziye dahil edilmesi için Docker otomatik başlatmasını etkinleştirin."
 }

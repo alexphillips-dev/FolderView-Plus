@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Maschează numele și pictogramele",
     "settings.privacy.mask-lan-ips": "Maschează LAN IPs",
     "settings.privacy.mask-ports": "Porturi de mască",
-    "settings.privacy.lan-help": "LAN IP mascarea se aplică porțiunii IP din coloana LAN IP:PORT a paginii Docker. Folosiți Porturi de mască pentru porțiunea de port."
+    "settings.privacy.lan-help": "LAN IP mascarea se aplică porțiunii IP din coloana LAN IP:PORT a paginii Docker. Folosiți Porturi de mască pentru porțiunea de port.",
+    "settings.theme.profiles-help": "Utilizați profiluri denumite și straturi globale sau specifice paginii. Modificările sunt previzualizate înainte de o salvare atomică.",
+    "settings.theme.scope-all-pages": "Toate paginile",
+    "settings.theme.new-profile-name": "Nume de profil nou",
+    "settings.theme.new-profile-placeholder": "Exemplu: OLED întunecat",
+    "settings.start-order.unmanaged": "Lăsați comanda Unraid negestionată",
+    "settings.start-order.unmanaged-title": "Unraid deține această comandă în modul negestionat",
+    "settings.start-order.wait": "Așteaptă",
+    "settings.start-order.enable-autostart-help": "Activați pornirea automată Docker pentru un container pentru a-l include în secvență."
 }

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatycznie uwzględnione przez regex lub etykietę",
     "editor.members.drag-reorder": "Przeciągnij, aby zmienić kolejność",
     "editor.members.move-up": "Przenieś w górę",
-    "editor.members.move-down": "Przenieś w dół"
+    "editor.members.move-down": "Przenieś w dół",
+    "editor.rules.templates.title": "Szablony reguł",
+    "editor.rules.templates.help": "Stwórz zgodną regułę, wyświetl podgląd jej bieżącego efektu lub dodaj jedną ostateczną regułę typu catch-all. Ręczne elementy folderów nigdy nie są zmieniane.",
+    "editor.rules.templates.template-label": "Szablon",
+    "editor.rules.templates.name-prefix": "Nazwa zaczyna się od",
+    "editor.rules.templates.name-prefix-placeholder": "Prefiks (przykład: media-)",
+    "editor.rules.templates.name-contains": "Nazwa zawiera",
+    "editor.rules.templates.name-contains-placeholder": "Tekst w nazwie (przykład: arr)",
+    "editor.rules.templates.image-repository": "Repozytorium obrazów zawiera",
+    "editor.rules.templates.image-repository-placeholder": "Repozytorium (przykład: linuxserver/)",
+    "editor.rules.templates.compose-project": "Stworzenie projektu równa się",
+    "editor.rules.templates.compose-project-placeholder": "Nazwa projektu (przykład: media)",
+    "editor.rules.templates.label-equals": "Etykieta okna dokowanego równa się",
+    "editor.rules.templates.label-equals-placeholder": "Klucz etykiety=wartość"
 }

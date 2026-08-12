@@ -57,6 +57,7 @@
         const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : (async () => ({}));
         const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : (async () => ({}));
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
+        const translate = deps.translate || ((key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
 
         let workspace = normalizeWorkspace({});
         let pendingScan = null;
@@ -146,7 +147,7 @@
             if (!documentRef) return;
             const toolbar = documentRef.getElementById('fv-theme-profile-toolbar');
             if (toolbar && !documentRef.getElementById('fv-theme-profile-select')) {
-                toolbar.innerHTML = '<label><span>Profile</span><select id="fv-theme-profile-select"></select></label><label><span>Scope</span><select id="fv-theme-profile-scope"><option value="global">All pages</option><option value="docker">Docker</option><option value="vm">VMs</option><option value="dashboard">Dashboard</option></select></label><label><span>New profile name</span><input id="fv-theme-profile-name" type="text" maxlength="96" placeholder="Example: OLED dark"></label><button id="fv-theme-profile-create" type="button"><i class="fa fa-plus"></i> Add profile</button><button id="fv-theme-profile-delete" type="button"><i class="fa fa-trash"></i> Delete profile</button><span id="fv-theme-profile-plan" class="rules-help" aria-live="polite"></span>';
+                toolbar.innerHTML = `<label><span>Profile</span><select id="fv-theme-profile-select"></select></label><label><span>Scope</span><select id="fv-theme-profile-scope"><option value="global">${escapeHtml(translate('settings.theme.scope-all-pages', 'All pages'))}</option><option value="docker">Docker</option><option value="vm">VMs</option><option value="dashboard">Dashboard</option></select></label><label><span>${escapeHtml(translate('settings.theme.new-profile-name', 'New profile name'))}</span><input id="fv-theme-profile-name" type="text" maxlength="96" placeholder="${escapeHtml(translate('settings.theme.new-profile-placeholder', 'Example: OLED dark'))}"></label><button id="fv-theme-profile-create" type="button"><i class="fa fa-plus"></i> Add profile</button><button id="fv-theme-profile-delete" type="button"><i class="fa fa-trash"></i> Delete profile</button><span id="fv-theme-profile-plan" class="rules-help" aria-live="polite"></span>`;
             }
             const profileSelect = documentRef.getElementById('fv-theme-profile-select');
             const scopeSelect = documentRef.getElementById('fv-theme-profile-scope');

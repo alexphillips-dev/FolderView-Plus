@@ -63,6 +63,7 @@
             }
         });
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
+        const translate = deps.translate || ((key, fallback, ...params) => windowRef?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key);
         const formatTimestamp = typeof deps.formatTimestamp === 'function' ? deps.formatTimestamp : ((value) => {
             const parsed = Date.parse(String(value || ''));
             return Number.isFinite(parsed) ? new Date(parsed).toLocaleString() : String(value || '');
@@ -131,8 +132,8 @@
 
         const emptyHtml = () => `
             <div class="fv-recovery-empty-state">
-                <strong>FolderView3 migration is read-only until you approve an apply plan.</strong>
-                <span>Detect an installed FolderView3 configuration or preview a FolderView3 export. Previewing never writes plugin or Unraid configuration.</span>
+                <strong>${escapeHtml(translate('import.folderview3.read-only-title', 'FolderView3 migration is read-only until you approve an apply plan.'))}</strong>
+                <span>${escapeHtml(translate('import.folderview3.read-only-preview-help', 'Detect an installed FolderView3 configuration or preview a FolderView3 export. Previewing never writes plugin or Unraid configuration.'))}</span>
             </div>
         `;
 
@@ -143,8 +144,8 @@
             if (!detection.available) {
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>No installed FolderView3 configuration detected.</strong>
-                        <span>You can still preview a FolderView3 full-export JSON from another server.</span>
+                        <strong>${escapeHtml(translate('import.folderview3.not-detected', 'No installed FolderView3 configuration detected.'))}</strong>
+                        <span>${escapeHtml(translate('import.folderview3.preview-export-help', 'You can still preview a FolderView3 full-export JSON from another server.'))}</span>
                     </div>
                 `;
             }
@@ -155,10 +156,10 @@
                 <article class="fv-recovery-history-card fv-recovery-environment-card">
                     <div class="fv-recovery-history-head">
                         <div>
-                            <div class="fv-recovery-history-title">FolderView3 detected</div>
+                            <div class="fv-recovery-history-title">${escapeHtml(translate('import.folderview3.detected', 'FolderView3 detected'))}</div>
                             <div class="fv-recovery-history-copy">Version ${escapeHtml(detection.pluginVersion || 'unknown')} with ${escapeHtml(String(detection.componentCount))} readable component${detection.componentCount === 1 ? '' : 's'}.</div>
                         </div>
-                        <span class="fv-recovery-history-badge">Read only</span>
+                        <span class="fv-recovery-history-badge">${escapeHtml(translate('import.folderview3.read-only-badge', 'Read only'))}</span>
                     </div>
                     <div class="fv-recovery-history-meta">
                         <span>${escapeHtml(`Docker ${detection.dockerFolderCount} folders`)}</span>
@@ -172,7 +173,7 @@
         };
 
         const buildReportHtml = () => {
-            return applyModule?.buildReportHtml?.({ report, migrationResult, escapeHtml, formatTimestamp, fallbackHtml: buildDetectionHtml }) || buildDetectionHtml();
+            return applyModule?.buildReportHtml?.({ report, migrationResult, escapeHtml, formatTimestamp, translate, fallbackHtml: buildDetectionHtml }) || buildDetectionHtml();
         };
 
         const render = () => {
@@ -181,7 +182,7 @@
                 return;
             }
             host.innerHTML = mode === 'loading' || mode === 'applying'
-                ? applyModule.loadingHtml(mode === 'applying')
+                ? applyModule.loadingHtml(mode === 'applying', translate)
                 : buildReportHtml();
         };
 
@@ -223,8 +224,8 @@
                 mode = 'preview';
                 render();
                 showToastMessage({
-                    title: 'FolderView3 preview ready',
-                    message: 'Migration report created without changing configuration.',
+                    title: translate('import.folderview3.preview-ready', 'FolderView3 preview ready'),
+                    message: translate('import.folderview3.preview-created', 'Migration report created without changing configuration.'),
                     level: 'success',
                     durationMs: 3600
                 });
@@ -270,15 +271,15 @@
             mode = 'applying';
             render();
             try {
-                const response = await applyModule.runApply({ report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef), postJson: apiPostJson });
+                const response = await applyModule.runApply({ report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef), postJson: apiPostJson, translate });
                 if (!response) { mode = 'preview'; render(); return null; }
                 migrationResult = response?.migration || null;
                 report = normalizeReport(migrationResult?.report || report);
                 mode = 'applied';
                 render();
                 showToastMessage({
-                    title: 'FolderView3 migration applied',
-                    message: 'The migration was verified and rollback checkpoints are available in Recovery.',
+                    title: translate('import.folderview3.applied', 'FolderView3 migration applied'),
+                    message: translate('import.folderview3.applied-help', 'The migration was verified and rollback checkpoints are available in Recovery.'),
                     level: 'success',
                     durationMs: 5200
                 });

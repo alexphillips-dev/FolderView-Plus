@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Maschera nomi e icone",
     "settings.privacy.mask-lan-ips": "Maschera LAN IPs",
     "settings.privacy.mask-ports": "Maschera porte",
-    "settings.privacy.lan-help": "LAN IP la mascheratura si applica alla IP parte della colonna LAN IP della pagina Docker:PORT. Usa Maschera porte per la parte della porta."
+    "settings.privacy.lan-help": "LAN IP la mascheratura si applica alla IP parte della colonna LAN IP della pagina Docker:PORT. Usa Maschera porte per la parte della porta.",
+    "settings.theme.profiles-help": "Utilizza profili con nome e livelli globali o specifici della pagina. Le modifiche vengono visualizzate in anteprima prima di un salvataggio atomico.",
+    "settings.theme.scope-all-pages": "Tutte le pagine",
+    "settings.theme.new-profile-name": "Nuovo nome del profilo",
+    "settings.theme.new-profile-placeholder": "Esempio: OLED scuro",
+    "settings.start-order.unmanaged": "Lascia l'ordine Unraid non gestito",
+    "settings.start-order.unmanaged-title": "Unraid possiede questo ordine in modalità non gestita",
+    "settings.start-order.wait": "Aspetta",
+    "settings.start-order.enable-autostart-help": "Abilita l'avvio automatico di Docker per un contenitore per includerlo nella sequenza."
 }

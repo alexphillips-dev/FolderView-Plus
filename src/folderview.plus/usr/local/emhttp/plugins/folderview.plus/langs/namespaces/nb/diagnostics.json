@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Nedlasting mislyktes",
     "diagnostics.bootstrap.retrying": "Prøver på nytt…",
     "diagnostics.bootstrap.retry-succeeded": "Innlasting gjenopptatt",
-    "diagnostics.bootstrap.retry-failed": "Nytt forsøk mislyktes"
+    "diagnostics.bootstrap.retry-failed": "Nytt forsøk mislyktes",
+    "diagnostics.capture.page-action": "Registreringssidediagnostikk"
 }

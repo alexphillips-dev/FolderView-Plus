@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Masku nosaukumi un ikonas",
     "settings.privacy.mask-lan-ips": "Maskējiet LAN IP",
     "settings.privacy.mask-ports": "Masku porti",
-    "settings.privacy.lan-help": "LAN IP maskēšana attiecas uz Docker lapas kolonnas LAN IP:PORT IP daļu. Portas daļai izmantojiet maskas portus."
+    "settings.privacy.lan-help": "LAN IP maskēšana attiecas uz Docker lapas kolonnas LAN IP:PORT IP daļu. Portas daļai izmantojiet maskas portus.",
+    "settings.theme.profiles-help": "Izmantojiet nosauktos profilus un globālos vai lapai raksturīgos slāņus. Izmaiņas tiek priekšskatītas pirms atomu saglabāšanas.",
+    "settings.theme.scope-all-pages": "Visas lapas",
+    "settings.theme.new-profile-name": "Jauns profila nosaukums",
+    "settings.theme.new-profile-placeholder": "Piemērs: OLED tumšs",
+    "settings.start-order.unmanaged": "Atstājiet Unraid pasūtījumu nepārvaldītu",
+    "settings.start-order.unmanaged-title": "Unraid pieder šis pasūtījums nepārvaldītā režīmā",
+    "settings.start-order.wait": "Pagaidiet",
+    "settings.start-order.enable-autostart-help": "Iespējojiet Docker automātisko palaišanu konteineram, lai to iekļautu secībā."
 }

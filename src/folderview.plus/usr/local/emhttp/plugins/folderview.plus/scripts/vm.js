@@ -4,7 +4,7 @@ const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
-const themeResolver = window.FolderViewPlusThemeResolver || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null, translateVmText = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
 const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
@@ -3113,7 +3113,7 @@ const addVMFolderContext = (id) => {
         action: (evt) => { evt.preventDefault(); editFolder(id); }
     });
     opts.push({
-        text: 'Capture page diagnostics',
+        text: translateVmText('diagnostics.capture.page-action', 'Capture page diagnostics'),
         icon: 'fa-camera',
         action: (evt) => { evt.preventDefault(); window.FolderViewPlusFoundationModules?.runtimePageDiagnostics?.captureAndAnnounce?.({ surface: 'vm', variant: 'default', trigger: 'manual', root: document.querySelector('#kvm_list, #vm_view') }); }
     });

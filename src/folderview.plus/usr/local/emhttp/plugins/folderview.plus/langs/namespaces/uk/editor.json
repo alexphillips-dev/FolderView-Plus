@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Автоматично включено regex або міткою",
     "editor.members.drag-reorder": "Перетягніть для зміни порядку",
     "editor.members.move-up": "Перемістити вгору",
-    "editor.members.move-down": "Перемістити вниз"
+    "editor.members.move-down": "Перемістити вниз",
+    "editor.rules.templates.title": "Шаблони правил",
+    "editor.rules.templates.help": "Створіть сумісне правило, попередньо перегляньте його поточний ефект або додайте останнє універсальне правило. Члени папки вручну ніколи не змінюються.",
+    "editor.rules.templates.template-label": "Шаблон",
+    "editor.rules.templates.name-prefix": "Назва починається з",
+    "editor.rules.templates.name-prefix-placeholder": "Префікс (приклад: media-)",
+    "editor.rules.templates.name-contains": "Назва містить",
+    "editor.rules.templates.name-contains-placeholder": "Текст у назві (приклад: arr)",
+    "editor.rules.templates.image-repository": "Репозиторій зображень містить",
+    "editor.rules.templates.image-repository-placeholder": "Репозиторій (приклад: linuxserver/)",
+    "editor.rules.templates.compose-project": "Скласти проект дорівнює",
+    "editor.rules.templates.compose-project-placeholder": "Назва проекту (приклад: ЗМІ)",
+    "editor.rules.templates.label-equals": "Мітка Docker дорівнює",
+    "editor.rules.templates.label-equals-placeholder": "Мітка ключ=значення"
 }

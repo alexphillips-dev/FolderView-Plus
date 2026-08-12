@@ -15,7 +15,7 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 279);
+    assert.equal(result.referenceCount, 280);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatski uključeno regularnim izrazom ili oznakom",
     "editor.members.drag-reorder": "Povucite za promjenu redoslijeda",
     "editor.members.move-up": "Pomakni se gore",
-    "editor.members.move-down": "Pomakni se dolje"
+    "editor.members.move-down": "Pomakni se dolje",
+    "editor.rules.templates.title": "Predlošci pravila",
+    "editor.rules.templates.help": "Izradite kompatibilno pravilo, pregledajte njegov trenutni učinak ili dodajte jedno konačno sveobuhvatno pravilo. Ručni članovi mape nikada se ne mijenjaju.",
+    "editor.rules.templates.template-label": "Predložak",
+    "editor.rules.templates.name-prefix": "Ime počinje sa",
+    "editor.rules.templates.name-prefix-placeholder": "Prefiks (primjer: media-)",
+    "editor.rules.templates.name-contains": "Ime sadrži",
+    "editor.rules.templates.name-contains-placeholder": "Tekst u nazivu (primjer: arr)",
+    "editor.rules.templates.image-repository": "Repozitorij slika sadrži",
+    "editor.rules.templates.image-repository-placeholder": "Repozitorij (primjer: linuxserver/)",
+    "editor.rules.templates.compose-project": "Sastavite projekt jednako",
+    "editor.rules.templates.compose-project-placeholder": "Naziv projekta (primjer: mediji)",
+    "editor.rules.templates.label-equals": "Docker oznaka je jednaka",
+    "editor.rules.templates.label-equals-placeholder": "Oznaka ključ=vrijednost"
 }

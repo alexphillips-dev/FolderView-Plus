@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "ডাউনলোড ব্যর্থ হয়েছে",
     "diagnostics.bootstrap.retrying": "আবার চেষ্টা করা হচ্ছে…",
     "diagnostics.bootstrap.retry-succeeded": "লোডিং আবার শুরু হয়েছে",
-    "diagnostics.bootstrap.retry-failed": "পুনরায় চেষ্টা ব্যর্থ হয়েছে"
+    "diagnostics.bootstrap.retry-failed": "পুনরায় চেষ্টা ব্যর্থ হয়েছে",
+    "diagnostics.capture.page-action": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন"
 }

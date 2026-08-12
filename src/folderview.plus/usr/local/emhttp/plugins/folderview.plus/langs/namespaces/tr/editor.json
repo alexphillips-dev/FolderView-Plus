@@ -14,5 +14,18 @@
     "editor.members.auto-included": "regex veya etiket tarafından otomatik dahil edilir",
     "editor.members.drag-reorder": "Yeniden sıralamak için sürükle",
     "editor.members.move-up": "Yukarı taşı",
-    "editor.members.move-down": "Aşağı taşı"
+    "editor.members.move-down": "Aşağı taşı",
+    "editor.rules.templates.title": "Kural şablonları",
+    "editor.rules.templates.help": "Uyumlu bir kural oluşturun, mevcut efektinin ön izlemesini yapın veya son bir hepsini kapsayan bir kural ekleyin. Manuel klasör üyeleri hiçbir zaman değiştirilmez.",
+    "editor.rules.templates.template-label": "Şablon",
+    "editor.rules.templates.name-prefix": "Adı şununla başlar:",
+    "editor.rules.templates.name-prefix-placeholder": "Önek (örnek: media-)",
+    "editor.rules.templates.name-contains": "Ad şunu içeriyor:",
+    "editor.rules.templates.name-contains-placeholder": "İsimdeki metin (örnek: arr)",
+    "editor.rules.templates.image-repository": "Resim deposu şunları içerir",
+    "editor.rules.templates.image-repository-placeholder": "Depo (örnek: linuxserver/)",
+    "editor.rules.templates.compose-project": "Proje eşittir oluştur",
+    "editor.rules.templates.compose-project-placeholder": "Proje adı (örnek: medya)",
+    "editor.rules.templates.label-equals": "Docker etiketi eşittir",
+    "editor.rules.templates.label-equals-placeholder": "Etiket anahtarı=değer"
 }

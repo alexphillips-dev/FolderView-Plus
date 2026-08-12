@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "名前とアイコンをマスク",
     "settings.privacy.mask-lan-ips": "LAN IPs をマスク",
     "settings.privacy.mask-ports": "ポートをマスクする",
-    "settings.privacy.lan-help": "LAN IP のマスキングは、Docker ページの LAN IP:PORT 列の IP 部分に適用されます。ポート部分には「ポートをマスク」を使用してください。"
+    "settings.privacy.lan-help": "LAN IP のマスキングは、Docker ページの LAN IP:PORT 列の IP 部分に適用されます。ポート部分には「ポートをマスク」を使用してください。",
+    "settings.theme.profiles-help": "名前付きプロファイルとグローバルまたはページ固有のレイヤーを使用します。変更はアトミック保存の前にプレビューされます。",
+    "settings.theme.scope-all-pages": "すべてのページ",
+    "settings.theme.new-profile-name": "新しいプロファイル名",
+    "settings.theme.new-profile-placeholder": "例: OLED が暗い",
+    "settings.start-order.unmanaged": "Unraid 注文を管理しないままにする",
+    "settings.start-order.unmanaged-title": "Unraid はこの注文を非管理モードで所有しています",
+    "settings.start-order.wait": "待ってください",
+    "settings.start-order.enable-autostart-help": "コンテナーをシーケンスに含めるには、コンテナーの Docker 自動起動を有効にします。"
 }

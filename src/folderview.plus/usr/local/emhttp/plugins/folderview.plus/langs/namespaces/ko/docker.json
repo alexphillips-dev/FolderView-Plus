@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "이미지 레지스트리 숨기기",
     "docker.privacy.mask-public-ips": "공개 IPs 숨기기",
     "docker.privacy.mask-network-interfaces": "네트워크 인터페이스 숨기기",
-    "docker.privacy.mask-external-urls": "외부 URL 가리기"
+    "docker.privacy.mask-external-urls": "외부 URL 가리기",
+    "docker.actions.capture-diagnostics": "캡처 페이지 진단"
 }

@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Приховати реєстри образів",
     "docker.privacy.mask-public-ips": "Приховати публічні IPs",
     "docker.privacy.mask-network-interfaces": "Приховати мережеві інтерфейси",
-    "docker.privacy.mask-external-urls": "Приховати зовнішні URL"
+    "docker.privacy.mask-external-urls": "Приховати зовнішні URL",
+    "docker.actions.capture-diagnostics": "Діагностика захоплення сторінки"
 }

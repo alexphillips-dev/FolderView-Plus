@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "ダウンロードに失敗しました",
     "diagnostics.bootstrap.retrying": "再試行しています…",
     "diagnostics.bootstrap.retry-succeeded": "読み込みを再開しました",
-    "diagnostics.bootstrap.retry-failed": "再試行に失敗しました"
+    "diagnostics.bootstrap.retry-failed": "再試行に失敗しました",
+    "diagnostics.capture.page-action": "ページ診断のキャプチャ"
 }

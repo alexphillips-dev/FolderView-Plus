@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "다운로드 실패",
     "diagnostics.bootstrap.retrying": "다시 시도하는 중…",
     "diagnostics.bootstrap.retry-succeeded": "불러오기가 재개됨",
-    "diagnostics.bootstrap.retry-failed": "다시 시도하지 못함"
+    "diagnostics.bootstrap.retry-failed": "다시 시도하지 못함",
+    "diagnostics.capture.page-action": "캡처 페이지 진단"
 }

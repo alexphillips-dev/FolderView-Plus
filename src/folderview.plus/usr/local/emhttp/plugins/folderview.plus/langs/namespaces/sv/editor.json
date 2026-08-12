@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatiskt inkluderad av regex eller etikett",
     "editor.members.drag-reorder": "Dra för att ändra ordning",
     "editor.members.move-up": "Flytta upp",
-    "editor.members.move-down": "Flytta ner"
+    "editor.members.move-down": "Flytta ner",
+    "editor.rules.templates.title": "Regelmallar",
+    "editor.rules.templates.help": "Bygg en kompatibel regel, förhandsgranska dess nuvarande effekt eller lägg till en sista catch-all. Manuella mappmedlemmar ändras aldrig.",
+    "editor.rules.templates.template-label": "Mall",
+    "editor.rules.templates.name-prefix": "Namnet börjar med",
+    "editor.rules.templates.name-prefix-placeholder": "Prefix (exempel: media-)",
+    "editor.rules.templates.name-contains": "Namn innehåller",
+    "editor.rules.templates.name-contains-placeholder": "Text i namnet (exempel: arr)",
+    "editor.rules.templates.image-repository": "Bildarkivet innehåller",
+    "editor.rules.templates.image-repository-placeholder": "Repository (exempel: linuxserver/)",
+    "editor.rules.templates.compose-project": "Komponera projekt lika",
+    "editor.rules.templates.compose-project-placeholder": "Projektnamn (exempel: media)",
+    "editor.rules.templates.label-equals": "Docker-etikett är lika med",
+    "editor.rules.templates.label-equals-placeholder": "Etikett nyckel=värde"
 }

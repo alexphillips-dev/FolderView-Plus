@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Noms i icones de màscares",
     "settings.privacy.mask-lan-ips": "Enmascarar les IP de la LAN",
     "settings.privacy.mask-ports": "Ports de màscara",
-    "settings.privacy.lan-help": "L'emmascarament d'IP LAN s'aplica a la part IP de la columna LAN IP:PORT de la pàgina Docker. Utilitzeu ports de màscara per a la part del port."
+    "settings.privacy.lan-help": "L'emmascarament d'IP LAN s'aplica a la part IP de la columna LAN IP:PORT de la pàgina Docker. Utilitzeu ports de màscara per a la part del port.",
+    "settings.theme.profiles-help": "Utilitzeu perfils amb nom i capes globals o específiques de pàgina. Els canvis es visualitzen prèviament abans d'un desament atòmic.",
+    "settings.theme.scope-all-pages": "Totes les pàgines",
+    "settings.theme.new-profile-name": "Nom de perfil nou",
+    "settings.theme.new-profile-placeholder": "Exemple: OLED fosc",
+    "settings.start-order.unmanaged": "Deixeu la comanda Unraid sense gestionar",
+    "settings.start-order.unmanaged-title": "Unraid és el propietari d'aquesta comanda en mode no gestionat",
+    "settings.start-order.wait": "Espera",
+    "settings.start-order.enable-autostart-help": "Habiliteu l'inici automàtic de Docker perquè un contenidor l'inclogui a la seqüència."
 }

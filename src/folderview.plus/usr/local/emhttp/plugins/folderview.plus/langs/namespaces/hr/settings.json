@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Imena maski i ikone",
     "settings.privacy.mask-lan-ips": "Maskirajte LAN IP adrese",
     "settings.privacy.mask-ports": "Priključci za maske",
-    "settings.privacy.lan-help": "LAN IP maskiranje primjenjuje se na IP dio stupca LAN IP:PORT Docker stranice. Koristite priključke maske za dio priključka."
+    "settings.privacy.lan-help": "LAN IP maskiranje primjenjuje se na IP dio stupca LAN IP:PORT Docker stranice. Koristite priključke maske za dio priključka.",
+    "settings.theme.profiles-help": "Koristite imenovane profile i globalne slojeve ili slojeve specifične za stranicu. Promjene se pregledavaju prije atomičnog spremanja.",
+    "settings.theme.scope-all-pages": "Sve stranice",
+    "settings.theme.new-profile-name": "Novo ime profila",
+    "settings.theme.new-profile-placeholder": "Primjer: OLED tamno",
+    "settings.start-order.unmanaged": "Ostavite Unraid nalog neupravljanim",
+    "settings.start-order.unmanaged-title": "Unraid posjeduje ovu narudžbu u neupravljanom načinu rada",
+    "settings.start-order.wait": "čekaj",
+    "settings.start-order.enable-autostart-help": "Omogućite automatsko pokretanje Dockera za spremnik da biste ga uključili u niz."
 }

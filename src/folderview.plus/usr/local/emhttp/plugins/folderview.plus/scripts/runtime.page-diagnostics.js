@@ -90,16 +90,9 @@
         };
     };
 
-    const readRecord = ({ window: win = defaultWindow, now = Date.now } = {}) => {
-        const storage = safeStorage(win);
-        let source = null;
-        try {
-            source = JSON.parse(String(storage?.getItem?.(STORAGE_KEY) || 'null'));
-        } catch (_error) {
-            source = null;
-        }
+    const normalizeRecord = (source, now = Date.now()) => {
         const next = emptyRecord();
-        const cutoff = Number(now()) - TTL_MS;
+        const cutoff = Number(now) - TTL_MS;
         SURFACES.forEach((surface) => {
             const candidates = Array.isArray(source?.surfaces?.[surface]) ? source.surfaces[surface] : [];
             next.surfaces[surface] = candidates
@@ -108,6 +101,11 @@
                 .slice(-MAX_CAPTURES_PER_SURFACE);
         });
         return next;
+    };
+    const readRecord = ({ window: win = defaultWindow, now = Date.now } = {}) => {
+        let source = null;
+        try { source = JSON.parse(String(safeStorage(win)?.getItem?.(STORAGE_KEY) || 'null')); } catch (_error) { source = null; }
+        return normalizeRecord(source, Number(now()));
     };
 
     const writeRecord = (record, win = defaultWindow) => {
@@ -200,6 +198,7 @@
         TTL_MS,
         SURFACES,
         normalizeSnapshot,
+        normalizeRecord,
         readRecord,
         buildSnapshot,
         capture,

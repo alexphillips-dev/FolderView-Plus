@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Ha fallat la baixada",
     "diagnostics.bootstrap.retrying": "Tornant-ho a provar…",
     "diagnostics.bootstrap.retry-succeeded": "S'ha reprès la càrrega",
-    "diagnostics.bootstrap.retry-failed": "Ha fallat el nou intent"
+    "diagnostics.bootstrap.retry-failed": "Ha fallat el nou intent",
+    "diagnostics.capture.page-action": "Captura el diagnòstic de la pàgina"
 }

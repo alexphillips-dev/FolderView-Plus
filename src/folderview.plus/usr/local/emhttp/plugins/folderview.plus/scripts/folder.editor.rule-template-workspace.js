@@ -21,7 +21,7 @@
         const isBusy = deps.isBusy || (() => false);
         const setBusy = deps.setBusy || (() => {});
         const utils = deps.utils || null;
-        const extractError = deps.extractError || ((error) => String(error?.message || error));
+        const extractError = deps.extractError || ((error) => String(error?.message || error)); const translate = deps.translate || ((key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
         const templates = model?.listTemplates?.(type) || [];
         const draft = { templateId: templates[0]?.id || '', value: '', effect: 'include' };
         let preview = null;
@@ -54,9 +54,9 @@
                 </div>` : '';
             return `
                 <div class="fv-folder-rule-templates">
-                    <div class="fv-folder-rule-templates-copy"><strong>Rule templates</strong><span>Build a compatible rule, preview its current effect, or add one final catch-all. Manual folder members are never changed.</span></div>
+                    <div class="fv-folder-rule-templates-copy"><strong>${escapeHtml(translate('editor.rules.templates.title', 'Rule templates'))}</strong><span>${escapeHtml(translate('editor.rules.templates.help', 'Build a compatible rule, preview its current effect, or add one final catch-all. Manual folder members are never changed.'))}</span></div>
                     <div class="fv-folder-rule-template-fields">
-                        <label><span>Template</span><select id="fvFolderRuleTemplate"${disabled}>${templates.map((entry) => `<option value="${escapeHtml(entry.id)}"${entry.id === selected?.id ? ' selected' : ''}>${escapeHtml(entry.label)}</option>`).join('')}</select></label>
+                        <label><span>${escapeHtml(translate('editor.rules.templates.template-label', 'Template'))}</span><select id="fvFolderRuleTemplate"${disabled}>${templates.map((entry) => `<option value="${escapeHtml(entry.id)}"${entry.id === selected?.id ? ' selected' : ''}>${escapeHtml(entry.label)}</option>`).join('')}</select></label>
                         <label><span>Effect</span><select id="fvFolderRuleTemplateEffect"${disabled}><option value="include"${draft.effect === 'exclude' ? '' : ' selected'}>Include</option><option value="exclude"${draft.effect === 'exclude' ? ' selected' : ''}>Exclude</option></select></label>
                         <label class="is-value"><span>Match value</span><input id="fvFolderRuleTemplateValue" type="text" value="${escapeHtml(draft.value)}" placeholder="${escapeHtml(selected?.placeholder || 'Match value')}"${disabled}></label>
                     </div>

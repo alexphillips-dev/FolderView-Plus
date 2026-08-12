@@ -42,6 +42,7 @@
         "scripts/folderviewplus.starter-templates.js",
         "scripts/folderviewplus.support-bundle-preview.js",
         "scripts/folderviewplus.download-diagnostics.js",
+        "scripts/runtime.page-diagnostics.js",
         "scripts/folderviewplus.support-bundle-browser.js",
         "scripts/folderviewplus.support-bundle-telemetry.js",
         "scripts/folderviewplus.diagnostics-view-model.js",

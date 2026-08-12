@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Maszknevek és ikonok",
     "settings.privacy.mask-lan-ips": "Maszkolja a LAN IP-ket",
     "settings.privacy.mask-ports": "Maszk portok",
-    "settings.privacy.lan-help": "A LAN IP maszkolása a Docker oldal LAN IP:PORT oszlopának IP részére vonatkozik. Használja a Maszk portokat a portrészhez."
+    "settings.privacy.lan-help": "A LAN IP maszkolása a Docker oldal LAN IP:PORT oszlopának IP részére vonatkozik. Használja a Maszk portokat a portrészhez.",
+    "settings.theme.profiles-help": "Használjon elnevezett profilokat és globális vagy oldalspecifikus rétegeket. A változtatások előnézete az atommentés előtt látható.",
+    "settings.theme.scope-all-pages": "Minden oldal",
+    "settings.theme.new-profile-name": "Új profilnév",
+    "settings.theme.new-profile-placeholder": "Példa: OLED sötét",
+    "settings.start-order.unmanaged": "Hagyja kezeletlenül az Unraid megrendelést",
+    "settings.start-order.unmanaged-title": "Az Unraid birtokolja ezt a megbízást nem menedzselt módban",
+    "settings.start-order.wait": "Várj",
+    "settings.start-order.enable-autostart-help": "Engedélyezze a Docker automatikus indítását egy tároló számára, hogy bekerüljön a sorozatba."
 }

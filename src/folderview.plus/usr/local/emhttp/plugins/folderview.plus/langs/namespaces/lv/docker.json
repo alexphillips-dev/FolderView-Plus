@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Masku attēlu reģistri",
     "docker.privacy.mask-public-ips": "Maskējiet publiskos IP",
     "docker.privacy.mask-network-interfaces": "Maskējiet tīkla saskarnes",
-    "docker.privacy.mask-external-urls": "Maskējiet ārējos URL"
+    "docker.privacy.mask-external-urls": "Maskējiet ārējos URL",
+    "docker.actions.capture-diagnostics": "Uzņemt lapas diagnostiku"
 }

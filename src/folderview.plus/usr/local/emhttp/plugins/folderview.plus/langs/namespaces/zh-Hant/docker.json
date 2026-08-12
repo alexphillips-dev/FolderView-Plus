@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "遮罩影像登錄檔",
     "docker.privacy.mask-public-ips": "遮蔽公共IP",
     "docker.privacy.mask-network-interfaces": "遮蔽網路介面",
-    "docker.privacy.mask-external-urls": "封鎖外部 URL"
+    "docker.privacy.mask-external-urls": "封鎖外部 URL",
+    "docker.actions.capture-diagnostics": "擷取頁面診斷"
 }

@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "মাস্ক ইমেজ রেজিস্ট্রি",
     "docker.privacy.mask-public-ips": "পাবলিক আইপি মাস্ক করুন",
     "docker.privacy.mask-network-interfaces": "মাস্ক নেটওয়ার্ক ইন্টারফেস",
-    "docker.privacy.mask-external-urls": "এক্সটার্নাল ইউআরএল মাস্ক করুন"
+    "docker.privacy.mask-external-urls": "এক্সটার্নাল ইউআরএল মাস্ক করুন",
+    "docker.actions.capture-diagnostics": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন"
 }

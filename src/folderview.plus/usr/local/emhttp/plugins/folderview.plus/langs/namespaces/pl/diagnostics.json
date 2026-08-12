@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Pobieranie nie powiodło się",
     "diagnostics.bootstrap.retrying": "Ponawianie próby…",
     "diagnostics.bootstrap.retry-succeeded": "Wczytywanie wznowione",
-    "diagnostics.bootstrap.retry-failed": "Ponowna próba nie powiodła się"
+    "diagnostics.bootstrap.retry-failed": "Ponowna próba nie powiodła się",
+    "diagnostics.capture.page-action": "Przechwytywanie diagnostyki strony"
 }

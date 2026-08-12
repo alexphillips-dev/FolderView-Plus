@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "A letöltés sikertelen",
     "diagnostics.bootstrap.retrying": "Újrapróbálás…",
     "diagnostics.bootstrap.retry-succeeded": "A betöltés folytatódik",
-    "diagnostics.bootstrap.retry-failed": "Az újrapróbálás sikertelen"
+    "diagnostics.bootstrap.retry-failed": "Az újrapróbálás sikertelen",
+    "diagnostics.capture.page-action": "Oldaldiagnosztika rögzítése"
 }

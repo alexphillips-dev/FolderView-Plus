@@ -25,5 +25,13 @@
     "settings.privacy.mask-names": "Maskuj nazwy i ikony",
     "settings.privacy.mask-lan-ips": "Maskuj LAN IPs",
     "settings.privacy.mask-ports": "Maskuj porty",
-    "settings.privacy.lan-help": "LAN IP maskowanie dotyczy IP części Docker strony LAN IP kolumny:PORT. Użyj Maskuj porty dla części portu."
+    "settings.privacy.lan-help": "LAN IP maskowanie dotyczy IP części Docker strony LAN IP kolumny:PORT. Użyj Maskuj porty dla części portu.",
+    "settings.theme.profiles-help": "Używaj nazwanych profili oraz warstw globalnych lub specyficznych dla strony. Zmiany są przeglądane przed zapisem niepodzielnym.",
+    "settings.theme.scope-all-pages": "Wszystkie strony",
+    "settings.theme.new-profile-name": "Nowa nazwa profilu",
+    "settings.theme.new-profile-placeholder": "Przykład: Ciemny OLED",
+    "settings.start-order.unmanaged": "Pozostaw zamówienie Unraid niezarządzane",
+    "settings.start-order.unmanaged-title": "Unraid jest właścicielem tego zamówienia w trybie niezarządzanym",
+    "settings.start-order.wait": "Poczekaj",
+    "settings.start-order.enable-autostart-help": "Włącz automatyczne uruchamianie platformy Docker dla kontenera, aby uwzględnić go w sekwencji."
 }

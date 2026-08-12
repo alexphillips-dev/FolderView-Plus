@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Lejupielāde neizdevās",
     "diagnostics.bootstrap.retrying": "Mēģina vēlreiz…",
     "diagnostics.bootstrap.retry-succeeded": "Ielāde atsākta",
-    "diagnostics.bootstrap.retry-failed": "Atkārtotais mēģinājums neizdevās"
+    "diagnostics.bootstrap.retry-failed": "Atkārtotais mēģinājums neizdevās",
+    "diagnostics.capture.page-action": "Uzņemt lapas diagnostiku"
 }

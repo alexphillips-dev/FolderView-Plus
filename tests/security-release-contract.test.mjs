@@ -51,12 +51,17 @@ test('workflows never upload live Unraid browser evidence', () => {
 test('live browser evidence is opt-in and reports are not written by default', () => {
     const browser = read('scripts/browser_smoke.mjs');
     const themes = read('scripts/theme_matrix_smoke.mjs');
+    const unraidMatrix = read('scripts/unraid_matrix_smoke.sh');
     assert.match(browser, /FVPLUS_BROWSER_SMOKE_CAPTURE_LIVE_ARTIFACTS/);
     assert.match(browser, /if \(captureLiveArtifacts\) \{\s*const reportPath/);
     assert.match(browser, /Runtime visual target configured:/);
     assert.doesNotMatch(browser, /Runtime visual target: \$\{entry\.type\} -> \$\{entry\.url\}/);
     assert.match(themes, /FVPLUS_THEME_SMOKE_CAPTURE_LIVE_ARTIFACTS/);
     assert.match(themes, /if \(!captureLiveArtifacts\) \{\s*return '';/);
+    assert.match(browser, /redactLiveSmokeDiagnostic\(error, sensitiveTargetValues\)/);
+    assert.match(themes, /redactLiveSmokeDiagnostic\(error, matrixEntries\.map/);
+    assert.doesNotMatch(unraidMatrix, /Smoke check: \$\{url\}/);
+    assert.doesNotMatch(unraidMatrix, /Skipping empty URL entry: \$\{entry\}/);
 });
 
 test('runtime component inventory covers every shipped include file', () => {

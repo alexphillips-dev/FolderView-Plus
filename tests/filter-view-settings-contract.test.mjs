@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -37,8 +38,22 @@ test('Filter and view settings registry exposes the audited preference inventory
     for (const [handler, keys] of Object.entries(expectedPreferenceKeys)) {
         assert.deepEqual([...actual[handler]].sort(), keys, `${handler} settings changed without updating its audited contract`);
     }
-    const guard = spawnSync(process.execPath, ['scripts/filter_view_settings_guard.mjs'], { cwd: repoRoot, encoding: 'utf8' });
-    assert.equal(guard.status, 0, guard.stderr || guard.stdout);
+    const callerRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-filter-view-caller-'));
+    const blockedPath = path.join(callerRoot, 'not-a-directory');
+    fs.writeFileSync(blockedPath, 'blocked');
+    try {
+        const guard = spawnSync(process.execPath, ['scripts/filter_view_settings_guard.mjs'], {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                FVPLUS_TEST_CONFIG_DIR: path.join(blockedPath, 'config')
+            }
+        });
+        assert.equal(guard.status, 0, guard.stderr || guard.stdout);
+    } finally {
+        fs.rmSync(callerRoot, { recursive: true, force: true });
+    }
 });
 
 test('settings controller accepts registered changes, coerces values, and rejects undeclared keys', () => {

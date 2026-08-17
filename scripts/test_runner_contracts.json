@@ -26,7 +26,8 @@
         "./lib/browser-smoke-runtime-checks.mjs",
         "./lib/browser-smoke-docker-checks.mjs",
         "./lib/browser-smoke-dashboard-checks.mjs",
-        "./lib/browser-smoke-folder-editor-checks.mjs"
+        "./lib/browser-smoke-folder-editor-checks.mjs",
+        "./lib/live-smoke-diagnostics.mjs"
       ]
     },
     {
@@ -36,7 +37,8 @@
       "requiredImports": [
         "./lib/theme-matrix-settings-checks.mjs",
         "./lib/theme-matrix-runtime-checks.mjs",
-        "./lib/theme-matrix-folder-editor-checks.mjs"
+        "./lib/theme-matrix-folder-editor-checks.mjs",
+        "./lib/live-smoke-diagnostics.mjs"
       ]
     }
   ],
@@ -50,6 +52,7 @@
     { "file": "scripts/lib/theme-matrix-settings-checks.mjs", "limit": 285, "owner": "Settings and wizard theme checks" },
     { "file": "scripts/lib/theme-matrix-runtime-checks.mjs", "limit": 176, "owner": "Docker VM and Dashboard theme checks" },
     { "file": "scripts/lib/theme-matrix-folder-editor-checks.mjs", "limit": 177, "owner": "Folder Editor theme checks" },
+    { "file": "scripts/lib/live-smoke-diagnostics.mjs", "limit": 37, "owner": "live smoke diagnostic redaction" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 115, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
@@ -87,7 +90,8 @@
         "scripts/lib/browser-smoke-runtime-checks.mjs",
         "scripts/lib/browser-smoke-docker-checks.mjs",
         "scripts/lib/browser-smoke-dashboard-checks.mjs",
-        "scripts/lib/browser-smoke-folder-editor-checks.mjs"
+        "scripts/lib/browser-smoke-folder-editor-checks.mjs",
+        "scripts/lib/live-smoke-diagnostics.mjs"
       ],
       "checkFunctions": [
         "runRuntimeLayoutSmoke",
@@ -108,7 +112,8 @@
         "scripts/theme_matrix_smoke.mjs",
         "scripts/lib/theme-matrix-settings-checks.mjs",
         "scripts/lib/theme-matrix-runtime-checks.mjs",
-        "scripts/lib/theme-matrix-folder-editor-checks.mjs"
+        "scripts/lib/theme-matrix-folder-editor-checks.mjs",
+        "scripts/lib/live-smoke-diagnostics.mjs"
       ],
       "checkFunctions": [
         "runSettingsSurfaceChecks",

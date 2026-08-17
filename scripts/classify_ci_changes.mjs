@@ -5,6 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ZERO_SHA = /^0+$/;
+const WORKFLOW_COMPANION_PATTERNS = Object.freeze([
+    'docs/sbom.cdx.json'
+]);
 
 export const FILTERS = Object.freeze({
     docs: [
@@ -110,7 +113,10 @@ export const classifyPaths = (paths) => {
     }
 
     const docsOnly = matched.docs && !matched.metadata && !matched.workflows && !matched.runtime;
-    const workflowOnly = matched.workflows && !matched.runtime && !matched.metadata && !matched.docs;
+    const workflowOnly = matched.workflows && changedPaths.every((filePath) =>
+        FILTERS.workflows.some((pattern) => matchesPattern(filePath, pattern)) ||
+        WORKFLOW_COMPANION_PATTERNS.some((pattern) => matchesPattern(filePath, pattern))
+    );
     return {
         changedPaths,
         matched,

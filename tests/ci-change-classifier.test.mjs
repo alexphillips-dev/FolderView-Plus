@@ -38,6 +38,28 @@ test('workflow-only changes use focused workflow validation', () => {
     });
 });
 
+test('workflow changes allow the generated SBOM as a focused validation companion', () => {
+    const result = classifyPaths([
+        '.github/workflows/codeql.yml',
+        'docs/sbom.cdx.json'
+    ]);
+    assert.deepEqual(result.outputs, {
+        docs_only: false,
+        workflow_only: true,
+        needs_browser: false,
+        needs_theme: false,
+        preview_changed: false
+    });
+});
+
+test('workflow changes mixed with ordinary documentation still use broad validation', () => {
+    const result = classifyPaths([
+        '.github/workflows/codeql.yml',
+        'docs/architecture.md'
+    ]);
+    assert.equal(result.outputs.workflow_only, false);
+});
+
 test('runtime changes request browser, theme, and release-preview coverage', () => {
     const result = classifyPaths([
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'

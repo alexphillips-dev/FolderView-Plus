@@ -123,7 +123,10 @@ test('FolderView3 conversion preserves folders, rules, defaults, start order, an
 });
 
 test('FolderView3 conversion rejects unsupported exports and severe custom CSS', () => {
-    assert.throws(() => runPhpPlan({ ...fixture, fv3_export_version: 2 }), /Command failed/);
+    assert.throws(
+        () => runPhpPlan({ ...fixture, fv3_export_version: 2 }),
+        /Unsupported FolderView3 export version|Command failed/
+    );
     const { plan, report } = runPhpPlan({
         ...fixture,
         css_config: { custom_css: '@import url(https://example.invalid/theme.css);' }

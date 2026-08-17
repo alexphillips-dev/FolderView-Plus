@@ -266,14 +266,16 @@ if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
 if (!/Close resolved compatibility alert/.test(upstreamMonitorWorkflow) || !/gh issue close/.test(upstreamMonitorWorkflow)) {
   fail('Unraid Docker upstream monitor must close its compatibility alert after a reviewed recovery.');
 }
-if (!/issues:\s*write/.test(scheduledValidationWorkflow)
-    || !/Live Unraid validation configuration required/.test(scheduledValidationWorkflow)) {
-  fail('Scheduled validation must report missing live-Unraid secret configuration without exposing secret values.');
+if (!/permissions:\s*\n\s*contents:\s*read/.test(scheduledValidationWorkflow)
+    || /issues:\s*write/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled cross-browser validation must keep repository contents read-only.');
 }
-if (!/gh issue list[\s\S]*--repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
-    || !/gh issue create --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
-    || !/gh issue close "\$\{issue_number\}" --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)) {
-  fail('Scheduled validation issue operations must target GITHUB_REPOSITORY without relying on a checkout.');
+if (!/FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/.test(scheduledValidationWorkflow)
+    || !/bash scripts\/run_ci_suite\.sh --lane fixture-browser/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation must run deterministic Chromium, Firefox, and WebKit fixtures.');
+}
+if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|gh issue/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation must not depend on live-Unraid targets, secrets, or issue automation.');
 }
 if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
     || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
@@ -289,7 +291,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['codeql', codeqlWorkflow, ['analyze']],
   ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
   ['scorecard', scorecardWorkflow, ['analysis']],
-  ['scheduled-validation', scheduledValidationWorkflow, ['configuration', 'cross-browser-fixtures', 'live-unraid']],
+  ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
   ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
   ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
 ]) {

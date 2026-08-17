@@ -479,16 +479,18 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED="\$\{FVPLUS_THEME_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
 });
 
-test('scheduled validation runs cross-browser fixtures and uses live Unraid targets when configured', () => {
+test('scheduled validation runs deterministic cross-browser fixtures without live Unraid configuration', () => {
     assert.match(scheduledValidationWorkflow, /schedule:/);
     assert.match(scheduledValidationWorkflow, /workflow_dispatch:/);
+    assert.match(scheduledValidationWorkflow, /permissions:\s*\n\s*contents:\s*read/);
     assert.match(scheduledValidationWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
-    assert.match(scheduledValidationWorkflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
-    assert.match(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
-    assert.match(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
-    assert.match(scheduledValidationWorkflow, /live_configured/);
-    assert.match(scheduledValidationWorkflow, /Live Unraid validation configuration required/);
     assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /issues:\s*write/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_UNRAID_MATRIX/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_URL/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_URLS/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /live-unraid:/);
+    assert.doesNotMatch(scheduledValidationWorkflow, /gh issue/);
 });
 
 test('scheduled workflow watchdog alerts on missing weekly successes and closes recovered alerts', () => {

@@ -11,7 +11,7 @@ export const SCHEDULED_WORKFLOW_TARGETS = Object.freeze([
     }),
     Object.freeze({
         workflowFile: 'scheduled-validation.yml',
-        label: 'Scheduled Cross-Browser and Unraid Validation',
+        label: 'Scheduled Cross-Browser Validation',
         maximumSuccessAgeHours: 204
     })
 ]);

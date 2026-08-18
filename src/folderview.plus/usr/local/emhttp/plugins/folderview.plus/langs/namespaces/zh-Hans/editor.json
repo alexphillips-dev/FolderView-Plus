@@ -14,5 +14,18 @@
     "editor.members.auto-included": "由regex或标签自动包含",
     "editor.members.drag-reorder": "拖动以重新排序",
     "editor.members.move-up": "上移",
-    "editor.members.move-down": "下移"
+    "editor.members.move-down": "下移",
+    "editor.rules.templates.title": "规则模板",
+    "editor.rules.templates.help": "构建兼容的规则，预览其当前效果，或添加一个最终的包罗万象的规则。手动文件夹成员永远不会更改。",
+    "editor.rules.templates.template-label": "模板",
+    "editor.rules.templates.name-prefix": "名称开头为",
+    "editor.rules.templates.name-prefix-placeholder": "前缀（例如：media-）",
+    "editor.rules.templates.name-contains": "名称包含",
+    "editor.rules.templates.name-contains-placeholder": "名称中的文本（示例：arr）",
+    "editor.rules.templates.image-repository": "图像存储库包含",
+    "editor.rules.templates.image-repository-placeholder": "存储库（示例：linuxserver/）",
+    "editor.rules.templates.compose-project": "撰写项目等于",
+    "editor.rules.templates.compose-project-placeholder": "项目名称（例如：媒体）",
+    "editor.rules.templates.label-equals": "Docker 标签等于",
+    "editor.rules.templates.label-equals-placeholder": "标签键=值"
 }

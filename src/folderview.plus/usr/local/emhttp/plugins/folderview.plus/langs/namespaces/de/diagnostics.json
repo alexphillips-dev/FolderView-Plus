@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Download fehlgeschlagen",
     "diagnostics.bootstrap.retrying": "Erneuter Versuch…",
     "diagnostics.bootstrap.retry-succeeded": "Laden fortgesetzt",
-    "diagnostics.bootstrap.retry-failed": "Erneuter Versuch fehlgeschlagen"
+    "diagnostics.bootstrap.retry-failed": "Erneuter Versuch fehlgeschlagen",
+    "diagnostics.capture.page-action": "Erfassen Sie Seitendiagnosen"
 }

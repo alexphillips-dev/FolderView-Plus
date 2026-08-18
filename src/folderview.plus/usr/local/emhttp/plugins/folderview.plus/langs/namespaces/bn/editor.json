@@ -14,5 +14,18 @@
     "editor.members.auto-included": "regex বা লেবেল দ্বারা স্বতঃ-অন্তর্ভুক্ত",
     "editor.members.drag-reorder": "পুনরায় সাজাতে টেনে আনুন",
     "editor.members.move-up": "উপরে সরান",
-    "editor.members.move-down": "নিচে সরান"
+    "editor.members.move-down": "নিচে সরান",
+    "editor.rules.templates.title": "নিয়ম টেমপ্লেট",
+    "editor.rules.templates.help": "একটি সামঞ্জস্যপূর্ণ নিয়ম তৈরি করুন, এর বর্তমান প্রভাবের পূর্বরূপ দেখুন বা একটি চূড়ান্ত ক্যাচ-অল যোগ করুন। ম্যানুয়াল ফোল্ডার সদস্যদের পরিবর্তন করা হয় না.",
+    "editor.rules.templates.template-label": "টেমপ্লেট",
+    "editor.rules.templates.name-prefix": "নাম দিয়ে শুরু হয়",
+    "editor.rules.templates.name-prefix-placeholder": "উপসর্গ (উদাহরণ: মিডিয়া-)",
+    "editor.rules.templates.name-contains": "নাম রয়েছে",
+    "editor.rules.templates.name-contains-placeholder": "নামের টেক্সট (উদাহরণ: arr)",
+    "editor.rules.templates.image-repository": "ইমেজ রিপোজিটরি আছে",
+    "editor.rules.templates.image-repository-placeholder": "সংগ্রহস্থল (উদাহরণ: linuxserver/)",
+    "editor.rules.templates.compose-project": "রচনা প্রকল্প সমান",
+    "editor.rules.templates.compose-project-placeholder": "প্রকল্পের নাম (উদাহরণ: মিডিয়া)",
+    "editor.rules.templates.label-equals": "ডকার লেবেল সমান",
+    "editor.rules.templates.label-equals-placeholder": "লেবেল কী = মান"
 }

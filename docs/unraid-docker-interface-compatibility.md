@@ -2,7 +2,7 @@
 
 This document defines how FolderView Plus coexists with the current table-based Unraid Docker page and the native component/API replacement being developed by Unraid.
 
-The upstream implementation was last reviewed on 2026-08-10 against Unraid API v4.37.0. The generated Docker GraphQL contract retained the reviewed signature, and Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The v4.37.0 release was limited to consolidated web-header changes, so the Docker implementation remains prerelease and its organizer fields are not a stable third-party contract.
+The upstream implementation was last reviewed on 2026-08-18 against Unraid API v4.37.1. That release added PKCE support to Unraid OIDC without changing the Docker interface, generated Docker GraphQL contract, native Docker page, or organizer implementation. The generated Docker contract retained the reviewed signature, and Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The native Docker implementation therefore remains prerelease, and safe mode plus the existing organizer boundary remain unchanged.
 
 ## Host generations
 

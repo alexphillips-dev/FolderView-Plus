@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "下载失败",
     "diagnostics.bootstrap.retrying": "正在重试…",
     "diagnostics.bootstrap.retry-succeeded": "已恢复加载",
-    "diagnostics.bootstrap.retry-failed": "重试失败"
+    "diagnostics.bootstrap.retry-failed": "重试失败",
+    "diagnostics.capture.page-action": "捕获页面诊断"
 }

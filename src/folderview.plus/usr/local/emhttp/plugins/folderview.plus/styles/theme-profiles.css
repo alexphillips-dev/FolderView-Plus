@@ -1,0 +1,40 @@
+.fv-theme-profile-toolbar {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(130px, 0.7fr) minmax(180px, 1fr) auto auto;
+    gap: 0.55rem;
+    align-items: end;
+    margin: 0 0 0.8rem;
+    padding: 0.7rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-theme-profile-toolbar > label {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.fv-theme-profile-toolbar > label > span {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+#fv-theme-profile-plan {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 980px) {
+    .fv-theme-profile-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .fv-theme-profile-toolbar {
+        grid-template-columns: 1fr;
+    }
+}

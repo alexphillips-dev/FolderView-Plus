@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -85,14 +86,29 @@ for (const match of page.matchAll(bindingPattern)) actualBindings.add(`${match[1
 for (const binding of expectedBindings) if (!actualBindings.has(binding)) fail(`Registered setting has no page control: ${binding}`);
 for (const binding of actualBindings) if (!expectedBindings.has(binding)) fail(`Page control is absent from the registry: ${binding}`);
 
-const phpResult = spawnSync('php', ['-r', "require getenv('FVPLUS_SETTINGS_LIB_PATH'); echo json_encode(defaultTypePrefs());"], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    env: {
-        ...process.env,
-        FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server', 'lib.php')
+const phpTestRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-filter-view-'));
+const phpTestConfigDir = path.join(phpTestRoot, 'config');
+const phpTestSourceDir = path.join(phpTestRoot, 'runtime');
+const phpTestDocumentRoot = path.join(phpTestRoot, 'document-root');
+let phpResult;
+try {
+    for (const directory of [phpTestConfigDir, phpTestSourceDir, phpTestDocumentRoot]) {
+        fs.mkdirSync(directory, { recursive: true });
     }
-});
+    phpResult = spawnSync('php', ['-r', "require getenv('FVPLUS_SETTINGS_LIB_PATH'); echo json_encode(defaultTypePrefs());"], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        env: {
+            ...process.env,
+            FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server', 'lib.php'),
+            FVPLUS_TEST_CONFIG_DIR: phpTestConfigDir,
+            FVPLUS_TEST_SOURCE_DIR: phpTestSourceDir,
+            FVPLUS_TEST_DOCUMENT_ROOT: phpTestDocumentRoot
+        }
+    });
+} finally {
+    fs.rmSync(phpTestRoot, { recursive: true, force: true });
+}
 if (phpResult.status !== 0) {
     fail(`Unable to read PHP preference defaults: ${phpResult.stderr || phpResult.stdout}`);
 } else {

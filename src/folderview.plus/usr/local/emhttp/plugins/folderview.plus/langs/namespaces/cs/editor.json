@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automaticky zahrnuto regex nebo štítkem",
     "editor.members.drag-reorder": "Přetažením změníte pořadí",
     "editor.members.move-up": "Posuňte se nahoru",
-    "editor.members.move-down": "Posuňte se dolů"
+    "editor.members.move-down": "Posuňte se dolů",
+    "editor.rules.templates.title": "Šablony pravidel",
+    "editor.rules.templates.help": "Sestavte kompatibilní pravidlo, zobrazte náhled jeho aktuálního účinku nebo přidejte jeden konečný úlovek. Manuální členové složky se nikdy nemění.",
+    "editor.rules.templates.template-label": "Šablona",
+    "editor.rules.templates.name-prefix": "Jméno začíná na",
+    "editor.rules.templates.name-prefix-placeholder": "Předpona (příklad: media-)",
+    "editor.rules.templates.name-contains": "Název obsahuje",
+    "editor.rules.templates.name-contains-placeholder": "Text v názvu (příklad: arr)",
+    "editor.rules.templates.image-repository": "Úložiště obrázků obsahuje",
+    "editor.rules.templates.image-repository-placeholder": "Úložiště (příklad: linuxserver/)",
+    "editor.rules.templates.compose-project": "Sestavit projekt rovná se",
+    "editor.rules.templates.compose-project-placeholder": "Název projektu (příklad: média)",
+    "editor.rules.templates.label-equals": "Docker štítek se rovná",
+    "editor.rules.templates.label-equals-placeholder": "Klíč štítku=hodnota"
 }

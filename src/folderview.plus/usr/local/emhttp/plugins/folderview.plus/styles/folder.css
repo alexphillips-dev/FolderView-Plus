@@ -3280,6 +3280,78 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     font-weight: 600;
 }
 
+.fv-folder-rule-templates {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--fv-editor-border);
+    border-radius: 8px;
+    background: var(--fv-editor-inset-surface);
+}
+
+.fv-folder-rule-templates-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.fv-folder-rule-templates-copy > span {
+    color: var(--fv-editor-muted);
+    font-size: 12px;
+}
+
+.fv-folder-rule-template-fields {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(110px, 0.6fr) minmax(220px, 1.5fr);
+    gap: 10px;
+}
+
+.fv-folder-rule-template-fields label {
+    display: grid;
+    gap: 5px;
+}
+
+.fv-folder-rule-template-fields label > span {
+    color: var(--fv-editor-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-folder-rule-template-fields input,
+.fv-folder-rule-template-fields select {
+    width: 100%;
+}
+
+.fv-folder-rule-template-actions,
+.fv-folder-rule-template-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fv-folder-rule-template-actions button {
+    min-height: 34px;
+}
+
+.fv-folder-rule-template-preview span {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
+    font-size: 11px;
+}
+
+@media (max-width: 720px) {
+    .fv-folder-rule-template-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-folder-rule-template-actions button {
+        width: 100%;
+    }
+}
+
 .fv-folder-auto-rules-builder {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

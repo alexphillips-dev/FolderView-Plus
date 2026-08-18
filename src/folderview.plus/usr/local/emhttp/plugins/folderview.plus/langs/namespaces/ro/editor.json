@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Inclus automat de regex sau etichetă",
     "editor.members.drag-reorder": "Trage pentru a reordona",
     "editor.members.move-up": "Mută în sus",
-    "editor.members.move-down": "Mută în jos"
+    "editor.members.move-down": "Mută în jos",
+    "editor.rules.templates.title": "Șabloane de reguli",
+    "editor.rules.templates.help": "Construiți o regulă compatibilă, previzualizați efectul ei curent sau adăugați o regulă finală. Membrii folderului manual nu sunt niciodată modificați.",
+    "editor.rules.templates.template-label": "Șablon",
+    "editor.rules.templates.name-prefix": "Numele începe cu",
+    "editor.rules.templates.name-prefix-placeholder": "Prefix (exemplu: media-)",
+    "editor.rules.templates.name-contains": "Numele conține",
+    "editor.rules.templates.name-contains-placeholder": "Text în nume (exemplu: arr)",
+    "editor.rules.templates.image-repository": "Depozitul de imagini conține",
+    "editor.rules.templates.image-repository-placeholder": "Depozitar (exemplu: linuxserver/)",
+    "editor.rules.templates.compose-project": "Compune proiect egal",
+    "editor.rules.templates.compose-project-placeholder": "Numele proiectului (exemplu: media)",
+    "editor.rules.templates.label-equals": "Eticheta Docker este egală",
+    "editor.rules.templates.label-equals-placeholder": "Etichetă cheie=valoare"
 }

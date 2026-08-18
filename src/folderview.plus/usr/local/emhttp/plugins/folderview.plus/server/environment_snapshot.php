@@ -3,7 +3,7 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 fvplus_json_try(function (): array {
     $action = (string)($_REQUEST['action'] ?? 'export');
-    $mutatingActions = ['apply'];
+    $mutatingActions = ['apply', 'apply_folderview3'];
     if (in_array($action, $mutatingActions, true)) {
         requireMutationRequestGuard();
     }
@@ -23,6 +23,39 @@ fvplus_json_try(function (): array {
         return [
             'snapshot' => $snapshot,
             'summary' => $summary
+        ];
+    }
+
+    if ($action === 'detect_folderview3') {
+        return [
+            'detection' => detectFolderView3Installation()
+        ];
+    }
+
+    if ($action === 'preview_folderview3') {
+        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export')));
+        $sourceName = (string)($_POST['fileName'] ?? '');
+        $bundle = $sourceKind === 'installed'
+            ? fvplusFolderView3ReadInstalledBundle()
+            : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
+        return [
+            'report' => previewFolderView3Migration($bundle, $sourceName)
+        ];
+    }
+
+    if ($action === 'apply_folderview3') {
+        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export')));
+        $sourceName = (string)($_POST['fileName'] ?? '');
+        $bundle = $sourceKind === 'installed'
+            ? fvplusFolderView3ReadInstalledBundle()
+            : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
+        return [
+            'migration' => applyFolderView3Migration(
+                $bundle,
+                $sourceName,
+                (string)($_POST['expectedDigest'] ?? ''),
+                normalizeBool($_POST['includeNativeAutostart'] ?? false, false)
+            )
         ];
     }
 

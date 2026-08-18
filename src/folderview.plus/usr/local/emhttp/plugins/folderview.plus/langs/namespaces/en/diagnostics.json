@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Download failed",
     "diagnostics.bootstrap.retrying": "Trying again…",
     "diagnostics.bootstrap.retry-succeeded": "Loading resumed",
-    "diagnostics.bootstrap.retry-failed": "Try again failed"
+    "diagnostics.bootstrap.retry-failed": "Try again failed",
+    "diagnostics.capture.page-action": "Capture page diagnostics"
 }

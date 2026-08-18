@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Не удалось скачать",
     "diagnostics.bootstrap.retrying": "Повторная попытка…",
     "diagnostics.bootstrap.retry-succeeded": "Загрузка возобновлена",
-    "diagnostics.bootstrap.retry-failed": "Повторная попытка не удалась"
+    "diagnostics.bootstrap.retry-failed": "Повторная попытка не удалась",
+    "diagnostics.capture.page-action": "Диагностика страницы захвата"
 }

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automātiski iekļauts regulārā izteiksmē vai etiķetē",
     "editor.members.drag-reorder": "Velciet, lai pārkārtotu",
     "editor.members.move-up": "Pārvietojieties uz augšu",
-    "editor.members.move-down": "Pārvietojieties uz leju"
+    "editor.members.move-down": "Pārvietojieties uz leju",
+    "editor.rules.templates.title": "Noteikumu veidnes",
+    "editor.rules.templates.help": "Izveidojiet saderīgu kārtulu, priekšskatiet tās pašreizējo efektu vai pievienojiet vienu pēdējo kopsavilkumu. Manuālās mapes dalībnieki nekad netiek mainīti.",
+    "editor.rules.templates.template-label": "Veidne",
+    "editor.rules.templates.name-prefix": "Vārds sākas ar",
+    "editor.rules.templates.name-prefix-placeholder": "Prefikss (piemērs: multivide-)",
+    "editor.rules.templates.name-contains": "Nosaukums satur",
+    "editor.rules.templates.name-contains-placeholder": "Teksts nosaukumā (piemērs: arr)",
+    "editor.rules.templates.image-repository": "Attēlu krātuvē ir",
+    "editor.rules.templates.image-repository-placeholder": "Repozitorijs (piemērs: linuxserver/)",
+    "editor.rules.templates.compose-project": "Izveidot projektu vienāds",
+    "editor.rules.templates.compose-project-placeholder": "Projekta nosaukums (piemērs: plašsaziņas līdzekļi)",
+    "editor.rules.templates.label-equals": "Docker etiķete ir vienāda",
+    "editor.rules.templates.label-equals-placeholder": "Iezīmes atslēga=vērtība"
 }

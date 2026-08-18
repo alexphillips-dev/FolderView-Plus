@@ -9,7 +9,7 @@ import { registerFoundationFixtureCases } from '../tests/browser/cases/foundatio
 import { registerDockerFixtureCases } from '../tests/browser/cases/docker.mjs';
 import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs';
 import { registerRuntimeInteractionsFixtureCases } from '../tests/browser/cases/runtime-interactions.mjs';
-import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs';
+import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs'; import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs';
 import { registerImportFixtureCases } from '../tests/browser/cases/import.mjs';
 
@@ -49,7 +49,7 @@ registerFoundationFixtureCases(caseContext);
 registerDockerFixtureCases(caseContext);
 registerDashboardLifecycleFixtureCases(caseContext);
 registerRuntimeInteractionsFixtureCases(caseContext);
-registerSettingsFixtureCases(caseContext);
+registerSettingsFixtureCases(caseContext); registerSettingsStartOrderFixtureCases(caseContext);
 registerFolderEditorFixtureCases(caseContext);
 registerImportFixtureCases(caseContext);
 

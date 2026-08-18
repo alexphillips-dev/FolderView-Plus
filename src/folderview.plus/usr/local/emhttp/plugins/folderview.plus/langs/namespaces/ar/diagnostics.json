@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "فشل التنزيل",
     "diagnostics.bootstrap.retrying": "جارٍ المحاولة مرة أخرى…",
     "diagnostics.bootstrap.retry-succeeded": "تم استئناف التحميل",
-    "diagnostics.bootstrap.retry-failed": "فشلت إعادة المحاولة"
+    "diagnostics.bootstrap.retry-failed": "فشلت إعادة المحاولة",
+    "diagnostics.capture.page-action": "التقاط تشخيصات الصفحة"
 }

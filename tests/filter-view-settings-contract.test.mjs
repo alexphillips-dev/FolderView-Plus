@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -37,8 +38,22 @@ test('Filter and view settings registry exposes the audited preference inventory
     for (const [handler, keys] of Object.entries(expectedPreferenceKeys)) {
         assert.deepEqual([...actual[handler]].sort(), keys, `${handler} settings changed without updating its audited contract`);
     }
-    const guard = spawnSync(process.execPath, ['scripts/filter_view_settings_guard.mjs'], { cwd: repoRoot, encoding: 'utf8' });
-    assert.equal(guard.status, 0, guard.stderr || guard.stdout);
+    const callerRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-filter-view-caller-'));
+    const blockedPath = path.join(callerRoot, 'not-a-directory');
+    fs.writeFileSync(blockedPath, 'blocked');
+    try {
+        const guard = spawnSync(process.execPath, ['scripts/filter_view_settings_guard.mjs'], {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                FVPLUS_TEST_CONFIG_DIR: path.join(blockedPath, 'config')
+            }
+        });
+        assert.equal(guard.status, 0, guard.stderr || guard.stdout);
+    } finally {
+        fs.rmSync(callerRoot, { recursive: true, force: true });
+    }
 });
 
 test('settings controller accepts registered changes, coerces values, and rejects undeclared keys', () => {
@@ -84,15 +99,30 @@ test('VM privacy has a persisted master activation and live runtime consumers', 
 });
 
 test('VM resource thresholds survive PHP normalization and remain ordered at limits', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-filter-view-php-'));
+    const configDir = path.join(tempDir, 'config');
+    const sourceDir = path.join(tempDir, 'source');
+    const documentRoot = path.join(tempDir, 'document-root');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.mkdirSync(documentRoot, { recursive: true });
     const php = `require getenv('FVPLUS_SETTINGS_LIB_PATH'); echo json_encode([normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>24,'vmResourceCriticalVcpus'=>48,'vmResourceWarnGiB'=>64,'vmResourceCriticalGiB'=>128]])['health'],normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>512,'vmResourceCriticalVcpus'=>512,'vmResourceWarnGiB'=>1024,'vmResourceCriticalGiB'=>1024]])['health']]);`;
-    const result = spawnSync('php', ['-r', php], {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        env: {
-            ...process.env,
-            FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server/lib.php')
-        }
-    });
+    let result;
+    try {
+        result = spawnSync('php', ['-r', php], {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server/lib.php'),
+                FVPLUS_TEST_CONFIG_DIR: configDir,
+                FVPLUS_TEST_SOURCE_DIR: sourceDir,
+                FVPLUS_TEST_DOCUMENT_ROOT: documentRoot
+            }
+        });
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const [saved, bounded] = JSON.parse(result.stdout);
     assert.deepEqual({

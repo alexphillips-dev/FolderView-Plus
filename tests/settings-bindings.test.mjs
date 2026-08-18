@@ -92,6 +92,7 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.settings-search\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
     assert.match(page, /folder\.settings-transfer\.js[\s\S]*folderviewplus\.theme-workspace\.js[\s\S]*folderviewplus\.chrome\.js/);
+    assert.match(page, /folder\.settings-transfer\.js[\s\S]*folderviewplus\.theme-profiles\.js[\s\S]*folderviewplus\.theme-workspace\.js/);
     assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-persistence\.js[\s\S]*folderviewplus\.wizard-review\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusFolderSettingsTransferModuleLoaded = true/);
     assert.match(script, /FolderViewPlusThemeWorkspaceModuleLoaded = true/);

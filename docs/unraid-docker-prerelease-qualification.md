@@ -106,13 +106,9 @@ bash scripts/install_smoke.sh
 
 Also run configured live browser and theme matrix smoke tests against the prerelease host.
 
-The weekly `Scheduled Cross-Browser and Unraid Validation` workflow always runs the deterministic fixture suite in Chromium, Firefox, and WebKit. Configure all three repository secrets below to enable its live lane:
+The weekly `Scheduled Cross-Browser Validation` workflow runs the deterministic fixture suite in Chromium, Firefox, and WebKit. It does not connect to live Unraid targets or require live-system repository secrets.
 
-- `FVPLUS_UNRAID_MATRIX`
-- `FVPLUS_BROWSER_SMOKE_URL`
-- `FVPLUS_THEME_MATRIX_URLS`
-
-The live lane explicitly marks the Unraid matrix, browser smoke, and theme matrix as required. Release-mode validation uses the same fail-closed contract.
+Run live Unraid matrix, browser smoke, and theme matrix checks only as deliberate prerelease qualification against isolated test systems. The reusable smoke scripts and release-mode fail-closed contract remain available for that operator-controlled validation.
 
 ## 9. Make the release decision
 

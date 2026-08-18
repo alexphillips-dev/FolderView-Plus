@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Не вдалося завантажити",
     "diagnostics.bootstrap.retrying": "Повторна спроба…",
     "diagnostics.bootstrap.retry-succeeded": "Завантаження відновлено",
-    "diagnostics.bootstrap.retry-failed": "Повторна спроба не вдалася"
+    "diagnostics.bootstrap.retry-failed": "Повторна спроба не вдалася",
+    "diagnostics.capture.page-action": "Діагностика захоплення сторінки"
 }

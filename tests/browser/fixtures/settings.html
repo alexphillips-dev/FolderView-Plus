@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.diagnostics.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.bootstrap.css">
+    <link rel="stylesheet" href="/plugin/styles/start-order-workspace.css">
     <style>
         body { margin: 0; background: #171717; color: #eee; font-family: Arial, sans-serif; }
         body[data-fv-theme-class="light"],
@@ -26,6 +27,13 @@
         <section data-fixture-setting="docker"><h2>Docker folders</h2><label>Hide empty folders <input type="checkbox"></label></section>
         <section data-fixture-setting="privacy"><h2>Privacy mode</h2><label>Mask LAN IPs <input type="checkbox"></label></section>
         <section id="view-settings-fixture" aria-label="Filters and view settings fixture"></section>
+        <section id="start-order-fixture" aria-label="Docker start order fixture">
+            <div class="fv-docker-start-order-heading-row">
+                <div class="fv-docker-start-order-heading-copy"><h2>Docker start order</h2><p>Define the order Unraid uses when Docker containers start at boot.</p></div>
+                <div id="docker-start-order-summary" class="fv-docker-start-order-summary"></div>
+            </div>
+            <div class="fv-docker-start-order-panel"><div id="docker-start-order-workspace" class="fv-docker-start-order-workspace"></div></div>
+        </section>
         <section id="diagnostics-fixture" aria-label="Diagnostics fixture">
             <div id="fv-diagnostics-workspace" class="fv-diagnostics-workspace">
                 <header class="fv-diagnostics-workspace-head">
@@ -49,8 +57,25 @@
     <script src="/plugin/scripts/folderviewplus.diagnostics-view-model.js"></script>
     <script src="/plugin/scripts/folderviewplus.diagnostics-actions.js"></script>
     <script src="/plugin/scripts/folderviewplus.diagnostics-view.js"></script>
+    <script src="/plugin/scripts/folderviewplus.start-order-view.js"></script>
     <script>
         document.getElementById('fv-settings-topbar').innerHTML = window.FolderViewPlusSettingsChrome.getTopbarHtml();
+        const startOrderView = window.FolderViewPlusFoundationModules.startOrderView.createApi();
+        const startOrderInfo = {
+            audiobookshelf: { id: 'audio-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-audio.svg' } },
+            qbittorrentvpn: { id: 'qb-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-broadcast.svg' } },
+            sonarr: { id: 'sonarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-arrs.svg' } },
+            radarr: { id: 'radarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-camera.svg' } },
+            prowlarr: { id: 'prowlarr-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-control.svg' } },
+            adminer: { id: 'adminer-id', autostart: false, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-code2.svg' } },
+            nextcloud: { id: 'nextcloud-id', autostart: false, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-backup.svg' } }
+        };
+        document.getElementById('docker-start-order-summary').innerHTML = startOrderView.buildHeaderSummaryHtml(startOrderInfo);
+        document.getElementById('docker-start-order-workspace').innerHTML = [
+            startOrderView.buildControlsHtml({ mode: 'docker-page', remaining: 'after' }),
+            startOrderView.buildBatchesHtml([], { folderOptionsCache: { html: '', byId: new Map() }, containerOptionsHtml: '' }),
+            `<section id="docker-start-order-preview" class="fv-docker-start-order-preview">${startOrderView.buildPreviewHtml({ managed: true, autostartCount: 5, containerCount: 7, sequence: ['audiobookshelf', 'qbittorrentvpn', 'sonarr', 'radarr', 'prowlarr'].map((name) => ({ name, wait: 0, waitSource: 'native' })) }, { disabledNames: ['adminer', 'nextcloud'], infoByName: startOrderInfo })}</section>`
+        ].join('');
         const loadViewSettingsFixture = async () => {
             const source = await fetch('/plugin/FolderViewPlus.page').then((response) => response.text());
             const start = source.indexOf('<details id="docker-view-settings"');

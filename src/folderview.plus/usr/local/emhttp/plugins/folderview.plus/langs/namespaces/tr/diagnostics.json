@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "İndirme başarısız",
     "diagnostics.bootstrap.retrying": "Tekrar deneniyor…",
     "diagnostics.bootstrap.retry-succeeded": "Yükleme devam ediyor",
-    "diagnostics.bootstrap.retry-failed": "Tekrar deneme başarısız"
+    "diagnostics.bootstrap.retry-failed": "Tekrar deneme başarısız",
+    "diagnostics.capture.page-action": "Yakalama sayfası teşhisleri"
 }

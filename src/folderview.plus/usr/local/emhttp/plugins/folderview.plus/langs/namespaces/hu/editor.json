@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatikusan szerepel a reguláris kifejezéssel vagy a címkével",
     "editor.members.drag-reorder": "Húzza át az átrendezéshez",
     "editor.members.move-up": "Lépj felfelé",
-    "editor.members.move-down": "Mozgás lefelé"
+    "editor.members.move-down": "Mozgás lefelé",
+    "editor.rules.templates.title": "Szabálysablonok",
+    "editor.rules.templates.help": "Hozzon létre egy kompatibilis szabályt, tekintse meg a jelenlegi hatását, vagy adjon hozzá egy utolsó összefoglalót. A kézi mappatagok soha nem változnak.",
+    "editor.rules.templates.template-label": "Sablon",
+    "editor.rules.templates.name-prefix": "A név ezzel kezdődik",
+    "editor.rules.templates.name-prefix-placeholder": "Előtag (például: média-)",
+    "editor.rules.templates.name-contains": "A név tartalmazza",
+    "editor.rules.templates.name-contains-placeholder": "Szöveg a névben (például: arr)",
+    "editor.rules.templates.image-repository": "A képtár tartalmazza",
+    "editor.rules.templates.image-repository-placeholder": "Repository (például: linuxserver/)",
+    "editor.rules.templates.compose-project": "Projekt összeállítása egyenlő",
+    "editor.rules.templates.compose-project-placeholder": "Projekt neve (példa: média)",
+    "editor.rules.templates.label-equals": "Docker címke egyenlő",
+    "editor.rules.templates.label-equals-placeholder": "Címke kulcs=érték"
 }

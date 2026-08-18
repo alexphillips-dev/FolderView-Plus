@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "下載失敗",
     "diagnostics.bootstrap.retrying": "正在重試…",
     "diagnostics.bootstrap.retry-succeeded": "已恢復載入",
-    "diagnostics.bootstrap.retry-failed": "重試失敗"
+    "diagnostics.bootstrap.retry-failed": "重試失敗",
+    "diagnostics.capture.page-action": "擷取頁面診斷"
 }

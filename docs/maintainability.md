@@ -40,7 +40,7 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 ## Operational review
 
 - The scheduled Unraid Docker monitor opens or updates one deduplicated GitHub issue when the upstream interface leaves its dormant state.
-- The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. When `FVPLUS_UNRAID_MATRIX`, `FVPLUS_BROWSER_SMOKE_URL`, and `FVPLUS_THEME_MATRIX_URLS` repository secrets are all configured, it also runs required live Unraid guards, browser smoke, and the black/white theme matrix.
+- The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. It does not connect to live Unraid targets or require live-system repository secrets.
 - Follow [Unraid Docker prerelease qualification](unraid-docker-prerelease-qualification.md) before changing native-page safe mode.
 - Audit current and reachable package history with `bash scripts/artifact_history_audit.sh` and `bash scripts/artifact_history_audit.sh --history`.
 - Follow [artifact retention](artifact-retention.md) before any coordinated Git LFS or history migration. History rewriting is intentionally never automated.

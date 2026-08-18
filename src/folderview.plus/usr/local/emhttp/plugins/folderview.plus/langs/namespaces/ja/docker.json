@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "イメージレジストリを隠す",
     "docker.privacy.mask-public-ips": "公開IPsを隠す",
     "docker.privacy.mask-network-interfaces": "ネットワークインターフェイスを隠す",
-    "docker.privacy.mask-external-urls": "外部URLをマスクする"
+    "docker.privacy.mask-external-urls": "外部URLをマスクする",
+    "docker.actions.capture-diagnostics": "ページ診断のキャプチャ"
 }

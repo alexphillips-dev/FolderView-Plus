@@ -12,7 +12,7 @@ settingsRuntimePerformanceTelemetry?.begin?.('settingsBootstrap');
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
-const themeResolver = window.FolderViewPlusThemeResolver || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null, translateSettingsText = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
 const compareLocalizedText = (left, right, options = {}) => (
     window.FolderViewPlusI18n?.compare?.(left, right, options)
     ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
@@ -59,6 +59,7 @@ const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
 const settingsRegistry = window.FolderViewPlusSettingsRegistry || null;
 const viewSettingsModule = window.FolderViewPlusViewSettings || null;
 const settingsSearchModule = window.FolderViewPlusFoundationModules?.settingsSearch || null;
+const ruleTemplatesModule = window.FolderViewPlusFoundationModules?.ruleTemplates || null;
 const viewSettingsChangeController = viewSettingsModule?.createChangeController?.({ registry: settingsRegistry })?.start?.() || null;
 const resolveViewSettingsChange = (handler, type, key, value, fallback) => (
     viewSettingsChangeController?.resolve?.(handler, type, key, value, fallback) || null
@@ -7965,7 +7966,7 @@ const saveSelectedSmartRuleSuggestions = async (type) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, utils.normalizePrefs({
             ...prefsByType[resolvedType],
-            autoRules: [...existingRules, ...nextRules]
+            autoRules: ruleTemplatesModule?.insertBeforeCatchAll?.(existingRules, nextRules) || [...existingRules, ...nextRules]
         }));
         smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
         renderSmartRuleSuggestions(resolvedType);
@@ -8282,12 +8283,28 @@ const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectO
 const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
 const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
 
-const createDockerStartOrderId = (prefix = 'batch') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
-
-const normalizeDockerStartOrderPrefsForUi = (prefs = null) => {
-    const source = utils.normalizePrefs(prefs || prefsByType.docker || {});
-    return source.dockerStartOrder || { mode: 'docker-page', remaining: 'after', batches: [] };
-};
+const dockerStartOrderModel = window.FolderViewPlusFoundationModules?.startOrderModel;
+if (!dockerStartOrderModel || typeof dockerStartOrderModel.normalizePlan !== 'function') throw new Error('FolderView Plus start-order model is unavailable.');
+const dockerStartOrderView = window.FolderViewPlusFoundationModules?.startOrderView?.createApi({
+    escapeHtml,
+    translate: translateSettingsText
+});
+if (!dockerStartOrderView) throw new Error('FolderView Plus start-order view is unavailable.');
+const dockerStartOrderWorkspaceModule = window.FolderViewPlusFoundationModules?.startOrderWorkspace;
+const dockerStartOrderWorkspace = dockerStartOrderWorkspaceModule?.createApi({
+    escapeHtml,
+    getPlan: () => normalizeDockerStartOrderPrefsForUi(),
+    getInfo: () => infoByType.docker || {},
+    savePlan: (...args) => saveDockerStartOrderPlan(...args),
+    refreshPreview: (...args) => refreshDockerStartOrderPreview(...args),
+    runDockerMutation: (...args) => window.FolderViewPlusRuntimeTransport.runDockerMutation(...args),
+    showError,
+    setStatus: setUpdateStatus
+});
+if (!dockerStartOrderWorkspace) throw new Error('FolderView Plus start-order workspace is unavailable.');
+const dockerStartOrderPreviewActivation = dockerStartOrderWorkspaceModule.createPreviewActivation(() => refreshDockerStartOrderPreview());
+const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
+const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(utils.normalizePrefs(prefs || prefsByType.docker || {}).dockerStartOrder);
 
 const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
     .map((name) => String(name || '').trim())
@@ -8420,7 +8437,7 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
 };
 
 const updateDockerStartOrderMode = async (mode) => {
-    const normalized = String(mode || '').trim() === 'custom-batches' ? 'custom-batches' : 'docker-page';
+    const normalized = dockerStartOrderModel.MODES.includes(String(mode || '').trim()) ? String(mode || '').trim() : 'docker-page';
     try {
         await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
     } catch (error) {
@@ -8436,6 +8453,9 @@ const updateDockerStartOrderRemaining = async (value) => {
         showError('Docker start order save failed', error);
     }
 };
+
+const updateDockerStartOrderWait = (...args) => dockerStartOrderWorkspace.updateWait(...args);
+const toggleDockerStartOrderAutostart = (...args) => dockerStartOrderWorkspace.toggleAutostart(...args);
 
 const addDockerStartOrderBatch = async () => {
     const plan = normalizeDockerStartOrderPrefsForUi();
@@ -8583,129 +8603,29 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
     }
 };
 
-const buildDockerStartOrderBatchHtml = (batch, index) => {
-    const safeId = String(batch?.id || '');
-    const items = Array.isArray(batch?.items) ? batch.items : [];
-    const folderOptionsCache = getDockerStartOrderFolderOptionsCached();
-    const folderSelectOptions = folderOptionsCache.html;
-    const containerSelectOptions = getDockerStartOrderContainerOptionsCached().html;
-    const itemHtml = items.length
-        ? items.map((item, itemIndex) => {
-            const isFolder = item?.type === 'folder';
-            const label = isFolder
-                ? (folderOptionsCache.byId.get(String(item.id))?.name || item.id || 'Folder')
-                : (item?.name || 'Container');
-            return `
-                <div class="fv-docker-start-order-item">
-                    <span class="fv-docker-start-order-kind"><i class="fa ${isFolder ? 'fa-folder-o' : 'fa-cube'}"></i> ${isFolder ? 'Folder' : 'Container'}</span>
-                    <strong>${escapeHtml(label)}</strong>
-                    <div class="fv-docker-start-order-item-actions">
-                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'up')" ${itemIndex === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'down')" ${itemIndex >= items.length - 1 ? 'disabled' : ''}><i class="fa fa-chevron-down"></i></button>
-                        <button type="button" data-fv-onclick="removeDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex})"><i class="fa fa-times"></i></button>
-                    </div>
-                </div>
-            `;
-        }).join('')
-        : '<div class="fv-docker-start-order-empty">Add folders or containers to this batch.</div>';
-    return `
-        <section class="fv-docker-start-order-batch">
-            <div class="fv-docker-start-order-batch-head">
-                <input type="text" value="${escapeHtml(batch?.name || `Start batch ${index + 1}`)}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'name', this.value)" aria-label="Batch name">
-                <div class="fv-docker-start-order-batch-actions">
-                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'up')" ${index === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'down')"><i class="fa fa-chevron-down"></i></button>
-                    <button type="button" data-fv-onclick="removeDockerStartOrderBatch('${escapeHtml(safeId)}')"><i class="fa fa-trash"></i></button>
-                </div>
-            </div>
-            <div class="fv-docker-start-order-batch-settings">
-                <label>Delay after batch <input type="number" min="0" max="3600" step="1" value="${Number(batch?.delay) || 0}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'delay', this.value)"></label>
-                <label><input type="checkbox" ${batch?.useFolderOrder === false ? '' : 'checked'} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'useFolderOrder', this.checked)"> Use folder member order</label>
-                <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
-            </div>
-            <div class="fv-docker-start-order-add-row">
-                <select data-fv-start-folder="${escapeHtml(safeId)}">${folderSelectOptions}</select>
-                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
-                <select data-fv-start-container="${escapeHtml(safeId)}">${containerSelectOptions}</select>
-                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
-            </div>
-            <div class="fv-docker-start-order-items">${itemHtml}</div>
-        </section>
-    `;
-};
-
-const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
-    <div class="fv-docker-start-order-controls" data-fv-start-order-region="controls">
-        <label class="setting-select">
-            <span>Start order mode</span>
-            <select id="docker-start-order-mode" data-fv-onchange="updateDockerStartOrderMode(this.value)">
-                <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
-                <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
-            </select>
-        </label>
-        <label class="setting-select">
-            <span>Remaining autostart containers</span>
-            <select id="docker-start-order-remaining" data-fv-onchange="updateDockerStartOrderRemaining(this.value)">
-                <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
-                <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
-                <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
-            </select>
-        </label>
-    </div>
-    <div class="fv-docker-start-order-help" data-fv-start-order-region="help">
-        <i class="fa fa-info-circle" aria-hidden="true"></i>
-        <div>
-            <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
-            <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
-        </div>
-    </div>
-`;
-
-const buildDockerStartOrderToolbarHtml = (customVisible) => `
-    <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
-        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" data-fv-onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
-        <button type="button" data-fv-onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-        <button type="button" data-fv-onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
-    </div>
-`;
-
-const buildDockerStartOrderBatchesHtml = (batches, customVisible) => `
-    <div class="fv-docker-start-order-batches" data-fv-start-order-region="batches" ${customVisible ? '' : 'hidden'}>
-        ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
-    </div>
-`;
-
-const buildDockerStartOrderPreviewPlaceholderHtml = () => `
-    <div id="docker-start-order-preview" class="fv-docker-start-order-preview" data-fv-start-order-region="preview">
-        <div class="fv-recovery-empty-state">
-            <strong>Preview has not loaded yet.</strong>
-            <span>Use Preview order to inspect the exact autostart sequence.</span>
-        </div>
-    </div>
-`;
-
 const renderDockerStartOrderWorkspace = (options = {}) => {
     const host = $('#docker-start-order-workspace');
     if (!host.length) {
         return;
     }
     const plan = normalizeDockerStartOrderPrefsForUi();
-    const customVisible = plan.mode === 'custom-batches';
     const batches = Array.isArray(plan.batches) ? plan.batches : [];
+    const batchOptions = {
+        folderOptionsCache: getDockerStartOrderFolderOptionsCached(),
+        containerOptionsHtml: getDockerStartOrderContainerOptionsCached().html
+    };
+    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
     const preservePreview = options.preservePreview === true && host.find('#docker-start-order-preview').length > 0;
     if (!preservePreview) {
         host.html([
-            buildDockerStartOrderControlsHtml(plan, customVisible),
-            buildDockerStartOrderToolbarHtml(customVisible),
-            buildDockerStartOrderBatchesHtml(batches, customVisible),
-            buildDockerStartOrderPreviewPlaceholderHtml()
+            dockerStartOrderView.buildControlsHtml(plan),
+            dockerStartOrderView.buildBatchesHtml(batches, batchOptions),
+            dockerStartOrderView.buildPreviewPlaceholderHtml()
         ].join(''));
         return;
     }
-    host.find('[data-fv-start-order-region="controls"], [data-fv-start-order-region="help"]').remove();
-    host.find('[data-fv-start-order-region="toolbar"]').replaceWith(buildDockerStartOrderToolbarHtml(customVisible));
-    host.find('[data-fv-start-order-region="batches"]').replaceWith(buildDockerStartOrderBatchesHtml(batches, customVisible));
-    host.prepend(buildDockerStartOrderControlsHtml(plan, customVisible));
+    host.find('[data-fv-start-order-region="top"]').replaceWith(dockerStartOrderView.buildControlsHtml(plan));
+    host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
 };
 
 const renderDockerStartOrderPreview = (preview) => {
@@ -8713,23 +8633,9 @@ const renderDockerStartOrderPreview = (preview) => {
     if (!host.length) {
         return;
     }
-    const order = Array.isArray(preview?.autostartOrder) ? preview.autostartOrder : [];
-    const warnings = Array.isArray(preview?.warnings) ? preview.warnings : [];
-    const stale = Array.isArray(preview?.staleAutostart) ? preview.staleAutostart : [];
-    const list = order.length
-        ? order.map((name, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(name)}</strong></li>`).join('')
-        : '<li><span>0</span><strong>No autostart containers detected.</strong></li>';
-    const warningsHtml = [...warnings, ...stale.map((name) => `Stale autostart entry will be removed: ${name}`)]
-        .map((warning) => `<div class="fv-docker-start-order-warning"><i class="fa fa-exclamation-triangle"></i> ${escapeHtml(warning)}</div>`)
-        .join('');
-    host.html(`
-        <div class="fv-docker-start-order-preview-head">
-            <strong><i class="fa fa-sort-amount-asc" aria-hidden="true"></i> Preview autostart order</strong>
-            <span class="fv-docker-start-order-count">${Number(preview?.autostartCount) || order.length} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span>
-        </div>
-        ${warningsHtml}
-        <ol class="fv-docker-start-order-list">${list}</ol>
-    `);
+    const disabledNames = Object.entries(infoByType.docker || {}).filter(([, row]) => !dockerStartOrderWorkspace.rowAutostart(row)).map(([name]) => name).sort((a, b) => a.localeCompare(b));
+    host.html(dockerStartOrderView.buildPreviewHtml(preview, { disabledNames, infoByName: infoByType.docker || {} }));
+    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
 };
 
 const refreshDockerStartOrderPreview = async (options = {}) => {
@@ -8798,8 +8704,13 @@ const renderSettingsSecondarySurfaces = (type) => {
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
     }
-    if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
-        renderDockerStartOrderWorkspace({ preservePreview: true });
+    if (resolvedType === 'docker') {
+        const startOrderActive = shouldRefreshSecondaryAdvancedGroup('startup');
+        dockerStartOrderPreviewActivation.setActive(startOrderActive);
+        if (startOrderActive) {
+            renderDockerStartOrderWorkspace({ preservePreview: true });
+            if (runtimeHydrationStateByType.docker !== 'pending') dockerStartOrderPreviewActivation.hydrate();
+        }
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
@@ -8808,6 +8719,7 @@ const renderSettingsSecondarySurfaces = (type) => {
 
 const renderActiveAdvancedSecondarySurfaces = () => {
     if (settingsUiState.mode !== 'advanced') {
+        dockerStartOrderPreviewActivation.setActive(false);
         refreshSettingsUx({ renderSecondaryWorkspaces: false });
         return;
     }
@@ -8832,8 +8744,11 @@ const renderActiveAdvancedSecondarySurfaces = () => {
         renderTemplateRows('vm');
         renderOperationsWorkspace();
     }
-    if (shouldRefreshSecondaryAdvancedGroup('startup')) {
+    const startOrderActive = shouldRefreshSecondaryAdvancedGroup('startup');
+    dockerStartOrderPreviewActivation.setActive(startOrderActive);
+    if (startOrderActive) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
+        if (runtimeHydrationStateByType.docker !== 'pending') dockerStartOrderPreviewActivation.hydrate();
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
@@ -10336,12 +10251,10 @@ const addAutoRule = async (type) => {
     const labelValue = String($(`#${type}-rule-label-value`).val() || '').trim();
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-
     if (!folderId) {
         swal({ title: 'Error', text: 'Select a folder before adding a rule.', type: 'error' });
         return;
     }
-
     if ((regexKinds.includes(kind) || RULE_SIMPLE_KINDS.includes(kind)) && !pattern) {
         swal({ title: 'Error', text: 'Match value cannot be empty.', type: 'error' });
         return;
@@ -10387,7 +10300,7 @@ const addAutoRule = async (type) => {
     try {
         const nextPrefs = utils.normalizePrefs({
             ...prefsByType[type],
-            autoRules: [...(prefsByType[type].autoRules || []), nextRule]
+            autoRules: ruleTemplatesModule?.insertBeforeCatchAll?.(prefsByType[type].autoRules || [], nextRule) || [...(prefsByType[type].autoRules || []), nextRule]
         });
         prefsByType[type] = await postPrefs(type, nextPrefs);
 
@@ -10451,11 +10364,12 @@ const moveAutoRule = async (type, ruleId, direction) => {
 
     const [moved] = rules.splice(index, 1);
     rules.splice(newIndex, 0, moved);
+    const orderedRules = ruleTemplatesModule?.isExplicitCatchAll ? [...rules.filter((rule) => !ruleTemplatesModule.isExplicitCatchAll(rule)), ...rules.filter(ruleTemplatesModule.isExplicitCatchAll)] : rules;
 
     try {
         prefsByType[type] = await postPrefs(type, {
             ...prefsByType[type],
-            autoRules: rules
+            autoRules: orderedRules
         });
         renderRulesTable(type);
     } catch (error) {
@@ -11562,6 +11476,8 @@ settingsActionSupportModule.registerActions(window, {
     clearFolderDefaults,
     updateDockerStartOrderMode,
     updateDockerStartOrderRemaining,
+    updateDockerStartOrderWait,
+    toggleDockerStartOrderAutostart,
     addDockerStartOrderBatch,
     updateDockerStartOrderBatch,
     moveDockerStartOrderBatch,

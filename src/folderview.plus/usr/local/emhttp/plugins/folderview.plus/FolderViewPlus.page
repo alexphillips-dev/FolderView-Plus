@@ -36,7 +36,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.diagnostics.css')?>">
-<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/start-order-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme-profiles.css')?>">
 
 <div id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true">
 <div id="fv-settings-bootstrap-shell" class="fv-settings-bootstrap-shell" role="status" aria-live="polite">
@@ -118,7 +118,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Managed themes</span>
                             <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
                         </div>
-                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
+                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button>
                     </div>
                     <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
                         <div class="fv-theme-empty-state">
@@ -132,9 +132,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="fv-theme-module-head">
                     <div>
                         <span class="settings-mini-title">Customization layer</span>
-                        <p>Token overrides are safer for common colors. Custom CSS is appended after the active managed theme when saved.</p>
+                        <p data-i18n="settings.theme.profiles-help">Use named profiles and global or page-specific layers. Changes are previewed before an atomic save.</p>
                     </div>
-                </div>
+                </div><div id="fv-theme-profile-toolbar" class="fv-theme-profile-toolbar"></div>
                 <div class="fv-theme-customize-grid">
                     <div class="fv-theme-customize-card">
                         <div class="fv-theme-card-head">
@@ -1424,19 +1424,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order</h2>
+<div class="fv-docker-start-order-heading-row" data-fv-section-row="1">
+    <div class="fv-docker-start-order-heading-copy">
+        <h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order</h2>
+        <p>Define the order Unraid uses when Docker containers start at boot.</p>
+    </div>
+    <div id="docker-start-order-summary" class="fv-docker-start-order-summary" aria-live="polite"></div>
+</div>
 <div class="fv-operations-module-wrap fv-docker-start-order-shell">
     <div class="rules-panel fv-operations-panel fv-docker-start-order-panel">
-        <div class="rules-header">
-            <h3><i class="fa fa-cubes" aria-hidden="true"></i> Container startup order</h3>
-            <span class="rules-help">Control the order Unraid uses when Docker containers start at boot.</span>
-        </div>
         <div class="fv-operations-section-body">
             <section class="fv-operations-stage fv-docker-start-order-stage" id="docker-start-order-stage">
-                <div class="fv-operations-stage-head">
-                    <strong>Docker start order</strong>
-                    <span class="rules-help">Follow your Docker page layout or define exact startup batches for containers and folders.</span>
-                </div>
                 <div id="docker-start-order-workspace" class="fv-docker-start-order-workspace">
                     <div class="fv-recovery-empty-state">
                         <strong>Docker start order will load after Docker folders and preferences finish loading.</strong>
@@ -1549,7 +1547,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </div>
             </section>
-
+            <section class="fv-recovery-stage fv-recovery-environment-stage"><div class="fv-recovery-stage-head"><strong data-i18n="import.folderview3.preview-title">FolderView3 migration preview</strong><span class="rules-help" data-i18n="import.folderview3.preview-help">Discover an installed FolderView3 configuration or inspect a full-export JSON. Detection and preview are read-only; native organizer records and Docker autostart mutations remain excluded unless a later apply explicitly includes them.</span></div><div class="backup-actions fv-recovery-environment-actions"><button type="button" data-fv-folderview3-action="detect"><i class="fa fa-search"></i> Detect installed FolderView3</button><button type="button" data-fv-folderview3-action="preview-export"><i class="fa fa-eye"></i> Preview FolderView3 export</button></div><div id="fv-recovery-folderview3-summary" class="fv-recovery-history-list"><div class="fv-recovery-empty-state"><strong data-i18n="import.folderview3.read-only-title">FolderView3 migration is read-only until you approve an apply plan.</strong><span data-i18n="import.folderview3.read-only-help">Detect an installed configuration or preview a FolderView3 export without writing any plugin or Unraid state.</span></div></div></section>
             <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
                 <select id="docker-backup-compare-left"></select>
                 <select id="docker-backup-compare-right"></select>
@@ -1757,7 +1755,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <?php
 $fvplusSettingsFoundationAssets = [
-        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
         '/plugins/folderview.plus/scripts/folderviewplus.request.js',
@@ -1765,7 +1763,7 @@ $fvplusSettingsFoundationAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js',
         '/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js',
         '/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js',
-        '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+        '/plugins/folderview.plus/scripts/folder.settings-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-profiles.js',
         '/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
         '/plugins/folderview.plus/scripts/folderviewplus.chrome.js'
 ];
@@ -1781,8 +1779,8 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
         '/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
+         '/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
+         '/plugins/folderview.plus/scripts/runtime.page-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
         '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
         '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js', '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-actions.js',
         '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js',
@@ -1792,7 +1790,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js',
         '/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
         '/plugins/folderview.plus/scripts/folderviewplus.row-details.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',

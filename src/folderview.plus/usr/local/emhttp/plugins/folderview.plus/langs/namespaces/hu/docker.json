@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Maszk képregiszterek",
     "docker.privacy.mask-public-ips": "Nyilvános IP-címek maszkolása",
     "docker.privacy.mask-network-interfaces": "Maszk hálózati interfészek",
-    "docker.privacy.mask-external-urls": "Külső URL-ek maszkolása"
+    "docker.privacy.mask-external-urls": "Külső URL-ek maszkolása",
+    "docker.actions.capture-diagnostics": "Oldaldiagnosztika rögzítése"
 }

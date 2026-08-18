@@ -361,6 +361,11 @@
         const now = typeof options.now === 'function' ? options.now : Date.now;
         const historyLimit = Math.max(4, nonNegativeInteger(options.historyLimit, HISTORY_LIMIT));
         const sessionSalt = createSessionSalt(win);
+        const pageDiagnostics = win?.FolderViewPlusFoundationModules?.runtimePageDiagnostics?.createController?.({
+            window: win,
+            document: doc,
+            surface: 'dashboard'
+        }) || null;
         const rafByType = { docker: 0, vm: 0 };
         const triggerByType = { docker: 'render', vm: 'render' };
 
@@ -607,6 +612,11 @@
                 verdict
             };
             persist(resolvedType, snapshot);
+            pageDiagnostics?.capture?.({
+                variant: resolvedType,
+                trigger: 'visual-capture',
+                root: tbody
+            });
             return snapshot;
         };
         const scheduleCapture = (type, captureOptions = {}) => {

@@ -5,6 +5,7 @@ import { createRuntimeLayoutSmoke } from './lib/browser-smoke-runtime-checks.mjs
 import { createDockerSmokeChecks } from './lib/browser-smoke-docker-checks.mjs';
 import { createDashboardSmokeChecks } from './lib/browser-smoke-dashboard-checks.mjs';
 import { createFolderEditorSmokeChecks } from './lib/browser-smoke-folder-editor-checks.mjs';
+import { normalizeLiveSmokeDiagnosticLabel, redactLiveSmokeDiagnostic } from './lib/live-smoke-diagnostics.mjs';
 
 const readBooleanEnv = (name, fallback = false) => {
     const raw = String(process.env[name] ?? (fallback ? '1' : '0')).trim().toLowerCase();
@@ -42,17 +43,16 @@ const baselineTolerancePx = Number.isFinite(Number(process.env.FVPLUS_BROWSER_SM
     : 2;
 const requireBaseline = String(process.env.FVPLUS_BROWSER_SMOKE_REQUIRE_BASELINE || '0').trim() === '1';
 const captureLiveArtifacts = readBooleanEnv('FVPLUS_BROWSER_SMOKE_CAPTURE_LIVE_ARTIFACTS', false);
-
 if (!targetUrl) {
     console.log('Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not set).');
     process.exit(0);
 }
-
 const scenarioLabel = [
-    targetLabel || 'unlabeled-target',
-    unraidVersionHint ? `Unraid ${unraidVersionHint}` : '',
-    themeHint ? `Theme ${themeHint}` : ''
+    normalizeLiveSmokeDiagnosticLabel(targetLabel),
+    unraidVersionHint ? 'Unraid version configured' : '',
+    themeHint ? 'Theme configured' : ''
 ].filter(Boolean).join(' | ');
+const sensitiveTargetValues = [targetUrl, dockerRuntimeUrlEnv, vmRuntimeUrlEnv, dashboardUrlEnv];
 
 const sanitizeToken = (value) => String(value || '')
     .trim()
@@ -69,7 +69,6 @@ const dockerUpdateFlowReports = [];
 const dockerPreviewStatusReports = [];
 const dashboardAdvancedPreviewReports = [];
 const localizationReports = [];
-
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
         const parsed = new URL(baseUrl);
@@ -238,7 +237,6 @@ fs.writeFileSync(tempImportPath, JSON.stringify(payload, null, 2), { encoding: '
 if (captureLiveArtifacts) {
     fs.mkdirSync(artifactRoot, { recursive: true, mode: 0o700 });
 }
-
 const captureLiveScreenshot = async (page, filename) => {
     if (!captureLiveArtifacts) {
         return '';
@@ -247,7 +245,6 @@ const captureLiveScreenshot = async (page, filename) => {
     await page.screenshot({ path: screenshotPath, fullPage: true });
     return screenshotPath;
 };
-
 const { runRuntimeLayoutSmoke } = createRuntimeLayoutSmoke({
     timeoutMs, runtimeGapMinOverride, runtimeGapMaxOverride, captureLiveScreenshot,
     sanitizeToken, scenarioLabel, requireRuntimeRows
@@ -267,7 +264,7 @@ const runBrowserSmoke = async (browserName, browserType) => {
     const context = await browser.newContext({ ignoreHTTPSErrors: ignoreHttpsErrors });
     const page = await context.newPage();
     page.on('dialog', (dialog) => {
-        console.warn(`Browser smoke dialog accepted (${browserName}): ${dialog.type()} ${dialog.message()}`);
+        console.warn(`Browser smoke dialog accepted (${browserName}): ${dialog.type()} ${redactLiveSmokeDiagnostic(dialog.message(), sensitiveTargetValues)}`);
         void dialog.accept().catch(() => {});
     });
     try {
@@ -469,6 +466,9 @@ try {
             }
         }
     }
+} catch (error) {
+    console.error(`ERROR: Browser smoke checks failed: ${redactLiveSmokeDiagnostic(error, sensitiveTargetValues)}`);
+    process.exitCode = 1;
 } finally {
     try {
         fs.rmSync(tempImportDir, { recursive: true, force: true });

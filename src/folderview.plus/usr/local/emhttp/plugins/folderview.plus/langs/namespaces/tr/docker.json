@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Görüntü kayıtlarını gizle",
     "docker.privacy.mask-public-ips": "Genel IPs gizle",
     "docker.privacy.mask-network-interfaces": "Ağ arabirimlerini gizle",
-    "docker.privacy.mask-external-urls": "Harici URL'leri maskele"
+    "docker.privacy.mask-external-urls": "Harici URL'leri maskele",
+    "docker.actions.capture-diagnostics": "Yakalama sayfası teşhisleri"
 }

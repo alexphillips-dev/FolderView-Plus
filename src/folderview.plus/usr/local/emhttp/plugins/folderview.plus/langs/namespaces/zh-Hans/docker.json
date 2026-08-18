@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "隐藏镜像仓库",
     "docker.privacy.mask-public-ips": "隐藏公共 IPs",
     "docker.privacy.mask-network-interfaces": "隐藏网络接口",
-    "docker.privacy.mask-external-urls": "屏蔽外部网址"
+    "docker.privacy.mask-external-urls": "屏蔽外部网址",
+    "docker.actions.capture-diagnostics": "捕获页面诊断"
 }

@@ -5582,20 +5582,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin-top: 1rem;
 }
 
-#fv-settings-root h2[data-fv-section="docker-start-order"] {
-    color: var(--fvplus-settings-text-primary) !important;
-    font-size: clamp(1.85rem, 1.2vw + 1rem, 2.35rem) !important;
-    letter-spacing: 0 !important;
-}
-
-.fv-docker-start-order-panel {
-    overflow: hidden;
-    border-color: var(--fvplus-settings-border-subtle) !important;
-    border-radius: 14px !important;
-    background: var(--fvplus-settings-surface-panel) !important;
-    box-shadow: var(--fvplus-theme-shadow, 0 18px 42px rgba(0, 0, 0, 0.34));
-}
-
 .fv-docker-start-order-panel > .rules-header {
     min-height: 64px;
     padding: 1rem 1.12rem !important;
@@ -5742,23 +5728,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding-top: 0.12rem;
 }
 
-.fv-docker-start-order-toolbar > button,
-.fv-docker-start-order-add-row > button {
-    min-height: 39px;
-    padding-inline: 1rem;
-    border-color: var(--fvplus-settings-border-subtle) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    background: var(--fvplus-settings-button-bg-top) !important;
-    font-size: 0.86rem;
-}
-
-.fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: var(--fvplus-settings-border-subtle) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    background: var(--fvplus-settings-button-bg-top) !important;
-    box-shadow: var(--fvplus-settings-button-quiet-shadow);
-}
-
 .fv-docker-start-order-batches {
     display: grid;
     gap: 0.72rem;
@@ -5883,40 +5852,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-radius: 8px;
     background: var(--fvplus-settings-surface-muted);
     color: var(--fvplus-settings-text-muted);
-}
-
-.fv-docker-start-order-list {
-    display: grid;
-    gap: 0.22rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    max-height: 330px;
-    overflow: auto;
-}
-
-.fv-docker-start-order-list > li {
-    display: grid;
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 0.7rem;
-    align-items: center;
-    min-height: 34px;
-    padding: 0.28rem 0.5rem;
-    border: 1px solid var(--fvplus-settings-border-faint);
-    border-radius: 7px;
-    background: var(--fvplus-settings-surface-strong);
-}
-
-.fv-docker-start-order-list > li > span {
-    display: inline-grid;
-    min-width: 44px;
-    height: 24px;
-    place-items: center;
-    border: 1px solid var(--fvplus-settings-border-faint);
-    border-radius: 6px;
-    background: var(--fvplus-settings-surface-field);
-    color: var(--fvplus-settings-text-primary);
-    font-weight: 700;
 }
 
 .fv-docker-start-order-warning {
@@ -13502,63 +13437,6 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root #fv-run-wizard {
     color: var(--fvplus-settings-navigation-info) !important;
-}
-
-/* Start Order keeps its actions readable without making a normal action look selected. */
-#fv-settings-root .fv-docker-start-order-panel .rules-header h3 > .fa,
-#fv-settings-root .fv-docker-start-order-preview-head > strong > .fa {
-    color: var(--fvplus-settings-accent) !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button,
-#fv-settings-root .fv-docker-start-order-add-row > button {
-    min-height: 40px !important;
-    padding: 0 1.1rem !important;
-    box-sizing: border-box !important;
-    border: 1px solid var(--fvplus-settings-button-outline) !important;
-    border-radius: 7px !important;
-    background: var(--fvplus-settings-button-bg-top) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    box-shadow: var(--fvplus-settings-button-shadow) !important;
-    opacity: 1 !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button:hover,
-#fv-settings-root .fv-docker-start-order-add-row > button:hover,
-#fv-settings-root .fv-docker-start-order-toolbar > button:focus-visible,
-#fv-settings-root .fv-docker-start-order-add-row > button:focus-visible {
-    border-color: var(--fvplus-settings-button-outline-hover) !important;
-    background: var(--fvplus-settings-button-hover-top) !important;
-    color: var(--fvplus-settings-accent) !important;
-    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: var(--fvplus-settings-button-outline) !important;
-    background: var(--fvplus-settings-button-bg-top) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    box-shadow: var(--fvplus-settings-button-shadow) !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:hover,
-#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:focus-visible {
-    border-color: var(--fvplus-settings-button-outline-hover) !important;
-    background: var(--fvplus-settings-button-hover-top) !important;
-    color: var(--fvplus-settings-accent) !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button:disabled,
-#fv-settings-root .fv-docker-start-order-add-row > button:disabled {
-    border-color: var(--fvplus-settings-button-outline) !important;
-    background: var(--fvplus-settings-button-quiet-top) !important;
-    color: var(--fvplus-settings-text-dim) !important;
-    box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
-    opacity: 0.72 !important;
-}
-
-#fv-settings-root .fv-docker-start-order-toolbar > button .fa,
-#fv-settings-root .fv-docker-start-order-add-row > button .fa {
-    color: currentColor !important;
 }
 
 #fv-settings-root :is(

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createThemeMatrixSettingsChecks } from './lib/theme-matrix-settings-checks.mjs';
 import { runRuntimeThemeChecks } from './lib/theme-matrix-runtime-checks.mjs';
 import { runFolderEditorThemeChecks } from './lib/theme-matrix-folder-editor-checks.mjs';
+import { redactLiveSmokeDiagnostic } from './lib/live-smoke-diagnostics.mjs';
 
 const matrixRaw = String(process.env.FVPLUS_THEME_MATRIX_URLS || '').trim();
 const requiredLabelsRaw = String(process.env.FVPLUS_THEME_REQUIRED_LABELS || '').trim();
@@ -24,7 +25,6 @@ const screenshotArtifactDir = path.resolve(
 const captureLiveArtifacts = ['1', 'true', 'yes', 'on'].includes(
     String(process.env.FVPLUS_THEME_SMOKE_CAPTURE_LIVE_ARTIFACTS || '').trim().toLowerCase()
 );
-
 const sanitizeSegment = (value) => String(value || '')
     .trim()
     .toLowerCase()
@@ -93,6 +93,7 @@ const parseMatrixEntries = (raw) => {
         }
         entries.push({
             label: label || `theme-${entries.length + 1}`,
+            diagnosticLabel: `theme-${entries.length + 1}`,
             url
         });
     }
@@ -198,8 +199,7 @@ try {
 }
 
 const { ensureWizardVisible, runSettingsSurfaceChecks, runScenarioChecks } = createThemeMatrixSettingsChecks({ timeoutMs });
-
-const runThemeChecks = async ({ label, url }, browserName, browserType) => {
+const runThemeChecks = async ({ label, diagnosticLabel, url }, browserName, browserType) => {
     const dockerUrl = resolveRuntimeUrl(url, 'docker');
     const vmUrl = resolveRuntimeUrl(url, 'vm');
     const dashboardUrl = resolveDashboardUrl(url);
@@ -293,7 +293,7 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
                     });
                 }
             }
-            console.log(`[${label}] PASS ${browserName} ${mobile ? 'mobile' : 'desktop'} zoom=${zoom} screenshots=${settingsScreenshotPath},${wizardScreenshotPath}`);
+            console.log(`[${diagnosticLabel}] PASS ${browserName} ${mobile ? 'mobile' : 'desktop'} zoom=${zoom} screenshots=${settingsScreenshotPath},${wizardScreenshotPath}`);
         } catch (error) {
             const failureScreenshotPath = await captureScenarioScreenshot(page, {
                 label,
@@ -302,7 +302,7 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
                 zoom,
                 stage: 'failure'
             }).catch(() => '');
-            const baseMessage = String(error?.message || error || 'Theme matrix scenario failed.');
+            const baseMessage = redactLiveSmokeDiagnostic(error, [url, dockerUrl, vmUrl, dashboardUrl, dockerEditorUrl, vmEditorUrl]);
             const withScreenshot = failureScreenshotPath
                 ? `${baseMessage} | screenshot=${failureScreenshotPath}`
                 : baseMessage;
@@ -335,7 +335,7 @@ for (const browserName of browserNames) {
                 await runThemeChecks(entry, browserName, browser);
             } catch (error) {
                 failures += 1;
-                console.error(String(error?.message || error));
+                console.error(redactLiveSmokeDiagnostic(error, matrixEntries.map((target) => target.url)));
             }
         }
     } finally {

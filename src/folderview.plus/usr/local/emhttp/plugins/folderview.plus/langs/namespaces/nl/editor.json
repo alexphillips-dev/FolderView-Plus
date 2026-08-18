@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatisch inbegrepen door regex of label",
     "editor.members.drag-reorder": "Sleep om opnieuw te rangschikken",
     "editor.members.move-up": "Omhoog verplaatsen",
-    "editor.members.move-down": "Omlaag verplaatsen"
+    "editor.members.move-down": "Omlaag verplaatsen",
+    "editor.rules.templates.title": "Regelsjablonen",
+    "editor.rules.templates.help": "Bouw een compatibele regel, bekijk een voorbeeld van het huidige effect of voeg nog een laatste allesomvattende regel toe. Handmatige mapleden worden nooit gewijzigd.",
+    "editor.rules.templates.template-label": "Sjabloon",
+    "editor.rules.templates.name-prefix": "Naam begint met",
+    "editor.rules.templates.name-prefix-placeholder": "Voorvoegsel (bijvoorbeeld: media-)",
+    "editor.rules.templates.name-contains": "Naam bevat",
+    "editor.rules.templates.name-contains-placeholder": "Tekst in de naam (bijvoorbeeld: arr)",
+    "editor.rules.templates.image-repository": "Beeldrepository bevat",
+    "editor.rules.templates.image-repository-placeholder": "Repository (bijvoorbeeld: linuxserver/)",
+    "editor.rules.templates.compose-project": "Componeer project is gelijk aan",
+    "editor.rules.templates.compose-project-placeholder": "Projectnaam (bijvoorbeeld: media)",
+    "editor.rules.templates.label-equals": "Dockerlabel is gelijk aan",
+    "editor.rules.templates.label-equals-placeholder": "Labelsleutel=waarde"
 }

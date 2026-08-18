@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Incluido automáticamente por regex o etiqueta",
     "editor.members.drag-reorder": "Arrastrar para reordenar",
     "editor.members.move-up": "Mover hacia arriba",
-    "editor.members.move-down": "Mover hacia abajo"
+    "editor.members.move-down": "Mover hacia abajo",
+    "editor.rules.templates.title": "Plantillas de reglas",
+    "editor.rules.templates.help": "Cree una regla compatible, obtenga una vista previa de su efecto actual o agregue una regla general final. Los miembros de la carpeta manual nunca se modifican.",
+    "editor.rules.templates.template-label": "Plantilla",
+    "editor.rules.templates.name-prefix": "El nombre comienza con",
+    "editor.rules.templates.name-prefix-placeholder": "Prefijo (ejemplo: medios-)",
+    "editor.rules.templates.name-contains": "El nombre contiene",
+    "editor.rules.templates.name-contains-placeholder": "Texto en el nombre (ejemplo: arr)",
+    "editor.rules.templates.image-repository": "El repositorio de imágenes contiene",
+    "editor.rules.templates.image-repository-placeholder": "Repositorio (ejemplo: linuxserver/)",
+    "editor.rules.templates.compose-project": "Redactar proyecto es igual",
+    "editor.rules.templates.compose-project-placeholder": "Nombre del proyecto (ejemplo: medios)",
+    "editor.rules.templates.label-equals": "La etiqueta Docker es igual",
+    "editor.rules.templates.label-equals-placeholder": "Clave de etiqueta = valor"
 }

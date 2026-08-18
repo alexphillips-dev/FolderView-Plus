@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Masquer les registres d’images",
     "docker.privacy.mask-public-ips": "Masquer le IPs public",
     "docker.privacy.mask-network-interfaces": "Masquer les interfaces réseau",
-    "docker.privacy.mask-external-urls": "Masquer les URL externes"
+    "docker.privacy.mask-external-urls": "Masquer les URL externes",
+    "docker.actions.capture-diagnostics": "Diagnostic de la page de capture"
 }

@@ -315,6 +315,10 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
 test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
     assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
+    assert.match(settingsPage, /id="fv-theme-profile-toolbar"/);
+    assert.match(themeWorkspaceJs, /id="fv-theme-profile-select"/);
+    assert.match(themeWorkspaceJs, /action: 'preview_profile'/);
+    assert.match(themeWorkspaceJs, /action: 'save_profile'/);
     assert.match(settingsPage, /id="fv-theme-scan-result"/);
     assert.match(settingsPage, /data-fv-onclick="scanThemeWorkspaceGithub\(\)"/);
     assert.match(settingsPage, /id="fv-theme-preview-sample"/);

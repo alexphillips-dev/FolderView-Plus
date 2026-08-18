@@ -452,6 +452,22 @@
             });
         };
 
+        const collectRuntimePageDiagnostics = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.runtimePageDiagnostics || '');
+            const runtimeDiagnostics = deps.runtimePageDiagnostics || root?.FolderViewPlusFoundationModules?.runtimePageDiagnostics;
+            const normalized = runtimeDiagnostics?.normalizeRecord?.(record) || { schemaVersion: 1, expiresAfterMs: 0, maxCapturesPerSurface: 0, surfaces: { docker: [], vm: [], dashboard: [] } };
+            const surfaces = normalized.surfaces;
+            const count = Object.values(surfaces).reduce((total, entries) => total + entries.length, 0);
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.runtimePageDiagnostics', 'runtimePageDiagnostics', {
+                available: count > 0,
+                schemaVersion: normalized.schemaVersion,
+                expiresAfterMs: normalized.expiresAfterMs,
+                maxCapturesPerSurface: normalized.maxCapturesPerSurface,
+                count,
+                surfaces
+            });
+        };
+
         const collectVmLifecycleDiagnostics = (uiRedactor) => {
             const record = readClientDiagnosticsStorageRecord(storageKeys.vmLifecycle || '');
             if (!record || typeof record !== 'object' || Array.isArray(record)) {
@@ -477,6 +493,7 @@
             collectDockerTraceHealth,
             collectDashboardLayoutDiagnostics,
             collectDashboardVisualDiagnostics,
+            collectRuntimePageDiagnostics,
             collectDashboardLifecycleDiagnostics,
             collectVmLifecycleDiagnostics
         });

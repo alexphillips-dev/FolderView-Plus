@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Registri slika maski",
     "docker.privacy.mask-public-ips": "Maskirajte javne IP adrese",
     "docker.privacy.mask-network-interfaces": "Maskirajte mrežna sučelja",
-    "docker.privacy.mask-external-urls": "Maskirajte vanjske URL-ove"
+    "docker.privacy.mask-external-urls": "Maskirajte vanjske URL-ove",
+    "docker.actions.capture-diagnostics": "Dijagnostika stranice snimanja"
 }

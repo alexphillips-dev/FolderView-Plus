@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatisk inkluderet af regex eller etiket",
     "editor.members.drag-reorder": "Træk for at omarrangere",
     "editor.members.move-up": "Flyt op",
-    "editor.members.move-down": "Flyt ned"
+    "editor.members.move-down": "Flyt ned",
+    "editor.rules.templates.title": "Regel skabeloner",
+    "editor.rules.templates.help": "Byg en kompatibel regel, se en forhåndsvisning af dens aktuelle effekt, eller tilføj en sidste catch-all. Manuelle mappemedlemmer ændres aldrig.",
+    "editor.rules.templates.template-label": "Skabelon",
+    "editor.rules.templates.name-prefix": "Navn begynder med",
+    "editor.rules.templates.name-prefix-placeholder": "Præfiks (eksempel: medie-)",
+    "editor.rules.templates.name-contains": "Navn indeholder",
+    "editor.rules.templates.name-contains-placeholder": "Tekst i navnet (eksempel: arr)",
+    "editor.rules.templates.image-repository": "Billedlager indeholder",
+    "editor.rules.templates.image-repository-placeholder": "Repository (eksempel: linuxserver/)",
+    "editor.rules.templates.compose-project": "Komponér projekt lig med",
+    "editor.rules.templates.compose-project-placeholder": "Projektnavn (eksempel: medie)",
+    "editor.rules.templates.label-equals": "Docker-label er lig",
+    "editor.rules.templates.label-equals-placeholder": "Etiket nøgle=værdi"
 }

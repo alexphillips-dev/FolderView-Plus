@@ -10,6 +10,10 @@ const browserModulePath = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js'
 );
 const browserModuleSource = fs.readFileSync(browserModulePath, 'utf8');
+const runtimePageDiagnosticsSource = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.page-diagnostics.js'
+), 'utf8');
 const telemetryModulePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js'
@@ -31,6 +35,12 @@ const loadBrowserModule = (root = {}) => {
     vm.runInNewContext(browserModuleSource, context, {
         filename: browserModulePath
     });
+    return context.module.exports;
+};
+
+const loadRuntimePageDiagnostics = (root = {}) => {
+    const context = { globalThis: root, module: { exports: {} }, exports: {}, console };
+    vm.runInNewContext(runtimePageDiagnosticsSource, context, { filename: 'runtime.page-diagnostics.js' });
     return context.module.exports;
 };
 
@@ -182,6 +192,34 @@ test('support bundle browser telemetry exports fresh privacy-safe Dashboard visu
     assert.equal(visual.docker.historyCount, 1);
     assert.equal(visual.vm.available, false);
     assert.equal(JSON.stringify(visual).includes('private-container'), false);
+});
+
+test('support bundle browser telemetry re-allowlists shared runtime page diagnostics', () => {
+    const capturedAt = new Date().toISOString();
+    const collectors = loadBrowserModule({}).createCollectors({
+        runtimePageDiagnostics: loadRuntimePageDiagnostics(),
+        storageKeys: { runtimePageDiagnostics: 'runtime-pages' },
+        readClientDiagnosticsStorageRecord(key) {
+            return key === 'runtime-pages' ? {
+                surfaces: {
+                    docker: [{
+                        capturedAt,
+                        surface: 'docker',
+                        variant: 'folderview',
+                        trigger: 'manual',
+                        privateUrl: 'http://private-host/',
+                        state: { visibleRows: 5, spinningControls: 2, rawDom: '<secret>' }
+                    }]
+                }
+            } : null;
+        }
+    });
+    const result = collectors.collectRuntimePageDiagnostics(null);
+    assert.equal(result.available, true);
+    assert.equal(result.surfaces.docker[0].state.visibleRows, 5);
+    assert.equal(result.surfaces.docker[0].state.spinningControls, 2);
+    assert.equal(JSON.stringify(result).includes('private-host'), false);
+    assert.equal(JSON.stringify(result).includes('rawDom'), false);
 });
 
 test('browser error telemetry separates current-session failures from historical records', () => {

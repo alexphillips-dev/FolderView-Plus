@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatisch eingefügt durch regex oder Label",
     "editor.members.drag-reorder": "Zum Neuanordnen ziehen",
     "editor.members.move-up": "Bewegen Sie sich nach oben",
-    "editor.members.move-down": "Bewegen Sie sich nach unten"
+    "editor.members.move-down": "Bewegen Sie sich nach unten",
+    "editor.rules.templates.title": "Regelvorlagen",
+    "editor.rules.templates.help": "Erstellen Sie eine kompatible Regel, sehen Sie sich den aktuellen Effekt in der Vorschau an oder fügen Sie eine abschließende Gesamtregel hinzu. Manuelle Ordnermitglieder werden nie geändert.",
+    "editor.rules.templates.template-label": "Vorlage",
+    "editor.rules.templates.name-prefix": "Der Name beginnt mit",
+    "editor.rules.templates.name-prefix-placeholder": "Präfix (Beispiel: media-)",
+    "editor.rules.templates.name-contains": "Name enthält",
+    "editor.rules.templates.name-contains-placeholder": "Text im Namen (Beispiel: arr)",
+    "editor.rules.templates.image-repository": "Bild-Repository enthält",
+    "editor.rules.templates.image-repository-placeholder": "Repository (Beispiel: linuxserver/)",
+    "editor.rules.templates.compose-project": "Projekt erstellen ist gleich",
+    "editor.rules.templates.compose-project-placeholder": "Projektname (Beispiel: Medien)",
+    "editor.rules.templates.label-equals": "Docker-Label gleich",
+    "editor.rules.templates.label-equals-placeholder": "Label-Schlüssel=Wert"
 }

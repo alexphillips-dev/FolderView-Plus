@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 209,
+    "scannedFiles": 227,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -21,16 +21,16 @@
   "totals": {
     "inlineEventAttributes": 0,
     "inlineScriptBlocks": 0,
-    "externalScriptTags": 193,
+    "externalScriptTags": 196,
     "inlineStyleBlocks": 0,
     "inlineStyleAttributes": 0,
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 40
+    "htmlStringSinks": 43
   },
   "sinkControlSummary": {
-    "controlled": 40,
+    "controlled": 43,
     "review-required": 0
   },
   "readiness": {
@@ -132,7 +132,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js",
-      "line": 266,
+      "line": 274,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -232,7 +232,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js",
-      "line": 500,
+      "line": 442,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -242,7 +242,17 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js",
-      "line": 620,
+      "line": 563,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "Rule, template, status, and folder values are contextually escaped by the owning markup builders before the panel is mounted."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
+      "line": 1248,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -252,17 +262,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
-      "line": 1247,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "Contextual escaping or sanitization is visible at the interpolation boundary."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
-      "line": 1255,
+      "line": 1256,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -341,8 +341,18 @@
       "controlEvidence": "Folder identity and path values are escaped, status values are normalized counts, and action groups use guarded builders."
     },
     {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
+      "line": 184,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "FolderView3 report text is escaped at every interpolation boundary; counts and selected states are normalized before markup is mounted."
+    },
+    {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6354,
+      "line": 6355,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -352,7 +362,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 8124,
+      "line": 8125,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -372,7 +382,27 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 131,
+      "line": 150,
+      "sink": ".innerHTML =",
+      "risk": "reviewed",
+      "dataClass": "static-or-controlled-ui-template",
+      "requiredControl": "Keep the sink limited to plugin-authored markup and escaped dynamic values.",
+      "controlStatus": "controlled",
+      "controlEvidence": "The appearance profile toolbar uses plugin-authored markup and escapes localized catalog values before mounting."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
+      "line": 155,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "Appearance profile identifiers and names are escaped before option markup is mounted."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
+      "line": 173,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -382,7 +412,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 155,
+      "line": 198,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -392,7 +422,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 164,
+      "line": 207,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -402,7 +432,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 193,
+      "line": 236,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -412,7 +442,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 218,
+      "line": 261,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -422,7 +452,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 226,
+      "line": 269,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -500,7 +530,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 43,
+      "externalScriptTags": 44,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -512,7 +542,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 59,
+      "externalScriptTags": 60,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -524,7 +554,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 37,
+      "externalScriptTags": 38,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -713,6 +743,18 @@
       "htmlStringSinks": 1
     },
     {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
+      "inlineEventAttributes": 0,
+      "inlineScriptBlocks": 0,
+      "externalScriptTags": 0,
+      "inlineStyleBlocks": 0,
+      "inlineStyleAttributes": 0,
+      "evalCalls": 0,
+      "functionConstructors": 0,
+      "dynamicScriptCreation": 0,
+      "htmlStringSinks": 1
+    },
+    {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
@@ -758,7 +800,7 @@
       "evalCalls": 0,
       "functionConstructors": 0,
       "dynamicScriptCreation": 0,
-      "htmlStringSinks": 6
+      "htmlStringSinks": 8
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.ui.js",

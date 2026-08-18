@@ -24,8 +24,8 @@ test('Phase 8 runner contract preserves fixture and live smoke intent inventorie
         cwd: rootDir,
         encoding: 'utf8'
     });
-    assert.match(output, /37 ordered fixture cases/);
-    assert.equal(contract.intent.fixture.assertionCount, 466);
+    assert.match(output, /38 ordered fixture cases/);
+    assert.equal(contract.intent.fixture.assertionCount, 485);
     assert.equal(contract.intent.browserSmoke.checkFunctions.length, 9);
     assert.equal(contract.intent.themeMatrix.checkFunctions.length, 5);
 });
@@ -35,6 +35,9 @@ test('Phase 8 change classification covers every extracted runner family', async
     assert.equal(classifyPaths(['scripts/lib/fixture-browser-runner.mjs']).outputs.needs_browser, true);
     assert.equal(classifyPaths(['scripts/lib/browser-smoke-docker-checks.mjs']).outputs.needs_browser, true);
     assert.equal(classifyPaths(['scripts/lib/theme-matrix-runtime-checks.mjs']).outputs.needs_theme, true);
+    const diagnosticChange = classifyPaths(['scripts/lib/live-smoke-diagnostics.mjs']);
+    assert.equal(diagnosticChange.outputs.needs_browser, true);
+    assert.equal(diagnosticChange.outputs.needs_theme, true);
     const contractChange = classifyPaths(['scripts/test_runner_contracts.json']);
     assert.equal(contractChange.outputs.needs_browser, true);
     assert.equal(contractChange.outputs.needs_theme, true);

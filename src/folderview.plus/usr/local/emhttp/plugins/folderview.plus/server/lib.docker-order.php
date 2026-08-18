@@ -121,8 +121,7 @@ function dockerSyncOrderLockPath(): string {
             $assignedContainers = array_merge($assignedContainers, $members);
         }
 
-        $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
-        $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
+        $autoStartFile = fvplusEnvironmentDockerAutostartPath();
         $autoStartLines = file_exists($autoStartFile)
             ? (@file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [])
             : [];
@@ -306,8 +305,7 @@ function dockerSyncOrderLockPath(): string {
         $warnings = [];
         $batches = [];
         $remaining = [];
-
-        if ($mode === 'custom-batches') {
+        if ($mode === 'unmanaged') { $order = array_keys($autoStartMap); } elseif ($mode === 'custom-batches') {
             $custom = buildDockerCustomStartOrder($context, $plan);
             $order = (array)($custom['order'] ?? []);
             $warnings = (array)($custom['warnings'] ?? []);
@@ -316,7 +314,6 @@ function dockerSyncOrderLockPath(): string {
         } else {
             $order = buildDockerPageStartOrder($context);
         }
-
         $autoStartOrder = [];
         foreach ($order as $name) {
             if (isset($autoStartMap[$name])) {
@@ -328,12 +325,14 @@ function dockerSyncOrderLockPath(): string {
                 $autoStartOrder[] = $name;
             }
         }
-
+        $sequence = buildDockerStartOrderSequence($autoStartOrder, $context, $plan, $batches);
         return [
             'mode' => $mode,
+            'managed' => $mode !== 'unmanaged',
             'remainingMode' => (string)($plan['remaining'] ?? 'after'),
             'order' => array_values($order),
             'autostartOrder' => $autoStartOrder,
+            'sequence' => $sequence,
             'batches' => $batches,
             'remaining' => $remaining,
             'warnings' => array_values(array_unique($warnings)),
@@ -353,6 +352,7 @@ function dockerSyncOrderLockPath(): string {
         // Docker userprefs.cfg is owned by Unraid and is only read here.
         $context = buildDockerStartOrderContext();
         $plan = buildDockerStartOrderPlan($context);
+        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return; }
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $autoStartFile = (string)($context['autoStartFile'] ?? "/var/lib/docker/unraid-autostart");
         if (file_exists($autoStartFile)) {
@@ -367,25 +367,7 @@ function dockerSyncOrderLockPath(): string {
             foreach ($autoStartMap as $line) {
                 $newAutoStart[] = $line;
             }
-            if (($plan['mode'] ?? '') === 'custom-batches') {
-                $lineIndexByName = [];
-                foreach ($newAutoStart as $index => $line) {
-                    $parts = preg_split('/\s+/', trim((string)$line), 2);
-                    $lineIndexByName[(string)($parts[0] ?? '')] = $index;
-                }
-                foreach ((array)($plan['batches'] ?? []) as $batch) {
-                    $containers = (array)($batch['containers'] ?? []);
-                    $delay = (int)($batch['delay'] ?? 0);
-                    if ($delay <= 0 || count($containers) <= 0) {
-                        continue;
-                    }
-                    $last = (string)end($containers);
-                    if (isset($lineIndexByName[$last])) {
-                        $idx = $lineIndexByName[$last];
-                        $newAutoStart[$idx] = fvplus_set_autostart_line_delay((string)$newAutoStart[$idx], $delay);
-                    }
-                }
-            }
+            $newAutoStart = applyDockerStartOrderSequenceWaits($newAutoStart, (array)($plan['sequence'] ?? []));
             $nextAutoStartContent = count($newAutoStart) > 0
                 ? implode("\n", $newAutoStart) . "\n"
                 : '';
@@ -403,6 +385,7 @@ function dockerSyncOrderLockPath(): string {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
         if ($type !== 'docker') { return; }
+        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return; }
 
         $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
         if (!is_resource($lockHandle)) {

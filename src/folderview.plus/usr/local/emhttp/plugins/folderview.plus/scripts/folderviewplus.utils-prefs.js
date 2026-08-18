@@ -188,11 +188,9 @@
                 items
             });
         });
-        const dockerStartOrder = {
-            mode: ['docker-page', 'custom-batches'].includes(startOrderMode) ? startOrderMode : DEFAULT_DOCKER_START_ORDER.mode,
-            remaining: ['after', 'before', 'keep'].includes(startOrderRemaining) ? startOrderRemaining : DEFAULT_DOCKER_START_ORDER.remaining,
-            batches: startOrderBatches
-        };
+        const startOrderWaitsSource = isPlainObject(incoming.dockerStartOrder?.containerWaits) ? incoming.dockerStartOrder.containerWaits : {}, containerWaits = {};
+        Object.entries(startOrderWaitsSource).slice(0, 2000).forEach(([name, delay]) => { const normalizedName = String(name || '').trim().slice(0, 255); if (normalizedName) containerWaits[normalizedName] = clampNumber(delay, 0, 3600, 0); });
+        const dockerStartOrder = { mode: ['unmanaged', 'docker-page', 'custom-batches'].includes(startOrderMode) ? startOrderMode : DEFAULT_DOCKER_START_ORDER.mode, remaining: ['after', 'before', 'keep'].includes(startOrderRemaining) ? startOrderRemaining : DEFAULT_DOCKER_START_ORDER.remaining, batches: startOrderBatches, containerWaits };
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_TOGGLE_PREFS_SCHEMA;
         const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA;

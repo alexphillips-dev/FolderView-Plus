@@ -1,4 +1,4 @@
-name: Scheduled Cross-Browser and Unraid Validation
+name: Scheduled Cross-Browser Validation
 
 on:
   schedule:
@@ -7,105 +7,12 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: folderview-plus-scheduled-validation
   cancel-in-progress: true
 
 jobs:
-  configuration:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      live_configured: ${{ steps.detect.outputs.live_configured }}
-    env:
-      FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-      FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
-      FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
-    steps:
-      - name: Detect live validation configuration
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-          configured=true
-          for value in \
-            "${FVPLUS_UNRAID_MATRIX}" \
-            "${FVPLUS_BROWSER_SMOKE_URL}" \
-            "${FVPLUS_THEME_MATRIX_URLS}"; do
-            if [[ -z "${value}" ]]; then
-              configured=false
-            fi
-          done
-          echo "live_configured=${configured}" >> "${GITHUB_OUTPUT}"
-          {
-            echo "## Scheduled validation configuration"
-            echo
-            echo "- Cross-browser fixtures: required"
-            echo "- Live Unraid matrix configured: \`${configured}\`"
-            if [[ "${configured}" != 'true' ]]; then
-              echo "- Action required: configure FVPLUS_UNRAID_MATRIX, FVPLUS_BROWSER_SMOKE_URL, and FVPLUS_THEME_MATRIX_URLS repository secrets."
-            fi
-          } >> "${GITHUB_STEP_SUMMARY}"
-
-      - name: Report missing live Unraid validation configuration
-        if: steps.detect.outputs.live_configured != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          title="Live Unraid validation configuration required"
-          body_file="$(mktemp)"
-          {
-            echo "The scheduled cross-browser fixtures remain active, but the live-Unraid validation lane is skipped until all required repository secrets are configured."
-            echo
-            echo "Required Actions secrets:"
-            echo "- \`FVPLUS_UNRAID_MATRIX\`"
-            echo "- \`FVPLUS_BROWSER_SMOKE_URL\`"
-            echo "- \`FVPLUS_THEME_MATRIX_URLS\`"
-            echo
-            echo "Store only test-system targets and credentials in encrypted GitHub Actions secrets. Do not place them in repository variables, workflow files, logs, or issue comments."
-            echo
-            echo "Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          } > "${body_file}"
-          issue_number="$(
-            gh issue list \
-              --repo "${GITHUB_REPOSITORY}" \
-              --state open \
-              --search "\"${title}\" in:title" \
-              --json number,title \
-              --jq ".[] | select(.title == \"${title}\") | .number" \
-              | head -n 1
-          )"
-          if [[ -n "${issue_number}" ]]; then
-            gh issue comment "${issue_number}" --repo "${GITHUB_REPOSITORY}" --body-file "${body_file}"
-          else
-            gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body-file "${body_file}"
-          fi
-
-      - name: Close resolved live Unraid configuration alert
-        if: steps.detect.outputs.live_configured == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          title="Live Unraid validation configuration required"
-          issue_number="$(
-            gh issue list \
-              --repo "${GITHUB_REPOSITORY}" \
-              --state open \
-              --search "\"${title}\" in:title" \
-              --json number,title \
-              --jq ".[] | select(.title == \"${title}\") | .number" \
-              | head -n 1
-          )"
-          if [[ -n "${issue_number}" ]]; then
-            gh issue close "${issue_number}" --repo "${GITHUB_REPOSITORY}" --comment "All required live-Unraid validation secrets are now configured."
-          fi
-
   cross-browser-fixtures:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -130,37 +37,3 @@ jobs:
           path: tmp/fixture-browser-artifacts
           if-no-files-found: ignore
           retention-days: 14
-
-  live-unraid:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: configuration
-    if: needs.configuration.outputs.live_configured == 'true'
-    env:
-      FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-      FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
-      FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
-      FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
-      FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
-      FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
-      FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
-      FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
-      FVPLUS_THEME_MATRIX_REQUIRED: '1'
-      FVPLUS_THEME_REQUIRED_LABELS: black,white
-      FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
-      FVPLUS_THEME_SMOKE_BROWSERS: chromium,firefox,webkit
-      FVPLUS_THEME_SMOKE_ZOOMS: 1,1.25,1.5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Setup CI environment
-        uses: ./.github/actions/setup-ci-env
-
-      - name: Run required live validation
-        shell: bash
-        run: |
-          bash scripts/run_ci_suite.sh \
-            --lane guards \
-            --lane browser-smoke \
-            --lane theme-matrix

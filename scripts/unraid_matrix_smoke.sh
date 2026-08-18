@@ -137,18 +137,15 @@ for raw_entry in "${entries[@]}"; do
   fi
 
   if [[ -z "${url}" ]]; then
-    echo "WARN: Skipping empty URL entry: ${entry}"
+    echo "WARN: Skipping target-${index} because no URL was parsed."
     continue
   fi
-  if [[ -z "${label}" ]]; then
-    label="target-${index}"
-  fi
-
-  echo "[${label}] Smoke check: ${url}"
-  if FVPLUS_BROWSER_SMOKE_URL="${url}" FVPLUS_BROWSER_SMOKE_LABEL="${label}" FVPLUS_UNRAID_VERSION_HINT="${version}" FVPLUS_THEME_HINT="${theme}" bash "${SMOKE_SCRIPT}"; then
-    echo "[${label}] PASS"
+  diagnostic_label="target-${index}"
+  echo "[${diagnostic_label}] Smoke check"
+  if FVPLUS_BROWSER_SMOKE_URL="${url}" FVPLUS_BROWSER_SMOKE_LABEL="${diagnostic_label}" FVPLUS_UNRAID_VERSION_HINT="${version}" FVPLUS_THEME_HINT="${theme}" bash "${SMOKE_SCRIPT}"; then
+    echo "[${diagnostic_label}] PASS"
   else
-    echo "[${label}] FAIL"
+    echo "[${diagnostic_label}] FAIL"
     failures=$((failures + 1))
   fi
 done

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "regex 또는 레이블에 의해 자동 포함",
     "editor.members.drag-reorder": "순서 변경하려면 드래그",
     "editor.members.move-up": "위로 이동",
-    "editor.members.move-down": "아래로 이동"
+    "editor.members.move-down": "아래로 이동",
+    "editor.rules.templates.title": "규칙 템플릿",
+    "editor.rules.templates.help": "호환 가능한 규칙을 만들고, 현재 효과를 미리 보거나, 최종 포괄 기능을 하나 추가하세요. 수동 폴더 구성원은 변경되지 않습니다.",
+    "editor.rules.templates.template-label": "템플릿",
+    "editor.rules.templates.name-prefix": "이름은 다음으로 시작합니다.",
+    "editor.rules.templates.name-prefix-placeholder": "접두사(예: 미디어-)",
+    "editor.rules.templates.name-contains": "이름에 다음이 포함됨",
+    "editor.rules.templates.name-contains-placeholder": "이름의 텍스트(예: arr)",
+    "editor.rules.templates.image-repository": "이미지 저장소에는 다음이 포함됩니다.",
+    "editor.rules.templates.image-repository-placeholder": "저장소(예: linuxserver/)",
+    "editor.rules.templates.compose-project": "프로젝트 작성은 다음과 같습니다.",
+    "editor.rules.templates.compose-project-placeholder": "프로젝트 이름(예: 미디어)",
+    "editor.rules.templates.label-equals": "Docker 라벨은 다음과 같습니다.",
+    "editor.rules.templates.label-equals-placeholder": "라벨 키=값"
 }

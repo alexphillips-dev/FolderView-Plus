@@ -60,6 +60,27 @@ test('support bundle preview flags stale or mismatched Dashboard captures', () =
     assert.match(html, /is-attention/);
 });
 
+test('support bundle preview shows sanitized runtime page evidence without Dashboard visual data', () => {
+    const html = api.buildDashboardCaptureStatusHtml({
+        uiTelemetry: {
+            dashboardVisual: {},
+            runtimePageDiagnostics: {
+                surfaces: {
+                    docker: [{
+                        viewport: { class: 'desktop' },
+                        state: { folderRows: 4, visibleMembers: 12, spinningControls: 1, errorIndicators: 0, horizontalOverflow: false }
+                    }]
+                }
+            }
+        }
+    });
+    assert.match(html, /Docker page/);
+    assert.match(html, /4 folders/);
+    assert.match(html, /1 spinning controls/);
+    assert.match(html, /is-attention/);
+    assert.doesNotMatch(html, /is-missing/);
+});
+
 test('support bundle preview keeps diagnostic domain data out of the normal workspace', () => {
     assert.equal(api.buildDiagnosticDomainsHtml, undefined);
     const html = api.buildSupportBundlePreviewSectionCards({

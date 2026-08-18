@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.11.15">
-<!ENTITY md5 "e87349725bbfeb9637dc6f32c5ca256b">
-<!ENTITY sha256 "ddfd73a831c99f90510f8025bdde14f2432de51ac9acf084047f64b0d5d02f5a">
+<!ENTITY version "2026.08.18.01">
+<!ENTITY md5 "ba2e964a13a8bd7133fb4e36c4bc48d6">
+<!ENTITY sha256 "964156abc9760f67e472737cfb7e3977a3db203fbc304368dd85b17b899adbd4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -18,68 +18,90 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.08.11.15
-## FolderView Plus 2026.08.11.15
-This stable release promotes every validated development change since stable `2026.08.10.02`. It completes the planned monolith-reduction program, strengthens security and release controls, and includes the Docker, Diagnostics, popup, theme, localization, and editor corrections proven during development testing.
-### Runtime architecture and maintainability
-- Quality: Establish enforceable ownership, dependency, lifecycle, load-order, browser-global, inline-action, overlap, and non-increasing file-size contracts for primary browser and server entrypoints.
-- Refactor: Move all 145 Settings actions from broad `window` publication into the owner-scoped declarative action registry with atomic collision rejection and teardown.
-- Refactor: Split foundational scheduling, storage, escaping, identifier, URL sanitization, normalization, preferences, ordering, transfer, and runtime-rule utilities into focused modules while retaining the complete compatibility facade.
-- Refactor: Split GraphQL request mechanics, subscription ownership, and Docker actions into transport modules while preserving stale-request rejection, abort behavior, reconnect limits, CSRF headers, and privacy-safe diagnostics.
-- Refactor: Extract Docker column measurement and lifecycle control, then share deterministic folder ordering and visibility-aware live refresh across Docker, VM, and Dashboard without moving host-page ownership.
-- Refactor: Split Folder Editor regex selection, worker/debounce lifecycle, hierarchy, member rendering, drag ordering, preview bootstrap, page bootstrap, and runtime bootstrap into bounded modules while preserving saved-folder and nested-folder behavior.
-- Refactor: Split Settings search plus Setup Wizard persistence and review modeling into focused modules with blocked-storage fallbacks and unchanged saved-preference behavior.
-- Refactor: Decompose PHP release metadata, storage, themes, environment transfer, backups, folder rules and mutations, Docker ordering, runtime information, diagnostics, and custom-icon handling behind compatibility facades.
-- Refactor: Split second-generation shared utility and Docker/VM/Dashboard runtime monoliths into normalization, preference, ordering, transfer, rule, primitive, diagnostics, and control modules.
-- Refactor: Split the fixture-browser and browser-smoke runners by domain while preserving the original scenarios, assertions, browser matrix, artifacts, and test intent.
-- Quality: Ratchet every extracted module and compatibility facade with ownership contracts, dependency metadata, package inclusion, page load order, namespace identity, public API inventories, and exact or non-increasing size budgets.
-### Docker, VM, and Dashboard reliability
-- Fix: Restore Docker startup after the column-controller extraction by injecting the width-phase contract and directly testing bootstrap state.
-- Fix: Restore Docker folder rendering after the ordering extraction by moving deterministic, privacy-safe order fingerprints into the diagnostics module and enforcing its bootstrap contract.
-- Reliability: Reconcile expanded Docker-folder previews after start, stop, pause, resume, and restart so WebUI, console, and log actions leave their busy state when the lifecycle settles.
-- Reliability: Resolve lifecycle state through canonical container names or normalized IDs and refresh only the affected preview instead of broadly reloading the host page.
-- Reliability: Preserve Docker created-order behavior, explicit sort and pin ordering, new-container reconciliation, incremental refresh, width caching, gap enforcement, and teardown across navigation.
-- Reliability: Reuse the proven ordering and live-refresh seams in VM and Dashboard while retaining each surface's fetch and reconciliation policy.
-- Quality: Add direct runtime ordering, refresh lifecycle, layout determinism, action-state, Docker/VM parity, Dashboard lifecycle, large-data performance, and browser-fixture coverage.
-### Diagnostics, themes, and browser actions
-- UX: Turn Diagnostics priority findings into keyboard-focusable controls that reveal the affected health card, technical evidence, recommended correction, and supported repair action.
-- Reliability: Require confirmation for supported repairs and explain the backup created before orphaned Docker members or missing custom-icon references are changed.
-- Fix: Treat a successfully auto-healed host-theme accent as healthy instead of reducing core health from 6/6 to 5/6.
-- Accessibility: Keep unresolved missing tokens, indistinguishable status colors, and failed final contrast checks actionable while retaining final contrast evidence in sanitized support bundles.
-- UI/UX: Add a shared host-theme surface that observes Unraid theme attributes, media queries, and representative targets across Docker, VM, Dashboard, Settings, and Folder Editor.
-- UI/UX: Align Folder Editor top chrome with the surrounding dark surface and preserve contrast-corrected host accents across navigation and theme changes.
-- Compatibility: Open WebUI tabs through browser-owned blank handles, isolate `window.opener`, and navigate accepted handles so browsers that return `null` for `noopener` no longer produce false popup-blocked warnings.
-- UI/UX: Remove redundant active-tab underline bars from the modern Folder Editor and Advanced Settings while retaining highlighted active states and keyboard focus indicators.
-### Settings and localization corrections
-- Fix: Keep the Settings import progress overlay hidden until an import-related operation opens it, and synchronize the semantic `hidden` and `aria-hidden` states throughout the lifecycle.
-- Localization: Preserve complete Unraid language coverage across 27 catalogs while refreshing generated surfaces for extracted bootstraps and Diagnostics behavior.
-- Localization: Remove the unused Diagnostics `Check again` message and regenerate the 2,060-message aggregate catalogs with zero uncovered UI strings.
-- Quality: Preserve Simplified and Traditional Chinese locale mapping, strict language usage, generated catalog metadata, and browser-fixture coverage.
-### Security and CSP readiness
-- Security: Externalize plugin-owned page, Settings, Folder Editor, runtime conflict, preflight, custom-loader, Docker layout, and localization bootstraps instead of relying on inline scripts.
-- Security: Replace plugin-owned inline styles with scoped utilities, finite state classes, or validated CSS custom properties while keeping CSP in coordinated report-only readiness for the shared Unraid document.
-- Security: Add allowlisted safe-DOM construction and migrate persisted folder names, bulk-assignment results, and diagnostics button restoration away from HTML-string interpretation.
-- Security: Add malicious persisted-value fixtures covering folders, containers, templates, imports, translations, and diagnostics.
-- Security: Reduce and continuously guard the reviewed first-party HTML-string sink inventory while retaining zero plugin-owned inline events, inline scripts, and style attributes.
-- Security: Clear all first-party and locally corrected vendor CodeQL findings without dismissals, including shell-command flow, undeclared variables, unused assignments, ignored arguments, and semicolon hazards.
-- Security: Enforce zero open CodeQL alerts for analyzed commits and retain high-severity main-branch merge protection plus PR dependency review.
-- Security: Regenerate the CycloneDX SBOM, identify locally modified vendored snapshots, and use a deterministic SHA-256 UUIDv8 serial compatible with GitHub SBOM attestation.
-### CI, monitoring, and release integrity
-- Reliability: Restore the dev-channel manifest after the prior stable release while preserving stable source history and deterministic package contracts.
-- Reliability: Add a daily watchdog for stale weekly validation and Docker-upstream workflows, with deduplicated issue creation and automatic closure after recovery.
-- Compatibility: Review Unraid API v4.37.0, confirm the Docker GraphQL signature remains compatible, keep the native activation gate disabled, and advance the reviewed upstream baseline.
-- Quality: Expand change-aware lint, test, guard, fixture-browser, browser-smoke, theme, workflow, documentation, localization, dead-code, performance, package, and release-preview enforcement.
-- Quality: Add targeted undefined-symbol linting for the Docker runtime and source contracts that prevent extracted bootstrap or diagnostics dependencies from silently regressing.
-- Maintenance: Preserve deterministic archives, checksums, install smoke tests, explicit release notes, remote publication checks, provenance attestations, SBOM attestations, and main-to-dev back-merge validation.
-### Compatibility
-- Compatibility: Preserve the five plugin page entrypoints, 201 validated script references, browser/CommonJS facades, 30 public PHP endpoints, 276 core functions, 74 diagnostics functions, and 56 custom-icon functions.
-- Compatibility: Preserve current Docker, VM, Dashboard, Settings, Folder Editor, import/export, backup, custom-icon, theme, localization, and Setup Wizard persisted contracts.
-- Compatibility: Preserve legacy host-global fallback outside the migrated Settings action owner while preventing new undocumented coupling from growing.
-### Validation
-- Test: Retain comprehensive Node contract, lifecycle, integration, security, privacy, localization, package, and regression coverage after every extraction.
-- Test: Exercise the decomposed runtime through Chromium fixture scenarios plus Docker, VM, Dashboard, Settings, Folder Editor, import, CSP, theme, and responsive-layout fixtures.
-- Test: Enforce deterministic runtime-performance budgets, observer/timer disposal, repeated-navigation safety, request ownership, and package reproducibility.
-- Quality: Remove seven obsolete test source reads and finish the release with zero open CodeQL alerts on the development branch.
+###2026.08.18.01
+- Feature: Add explicit Docker start-order ownership modes, ordered startup batches, per-container delays, remaining-container policy, preview, and guarded autostart persistence.
+- UI/UX: Rebuild the Advanced Settings Start Order workspace with live totals, automatic preview hydration, a responsive sequence table, accessible autostart controls, and a collapsible disabled-container group.
+- Feature: Replace the single Theme Workspace model with named appearance profiles, global and Docker, VM, or Dashboard layers, scoped previews, inactive imports, and atomic profile actions.
+- Feature: Add preview-first folder rule templates for Docker names, images, Compose projects, and labels while preserving manual membership.
+- Feature: Add read-only FolderView3 discovery and conversion preview plus a confirmed migration path for folders, rules, defaults, start order, and inactive appearance profiles.
+- Reliability: Run environment imports and FolderView3 migrations under one configuration lock with exact snapshots, safety backups, readback verification, and automatic rollback of plugin and Docker autostart state.
+- Diagnostics: Add privacy-safe Docker, VM, and Dashboard runtime evidence with bounded page captures and sanitized support-bundle summaries.
+- Security: Bound and scan imported FolderView3 custom CSS, omit raw configuration from migration reports, validate Docker icon URLs, escape persisted values, and retain guarded mutation endpoints.
+- Accessibility: Keep Start Order text at a readable minimum size and preserve keyboard focus, reduced-motion behavior, contrast-safe actions, and contained mobile overflow.
+- Localization: Ship the complete Start Order surface across all 27 supported locales and recognize its runtime translation wrappers and rule-template keys during strict usage validation.
+- Fix: Correct lightweight Docker autostart detection, preserve peer-container state during toggles, and remove obsolete Start Order styles left by the responsive redesign.
+- Compatibility: Retain full Docker detail-row support and acknowledge Unraid API v4.37.1 after confirming no Docker schema, native-page, or organizer contract changes.
+- Reliability: Replace scheduled live-Unraid checks with deterministic isolated fixture validation while keeping live-host qualification available only as an operator-controlled action.
+- Docs: Refresh the GitHub presentation and comprehensive user wiki, including the new banner, consistent badges, and an explicitly labeled rolling 14-day clone metric.
+- Quality: Enforce smaller browser and PHP ownership boundaries for Start Order, rule templates, appearance profiles, diagnostics, FolderView3 migration, and environment transactions.
+- Test: Expand regression, browser-fixture, localization, performance, workflow, release, install, and compatibility-monitor coverage for the complete stable release.
+
+
+###2026.08.17.01
+- Fix: Remove obsolete Docker Start Order styles left behind by the responsive workspace redesign so strict validation no longer reports unused selectors.
+- Reliability: Recognize the VM translation wrapper and rule-template localization fields as real key references instead of incorrectly flagging their live catalog entries as unused.
+- Test: Revalidate the Start Order workspace in browser fixtures, all supported locale catalogs, runtime performance budgets, release guards, and install smoke coverage.
+
+
+###2026.08.12.07
+- Fix: Add the complete Docker Start Order message set to the Settings localization catalog so visiting the tab no longer records missing-key diagnostics.
+- Localization: Ship the 27 Start Order labels in every supported language while preserving English fallback behavior and complete locale coverage.
+- Reliability: Register the Start Order translation wrapper with the localization usage guard so future missing catalog keys fail validation before release.
+- Test: Verify every Start Order key exists and is non-empty across all 27 locale catalogs, alongside runtime, browser localization, and responsive Settings coverage.
+
+
+###2026.08.12.06
+- Fix: Detect Docker autostart from the lightweight runtime rows used by Settings so the Start Order summary no longer reports zero enabled containers.
+- Reliability: Preserve every peer container's actual autostart state when toggling one container instead of treating lightweight rows as disabled.
+- Compatibility: Keep support for full Docker detail rows while normalizing top-level `autostart` and `autoStart` state representations.
+- Test: Exercise the production lightweight payload in unit and Chromium fixtures, including visible totals, disabled classification, peer-state mutation preservation, and full-payload compatibility.
+
+
+###2026.08.12.05
+- UI/UX: Load the Docker autostart sequence automatically whenever the Start Order tab is opened while keeping Preview order available as an explicit refresh action.
+- Performance: Hydrate the preview only once per tab visit, then permit a fresh automatic request after leaving and reopening Start Order.
+- UI/UX: Keep the active-order notice aligned to the top controls row and size it to its content instead of stretching into an oversized panel with blank space.
+- Test: Cover preview activation and re-entry, the manual refresh contract, compact notice geometry, responsive overflow, and runtime performance budgets.
+
+
+###2026.08.12.04
+- Accessibility: Raise every visible Docker start-order label, metric, control, table value, badge, chip, and notice to a minimum computed size of 1.2rem.
+- UI/UX: Restore the Autostart disabled container group as a native collapsible disclosure that is closed by default.
+- UI/UX: Add a clear disclosure chevron while retaining the existing one-click actions for re-enabling individual containers.
+- Test: Verify the 1.2rem minimum in a real browser before and after expansion, confirm the disclosure defaults closed, and preserve desktop and mobile overflow checks.
+
+
+###2026.08.12.03
+- UI/UX: Rebuilt the Advanced Settings Docker start-order workspace to match the approved modern mockup with a descriptive header, live container totals, two-column configuration controls, contextual ownership guidance, and dedicated startup-batch actions.
+- UI/UX: Replaced the dense sequence list with a structured preview table showing order, application icon and name, editable wait time, accessible autostart switch, and compact row affordance.
+- UI/UX: Reworked disabled-autostart containers into readable action chips and added the next-service-start notice directly beneath the sequence.
+- Accessibility: Added responsive desktop, tablet, and mobile layouts, contained table scrolling, visible keyboard focus, reduced-motion handling, and contrast-safe text for the orange primary action.
+- Security: Restrict Docker icon rendering to HTTP(S) or root-relative paths, fall back to the Unraid Docker placeholder for unsafe values, and escape persisted container and batch content before rendering.
+- Quality: Extracted start-order presentation into a dedicated contracted view module while reducing the mutation workspace controller and the main Settings entrypoint.
+- Localization: Regenerated all 27 locale catalogs for the updated start-order surface with zero uncovered UI strings.
+- Test: Added focused rendering, unsafe-value, theme-token, architecture, and desktop/mobile browser-fixture coverage for the redesigned workspace.
+
+
+###2026.08.12.02
+- Feature: Added explicit Docker start-order ownership modes so Unraid order can remain unmanaged, follow the Docker page, or use custom startup batches.
+- Feature: Added Docker autostart sequence controls with ordered batches, per-item waits, remaining-container policy, preview, and guarded persistence.
+- Feature: Replaced the single Theme Workspace customization model with named appearance profiles, global and Docker, VM, or Dashboard layers, inactive imports, and scoped preview controls.
+- Feature: Added atomic appearance-profile create, rename, activate, layer-save, bulk-update, GitHub-import, and delete actions with readback-safe normalization.
+- Feature: Added reusable, preview-first folder rule templates for common Docker name, image, Compose project, and label patterns while preserving manual membership.
+- Feature: Added a privacy-safe runtime diagnostics model shared by Docker, VM, and Dashboard, including bounded page captures and sanitized support-bundle summaries.
+- Feature: Added read-only FolderView3 installed-config discovery and export preview with compatible folder, rule, defaults, start-order, and inactive appearance-profile conversion.
+- Feature: Added confirmed FolderView3 migration apply with source-digest freshness checks; native Docker autostart replacement remains explicitly opt-in.
+- Security: FolderView3 custom CSS is bounded and scanned before conversion, preview reports exclude raw target configuration, and migration endpoints use the standard mutation guard.
+- Reliability: Environment imports and FolderView3 migrations now run under one configuration lock with global and per-type safety backups, exact file snapshots, readback verification, and automatic rollback of folders, preferences, metadata, theme assets, and Docker autostart state.
+- Quality: Split start-order, rule-template, theme-profile, page-diagnostics, FolderView3 preview, FolderView3 apply, and environment-transaction responsibilities into enforceable browser and PHP module boundaries.
+- Quality: Expanded generated localization catalogs across all 27 shipped locales for the new workspaces, previews, warnings, and migration states.
+- Test: Added regression coverage for start-order modeling, autostart workspace behavior, rule conversion/templates, theme profiles/actions, runtime diagnostics, FolderView3 conversion, mutation confirmation, digest validation, failure injection, and full transaction rollback.
+
+
+###2026.08.12.01
+- Maintenance: Synchronized stable source and workflow fixes from main back into dev.
+- Quality: Rebuilt the dev package so the shipped archive exactly matches the synchronized source.
+- Test: Revalidated the complete dev state without allowing packaged-source drift.
 
 
 ###2026.08.11.14

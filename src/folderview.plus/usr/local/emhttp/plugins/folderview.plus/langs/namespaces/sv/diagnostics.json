@@ -116,5 +116,6 @@
     "diagnostics.bootstrap.download-failed": "Hämtningen misslyckades",
     "diagnostics.bootstrap.retrying": "Försöker igen…",
     "diagnostics.bootstrap.retry-succeeded": "Inläsningen återupptogs",
-    "diagnostics.bootstrap.retry-failed": "Nytt försök misslyckades"
+    "diagnostics.bootstrap.retry-failed": "Nytt försök misslyckades",
+    "diagnostics.capture.page-action": "Fånga sidans diagnostik"
 }

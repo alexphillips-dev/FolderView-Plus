@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Automatisk inkludert av regulært uttrykk eller etikett",
     "editor.members.drag-reorder": "Dra for å omorganisere",
     "editor.members.move-up": "Flytt opp",
-    "editor.members.move-down": "Flytt ned"
+    "editor.members.move-down": "Flytt ned",
+    "editor.rules.templates.title": "Regelmaler",
+    "editor.rules.templates.help": "Bygg en kompatibel regel, forhåndsvis den nåværende effekten, eller legg til en siste oppsamling. Manuelle mappemedlemmer endres aldri.",
+    "editor.rules.templates.template-label": "Mal",
+    "editor.rules.templates.name-prefix": "Navnet begynner med",
+    "editor.rules.templates.name-prefix-placeholder": "Prefiks (eksempel: media-)",
+    "editor.rules.templates.name-contains": "Navn inneholder",
+    "editor.rules.templates.name-contains-placeholder": "Tekst i navnet (eksempel: arr)",
+    "editor.rules.templates.image-repository": "Bildelageret inneholder",
+    "editor.rules.templates.image-repository-placeholder": "Repository (eksempel: linuxserver/)",
+    "editor.rules.templates.compose-project": "Komponer prosjekt lik",
+    "editor.rules.templates.compose-project-placeholder": "Prosjektnavn (eksempel: media)",
+    "editor.rules.templates.label-equals": "Docker-etikett er lik",
+    "editor.rules.templates.label-equals-placeholder": "Etikett nøkkel=verdi"
 }

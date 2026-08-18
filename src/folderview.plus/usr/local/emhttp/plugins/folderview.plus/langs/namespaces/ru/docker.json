@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Скрыть реестры образов",
     "docker.privacy.mask-public-ips": "Скрыть публичные IPs",
     "docker.privacy.mask-network-interfaces": "Скрыть сетевые интерфейсы",
-    "docker.privacy.mask-external-urls": "Маскировать внешние URL"
+    "docker.privacy.mask-external-urls": "Маскировать внешние URL",
+    "docker.actions.capture-diagnostics": "Диагностика страницы захвата"
 }

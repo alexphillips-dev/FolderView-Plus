@@ -124,30 +124,8 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
 
     function importEnvironmentSnapshotPayload(array $snapshot, string $sourceName = ''): array {
         $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
-        $rollback = createGlobalRollbackSnapshot('before-environment-import');
-        $typeResults = [];
-
-        foreach (FVPLUS_ALLOWED_TYPES as $type) {
-            $typeResults[$type] = [
-                'backup' => createBackupSnapshot($type, 'before-environment-import')
-            ];
-        }
-
-        foreach (FVPLUS_ALLOWED_TYPES as $type) {
-            $entry = is_array($normalized['types'][$type] ?? null) ? $normalized['types'][$type] : [];
-            $folders = is_array($entry['folders'] ?? null) ? $entry['folders'] : [];
-            $prefs = is_array($entry['prefs'] ?? null) ? $entry['prefs'] : defaultTypePrefs();
-            writeRawFolderMap($type, $folders);
-            writeTypePrefs($type, $prefs);
-            syncManualOrderWithFolders($type, $folders);
-            if ($type === 'docker') {
-                syncContainerOrder('docker');
-            }
-            $typeResults[$type]['folderCount'] = count($folders);
-        }
-
-        $workspace = writeThemeWorkspace($normalized['themeWorkspace'] ?? defaultThemeWorkspace());
-        $summary = buildEnvironmentSnapshotSummary($normalized, $sourceName);
+        $result = applyEnvironmentSnapshotTransaction($normalized, $sourceName, ['reason' => 'environment-import']);
+        $summary = (array)$result['summary'];
 
         try {
             appendDiagnosticsHistoryEvent('environment_import', null, [
@@ -155,19 +133,11 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
                 'dockerCount' => (int)($summary['docker']['folderCount'] ?? 0),
                 'vmCount' => (int)($summary['vm']['folderCount'] ?? 0),
                 'managedThemeCount' => (int)($summary['themeWorkspace']['managedThemeCount'] ?? 0),
-                'rollbackName' => (string)($rollback['name'] ?? '')
+                'rollbackName' => (string)($result['rollback']['name'] ?? '')
             ], 'ok', 'server');
         } catch (Throwable $err) {
             // Keep import non-fatal if diagnostics logging fails.
         }
 
-        return [
-            'summary' => $summary,
-            'types' => $typeResults,
-            'rollback' => $rollback,
-            'themeWorkspace' => [
-                'managedThemeCount' => count((array)($workspace['themes'] ?? [])),
-                'activeThemeId' => trim((string)($workspace['activeThemeId'] ?? ''))
-            ]
-        ];
+        return $result;
     }

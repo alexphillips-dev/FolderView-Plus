@@ -19,7 +19,7 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    assert.equal(surface.byPhrase.size, 1581);
+    assert.equal(surface.byPhrase.size, 1574);
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });
@@ -49,8 +49,8 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
 
     assert.equal(report['catalog-version'], '2026.08.10.1');
     assert.equal(report['candidate-count'], 0);
-    assert.equal(report['auto-bound-message-count'], 1581);
-    assert.equal(report['catalog-message-count'], 2060);
+    assert.equal(report['auto-bound-message-count'], 1574);
+    assert.equal(report['catalog-message-count'], 2120);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);
@@ -60,4 +60,19 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     assert.match(builder, /placeholderSignature/);
     assert.match(builder, /AbortSignal\.timeout/);
     assert.match(loader, /in_array\('legacy-surface', \$requestedNamespaces/);
+});
+
+test('every explicit Start Order key is shipped in every locale catalog', () => {
+    const viewSource = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.start-order-view.js'), 'utf8');
+    const referencedKeys = [...viewSource.matchAll(/startOrderT\(\s*['"]([^'"]+)['"]/g)].map((match) => match[1]);
+    const locales = fs.readdirSync(namespacesRoot).filter((entry) => fs.statSync(path.join(namespacesRoot, entry)).isDirectory());
+
+    assert.equal(new Set(referencedKeys).size, 27);
+    for (const locale of locales) {
+        const catalog = readJson(path.join(namespacesRoot, locale, 'settings.json'));
+        for (const key of referencedKeys) {
+            assert.equal(typeof catalog[key], 'string', `${locale}/${key} must be present`);
+            assert.notEqual(catalog[key].trim(), '', `${locale}/${key} must not be blank`);
+        }
+    }
 });

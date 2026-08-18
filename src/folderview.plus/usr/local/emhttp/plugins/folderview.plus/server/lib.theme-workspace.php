@@ -14,16 +14,15 @@ function getThemeWorkspacePath(): string {
     }
 
     function defaultThemeWorkspace(): array {
-        return [
+        return fvplusThemeProfilesWithCompatibilityAliases([
             'schemaVersion' => FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION,
             'activeThemeId' => '',
             'themes' => [],
-            'variables' => [],
-            'customCss' => '',
+            'activeProfileId' => 'default',
+            'profiles' => [fvplusThemeProfileDefault()],
             'lastCheckedAt' => ''
-        ];
+        ]);
     }
-
     function fvplusThemeWorkspaceNormalizeSource(array $source): array {
         return [
             'input' => truncateUtf8String(trim((string)($source['input'] ?? '')), 512),
@@ -185,16 +184,16 @@ function getThemeWorkspacePath(): string {
         if ($activeThemeId !== '' && !isset($seenIds[$activeThemeId])) {
             $activeThemeId = '';
         }
-        return [
+        $profileState = fvplusThemeProfilesNormalizeState($incoming);
+        return fvplusThemeProfilesWithCompatibilityAliases([
             'schemaVersion' => FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION,
             'activeThemeId' => $activeThemeId,
             'themes' => $themes,
-            'variables' => fvplusThemeWorkspaceNormalizeVariableMap($incoming['variables'] ?? []),
-            'customCss' => truncateUtf8String((string)($incoming['customCss'] ?? ''), FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES),
+            'activeProfileId' => $profileState['activeProfileId'],
+            'profiles' => $profileState['profiles'],
             'lastCheckedAt' => normalizeIsoTimestamp((string)($incoming['lastCheckedAt'] ?? ''))
-        ];
+        ]);
     }
-
     function fvplusThemeWorkspaceBuildVariablesCss(array $variables): string {
         if (count($variables) <= 0) {
             return '';
@@ -207,7 +206,7 @@ function getThemeWorkspacePath(): string {
         return implode("\n", $lines);
     }
 
-    function writeThemeWorkspaceManagedAssets(array $workspace): void {
+    function writeThemeWorkspaceManagedAssetsUnprotected(array $workspace): void {
         $normalized = normalizeThemeWorkspacePayload($workspace);
         $activeTheme = null;
         foreach ((array)($normalized['themes'] ?? []) as $theme) {
@@ -216,9 +215,10 @@ function getThemeWorkspacePath(): string {
                 break;
             }
         }
-        $variablesCss = fvplusThemeWorkspaceBuildVariablesCss((array)($normalized['variables'] ?? []));
-        $customCss = trim((string)($normalized['customCss'] ?? ''));
         foreach (['docker', 'vm', 'dashboard'] as $type) {
+            $resolvedLayer = fvplusThemeProfileResolvedLayer($normalized, $type);
+            $variablesCss = fvplusThemeWorkspaceBuildVariablesCss((array)$resolvedLayer['variables']);
+            $customCss = trim((string)$resolvedLayer['customCss']);
             $chunks = [
                 '/* FolderView Plus generated Theme Workspace asset. Do not edit manually. */'
             ];
@@ -268,14 +268,12 @@ function getThemeWorkspacePath(): string {
 
     function writeThemeWorkspace(array $workspace): array {
         $normalized = normalizeThemeWorkspacePayload($workspace);
-        writeJsonObjectWithLastGood(getThemeWorkspacePath(), $normalized);
-        writeThemeWorkspaceManagedAssets($normalized);
-        return $normalized;
+        return fvplusThemeWorkspaceApplyAtomic($normalized, true);
     }
 
     function ensureThemeWorkspaceManagedAssets(): array {
         $workspace = normalizeThemeWorkspacePayload(readJsonObjectFile(getThemeWorkspacePath()) ?? defaultThemeWorkspace());
-        writeThemeWorkspaceManagedAssets($workspace);
+        fvplusThemeWorkspaceApplyAtomic($workspace, false);
         return $workspace;
     }
 
@@ -297,6 +295,6 @@ function getThemeWorkspacePath(): string {
         if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
             return writeThemeWorkspace($normalized);
         }
-        writeThemeWorkspaceManagedAssets($normalized);
+        fvplusThemeWorkspaceApplyAtomic($normalized, false);
         return $normalized;
     }

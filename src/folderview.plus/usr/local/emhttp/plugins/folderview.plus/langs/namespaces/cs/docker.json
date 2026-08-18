@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Maskovat registry obrázků",
     "docker.privacy.mask-public-ips": "Maska pro veřejnost IPs",
     "docker.privacy.mask-network-interfaces": "Maska síťových rozhraní",
-    "docker.privacy.mask-external-urls": "Maskovat externí URL"
+    "docker.privacy.mask-external-urls": "Maskovat externí URL",
+    "docker.actions.capture-diagnostics": "Diagnostika snímací stránky"
 }

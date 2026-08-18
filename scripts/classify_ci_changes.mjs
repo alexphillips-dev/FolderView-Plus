@@ -5,6 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ZERO_SHA = /^0+$/;
+const WORKFLOW_COMPANION_PATTERNS = Object.freeze([
+    'docs/sbom.cdx.json'
+]);
 
 export const FILTERS = Object.freeze({
     docs: [
@@ -54,6 +57,7 @@ export const FILTERS = Object.freeze({
         'scripts/fixture_browser_tests.mjs',
         'scripts/lib/fixture-browser-*.mjs',
         'scripts/lib/browser-smoke-*.mjs',
+        'scripts/lib/live-smoke-diagnostics.mjs',
         'scripts/test_runner_contracts.json',
         'scripts/runtime_performance_benchmarks.sh',
         'scripts/runtime_performance_benchmarks.mjs',
@@ -69,6 +73,7 @@ export const FILTERS = Object.freeze({
         'scripts/theme_matrix_smoke.sh',
         'scripts/theme_matrix_smoke.mjs',
         'scripts/lib/theme-matrix-*.mjs',
+        'scripts/lib/live-smoke-diagnostics.mjs',
         'scripts/test_runner_contracts.json',
         'scripts/theme_runtime_guard.sh',
         'scripts/theme_scope_guard.sh',
@@ -108,7 +113,10 @@ export const classifyPaths = (paths) => {
     }
 
     const docsOnly = matched.docs && !matched.metadata && !matched.workflows && !matched.runtime;
-    const workflowOnly = matched.workflows && !matched.runtime && !matched.metadata && !matched.docs;
+    const workflowOnly = matched.workflows && changedPaths.every((filePath) =>
+        FILTERS.workflows.some((pattern) => matchesPattern(filePath, pattern)) ||
+        WORKFLOW_COMPANION_PATTERNS.some((pattern) => matchesPattern(filePath, pattern))
+    );
     return {
         changedPaths,
         matched,

@@ -14,5 +14,18 @@
     "editor.members.auto-included": "regexまたはラベルによって自動的に含まれる",
     "editor.members.drag-reorder": "順序を変更するにはドラッグ",
     "editor.members.move-up": "上に移動",
-    "editor.members.move-down": "下に移動"
+    "editor.members.move-down": "下に移動",
+    "editor.rules.templates.title": "ルールテンプレート",
+    "editor.rules.templates.help": "互換性のあるルールを構築し、その現在の効果をプレビューするか、最終的なキャッチオールを 1 つ追加します。手動フォルダーのメンバーは決して変更されません。",
+    "editor.rules.templates.template-label": "テンプレート",
+    "editor.rules.templates.name-prefix": "名前はで始まります",
+    "editor.rules.templates.name-prefix-placeholder": "プレフィックス (例: media-)",
+    "editor.rules.templates.name-contains": "名前に含まれるもの",
+    "editor.rules.templates.name-contains-placeholder": "名前のテキスト (例: arr)",
+    "editor.rules.templates.image-repository": "イメージ リポジトリには以下が含まれます",
+    "editor.rules.templates.image-repository-placeholder": "リポジトリ (例: linuxserver/)",
+    "editor.rules.templates.compose-project": "プロジェクトを同等に構成する",
+    "editor.rules.templates.compose-project-placeholder": "プロジェクト名（例：メディア）",
+    "editor.rules.templates.label-equals": "Docker ラベルが等しい",
+    "editor.rules.templates.label-equals-placeholder": "ラベルキー=値"
 }

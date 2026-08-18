@@ -39,6 +39,30 @@ test('scheduled workflow health accepts a manual proof run until the weekly inte
     assert.equal(result.latestSuccess.event, 'workflow_dispatch');
 });
 
+test('scheduled workflow health monitors the daily clone badge with a bounded grace period', () => {
+    const cloneBadgeTarget = SCHEDULED_WORKFLOW_TARGETS.find((candidate) => (
+        candidate.workflowFile === 'clone-traffic-badge.yml'
+    ));
+    assert.ok(cloneBadgeTarget);
+    assert.equal(cloneBadgeTarget.label, 'Rolling Clone Traffic Badge');
+    assert.equal(cloneBadgeTarget.maximumSuccessAgeHours, 72);
+
+    const fresh = evaluateWorkflowRuns({
+        target: cloneBadgeTarget,
+        nowMs,
+        runs: [run({ createdAt: '2026-08-08T12:01:00Z' })]
+    });
+    assert.equal(fresh.healthy, true);
+
+    const stale = evaluateWorkflowRuns({
+        target: cloneBadgeTarget,
+        nowMs,
+        runs: [run({ createdAt: '2026-08-07T11:59:00Z' })]
+    });
+    assert.equal(stale.healthy, false);
+    assert.equal(stale.reason, 'successful-run-stale');
+});
+
 test('scheduled workflow health rejects missing, failed, and stale successes', () => {
     const missing = evaluateWorkflowRuns({ target, nowMs, runs: [] });
     assert.equal(missing.healthy, false);

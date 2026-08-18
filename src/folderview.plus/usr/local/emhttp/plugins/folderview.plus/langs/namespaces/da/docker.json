@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Maske billedregistre",
     "docker.privacy.mask-public-ips": "Mask offentlige IP'er",
     "docker.privacy.mask-network-interfaces": "Maske netværksgrænseflader",
-    "docker.privacy.mask-external-urls": "Mask eksterne URL'er"
+    "docker.privacy.mask-external-urls": "Mask eksterne URL'er",
+    "docker.actions.capture-diagnostics": "Optag sidediagnostik"
 }

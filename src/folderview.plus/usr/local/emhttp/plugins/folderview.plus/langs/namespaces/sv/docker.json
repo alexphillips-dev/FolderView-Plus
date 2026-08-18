@@ -43,5 +43,6 @@
     "docker.privacy.mask-image-registries": "Dölj bildregister",
     "docker.privacy.mask-public-ips": "Dölj offentlig IPs",
     "docker.privacy.mask-network-interfaces": "Dölj nätverksgränssnitt",
-    "docker.privacy.mask-external-urls": "Maskera externa URL:er"
+    "docker.privacy.mask-external-urls": "Maskera externa URL:er",
+    "docker.actions.capture-diagnostics": "Fånga sida diagnostik"
 }

@@ -209,5 +209,5 @@ test('hiding empty folders reconciles an active empty-only filter before renderi
     assert.match(actionBarJs, /const reconcileFilterWithPrefs = \(\) => \{/);
     assert.match(actionBarJs, /if \(!hideEmptyFolders \|\| folderFilterMode !== 'empty'\) return false/);
     assert.match(actionBarJs, /if \(reconcileFilterWithPrefs\(\)\) applyFilterState\(\)/);
-    assert.match(actionBarJs, /actionMenuOpen = '';[\s\S]{0,500}if \(tool === 'reset'\) resetView\(\)/);
+    assert.match(actionBarJs, /actionMenuOpen = '';[\s\S]{0,1200}if \(tool === 'reset'\) resetView\(\)/);
 });

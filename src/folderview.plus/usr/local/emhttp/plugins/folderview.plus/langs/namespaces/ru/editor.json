@@ -14,5 +14,18 @@
     "editor.members.auto-included": "Автоматически включено regex или меткой",
     "editor.members.drag-reorder": "Перетащите для изменения порядка",
     "editor.members.move-up": "Переместить вверх",
-    "editor.members.move-down": "Переместить вниз"
+    "editor.members.move-down": "Переместить вниз",
+    "editor.rules.templates.title": "Шаблоны правил",
+    "editor.rules.templates.help": "Создайте совместимое правило, просмотрите его текущий эффект или добавьте еще одно универсальное правило. Члены папки, созданные вручную, никогда не изменяются.",
+    "editor.rules.templates.template-label": "Шаблон",
+    "editor.rules.templates.name-prefix": "Имя начинается с",
+    "editor.rules.templates.name-prefix-placeholder": "Префикс (пример: медиа-)",
+    "editor.rules.templates.name-contains": "Имя содержит",
+    "editor.rules.templates.name-contains-placeholder": "Текст в названии (пример: arr)",
+    "editor.rules.templates.image-repository": "Репозиторий изображений содержит",
+    "editor.rules.templates.image-repository-placeholder": "Репозиторий (пример: linuxserver/)",
+    "editor.rules.templates.compose-project": "Составить проект равен",
+    "editor.rules.templates.compose-project-placeholder": "Название проекта (пример: СМИ)",
+    "editor.rules.templates.label-equals": "Метка Docker равна",
+    "editor.rules.templates.label-equals-placeholder": "Ключ метки = значение"
 }

@@ -1,0 +1,14 @@
+{
+  "profile": "current-schema-drift",
+  "httpStatus": 200,
+  "capabilities": {
+    "queryType": { "fields": [{ "name": "info" }] },
+    "mutationType": { "fields": [] },
+    "subscriptionType": { "fields": [] },
+    "dockerType": { "fields": [] },
+    "dockerMutationsType": { "fields": [] },
+    "dockerContainerType": { "fields": [] },
+    "dockerAutostartInput": { "inputFields": [] }
+  },
+  "version": { "info": { "versions": { "core": { "unraid": "future-fixture", "api": "schema-drift-fixture" } } } }
+}

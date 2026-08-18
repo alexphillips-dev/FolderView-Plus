@@ -173,15 +173,19 @@ test('read_info supports cached full/state payload retrieval', () => {
     assert.match(readInfoPhp, /\$_GET\['mode'\]|\$_REQUEST\['mode'\]/);
 });
 
-test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
+test('runtime refresh uses API-first reads and lightweight PHP fallback snapshots before re-rendering', () => {
+    assert.match(dockerJs, /dockerApiCoordinatorModule\.createIntegration\(\{/);
+    assert.match(dockerJs, /readConfigSnapshot: async \(\) => runtimeSnapshotApi\?\.parsePayload\?\.\(await pluginRequestClient\.getJson\(/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'config'/);
+    assert.match(dockerJs, /const refreshDockerRuntimeStateFromPhp = async \(options = \{\}\) =>/);
     assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
     assert.match(vmJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: 'vm', mode: 'state' \}/);
     assert.match(dashboardJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: resolvedType, mode: 'state' \}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
-    assert.match(dockerJs, /const fetchDockerRuntimeSnapshotCheck = async \(options = \{\}\) =>/);
-    assert.match(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'check'/);
+    assert.match(dockerJs, /getDockerApiIntegration\(\)\?\.refresh\?\.\(options\)/);
+    assert.doesNotMatch(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'check'/);
     assert.match(vmJs, /runtimeSnapshotApi\.buildUrl\('vm', 'check'/);
     assert.match(dashboardJs, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'check'/);
     assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);

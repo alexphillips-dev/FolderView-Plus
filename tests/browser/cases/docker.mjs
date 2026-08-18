@@ -112,4 +112,37 @@ test('future native Docker host stays authoritative while compatibility diagnost
         []
     );
 });
+
+test('legacy Docker uses API-first reads while host eventControl retains action ownership', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-api-legacy?profile=current-full-api`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerApiLegacy.result);
+    assert.equal(result.provider, 'hybrid-legacy-graphql');
+    assert.equal(result.providerDiagnostics.actionTransport, 'legacy-webgui');
+    assert.equal(result.coordinator.state, 'ready');
+    assert.equal(result.coordinator.source, 'unraid-graphql-targeted');
+    assert.equal(result.runtime.info.State.Running, true);
+    assert.equal(result.runtime.info.State.Paused, true);
+    assert.equal(result.runtime.info.State.Updated, true);
+    assert.equal(result.runtime.Labels['fixture.php'], 'preserved');
+    assert.equal(result.hostActions.length, 1);
+    assert.equal(result.hostActions[0].request.action, 'start');
+    assert.equal(result.apiCalls.some((entry) => entry.list), true);
+    assert.equal(result.apiCalls.some((entry) => entry.targeted), true);
+    assert.equal(result.apiCalls.some((entry) => entry.mutation), false);
+    assert.equal(result.apiCalls.every((entry) => entry.csrf === 'api-first-fixture-token'), true);
+    assert.equal(result.structuralRefreshes, 0);
+    await page.evaluate(() => window.fixtureDockerApiLegacy.dispose());
+});
+
+test('legacy Docker remains functional when the API is absent', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-api-legacy?profile=legacy-no-api`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerApiLegacy.result);
+    assert.equal(result.provider, 'hybrid-legacy-graphql');
+    assert.equal(result.providerDiagnostics.state, 'degraded');
+    assert.equal(result.runtime.info.State.Running, false);
+    assert.equal(result.hostActions.length, 1);
+    assert.equal(result.hostActions[0].request.action, 'start');
+    assert.equal(result.apiCalls.some((entry) => entry.mutation), false);
+    await page.evaluate(() => window.fixtureDockerApiLegacy.dispose());
+}, { allowedConsoleErrors: [/Failed to load resource:.*404 \(Not Found\)/] });
 };

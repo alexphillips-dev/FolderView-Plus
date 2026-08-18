@@ -4,7 +4,8 @@ import path from 'node:path';
 import process from 'node:process';
 
 export const runFixtureBrowserSuite = async ({
-    fixtureServer, tests, requestedBrowsers, browserTypes, timeoutMs, accessibilityEnabled,
+    fixtureServer, tests, requestedBrowsers, browserTypes, colorSchemes, viewports,
+    timeoutMs, accessibilityEnabled,
     axeScriptPath, artifactDir, rootDir
 }) => {
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
@@ -12,6 +13,8 @@ const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     browsers: requestedBrowsers,
+    colorSchemes,
+    viewports,
     tests: [],
     passed: 0,
     failed: 0
@@ -26,8 +29,10 @@ try {
         }
         const browser = await browserType.launch({ headless: true });
         try {
+            for (const colorScheme of colorSchemes) {
+            for (const viewport of viewports) {
             for (const entry of tests) {
-                const context = await browser.newContext({ viewport: { width: 1180, height: 720 }, colorScheme: 'dark' });
+                const context = await browser.newContext({ viewport, colorScheme });
                 const page = await context.newPage();
                 page.setDefaultTimeout(timeoutMs);
                 const browserErrors = [];
@@ -36,7 +41,15 @@ try {
                     if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`);
                 });
                 const startedAt = Date.now();
-                const result = { browser: browserName, name: entry.name, durationMs: 0, pass: false, errors: [] };
+                const result = {
+                    browser: browserName,
+                    colorScheme,
+                    viewport,
+                    name: entry.name,
+                    durationMs: 0,
+                    pass: false,
+                    errors: []
+                };
                 try {
                     await entry.handler({ page, context, browserName });
                     if (accessibilityEnabled && entry.skipAccessibility !== true) {
@@ -64,25 +77,38 @@ try {
                         });
                         assert.deepEqual(violations, [], `axe accessibility violations:\n${JSON.stringify(violations, null, 2)}`);
                     }
-                    assert.deepEqual(browserErrors, [], `browser emitted errors:\n${browserErrors.join('\n')}`);
+                    const unexpectedBrowserErrors = browserErrors.filter((error) => !(
+                        Array.isArray(entry.allowedConsoleErrors)
+                        && entry.allowedConsoleErrors.some((pattern) => pattern.test(error))
+                    ));
+                    assert.deepEqual(
+                        unexpectedBrowserErrors,
+                        [],
+                        `browser emitted errors:\n${unexpectedBrowserErrors.join('\n')}`
+                    );
                     result.pass = true;
                     report.passed += 1;
-                    console.log(`PASS [${browserName}] ${entry.name}`);
+                    console.log(`PASS [${browserName}/${colorScheme}/${viewport.width}x${viewport.height}] ${entry.name}`);
                 } catch (error) {
                     exitCode = 1;
                     report.failed += 1;
                     result.errors.push(String(error?.stack || error));
                     result.errors.push(...browserErrors);
-                    const screenshotPath = path.join(artifactDir, `${slug(browserName)}-${slug(entry.name)}.png`);
+                    const screenshotPath = path.join(
+                        artifactDir,
+                        `${slug(browserName)}-${slug(colorScheme)}-${viewport.width}x${viewport.height}-${slug(entry.name)}.png`
+                    );
                     await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
                     result.screenshot = path.relative(rootDir, screenshotPath).replaceAll('\\', '/');
-                    console.error(`FAIL [${browserName}] ${entry.name}`);
+                    console.error(`FAIL [${browserName}/${colorScheme}/${viewport.width}x${viewport.height}] ${entry.name}`);
                     console.error(result.errors.join('\n'));
                 } finally {
                     result.durationMs = Date.now() - startedAt;
                     report.tests.push(result);
                     await context.close();
                 }
+            }
+            }
             }
         } finally {
             await browser.close();

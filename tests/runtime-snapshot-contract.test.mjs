@@ -238,9 +238,11 @@ test('runtime pages patch state changes incrementally and retain structural fall
     assert.match(dashboardJs, /syncDashboardRuntimeRows\(resolvedType,\s*rowDiff\.changed\)/);
 });
 
-test('Docker, VM, and Dashboard bootstrap and polling use the coherent endpoint', () => {
+test('runtime bootstraps use coherent snapshots while Docker polling is API-first', () => {
     assert.match(dockerJs, /createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'prefsResponse'\]/);
-    assert.match(dockerJs, /buildUrl\('docker', 'check'/);
+    assert.match(dockerJs, /buildUrl\('docker', 'config'/);
+    assert.match(dockerJs, /dockerApiCoordinatorModule\?\.createIntegration/);
+    assert.doesNotMatch(dockerJs, /buildUrl\('docker', 'check'/);
     assert.match(dockerJs, /lastDockerRuntimeSnapshotToken/);
     assert.match(vmJs, /createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
     assert.match(vmJs, /buildUrl\('vm', 'check'/);

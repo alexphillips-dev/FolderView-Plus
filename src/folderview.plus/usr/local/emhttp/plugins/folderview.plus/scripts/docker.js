@@ -1,13 +1,9 @@
 // @ts-check
 (function fvplusDockerRuntimeScope(window, $) {
 'use strict';
-
 const dockerHostCompatibilityModule = window.FolderViewPlusHostCompatibility || null;
 const dockerHostCompatibilityController = window.FolderViewPlusDockerHostCompatibilityController
-    || dockerHostCompatibilityModule?.getDefaultController?.({
-        window,
-        document: window.document
-    })
+    || dockerHostCompatibilityModule?.getDefaultController?.({ window, document: window.document })
     || null;
 const dockerHostCompatibilityDecision = window.FolderViewPlusDockerHostCompatibilityDecision
     || dockerHostCompatibilityController?.evaluateDockerRuntime?.()
@@ -63,6 +59,8 @@ const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.get
     debug: FOLDER_VIEW_DEBUG_MODE
 }) || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
+const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
+let dockerApiIntegration = null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
@@ -4974,6 +4972,7 @@ const createFolders = async () => {
         folderCount: Object.keys(globalFolders || {}).length
     });
     dockerRuntimePerformanceTelemetry?.sampleDom?.('folders-grouped');
+    void getDockerApiIntegration()?.prepare?.({ refresh: true }).catch(() => {});
     } catch (error) {
     reportDockerFatalRuntimeError(error, {
         phase: error?.fvplusPhase || 'bootstrap-data',
@@ -7525,28 +7524,29 @@ const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
     return Math.max(0, Number(snapshot.revisions.folder) || 0) === lastDockerRuntimeSnapshotRevisions.folder
         && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastDockerRuntimeSnapshotRevisions.prefs;
 };
-
-const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
-    const liveUpdateStatus = options?.liveUpdateStatus === true;
-    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
-        const parsed = await pluginRequestClient.getJson(buildDockerRuntimeInfoUrl('state', Date.now(), {
-            liveUpdateStatus
-        }), { cache: false });
-        return {
-            notModified: buildDockerStateSignature(parsed, true) === lastLiveRefreshStateSignature,
-            snapshotToken: '',
-            runtimeSignature: buildDockerStateSignature(parsed, true)
-        };
+const getDockerApiIntegration = () => {
+    if (!dockerApiIntegration && typeof dockerApiCoordinatorModule?.createIntegration === 'function') {
+        dockerApiIntegration = dockerApiCoordinatorModule.createIntegration({
+            providerRegistry: dockerProviderRegistry,
+            getRuntimeMap: () => dockerRuntimeInfoByName,
+            applyRuntimeMap: (nextMap, result = {}) => {
+                dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(nextMap, dockerRuntimeInfoByName);
+                const changed = Array.isArray(result.changed) ? result.changed : [];
+                if (changed.length > 0) syncDockerVisibleFoldersFromRuntimeCache(changed);
+                return true;
+            },
+            onStatus: (status) => dockerHostCompatibilityController?.updateProviderEvidence?.({ provider: { apiRead: status } }),
+            requestStructuralRefresh: () => queueLoadlistRefresh({ suppressLoadingUi: true }),
+            readConfigSnapshot: async () => runtimeSnapshotApi?.parsePayload?.(await pluginRequestClient.getJson(
+                runtimeSnapshotApi.buildUrl('docker', 'config', { forceRefresh: false }), { cache: false })),
+            isConfigCurrent: dockerRuntimeSnapshotConfigMatches,
+            prepareOptions: { hostGeneration: dockerHostCompatibilityDecision.hostGeneration, timeoutMs: 4000 },
+            setTimeout: window.setTimeout.bind(window)
+        });
     }
-    const payload = await pluginRequestClient.getJson(runtimeSnapshotApi.buildUrl('docker', 'check', {
-        since: lastDockerRuntimeSnapshotToken,
-        liveUpdateStatus,
-        forceRefresh: true
-    }), { cache: false });
-    return runtimeSnapshotApi.parsePayload(payload);
+    return dockerApiIntegration;
 };
-
-const refreshDockerRuntimeStateInPlace = async (options = {}) => {
+const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
     dockerRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
     const liveUpdateStatus = options?.liveUpdateStatus === true;
@@ -7660,6 +7660,17 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     }
 };
 
+const refreshDockerRuntimeStateInPlace = async (options = {}) => {
+    if (options?.apiFirst !== false) {
+        try {
+            if (await getDockerApiIntegration()?.refresh?.(options)) return true;
+        } catch (_error) {
+            // The established PHP runtime snapshot remains the non-fatal fallback.
+        }
+    }
+    return refreshDockerRuntimeStateFromPhp({ ...options, apiFirst: false });
+};
+
 const readDockerHostOrderFromDom = () => {
     const order = [];
     document.querySelectorAll('#docker_list > tr.sortable').forEach((row) => {
@@ -7696,26 +7707,11 @@ const dockerLiveRefreshController = runtimeLiveRefreshModule.createController({
     document,
     keys: ['docker'],
     isEnabled: () => folderTypePrefs?.liveRefreshEnabled === true && $('#docker_list').length > 0,
-    tick: async () => {
-        let check = null;
-        try {
-            check = await fetchDockerRuntimeSnapshotCheck({
-                liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-            });
-        } catch (_error) {
-            check = null;
-        }
-        if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-            queueLoadlistRefresh();
-            return false;
-        }
-        if (check.notModified !== true) {
-            await refreshDockerRuntimeStateInPlace({
-                liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-            });
-        }
-        return true;
-    }
+    tick: () => getDockerApiIntegration()?.tick?.({
+            liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
+            preserveGroupedDom: true,
+            staleKey: 'docker-api-live-refresh'
+        }) || refreshDockerRuntimeStateInPlace({ apiFirst: false })
 });
 const scheduleLiveRefresh = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
@@ -8011,6 +8007,8 @@ addEventListener("keydown", (e) => {
 
 window.addEventListener('pagehide', () => {
     dockerLiveRefreshController.dispose();
+    dockerApiIntegration?.dispose?.();
+    dockerApiIntegration = null;
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dockerPinnedFolderServerReconcileTimer);
     clearTimeout(dockerRuntimePrivacyServerReconcileTimer);

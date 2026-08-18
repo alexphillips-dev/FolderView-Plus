@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.05">
-<!ENTITY md5 "c7d718271c7b161cd1870727b8191a7e">
-<!ENTITY sha256 "b406110abdd91851595019023780312c314da44af8f6da37c7c33c2f7aecda86">
+<!ENTITY version "2026.08.18.06">
+<!ENTITY md5 "0f889f48531bb0b0bea2a8438bd1acaf">
+<!ENTITY sha256 "37fe91a0ee456272868125fc7b0de0c5e7100602de7dc8640fcf47721225967a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.06
+- Feature: Use Unraid GraphQL as the preferred Docker runtime-state source on supported hosts while preserving the established PHP snapshot path as an automatic compatibility fallback.
+- Reliability: Add a single-owner runtime coordinator with capability-gated full and targeted reads, stable PHP-to-API identity matching, stale-response cancellation, bounded retry cooldowns, structural-change fallback, and lifecycle disposal.
+- Compatibility: Keep Unraid's native Docker controls authoritative, enrich only existing FolderView runtime rows, and leave legacy or API-unavailable hosts fully functional without requiring user configuration or credentials.
+- Privacy: Expose only aggregate API capability and health evidence in diagnostics; container names, identifiers, query data, tokens, and server error details are not exported.
+- Test: Replace live-Unraid validation and encrypted target secrets with deterministic isolated GraphQL profiles covering current, legacy, limited, denied, partial, unavailable, rate-limited, schema-drift, and future-native host behavior.
+- Test: Run the shipped API-first path through browser fixtures, responsive themes, lifecycle reconciliation, accessibility checks, architecture contracts, and release/install guards without contacting a live Unraid system.
+- Docs: Expand the API integration, runtime architecture, compatibility, prerelease qualification, contributor, and architecture-decision guidance for the API-first rollout and its safe fallback boundaries.
+
 
 ###2026.08.18.05
 - Test: Publish a metadata-only dev update so installations on 2026.08.18.04 can exercise the in-plugin Update Available indicator and Plugins-page navigation against a genuine newer dev manifest.

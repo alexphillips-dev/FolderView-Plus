@@ -45,10 +45,10 @@ const patterns = {
 };
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 const explicitHtmlSinkReviews = new Map([
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1286', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3465', 'The loading overlay contains plugin-authored static markup only.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5252', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5284', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1284', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3463', 'The loading overlay contains plugin-authored static markup only.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5251', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:5283', 'The assignment trims an already-rendered host status clone and does not interpolate new data.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:274', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js:504', 'Names, identifiers, states, actions, and error text are escaped; counts are normalized numbers and image sources are sanitized.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js:221', 'The stable-toggle controller accepts only plugin-owned markup builders and validates the expected input after mounting.'],

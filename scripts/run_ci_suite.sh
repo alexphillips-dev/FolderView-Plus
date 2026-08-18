@@ -112,6 +112,42 @@ emit_timing_report() {
   fi
 }
 
+run_playwright_install() {
+  local attempts_raw="${FVPLUS_PLAYWRIGHT_INSTALL_ATTEMPTS:-2}"
+  local timeout_raw="${FVPLUS_PLAYWRIGHT_INSTALL_TIMEOUT:-20m}"
+  local retry_delay_raw="${FVPLUS_PLAYWRIGHT_INSTALL_RETRY_DELAY_SEC:-5}"
+  local attempt=1
+  local status=0
+
+  [[ "${attempts_raw}" =~ ^[1-9][0-9]*$ ]] || fvplus::fail "FVPLUS_PLAYWRIGHT_INSTALL_ATTEMPTS must be a positive integer."
+  [[ "${timeout_raw}" =~ ^[1-9][0-9]*[smh]$ ]] || fvplus::fail "FVPLUS_PLAYWRIGHT_INSTALL_TIMEOUT must be a positive duration ending in s, m, or h."
+  [[ "${retry_delay_raw}" =~ ^[0-9]+$ ]] || fvplus::fail "FVPLUS_PLAYWRIGHT_INSTALL_RETRY_DELAY_SEC must be a non-negative integer."
+
+  while (( attempt <= attempts_raw )); do
+    if command -v timeout >/dev/null 2>&1; then
+      if timeout --kill-after=30s "${timeout_raw}" "${NPX_BIN}" playwright "$@"; then
+        return 0
+      else
+        status=$?
+      fi
+    elif "${NPX_BIN}" playwright "$@"; then
+      return 0
+    else
+      status=$?
+    fi
+
+    if (( attempt >= attempts_raw )); then
+      printf 'ERROR: Playwright installation failed after %s attempt(s) (last status: %s).\n' "${attempts_raw}" "${status}" >&2
+      return "${status}"
+    fi
+
+    printf 'WARNING: Playwright installation attempt %s/%s failed or timed out (status: %s); retrying in %ss.\n' \
+      "${attempt}" "${attempts_raw}" "${status}" "${retry_delay_raw}" >&2
+    sleep "${retry_delay_raw}"
+    attempt=$((attempt + 1))
+  done
+}
+
 prepare_playwright() {
   if [[ "${PLAYWRIGHT_READY}" -eq 1 ]]; then
     return
@@ -127,13 +163,13 @@ prepare_playwright() {
 
   if [[ "${browser_cache_ready}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
     if [[ "${NODE_BIN}" != *.exe ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
-      "${NPX_BIN}" playwright install-deps chromium firefox webkit
+      run_playwright_install install-deps chromium firefox webkit
     fi
     printf '[ci-suite] Matching Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
   elif parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
-    "${NPX_BIN}" playwright install --with-deps chromium firefox webkit
+    run_playwright_install install --with-deps chromium firefox webkit
   else
-    "${NPX_BIN}" playwright install chromium firefox webkit
+    run_playwright_install install chromium firefox webkit
   fi
   PLAYWRIGHT_READY=1
 }

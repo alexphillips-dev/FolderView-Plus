@@ -50,10 +50,10 @@
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs"
       ],
-      "testCount": 40,
-      "assertionCount": 506,
-      "pageEvaluateCount": 103,
-      "orderedTitleSha256": "b34fb1cea66c40fb7879d91d3cabcc2574439251080d6edf48c46c1ff9ffe564"
+      "testCount": 41,
+      "assertionCount": 516,
+      "pageEvaluateCount": 104,
+      "orderedTitleSha256": "53ad55e55f53773f656099d739688ea69880e286da018113f8e212813ea64166"
     }
   }
 }

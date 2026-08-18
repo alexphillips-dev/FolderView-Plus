@@ -27,6 +27,21 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
     assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
+test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerPreviewCloneResilience.run());
+    assert.equal(result.modeOneOk, true);
+    assert.equal(result.modeThreeOk, true);
+    assert.equal(result.modeOneState, 'started');
+    assert.equal(result.modeThreeState, 'started');
+    assert.match(result.originalState, /Compose Stack: fixture-stack/);
+    assert.deepEqual(result.missingState, { ok: false, reason: 'state-markup-missing' });
+    assert.deepEqual(result.missingWrapper, { ok: false, reason: 'preview-markup-missing' });
+    assert.deepEqual(result.invalidSelector, { ok: false, reason: 'preview-clone-failed' });
+    assert.equal(result.renderedCount, 3, 'a malformed member must not stop subsequent preview rendering');
+    assert.equal(result.fallbackCount, 2);
+});
+
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureFolderContextFirstClick.run());

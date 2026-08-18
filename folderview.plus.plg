@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.06">
-<!ENTITY md5 "0f889f48531bb0b0bea2a8438bd1acaf">
-<!ENTITY sha256 "37fe91a0ee456272868125fc7b0de0c5e7100602de7dc8640fcf47721225967a">
+<!ENTITY version "2026.08.18.07">
+<!ENTITY md5 "966c49d0f5d01b3c187322396c71bb92">
+<!ENTITY sha256 "179e8d2e03e993bc7259d7b5c0c916499cd0f2871fa727e95f35001349c656f1">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.07
+- Fix: Prevent Docker folder startup from failing when a native or third-party container row omits the expected status or wrapper markup used by single-row previews.
+- Reliability: Resolve preview markup from the already-selected source row, validate it before cloning, and fall back to FolderView Plus's model-based preview without stopping later folder members.
+- Privacy: Record preview fallback diagnostics using only the numeric preview mode and fixed reason categories; folder and container identities are not included.
+- Test: Add real-browser coverage for standard Unraid-style rows, missing status markup, missing wrappers, invalid selectors, state-detail trimming, and continued rendering after malformed members.
+
 
 ###2026.08.18.06
 - Feature: Use Unraid GraphQL as the preferred Docker runtime-state source on supported hosts while preserving the established PHP snapshot path as an automatic compatibility fallback.

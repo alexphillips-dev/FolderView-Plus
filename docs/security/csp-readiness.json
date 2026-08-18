@@ -27,10 +27,10 @@
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 43
+    "htmlStringSinks": 41
   },
   "sinkControlSummary": {
-    "controlled": 43,
+    "controlled": 41,
     "review-required": 0
   },
   "readiness": {
@@ -72,7 +72,7 @@
   "htmlStringSinkInventory": [
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1228,
+      "line": 1230,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -82,7 +82,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1239,
+      "line": 1241,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -92,7 +92,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1284,
+      "line": 1286,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -102,33 +102,13 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 3463,
+      "line": 3465,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "The loading overlay contains plugin-authored static markup only."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 5251,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "The assignment trims an already-rendered host status clone and does not interpolate new data."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 5283,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "The assignment trims an already-rendered host status clone and does not interpolate new data."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js",
@@ -608,7 +588,7 @@
       "evalCalls": 0,
       "functionConstructors": 0,
       "dynamicScriptCreation": 0,
-      "htmlStringSinks": 6
+      "htmlStringSinks": 4
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js",

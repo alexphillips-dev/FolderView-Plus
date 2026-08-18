@@ -821,6 +821,8 @@ const getDockerPreviewActionsApi = () => {
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
+            appendRequestBundleTrace: (eventType, details) => appendDockerRequestBundleTrace(eventType, details),
+            debug: FOLDER_VIEW_DEBUG_MODE,
             webuiLinkRel: WEBUI_LINK_REL
         });
     }
@@ -5206,9 +5208,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let addPreview;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
     const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
-    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
+    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null, options = {}) => {
         let compactPreviewItem = null;
-        if (folder.settings.context === 1) {
+        if (folder.settings.context === 1 && options.preferNativeDefaultContext !== false) {
             compactPreviewItem = buildCompactPreviewDefaultContextItem($sourceRow, folder.settings, autostart);
         }
         const builtPreview = compactPreviewItem
@@ -5240,6 +5242,15 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         }
         return $tooltipTrigger;
     };
+    const resilientSingleRowPreview = (previewMode, selector, folderTrId, ctid, autostart, previewEntry, $sourceRow) =>
+        getDockerPreviewActionsApi().renderDockerSingleRowPreview({
+            $sourceRow, $preview: $createdFolderPreview, selector, previewMode,
+            context: folder.settings.context, ctid, autostart,
+            appendModelPreview: () => appendCompactPreview(
+                folderTrId, ctid, autostart, previewEntry, $sourceRow,
+                { preferNativeDefaultContext: false }
+            )
+        });
     switch (folder.settings.preview) {
         case 1:
             addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
@@ -5247,17 +5258,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
-                clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
-                let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`).find('i[id^="load-"]');
-                tmpId.attr("id", "folder-" + tmpId.attr("id"));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last > span.hand`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if(folder.settings.context === 2) { return tmpId; }
-                }
+                return resilientSingleRowPreview(1, 'td.ct-name > span.outer', folderTrId, ctid, autostart, previewEntry, $sourceRow);
             }; break;
         case 2:
             addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
@@ -5279,17 +5280,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
-                clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
-                let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last`).find('i[id^="load-"]');
-                tmpId.attr("id", "folder-" + tmpId.attr("id"));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last > span.appname > a.exec`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if(folder.settings.context === 2) { return tmpId; }
-                }
+                return resilientSingleRowPreview(3, 'td.ct-name > span.outer > span.inner', folderTrId, ctid, autostart, previewEntry, $sourceRow);
             }; break;
         case 4:
             addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
@@ -5468,7 +5459,11 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             };
 
             if (!hiddenPreviewSet.has(container_name_in_folder)) {
-            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR);
+            const tooltip_trigger_element = getDockerPreviewActionsApi().runDockerPreviewRenderer({
+                previewMode: folder.settings.preview,
+                render: () => addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR),
+                appendModelPreview: () => appendCompactPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR, { preferNativeDefaultContext: false })
+            });
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');

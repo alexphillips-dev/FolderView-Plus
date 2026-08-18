@@ -1,0 +1,81 @@
+name: Refresh Clone Traffic Badge
+
+on:
+  schedule:
+    - cron: '37 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: folderview-plus-clone-traffic-badge
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'alexphillips-dev/FolderView-Plus'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout FolderView Plus
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Build rolling clone badge data
+        id: badge
+        env:
+          GH_TOKEN: ${{ secrets.FVPLUS_TRAFFIC_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error title=Clone traffic token missing::FVPLUS_TRAFFIC_TOKEN must grant Administration read access to this repository."
+            exit 1
+          fi
+
+          traffic_path="${RUNNER_TEMP}/clone-traffic-response.json"
+          badge_path="${RUNNER_TEMP}/clone-traffic.json"
+          gh api "repos/${GITHUB_REPOSITORY}/traffic/clones" > "${traffic_path}"
+          node - "${traffic_path}" "${badge_path}" <<'NODE'
+          const fs = require('node:fs');
+          const [trafficPath, badgePath] = process.argv.slice(2);
+          const traffic = JSON.parse(fs.readFileSync(trafficPath, 'utf8'));
+          if (!Number.isSafeInteger(traffic.count) || traffic.count < 0) {
+              throw new Error('GitHub clone traffic did not contain a non-negative integer count.');
+          }
+          const badge = {
+              schemaVersion: 1,
+              label: 'Total clones \u00b7 14d',
+              message: new Intl.NumberFormat('en-US').format(traffic.count),
+              color: 'blue',
+              namedLogo: 'github'
+          };
+          fs.writeFileSync(badgePath, `${JSON.stringify(badge)}\n`, 'utf8');
+          NODE
+          echo "badge_path=${badge_path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish rolling clone badge data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BADGE_PATH: ${{ steps.badge.outputs.badge_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          metrics_dir="${RUNNER_TEMP}/folderview-plus-metrics"
+          gh auth setup-git
+          git clone --depth 1 --branch metrics "https://github.com/${GITHUB_REPOSITORY}.git" "${metrics_dir}"
+          cp "${BADGE_PATH}" "${metrics_dir}/clone-traffic.json"
+          cd "${metrics_dir}"
+          if git diff --quiet -- clone-traffic.json; then
+            echo "Rolling clone count is unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- clone-traffic.json
+          git commit --no-verify -m "Refresh rolling clone badge"
+          git push --no-verify origin metrics

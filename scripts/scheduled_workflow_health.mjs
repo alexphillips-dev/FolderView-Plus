@@ -13,6 +13,11 @@ export const SCHEDULED_WORKFLOW_TARGETS = Object.freeze([
         workflowFile: 'scheduled-validation.yml',
         label: 'Scheduled Cross-Browser Validation',
         maximumSuccessAgeHours: 204
+    }),
+    Object.freeze({
+        workflowFile: 'clone-traffic-badge.yml',
+        label: 'Rolling Clone Traffic Badge',
+        maximumSuccessAgeHours: 72
     })
 ]);
 
@@ -130,8 +135,8 @@ const buildReport = (results, generatedAt) => {
         lines.push(`| ${result.label} | ${result.healthy ? 'healthy' : result.reason} | ${success} | ${attempt} |`);
     });
     lines.push('', unhealthy.length === 0
-        ? 'All monitored workflows have a successful scheduled or manually dispatched run inside their expected weekly interval.'
-        : `${unhealthy.length} monitored workflow(s) do not have a successful run inside the expected weekly interval.`);
+        ? 'All monitored workflows have a successful scheduled or manually dispatched run inside their configured freshness interval.'
+        : `${unhealthy.length} monitored workflow(s) do not have a successful run inside the configured freshness interval.`);
     return `${lines.join('\n')}\n`;
 };
 

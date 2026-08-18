@@ -1,12 +1,6 @@
-<div align="center">
-
-<img src="src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/folder-icon.png" alt="FolderView Plus icon" width="160" />
-
-# FolderView Plus
-
-**Smart folder views for Docker, virtual machines, and dashboards on Unraid.**
-
-</div>
+<p align="center">
+  <img src="docs/images/banner.png" alt="FolderView Plus banner" />
+</p>
 
 [![Build](https://img.shields.io/github/actions/workflow/status/alexphillips-dev/FolderView-Plus/ci.yml?label=Build&logo=github)](https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml)
 [![Updated](https://img.shields.io/github/last-commit/alexphillips-dev/FolderView-Plus/dev?label=Updated&logo=github)](https://github.com/alexphillips-dev/FolderView-Plus/commits/dev)
@@ -18,7 +12,7 @@
 
 [![Stable](https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus?label=Stable&logo=github)](https://github.com/alexphillips-dev/FolderView-Plus/releases/latest)
 [![Released](https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus?label=Released&logo=github)](https://github.com/alexphillips-dev/FolderView-Plus/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/alexphillips-dev/FolderView-Plus/latest/total?label=Downloads&logo=github)](https://github.com/alexphillips-dev/FolderView-Plus/releases/latest)
+[![Total clones · 14d](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Falexphillips-dev%2FFolderView-Plus%2Fmetrics%2Fclone-traffic.json&cacheSeconds=3600)](https://github.com/alexphillips-dev/FolderView-Plus/graphs/traffic)
 
 ---
 
@@ -38,10 +32,6 @@ FolderView Plus is a folder-first organization and management plugin for Unraid.
 - Protect changes with backups, snapshot compare, restore, delete, and undo workflows.
 
 Quick links: [Install](#install) | [Update and Uninstall](#update-and-uninstall) | [Features](#features) | [Screenshots](#screenshots) | [Getting Started](#getting-started) | [Documentation](#documentation) | [Support](#support)
-
-<p align="center">
-  <img src="docs/images/banner.png" alt="FolderView Plus feature overview" />
-</p>
 
 ## Screenshots
 

@@ -32,6 +32,7 @@ for (const relativePath of [
   '.github/workflows/codeql.yml',
   '.github/workflows/dependency-review.yml',
   '.github/workflows/scorecard.yml',
+  '.github/workflows/clone-traffic-badge.yml',
   '.github/workflows/scheduled-validation.yml',
   '.github/workflows/scheduled-workflow-health.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml',
@@ -63,6 +64,7 @@ const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
 const codeqlWorkflow = read('.github/workflows/codeql.yml');
 const dependencyReviewWorkflow = read('.github/workflows/dependency-review.yml');
 const scorecardWorkflow = read('.github/workflows/scorecard.yml');
+const cloneTrafficBadgeWorkflow = read('.github/workflows/clone-traffic-badge.yml');
 const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
 const scheduledWorkflowHealthWorkflow = read('.github/workflows/scheduled-workflow-health.yml');
 const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
@@ -277,6 +279,16 @@ if (!/FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/.test(scheduledValidati
 if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|gh issue/.test(scheduledValidationWorkflow)) {
   fail('Scheduled validation must not depend on live-Unraid targets, secrets, or issue automation.');
 }
+if (!/schedule:/.test(cloneTrafficBadgeWorkflow)
+    || !/workflow_dispatch:/.test(cloneTrafficBadgeWorkflow)
+    || !/permissions:\s*\n\s*contents:\s*write/.test(cloneTrafficBadgeWorkflow)
+    || !/secrets\.FVPLUS_TRAFFIC_TOKEN/.test(cloneTrafficBadgeWorkflow)
+    || !/repos\/\$\{GITHUB_REPOSITORY\}\/traffic\/clones/.test(cloneTrafficBadgeWorkflow)
+    || !/github\.token/.test(cloneTrafficBadgeWorkflow)
+    || !/--branch metrics/.test(cloneTrafficBadgeWorkflow)
+    || !/Total clones \\u00b7 14d/.test(cloneTrafficBadgeWorkflow)) {
+  fail('Clone traffic badge workflow must publish the authenticated rolling 14-day total to the isolated metrics branch.');
+}
 if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
     || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
     || !/actions:\s*read/.test(scheduledWorkflowHealthWorkflow)
@@ -291,6 +303,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['codeql', codeqlWorkflow, ['analyze']],
   ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
   ['scorecard', scorecardWorkflow, ['analysis']],
+  ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['refresh']],
   ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
   ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
   ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
@@ -320,6 +333,7 @@ for (const workflowPath of [
   '.github/workflows/ci.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
+  '.github/workflows/clone-traffic-badge.yml',
   '.github/workflows/scheduled-workflow-health.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml'
 ]) {

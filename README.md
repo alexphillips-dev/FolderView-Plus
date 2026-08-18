@@ -21,6 +21,8 @@
 [![Forum](https://img.shields.io/badge/Unraid%20Forum-Support-F15A2C?logo=unraid&logoColor=white)](https://forums.unraid.net/topic/197631-plugin-folderview-plus/)
 [![Sponsor](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Sponsor-FFDD00?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/alexphillipsdev)
 
+![Alt](https://repobeats.axiom.co/api/embed/dc17d2c0af9a2b805b536c13bc60fdf758664cc6.svg "Repobeats analytics image")
+
 ---
 
 FolderView Plus is a folder-first organization and management plugin for Unraid. It turns large Docker, VM, and Dashboard pages into clean grouped workspaces with nested folders, live previews, folder-level actions, smart setup tools, automation rules, backups, diagnostics, and recovery options. It is built for servers that keep growing, so your Unraid UI stays readable without constantly rebuilding folder layouts by hand.

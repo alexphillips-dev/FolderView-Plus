@@ -14,6 +14,8 @@
     "settings.search.scope-current": "علامة التبويب الحالية",
     "settings.search.scope-all": "كلها متقدمة",
     "settings.header.plugin-settings": "إعدادات البرنامج المساعد",
+    "settings.update.available": "التحديث متاح",
+    "settings.update.open-plugins": "التحديث متاح. افتح الإضافات لتثبيته.",
     "settings.mode.title": "وضع الإعدادات",
     "settings.mode.basic-label": "استخدم وضع الإعدادات الأساسية",
     "settings.mode.advanced-label": "استخدم وضع الإعدادات المتقدمة",

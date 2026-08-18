@@ -364,7 +364,6 @@
     const FVPLUS_EXPORT_SCHEMA_VERSION = 1;
     const FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION = 1;
     const FVPLUS_ENVIRONMENT_SNAPSHOT_KIND = 'environment_snapshot';
-    const FVPLUS_REMOTE_MANIFEST_URL = "https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg";
     const FVPLUS_ALLOWED_TYPES = ['docker', 'vm'];
     const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 2;
     const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 250;
@@ -1512,7 +1511,7 @@
         return gmdate('c', (int)$parsed);
     }
 
-    require_once(__DIR__ . '/lib.release-notes.php');
+    require_once(__DIR__ . '/lib.release-notes.php'); require_once(__DIR__ . '/lib.update-channel.php');
 
     require_once(__DIR__ . '/lib.storage.php');
 
@@ -2259,7 +2258,7 @@
     }
 
     function checkRemotePluginUpdate(): array {
-        $manifestUrl = FVPLUS_REMOTE_MANIFEST_URL;
+        $manifestUrl = resolveInstalledPluginUpdateManifestUrl();
         $requestUrl = $manifestUrl . '?_=' . time();
         $checkedAt = gmdate('c');
         $currentVersion = readInstalledVersion();

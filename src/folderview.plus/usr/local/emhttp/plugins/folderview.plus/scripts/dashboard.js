@@ -2,14 +2,10 @@
 if (!window || !$) {
     return;
 }
-
 const folderContract = window.FolderViewPlusFolderContract || null;
 const requestClient = window.FolderViewPlusRequest || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
-const dashboardRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('dashboard', {
-    window,
-    document
-}) || null;
+const dashboardRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('dashboard', { window, document }) || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
@@ -20,6 +16,8 @@ const dashboardHostAdapterModule = window.FolderViewPlusDashboardHostAdapter || 
 const dashboardRuntimeSurfaceModule = window.FolderViewPlusDashboardRuntimeSurface || null;
 const dashboardStateStoreModule = window.FolderViewPlusDashboardStateStore || null;
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
+const dashboardDockerProviderRegistry = window.FolderViewPlusDockerProviders?.getDefaultRegistry?.({ window, document, transport: window.FolderViewPlusRuntimeTransport || null }) || null;
+void dashboardDockerProviderRegistry?.prepare?.({ timeoutMs: 4000 }).catch?.(() => {});
 const resolveDashboardPerformancePolicy = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
     ? runtimeShared.resolveRuntimePerformanceProfile
     : (prefs = {}, counts = {}) => ({
@@ -3146,6 +3144,6 @@ window.addEventListener('pagehide', () => {
     clearTimeout(dashboardThemeReflowTimer);
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
-    window.FolderViewPlusDockerProviders?.getDefaultRegistry?.()?.dispose?.();
+    dashboardDockerProviderRegistry?.dispose?.();
 }, { once: true });
 })(window, window.jQuery || window.$);

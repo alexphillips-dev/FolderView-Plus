@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aba atual",
     "settings.search.scope-all": "Todas avançadas",
     "settings.header.plugin-settings": "Configurações de plugin",
+    "settings.update.available": "Atualização disponível",
+    "settings.update.open-plugins": "Atualização disponível. Abra Plugins para instalá-lo.",
     "settings.mode.title": "Modo de configurações",
     "settings.mode.basic-label": "Usar modo de configurações básicas",
     "settings.mode.advanced-label": "Usar modo de configurações avançadas",

@@ -1,0 +1,42 @@
+{
+  "profile": "current-full-api",
+  "httpStatus": 200,
+  "capabilities": {
+    "queryType": { "fields": [{ "name": "docker" }, { "name": "info" }] },
+    "mutationType": { "fields": [{ "name": "docker" }] },
+    "subscriptionType": { "fields": [{ "name": "dockerContainerStats" }] },
+    "dockerType": { "fields": [{ "name": "containers" }, { "name": "container" }, { "name": "portConflicts" }] },
+    "dockerMutationsType": { "fields": [{ "name": "start" }, { "name": "stop" }, { "name": "restart" }, { "name": "pause" }, { "name": "unpause" }] },
+    "dockerContainerType": { "fields": [{ "name": "id" }, { "name": "names" }, { "name": "state" }, { "name": "status" }, { "name": "autoStart" }, { "name": "labels" }, { "name": "image" }, { "name": "iconUrl" }, { "name": "webUiUrl" }, { "name": "isUpdateAvailable" }, { "name": "isOrphaned" }, { "name": "isRebuildReady" }] },
+    "dockerAutostartInput": { "inputFields": [] }
+  },
+  "version": { "info": { "versions": { "core": { "unraid": "7.2.7-fixture", "api": "4.37.1-fixture" } } } },
+  "containers": [{
+    "id": "server:abcdef1234567890",
+    "names": ["fixture-app"],
+    "state": "running",
+    "status": "Up 10 seconds",
+    "autoStart": true,
+    "labels": { "fixture.api": "yes" },
+    "image": "fixture/image:latest",
+    "iconUrl": "/fixture-icon.png",
+    "webUiUrl": "/fixture-webui",
+    "isUpdateAvailable": true,
+    "isOrphaned": false,
+    "isRebuildReady": false
+  }],
+  "container": {
+    "id": "server:abcdef1234567890",
+    "names": ["fixture-app"],
+    "state": "paused",
+    "status": "Paused",
+    "autoStart": true,
+    "labels": { "fixture.api": "yes" },
+    "image": "fixture/image:latest",
+    "iconUrl": "/fixture-icon.png",
+    "webUiUrl": "/fixture-webui",
+    "isUpdateAvailable": false,
+    "isOrphaned": false,
+    "isRebuildReady": false
+  }
+}

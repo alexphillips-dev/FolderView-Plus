@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Scheda corrente",
     "settings.search.scope-all": "Tutte le schede avanzate",
     "settings.header.plugin-settings": "Impostazioni plugin",
+    "settings.update.available": "Aggiornamento disponibile",
+    "settings.update.open-plugins": "Aggiornamento disponibile. Apri Plugin per installarlo.",
     "settings.mode.title": "Modalità impostazioni",
     "settings.mode.basic-label": "Usa modalità impostazioni base",
     "settings.mode.advanced-label": "Usa modalità impostazioni avanzata",

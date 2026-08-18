@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Текущая вкладка",
     "settings.search.scope-all": "Все расширенные",
     "settings.header.plugin-settings": "Настройки плагина",
+    "settings.update.available": "Доступно обновление",
+    "settings.update.open-plugins": "Доступно обновление. Откройте плагины, чтобы установить его.",
     "settings.mode.title": "Режим настроек",
     "settings.mode.basic-label": "Использовать основной режим настроек",
     "settings.mode.advanced-label": "Использовать расширенный режим настроек",

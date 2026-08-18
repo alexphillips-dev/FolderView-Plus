@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Pestaña actual",
     "settings.search.scope-all": "Todas avanzadas",
     "settings.header.plugin-settings": "Configuración del complemento",
+    "settings.update.available": "Actualización disponible",
+    "settings.update.open-plugins": "Actualización disponible. Abra Complementos para instalarlo.",
     "settings.mode.title": "Modo de configuración",
     "settings.mode.basic-label": "Usar modo de configuración básico",
     "settings.mode.advanced-label": "Usar modo de configuración avanzado",

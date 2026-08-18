@@ -39,10 +39,103 @@
         const layoutFolderPreviewRows = typeof deps.layoutFolderPreviewRows === 'function'
             ? deps.layoutFolderPreviewRows
             : (() => {});
+        const appendRequestBundleTrace = typeof deps.appendRequestBundleTrace === 'function'
+            ? deps.appendRequestBundleTrace
+            : (() => false);
+        const debug = deps.debug === true;
         const webuiLinkRel = String(deps.webuiLinkRel || 'noopener noreferrer').trim() || 'noopener noreferrer';
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
         const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';
         const dockerPreviewActionIconClassList = 'fa-globe fa-terminal fa-bars fa-refresh fa-spin fa-spinner fa-circle-o-notch';
+
+        const cloneDockerSingleRowPreviewSource = ($sourceRow, selector, options = {}) => {
+            if (!jq) {
+                return { ok: false, reason: 'jquery-unavailable', $clone: null };
+            }
+            const emptyClone = () => jq();
+            if (!$sourceRow || !$sourceRow.length || typeof $sourceRow.find !== 'function') {
+                return { ok: false, reason: 'source-row-missing', $clone: emptyClone() };
+            }
+            const safeSelector = String(selector || '').trim();
+            if (!safeSelector) {
+                return { ok: false, reason: 'selector-missing', $clone: emptyClone() };
+            }
+            try {
+                const $clone = $sourceRow.find(safeSelector).last().clone();
+                if (!$clone.length) {
+                    return { ok: false, reason: 'preview-markup-missing', $clone: emptyClone() };
+                }
+                const $state = $clone.find('span.state').first();
+                if (options.requireState === true && !$state.length) {
+                    return { ok: false, reason: 'state-markup-missing', $clone: emptyClone() };
+                }
+                if ($state.length && options.trimStateDetails !== false) {
+                    $state.html(String($state.html() || '').split(/<br\s*\/?\s*>/i)[0]);
+                }
+                return { ok: true, reason: '', $clone };
+            } catch (_error) {
+                return { ok: false, reason: 'preview-clone-failed', $clone: emptyClone() };
+            }
+        };
+
+        const appendSafeModelPreview = ({ appendModelPreview, previewMode = 0, reason = 'native-preview-error' } = {}) => {
+            const safeReasons = new Set([
+                'jquery-unavailable', 'source-row-missing', 'selector-missing', 'preview-markup-missing',
+                'state-markup-missing', 'preview-clone-failed', 'native-preview-error'
+            ]);
+            appendRequestBundleTrace('single-row-preview-fallback', {
+                previewMode: Number(previewMode || 0),
+                reason: safeReasons.has(reason) ? reason : 'native-preview-error'
+            });
+            try {
+                return typeof appendModelPreview === 'function' ? appendModelPreview() : null;
+            } catch (_error) {
+                appendRequestBundleTrace('single-row-preview-skipped', {
+                    previewMode: Number(previewMode || 0),
+                    reason: 'model-preview-failed'
+                });
+                if (debug) console.warn('[FV3_DEBUG] Docker preview fallback failed; the affected member preview was skipped.');
+                return null;
+            }
+        };
+
+        const renderDockerSingleRowPreview = (options = {}) => {
+            const previewMode = Number(options.previewMode || 0);
+            const nativePreview = cloneDockerSingleRowPreviewSource(
+                options.$sourceRow,
+                options.selector,
+                { requireState: true, trimStateDetails: true }
+            );
+            if (!nativePreview.ok) {
+                return appendSafeModelPreview({ ...options, previewMode, reason: nativePreview.reason });
+            }
+            try {
+                const $clone = nativePreview.$clone.addClass(options.autostart ? 'autostart' : '');
+                options.$preview.append($clone);
+                const $loadIcon = $clone.find('i[id^="load-"]').first();
+                const loadId = String($loadIcon.attr('id') || '').trim();
+                if (loadId) $loadIcon.attr('id', `folder-${loadId}`);
+                if (options.context === 2 || options.context === 0) {
+                    const $trigger = previewMode === 1
+                        ? $clone.children('span.hand').first()
+                        : $clone.find('span.appname > a.exec').first();
+                    $trigger.attr('id', `folder-preview-${String(options.ctid || '')}`).removeAttr('onclick');
+                    if (options.context === 2) return $trigger;
+                }
+                return null;
+            } catch (_error) {
+                nativePreview.$clone?.remove?.();
+                return appendSafeModelPreview({ ...options, previewMode, reason: 'native-preview-error' });
+            }
+        };
+
+        const runDockerPreviewRenderer = ({ render, ...fallbackOptions } = {}) => {
+            try {
+                return typeof render === 'function' ? render() : null;
+            } catch (_error) {
+                return appendSafeModelPreview({ ...fallbackOptions, reason: 'native-preview-error' });
+            }
+        };
 
         const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui fv-preview-action-slot is-ready"></span>').append(
             jq('<a></a>')
@@ -683,6 +776,9 @@
         };
 
         return Object.freeze({
+            cloneDockerSingleRowPreviewSource,
+            renderDockerSingleRowPreview,
+            runDockerPreviewRenderer,
             appendDockerPreviewActionButtons,
             reconcileDockerPreviewActionButtons,
             resolveDockerMemberUpdateState,

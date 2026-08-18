@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Gjeldende fane",
     "settings.search.scope-all": "Alle avanserte",
     "settings.header.plugin-settings": "Plugin-innstillinger",
+    "settings.update.available": "Oppdatering tilgjengelig",
+    "settings.update.open-plugins": "Oppdatering tilgjengelig. Åpne plugins for å installere det.",
     "settings.mode.title": "Innstillingsmodus",
     "settings.mode.basic-label": "Bruk grunnleggende innstillingsmodus",
     "settings.mode.advanced-label": "Bruk avanserte innstillinger-modus",

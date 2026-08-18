@@ -56,6 +56,7 @@
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
       "server/lib.release-notes.php": { "limit": 464, "target": 400, "history": [464] },
+      "server/lib.update-channel.php": { "limit": 22, "target": 22, "history": [22] },
       "server/lib.runtime-info.php": { "limit": 619, "target": 400, "history": [619] },
       "server/lib.storage.php": { "limit": 479, "target": 400, "history": [479] },
       "server/lib.theme-github.php": { "limit": 425, "target": 380, "history": [425] },
@@ -101,6 +102,8 @@
       "scripts/folderviewplus.wizard-persistence.js": { "limit": 413, "target": 350, "history": [413] },
       "scripts/folderviewplus.wizard-review.js": { "limit": 322, "target": 280, "history": [322] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
+      "scripts/docker.runtime.capabilities.js": { "limit": 77, "target": 70, "history": [77] },
+      "scripts/docker.runtime.api-coordinator.js": { "limit": 453, "target": 420, "history": [453] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
       "styles/folderviewplus.css": { "limit": 14477, "target": 14477, "history": [14489, 14477] },
@@ -141,7 +144,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -161,7 +164,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["dashboard"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["expandFolderDocker", "expandFolderVM"]
     },
@@ -191,7 +194,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -226,6 +229,16 @@
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 20, "sha256": "b02412ee654324706b14a06cda2eada870691c5df204e86ce360acb7eb6cfda3" }
+    },
+    {
+      "file": "server/lib.update-channel.php",
+      "owner": "server-update-channel",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.release-notes.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 2, "sha256": "03e031af6604dc5a5dcdd333d0f3658855da048e12a6d4af7c7b183d5f918172" }
     },
     {
       "file": "server/lib.storage.php",
@@ -860,6 +873,36 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["normalizeName", "deepFreeze", "normalizePort", "normalizeMount", "normalizeContainer", "identityTokens", "resolveContainerIdentity", "mergeContainers"]
+    },
+    {
+      "file": "scripts/docker.runtime.capabilities.js",
+      "owner": "docker-runtime-capabilities",
+      "consumers": ["docker", "dashboard"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerRuntimeCapabilities",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["emptySnapshot", "supportsCapabilityPath", "createAccessors", "buildCompatibilityEvidence"]
+    },
+    {
+      "file": "scripts/docker.runtime.api-coordinator.js",
+      "owner": "docker-runtime-api-reconciliation",
+      "consumers": ["docker", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/docker.runtime.container-model.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerApiCoordinator",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["PERMANENT_FAILURES", "TRANSIENT_COOLDOWNS_MS", "findRuntimeKey", "mergeContainerIntoRuntimeEntry", "mergeProviderContainers", "createCoordinator", "createIntegration"],
+      "lifecycleFactories": [
+        { "name": "createCoordinator", "exports": ["prepare", "refreshAll", "reconcileContainer", "recheck", "status", "dispose"] },
+        { "name": "createIntegration", "exports": ["prepare", "refresh", "tick", "status", "dispose"] }
+      ]
     },
     {
       "file": "scripts/docker.runtime.layout-geometry.js",

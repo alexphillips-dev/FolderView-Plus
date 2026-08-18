@@ -1,0 +1,6 @@
+{
+  "profile": "current-partial-data",
+  "httpStatus": 200,
+  "listErrors": [{ "message": "Fixture partial response." }],
+  "partialData": { "docker": { "containers": [] } }
+}

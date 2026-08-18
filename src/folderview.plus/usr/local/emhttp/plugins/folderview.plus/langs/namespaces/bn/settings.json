@@ -14,6 +14,8 @@
     "settings.search.scope-current": "বর্তমান ট্যাব",
     "settings.search.scope-all": "সব উন্নত",
     "settings.header.plugin-settings": "প্লাগইন সেটিংস",
+    "settings.update.available": "আপডেট উপলব্ধ",
+    "settings.update.open-plugins": "আপডেট উপলব্ধ। এটি ইনস্টল করতে প্লাগইন খুলুন।",
     "settings.mode.title": "সেটিংস মোড",
     "settings.mode.basic-label": "মৌলিক সেটিংস মোড ব্যবহার করুন",
     "settings.mode.advanced-label": "উন্নত সেটিংস মোড ব্যবহার করুন",

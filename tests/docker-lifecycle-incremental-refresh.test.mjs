@@ -107,7 +107,8 @@ test('Docker lifecycle actions replace the destructive host loadlist callback', 
     harness.refreshCalls.forEach((options) => {
         assert.deepEqual(options, {
             liveUpdateStatus: true,
-            preserveGroupedDom: true
+            preserveGroupedDom: true,
+            containerId: 'abc123'
         });
     });
     assert.ok(harness.trace.some((entry) => entry.eventType === 'lifecycleLoadlistIntercepted'));

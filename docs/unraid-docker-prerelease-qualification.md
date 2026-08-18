@@ -1,8 +1,8 @@
-# Unraid Docker Prerelease Qualification
+# Unraid Docker API Qualification
 
-Use this checklist when a new Unraid prerelease, Unraid API package, or Unraid Connect build changes Docker behavior. It is deliberately stricter than normal patch validation because the future native page replaces the host surface that FolderView Plus currently enhances.
+Use this checklist when a new Unraid release, Unraid API package, or Unraid Connect build changes Docker behavior. Qualification is intentionally isolated and reproducible: repository validation does not connect to a live Unraid server and does not require server URLs, cookies, CSRF values, or credentials.
 
-## 1. Confirm the upstream activation state
+## 1. Review the upstream contract
 
 Run:
 
@@ -10,115 +10,114 @@ Run:
 bash scripts/unraid_docker_upstream_monitor.sh --json
 ```
 
-Review the official Unraid release notes as well. If the monitor reports `active` or `unknown`, do not change the detector to force legacy mode. Open a compatibility task and preserve native-page safe mode until qualification is complete.
+Review the official Unraid release notes and generated API contract. If the monitor reports `active` or `unknown`, do not force legacy mode. Preserve native-page safe mode, update the reviewed schema baseline only after inspecting the upstream change, and add an isolated fixture that represents the new host or schema outcome.
 
-## 2. Record the test matrix
+## 2. Maintain the isolated profile matrix
 
-Test at least:
+Profiles live in `tests/fixtures/unraid-api/`. Every profile is synthetic and must contain no real server, user, workload, path, address, URL, token, or cookie data.
 
-| Lane | Required host |
+| Profile | Required result |
 | --- | --- |
-| Current stable | Oldest supported Unraid and latest stable Unraid |
-| Prerelease | Latest available Unraid prerelease containing Docker/API changes |
-| API early warning | Newer supported Unraid API or Unraid Connect build when it can be installed without replacing the OS |
-| Browser | Current Chrome/Edge, Firefox, and Safari/WebKit |
-| Responsive | Desktop and smartphone widths |
-| Theme | Default light and dark themes |
+| `current-full-api` | Current list and targeted reads enrich matching PHP runtime rows |
+| `legacy-no-api` | Legacy PHP/DOM behavior remains fully usable |
+| `current-introspection-denied` | Bounded shape probing enables only proven reads |
+| `current-limited-shape` | Optional fields and mutations stay disabled |
+| `current-targeted-read-missing` | Lifecycle follow-up uses a list read |
+| `current-partial-data` | Partial response is rejected and PHP fallback remains usable |
+| `current-permission-denied` | API use is disabled for the page lifecycle |
+| `current-rate-limited` | A bounded cooldown is applied before retry |
+| `current-service-unavailable` | A bounded cooldown and PHP fallback are used |
+| `current-schema-drift` | Unknown/missing capabilities are never assumed |
+| `future-native-host` | Unraid retains native page and organizer ownership |
 
-Record the Unraid version, API version, plugin version, detected host generation, and selected provider. Do not put server identifiers or user workload details in the qualification record.
+When an upstream change cannot be expressed by an existing profile, add one minimal profile and a contract test before changing runtime behavior.
 
-## 3. Validate legacy Docker behavior
+## 3. Validate legacy API-first reads
 
-On a `legacy-docker-table` host:
+The expected sequence on a legacy Docker table is:
 
-1. Confirm FolderView, Host list, and Command views load.
-2. Confirm folder membership, nested expansion, manual order, autostart order, and wait values remain stable.
-3. Confirm start, stop, pause, resume, and restart use the legacy host action bridge.
-4. Confirm repeated Docker/Settings/Dashboard navigation creates no duplicate handlers, observers, requests, or rows.
-5. Confirm Dashboard and VM features still behave normally.
+1. PHP builds the authoritative identity set and grouped DOM.
+2. One background GraphQL list read enriches matching rows.
+3. Routine refresh uses GraphQL runtime state while PHP checks configuration revisions.
+4. Lifecycle follow-up uses `docker.container(id)` when supported and a list read otherwise.
+5. A changed identity set schedules one host refresh; API data never invents or removes rows directly.
+6. API failure falls back to PHP without blocking FolderView, Host list, Command view, folder membership, ordering, or actions.
 
-## 4. Validate native Docker coexistence
+API state may update running, paused, status, autostart, and only optional fields proven by introspection. PHP metadata such as paths, ports, mounts, shell, template links, project data, and fallback URLs must remain intact.
 
-On a `native-docker-vue` host:
+## 4. Validate lifecycle and mutation ownership
 
-1. Confirm the native Docker page renders without a FolderView Plus fatal banner.
-2. Confirm FolderView Plus adds no table, folder row, action bar, context menu, observer, or legacy-hook wrapper.
-3. Confirm native folders appear only once and remain controlled by Unraid.
-4. Confirm navigating away closes GraphQL subscriptions/timers and aborts stale work.
-5. Confirm Settings, backups, diagnostics, rules, health, privacy, Dashboard, and VMs remain accessible.
-6. Confirm no FolderView Plus data is deleted or automatically migrated.
+On the legacy Docker page and Dashboard:
 
-## 5. Validate GraphQL capabilities
+- Start, stop, pause, resume, and restart remain individually capability-gated.
+- When Unraid `eventControl` exists, it remains the action owner so host spinners, notifications, callbacks, and refresh behavior stay synchronized.
+- Dashboard shows only actions supported by the current provider.
+- Update, remove, digest-refresh, and autostart GraphQL methods remain unexposed by FolderView Plus UI.
+- Native organizer queries and mutations remain detect-only and are never invoked.
 
-Use the signed-in local webGUI session:
+A schema field existing is necessary but not sufficient to expose a persistent or destructive mutation. Such a feature needs its own isolated persistence, conflict, rollback, and failure fixtures plus explicit product approval.
 
-1. Confirm the endpoint probe reports availability without exposing its URL.
-2. Confirm API and Unraid versions are recorded when `info.versions.core` is available.
-3. Confirm current `docker.containers` and older `dockerContainers` shapes are handled as detected.
-4. Confirm container identities returned by the API are passed back as `PrefixedID`.
-5. Confirm each lifecycle action is offered only when its mutation exists.
-6. Confirm an API without `restart` never receives a restart mutation.
-7. Confirm authentication, permission, rate-limit, partial-data, offline, timeout, abort, and stale-response paths are non-fatal.
-8. Confirm WebSocket reconnect is bounded and disposal prevents reconnect after navigation.
-9. Confirm every browser GraphQL request includes the available CSRF token.
-10. Confirm the operation matrix records arguments, return types, and deprecation state without retaining the raw schema.
-11. Confirm the legacy table selects `hybrid-legacy-graphql`, GraphQL supplies supported reads, and lifecycle actions still use `eventControl`.
-12. Confirm targeted reconciliation falls back to a list request when `docker.container(id)` is absent.
-13. Confirm port-conflict, update, rebuild, and orphan diagnostics contain aggregate counts only.
-14. Confirm the Dashboard statistics subscription opens only for a visible preview, falls back to `docker_load`, and closes on dismissal/navigation.
-15. Confirm update/remove/digest/autostart mutations are unavailable unless their exact schema operations are present.
+## 5. Validate failures and lifecycle cleanup
 
-## 6. Validate organizer ownership
+Confirm:
 
-The expected result remains:
+- Authentication, permission, unavailable capability, and missing-fetch failures permanently disable the API path for that page lifecycle.
+- Rate limits, service failures, timeouts, empty responses, and other transient failures use 15, 30, 60, 120, then 300 second cooldowns.
+- A successful recheck clears failure state.
+- Only one coordinator request is in flight.
+- Navigation and `pagehide` abort active requests, close subscriptions, cancel reconnect, and reject stale results.
+- Repeated Docker, Settings, and Dashboard navigation creates no duplicate handlers, observers, timers, requests, or rows.
 
-- Organizer query/mutation capabilities may be detected.
-- FolderView Plus does not read organizer content for rendering.
-- FolderView Plus does not call organizer mutations.
-- FolderView Plus does not write organizer files.
-- FolderView Plus does not show a second folder hierarchy on the native page.
+## 6. Validate native coexistence
 
-Any proposed migration requires its own schema review, conflict model, backup/rollback design, explicit user confirmation, and cross-version tests.
+Against `future-native-host` and `future-docker-host.html`, confirm:
 
-The Organizer qualification record exposed by the provider remains informational and always reports `integrationAllowed: false` until that separate review is complete.
+1. The native Docker component renders without a FolderView Plus fatal banner.
+2. FolderView Plus adds no legacy table, folder row, action bar, context menu, observer, or host-hook wrapper.
+3. Native folders remain controlled by Unraid and appear only once.
+4. No FolderView Plus data is deleted, rewritten, or automatically migrated.
+5. Settings, backups, diagnostics, rules, health, privacy, Dashboard, and VM surfaces remain available.
+
+Any organizer migration requires a separately approved schema review, conflict model, backup/rollback design, explicit user confirmation, and isolated cross-version tests.
 
 ## 7. Validate diagnostics and privacy
 
-Export a sanitized support bundle and inspect `uiTelemetry.dockerDiagnostics.compatibility`:
+Evidence may contain only:
 
-1. Host generation, page shape, API version, capability booleans, provider, fallback, subscription state, and organizer policy are present.
-2. No container/VM/folder names or IDs are present.
-3. No paths, IPs, URLs, CSRF values, cookies, tokens, GraphQL variables, raw schema response, or server error text are present.
-4. Unknown and native safe modes remain actionable without being reported as a fatal plugin failure.
+- Host generation and aggregate page-shape booleans.
+- API and Unraid versions when queryable.
+- Query/mutation/subscription capability booleans.
+- Selected provider, fallback state, and aggregate health counts.
+- Coordinator state, source, last-success timestamp, failure category, failure count, cooldown, in-flight state, and structural-refresh state.
+- Native organizer availability with the fixed `detect-only` policy.
 
-## 8. Run repository validation
+It must never contain container, VM, or folder names/IDs; paths; IPs; URLs; labels; log content; CSRF values; cookies; tokens; GraphQL variables; raw schema responses; or raw server errors.
 
-At minimum:
+## 8. Run qualification
 
 ```bash
-node --test tests/unraid-docker-future-compatibility.test.mjs tests/unraid-upstream-monitor.test.mjs
+node --test tests/docker-runtime-api-coordinator.test.mjs tests/unraid-api-fixtures.test.mjs tests/unraid-docker-future-compatibility.test.mjs tests/unraid-upstream-monitor.test.mjs
 bash scripts/run_ci_suite.sh --lane lint --lane tests
+bash scripts/run_ci_suite.sh --lane workflow-tests --lane workflow-guards --lane docs-guards
 bash scripts/run_ci_suite.sh --lane fixture-browser
+bash scripts/run_ci_suite.sh --lane browser-smoke
+bash scripts/run_ci_suite.sh --lane theme-matrix
 npm run test:runtime-performance
 bash scripts/release_guard.sh
 bash scripts/install_smoke.sh
 ```
 
-Also run configured live browser and theme matrix smoke tests against the prerelease host.
-
-The weekly `Scheduled Cross-Browser Validation` workflow runs the deterministic fixture suite in Chromium, Firefox, and WebKit. It does not connect to live Unraid targets or require live-system repository secrets.
-
-Run live Unraid matrix, browser smoke, and theme matrix checks only as deliberate prerelease qualification against isolated test systems. The reusable smoke scripts and release-mode fail-closed contract remain available for that operator-controlled validation.
+`browser-smoke` is a deterministic Chromium fixture profile. `theme-matrix` runs the same local inventory across Chromium, Firefox, WebKit, light/dark color schemes, and desktop/smartphone viewports. Scheduled validation uses the isolated fixture suite and has no live-system secrets.
 
 ## 9. Make the release decision
 
-Do not enable native-page integration merely because fields exist in an unpublished schema. A release can move beyond safe coexistence only when:
+Keep native Docker-page ownership with Unraid unless all of these are true:
 
 - Unraid has activated and documented the replacement.
 - The required schema and permissions are public and stable.
-- The full matrix above passes.
+- Upstream review and the full isolated matrix pass.
 - Folder ownership and migration behavior have explicit product decisions.
-- Rollback preserves both FolderView Plus and native organizer data.
-- Sanitized support evidence is sufficient to diagnose failures without user workload data.
+- Reproducible rollback preserves FolderView Plus and native organizer data.
+- Sanitized aggregate evidence is sufficient to diagnose failures.
 
-Until all conditions are met, keep native Docker-page ownership with Unraid and retain FolderView Plus functionality on unaffected surfaces.
+Until then, safe coexistence remains the supported policy and FolderView Plus continues on unaffected legacy Docker, Dashboard, VM, Settings, backup, and diagnostics surfaces.

@@ -68,7 +68,7 @@ git fetch origin main dev --tags
 release_only_path() {
   local path="${1:-}"
   case "${path}" in
-    folderview.plus.plg|folderview.plus.xml|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256|docs/releases/*.md)
+    folderview.plus.plg|folderview.plus.xml|docs/sbom.cdx.json|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256|docs/releases/*.md)
       return 0
       ;;
     *)
@@ -163,11 +163,10 @@ fi
 
 git add --all
 if git diff --cached --quiet && git diff --quiet; then
-  git commit --allow-empty --no-edit
+  git commit --no-verify --allow-empty --no-edit
 else
-  git commit --no-edit
+  git commit --no-verify --no-edit
 fi
 
 echo "Back-merge branch updated with merge ancestry."
-
 

@@ -14,6 +14,8 @@
     "settings.search.scope-current": "現在のタブ",
     "settings.search.scope-all": "すべての詳細",
     "settings.header.plugin-settings": "プラグイン設定",
+    "settings.update.available": "利用可能なアップデート",
+    "settings.update.open-plugins": "アップデートが利用可能です。プラグインを開いてインストールします。",
     "settings.mode.title": "設定モード",
     "settings.mode.basic-label": "基本設定モードを使用",
     "settings.mode.advanced-label": "詳細設定モードを使用",

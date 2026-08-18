@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Pašreizējā cilne",
     "settings.search.scope-all": "Visas uzlabotas",
     "settings.header.plugin-settings": "Spraudņa iestatījumi",
+    "settings.update.available": "Pieejams atjauninājums",
+    "settings.update.open-plugins": "Pieejams atjauninājums. Atveriet Plugins, lai to instalētu.",
     "settings.mode.title": "Iestatījumu režīms",
     "settings.mode.basic-label": "Izmantojiet pamata iestatījumu režīmu",
     "settings.mode.advanced-label": "Izmantojiet papildu iestatījumu režīmu",

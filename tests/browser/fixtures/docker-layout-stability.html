@@ -59,6 +59,80 @@
             preview_console: true,
             preview_logs: true
         };
+        const buildDockerPreviewSourceRow = ({ includeOuter = true, includeState = true } = {}) => {
+            const stateMarkup = includeState
+                ? '<span class="state">started<br>Compose Stack: fixture-stack</span>'
+                : '';
+            const previewMarkup = includeOuter
+                ? `<span class="outer"><span class="hand"><img class="img"></span><span class="inner"><span class="appname"><a class="exec">Fixture app</a></span><br><i class="fa fa-play started"></i>${stateMarkup}</span></span>`
+                : '<span class="future-host-name">Fixture app</span>';
+            return window.jQuery(`<tr class="sortable"><td class="ct-name">${previewMarkup}</td></tr>`);
+        };
+        window.fixtureDockerPreviewCloneResilience = {
+            run: () => {
+                const clonePreview = actionsApi.cloneDockerSingleRowPreviewSource;
+                const standardRow = buildDockerPreviewSourceRow();
+                const modeOne = clonePreview(
+                    standardRow,
+                    'td.ct-name > span.outer',
+                    { requireState: true, trimStateDetails: true }
+                );
+                const modeThree = clonePreview(
+                    standardRow,
+                    'td.ct-name > span.outer > span.inner',
+                    { requireState: true, trimStateDetails: true }
+                );
+                const missingState = clonePreview(
+                    buildDockerPreviewSourceRow({ includeState: false }),
+                    'td.ct-name > span.outer',
+                    { requireState: true, trimStateDetails: true }
+                );
+                const missingWrapper = clonePreview(
+                    buildDockerPreviewSourceRow({ includeOuter: false }),
+                    'td.ct-name > span.outer',
+                    { requireState: true, trimStateDetails: true }
+                );
+                const invalidSelector = clonePreview(
+                    standardRow,
+                    '[',
+                    { requireState: true, trimStateDetails: true }
+                );
+                const renderTarget = window.jQuery('<div></div>');
+                let fallbackCount = 0;
+                [
+                    { row: standardRow, selector: 'td.ct-name > span.outer' },
+                    { row: buildDockerPreviewSourceRow({ includeState: false }), selector: 'td.ct-name > span.outer' },
+                    { row: buildDockerPreviewSourceRow({ includeOuter: false }), selector: 'td.ct-name > span.outer' }
+                ].forEach(({ row, selector }, index) => {
+                    actionsApi.renderDockerSingleRowPreview({
+                        $sourceRow: row,
+                        $preview: renderTarget,
+                        selector,
+                        previewMode: 1,
+                        context: 1,
+                        ctid: `fixture-${index}`,
+                        appendModelPreview: () => {
+                            fallbackCount += 1;
+                            const $fallback = window.jQuery('<span class="fixture-model-fallback">Fallback</span>');
+                            renderTarget.append($fallback);
+                            return $fallback;
+                        }
+                    });
+                });
+                return {
+                    modeOneOk: modeOne.ok,
+                    modeThreeOk: modeThree.ok,
+                    modeOneState: modeOne.$clone.find('span.state').text(),
+                    modeThreeState: modeThree.$clone.find('span.state').text(),
+                    originalState: standardRow.find('span.state').text(),
+                    missingState: { ok: missingState.ok, reason: missingState.reason },
+                    missingWrapper: { ok: missingWrapper.ok, reason: missingWrapper.reason },
+                    invalidSelector: { ok: invalidSelector.ok, reason: invalidSelector.reason },
+                    renderedCount: renderTarget.children().length,
+                    fallbackCount
+                };
+            }
+        };
         const actionsApi = window.FolderViewPlusDockerPreviewActions.createApi({
             window,
             document,

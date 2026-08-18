@@ -155,8 +155,8 @@ test('Dashboard Started only filters expanded and collapsed members and reconcil
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
     assert.equal(await page.locator('#fixture-stopped-member.fv-dashboard-started-only-hidden').count(), 0);
     assert.equal(await page.locator('#fixture-stopped-folder.fv-dashboard-started-only-hidden').count(), 0);
-
-    await page.locator('[data-fv-quick-action="running-only"]').click();
+    if (!await page.locator('[data-fv-quick-action="running-only"]').isVisible()) await page.locator('[data-fv-quick-action="view-options"]').click();
+    await page.locator('[data-fv-quick-action="running-only"]:visible, .fv-dashboard-view-popover [data-fv-view-action="running-only"]').click();
     assert.equal(await page.locator('#fixture-running-member.fv-dashboard-started-only-hidden').count(), 0);
     assert.equal(await page.locator('#fixture-paused-member.fv-dashboard-started-only-hidden').count(), 0);
     assert.equal(await page.locator('#fixture-stopped-member.fv-dashboard-started-only-hidden').count(), 1);

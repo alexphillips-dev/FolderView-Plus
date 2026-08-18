@@ -1,0 +1,15 @@
+{
+  "profile": "current-targeted-read-missing",
+  "httpStatus": 200,
+  "capabilities": {
+    "queryType": { "fields": [{ "name": "docker" }, { "name": "info" }] },
+    "mutationType": { "fields": [] },
+    "subscriptionType": { "fields": [] },
+    "dockerType": { "fields": [{ "name": "containers" }] },
+    "dockerMutationsType": { "fields": [] },
+    "dockerContainerType": { "fields": [{ "name": "id" }, { "name": "names" }, { "name": "state" }, { "name": "status" }, { "name": "autoStart" }] },
+    "dockerAutostartInput": { "inputFields": [] }
+  },
+  "version": { "info": { "versions": { "core": { "unraid": "7.2.7-fixture", "api": "4.37.1-fixture" } } } },
+  "containers": [{ "id": "server:abcdef1234567890", "names": ["fixture-app"], "state": "running", "status": "Up", "autoStart": true }]
+}

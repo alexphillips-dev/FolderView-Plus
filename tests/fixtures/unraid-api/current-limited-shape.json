@@ -1,0 +1,6 @@
+{
+  "profile": "current-limited-shape",
+  "httpStatus": 200,
+  "introspectionError": true,
+  "containers": [{ "id": "server:abcdef1234567890", "names": ["fixture-app"], "state": "running", "status": "Up", "autoStart": true }]
+}

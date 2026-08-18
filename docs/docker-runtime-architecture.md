@@ -12,6 +12,11 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Owns the no-overlay coexistence decision and aggregate compatibility evidence.
 - `scripts/docker.runtime.providers.js`
   - Defines legacy WebGUI, hybrid legacy/GraphQL, Unraid GraphQL, and unsupported providers for container listing, identity, subscriptions, actions, health metadata, guarded mutations, organization authority, and UI ownership.
+- `scripts/docker.runtime.capabilities.js`
+  - Owns dynamic capability-path checks, unavailable/legacy snapshots, provider accessors, and privacy-safe compatibility evidence mapping.
+- `scripts/docker.runtime.api-coordinator.js`
+  - Owns API-first list and targeted reconciliation for the legacy Docker renderer.
+  - Merges only schema-confirmed runtime fields into the PHP-authoritative identity/metadata map, serializes requests, rejects stale work, schedules structural host refreshes, and applies permanent/transient failure policy.
 - `scripts/docker.runtime.container-model.js`
   - Normalizes GraphQL, PHP runtime, and DOM fallback records into one immutable container contract.
 - `scripts/docker.runtime.provider-health.js`
@@ -54,7 +59,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 - `docker.bootstrap.js` is the only production loader for `docker.js`, which starts only for the complete legacy table contract. The runtime keeps legacy Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter and the extracted column controller.
 - The native Docker component remains owned by Unraid. FolderView Plus does not overlay it or mutate the prerelease organizer.
-- On the legacy table, UI ownership remains unchanged while the hybrid provider prefers schema-confirmed GraphQL reads and statistics.
+- On the legacy table, UI ownership remains unchanged while the API coordinator prefers schema-confirmed GraphQL list/targeted reads and falls back to PHP reconciliation.
 - Dashboard advanced previews open GraphQL statistics lazily and fall back to the host `docker_load` stream.
 - `docker.runtime.host-guards.js` is the Docker diagnostics facade over the shared adapter; it does not implement a second hook or selector system.
 - Shared modules own reusable primitives so feature logic is testable without large-file rewrites.
@@ -96,6 +101,9 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
   - `tests/unraid-upstream-monitor.test.mjs`
 - Deterministic native-host browser coverage:
   - `tests/browser/fixtures/future-docker-host.html`
+- Deterministic current/legacy API-first browser coverage:
+  - `tests/browser/fixtures/docker-api-legacy.html`
+  - `tests/fixtures/unraid-api/*.json`
 - Perf telemetry snapshot is exposed as:
   - `window.getDockerRuntimePerfTelemetrySnapshot()`
   - `window.getVmRuntimePerfTelemetrySnapshot()`

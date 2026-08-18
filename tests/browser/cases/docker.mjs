@@ -27,6 +27,21 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
     assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
+test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerPreviewCloneResilience.run());
+    assert.equal(result.modeOneOk, true);
+    assert.equal(result.modeThreeOk, true);
+    assert.equal(result.modeOneState, 'started');
+    assert.equal(result.modeThreeState, 'started');
+    assert.match(result.originalState, /Compose Stack: fixture-stack/);
+    assert.deepEqual(result.missingState, { ok: false, reason: 'state-markup-missing' });
+    assert.deepEqual(result.missingWrapper, { ok: false, reason: 'preview-markup-missing' });
+    assert.deepEqual(result.invalidSelector, { ok: false, reason: 'preview-clone-failed' });
+    assert.equal(result.renderedCount, 3, 'a malformed member must not stop subsequent preview rendering');
+    assert.equal(result.fallbackCount, 2);
+});
+
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureFolderContextFirstClick.run());
@@ -112,4 +127,37 @@ test('future native Docker host stays authoritative while compatibility diagnost
         []
     );
 });
+
+test('legacy Docker uses API-first reads while host eventControl retains action ownership', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-api-legacy?profile=current-full-api`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerApiLegacy.result);
+    assert.equal(result.provider, 'hybrid-legacy-graphql');
+    assert.equal(result.providerDiagnostics.actionTransport, 'legacy-webgui');
+    assert.equal(result.coordinator.state, 'ready');
+    assert.equal(result.coordinator.source, 'unraid-graphql-targeted');
+    assert.equal(result.runtime.info.State.Running, true);
+    assert.equal(result.runtime.info.State.Paused, true);
+    assert.equal(result.runtime.info.State.Updated, true);
+    assert.equal(result.runtime.Labels['fixture.php'], 'preserved');
+    assert.equal(result.hostActions.length, 1);
+    assert.equal(result.hostActions[0].request.action, 'start');
+    assert.equal(result.apiCalls.some((entry) => entry.list), true);
+    assert.equal(result.apiCalls.some((entry) => entry.targeted), true);
+    assert.equal(result.apiCalls.some((entry) => entry.mutation), false);
+    assert.equal(result.apiCalls.every((entry) => entry.csrf === 'api-first-fixture-token'), true);
+    assert.equal(result.structuralRefreshes, 0);
+    await page.evaluate(() => window.fixtureDockerApiLegacy.dispose());
+});
+
+test('legacy Docker remains functional when the API is absent', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-api-legacy?profile=legacy-no-api`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerApiLegacy.result);
+    assert.equal(result.provider, 'hybrid-legacy-graphql');
+    assert.equal(result.providerDiagnostics.state, 'degraded');
+    assert.equal(result.runtime.info.State.Running, false);
+    assert.equal(result.hostActions.length, 1);
+    assert.equal(result.hostActions[0].request.action, 'start');
+    assert.equal(result.apiCalls.some((entry) => entry.mutation), false);
+    await page.evaluate(() => window.fixtureDockerApiLegacy.dispose());
+}, { allowedConsoleErrors: [/Failed to load resource:.*404 \(Not Found\)/] });
 };

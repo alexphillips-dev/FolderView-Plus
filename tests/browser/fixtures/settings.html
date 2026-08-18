@@ -60,6 +60,7 @@
     <script src="/plugin/scripts/folderviewplus.start-order-view.js"></script>
     <script>
         document.getElementById('fv-settings-topbar').innerHTML = window.FolderViewPlusSettingsChrome.getTopbarHtml();
+        document.getElementById('fv-plugin-update-link').hidden = false;
         const startOrderView = window.FolderViewPlusFoundationModules.startOrderView.createApi();
         const startOrderInfo = {
             audiobookshelf: { id: 'audio-id', autostart: true, Labels: { 'net.unraid.docker.icon': '/plugin/images/third-party-icons/Icons/Yellow/yellow-audio.svg' } },

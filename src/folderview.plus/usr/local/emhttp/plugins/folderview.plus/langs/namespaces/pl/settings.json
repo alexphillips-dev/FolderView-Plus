@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Bieżąca karta",
     "settings.search.scope-all": "Wszystkie zaawansowane",
     "settings.header.plugin-settings": "Ustawienia wtyczki",
+    "settings.update.available": "Dostępna aktualizacja",
+    "settings.update.open-plugins": "Dostępna aktualizacja. Otwórz wtyczki, aby je zainstalować.",
     "settings.mode.title": "Tryb ustawień",
     "settings.mode.basic-label": "Użyj trybu podstawowych ustawień",
     "settings.mode.advanced-label": "Użyj trybu zaawansowanych ustawień",

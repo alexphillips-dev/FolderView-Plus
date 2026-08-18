@@ -11,33 +11,24 @@ const contract = JSON.parse(read('scripts/test_runner_contracts.json'));
 test('Phase 8 keeps public test commands behind thin runner entrypoints', () => {
     const packageJson = JSON.parse(read('package.json'));
     assert.equal(packageJson.scripts['test:browser-fixtures'], 'node scripts/fixture_browser_tests.mjs');
-    assert.deepEqual(contract.entrypoints.map((entry) => entry.file), [
-        'scripts/fixture_browser_tests.mjs',
-        'scripts/browser_smoke.mjs',
-        'scripts/theme_matrix_smoke.mjs'
-    ]);
+    assert.deepEqual(contract.entrypoints.map((entry) => entry.file), ['scripts/fixture_browser_tests.mjs']);
     assert.ok(contract.entrypoints.every((entry) => entry.limit < 500));
 });
 
-test('Phase 8 runner contract preserves fixture and live smoke intent inventories', () => {
+test('Phase 8 runner contract preserves deterministic fixture intent inventory', () => {
     const output = execFileSync(process.execPath, ['scripts/test_runner_contract_guard.mjs'], {
         cwd: rootDir,
         encoding: 'utf8'
     });
-    assert.match(output, /38 ordered fixture cases/);
-    assert.equal(contract.intent.fixture.assertionCount, 485);
-    assert.equal(contract.intent.browserSmoke.checkFunctions.length, 9);
-    assert.equal(contract.intent.themeMatrix.checkFunctions.length, 5);
+    assert.match(output, /41 ordered fixture cases/);
+    assert.equal(contract.intent.fixture.assertionCount, 516);
 });
 
 test('Phase 8 change classification covers every extracted runner family', async () => {
     const { classifyPaths } = await import('../scripts/classify_ci_changes.mjs');
     assert.equal(classifyPaths(['scripts/lib/fixture-browser-runner.mjs']).outputs.needs_browser, true);
-    assert.equal(classifyPaths(['scripts/lib/browser-smoke-docker-checks.mjs']).outputs.needs_browser, true);
-    assert.equal(classifyPaths(['scripts/lib/theme-matrix-runtime-checks.mjs']).outputs.needs_theme, true);
-    const diagnosticChange = classifyPaths(['scripts/lib/live-smoke-diagnostics.mjs']);
-    assert.equal(diagnosticChange.outputs.needs_browser, true);
-    assert.equal(diagnosticChange.outputs.needs_theme, true);
+    assert.equal(classifyPaths(['tests/browser/cases/docker.mjs']).outputs.needs_browser, true);
+    assert.equal(classifyPaths(['tests/browser/cases/settings.mjs']).outputs.needs_theme, true);
     const contractChange = classifyPaths(['scripts/test_runner_contracts.json']);
     assert.equal(contractChange.outputs.needs_browser, true);
     assert.equal(contractChange.outputs.needs_theme, true);

@@ -196,7 +196,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
-    assert.match(dockerJs, /const fetchDockerRuntimeSnapshotCheck = async \(options = \{\}\) => \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true;[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
+    assert.match(dockerJs, /const dockerApiCoordinatorModule = window\.FolderViewPlusFoundationModules\?\.dockerApiCoordinator \|\| null;/);
+    assert.match(dockerJs, /const getDockerApiIntegration = \(\) => \{[\s\S]*dockerApiCoordinatorModule\.createIntegration\(\{/);
+    assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = async \(options = \{\}\) => \{[\s\S]*getDockerApiIntegration\(\)\?\.refresh\?\.\(options\)[\s\S]*refreshDockerRuntimeStateFromPhp\(\{ \.\.\.options, apiFirst: false \}\)/);
     assert.match(dockerJs, /const bindDockerPostUpdateRenderReconcile = \(\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindPostUpdateRenderReconcile\?\.\(\);/);
     assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindHostOpenDockerPatch\?\.\(\);/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.armPostUpdateRuntimeReconcileWindow\?\.\(durationMs,\s*options\) \|\| 0;/);

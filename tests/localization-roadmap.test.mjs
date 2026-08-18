@@ -216,13 +216,14 @@ test('all registered locales have complete namespace catalogs', () => {
     }
 });
 
-test('browser smoke captures expanded and RTL pseudo-locale states', () => {
-    const browserSmoke = fs.readFileSync(path.join(repoRoot, 'scripts/browser_smoke.mjs'), 'utf8');
-    assert.match(browserSmoke, /usePseudoLocale\('en-XA'\)/);
-    assert.match(browserSmoke, /usePseudoLocale\('ar-XB'\)/);
-    assert.match(browserSmoke, /locale-en-xa\.png/);
-    assert.match(browserSmoke, /locale-ar-xb\.png/);
-    assert.match(browserSmoke, /rtlState\.dir !== 'rtl'/);
+test('deterministic browser fixtures validate both LTR and RTL locale direction', () => {
+    const foundationFixture = fs.readFileSync(path.join(repoRoot, 'tests/browser/cases/foundation.mjs'), 'utf8');
+    const fixtureConfig = fs.readFileSync(path.join(repoRoot, 'scripts/lib/fixture-browser-config.mjs'), 'utf8');
+    assert.match(foundationFixture, /documentDirection/);
+    assert.match(foundationFixture, /assert\.equal\(result\.documentDirection, 'ltr'\)/);
+    assert.match(foundationFixture, /assert\.equal\(result\.documentDirection, 'rtl'\)/);
+    assert.match(fixtureConfig, /FVPLUS_FIXTURE_COLOR_SCHEMES/);
+    assert.match(fixtureConfig, /FVPLUS_FIXTURE_VIEWPORTS/);
 });
 
 test('diagnostics and support bundles expose localization readiness', () => {

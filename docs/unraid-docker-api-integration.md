@@ -56,7 +56,15 @@ The GraphQL provider:
 4. Uses `docker.container(id)` for targeted reconciliation when available.
 5. Falls back to `docker.containers`, legacy `dockerContainers`, or the legacy provider as appropriate.
 
-The hybrid provider does not replace FolderView Plus's existing PHP runtime snapshot in the legacy renderer. That snapshot remains the structural authority for grouped DOM reconciliation. GraphQL enriches provider consumers and reduces repeated identity/list reads without creating a second rendered state owner.
+`scripts/docker.runtime.api-coordinator.js` makes those reads useful to the legacy renderer without creating a second UI owner:
+
+1. The PHP runtime snapshot builds the authoritative identity set, folder membership, ordering, URLs, paths, ports, mounts, and other metadata used by the grouped DOM.
+2. After the legacy page renders, one background GraphQL list read enriches matching rows with schema-confirmed state, status, autostart, update, WebUI, icon, image, orphan, and rebuild fields.
+3. Routine live refresh checks only PHP configuration revisions, then asks the coordinator for API runtime state. It does not call the legacy Docker runtime endpoint when the API path is healthy.
+4. A lifecycle follow-up first uses `docker.container(id)` when available. Missing targeted-read capability falls back to a list read; an unavailable API falls back to the existing PHP reconciliation path.
+5. API identities are matched by normalized name or unambiguous full/short ID. A changed identity set never creates or deletes a rendered row; it schedules one host-owned structural refresh.
+
+The coordinator permits one request at a time, aborts and rejects stale work on disposal, permanently disables the API path for authentication, permission, missing-capability, or missing-fetch failures, and applies 15, 30, 60, 120, then 300 second cooldowns for transient failures. Successful reads clear the cooldown. Compatibility evidence receives only aggregate coordinator state, source, timestamps, failure category, counters, and cooldown duration.
 
 ## Statistics lifecycle
 
@@ -103,7 +111,7 @@ Every mutation:
 - Reconciles the targeted container or refreshes the normalized list afterward.
 - Uses existing request timeout, abort, stale-response, authentication, permission, and rate-limit handling.
 
-Autostart GraphQL persistence remains capability-gated. The existing Unraid preference path remains the fallback until live-host round-trip qualification confirms order, wait values, persistence, rollback, and legacy UI synchronization.
+Autostart GraphQL persistence remains capability-gated and is not exposed by FolderView Plus UI. The existing Unraid preference path remains authoritative until an isolated, reproducible mutation contract proves order, wait values, persistence, rollback, and legacy UI synchronization.
 
 ## Bounded logs
 
@@ -142,8 +150,11 @@ The reviewed baseline is `docs/unraid-docker-upstream-baseline.json`. A gate cha
 Focused contracts live in:
 
 - `tests/unraid-docker-future-compatibility.test.mjs`
+- `tests/docker-runtime-api-coordinator.test.mjs`
+- `tests/unraid-api-fixtures.test.mjs`
 - `tests/unraid-upstream-monitor.test.mjs`
 - `tests/docker-runtime-shared-architecture.test.mjs`
+- `tests/browser/fixtures/docker-api-legacy.html`
 - `tests/browser/fixtures/future-docker-host.html`
 
-Live Unraid qualification still follows `docs/unraid-docker-prerelease-qualification.md`.
+The isolated API profile set covers full, absent, introspection-denied, limited-shape, targeted-read-missing, partial-data, permission-denied, rate-limited, unavailable, schema-drift, and future-native outcomes. Browser smoke, theme, responsive, and scheduled validation all run local fixtures; the repository has no live-Unraid target or secret contract. See `docs/unraid-docker-prerelease-qualification.md`.

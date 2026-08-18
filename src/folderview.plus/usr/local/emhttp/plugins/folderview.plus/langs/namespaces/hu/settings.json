@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aktuális lap",
     "settings.search.scope-all": "Minden haladó",
     "settings.header.plugin-settings": "Plugin beállítások",
+    "settings.update.available": "Frissítés elérhető",
+    "settings.update.open-plugins": "Frissítés elérhető. Nyissa meg a Plugins alkalmazást a telepítéshez.",
     "settings.mode.title": "Beállítások mód",
     "settings.mode.basic-label": "Használja az alapbeállítási módot",
     "settings.mode.advanced-label": "Használja a speciális beállítások módot",

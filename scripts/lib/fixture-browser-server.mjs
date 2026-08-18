@@ -4,6 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 
 export const createFixtureBrowserServer = ({ rootDir, pluginDir, fixtureDir }) => {
+const unraidApiFixtureDir = path.join(rootDir, 'tests', 'fixtures', 'unraid-api');
 const mimeTypes = {
     '.css': 'text/css; charset=utf-8',
     '.html': 'text/html; charset=utf-8',
@@ -35,9 +36,61 @@ const readRequestBody = (request) => new Promise((resolve, reject) => {
     request.on('error', reject);
 });
 
+const fixtureProfileFromRequest = (request) => {
+    try {
+        const referer = new URL(String(request.headers.referer || ''), 'http://127.0.0.1');
+        return String(referer.searchParams.get('profile') || 'current-full-api').trim();
+    } catch (_error) {
+        return 'current-full-api';
+    }
+};
+
+const graphqlFixtureResponse = (profile, document) => {
+    if (profile.introspectionError === true && document.includes('FVPlusDockerCapabilities')) {
+        return { errors: [{ message: 'Fixture introspection is unavailable.' }] };
+    }
+    if (document.includes('FVPlusDockerCapabilities')) return { data: profile.capabilities || {} };
+    if (document.includes('FVPlusApiVersion')) return { data: profile.version || {} };
+    if (document.includes('FVPlusDockerShape')) {
+        return { data: { docker: { containers: [{ __typename: 'DockerContainer' }] } } };
+    }
+    if (document.includes('FVPlusLegacyDockerShape')) {
+        return { data: { dockerContainers: [{ __typename: 'DockerContainer' }] } };
+    }
+    if (document.includes('FVPlusDockerContainer(')) {
+        return { data: { docker: { container: profile.container || profile.containers?.[0] || null } } };
+    }
+    if (document.includes('FVPlusDockerContainers')) {
+        if (profile.listErrors) return { data: profile.partialData || null, errors: profile.listErrors };
+        return { data: { docker: { containers: profile.containers || [] } } };
+    }
+    return { data: { __typename: 'Query' } };
+};
+
 const fixtureServer = http.createServer(async (request, response) => {
     try {
         const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
+        if (requestUrl.pathname === '/graphql') {
+            const profileName = fixtureProfileFromRequest(request);
+            const profilePath = safeResolve(unraidApiFixtureDir, `${profileName}.json`);
+            if (!profilePath || !fs.existsSync(profilePath)) {
+                response.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                response.end(JSON.stringify({ errors: [{ message: 'Unknown fixture API profile.' }] }));
+                return;
+            }
+            const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+            const status = Math.max(200, Math.min(599, Number(profile.httpStatus) || 200));
+            if (status !== 200) {
+                response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+                response.end(JSON.stringify({ errors: [{ message: 'Fixture API request rejected.' }] }));
+                return;
+            }
+            const rawBody = await readRequestBody(request);
+            const body = JSON.parse(rawBody || '{}');
+            response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            response.end(JSON.stringify(graphqlFixtureResponse(profile, String(body.query || ''))));
+            return;
+        }
         if (requestUrl.pathname === '/plugins/folderview.plus/server/security.php') {
             const rawBody = await readRequestBody(request);
             const body = Object.fromEntries(new URLSearchParams(rawBody));
@@ -90,6 +143,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'vm-lifecycle.html');
         } else if (requestUrl.pathname === '/future-docker-host') {
             filePath = path.join(fixtureDir, 'future-docker-host.html');
+        } else if (requestUrl.pathname === '/docker-api-legacy') {
+            filePath = path.join(fixtureDir, 'docker-api-legacy.html');
         } else if (requestUrl.pathname === '/docker-layout-stability') {
             filePath = path.join(fixtureDir, 'docker-layout-stability.html');
         } else if (requestUrl.pathname === '/csp-hardening') {

@@ -18,7 +18,6 @@ const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/s
 const scheduledWorkflowHealthPath = path.join(repoRoot, '.github/workflows/scheduled-workflow-health.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
-const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
 const fixtureBrowserShellPath = path.join(repoRoot, 'scripts/fixture_browser_tests.sh');
 const fixtureBrowserNodePath = path.join(repoRoot, 'scripts/fixture_browser_tests.mjs');
 const runtimeBrowserFixturePath = path.join(repoRoot, 'tests/browser/fixtures/runtime.fixture.js');
@@ -31,7 +30,6 @@ const remotePublishGuardPath = path.join(repoRoot, 'scripts/remote_publish_guard
 const releaseNotesConsistencyGuardPath = path.join(repoRoot, 'scripts/release_notes_consistency_guard.sh');
 const runCiSuitePath = path.join(repoRoot, 'scripts/run_ci_suite.sh');
 const themeMatrixSmokeShellPath = path.join(repoRoot, 'scripts/theme_matrix_smoke.sh');
-const themeMatrixSmokeNodePath = path.join(repoRoot, 'scripts/theme_matrix_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
 const apiContractGuardPath = path.join(repoRoot, 'scripts/api_contract_guard.sh');
 const legacySupportGuardPath = path.join(repoRoot, 'scripts/legacy_support_guard.sh');
@@ -44,7 +42,6 @@ const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
 const mainBranchHistoryGuardPath = path.join(repoRoot, 'scripts/main_branch_history_guard.sh');
 const devVersionBumpGuardPath = path.join(repoRoot, 'scripts/dev_version_bump_guard.sh');
 const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
-const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const releaseNoteCategoriesShellPath = path.join(repoRoot, 'scripts/release_note_categories.sh');
 const releaseNoteCategoryContractPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/release-note-categories.json');
@@ -71,13 +68,6 @@ const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
-const browserSmokeNode = [
-    browserSmokeNodePath,
-    path.join(repoRoot, 'scripts/lib/browser-smoke-runtime-checks.mjs'),
-    path.join(repoRoot, 'scripts/lib/browser-smoke-docker-checks.mjs'),
-    path.join(repoRoot, 'scripts/lib/browser-smoke-dashboard-checks.mjs'),
-    path.join(repoRoot, 'scripts/lib/browser-smoke-folder-editor-checks.mjs')
-].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const fixtureBrowserShell = fs.readFileSync(fixtureBrowserShellPath, 'utf8');
 const fixtureBrowserNode = [
     fixtureBrowserNodePath,
@@ -102,12 +92,6 @@ const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'ut
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
-const themeMatrixSmokeNode = [
-    themeMatrixSmokeNodePath,
-    path.join(repoRoot, 'scripts/lib/theme-matrix-settings-checks.mjs'),
-    path.join(repoRoot, 'scripts/lib/theme-matrix-runtime-checks.mjs'),
-    path.join(repoRoot, 'scripts/lib/theme-matrix-folder-editor-checks.mjs')
-].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
 const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
@@ -120,7 +104,6 @@ const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
 const mainBranchHistoryGuard = fs.readFileSync(mainBranchHistoryGuardPath, 'utf8');
 const devVersionBumpGuard = fs.readFileSync(devVersionBumpGuardPath, 'utf8');
 const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
-const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 const releaseNoteCategoriesShell = fs.readFileSync(releaseNoteCategoriesShellPath, 'utf8');
 const releaseNoteCategoryContract = JSON.parse(fs.readFileSync(releaseNoteCategoryContractPath, 'utf8'));
@@ -358,81 +341,24 @@ test('developer docs point dev packaging work to the staged dev finalize workflo
     assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix"/);
 });
 
-test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {
-    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_URL/);
-    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
-    assert.match(browserSmokeShell, /SMOKE_REQUIRED=1/);
-    assert.match(browserSmokeShell, /Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set/);
-    assert.match(browserSmokeShell, /Skipping browser smoke checks/);
-    assert.match(browserSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
-    assert.match(browserSmokeShell, /"\$\{NODE_BIN\}" "\$\{SMOKE_SCRIPT\}"/);
-    assert.match(browserSmokeNode, /playwright/);
-    assert.match(browserSmokeNode, /#fv-settings-topbar/);
-    assert.match(browserSmokeNode, /#fv-settings-search/);
-    assert.match(browserSmokeNode, /#import-preview-dialog/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DOCKER_URL/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_VM_URL/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DASHBOARD_URL/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
-    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX/);
-    assert.match(browserSmokeNode, /resolveDashboardUrl/);
-    assert.match(browserSmokeNode, /runRuntimeLayoutSmoke/);
-    assert.match(browserSmokeNode, /runDashboardQuickRailSmoke/);
-    assert.match(browserSmokeNode, /waitForFolderEditorReady/);
-    assert.match(browserSmokeNode, /cleanupSmokeFolder/);
-    assert.match(browserSmokeNode, /runFolderEditorInteractionSmoke/);
-    assert.match(browserSmokeNode, /selectedMembers/);
-    assert.match(browserSmokeNode, /previewOrder/);
-    assert.match(browserSmokeNode, /savedActionName/);
-    assert.match(browserSmokeNode, /Folder editor interaction smoke failed/);
-    assert.match(browserSmokeNode, /Cleanup:/);
-    assert.match(browserSmokeNode, /interactionReport/);
-    assert.match(browserSmokeNode, /Browser smoke dialog accepted/);
-    assert.match(browserSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
-    assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
-    assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
-    assert.match(browserSmokeNode, /runBrowserSmoke\('webkit'/);
+test('browser smoke wrapper runs the deterministic local fixture suite', () => {
+    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_BROWSERS/);
+    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_COLOR_SCHEMES/);
+    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_VIEWPORTS/);
+    assert.match(browserSmokeShell, /FVPLUS_FIXTURE_BROWSER_ARTIFACT_DIR/);
+    assert.match(browserSmokeShell, /no live Unraid target/);
+    assert.match(browserSmokeShell, /bash scripts\/fixture_browser_tests\.sh/);
+    assert.doesNotMatch(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_URL/);
 });
 
-test('theme matrix smoke scripts are optional, URL-gated, and include wizard/theme checks', () => {
-    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_URLS/);
-    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_REQUIRED/);
-    assert.match(themeMatrixSmokeShell, /Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set/);
-    assert.match(themeMatrixSmokeShell, /Skipping theme matrix smoke checks/);
-    assert.match(themeMatrixSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
-    assert.match(themeMatrixSmokeShell, /"\$\{NODE_BIN\}" "\$\{THEME_SCRIPT\}"/);
-    assert.match(themeMatrixSmokeNode, /playwright/);
-    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_REQUIRED_LABELS/);
-    assert.match(themeMatrixSmokeNode, /Theme matrix is missing required label\(s\)/);
-    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_BROWSERS/);
-    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ZOOMS/);
-    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ARTIFACT_DIR/);
-    assert.match(themeMatrixSmokeNode, /resolveRuntimeUrl/);
-    assert.match(themeMatrixSmokeNode, /resolveDashboardUrl/);
-    assert.match(themeMatrixSmokeNode, /runSettingsSurfaceChecks/);
-    assert.match(themeMatrixSmokeNode, /runRuntimeThemeChecks/);
-    assert.match(themeMatrixSmokeNode, /captureScenarioScreenshot/);
-    assert.match(themeMatrixSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
-    assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="docker"\]/);
-    assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="vms"\]/);
-    assert.match(themeMatrixSmokeNode, /tbody#docker/);
-    assert.match(themeMatrixSmokeNode, /tbody#vms/);
-    assert.match(themeMatrixSmokeNode, /tbody#docker_view/);
-    assert.match(themeMatrixSmokeNode, /tbody#vm_view/);
-    assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
-    assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
-    assert.match(themeMatrixSmokeNode, /button\.folder-dropdown/);
-    assert.match(themeMatrixSmokeNode, /button\.fv-dashboard-expand-toggle-btn/);
-    assert.match(themeMatrixSmokeNode, /fv-dashboard-layout-inline-host/);
-    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle border should be removed/);
-    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle background should remain transparent/);
-    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle shadow should be removed/);
-    assert.match(themeMatrixSmokeNode, /stage: `\$\{target\.type\}-runtime`/);
-    assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
-    assert.match(themeMatrixSmokeNode, /horizontal overflow/);
-    assert.match(themeMatrixSmokeNode, /screenshot=/);
+test('theme matrix wrapper runs local fixtures across themes and responsive viewports', () => {
+    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_SMOKE_BROWSERS/);
+    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_COLOR_SCHEMES/);
+    assert.match(themeMatrixSmokeShell, /light,dark/);
+    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_VIEWPORTS/);
+    assert.match(themeMatrixSmokeShell, /1180x720,390x844/);
+    assert.match(themeMatrixSmokeShell, /bash scripts\/fixture_browser_tests\.sh/);
+    assert.doesNotMatch(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_URLS/);
 });
 
 test('shared ci suite centralizes linting, tests, guards, docs metadata, and smoke flows', () => {
@@ -471,12 +397,10 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" != \*\.exe/);
     assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install-deps chromium firefox webkit/);
     assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install --with-deps chromium firefox webkit/);
-    assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
-    assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_CI_TIMINGS_PATH/);
-    assert.match(runCiSuite, /FVPLUS_UNRAID_MATRIX_REQUIRED="\$\{FVPLUS_UNRAID_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
-    assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED="\$\{FVPLUS_BROWSER_SMOKE_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
-    assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED="\$\{FVPLUS_THEME_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+    assert.doesNotMatch(runCiSuite, /FVPLUS_UNRAID_MATRIX/);
+    assert.doesNotMatch(runCiSuite, /FVPLUS_BROWSER_SMOKE_URL/);
+    assert.doesNotMatch(runCiSuite, /FVPLUS_THEME_MATRIX_URLS/);
 });
 
 test('scheduled validation runs deterministic cross-browser fixtures without live Unraid configuration', () => {
@@ -543,13 +467,14 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
-        assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_COLOR_SCHEMES:\s*dark/);
+        assert.match(workflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
+        assert.match(workflow, /FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/);
         assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
         assert.match(workflow, /tmp\/fixture-browser-artifacts/);
         assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
+        assert.doesNotMatch(workflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
     }
 
     assert.match(releaseOnMainWorkflow, /Run release validation suite/);
@@ -565,9 +490,10 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-    assert.match(backmergeWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'0'/);
-    assert.match(backmergeWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'0'/);
+    assert.match(backmergeWorkflow, /FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/);
+    assert.match(backmergeWorkflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
     assert.match(backmergeWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*'chromium,firefox,webkit'/);
+    assert.doesNotMatch(backmergeWorkflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
     assert.match(backmergeWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(backmergeWorkflow, /pull-requests:\s*write/);
     assert.match(backmergeWorkflow, /secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/);
@@ -648,14 +574,15 @@ test('release note parsers distinguish category headings from version headings',
     assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###\[0-9\]\{4\}/);
 });
 
-test('release publishing serializes concurrent runs and enforces live validation', () => {
+test('release publishing serializes concurrent runs and enforces isolated validation', () => {
     for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
-        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_UNRAID_MATRIX != '' && '1' \|\| '0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.2\.x,7\.3\.x'/);
-        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_THEMES:\s*'black,white'/);
+        assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
+        assert.match(workflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
+        assert.match(workflow, /FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/);
+        assert.doesNotMatch(workflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
     }
 });
 
@@ -720,8 +647,9 @@ test('back-merge sync script preserves main ancestry while restoring dev release
     assert.match(syncMainToDev, /changed_paths_since_ref/);
     assert.match(syncMainToDev, /git diff --name-only --find-renames "\$\{source_ref\}"/);
     assert.match(syncMainToDev, /reconcile_release_only_paths_from_ref "\$\{PRE_MERGE_REF\}" "\$\{MERGED_PATHS\[@\]\}"/);
-    assert.match(syncMainToDev, /git commit --allow-empty --no-edit/);
-    assert.match(syncMainToDev, /git commit --no-edit/);
+    assert.match(syncMainToDev, /git commit --no-verify --allow-empty --no-edit/);
+    assert.match(syncMainToDev, /git commit --no-verify --no-edit/);
+    assert.match(syncMainToDev, /docs\/sbom\.cdx\.json/);
     assert.match(syncMainToDev, /docs\/releases\/\*\.md/);
     assert.match(syncMainToDev, /git restore --source="\$\{source_ref\}" --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
     assert.match(syncMainToDev, /git rm -f --ignore-unmatch -- "\$\{remove_paths\[@\]\}"/);
@@ -798,7 +726,7 @@ test('release preparation uses dry-run version resolution and explicit notes bef
 test('simulate main release uses a temporary worktree and shared release preparation path', () => {
     assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree add --detach "\$\{WORKTREE_DIR\}" HEAD/);
     assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree remove --force "\$\{WORKTREE_DIR\}"/);
-    assert.match(simulateMainRelease, /bash scripts\/release_prepare\.sh --notes-output/);
+    assert.match(simulateMainRelease, /FVPLUS_EXPECT_PLUGIN_BRANCH=main[\s\S]*bash scripts\/release_prepare\.sh --notes-output/);
     assert.match(simulateMainRelease, /release-main-simulation-notes\.md/);
 });
 
@@ -912,14 +840,9 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(mainBranchHistoryGuard, /git merge-base --is-ancestor "\$\{allowed_ref\}" "\$\{parent_commit\}"/);
     assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev history/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
-    assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX_REQUIRED/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_REQUIRED_VERSIONS/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_REQUIRED_THEMES/);
-    assert.match(unraidMatrixSmoke, /<version>\\|<theme>\\|<url>/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_VERSION_HINT/);
-    assert.match(unraidMatrixSmoke, /FVPLUS_THEME_HINT/);
+    assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh')), false);
+    assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/browser_smoke.mjs')), false);
+    assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/theme_matrix_smoke.mjs')), false);
     assert.match(docsMetadataGuard, /folderviewplus-desc/);
     assert.match(setupCiEnvAction, /Setup CI Environment/);
     assert.match(setupCiEnvAction, /actions\/setup-node@[0-9a-f]{40}\s+# v7/);

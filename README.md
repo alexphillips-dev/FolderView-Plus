@@ -6,11 +6,11 @@
 
 <p align="center">
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml"><img src="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Latest Release"></a>
-  <a href="https://unraid.net/"><img src="https://img.shields.io/badge/Unraid-7.0.0%2B-F15A2C?logo=unraid&logoColor=white&style=flat-square" alt="Unraid 7.0.0+"></a>
-  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/alexphillips-dev/FolderView-Plus?style=flat-square" alt="License: MIT"></a>
-  <a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/"><img src="https://img.shields.io/badge/Support-Unraid%20Forum-F15A2C?style=flat-square" alt="Unraid forum support"></a>
-  <a href="https://buymeacoffee.com/alexphillipsdev"><img src="https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000&style=flat-square" alt="Sponsor"></a>
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus" alt="Latest Release"></a>
+  <a href="https://unraid.net/"><img src="https://img.shields.io/badge/Unraid-7.0.0%2B-F15A2C?logo=unraid&logoColor=white" alt="Unraid 7.0.0+"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/alexphillips-dev/FolderView-Plus" alt="License: MIT"></a>
+  <a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/"><img src="https://img.shields.io/badge/Support-Unraid%20Forum-F15A2C" alt="Unraid forum support"></a>
+  <a href="https://buymeacoffee.com/alexphillipsdev"><img src="https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000" alt="Sponsor"></a>
 </p>
 
 FolderView Plus is a folder-first organization and management plugin for Unraid. It turns large Docker, VM, and Dashboard pages into clean grouped workspaces with nested folders, live previews, folder-level actions, smart setup tools, automation rules, backups, diagnostics, and recovery options. It is built for servers that keep growing, so your Unraid UI stays readable without constantly rebuilding folder layouts by hand.

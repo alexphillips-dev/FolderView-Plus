@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.04">
-<!ENTITY md5 "4cdb97c382845f4d07585af99ca5b937">
-<!ENTITY sha256 "0ef5f9830453c1a4ed8563c453c4122b134cf51bdbbc6880303910759d58e433">
+<!ENTITY version "2026.08.18.05">
+<!ENTITY md5 "c7d718271c7b161cd1870727b8191a7e">
+<!ENTITY sha256 "b406110abdd91851595019023780312c314da44af8f6da37c7c33c2f7aecda86">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.05
+- Test: Publish a metadata-only dev update so installations on 2026.08.18.04 can exercise the in-plugin Update Available indicator and Plugins-page navigation against a genuine newer dev manifest.
+- Maintenance: Advance only the dev package metadata, release manifest, archive, checksum, and SBOM; runtime source remains unchanged from 2026.08.18.04.
+
 
 ###2026.08.18.04
 - Test: Publish a follow-up dev package so installations pinned to 2026.08.18.03 can exercise the in-plugin Update Available indicator and Plugins-page navigation against a genuine newer dev manifest.

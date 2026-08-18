@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.02">
-<!ENTITY md5 "48d555770cc9f14ed3b7c5ea1c65946c">
-<!ENTITY sha256 "b7219d6df88f40c42353417e59c7512895ff9851a0d6fdc758006ca8cf703537">
+<!ENTITY version "2026.08.18.03">
+<!ENTITY md5 "1afd1677661fa39eee0cc976d808790a">
+<!ENTITY sha256 "f09dbae6c0a2f31260872171dfba1d06248a7c2ce0acfd8041c33667de26087f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.03
+- Fix: Make the in-plugin update indicator follow the installed manifest channel so dev installations compare against dev while stable installations continue comparing against main.
+- Security: Resolve update sources from an explicit dev/main allowlist and fall back to the stable channel when the installed manifest is missing or unrecognized.
+- Test: Cover XML entity and Community Applications manifest formats, dev and main resolution, and fail-closed behavior before publishing the follow-up dev update used to exercise the indicator.
+
 
 ###2026.08.18.02
 - Feature: Show a compact Update Available link beside the FolderView Plus Settings identity when the stable manifest reports a newer plugin version, with one-click navigation to the Unraid Plugins page.

@@ -5,18 +5,29 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.07">
-<!ENTITY md5 "966c49d0f5d01b3c187322396c71bb92">
-<!ENTITY sha256 "179e8d2e03e993bc7259d7b5c0c916499cd0f2871fa727e95f35001349c656f1">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.18.08">
+<!ENTITY md5 "541a9ef0e689515a180c89d1169df79c">
+<!ENTITY sha256 "2708d72a7e3cef66d5511bfb37252bfd1621c82e579e5d94368c5ffcc3335ca9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.08
+- Feature: Prefer Unraid GraphQL for Docker runtime-state reconciliation on supported hosts while automatically preserving the established PHP snapshot path for legacy, limited, denied, unavailable, or structurally incompatible API responses.
+- Feature: Show an accessible, channel-aware Update Available link in FolderView Plus Settings that follows dev or stable manifests and opens Unraid's Plugins page for installation.
+- Fix: Keep Docker folders rendering during fresh-install startup when native or third-party container rows omit the status or wrapper markup expected by single-row previews, using the model-based preview as a privacy-safe fallback.
+- Reliability: Add lifecycle ownership, stale-response cancellation, bounded cooldowns, targeted API reads, structural-change fallback, and privacy-safe aggregate diagnostics without exposing container identities or server response details.
+- Test: Replace live-Unraid scheduled validation and encrypted target secrets with deterministic isolated fixtures covering current, legacy, limited, denied, partial, unavailable, rate-limited, schema-drift, and future-native host profiles.
+- UI/UX: Polish the Settings update indicator, responsive typography, README badges, banner presentation, rolling clone-traffic badge, and repository analytics while retaining light, dark, mobile, keyboard, and reduced-motion support.
+- Quality: Expand runtime, browser, localization, privacy, compatibility, packaging, install, release, and workflow coverage for the complete stable promotion.
+- Docs: Update the Wiki-linked repository documentation, API architecture, compatibility boundaries, prerelease qualification, contribution guidance, and release metadata for the API-first rollout.
+
 
 ###2026.08.18.07
 - Fix: Prevent Docker folder startup from failing when a native or third-party container row omits the expected status or wrapper markup used by single-row previews.
@@ -8608,7 +8619,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

@@ -5,18 +5,37 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.17.01">
-<!ENTITY md5 "19e095256d040f86bf254c9e3aa562a2">
-<!ENTITY sha256 "693b647ab14c2f8389defe3b9ec348b611ca8e203df2a4057f6e75b1fc86a12d">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.18.01">
+<!ENTITY md5 "ba2e964a13a8bd7133fb4e36c4bc48d6">
+<!ENTITY sha256 "964156abc9760f67e472737cfb7e3977a3db203fbc304368dd85b17b899adbd4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.18.01
+- Feature: Add explicit Docker start-order ownership modes, ordered startup batches, per-container delays, remaining-container policy, preview, and guarded autostart persistence.
+- UI/UX: Rebuild the Advanced Settings Start Order workspace with live totals, automatic preview hydration, a responsive sequence table, accessible autostart controls, and a collapsible disabled-container group.
+- Feature: Replace the single Theme Workspace model with named appearance profiles, global and Docker, VM, or Dashboard layers, scoped previews, inactive imports, and atomic profile actions.
+- Feature: Add preview-first folder rule templates for Docker names, images, Compose projects, and labels while preserving manual membership.
+- Feature: Add read-only FolderView3 discovery and conversion preview plus a confirmed migration path for folders, rules, defaults, start order, and inactive appearance profiles.
+- Reliability: Run environment imports and FolderView3 migrations under one configuration lock with exact snapshots, safety backups, readback verification, and automatic rollback of plugin and Docker autostart state.
+- Diagnostics: Add privacy-safe Docker, VM, and Dashboard runtime evidence with bounded page captures and sanitized support-bundle summaries.
+- Security: Bound and scan imported FolderView3 custom CSS, omit raw configuration from migration reports, validate Docker icon URLs, escape persisted values, and retain guarded mutation endpoints.
+- Accessibility: Keep Start Order text at a readable minimum size and preserve keyboard focus, reduced-motion behavior, contrast-safe actions, and contained mobile overflow.
+- Localization: Ship the complete Start Order surface across all 27 supported locales and recognize its runtime translation wrappers and rule-template keys during strict usage validation.
+- Fix: Correct lightweight Docker autostart detection, preserve peer-container state during toggles, and remove obsolete Start Order styles left by the responsive redesign.
+- Compatibility: Retain full Docker detail-row support and acknowledge Unraid API v4.37.1 after confirming no Docker schema, native-page, or organizer contract changes.
+- Reliability: Replace scheduled live-Unraid checks with deterministic isolated fixture validation while keeping live-host qualification available only as an operator-controlled action.
+- Docs: Refresh the GitHub presentation and comprehensive user wiki, including the new banner, consistent badges, and an explicitly labeled rolling 14-day clone metric.
+- Quality: Enforce smaller browser and PHP ownership boundaries for Start Order, rule templates, appearance profiles, diagnostics, FolderView3 migration, and environment transactions.
+- Test: Expand regression, browser-fixture, localization, performance, workflow, release, install, and compatibility-monitor coverage for the complete stable release.
+
 
 ###2026.08.17.01
 - Fix: Remove obsolete Docker Start Order styles left behind by the responsive workspace redesign so strict validation no longer reports unused selectors.
@@ -8567,7 +8586,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

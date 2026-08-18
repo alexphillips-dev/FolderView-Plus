@@ -14,6 +14,8 @@
     "settings.search.scope-current": "当前标签页",
     "settings.search.scope-all": "所有高级",
     "settings.header.plugin-settings": "插件设置",
+    "settings.update.available": "可用更新",
+    "settings.update.open-plugins": "可用更新。打开插件来安装它。",
     "settings.mode.title": "设置模式",
     "settings.mode.basic-label": "使用基础设置模式",
     "settings.mode.advanced-label": "使用高级设置模式",

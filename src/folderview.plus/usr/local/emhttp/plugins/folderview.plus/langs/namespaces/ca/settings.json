@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Pestanya actual",
     "settings.search.scope-all": "Tot avançat",
     "settings.header.plugin-settings": "Configuració del connector",
+    "settings.update.available": "Actualització disponible",
+    "settings.update.open-plugins": "Actualització disponible. Obriu els connectors per instal·lar-lo.",
     "settings.mode.title": "Mode de configuració",
     "settings.mode.basic-label": "Utilitzeu el mode de configuració bàsica",
     "settings.mode.advanced-label": "Utilitzeu el mode de configuració avançada",

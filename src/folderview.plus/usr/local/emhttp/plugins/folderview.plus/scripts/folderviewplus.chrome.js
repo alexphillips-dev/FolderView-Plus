@@ -3,7 +3,15 @@
         <div class="fv-settings-inline">
             <div class="fv-settings-left" aria-label="Plugin settings title">
                 <h2 class="fv-settings-title">FolderView Plus</h2>
-                <span class="fv-settings-subtitle" data-i18n="settings.header.plugin-settings">Plugin settings</span>
+                <div class="fv-settings-meta">
+                    <span class="fv-settings-subtitle" data-i18n="settings.header.plugin-settings">Plugin settings</span>
+                    <a id="fv-plugin-update-link" class="fv-plugin-update-link" href="/Plugins" hidden data-i18n="[aria-label]settings.update.open-plugins;[title]settings.update.open-plugins" aria-label="Update available. Open Plugins to install it." title="Update available. Open Plugins to install it.">
+                        <svg class="fv-plugin-update-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span data-i18n="settings.update.available">Update Available</span>
+                    </a>
+                </div>
             </div>
             <div class="fv-settings-right">
                 <div class="fv-settings-search-block">

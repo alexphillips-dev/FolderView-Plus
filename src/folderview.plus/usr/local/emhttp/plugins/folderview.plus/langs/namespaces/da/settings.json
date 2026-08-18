@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aktuel fane",
     "settings.search.scope-all": "Alle avancerede",
     "settings.header.plugin-settings": "Plugin-indstillinger",
+    "settings.update.available": "Opdatering tilgængelig",
+    "settings.update.open-plugins": "Opdatering tilgængelig. Åbn Plugins for at installere det.",
     "settings.mode.title": "Indstillingstilstand",
     "settings.mode.basic-label": "Brug grundlæggende indstillingstilstand",
     "settings.mode.advanced-label": "Brug avancerede indstillinger",

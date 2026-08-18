@@ -10144,10 +10144,52 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 .fv-settings-subtitle {
-    font-size: 1.03rem;
+    font-size: 1.3rem;
     line-height: 1.2;
     opacity: 0.84;
     white-space: nowrap;
+}
+
+.fv-settings-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.65rem;
+    min-width: 0;
+}
+
+.fv-plugin-update-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.12rem 0.48rem;
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
+    border: 1px solid var(--fvplus-settings-chip-warning-border);
+    border-radius: 999px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.fv-plugin-update-link:hover,
+.fv-plugin-update-link:focus-visible {
+    color: var(--fvplus-settings-text-primary);
+    border-color: var(--fvplus-settings-accent);
+    box-shadow: 0 0 0 3px var(--fvplus-settings-focus-ring);
+    text-decoration: none;
+}
+
+.fv-plugin-update-link[hidden] {
+    display: none !important;
+}
+
+.fv-plugin-update-icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
 }
 
 .fv-settings-right {

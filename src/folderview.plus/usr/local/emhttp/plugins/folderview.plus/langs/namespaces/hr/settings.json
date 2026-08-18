@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Trenutačna kartica",
     "settings.search.scope-all": "Svi napredni",
     "settings.header.plugin-settings": "Postavke dodatka",
+    "settings.update.available": "Ažuriranje dostupno",
+    "settings.update.open-plugins": "Ažuriranje dostupno. Otvorite Plugins da biste ga instalirali.",
     "settings.mode.title": "Način rada postavki",
     "settings.mode.basic-label": "Koristite način osnovnih postavki",
     "settings.mode.advanced-label": "Koristite način naprednih postavki",

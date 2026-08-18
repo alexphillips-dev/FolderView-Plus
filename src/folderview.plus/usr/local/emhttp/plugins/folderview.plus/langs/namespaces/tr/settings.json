@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Geçerli sekme",
     "settings.search.scope-all": "Tüm gelişmiş",
     "settings.header.plugin-settings": "Eklenti ayarları",
+    "settings.update.available": "Güncelleme Mevcut",
+    "settings.update.open-plugins": "Güncelleme mevcut. Yüklemek için Eklentileri açın.",
     "settings.mode.title": "Ayar modu",
     "settings.mode.basic-label": "Temel ayar modunu kullan",
     "settings.mode.advanced-label": "Gelişmiş ayar modunu kullan",

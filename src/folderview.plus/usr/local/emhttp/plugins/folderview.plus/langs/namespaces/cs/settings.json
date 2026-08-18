@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aktuální karta",
     "settings.search.scope-all": "Všechny pokročilé",
     "settings.header.plugin-settings": "Nastavení pluginu",
+    "settings.update.available": "Aktualizace k dispozici",
+    "settings.update.open-plugins": "Aktualizace k dispozici. Otevřete pluginy a nainstalujte je.",
     "settings.mode.title": "Režim nastavení",
     "settings.mode.basic-label": "Použijte režim základního nastavení",
     "settings.mode.advanced-label": "Použijte režim pokročilého nastavení",

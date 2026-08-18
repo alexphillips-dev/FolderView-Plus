@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Huidige tab",
     "settings.search.scope-all": "Alle geavanceerde",
     "settings.header.plugin-settings": "Plugin-instellingen",
+    "settings.update.available": "Update beschikbaar",
+    "settings.update.open-plugins": "Update beschikbaar. Open Plug-ins om het te installeren.",
     "settings.mode.title": "Instellingsmodus",
     "settings.mode.basic-label": "Gebruik basisinstellingsmodus",
     "settings.mode.advanced-label": "Gebruik geavanceerde instellingsmodus",

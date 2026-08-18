@@ -14,6 +14,8 @@
     "settings.search.scope-current": "目前選項卡",
     "settings.search.scope-all": "全部先進",
     "settings.header.plugin-settings": "外掛設定",
+    "settings.update.available": "可用更新",
+    "settings.update.open-plugins": "可用更新。開啟外掛來安裝它。",
     "settings.mode.title": "設定模式",
     "settings.mode.basic-label": "使用基本設定模式",
     "settings.mode.advanced-label": "使用進階設定模式",

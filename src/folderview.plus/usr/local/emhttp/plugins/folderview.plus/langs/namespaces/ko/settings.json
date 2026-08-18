@@ -14,6 +14,8 @@
     "settings.search.scope-current": "현재 탭",
     "settings.search.scope-all": "모든 고급",
     "settings.header.plugin-settings": "플러그인 설정",
+    "settings.update.available": "업데이트 가능",
+    "settings.update.open-plugins": "업데이트가 가능합니다. 플러그인을 열어서 설치하세요.",
     "settings.mode.title": "설정 모드",
     "settings.mode.basic-label": "기본 설정 모드 사용",
     "settings.mode.advanced-label": "고급 설정 모드 사용",

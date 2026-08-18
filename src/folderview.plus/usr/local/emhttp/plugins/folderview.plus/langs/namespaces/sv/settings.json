@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aktuell flik",
     "settings.search.scope-all": "Alla avancerade",
     "settings.header.plugin-settings": "Plugin-inställningar",
+    "settings.update.available": "Uppdatering tillgänglig",
+    "settings.update.open-plugins": "Uppdatering tillgänglig. Öppna Plugins för att installera det.",
     "settings.mode.title": "Inställningsläge",
     "settings.mode.basic-label": "Använd grundläggande inställningsläge",
     "settings.mode.advanced-label": "Använd avancerat inställningsläge",

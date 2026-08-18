@@ -165,7 +165,7 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translate)\(\s*['"]([^'"]+)['"]/g;
+  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translateVmText|translate)\(\s*['"]([^'"]+)['"]/g;
   while ((match = applicationWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;
@@ -174,13 +174,18 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const declaredApplicationKeyRegex = /\bi18nKey\s*:\s*['"]([^'"]+)['"]/g;
-  while ((match = declaredApplicationKeyRegex.exec(source)) !== null) {
-    const key = match[1].trim();
-    if (!key) continue;
-    const line = lineNumberAt(source, match.index);
-    if (!referencedKeys.has(key)) referencedKeys.set(key, []);
-    referencedKeys.get(key).push(`${relPath}:${line}`);
+  const declaredApplicationKeyRegexes = [
+    /\bi18nKey\s*:\s*['"]([^'"]+)['"]/g,
+    /\b(?:labelKey|placeholderKey)\s*:\s*['"](editor\.rules\.templates\.[^'"]+)['"]/g
+  ];
+  for (const declaredApplicationKeyRegex of declaredApplicationKeyRegexes) {
+    while ((match = declaredApplicationKeyRegex.exec(source)) !== null) {
+      const key = match[1].trim();
+      if (!key) continue;
+      const line = lineNumberAt(source, match.index);
+      if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+      referencedKeys.get(key).push(`${relPath}:${line}`);
+    }
   }
 
   const directApplicationRegex = /FolderViewPlusI18n(?:\?\.|\.)t(?:\?\.)?\(\s*['"]([^'"]+)['"]/g;

@@ -726,7 +726,7 @@ test('release preparation uses dry-run version resolution and explicit notes bef
 test('simulate main release uses a temporary worktree and shared release preparation path', () => {
     assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree add --detach "\$\{WORKTREE_DIR\}" HEAD/);
     assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree remove --force "\$\{WORKTREE_DIR\}"/);
-    assert.match(simulateMainRelease, /bash scripts\/release_prepare\.sh --notes-output/);
+    assert.match(simulateMainRelease, /FVPLUS_EXPECT_PLUGIN_BRANCH=main[\s\S]*bash scripts\/release_prepare\.sh --notes-output/);
     assert.match(simulateMainRelease, /release-main-simulation-notes\.md/);
 });
 

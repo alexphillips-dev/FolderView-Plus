@@ -395,8 +395,12 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
     assert.match(runCiSuite, /Matching Playwright browsers already cached/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" != \*\.exe/);
-    assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install-deps chromium firefox webkit/);
-    assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install --with-deps chromium firefox webkit/);
+    assert.match(runCiSuite, /run_playwright_install install-deps chromium firefox webkit/);
+    assert.match(runCiSuite, /run_playwright_install install --with-deps chromium firefox webkit/);
+    assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_INSTALL_ATTEMPTS:-2/);
+    assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_INSTALL_TIMEOUT:-20m/);
+    assert.match(runCiSuite, /timeout --kill-after=30s/);
+    assert.match(runCiSuite, /Playwright installation attempt/);
     assert.match(runCiSuite, /FVPLUS_CI_TIMINGS_PATH/);
     assert.doesNotMatch(runCiSuite, /FVPLUS_UNRAID_MATRIX/);
     assert.doesNotMatch(runCiSuite, /FVPLUS_BROWSER_SMOKE_URL/);

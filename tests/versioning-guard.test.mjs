@@ -720,8 +720,9 @@ test('back-merge sync script preserves main ancestry while restoring dev release
     assert.match(syncMainToDev, /changed_paths_since_ref/);
     assert.match(syncMainToDev, /git diff --name-only --find-renames "\$\{source_ref\}"/);
     assert.match(syncMainToDev, /reconcile_release_only_paths_from_ref "\$\{PRE_MERGE_REF\}" "\$\{MERGED_PATHS\[@\]\}"/);
-    assert.match(syncMainToDev, /git commit --allow-empty --no-edit/);
-    assert.match(syncMainToDev, /git commit --no-edit/);
+    assert.match(syncMainToDev, /git commit --no-verify --allow-empty --no-edit/);
+    assert.match(syncMainToDev, /git commit --no-verify --no-edit/);
+    assert.match(syncMainToDev, /docs\/sbom\.cdx\.json/);
     assert.match(syncMainToDev, /docs\/releases\/\*\.md/);
     assert.match(syncMainToDev, /git restore --source="\$\{source_ref\}" --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
     assert.match(syncMainToDev, /git rm -f --ignore-unmatch -- "\$\{remove_paths\[@\]\}"/);

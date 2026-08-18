@@ -36,22 +36,11 @@ assert.equal(count(fixtureAllSource, /\bpage\.evaluate/g), fixture.pageEvaluateC
 assert.equal(crypto.createHash('sha256').update(titles.join('\n')).digest('hex'), fixture.orderedTitleSha256,
     'Fixture test titles or execution order changed.');
 
-const validateLiveIntent = (name, intent, functionPattern) => {
-    const source = intent.files.map(read).join('\n');
-    const functions = [...source.matchAll(functionPattern)].map((match) => match[1]);
-    assert.deepEqual(functions.sort(), [...intent.checkFunctions].sort(), `${name} check-function inventory changed.`);
-    assert.equal(count(source, /throw new Error/g), intent.throwCount, `${name} failure-path count changed.`);
-    assert.equal(count(source, /\bpage\.evaluate/g), intent.pageEvaluateCount, `${name} page-evaluate count changed.`);
-};
-
-validateLiveIntent('Browser smoke', contract.intent.browserSmoke, /const (run[A-Za-z]+Smoke) = async/g);
-validateLiveIntent('Theme matrix', contract.intent.themeMatrix, /const (run[A-Za-z]+Checks) = async/g);
-
 const packageJson = JSON.parse(read('package.json'));
 assert.equal(packageJson.scripts['test:browser-fixtures'], 'node scripts/fixture_browser_tests.mjs',
     'Fixture-browser package command changed.');
 assert.match(read('scripts/fixture_browser_tests.sh'), /scripts\/fixture_browser_tests\.mjs/);
-assert.match(read('scripts/browser_smoke.sh'), /scripts\/browser_smoke\.mjs/);
-assert.match(read('scripts/theme_matrix_smoke.sh'), /scripts\/theme_matrix_smoke\.mjs/);
+assert.match(read('scripts/browser_smoke.sh'), /scripts\/fixture_browser_tests\.sh/);
+assert.match(read('scripts/theme_matrix_smoke.sh'), /scripts\/fixture_browser_tests\.sh/);
 
 console.log(`Test runner contract guard passed: ${contract.entrypoints.length} entrypoints, ${contract.modules.length} modules, ${titles.length} ordered fixture cases.`);

@@ -39,7 +39,7 @@ The boundary covers:
 - Describe the organization authority.
 - Describe whether FolderView Plus may own a UI surface.
 
-Legacy table hosts select the hybrid provider. It prefers GraphQL for schema-confirmed data and statistics while continuing to use Unraid's `eventControl` for host-owned lifecycle actions. A failed or unavailable GraphQL read falls back to legacy data without delaying the existing renderer. A host without `eventControl` can use GraphQL actions only after the API schema confirms the required query and mutation.
+Legacy table hosts select the hybrid provider. The API coordinator enriches the PHP-authoritative runtime map from schema-confirmed GraphQL list and targeted reads while Unraid's `eventControl` continues to own lifecycle actions. A failed or unavailable GraphQL read falls back to PHP reconciliation without delaying the renderer. A host without `eventControl` can use GraphQL actions only after the API schema confirms the required query and mutation.
 
 ## GraphQL contract
 
@@ -88,6 +88,7 @@ Sanitized support bundles include `uiTelemetry.dockerDiagnostics.compatibility` 
 - Per-action mutation availability.
 - Subscription availability.
 - Native organizer query/mutation detection with the fixed `detect-only` policy.
+- Aggregate API coordinator state, last source, failure category, cooldown, and in-flight/structural-refresh booleans.
 
 The browser fixture `future-docker-host.html` verifies that a native page:
 
@@ -97,6 +98,8 @@ The browser fixture `future-docker-host.html` verifies that a native page:
 - Keeps its component markup unchanged.
 - Initializes sanitized capability evidence.
 - Releases provider resources on navigation.
+
+The `docker-api-legacy.html` fixture and `tests/fixtures/unraid-api/*.json` verify current API enrichment, targeted reads, CSRF propagation, host-owned actions, absent/limited APIs, permission failures, transient cooldowns, partial data, schema drift, and the no-overlay native boundary without connecting to a server.
 
 ## Activation triggers
 

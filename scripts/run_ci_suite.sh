@@ -18,7 +18,7 @@ Usage: run_ci_suite.sh [--release] [--lane <name>]...
 Runs the shared lint/test/guard suite used by CI, release, and back-merge workflows.
 
 Options:
-  --release       Enforce required browser and theme smoke configuration.
+  --release       Run the complete deterministic release validation profile.
   --lane <name>   Run only a specific lane. Supported lanes:
                   lint, tests, workflow-tests, guards, workflow-guards,
                   docs-guards, fixture-browser, browser-smoke, theme-matrix
@@ -58,9 +58,6 @@ done
 
 fvplus::require_commands bash node php git find shellcheck npm npx
 export FVPLUS_RELEASE_MODE="${RELEASE_MODE}"
-export FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-${RELEASE_MODE}}"
-export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${RELEASE_MODE}}"
-export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${RELEASE_MODE}}"
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 PHP_BIN="$(fvplus::resolve_platform_command php)"
 NPM_BIN="$(fvplus::resolve_platform_command npm)"
@@ -87,7 +84,6 @@ chmod +x \
   scripts/theme_matrix_smoke.sh \
   scripts/theme_runtime_guard.sh \
   scripts/theme_scope_guard.sh \
-  scripts/unraid_matrix_smoke.sh \
   scripts/workflow_self_check.sh
 
 run_timed_step() {
@@ -152,6 +148,7 @@ lint_shell_scripts() {
   mapfile -d '' files < <(git ls-files -z -- '*.sh' '.githooks/pre-push')
   local file=""
   for file in "${files[@]}"; do
+    [[ -f "${file}" ]] || continue
     shellcheck -x --source-path=SCRIPTDIR "${file}"
   done
 }
@@ -177,22 +174,12 @@ lint_php_syntax() {
 }
 
 run_browser_smoke_if_needed() {
-  if parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}" && [[ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]]; then
-    fvplus::fail "Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set."
-  fi
-  if [[ -n "${FVPLUS_BROWSER_SMOKE_URL:-}" ]] || parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}"; then
-    prepare_playwright
-  fi
+  prepare_playwright
   bash scripts/browser_smoke.sh
 }
 
 run_theme_matrix_if_needed() {
-  if parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}" && [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
-    fvplus::fail "Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set."
-  fi
-  if [[ -n "${FVPLUS_THEME_MATRIX_URLS:-}" ]] || parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}"; then
-    prepare_playwright
-  fi
+  prepare_playwright
   bash scripts/theme_matrix_smoke.sh
 }
 
@@ -250,7 +237,6 @@ run_lane() {
       run_timed_step dead-code bash scripts/dead_code_guard.sh
       run_timed_step perf-budget bash scripts/perf_budget_guard.sh
       run_timed_step repro-build bash scripts/repro_build_guard.sh
-      run_timed_step unraid-matrix bash scripts/unraid_matrix_smoke.sh
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh

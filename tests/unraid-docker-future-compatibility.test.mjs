@@ -1021,19 +1021,23 @@ test('Docker and Dashboard pages load compatibility and provider modules in depe
         const hostAdapterIndex = page.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
         const compatibilityIndex = page.indexOf('/plugins/folderview.plus/scripts/runtime.host-compatibility.js');
         const containerModelIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.container-model.js');
+        const capabilitiesIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.capabilities.js');
         const providersIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.providers.js');
+        const coordinatorIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.api-coordinator.js');
         const providerHealthIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.provider-health.js');
         const runtimeIndex = page.indexOf(runtimeAsset);
         assert.ok(transportIndex >= 0, `${label} transport include is missing`);
         assert.ok(hostAdapterIndex >= 0, `${label} host adapter include is missing`);
         assert.ok(compatibilityIndex > hostAdapterIndex, `${label} compatibility detector must load after the host adapter`);
         assert.ok(containerModelIndex > compatibilityIndex, `${label} container model must load after compatibility detection`);
-        assert.ok(providersIndex > containerModelIndex, `${label} providers must load after the container model`);
+        assert.ok(capabilitiesIndex > containerModelIndex, `${label} capabilities must load after the container model`);
+        assert.ok(providersIndex > capabilitiesIndex, `${label} providers must load after capabilities`);
+        assert.ok(coordinatorIndex > providersIndex, `${label} API coordinator must load after providers`);
         if (label === 'Docker') {
-            assert.ok(providerHealthIndex > providersIndex, 'Docker provider health must load after providers');
+            assert.ok(providerHealthIndex > coordinatorIndex, 'Docker provider health must load after the API coordinator');
             assert.ok(runtimeIndex > providerHealthIndex, 'Docker runtime must load after provider health');
         }
-        assert.ok(runtimeIndex > providersIndex, `${label} runtime must load after provider registration`);
+        assert.ok(runtimeIndex > coordinatorIndex, `${label} runtime must load after the API coordinator`);
     }
     assert.match(dockerPageBootstrapSource, /FolderViewPlusDockerHostCompatibilityDecision\s*=/);
     assert.match(dockerPage, /\$fvplusDockerLegacyConditionalAssets = true;/);
@@ -1041,8 +1045,8 @@ test('Docker and Dashboard pages load compatibility and provider modules in depe
     assert.match(bootstrapSource, /link\.media = 'all'/);
 });
 
-test('Dashboard actions use provider capabilities and contain rejected action promises', () => {
-    assert.match(dashboardAdvancedPreviewSource, /dockerActionProvider\?\.capabilities\?\.executeActions === true/);
+test('Dashboard actions use dynamically discovered provider capabilities and contain rejected action promises', () => {
+    assert.match(dashboardAdvancedPreviewSource, /dockerActionProvider\.supports\(`mutation\.\$\{capabilityAction\}`\) === true/);
     assert.match(dashboardAdvancedPreviewSource, /Promise\.resolve\(\)\s*\.then\(handler\)\s*\.catch/);
     assert.match(dashboardAdvancedPreviewSource, /FolderView action failed/);
 });

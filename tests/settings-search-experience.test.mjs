@@ -21,6 +21,19 @@ test('settings search topbar exposes compact accessible controls and advanced sc
     assert.doesNotMatch(chromeJs, /fv-search-all-advanced|Search all advanced/);
 });
 
+test('settings topbar exposes a conditional accessible plugin update link', () => {
+    assert.match(chromeJs, /id="fv-plugin-update-link"[^>]*href="\/Plugins"[^>]*hidden/);
+    assert.match(chromeJs, /class="fv-plugin-update-icon"[^>]*aria-hidden="true"[^>]*focusable="false"/);
+    assert.match(chromeJs, /data-i18n="settings\.update\.available">Update Available/);
+    assert.match(settingsJs, /const setPluginUpdateIndicator = \(response = null\) =>/);
+    assert.match(settingsJs, /response\?\.ok === true && response\?\.updateAvailable === true/);
+    assert.match(settingsJs, /apiGetJson\('\/plugins\/folderview\.plus\/server\/update_check\.php'\)/);
+    assert.match(settingsJs, /void refreshPluginUpdateIndicator\(\);/);
+    assert.match(settingsCss, /\.fv-settings-subtitle\s*\{[\s\S]*?font-size:\s*1\.3rem/);
+    assert.match(settingsCss, /\.fv-plugin-update-link\s*\{[\s\S]*?font-size:\s*1\.3rem;[\s\S]*?font-weight:\s*700/);
+    assert.match(settingsCss, /\.fv-plugin-update-link\[hidden\]\s*\{[\s\S]*?display:\s*none !important/);
+});
+
 test('settings search uses cached privacy-safe field indexing and word-token matching', () => {
     assert.match(settingsJs, /const SETTINGS_SEARCH_DEBOUNCE_MS = 90;/);
     assert.match(settingsSearchJs, /const buildIndex = \(\) => \{/);

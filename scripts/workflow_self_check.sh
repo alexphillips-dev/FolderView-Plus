@@ -195,11 +195,14 @@ if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g)
     !/sbom-path:\s*docs\/sbom\.cdx\.json/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must publish commit-pinned provenance and SBOM attestations for the release archive.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must require live browser smoke coverage whenever its target secret is configured.');
+if (!/FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/.test(releaseOnMainWorkflow)
+    || !/FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/.test(releaseOnMainWorkflow)
+    || !/FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must run deterministic browser, theme, and responsive fixture coverage.');
 }
-if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must require the live theme matrix whenever its target secrets are configured.');
+const validationWorkflows = [ciWorkflow, backmergeWorkflow, releaseOnMainWorkflow, scheduledValidationWorkflow].join('\n');
+if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/.test(validationWorkflows)) {
+  fail('Tracked validation workflows must not accept live-Unraid targets or secrets.');
 }
 if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');

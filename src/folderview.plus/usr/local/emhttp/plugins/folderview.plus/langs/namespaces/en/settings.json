@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Current tab",
     "settings.search.scope-all": "All advanced",
     "settings.header.plugin-settings": "Plugin settings",
+    "settings.update.available": "Update Available",
+    "settings.update.open-plugins": "Update available. Open Plugins to install it.",
     "settings.mode.title": "Settings mode",
     "settings.mode.basic-label": "Use basic settings mode",
     "settings.mode.advanced-label": "Use advanced settings mode",

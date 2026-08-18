@@ -400,10 +400,11 @@ classify_changed_path_subsystems() {
 
   case "${changed}" in
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.api-coordinator.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js|\
-    tests/browser-smoke-docker-diagnostics.test.mjs|tests/support-bundle-browser-telemetry.test.mjs|tests/docker-update-status-regression.test.mjs)
+    tests/docker-runtime-api-coordinator.test.mjs|tests/unraid-api-fixtures.test.mjs|tests/support-bundle-browser-telemetry.test.mjs|tests/docker-update-status-regression.test.mjs)
       printf '%s\n' "docker-diagnostics"
       return
       ;;

@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Aktuelle Registerkarte",
     "settings.search.scope-all": "Alles fortgeschritten",
     "settings.header.plugin-settings": "Plugin-Einstellungen",
+    "settings.update.available": "Update verfügbar",
+    "settings.update.open-plugins": "Update verfügbar. Öffnen Sie Plugins, um es zu installieren.",
     "settings.mode.title": "Einstellungsmodus",
     "settings.mode.basic-label": "Verwenden Sie den Grundeinstellungsmodus",
     "settings.mode.advanced-label": "Verwenden Sie den erweiterten Einstellungsmodus",

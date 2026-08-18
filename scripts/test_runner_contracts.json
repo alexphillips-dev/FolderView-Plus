@@ -8,6 +8,7 @@
       "requiredImports": [
         "./lib/fixture-browser-server.mjs",
         "./lib/fixture-browser-runner.mjs",
+        "./lib/fixture-browser-config.mjs",
         "../tests/browser/cases/foundation.mjs",
         "../tests/browser/cases/docker.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
@@ -17,44 +18,14 @@
         "../tests/browser/cases/folder-editor.mjs",
         "../tests/browser/cases/import.mjs"
       ]
-    },
-    {
-      "file": "scripts/browser_smoke.mjs",
-      "limit": 478,
-      "history": [1577, 478],
-      "requiredImports": [
-        "./lib/browser-smoke-runtime-checks.mjs",
-        "./lib/browser-smoke-docker-checks.mjs",
-        "./lib/browser-smoke-dashboard-checks.mjs",
-        "./lib/browser-smoke-folder-editor-checks.mjs",
-        "./lib/live-smoke-diagnostics.mjs"
-      ]
-    },
-    {
-      "file": "scripts/theme_matrix_smoke.mjs",
-      "limit": 351,
-      "history": [990, 351],
-      "requiredImports": [
-        "./lib/theme-matrix-settings-checks.mjs",
-        "./lib/theme-matrix-runtime-checks.mjs",
-        "./lib/theme-matrix-folder-editor-checks.mjs",
-        "./lib/live-smoke-diagnostics.mjs"
-      ]
     }
   ],
   "modules": [
-    { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 125, "owner": "fixture HTTP serving" },
-    { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 98, "owner": "fixture Playwright execution and reporting" },
-    { "file": "scripts/lib/browser-smoke-runtime-checks.mjs", "limit": 200, "owner": "live runtime layout checks" },
-    { "file": "scripts/lib/browser-smoke-docker-checks.mjs", "limit": 340, "owner": "live Docker diagnostics and update checks" },
-    { "file": "scripts/lib/browser-smoke-dashboard-checks.mjs", "limit": 156, "owner": "live Dashboard checks" },
-    { "file": "scripts/lib/browser-smoke-folder-editor-checks.mjs", "limit": 439, "owner": "live Folder Editor checks" },
-    { "file": "scripts/lib/theme-matrix-settings-checks.mjs", "limit": 285, "owner": "Settings and wizard theme checks" },
-    { "file": "scripts/lib/theme-matrix-runtime-checks.mjs", "limit": 176, "owner": "Docker VM and Dashboard theme checks" },
-    { "file": "scripts/lib/theme-matrix-folder-editor-checks.mjs", "limit": 177, "owner": "Folder Editor theme checks" },
-    { "file": "scripts/lib/live-smoke-diagnostics.mjs", "limit": 37, "owner": "live smoke diagnostic redaction" },
+    { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
+    { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
+    { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
-    { "file": "tests/browser/cases/docker.mjs", "limit": 115, "owner": "fixture Docker cases" },
+    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
@@ -79,51 +50,10 @@
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs"
       ],
-      "testCount": 38,
-      "assertionCount": 485,
-      "pageEvaluateCount": 99,
-      "orderedTitleSha256": "88c78644d82b0f5442af30e919f7ab5dbb3edc0f96c3f4431e7fe5928b28e2ba"
-    },
-    "browserSmoke": {
-      "files": [
-        "scripts/browser_smoke.mjs",
-        "scripts/lib/browser-smoke-runtime-checks.mjs",
-        "scripts/lib/browser-smoke-docker-checks.mjs",
-        "scripts/lib/browser-smoke-dashboard-checks.mjs",
-        "scripts/lib/browser-smoke-folder-editor-checks.mjs",
-        "scripts/lib/live-smoke-diagnostics.mjs"
-      ],
-      "checkFunctions": [
-        "runRuntimeLayoutSmoke",
-        "runDockerDiagnosticsSmoke",
-        "runDockerUpdateFlowSmoke",
-        "runDashboardQuickRailSmoke",
-        "runDashboardAdvancedPreviewSmoke",
-        "runDockerPreviewStatusSmoke",
-        "runFolderEditorInteractionSmoke",
-        "runFolderEditorToggleSmoke",
-        "runBrowserSmoke"
-      ],
-      "throwCount": 30,
-      "pageEvaluateCount": 19
-    },
-    "themeMatrix": {
-      "files": [
-        "scripts/theme_matrix_smoke.mjs",
-        "scripts/lib/theme-matrix-settings-checks.mjs",
-        "scripts/lib/theme-matrix-runtime-checks.mjs",
-        "scripts/lib/theme-matrix-folder-editor-checks.mjs",
-        "scripts/lib/live-smoke-diagnostics.mjs"
-      ],
-      "checkFunctions": [
-        "runSettingsSurfaceChecks",
-        "runScenarioChecks",
-        "runRuntimeThemeChecks",
-        "runFolderEditorThemeChecks",
-        "runThemeChecks"
-      ],
-      "throwCount": 6,
-      "pageEvaluateCount": 5
+      "testCount": 41,
+      "assertionCount": 516,
+      "pageEvaluateCount": 104,
+      "orderedTitleSha256": "53ad55e55f53773f656099d739688ea69880e286da018113f8e212813ea64166"
     }
   }
 }

@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Поточна вкладка",
     "settings.search.scope-all": "Всі розширені",
     "settings.header.plugin-settings": "Налаштування плагіна",
+    "settings.update.available": "Оновлення доступне",
+    "settings.update.open-plugins": "Доступне оновлення. Відкрийте плагіни, щоб установити його.",
     "settings.mode.title": "Режим налаштувань",
     "settings.mode.basic-label": "Використовувати базовий режим налаштувань",
     "settings.mode.advanced-label": "Використовувати розширений режим налаштувань",

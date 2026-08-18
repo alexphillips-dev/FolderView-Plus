@@ -35,11 +35,14 @@ Use `bash scripts/run_ci_suite.sh --lane <name>` for a focused run. Supported la
 bash scripts/run_ci_suite.sh --lane fixture-browser
 ```
 
-If testing against an Unraid box is available, also run:
+API, browser, theme, responsive, and cross-browser qualification is isolated and deterministic. Run:
 
 ```bash
-bash scripts/unraid_matrix_smoke.sh
+bash scripts/run_ci_suite.sh --lane browser-smoke
+bash scripts/run_ci_suite.sh --lane theme-matrix
 ```
+
+Do not configure repository validation with a live Unraid URL, session, or secret. Add or update a synthetic profile under `tests/fixtures/unraid-api/` when an upstream API outcome needs coverage.
 
 ## Pull Request Expectations
 

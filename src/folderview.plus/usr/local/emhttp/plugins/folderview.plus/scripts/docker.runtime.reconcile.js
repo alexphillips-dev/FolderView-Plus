@@ -522,7 +522,8 @@
                     }
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
                         liveUpdateStatus: true,
-                        preserveGroupedDom: true
+                        preserveGroupedDom: true,
+                        containerId: String(request?.container || '').trim()
                     }))
                         .then((success) => {
                             const observedState = getDockerLifecycleStateSnapshot(request);

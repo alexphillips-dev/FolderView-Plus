@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.18.01">
-<!ENTITY md5 "ba2e964a13a8bd7133fb4e36c4bc48d6">
-<!ENTITY sha256 "964156abc9760f67e472737cfb7e3977a3db203fbc304368dd85b17b899adbd4">
+<!ENTITY version "2026.08.18.08">
+<!ENTITY md5 "541a9ef0e689515a180c89d1169df79c">
+<!ENTITY sha256 "2708d72a7e3cef66d5511bfb37252bfd1621c82e579e5d94368c5ffcc3335ca9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -18,23 +18,56 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.08.18.01
-- Feature: Add explicit Docker start-order ownership modes, ordered startup batches, per-container delays, remaining-container policy, preview, and guarded autostart persistence.
-- UI/UX: Rebuild the Advanced Settings Start Order workspace with live totals, automatic preview hydration, a responsive sequence table, accessible autostart controls, and a collapsible disabled-container group.
-- Feature: Replace the single Theme Workspace model with named appearance profiles, global and Docker, VM, or Dashboard layers, scoped previews, inactive imports, and atomic profile actions.
-- Feature: Add preview-first folder rule templates for Docker names, images, Compose projects, and labels while preserving manual membership.
-- Feature: Add read-only FolderView3 discovery and conversion preview plus a confirmed migration path for folders, rules, defaults, start order, and inactive appearance profiles.
-- Reliability: Run environment imports and FolderView3 migrations under one configuration lock with exact snapshots, safety backups, readback verification, and automatic rollback of plugin and Docker autostart state.
-- Diagnostics: Add privacy-safe Docker, VM, and Dashboard runtime evidence with bounded page captures and sanitized support-bundle summaries.
-- Security: Bound and scan imported FolderView3 custom CSS, omit raw configuration from migration reports, validate Docker icon URLs, escape persisted values, and retain guarded mutation endpoints.
-- Accessibility: Keep Start Order text at a readable minimum size and preserve keyboard focus, reduced-motion behavior, contrast-safe actions, and contained mobile overflow.
-- Localization: Ship the complete Start Order surface across all 27 supported locales and recognize its runtime translation wrappers and rule-template keys during strict usage validation.
-- Fix: Correct lightweight Docker autostart detection, preserve peer-container state during toggles, and remove obsolete Start Order styles left by the responsive redesign.
-- Compatibility: Retain full Docker detail-row support and acknowledge Unraid API v4.37.1 after confirming no Docker schema, native-page, or organizer contract changes.
-- Reliability: Replace scheduled live-Unraid checks with deterministic isolated fixture validation while keeping live-host qualification available only as an operator-controlled action.
-- Docs: Refresh the GitHub presentation and comprehensive user wiki, including the new banner, consistent badges, and an explicitly labeled rolling 14-day clone metric.
-- Quality: Enforce smaller browser and PHP ownership boundaries for Start Order, rule templates, appearance profiles, diagnostics, FolderView3 migration, and environment transactions.
-- Test: Expand regression, browser-fixture, localization, performance, workflow, release, install, and compatibility-monitor coverage for the complete stable release.
+###2026.08.18.08
+- Feature: Prefer Unraid GraphQL for Docker runtime-state reconciliation on supported hosts while automatically preserving the established PHP snapshot path for legacy, limited, denied, unavailable, or structurally incompatible API responses.
+- Feature: Show an accessible, channel-aware Update Available link in FolderView Plus Settings that follows dev or stable manifests and opens Unraid's Plugins page for installation.
+- Fix: Keep Docker folders rendering during fresh-install startup when native or third-party container rows omit the status or wrapper markup expected by single-row previews, using the model-based preview as a privacy-safe fallback.
+- Reliability: Add lifecycle ownership, stale-response cancellation, bounded cooldowns, targeted API reads, structural-change fallback, and privacy-safe aggregate diagnostics without exposing container identities or server response details.
+- Test: Replace live-Unraid scheduled validation and encrypted target secrets with deterministic isolated fixtures covering current, legacy, limited, denied, partial, unavailable, rate-limited, schema-drift, and future-native host profiles.
+- UI/UX: Polish the Settings update indicator, responsive typography, README badges, banner presentation, rolling clone-traffic badge, and repository analytics while retaining light, dark, mobile, keyboard, and reduced-motion support.
+- Quality: Expand runtime, browser, localization, privacy, compatibility, packaging, install, release, and workflow coverage for the complete stable promotion.
+- Docs: Update the Wiki-linked repository documentation, API architecture, compatibility boundaries, prerelease qualification, contribution guidance, and release metadata for the API-first rollout.
+
+
+###2026.08.18.07
+- Fix: Prevent Docker folder startup from failing when a native or third-party container row omits the expected status or wrapper markup used by single-row previews.
+- Reliability: Resolve preview markup from the already-selected source row, validate it before cloning, and fall back to FolderView Plus's model-based preview without stopping later folder members.
+- Privacy: Record preview fallback diagnostics using only the numeric preview mode and fixed reason categories; folder and container identities are not included.
+- Test: Add real-browser coverage for standard Unraid-style rows, missing status markup, missing wrappers, invalid selectors, state-detail trimming, and continued rendering after malformed members.
+
+
+###2026.08.18.06
+- Feature: Use Unraid GraphQL as the preferred Docker runtime-state source on supported hosts while preserving the established PHP snapshot path as an automatic compatibility fallback.
+- Reliability: Add a single-owner runtime coordinator with capability-gated full and targeted reads, stable PHP-to-API identity matching, stale-response cancellation, bounded retry cooldowns, structural-change fallback, and lifecycle disposal.
+- Compatibility: Keep Unraid's native Docker controls authoritative, enrich only existing FolderView runtime rows, and leave legacy or API-unavailable hosts fully functional without requiring user configuration or credentials.
+- Privacy: Expose only aggregate API capability and health evidence in diagnostics; container names, identifiers, query data, tokens, and server error details are not exported.
+- Test: Replace live-Unraid validation and encrypted target secrets with deterministic isolated GraphQL profiles covering current, legacy, limited, denied, partial, unavailable, rate-limited, schema-drift, and future-native host behavior.
+- Test: Run the shipped API-first path through browser fixtures, responsive themes, lifecycle reconciliation, accessibility checks, architecture contracts, and release/install guards without contacting a live Unraid system.
+- Docs: Expand the API integration, runtime architecture, compatibility, prerelease qualification, contributor, and architecture-decision guidance for the API-first rollout and its safe fallback boundaries.
+
+
+###2026.08.18.05
+- Test: Publish a metadata-only dev update so installations on 2026.08.18.04 can exercise the in-plugin Update Available indicator and Plugins-page navigation against a genuine newer dev manifest.
+- Maintenance: Advance only the dev package metadata, release manifest, archive, checksum, and SBOM; runtime source remains unchanged from 2026.08.18.04.
+
+
+###2026.08.18.04
+- Test: Publish a follow-up dev package so installations pinned to 2026.08.18.03 can exercise the in-plugin Update Available indicator and Plugins-page navigation against a genuine newer dev manifest.
+- Maintenance: Keep runtime behavior unchanged while advancing dev update metadata and retaining the 2026.08.18.03 archive for the test path.
+
+
+###2026.08.18.03
+- Fix: Make the in-plugin update indicator follow the installed manifest channel so dev installations compare against dev while stable installations continue comparing against main.
+- Security: Resolve update sources from an explicit dev/main allowlist and fall back to the stable channel when the installed manifest is missing or unrecognized.
+- Test: Cover XML entity and Community Applications manifest formats, dev and main resolution, and fail-closed behavior before publishing the follow-up dev update used to exercise the indicator.
+
+
+###2026.08.18.02
+- Feature: Show a compact Update Available link beside the FolderView Plus Settings identity when the stable manifest reports a newer plugin version, with one-click navigation to the Unraid Plugins page.
+- UI/UX: Set both the Plugin settings subtitle and update label to 1.3rem, render the available-update label in bold with an inline SVG download icon, and preserve responsive wrapping across desktop and mobile layouts.
+- Reliability: Run update detection only after the Settings surface is ready and keep the indicator hidden when no update is available or the optional remote check fails.
+- Localization: Ship the update label and accessible Plugins-page guidance across all 27 supported locales with complete catalog coverage.
+- Test: Cover the conditional link contract, accessible SVG and destination, requested typography, localized catalogs, CSP inventory, theme-safe styling, and browser-fixture overflow behavior.
 
 
 ###2026.08.17.01

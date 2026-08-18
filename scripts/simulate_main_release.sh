@@ -25,7 +25,8 @@ git -C "${ROOT_DIR}" worktree add --detach "${WORKTREE_DIR}" HEAD >/dev/null
 
 (
   cd "${WORKTREE_DIR}"
-  bash scripts/release_prepare.sh --notes-output "${TMP_DIR}/release_notes.md"
+  FVPLUS_EXPECT_PLUGIN_BRANCH=main \
+    bash scripts/release_prepare.sh --notes-output "${TMP_DIR}/release_notes.md"
 )
 
 cp "${TMP_DIR}/release_notes.md" "${NOTES_OUTPUT}"

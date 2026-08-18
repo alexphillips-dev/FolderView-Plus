@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Onglet actuel",
     "settings.search.scope-all": "Tous les avancés",
     "settings.header.plugin-settings": "Paramètres du plugin",
+    "settings.update.available": "Mise à jour disponible",
+    "settings.update.open-plugins": "Mise à jour disponible. Ouvrez les plugins pour l'installer.",
     "settings.mode.title": "Mode des paramètres",
     "settings.mode.basic-label": "Utiliser le mode de paramètres de base",
     "settings.mode.advanced-label": "Utiliser le mode de paramètres avancés",

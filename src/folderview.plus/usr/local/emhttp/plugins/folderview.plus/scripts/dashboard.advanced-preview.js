@@ -198,6 +198,16 @@
             const shell = String(info.Shell || 'sh').trim() || 'sh';
             const $actions = $content.find('.fv-dashboard-advanced-preview-actions').first();
             const dockerActionProvider = win?.FolderViewPlusDockerProviders?.getDefault?.() || null;
+            const providerSupportsAction = (action) => {
+                const capabilityAction = String(action || '').trim().toLowerCase() === 'resume'
+                    ? 'unpause'
+                    : String(action || '').trim().toLowerCase();
+                if (typeof win?.eventControl === 'function') return true;
+                if (typeof dockerActionProvider?.supports === 'function') {
+                    return dockerActionProvider.supports(`mutation.${capabilityAction}`) === true;
+                }
+                return dockerActionProvider?.capabilities?.executeActions === true;
+            };
             const runDockerAction = (action) => {
                 if (dockerActionProvider && typeof dockerActionProvider.executeAction === 'function') {
                     return dockerActionProvider.executeAction({ action, container: shortId });
@@ -242,22 +252,28 @@
                 shortId
                 && (
                     typeof win?.eventControl === 'function'
-                    || dockerActionProvider?.capabilities?.executeActions === true
+                    || ['start', 'stop', 'restart', 'pause', 'resume'].some(providerSupportsAction)
                     || (
                         !dockerActionProvider
                         && typeof win?.FolderViewPlusRuntimeTransport?.runDockerAction === 'function'
                     )
                 )
             ) {
-                if (state.Running !== true) {
+                if (state.Running !== true && providerSupportsAction('start')) {
                     addAction('play', i18n('start', 'Start'), () => runDockerAction('start'));
-                } else if (state.Paused === true) {
+                } else if (state.Paused === true && providerSupportsAction('resume')) {
                     addAction('play', i18n('resume', 'Resume'), () => runDockerAction('resume'));
                 } else {
-                    addAction('stop', i18n('stop', 'Stop'), () => runDockerAction('stop'));
-                    addAction('pause', i18n('pause', 'Pause'), () => runDockerAction('pause'));
+                    if (providerSupportsAction('stop')) {
+                        addAction('stop', i18n('stop', 'Stop'), () => runDockerAction('stop'));
+                    }
+                    if (providerSupportsAction('pause')) {
+                        addAction('pause', i18n('pause', 'Pause'), () => runDockerAction('pause'));
+                    }
                 }
-                addAction('refresh', i18n('restart', 'Restart'), () => runDockerAction('restart'));
+                if (providerSupportsAction('restart')) {
+                    addAction('refresh', i18n('restart', 'Restart'), () => runDockerAction('restart'));
+                }
             }
         };
 
@@ -450,7 +466,13 @@
                     const provider = win?.FolderViewPlusDockerProviders?.getDefault?.() || null;
                     if (
                         !statsSubscription
-                        && provider?.capabilities?.subscribeStats === true
+                        && (
+                            provider?.supports?.('subscription.dockerContainerStats') === true
+                            || (
+                                typeof provider?.supports !== 'function'
+                                && provider?.capabilities?.subscribeStats === true
+                            )
+                        )
                         && typeof provider.subscribeStats === 'function'
                     ) {
                         statsSubscription = provider.subscribeStats({

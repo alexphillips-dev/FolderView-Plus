@@ -1,0 +1,6 @@
+{
+  "profile": "future-native-host",
+  "httpStatus": 200,
+  "hostGeneration": "native-docker-vue",
+  "organizationPolicy": "detect-only"
+}

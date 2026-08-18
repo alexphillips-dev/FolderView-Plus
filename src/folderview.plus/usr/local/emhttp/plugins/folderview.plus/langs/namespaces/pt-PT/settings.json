@@ -14,6 +14,8 @@
     "settings.search.scope-current": "Separador atual",
     "settings.search.scope-all": "Todos os avançados",
     "settings.header.plugin-settings": "Definições do plugin",
+    "settings.update.available": "Atualização disponível",
+    "settings.update.open-plugins": "Atualização disponível. Abra Plugins para instalá-lo.",
     "settings.mode.title": "Modo de definições",
     "settings.mode.basic-label": "Usar modo de definições básico",
     "settings.mode.advanced-label": "Usar modo de definições avançado",

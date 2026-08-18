@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus API-first legacy Docker fixture</title>
+</head>
+<body>
+    <table id="docker_containers">
+        <thead><tr><th>Container</th></tr></thead>
+        <tbody id="docker_list">
+            <tr id="ct-fixture-app" class="sortable"><td class="ct-name"><span class="appname">fixture-app</span></td></tr>
+        </tbody>
+    </table>
+    <script>
+        window.csrf_token = 'api-first-fixture-token';
+        window.fixtureApiCalls = [];
+        window.fixtureHostActions = [];
+        window.eventControl = (request, target) => {
+            window.fixtureHostActions.push({ request, target });
+            return true;
+        };
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async (input, options = {}) => {
+            if (String(input).includes('/graphql')) {
+                const body = JSON.parse(String(options.body || '{}'));
+                window.fixtureApiCalls.push({
+                    query: String(body.query || ''),
+                    csrf: options.headers?.['x-csrf-token'] || ''
+                });
+            }
+            return nativeFetch(input, options);
+        };
+    </script>
+    <script src="/plugin/scripts/runtime.transport.core.js"></script>
+    <script src="/plugin/scripts/runtime.transport.subscription.js"></script>
+    <script src="/plugin/scripts/runtime.transport.docker-actions.js"></script>
+    <script src="/plugin/scripts/runtime.transport.js"></script>
+    <script src="/plugin/scripts/runtime.host-compatibility.js"></script>
+    <script src="/plugin/scripts/docker.runtime.container-model.js"></script>
+    <script src="/plugin/scripts/docker.runtime.capabilities.js"></script>
+    <script src="/plugin/scripts/docker.runtime.providers.js"></script>
+    <script src="/plugin/scripts/docker.runtime.api-coordinator.js"></script>
+    <script>
+        (() => {
+            let runtimeMap = {
+                'fixture-app': {
+                    name: 'fixture-app',
+                    id: 'sha256:abcdef1234567890',
+                    Labels: { 'fixture.php': 'preserved' },
+                    info: {
+                        Id: 'sha256:abcdef1234567890',
+                        State: {
+                            Running: false,
+                            Paused: false,
+                            Status: 'stopped',
+                            Autostart: false,
+                            Updated: true,
+                            manager: 'dockerman'
+                        }
+                    }
+                }
+            };
+            let structuralRefreshes = 0;
+            const compatibilityController = window.FolderViewPlusHostCompatibility.createController({ window, document });
+            const registry = window.FolderViewPlusDockerProviders.createRegistry({
+                window,
+                document,
+                compatibilityModule: window.FolderViewPlusHostCompatibility,
+                compatibilityController,
+                transport: window.FolderViewPlusRuntimeTransport
+            });
+            const coordinator = window.FolderViewPlusFoundationModules.dockerApiCoordinator.createCoordinator({
+                providerRegistry: registry,
+                transport: window.FolderViewPlusRuntimeTransport,
+                getRuntimeMap: () => runtimeMap,
+                applyRuntimeMap: (next) => { runtimeMap = next; },
+                requestStructuralRefresh: () => { structuralRefreshes += 1; }
+            });
+            const run = async () => {
+                const provider = await coordinator.prepare({
+                    hostGeneration: 'legacy-docker-table',
+                    refresh: true,
+                    timeoutMs: 1500
+                });
+                await provider.executeAction({ action: 'start', container: 'abcdef1234567890' });
+                const targeted = await coordinator.reconcileContainer('fixture-app', { fallback: false });
+                return {
+                    provider: provider.id,
+                    providerDiagnostics: provider.getDiagnostics(),
+                    coordinator: coordinator.status(),
+                    runtime: runtimeMap['fixture-app'],
+                    targeted,
+                    hostActions: window.fixtureHostActions.slice(),
+                    apiCalls: window.fixtureApiCalls.map((entry) => ({
+                        csrf: entry.csrf,
+                        mutation: /\bmutation\b/.test(entry.query),
+                        targeted: entry.query.includes('FVPlusDockerContainer('),
+                        list: entry.query.includes('FVPlusDockerContainers')
+                    })),
+                    structuralRefreshes
+                };
+            };
+            window.fixtureDockerApiLegacy = {
+                result: run(),
+                dispose: () => {
+                    coordinator.dispose();
+                    registry.dispose();
+                }
+            };
+        })();
+    </script>
+</body>
+</html>

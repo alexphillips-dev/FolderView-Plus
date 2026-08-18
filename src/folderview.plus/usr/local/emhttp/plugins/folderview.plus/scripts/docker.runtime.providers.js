@@ -6,18 +6,21 @@
     if (typeof module === 'object' && module.exports) {
         module.exports = factory(
             fallbackWindow,
-            require('./docker.runtime.container-model.js')
+            require('./docker.runtime.container-model.js'),
+            require('./docker.runtime.capabilities.js')
         );
         return;
     }
     root.FolderViewPlusDockerProviders = factory(
         fallbackWindow,
-        root.FolderViewPlusDockerContainerModel
+        root.FolderViewPlusDockerContainerModel,
+        root.FolderViewPlusFoundationModules?.dockerRuntimeCapabilities
     );
     root.FolderViewPlusDockerProvidersModuleLoaded = true;
 }(typeof window !== 'undefined' ? window : {}, function dockerRuntimeProvidersFactory(
     fallbackWindow,
-    containerModel
+    containerModel,
+    capabilityTools
     ) {
     'use strict';
     const translate = (key, fallback, ...params) => fallbackWindow?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key;
@@ -283,6 +286,7 @@
                 state: typeof win?.eventControl === 'function' ? 'ready' : 'degraded',
                 fallback: typeof win?.eventControl === 'function' ? 'none' : 'actions-unavailable'
             }),
+            ...capabilityTools.createAccessors(() => capabilityTools.emptySnapshot('legacy'), () => false),
             dispose: () => {
                 Array.from(activeSubscriptions).forEach((close) => close());
                 activeSubscriptions.clear();
@@ -618,6 +622,7 @@
             });
             return data?.docker?.logs || { lines: [], cursor: null };
         };
+        const capabilityAccessors = capabilityTools.createAccessors(() => clone(lastCapabilities) || {});
         return freezeProvider({
             id: PROVIDER_IDS.UNRAID_GRAPHQL,
             label: 'Unraid GraphQL API',
@@ -693,6 +698,7 @@
                     lanPortConflictCount: lastHealthSummary.lanPortConflictCount
                 } : null
             }),
+            ...capabilityAccessors,
             dispose: () => {
                 Array.from(activeSubscriptions).forEach((close) => close());
                 activeSubscriptions.clear();
@@ -800,6 +806,7 @@
             }
             return legacy.health.getSummary(options);
         };
+        const capabilityAccessors = capabilityTools.createAccessors(() => graphql.getCapabilities?.() || {}, () => graphReady);
         return freezeProvider({
             id: PROVIDER_IDS.HYBRID_LEGACY_GRAPHQL,
             label: translate('docker.provider.hybrid-label', 'Legacy Unraid WebGUI with GraphQL data'),
@@ -845,6 +852,7 @@
                 actionTransport: 'legacy-webgui',
                 fallback: lastFallback
             }),
+            ...capabilityAccessors,
             dispose: () => {
                 Array.from(deferredSubscriptions).forEach((close) => close());
                 deferredSubscriptions.clear();
@@ -908,6 +916,7 @@
             state: 'unavailable',
             fallback: 'leave-host-ui-untouched'
         }),
+        ...capabilityTools.createAccessors(() => capabilityTools.emptySnapshot(), () => false),
         dispose: () => {}
     });
 
@@ -1006,45 +1015,7 @@
                     state: providerDiagnostics.state,
                     fallback: providerDiagnostics.fallback
                 },
-                graphql: capabilityEvidence ? {
-                    endpointAvailable: capabilityEvidence.endpointAvailable === true,
-                    apiVersion: String(capabilityEvidence.apiVersion || 'unknown'),
-                    unraidVersion: String(capabilityEvidence.unraidVersion || 'unknown'),
-                    queryContainers: capabilityEvidence.query?.containers === true
-                        || capabilityEvidence.query?.dockerContainers === true,
-                    queryShape: String(capabilityEvidence.query?.shape || 'unknown'),
-                    queryCapabilities: {
-                        targetedContainer: capabilityEvidence.query?.container === true,
-                        networks: capabilityEvidence.query?.networks === true,
-                        portConflicts: capabilityEvidence.query?.portConflicts === true,
-                        logs: capabilityEvidence.query?.logs === true,
-                        updateStatuses: capabilityEvidence.query?.containerUpdateStatuses === true
-                    },
-                    mutations: {
-                        start: capabilityEvidence.mutation?.start === true,
-                        stop: capabilityEvidence.mutation?.stop === true,
-                        restart: capabilityEvidence.mutation?.restart === true,
-                        pause: capabilityEvidence.mutation?.pause === true,
-                        unpause: capabilityEvidence.mutation?.unpause === true,
-                        removeContainer: capabilityEvidence.mutation?.removeContainer === true,
-                        updateContainer: capabilityEvidence.mutation?.updateContainer === true,
-                        updateContainers: capabilityEvidence.mutation?.updateContainers === true,
-                        updateAllContainers: capabilityEvidence.mutation?.updateAllContainers === true,
-                        updateAutostartConfiguration:
-                            capabilityEvidence.mutation?.updateAutostartConfiguration === true,
-                        refreshDockerDigests:
-                            capabilityEvidence.rootMutation?.refreshDockerDigests === true
-                    },
-                    subscriptions: {
-                        dockerContainerStats: capabilityEvidence.subscription?.dockerContainerStats === true
-                    },
-                    organizer: {
-                        query: capabilityEvidence.organizer?.query === true,
-                        mutation: capabilityEvidence.organizer?.mutation === true,
-                        policy: 'detect-only'
-                    },
-                    lastErrorCategory: capabilityEvidence.lastErrorCategory || null
-                } : {}
+                graphql: capabilityTools.buildCompatibilityEvidence(capabilityEvidence)
             });
             if (
                 preparedProvider.id === PROVIDER_IDS.HYBRID_LEGACY_GRAPHQL
@@ -1127,6 +1098,7 @@
         buildCurrentContainerQuery,
         normalizeContainer,
         resolveContainerIdentity,
+        supportsCapabilityPath: capabilityTools.supportsCapabilityPath,
         createLegacyWebguiProvider,
         createHybridProvider,
         createGraphqlProvider,

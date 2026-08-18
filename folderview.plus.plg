@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.12.07">
-<!ENTITY md5 "08de81b150ab3112a6eeceb634d48fe0">
-<!ENTITY sha256 "1ff4f2820ca614b560d7ac1a3738f2eef2f5f87098508118bd43828a11bae58a">
+<!ENTITY version "2026.08.17.01">
+<!ENTITY md5 "19e095256d040f86bf254c9e3aa562a2">
+<!ENTITY sha256 "693b647ab14c2f8389defe3b9ec348b611ca8e203df2a4057f6e75b1fc86a12d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.17.01
+- Fix: Remove obsolete Docker Start Order styles left behind by the responsive workspace redesign so strict validation no longer reports unused selectors.
+- Reliability: Recognize the VM translation wrapper and rule-template localization fields as real key references instead of incorrectly flagging their live catalog entries as unused.
+- Test: Revalidate the Start Order workspace in browser fixtures, all supported locale catalogs, runtime performance budgets, release guards, and install smoke coverage.
+
 
 ###2026.08.12.07
 - Fix: Add the complete Docker Start Order message set to the Settings localization catalog so visiting the tab no longer records missing-key diagnostics.

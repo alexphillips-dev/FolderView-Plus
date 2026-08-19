@@ -44,10 +44,15 @@ test('refresh diagnostics classifies recurring full reloads without persisting r
     tracker.record('listview');
     tracker.record('buildDockerFolderReq');
     tracker.recordPageSnapshot({
-        reason: 'render-complete',
+        reason: 'runtime-sync',
         correlation: { renderGeneration: 1 },
         folderRows: { count: 12 },
         privateContainerName: 'vaultwarden'
+    });
+    tracker.recordPageSnapshot({
+        reason: 'render-complete',
+        correlation: { renderGeneration: 1 },
+        folderRows: { count: 99 }
     });
     for (let index = 0; index < 5; index += 1) {
         harness.advance(10000);
@@ -60,6 +65,7 @@ test('refresh diagnostics classifies recurring full reloads without persisting r
     assert.equal(snapshot.verdict.reference, 'FVPLUS-DKR-REFRESH-001');
     assert.equal(snapshot.currentSession.counts.loadlist, 6);
     assert.equal(snapshot.currentSession.counts.renders, 1);
+    assert.equal(snapshot.currentSession.lastFolderCount, 12);
     assert.equal(snapshot.currentSession.counts.requests, 1);
     assert.equal(snapshot.currentSession.reloadSources['initial-bootstrap'], 1);
     assert.equal(snapshot.currentSession.reloadSources['unknown-host-caller'], 5);

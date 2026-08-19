@@ -88,6 +88,26 @@ const containerRow = (name, folderId = '') => ({
     updateCell: updateElement('up-to-date')
 });
 
+test('Docker trace health advances its top-level timestamp after an existing record', () => {
+    const records = new Map();
+    records.set(diagnosticsModule.DOCKER_TRACE_HEALTH_STORAGE_KEY, JSON.stringify({
+        updatedAt: '2026-04-14T12:55:19.518Z',
+        requestBundleTrace: { failureCount: 0 }
+    }));
+    const localStorage = {
+        getItem: (key) => records.get(key) || null,
+        setItem: (key, value) => records.set(key, String(value))
+    };
+    const api = diagnosticsModule.createApi({ window: { localStorage }, localStorage });
+
+    assert.equal(api.updateTraceHealth('pageSnapshot', true, { reason: 'runtime-sync' }), true);
+    const persisted = JSON.parse(records.get(diagnosticsModule.DOCKER_TRACE_HEALTH_STORAGE_KEY));
+    assert.notEqual(persisted.updatedAt, '2026-04-14T12:55:19.518Z');
+    assert.equal(persisted.pageSnapshot.lastWriteSucceeded, true);
+    assert.equal(persisted.pageSnapshot.details.reason, 'runtime-sync');
+    assert.equal(persisted.requestBundleTrace.failureCount, 0);
+});
+
 test('Docker support snapshot records standalone containers after folders and page asset versions', () => {
     const rows = [folderRow('apps', 'Apps'), folderRow('services', 'Services'), containerRow('new-container')];
     const scripts = [

@@ -1144,7 +1144,6 @@ const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
-const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY || 'fv.support.bundle.docker.page.v1';
 const getDockerRuntimePrivacyOptions = (prefs = null) => {
     const normalized = utils.normalizePrefs(prefs || folderTypePrefs || {});
     const dashboard = normalized?.dashboard && typeof normalized.dashboard === 'object' ? normalized.dashboard : {};
@@ -1312,12 +1311,6 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     const resolvedUntil = Math.max(readDockerHostUpdateSyncSuspendedUntil(), nextUntil);
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
-};
-const updateDockerTraceHealth = (traceName, success, details = {}) => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    return diagnosticsApi && typeof diagnosticsApi.updateTraceHealth === 'function'
-        ? diagnosticsApi.updateTraceHealth(traceName, success, details)
-        : false;
 };
 const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
@@ -7379,18 +7372,6 @@ let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(fol
     itemCount: 0
 });
 
-const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    const writeOk = diagnosticsApi && typeof diagnosticsApi.writeSupportBundleStorageRecord === 'function'
-        ? diagnosticsApi.writeSupportBundleStorageRecord(storageKey, value)
-        : false;
-    if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
-        updateDockerTraceHealth('pageSnapshot', writeOk, {
-            reason: String(value?.reason || '').trim() || 'runtime-sync'
-        });
-    }
-    return writeOk;
-};
 const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.resolveDockerMemberUpdateState === 'function') {
@@ -7420,15 +7401,6 @@ const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
     return 'unknown';
 };
 
-const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    return diagnosticsApi && typeof diagnosticsApi.collectPageSnapshot === 'function'
-        ? diagnosticsApi.collectPageSnapshot(reason)
-        : null;
-};
-
-let dockerSupportBundlePageSnapshotWriteTimer = null;
-let dockerSupportBundlePageSnapshotPendingReason = '';
 const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
     if (!(diagnosticsApi && typeof diagnosticsApi.queuePageSnapshot === 'function')) {
@@ -7440,19 +7412,6 @@ const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs =
         ? Math.max(safeDelay, 1200)
         : safeDelay;
     diagnosticsApi.queuePageSnapshot(safeReason, offCriticalPathDelay);
-    dockerSupportBundlePageSnapshotPendingReason = safeReason;
-    if (dockerSupportBundlePageSnapshotWriteTimer) {
-        clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
-    }
-    dockerSupportBundlePageSnapshotWriteTimer = window.setTimeout(() => {
-        dockerSupportBundlePageSnapshotWriteTimer = null;
-        const snapshotReason = dockerSupportBundlePageSnapshotPendingReason || safeReason;
-        dockerSupportBundlePageSnapshotPendingReason = '';
-        const snapshot = collectDockerSupportBundlePageSnapshot(snapshotReason);
-        if (snapshot) {
-            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
-        }
-    }, offCriticalPathDelay);
 };
 const bindDockerUpdateActionClickCapture = () => {
     getDockerRuntimeReconcileApi()?.bindUpdateActionClickCapture?.();
@@ -8014,7 +7973,6 @@ window.addEventListener('pagehide', () => {
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dockerPinnedFolderServerReconcileTimer);
     clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
-    clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
     clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
     dockerFolderRowActionsController.destroy();
     dockerRuntimeColumnControllerApi.dispose();

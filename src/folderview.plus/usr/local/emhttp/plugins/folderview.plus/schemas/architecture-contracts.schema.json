@@ -8,7 +8,7 @@
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
       "scripts/folderviewplus.js": { "limit": 11793, "target": 1200, "history": [12092, 11793] },
-      "scripts/docker.js": { "limit": 8028, "target": 1000, "history": [8839, 8045, 8028] },
+      "scripts/docker.js": { "limit": 7986, "target": 1000, "history": [8839, 8045, 8028, 7986] },
       "server/lib.php": { "limit": 2649, "target": 400, "history": [7556, 2649] },
       "scripts/folder.js": { "limit": 4773, "target": 700, "history": [5522, 4773] },
       "scripts/folderviewplus.wizard.js": { "limit": 4165, "target": 500, "history": [4849, 4165] },

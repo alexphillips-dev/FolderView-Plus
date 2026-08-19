@@ -217,10 +217,10 @@
             return write();
         };
         const recordPageSnapshot = (snapshot = {}) => {
-            if (disposed || !session || String(snapshot?.reason || '') !== 'render-complete') return false;
+            if (disposed || !session) return false;
             const generation = safeNumber(snapshot?.correlation?.renderGeneration);
-            if (generation > 0 && generation === session.lastRenderGeneration) return false;
-            session.lastRenderGeneration = generation || session.lastRenderGeneration;
+            if (generation <= 0 || generation === session.lastRenderGeneration) return false;
+            session.lastRenderGeneration = generation;
             session.counts.renders += 1;
             session.lastFolderCount = safeNumber(snapshot?.folderRows?.count);
             if (session.nativeBusy.cleared && !session.nativeBusy.foldersRestored) {

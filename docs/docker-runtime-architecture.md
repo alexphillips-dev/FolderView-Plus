@@ -29,6 +29,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Receives runtime state and host dependencies from `docker.js`; it does not own Docker rows, preferences, or render orchestration.
 - `scripts/docker.runtime.refresh-diagnostics.js`
   - Owns bounded, privacy-safe Docker session summaries, reload-source attribution, native busy-cycle evidence, API mismatch aggregates, and the automatic refresh-loop verdict.
+  - Counts completed renders by monotonic render generation, while `docker.runtime.diagnostics.js` remains the single owner of deferred page-snapshot scheduling.
   - Retains five completed sessions and never stores container names, identifiers, API payloads, URLs, call stacks, or host process details.
 - `scripts/runtime.folder-ordering.js`
   - Owns deterministic folder depth, saved-order slot replacement, and Docker order reconciliation shared by Docker, VM, and Dashboard.

@@ -524,8 +524,8 @@
                     : {};
                 const failureCount = Number.isFinite(Number(previous.failureCount)) ? Number(previous.failureCount) : 0;
                 const nextPayload = {
-                    updatedAt: new Date().toISOString(),
                     ...existing,
+                    updatedAt: new Date().toISOString(),
                     [safeTraceName]: {
                         lastWriteAt: new Date().toISOString(),
                         lastWriteSucceeded: success === true,

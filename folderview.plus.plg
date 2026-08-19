@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.19.02">
-<!ENTITY md5 "5c3e5de54a5ed7861c3fe4489a2cb8c1">
-<!ENTITY sha256 "530c6a7cfe49db7945aa1b7f368ab8c3f7348a3a436c0d9250eee1d92c78b0a0">
+<!ENTITY version "2026.08.19.03">
+<!ENTITY md5 "405c5130731b97ef1895215f3c0d2f67">
+<!ENTITY sha256 "75541901c6ba2c09dc486ccdb8a3c68aa69391490875be0acae283d9e0c51784">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.19.03
+- Diagnostics: Count completed Docker renders from the monotonic render generation even when a later runtime-sync snapshot supplies the stored page evidence.
+- Diagnostics: Advance the trace-health top-level timestamp on every trace or page-snapshot write while preserving the other trace sections.
+- Performance: Remove the duplicate Docker page-snapshot timer and keep deferred snapshot scheduling owned by the diagnostics module.
+- Test: Add regression coverage for runtime-sync render attribution, duplicate-generation suppression, timestamp freshness, and single-owner snapshot scheduling.
+- Quality: Complete the full release, workflow, browser, theme, performance, dependency, Git-integrity, and GitHub security audit before the main merge.
+
 
 ###2026.08.19.02
 - Diagnostics: Retain up to five bounded Docker-page session summaries with start/end time, duration, exit reason, load/render/request counts, reload cadence, native busy-cycle recovery, and restored-folder evidence.

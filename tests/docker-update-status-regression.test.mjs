@@ -34,6 +34,10 @@ const dockerRuntimeReconcileJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'),
     'utf8'
 );
+const dockerRuntimeDiagnosticsJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js'),
+    'utf8'
+);
 const dockerRuntimeHierarchyJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'),
     'utf8'
@@ -177,7 +181,6 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerRuntimeInfoJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(pendingNames\);\s*\}/);
     assert.match(dockerRuntimeInfoJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';/);
-    assert.match(dockerJs, /const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule\?\.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY \|\| 'fv\.support\.bundle\.docker\.page\.v1';/);
     assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);
     assert.match(dockerJs, /const dockerRuntimeDiagnosticsModule = window\.FolderViewPlusDockerRuntimeDiagnostics \|\| null;/);
     assert.match(dockerJs, /const dockerRuntimeReconcileModule = window\.FolderViewPlusDockerRuntimeReconcile \|\| null;/);
@@ -185,10 +188,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const isDockerHostUpdateCommand = \(command\) => DOCKER_HOST_UPDATE_COMMAND_REGEX\.test\(String\(command \|\| ''\)\.trim\(\)\);/);
     assert.match(dockerJs, /const isDockerHostUpdateSyncSuspended = \(\) => readDockerHostUpdateSyncSuspendedUntil\(\) > Date\.now\(\);/);
     assert.match(dockerJs, /const suspendDockerHostUpdateSync = \(durationMs = 0\) => \{/);
-    assert.match(dockerJs, /const updateDockerTraceHealth = \(traceName,\s*success,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerBulkUpdateTrace = \(eventType,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerRequestBundleTrace = \(eventType,\s*details = \{\}\) => \{/);
-    assert.match(dockerJs, /diagnosticsApi\.updateTraceHealth\(traceName,\s*success,\s*details\)/);
+    assert.doesNotMatch(dockerJs, /DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY|updateDockerTraceHealth/);
     assert.match(dockerJs, /diagnosticsApi\.appendBulkUpdateTrace\(eventType,\s*details\)/);
     assert.match(dockerJs, /diagnosticsApi\.appendRequestBundleTrace\(eventType,\s*details\)/);
     assert.match(dockerJs, /const getDockerRuntimeReconcileApi = \(\) => \{/);
@@ -207,7 +209,8 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerHostOpenDockerPatch\(\);\s*bindDockerLifecycleEventControlPatch\(\);\s*bindDockerContainerContextStatePatch\(\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
     assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
     assert.match(dockerJs, /wrapHostHook\?\.\('loadlist',[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
-    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
+    assert.match(dockerJs, /const queueDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync', delayMs = 180\) => \{[\s\S]*diagnosticsApi\.queuePageSnapshot\(safeReason, offCriticalPathDelay\);/);
+    assert.doesNotMatch(dockerJs, /collectDockerSupportBundlePageSnapshot|writeDockerSupportBundleStorageRecord/);
     assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{/);
     assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
 });
@@ -295,8 +298,8 @@ test('docker update dialog callbacks replace host loadlist redraws with a bounde
 });
 
 test('docker support bundle snapshot reads only visible update-column text in basic view', () => {
-    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
-    assert.doesNotMatch(dockerJs, /const updateCellText = normalizeDockerSupportBundleText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
+    assert.match(dockerRuntimeDiagnosticsJs, /const updateCellText = readVisibleUpdateCellText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\);/);
+    assert.doesNotMatch(dockerRuntimeDiagnosticsJs, /const updateCellText = normalizeText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
 });
 
 test('docker runtime can stay in host-list mode without rendering FolderView rows', () => {

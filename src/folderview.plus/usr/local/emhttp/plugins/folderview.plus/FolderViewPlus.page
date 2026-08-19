@@ -15,7 +15,7 @@ emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 ?>
 
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.image-fallbacks.js')?>"></script><script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.safe-dom.js')?>"></script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('settings'); ?>

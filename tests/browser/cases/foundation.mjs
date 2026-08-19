@@ -8,6 +8,7 @@ test('CSP and Trusted Types fixture renders malicious persisted values as inert 
         injection: window.__fvInjection,
         rejected: window.__fvUnsafeAttributeRejected,
         trustedTypesAvailable: window.__fvTrustedTypesAvailable,
+        imageFallback: window.__fvImageFallbackEvidence,
         values: [...document.querySelectorAll('.csp-malicious-value')].map((node) => ({
             kind: node.getAttribute('data-value-kind'),
             text: node.textContent,
@@ -18,15 +19,13 @@ test('CSP and Trusted Types fixture renders malicious persisted values as inert 
     assert.equal(evidence.rejected, true);
     assert.equal(evidence.values.length, 6);
     assert.equal(evidence.values.every((entry) => entry.childElements === 0), true);
-    assert.deepEqual(evidence.values.map((entry) => entry.kind), [
-        'folderName',
-        'containerName',
-        'templateMetadata',
-        'importedConfiguration',
-        'translation',
-        'diagnostics'
-    ]);
-}, { skipAccessibility: true });
+    assert.deepEqual(evidence.values.map((entry) => entry.kind), ['folderName', 'containerName', 'templateMetadata', 'importedConfiguration', 'translation', 'diagnostics']);
+    assert.equal(evidence.imageFallback.replacementSource, '/plugin/images/folder-icon.png');
+    assert.equal(evidence.imageFallback.missingRequests, 1, 'a failed icon URL is not requested again after a later render');
+}, {
+    skipAccessibility: true,
+    allowedConsoleErrors: [/Failed to load resource:.*404 \(Not Found\)/]
+});
 
 test('Shared UI primitives provide accessible modal, action, status, and progress behavior', async ({ page }) => {
     await page.goto(`${baseUrl}/ui-primitives`, { waitUntil: 'load' });

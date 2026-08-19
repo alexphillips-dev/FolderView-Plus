@@ -643,11 +643,23 @@
       "owner": "declarative-action-runtime",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
       "stateModel": "singleton",
-      "dependsOn": [],
+      "dependsOn": ["scripts/runtime.image-fallbacks.js"],
       "compatibilityGlobals": ["FolderViewPlusCspEvents", "FolderViewPlusCspEventsInstalled"],
       "global": "FolderViewPlusCspEvents",
       "loader": "window",
       "exports": ["allowedHandlers", "execute", "getAction", "install", "parseArgument", "registerActions", "resolveAction", "snapshot", "splitTopLevel", "supportedEvents", "unregisterOwner"]
+    },
+    {
+      "file": "scripts/runtime.image-fallbacks.js",
+      "owner": "shared-image-fallback-cache",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
+      "stateModel": "singleton",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "imageFallbacks",
+      "loader": "commonjs",
+      "exports": ["has", "record", "snapshot"]
     },
     {
       "file": "scripts/folderviewplus.actions-support.js",

@@ -285,9 +285,7 @@
 
     const sanitizeImageUrl = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
         const raw = String(value || '').trim();
-        if (!raw) {
-            return fallback;
-        }
+        if (!raw || globalThis.FolderViewPlusFoundationModules?.imageFallbacks?.has?.(raw)) return fallback;
         if (raw.startsWith('/') && !raw.startsWith('//')) {
             return raw;
         }

@@ -28,5 +28,22 @@
     } catch (error) {
         window.__fvUnsafeAttributeRejected = error instanceof TypeError;
     }
+    const missingIcon = '/missing-container-icon.png';
+    const fallbackIcon = '/plugin/images/folder-icon.png';
+    const loadImage = (source, onerror = '') => new Promise((resolve) => {
+        const image = document.createElement('img');
+        image.addEventListener('load', resolve, { once: true });
+        if (onerror) image.setAttribute('data-fv-onerror', onerror);
+        document.body.append(image);
+        image.src = source;
+    });
+    await loadImage(missingIcon, `this.src='${fallbackIcon}'`);
+    const replacementSource = window.FolderViewPlusFoundationModules.utilityFoundation.sanitizeImageUrl(missingIcon, fallbackIcon);
+    await loadImage(replacementSource);
+    window.__fvImageFallbackEvidence = {
+        replacementSource,
+        missingRequests: performance.getEntriesByType('resource')
+            .filter((entry) => new URL(entry.name).pathname === missingIcon).length
+    };
     window.__fvCspFixtureReady = true;
 })();

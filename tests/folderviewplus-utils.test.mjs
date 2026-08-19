@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
+const imageFallbacks = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.image-fallbacks.js');
+globalThis.FolderViewPlusFoundationModules = { imageFallbacks };
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
 test('normalizePrefs preserves transient configuration revision metadata for stale-save protection', () => {
@@ -450,11 +452,19 @@ test('utils exports shared dashboard metadata and runtime-safe escaping helpers'
     assert.equal(utils.normalizeDashboardOverflowMode('bad-value'), 'default');
     assert.equal(utils.escapeHtml(`a<"b"&'c'`), 'a&lt;&quot;b&quot;&amp;&#39;c&#39;');
     assert.equal(utils.sanitizeImageSrc('javascript:alert(1)'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageSrc(''), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageSrc('data:image/svg+xml,<svg onload=alert(1)>'), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageUrl('//attacker.invalid/icon.png'), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageUrl('https://user:pass@example.com/icon.png'), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageUrl('https://example.com/icon.png'), 'https://example.com/icon.png');
     assert.equal(utils.sanitizeImageSrc('/plugins/folderview.plus/images/folder-icon.png'), '/plugins/folderview.plus/images/folder-icon.png');
+    assert.equal(imageFallbacks.record('https://missing-icons.example.invalid/container.png'), true);
+    assert.equal(imageFallbacks.record('https://missing-icons.example.invalid/container.png'), false);
+    assert.equal(imageFallbacks.has('https://missing-icons.example.invalid/container.png'), true);
+    assert.equal(
+        utils.sanitizeImageUrl('https://missing-icons.example.invalid/container.png'),
+        '/plugins/dynamix.docker.manager/images/question.png'
+    );
     assert.deepEqual(utils.resolvePreviewActionPrefs({ preview_webui: true, preview_console: false, preview_logs: true }), {
         preview_webui: true,
         preview_console: false,

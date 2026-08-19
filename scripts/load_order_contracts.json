@@ -5,6 +5,7 @@
       "id": "settings-page",
       "source": "FolderViewPlus.page",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.safe-dom.js",
         "scripts/folderviewplus.page-bootstrap.js",
@@ -254,6 +255,7 @@
       "id": "folder-editor-page",
       "source": "Folder.page",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.page-bootstrap.js",
         "scripts/folder.editor.page-bootstrap.js",
@@ -313,6 +315,7 @@
       "id": "custom-script-bootstrap",
       "source": "scripts/custom.php",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.safe-dom.js",
         "scripts/runtime.custom-script-loader.js"

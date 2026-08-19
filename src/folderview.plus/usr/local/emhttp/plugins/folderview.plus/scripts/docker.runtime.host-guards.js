@@ -76,6 +76,17 @@
             return missing;
         };
 
+        const isNativeBusyPollActive = () => {
+            const busy = doc && typeof doc.querySelector === 'function'
+                ? doc.querySelector('#busy')
+                : null;
+            if (!busy || busy.hidden === true || busy.getAttribute?.('aria-hidden') === 'true') return false;
+            const style = typeof win.getComputedStyle === 'function'
+                ? win.getComputedStyle(busy)
+                : busy.style;
+            return style?.display !== 'none' && style?.visibility !== 'hidden';
+        };
+
         const ensureHostPageStructure = () => {
             const missing = collectHostPageStructureIssues();
             if (missing.length <= 0) {
@@ -211,6 +222,7 @@
             adapter: hostAdapter,
             ensureHostPageStructure,
             collectHostPageStructureIssues,
+            isNativeBusyPollActive,
             captureHostHook,
             reportMissingHook,
             noteHookWrapped,

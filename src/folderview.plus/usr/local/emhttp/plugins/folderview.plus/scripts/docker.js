@@ -7085,17 +7085,20 @@ const addDockerFolderContext = (id) => {
     opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
-
     context.attach('#' + id, opts);
     queueDockerFolderContextQuickIcons();
     queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };
-
 // Route Unraid host lifecycle hooks through the shared adapter while retaining legacy aliases.
 getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
+    if (dockerNativeBusyPollInFlight) {
+        dockerNativeBusyPollInFlight = false;
+        if (typeof window.listview_original === 'function') invokeOriginal();
+        return;
+    }
     appendDockerRequestBundleTrace('listview', {
         currentPage: String(location?.pathname || ''),
         loadedFolder: loadedFolder === true,
@@ -7108,7 +7111,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.error('[FV3_DEBUG] Patched listview: window.listview_original is not a function!');
     }
-
     if (!loadedFolder) {
         dockerHostLoadOwnsLoadingUi = true;
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
@@ -7130,13 +7132,19 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     missingMessage: 'Docker host listview hook was unavailable during bootstrap.',
     missingDetails: ['window.listview was not a function when FolderView Plus initialized.']
 });
-
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
     bindDockerContainerContextStatePatch();
     bindDockerListViewModeCookieHook();
+    dockerNativeBusyPollInFlight = getDockerHostGuardsApi()?.isNativeBusyPollActive?.() === true;
+    if (dockerNativeBusyPollInFlight) {
+        loadedFolder = true;
+        folderReq = null;
+        if (typeof window.loadlist_original === 'function') invokeOriginal();
+        return;
+    }
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
@@ -7147,7 +7155,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     });
     folderReq = ensureDockerFolderReqForHostRender();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
-
     if (typeof window.loadlist_original === 'function') {
         invokeOriginal();
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Called original loadlist.');
@@ -7162,7 +7169,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     missingMessage: 'Docker host loadlist hook was unavailable during bootstrap.',
     missingDetails: ['window.loadlist was not a function when FolderView Plus initialized.']
 });
-
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 const applyDockerSettingsPinSyncPayload = (payload) => {
@@ -7341,6 +7347,7 @@ let dockerBootstrapPrefsPromise = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
+let dockerNativeBusyPollInFlight = false;
 let lastLiveRefreshStateSignature = '';
 let lastLiveRefreshStateEntityCount = 0;
 let lastDockerRuntimeSnapshotToken = '';

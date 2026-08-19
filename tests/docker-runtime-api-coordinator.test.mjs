@@ -103,7 +103,7 @@ test('API merge treats identity-set changes as structural and does not invent ho
     assert.equal(Object.hasOwn(result.runtimeMap, 'new-app'), false);
 });
 
-test('coordinator applies one full API refresh and schedules one structural host refresh', async () => {
+test('coordinator keeps the native host authoritative for API identity-set differences', async () => {
     let runtimeMap = { app: runtimeEntry('app') };
     let structuralRefreshes = 0;
     const provider = {
@@ -122,9 +122,11 @@ test('coordinator applies one full API refresh and schedules one structural host
     });
 
     const result = await coordinator.refreshAll({ fallback: false });
+    const repeated = await coordinator.refreshAll({ fallback: false });
     await Promise.resolve();
     assert.equal(result.structuralChanged, true);
-    assert.equal(structuralRefreshes, 1);
+    assert.equal(repeated.structuralChanged, true);
+    assert.equal(structuralRefreshes, 0);
     assert.equal(Object.hasOwn(runtimeMap, 'new-app'), false);
     coordinator.dispose();
 });

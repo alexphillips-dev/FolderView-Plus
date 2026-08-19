@@ -257,11 +257,6 @@
             if (disposed || options.generation !== generation) return { applied: false, stale: true };
             const merged = mergeProviderContainers(getRuntimeMap(), containers, capabilitySnapshot());
             if (merged.structuralChanged) {
-                scheduleStructuralRefresh({
-                    reason: 'api-identity-set-changed',
-                    providerOnlyCount: merged.providerOnlyCount,
-                    runtimeOnlyCount: merged.runtimeOnlyCount
-                });
                 return { applied: false, structuralChanged: true, ...merged };
             }
             if (merged.changed.length > 0) applyRuntimeMap(merged.runtimeMap, merged);

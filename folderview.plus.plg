@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.18.07">
-<!ENTITY md5 "966c49d0f5d01b3c187322396c71bb92">
-<!ENTITY sha256 "179e8d2e03e993bc7259d7b5c0c916499cd0f2871fa727e95f35001349c656f1">
+<!ENTITY version "2026.08.19.01">
+<!ENTITY md5 "18ec709bc37d2e02af5d62772287483b">
+<!ENTITY sha256 "52fa0f1f1a52ec0e10e2c92d62b72cb26c3869a5fd971aaa43ce841b8b6f48ca">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.19.01
+- Fix: Stop API container identity differences from recursively scheduling Unraid Docker list reloads after every FolderView render.
+- Reliability: Keep Unraid's native Docker/PHP configuration revision path authoritative for structural changes while using GraphQL only to enrich containers already present in the host runtime map.
+- Reliability: Detect Unraid's visible Docker busy-poll cycle and temporarily preserve its native rows instead of rebuilding every folder and preview on each host refresh.
+- Performance: Avoid repeated full runtime request bundles, folder grouping, preview hydration, and DOM replacement during unresolved API identity differences or native Docker service polling.
+- Test: Add coordinator, host busy-indicator, and double-reload regression coverage, then validate the fix through the complete lint/test suite, real-browser fixtures, and large-runtime performance budgets.
+
 
 ###2026.08.18.07
 - Fix: Prevent Docker folder startup from failing when a native or third-party container row omits the expected status or wrapper markup used by single-row previews.

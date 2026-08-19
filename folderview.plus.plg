@@ -5,18 +5,34 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.19.06">
-<!ENTITY md5 "60c8be921ecc319067726bb9ffda9ccd">
-<!ENTITY sha256 "94d29a56f17577d10242da0fe898eb0cb52a1d9b265ae155532a16d3457b1a59">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.19.07">
+<!ENTITY md5 "037c51fa1ccba8d36ad248bf66ac4147">
+<!ENTITY sha256 "f64322b8fda9127b3c192fea5c16d375e6965c4cec7481818daf5517dfdeab1f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.19.07
+- Fix: Eliminate the 5–7 second Docker-page refresh loop caused by API container-identity differences recursively scheduling native list reloads after FolderView renders.
+- Fix: Prevent FolderView-generated images with blank or unreachable icon URLs from repeatedly requesting the failed source during subsequent FolderView renders, while immediately using the local fallback for blank values.
+- Fix: Restore Docker folder boxes created through the Add Folder wizard when Unraid identifies container rows by short container IDs instead of container names.
+- Fix: Keep populated folders visible when Hide empty folders removes earlier placeholders and later populated folders have high saved-order positions.
+- Reliability: Keep Unraid's native Docker/PHP configuration revision authoritative for structural changes, use GraphQL only to enrich containers already present in the host runtime map, and preserve native rows during Docker busy-poll cycles.
+- Reliability: Resolve Docker row identities through the normalized runtime model, retain deterministic first-folder ownership for overlapping rules, insert folder shells relative to connected host rows, and leave member rows under Unraid ownership if a shell cannot be attached safely.
+- Performance: Replace broad action-followup redraws with incremental runtime reconciliation and remove duplicate deferred support-snapshot scheduling to avoid unnecessary request bundles, folder grouping, preview hydration, and DOM replacement.
+- Diagnostics: Retain five bounded Docker-page session summaries with privacy-safe reload-source attribution, render and request counts, cadence, busy-cycle recovery, API-mismatch aggregates, and the `FVPLUS-DKR-REFRESH-001` healthy/suspected/confirmed verdict.
+- Diagnostics: Count completed renders by monotonic generation, keep trace-health timestamps current, age browser-error evidence, and report aggregate host-row resolution, folder claims, missing members, hide-empty removals, and folder-shell insertion outcomes.
+- Privacy: Keep runtime, refresh, API, icon, and folder-grouping diagnostics bounded and free of container identities, raw API payloads, GraphQL queries, URLs, tokens, cookies, call stacks, process lists, and syslogs.
+- Docs: Expand troubleshooting and Docker runtime/API architecture guidance for native refresh ownership, busy polling, identity mismatches, folder grouping, support-bundle interpretation, and safe escalation.
+- Test: Add coordinator, native busy-indicator, double-reload, image fallback, short-ID grouping, high-position hide-empty, repeated-render, browser-fixture, support-bundle, and large-runtime performance regressions.
+- Quality: Validate the complete stable promotion through strict lint, static analysis, unit, workflow, release, install, deterministic-build, browser, theme, responsive, performance, dependency, Git-integrity, and GitHub security checks.
+
 
 ###2026.08.19.06
 - Fix: Keep populated Docker folders visible when Hide empty folders removes earlier empty rows and later folders have high saved-order positions.
@@ -8658,7 +8674,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

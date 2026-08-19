@@ -70,6 +70,9 @@ if (!rendered.includes(`## FolderView Plus ${version}`)) {
 if (!rendered.includes('### Changes')) {
   fail('Generated release notes are missing the changes heading.');
 }
+if (/^### Included commit history\s*$/m.test(rendered)) {
+  fail('Generated release notes must not include commit history.');
+}
 if (hasOverride) {
   if (!overrideBody) {
     fail(`Curated release override ${path.relative(root, overridePath)} is empty.`);

@@ -51,7 +51,7 @@ fi
 OVERRIDE_FILE="docs/releases/${VERSION}.md"
 
 append_provenance() {
-  local source_commit previous_ref compare_url archive_checksum total_commits
+  local source_commit previous_ref compare_url archive_checksum
   source_commit="$(git rev-parse HEAD)"
   previous_ref="${FVPLUS_RELEASE_PREVIOUS_REF:-$(git describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)}"
   archive_checksum=""
@@ -69,13 +69,6 @@ append_provenance() {
       # shellcheck disable=SC2016
       printf -- '- Previous stable reference: `%s`\n' "${previous_ref}"
       printf -- '- Full source comparison: %s\n' "${compare_url}"
-      printf '\n### Included commit history\n\n'
-      # shellcheck disable=SC2016
-      git log --no-merges --format='- `%h` %s' "${previous_ref}..HEAD" --max-count=75
-      total_commits="$(git rev-list --count --no-merges "${previous_ref}..HEAD")"
-      if (( total_commits > 75 )); then
-        printf -- '- …and %s earlier commit(s); use the full source comparison above.\n' "$((total_commits - 75))"
-      fi
     else
       printf -- '- Previous stable reference: unavailable\n'
     fi

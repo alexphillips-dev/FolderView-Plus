@@ -59,6 +59,7 @@ const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.get
     debug: FOLDER_VIEW_DEBUG_MODE
 }) || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
+const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
 let dockerApiIntegration = null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
@@ -399,6 +400,12 @@ if (!dockerRuntimeColumnControllerModule || typeof dockerRuntimeColumnController
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.column-controller.js', 'ok', 'Docker column controller ready');
 }
+if (!dockerFolderGroupingModule || typeof dockerFolderGroupingModule.createSession !== 'function') {
+    dockerBootstrapMissingModules.push('docker.runtime.folder-grouping.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.folder-grouping.js', 'missing', 'Docker folder grouping unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.folder-grouping.js', 'ok', 'Docker folder grouping ready');
+}
 if (typeof dockerRuntimeShared.createFolderRowActionsController !== 'function') {
     dockerBootstrapMissingModules.push('folder.runtime.row-actions.js');
     setDockerFatalBannerModuleStatus('folder.runtime.row-actions.js', 'missing', 'folder row action lifecycle unavailable');
@@ -519,6 +526,7 @@ markDockerFatalBannerStep('Docker runtime modules resolved');
 let dockerHostGuardsApi = null;
 let dockerRuntimeDiagnosticsApi = null;
 let dockerRuntimeReconcileApi = null;
+let dockerFolderGroupingSession = null;
 const dockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
 const getDockerHostGuardsApi = () => {
     if (!dockerHostGuardsApi && dockerHostGuardsModule && typeof dockerHostGuardsModule.createApi === 'function') {
@@ -1065,7 +1073,8 @@ const getDockerRuntimeDiagnosticsApi = () => {
             resolveExpectedMemberActionToken: (entry = {}) => resolveDockerSupportBundleExpectedMemberActionToken(entry),
             getRuntimeInfoEntry: (containerName) => dockerRuntimeInfoByName?.[containerName] || {},
             getCorrelationContext: () => buildDockerDiagnosticsCorrelationContext(),
-            getLayoutStabilityDiagnostics: () => getDockerRuntimeLayoutStabilitySnapshot()
+            getLayoutStabilityDiagnostics: () => getDockerRuntimeLayoutStabilitySnapshot(),
+            getFolderGroupingDiagnostics: () => dockerFolderGroupingSession?.snapshot?.() || { available: false }
         });
     }
     return dockerRuntimeDiagnosticsApi;
@@ -4716,7 +4725,8 @@ const createFolders = async () => {
         containersInfo = { ...dockerRuntimeInfoByName };
     }
     folders = reconcileDockerMemberIdentities(folders, containersInfo);
-    let order = readDockerHostOrderFromDom();
+    dockerFolderGroupingSession = dockerFolderGroupingModule.createSession({ document, containersInfo });
+    let order = dockerFolderGroupingSession.readOrder();
     let prefsResponse = {};
     try {
         prefsResponse = prom[3] ? JSON.parse(prom[3]) : {};
@@ -4824,8 +4834,6 @@ const createFolders = async () => {
         if (container && folderRegex.test(container)) {
             let id = container.replace(folderRegex, '');
             if (folders[id]) {
-                // Pass 'order' (the live array) to createFolder.
-                // 'position' is the current 'key' (index of the folder placeholder in the 'order' array).
                 const removedCount = createFolder(
                     folders[id],
                     id,
@@ -4844,14 +4852,11 @@ const createFolders = async () => {
     }
     dockerPerf.end('createFolders.renderOrdered', { orderedEntries: order.length });
 
-    // Draw the foldes outside of the order
     dockerPerf.begin('createFolders.renderRemaining');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
-    // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
-        // Add the folder on top of the array
         order.unshift(`folder-${id}`);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Unshifted folder-${id} to order. New order:`, [...order]);
         createFolder(
@@ -5077,7 +5082,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const advanced = $.cookie('docker_listview_mode') == 'advanced';
 
-    // --- Correctly build combinedContainers ---
     const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
     const originalContainersFromDefinition = precomputed
         ? (Array.isArray(precomputed.explicit) ? [...precomputed.explicit] : [])
@@ -5126,7 +5130,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             type: 'docker'
         });
     ruleMatches.forEach(pushCombined);
-
     if (FOLDER_VIEW_DEBUG_MODE) {
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by folder label ('${folder.name}'):`, labelMatches);
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by auto rules:`, ruleMatches);
@@ -5140,8 +5143,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         && Number.isFinite(lazyPreviewThreshold)
         && combinedContainers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
-    // --- End of combinedContainers build ---
-
+    dockerFolderGroupingSession?.beginFolder?.(id, precomputed || {}, combinedContainers.length);
     const colspan = document.querySelector("#docker_containers > thead > tr").childElementCount - 5;
     const hoverClass = folder.settings.preview_hover && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : '';
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
@@ -5162,20 +5164,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position 0 (before).`);
         $('#docker_list > tr.sortable').eq(0).before($(fld)); // Always eq(0) for 'before' the first sortable
     } else {
-        // Find the actual DOM element that is currently at positionInMainOrder - 1 in the *visible sortable list*
-        // This needs to be robust to items already having been moved.
-        // A safer bet is to find the *last processed item* or *first non-folder item* if the folder is inserted later.
-        // For now, using the direct index, assuming other sortables are still in place.
         if ($('#docker_list > tr.sortable').length > 0 && positionInMainOrder > 0) {
              if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position ${positionInMainOrder} (after eq ${positionInMainOrder-1} of current sortables).`);
              $('#docker_list > tr.sortable').eq(positionInMainOrder - 1).after($(fld));
         } else if ($('#docker_list > tr.sortable').length === 0 && positionInMainOrder === 0) {
-            // If no sortables exist yet (e.g., first folder, all others are new)
              if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No sortables found, inserting folder at the beginning of #docker_list.`);
             $('#docker_list').prepend($(fld));
         } else {
              if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Could not determine insertion point for folder. Position: ${positionInMainOrder}, Sortables count: ${$('#docker_list > tr.sortable').length}`);
-             // Fallback: append to the list if other logic fails
              $('#docker_list').append($(fld));
         }
     }
@@ -5307,7 +5303,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let newFolder = {};
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized newFolder for processed containers.`);
 
-    // Preserve the saved folder order index in lifecycle event details for host integrations.
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order: orderSnapshotAtFolderStart,
         completedFolderIds: foldersDone,
@@ -5338,8 +5333,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Original index ${originalIndexOfContainerInSnapshot} < folder position ${positionInMainOrder}. Incremented remBefore to ${remBefore}.`);
         }
 
-        let $containerTR = $(document.getElementById(`ct-${container_name_in_folder}`));
-        if (!$containerTR.length || !$containerTR.hasClass('sortable')) {
+        let $containerTR = dockerFolderGroupingSession
+            ? $(dockerFolderGroupingSession.claim(id, container_name_in_folder))
+            : $(document.getElementById(`ct-${container_name_in_folder}`));
+        if (!dockerFolderGroupingSession && (!$containerTR.length || !$containerTR.hasClass('sortable'))) {
             if(FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: TR not found by ID or not sortable. Fallback search...`);
             $containerTR = $("#docker_list > tr.sortable").filter(function() {
                 return $(this).find("td.ct-name .appname").text().trim() === container_name_in_folder;
@@ -5917,7 +5914,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         folder.settings?.folder_update_highlight === true && upToDate === false
     );
     const total = Object.entries(folder.containers).length;
-    if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
+    const removedByHideEmpty = folderTypePrefs?.hideEmptyFolders === true && total === 0;
+    dockerFolderGroupingSession?.finishFolder?.(id, { renderedMemberCount: total, removedByHideEmpty });
+    if (removedByHideEmpty) {
         $(`tr.folder-id-${id}`).remove();
         $(`tr#name-${id}`).remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): hideEmptyFolders enabled, removed empty folder row.`);

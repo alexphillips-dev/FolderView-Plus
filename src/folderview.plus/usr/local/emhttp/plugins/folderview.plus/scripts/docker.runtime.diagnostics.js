@@ -301,6 +301,7 @@
         const getLayoutStabilityDiagnostics = typeof deps.getLayoutStabilityDiagnostics === 'function'
             ? deps.getLayoutStabilityDiagnostics
             : (() => ({ available: false }));
+        const getFolderGroupingDiagnostics = typeof deps.getFolderGroupingDiagnostics === 'function' ? deps.getFolderGroupingDiagnostics : (() => ({ available: false }));
         const refreshDiagnostics = refreshDiagnosticsModule?.createTracker?.({
             window: win,
             storage: localStorageRef
@@ -450,7 +451,6 @@
             }
             return candidate;
         };
-
         const collectDockerAssetIdentity = () => {
             const entries = [];
             const pluginVersion = String(win?.FolderViewPlusFatalRuntimeContext?.pluginVersion || '').trim();
@@ -852,6 +852,7 @@
                 listViewMode: currentListViewMode,
                 correlation: normalizeCorrelationContext(getCorrelationContext()),
                 layoutStability: cloneValue(getLayoutStabilityDiagnostics()) || { available: false },
+                folderGrouping: cloneValue(getFolderGroupingDiagnostics()) || { available: false },
                 dockerAssets: collectDockerAssetIdentity(),
                 topLevelRows: {
                     count: topLevelRowCount,
@@ -882,7 +883,6 @@
                 summary
             };
         };
-
         const writeSupportBundleStorageRecord = (storageKey, value) => {
             const writeOk = writeStorageRecord(storageKey, value);
             if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {

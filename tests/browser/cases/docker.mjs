@@ -27,6 +27,20 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
     assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
+test('Docker late wizard folders claim canonical host rows before hide-empty filtering', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-folder-grouping`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureDockerFolderGrouping.result);
+    assert.equal(result.order.length, 18);
+    assert.equal(result.folderBoxes, 6);
+    assert.equal(result.groupedMembers, 17);
+    assert.equal(result.standaloneMembers, 1);
+    assert.equal(result.snapshot.hostRows.resolved, 18);
+    assert.equal(result.snapshot.folders.total, 25);
+    assert.equal(result.snapshot.folders.claimedRowCount, 17);
+    assert.equal(result.snapshot.folders.missingRowCount, 0);
+    assert.equal(result.snapshot.folders.removedByHideEmptyCount, 19);
+});
+
 test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureDockerPreviewCloneResilience.run());

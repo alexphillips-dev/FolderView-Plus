@@ -147,6 +147,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'docker-api-legacy.html');
         } else if (requestUrl.pathname === '/docker-layout-stability') {
             filePath = path.join(fixtureDir, 'docker-layout-stability.html');
+        } else if (requestUrl.pathname === '/docker-folder-grouping') {
+            filePath = path.join(fixtureDir, 'docker-folder-grouping.html');
         } else if (requestUrl.pathname === '/csp-hardening') {
             filePath = path.join(fixtureDir, 'csp-hardening.html');
         } else if (requestUrl.pathname.startsWith('/security-fixtures/')) {

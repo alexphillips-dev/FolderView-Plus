@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus Docker folder grouping fixture</title>
+</head>
+<body>
+    <table id="docker_containers">
+        <thead><tr><th>Container</th></tr></thead>
+        <tbody id="docker_list"></tbody>
+    </table>
+    <script>
+        window.fixtureDockerFolderGrouping = { containersInfo: {}, names: [] };
+        const list = document.getElementById('docker_list');
+        for (let index = 0; index < 18; index++) {
+            const name = `app-${String(index).padStart(2, '0')}`;
+            const id = `sha256:${(index + 1).toString(16).padStart(2, '0').repeat(32)}`;
+            const shortId = id.slice(7, 19);
+            window.fixtureDockerFolderGrouping.names.push(name);
+            window.fixtureDockerFolderGrouping.containersInfo[name] = {
+                id,
+                shortId,
+                info: { Id: id, Name: `/${name}` }
+            };
+            const row = document.createElement('tr');
+            row.id = `ct-${shortId}`;
+            row.className = 'sortable';
+            row.innerHTML = `<td class="ct-name"><span class="appname">${name}</span></td>`;
+            list.append(row);
+        }
+    </script>
+    <script src="/plugin/scripts/docker.runtime.folder-grouping.js"></script>
+    <script>
+        (() => {
+            const fixture = window.fixtureDockerFolderGrouping;
+            const session = window.FolderViewPlusFoundationModules.dockerFolderGrouping.createSession({
+                document,
+                containersInfo: fixture.containersInfo
+            });
+            const assignments = new Map([
+                [3, { explicit: fixture.names.slice(0, 1) }],
+                [8, { explicit: fixture.names.slice(1, 10) }],
+                [21, { explicit: fixture.names.slice(10, 12) }],
+                [22, { rules: fixture.names.slice(12, 14) }],
+                [23, { label: fixture.names.slice(14, 16) }],
+                [24, { regex: fixture.names.slice(16, 17) }]
+            ]);
+            for (let folderIndex = 0; folderIndex < 25; folderIndex++) {
+                const sources = assignments.get(folderIndex) || {};
+                const combined = [...new Set(Object.values(sources).flat())];
+                const folderId = `folder-${folderIndex}`;
+                session.beginFolder(folderId, sources, combined.length);
+                const folderRow = document.createElement('tr');
+                folderRow.className = 'folder sortable';
+                folderRow.dataset.folderIndex = String(folderIndex);
+                const cell = document.createElement('td');
+                const storage = document.createElement('div');
+                storage.className = 'folder-storage';
+                cell.append(storage);
+                folderRow.append(cell);
+                list.prepend(folderRow);
+                let claimed = 0;
+                combined.forEach((name) => {
+                    const row = session.claim(folderId, name);
+                    if (!row) return;
+                    row.classList.remove('sortable');
+                    row.classList.add('folder-element');
+                    storage.append(row);
+                    claimed++;
+                });
+                session.finishFolder(folderId, {
+                    renderedMemberCount: claimed,
+                    removedByHideEmpty: claimed === 0
+                });
+                if (claimed === 0) folderRow.remove();
+            }
+            fixture.result = {
+                order: session.readOrder(),
+                folderBoxes: document.querySelectorAll('#docker_list > tr.folder').length,
+                groupedMembers: document.querySelectorAll('.folder-storage > tr.folder-element').length,
+                standaloneMembers: document.querySelectorAll('#docker_list > tr.sortable:not(.folder)').length,
+                snapshot: session.snapshot()
+            };
+        })();
+    </script>
+</body>
+</html>

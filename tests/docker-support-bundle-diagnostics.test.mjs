@@ -124,6 +124,11 @@ test('Docker support snapshot records standalone containers after folders and pa
         document: { querySelectorAll: () => scripts },
         $: createJQuery(rows),
         readDockerListViewMode: () => 'basic',
+        getFolderGroupingDiagnostics: () => ({
+            schemaVersion: 1,
+            hostRows: { total: 3, resolved: 3, unresolved: 0 },
+            folders: { total: 2, claimedRowCount: 2, missingRowCount: 0 }
+        }),
         getCorrelationContext: () => ({
             stateSignature: 'new-container:r:1:dockerman:true:',
             stateEntityCount: 1,
@@ -154,6 +159,9 @@ test('Docker support snapshot records standalone containers after folders and pa
     assert.equal(snapshot.correlation.orderReconciliation.appendedContainerCount, 1);
     assert.equal(snapshot.correlation.orderReconciliation.appendPosition, 'after-folders');
     assert.equal(snapshot.correlation.orderReconciliation.orderingInvariantSatisfied, true);
+    assert.equal(snapshot.folderGrouping.hostRows.resolved, 3);
+    assert.equal(snapshot.folderGrouping.folders.claimedRowCount, 2);
+    assert.equal(snapshot.folderGrouping.folders.missingRowCount, 0);
     assert.equal(snapshot.dockerAssets.pluginVersion, '2026.07.13.04');
     assert.deepEqual(snapshot.dockerAssets.entries.map((entry) => entry.versionQuery), [
         '2026.07.13.04',

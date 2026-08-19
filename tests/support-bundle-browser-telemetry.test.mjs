@@ -251,19 +251,22 @@ test('browser error telemetry separates current-session failures from historical
     };
     const browserModule = loadBrowserModule(root);
     const snapshot = browserModule.createCollectors().collectBrowserConsoleErrors({
-        pluginVersion: '2026.07.13.06'
+        pluginVersion: '2026.07.13.06',
+        nowMs: Date.parse('2026-07-13T18:02:00.000Z')
     });
 
-    assert.equal(snapshot.count, 2);
+    assert.equal(snapshot.count, 1);
+    assert.equal(snapshot.retainedCount, 2);
     assert.equal(snapshot.collectionPluginVersion, '2026.07.13.06');
     assert.equal(snapshot.firstSeenAt, '2026-05-21T19:09:29.870Z');
     assert.equal(snapshot.lastSeenAt, '2026-07-13T18:01:00.000Z');
     assert.equal(snapshot.currentSessionCount, 1);
     assert.equal(snapshot.historicalCount, 1);
-    assert.equal(snapshot.entries[0].currentSession, false);
-    assert.equal(snapshot.entries[0].observedPluginVersion, '2026.05.21.01');
-    assert.equal(snapshot.entries[1].currentSession, true);
-    assert.equal(snapshot.entries[1].observedPluginVersion, '2026.07.13.06');
+    assert.equal(snapshot.last30DaysCount, 0);
+    assert.equal(snapshot.olderCount, 1);
+    assert.equal(snapshot.olderByCategory.unknown, 1);
+    assert.equal(snapshot.entries[0].currentSession, true);
+    assert.equal(snapshot.entries[0].observedPluginVersion, '2026.07.13.06');
 });
 
 test('browser error telemetry does not misattribute legacy records to the collection plugin version', () => {
@@ -272,7 +275,10 @@ test('browser error telemetry does not misattribute legacy records to the collec
         readClientDiagnosticsStorageRecord() {
             return [{ at: '2026-05-21T19:09:29.870Z', message: 'Legacy failure' }];
         }
-    }).collectBrowserConsoleErrors({ pluginVersion: '2026.07.13.06' });
+    }).collectBrowserConsoleErrors({
+        pluginVersion: '2026.07.13.06',
+        nowMs: Date.parse('2026-05-21T19:10:00.000Z')
+    });
 
     assert.equal(snapshot.collectionPluginVersion, '2026.07.13.06');
     assert.equal(snapshot.entries[0].observedPluginVersion, 'unknown');
@@ -614,6 +620,15 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     }
                 };
             }
+            if (storageKey === 'docker-refresh-key') {
+                return {
+                    schemaVersion: 1,
+                    verdict: { status: 'healthy', source: null, fullReloads: 1, renders: 1, reference: 'FVPLUS-DKR-REFRESH-001' },
+                    totals: { loadlist: 1, listview: 1, renders: 1, requests: 1, busyPasses: 0, foldersRestored: 0 },
+                    apiMismatch: { observedCount: 2, providerOnlyCount: 1, runtimeOnlyCount: 1, policy: 'native-structure-authoritative', hostReloadRequested: false },
+                    completedSessionCount: 2
+                };
+            }
             if (storageKey === 'dashboard-layout-docker-key') {
                 return {
                     schemaVersion: 1,
@@ -684,6 +699,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
             dockerBulkUpdateTrace: 'docker-trace-key',
             dockerRequestBundleTrace: 'docker-request-key',
             dockerTraceHealth: 'docker-trace-health-key',
+            dockerRefreshDiagnostics: 'docker-refresh-key',
             dashboardLayoutDocker: 'dashboard-layout-docker-key',
             dashboardLayoutVm: 'dashboard-layout-vm-key',
             dashboardLifecycle: 'dashboard-lifecycle-key',
@@ -699,6 +715,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     const bulkUpdateTrace = collectors.collectDockerBulkUpdateTrace();
     const requestBundleTrace = collectors.collectDockerRequestBundleTrace();
     const traceHealth = collectors.collectDockerTraceHealth();
+    const refreshDiagnostics = collectors.collectDockerRefreshDiagnostics();
     const dashboardLayout = collectors.collectDashboardLayoutDiagnostics();
     const dashboardLifecycle = collectors.collectDashboardLifecycleDiagnostics();
     const vmLifecycle = collectors.collectVmLifecycleDiagnostics();
@@ -714,6 +731,9 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     assert.equal(traceHealth.available, true);
     assert.equal(traceHealth.bulkUpdateTrace.lastWriteSucceeded, true);
     assert.equal(traceHealth.requestBundleTrace.lastWriteSucceeded, true);
+    assert.equal(refreshDiagnostics.available, true);
+    assert.equal(refreshDiagnostics.verdict.status, 'healthy');
+    assert.equal(refreshDiagnostics.apiMismatch.hostReloadRequested, false);
     assert.equal(dashboardLayout.docker.available, true);
     assert.equal(dashboardLayout.docker.folderColumns, 2);
     assert.equal(dashboardLayout.vm.available, false);

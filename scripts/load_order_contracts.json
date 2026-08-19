@@ -122,6 +122,7 @@
         "scripts/docker.runtime.capabilities.js",
         "scripts/docker.runtime.providers.js",
         "scripts/docker.runtime.api-coordinator.js",
+        "scripts/docker.runtime.refresh-diagnostics.js",
         "scripts/docker.runtime.provider-health.js",
         "scripts/runtime.folder-ordering.js",
         "scripts/runtime.live-refresh.js",

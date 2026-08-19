@@ -4,12 +4,12 @@
         ? globalThis
         : (typeof window !== 'undefined' ? window : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory(fallbackWindow, require('./docker.runtime.refresh-diagnostics.js'));
         return;
     }
-    root.FolderViewPlusDockerRuntimeDiagnostics = factory(fallbackWindow);
+    root.FolderViewPlusDockerRuntimeDiagnostics = factory(fallbackWindow, fallbackWindow.FolderViewPlusFoundationModules?.dockerRefreshDiagnostics);
     root.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeDiagnosticsFactory(fallbackWindow) {
+}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeDiagnosticsFactory(fallbackWindow, refreshDiagnosticsModule) {
     'use strict';
     const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
     const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
@@ -29,19 +29,7 @@
             ? require('./docker.runtime.layout-geometry.js')
             : null);
     let activeLayoutStabilityTracker = null;
-    const buildOrderFingerprint = (order) => {
-        const input = (Array.isArray(order) ? order : []).map((entry) => String(entry || '')).join('\u001f');
-        let hashA = 0x811c9dc5;
-        let hashB = 0x9e3779b9;
-        for (let index = 0; index < input.length; index++) {
-            const code = input.charCodeAt(index);
-            hashA ^= code;
-            hashA = Math.imul(hashA, 0x01000193) >>> 0;
-            hashB ^= code + index + 1;
-            hashB = Math.imul(hashB, 0x85ebca6b) >>> 0;
-        }
-        return `${hashA.toString(16).padStart(8, '0')}${hashB.toString(16).padStart(8, '0')}`;
-    };
+    const buildOrderFingerprint = refreshDiagnosticsModule?.buildOrderFingerprint;
     const createLayoutStabilityTracker = (deps = {}) => {
         activeLayoutStabilityTracker?.destroy?.();
         const win = deps.window || fallbackWindow;
@@ -313,6 +301,10 @@
         const getLayoutStabilityDiagnostics = typeof deps.getLayoutStabilityDiagnostics === 'function'
             ? deps.getLayoutStabilityDiagnostics
             : (() => ({ available: false }));
+        const refreshDiagnostics = refreshDiagnosticsModule?.createTracker?.({
+            window: win,
+            storage: localStorageRef
+        }) || null;
         const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
         const measureBytes = (value) => {
             try {
@@ -894,6 +886,7 @@
         const writeSupportBundleStorageRecord = (storageKey, value) => {
             const writeOk = writeStorageRecord(storageKey, value);
             if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
+                refreshDiagnostics?.recordPageSnapshot?.(value);
                 updateTraceHealth('pageSnapshot', writeOk, {
                     reason: String(value?.reason || '').trim() || 'runtime-sync'
                 });
@@ -920,15 +913,20 @@
             updateTraceHealth,
             appendBulkUpdateTrace: (eventType, details = {}) =>
                 appendTrace(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, 'bulkUpdateTrace', DOCKER_BULK_UPDATE_TRACE_LIMIT, eventType, details),
-            appendRequestBundleTrace: (eventType, details = {}) =>
-                appendTrace(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY, 'requestBundleTrace', DOCKER_REQUEST_BUNDLE_TRACE_LIMIT, eventType, details),
+            appendRequestBundleTrace: (eventType, details = {}) => {
+                refreshDiagnostics?.record?.(eventType, details);
+                return appendTrace(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY, 'requestBundleTrace', DOCKER_REQUEST_BUNDLE_TRACE_LIMIT, eventType, details);
+            },
+            markReloadSource: (source) => refreshDiagnostics?.markReloadSource?.(source),
+            recordApiMismatch: (details = {}) => refreshDiagnostics?.recordApiMismatch?.(details),
             collectPageSnapshot,
             queuePageSnapshot,
             getStorageKeys: () => ({
                 dockerPage: DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY,
                 dockerBulkUpdateTrace: DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY,
                 dockerRequestBundleTrace: DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY,
-                dockerTraceHealth: DOCKER_TRACE_HEALTH_STORAGE_KEY
+                dockerTraceHealth: DOCKER_TRACE_HEALTH_STORAGE_KEY,
+                dockerRefreshDiagnostics: refreshDiagnosticsModule?.STORAGE_KEY || 'fv.support.bundle.docker.refreshDiagnostics.v1'
             })
         };
     };
@@ -938,6 +936,7 @@
         DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY,
         DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY,
         DOCKER_TRACE_HEALTH_STORAGE_KEY,
+        DOCKER_REFRESH_DIAGNOSTICS_STORAGE_KEY: refreshDiagnosticsModule?.STORAGE_KEY || 'fv.support.bundle.docker.refreshDiagnostics.v1',
         buildOrderFingerprint,
         createLayoutStabilityTracker,
         createApi

@@ -259,7 +259,7 @@ test('docker advanced popup uses delegated actions instead of inline handlers', 
     assert.match(dockerJs, /class="fv-runtime-action" data-action="console"/);
     assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-action'/);
     assert.match(dockerJs, /const actionMap = new Set\(\['start', 'resume', 'stop', 'pause', 'restart'\]\);/);
-    assert.match(dockerJs, /const refreshTarget = getDockerRuntimeReconcileApi\(\)\?\.getLifecycleRefreshCallbackName\?\.\(\) \|\| 'loadlist';\s*eventControl\(\{ action, container: containerId \}, refreshTarget\);/);
+    assert.match(dockerJs, /const refreshTarget = getDockerRuntimeReconcileApi\(\)\?\.getLifecycleRefreshCallbackName\?\.\(\) \|\| 'loadlist';\s*if \(refreshTarget === 'loadlist'\) getDockerRuntimeDiagnosticsApi\(\)\?\.markReloadSource\?\.\('plugin-action-followup'\);\s*eventControl\(\{ action, container: containerId \}, refreshTarget\);/);
     assert.match(dockerJs, /openTerminal\('docker', actionContainerName, String\(\$link\.attr\('data-shell-value'\)/);
     assert.match(dockerJs, /class="fv-runtime-toggle-info-list" data-show="\.info-ports-more"/);
     assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-toggle-info-list'/);

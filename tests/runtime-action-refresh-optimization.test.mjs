@@ -26,7 +26,7 @@ test('docker runtime actions refresh visible state in place instead of forcing a
     assert.match(dockerJs, /const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches\(snapshot\);/);
     assert.match(dockerJs, /if \(configurationChanged && !preserveGroupedDom\) \{\s*fallbackReason = 'configuration-changed';\s*return false;\s*\}/);
     assert.match(dockerJs, /if \(configurationChanged\) \{[\s\S]*deferredConfigurationRebuild:/);
-    assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\);/);
+    assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true, reloadSource: 'plugin-action-followup' \}\);/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{ followupDelayMs: 650 \}\);/);
     assert.match(dockerRuntimeActionsJs, /const refreshDockerRuntimeState = typeof deps\.refreshDockerRuntimeState === 'function'/);
     assert.match(dockerRuntimeActionsJs, /const armDockerPostUpdateRuntimeReconcileWindow = typeof deps\.armDockerPostUpdateRuntimeReconcileWindow === 'function'/);

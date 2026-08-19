@@ -645,7 +645,6 @@ const normalizeSupportBundleV2Payload = (bundle, privacy = 'sanitized') => {
     ) ? { ...payload.system.request } : {};
     return payload;
 };
-
 const getSupportBundleTelemetryApi = () => {
     if (!supportBundleTelemetryApi && supportBundleTelemetryModule && typeof supportBundleTelemetryModule.createApi === 'function') {
         supportBundleTelemetryApi = supportBundleTelemetryModule.createApi({
@@ -672,6 +671,7 @@ const getSupportBundleTelemetryApi = () => {
                 dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
                 dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
+                dockerRefreshDiagnostics: 'fv.support.bundle.docker.refreshDiagnostics.v1',
                 dashboardLayoutDocker: 'fv.support.bundle.dashboard.layout.docker.v1',
                 dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
                 dashboardVisualDocker: 'fv.support.bundle.dashboard.visual.docker.v1',

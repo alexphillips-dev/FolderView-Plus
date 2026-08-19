@@ -96,6 +96,10 @@ If rows keep refreshing indefinitely:
 4. Export a sanitized support bundle.
 5. Refresh once to stop the stale browser session and include the approximate duration in the report.
 
+Docker diagnostics retain the current session and the five most recent completed sessions. Each summary records only timestamps, duration, exit reason, reload/render/request counts, reload cadence, native-busy passes, and whether folders returned. Full reloads are assigned one privacy-safe source category: initial bootstrap, a manual plugin refresh, a plugin configuration revision, plugin action follow-up, Unraid's native busy poll, a host dialog callback, or an unknown host caller.
+
+The automatic `FVPLUS-DKR-REFRESH-001` verdict is `suspected` after at least three unattended full reloads within 60 seconds and `confirmed` after at least six within 90 seconds. Manual refreshes and host-dialog callbacks do not count toward that verdict. A native busy loop is reported separately with its first/last observation, pass count, duration, cleared state, and folder-restoration outcome.
+
 ### Host List Or View Switching Looks Wrong
 
 Host list should restore one copy of every native Unraid Docker row. FolderView should then rebuild one copy of every saved folder row. If rows duplicate, disappear, or a selection appears to do nothing:
@@ -142,7 +146,9 @@ Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`, then review the s
 
 Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
 
-The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
+The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots. Browser errors keep full details for the current session and the retained last-30-day window; older retained entries are reduced to aggregate counts by category.
+
+Docker support evidence includes recent session summaries, reload-source counts, the refresh-loop verdict, native busy-cycle recovery, and aggregate API identity mismatches. API mismatches record counts and first/last timestamps only. They never include container names or IDs, and they state the `native-structure-authoritative` policy and that an API mismatch did not request a host reload.
 
 To compare two systems without exposing their identities, export sanitized bundles from both and run:
 
@@ -150,7 +156,7 @@ To compare two systems without exposing their identities, export sanitized bundl
 npm run compare:support-bundles -- first-bundle.json second-bundle.json
 ```
 
-The comparator refuses full bundles and reports only allowlisted versions, counts, health/status, rendering geometry, modes, and other bounded troubleshooting fields.
+The comparator refuses full bundles and reports only allowlisted versions, counts, health/status, rendering geometry, modes, and other bounded troubleshooting fields. It compares Docker reload sources, session counts, busy passes, API mismatch counts, refresh verdicts, DOM mutation records, and transferred resource bytes so a recurrence or performance regression is visible without exposing workload identities.
 
 It also includes bounded Dashboard visual-layout snapshots. Its troubleshooting-domain summary keeps layout/rendering evidence separate from configuration, runtime/request, storage, icon, theme, localization, and update findings.
 

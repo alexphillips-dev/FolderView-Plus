@@ -57,6 +57,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const runtimeHierarchyIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
     const runtimeActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.actions.js');
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
+    const refreshDiagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.refresh-diagnostics.js');
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
     const layoutGeometryIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
@@ -80,6 +81,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeHierarchyIndex >= 0, 'docker hierarchy script include is missing');
     assert.ok(runtimeActionsIndex >= 0, 'docker actions script include is missing');
     assert.ok(hostGuardsIndex >= 0, 'docker host guards script include is missing');
+    assert.ok(refreshDiagnosticsIndex >= 0, 'docker refresh diagnostics script include is missing');
     assert.ok(diagnosticsIndex >= 0, 'docker diagnostics script include is missing');
     assert.ok(reconcileIndex >= 0, 'docker reconcile script include is missing');
     assert.ok(commandViewIndex >= 0, 'docker command-view script include is missing');
@@ -108,6 +110,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeHierarchyIndex < runtimeActionsIndex, 'docker hierarchy helpers must load before docker.runtime.actions.js');
     assert.ok(runtimeActionsIndex < hostGuardsIndex, 'docker action helpers must load before docker.runtime.host-guards.js');
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
+    assert.ok(refreshDiagnosticsIndex < diagnosticsIndex, 'Docker refresh diagnostics must load before Docker page diagnostics');
     assert.ok(layoutGeometryIndex >= 0 && layoutGeometryIndex < diagnosticsIndex, 'layout geometry must load before docker diagnostics');
     assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
@@ -169,7 +172,7 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerRuntimeHostGuardsJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeDiagnosticsJs, /^\/\/ @ts-check/m);
     assert.match(dockerRuntimeDiagnosticsJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
-    assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnostics = factory\(fallbackWindow\);/);
+    assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnostics = factory\(fallbackWindow, fallbackWindow\.FolderViewPlusFoundationModules\?\.dockerRefreshDiagnostics\);/);
     assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;/);
     assert.match(dockerRuntimeDiagnosticsJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeReconcileJs, /^\/\/ @ts-check/m);

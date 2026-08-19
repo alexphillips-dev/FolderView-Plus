@@ -106,6 +106,7 @@ test('API merge treats identity-set changes as structural and does not invent ho
 test('coordinator keeps the native host authoritative for API identity-set differences', async () => {
     let runtimeMap = { app: runtimeEntry('app') };
     let structuralRefreshes = 0;
+    const mismatches = [];
     const provider = {
         supports: () => true,
         getCapabilities: () => capabilities,
@@ -118,6 +119,7 @@ test('coordinator keeps the native host authoritative for API identity-set diffe
         },
         getRuntimeMap: () => runtimeMap,
         applyRuntimeMap: (next) => { runtimeMap = next; },
+        onIdentityMismatch: (details) => mismatches.push(details),
         requestStructuralRefresh: () => { structuralRefreshes += 1; }
     });
 
@@ -127,6 +129,8 @@ test('coordinator keeps the native host authoritative for API identity-set diffe
     assert.equal(result.structuralChanged, true);
     assert.equal(repeated.structuralChanged, true);
     assert.equal(structuralRefreshes, 0);
+    assert.equal(mismatches.length, 2);
+    assert.deepEqual(mismatches[0], { providerOnlyCount: 1, runtimeOnlyCount: 0, hostReloadRequested: false });
     assert.equal(Object.hasOwn(runtimeMap, 'new-app'), false);
     coordinator.dispose();
 });
@@ -151,6 +155,28 @@ test('coordinator uses targeted reconciliation and rejects stale work after disp
     assert.equal(coordinator.status().source, 'unraid-graphql-targeted');
     coordinator.dispose();
     assert.equal(coordinator.status().state, 'disposed');
+});
+
+test('targeted API identity misses are diagnostic-only and never request a host reload', async () => {
+    let structuralRefreshes = 0;
+    const mismatches = [];
+    const provider = {
+        supports: () => true,
+        getCapabilities: () => capabilities,
+        listContainers: async () => [apiContainer('app')],
+        reconcileContainer: async () => apiContainer('missing-app')
+    };
+    const coordinator = coordinatorModule.createCoordinator({
+        providerRegistry: { getDefault: () => provider },
+        getRuntimeMap: () => ({ app: runtimeEntry('app') }),
+        onIdentityMismatch: (details) => mismatches.push(details),
+        requestStructuralRefresh: () => { structuralRefreshes += 1; }
+    });
+
+    const result = await coordinator.reconcileContainer('missing-app', { fallback: false });
+    assert.equal(result.structuralChanged, true);
+    assert.equal(structuralRefreshes, 0);
+    assert.deepEqual(mismatches, [{ targeted: true, providerOnlyCount: 1, runtimeOnlyCount: 0, hostReloadRequested: false }]);
 });
 
 test('permission failures disable API retries for the page lifecycle', async () => {

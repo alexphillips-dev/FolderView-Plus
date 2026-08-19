@@ -17,3 +17,9 @@ test('docker queued bootstrap renders replay in place instead of forcing a secon
     assert.match(dockerJs, /const queueCreateFoldersRender = \(\) => \{[\s\S]*?if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}[\s\S]*?\};/);
     assert.doesNotMatch(dockerJs, /const queueCreateFoldersRender = \(\) => \{[\s\S]*?if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}[\s\S]*?\};/);
 });
+
+test('Docker native busy polling keeps host rows authoritative until the busy cycle completes', () => {
+    assert.match(dockerJs, /dockerNativeBusyPollInFlight = getDockerHostGuardsApi\(\)\?\.isNativeBusyPollActive\?\.\(\) === true;/);
+    assert.match(dockerJs, /if \(dockerNativeBusyPollInFlight\) \{[\s\S]*?folderReq = null;[\s\S]*?invokeOriginal\(\);[\s\S]*?return;/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('listview',[\s\S]*?if \(dockerNativeBusyPollInFlight\) \{[\s\S]*?invokeOriginal\(\);[\s\S]*?return;/);
+});

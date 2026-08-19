@@ -5,28 +5,67 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.18.08">
-<!ENTITY md5 "541a9ef0e689515a180c89d1169df79c">
-<!ENTITY sha256 "2708d72a7e3cef66d5511bfb37252bfd1621c82e579e5d94368c5ffcc3335ca9">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.08.19.06">
+<!ENTITY md5 "60c8be921ecc319067726bb9ffda9ccd">
+<!ENTITY sha256 "94d29a56f17577d10242da0fe898eb0cb52a1d9b265ae155532a16d3457b1a59">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.08.18.08
-- Feature: Prefer Unraid GraphQL for Docker runtime-state reconciliation on supported hosts while automatically preserving the established PHP snapshot path for legacy, limited, denied, unavailable, or structurally incompatible API responses.
-- Feature: Show an accessible, channel-aware Update Available link in FolderView Plus Settings that follows dev or stable manifests and opens Unraid's Plugins page for installation.
-- Fix: Keep Docker folders rendering during fresh-install startup when native or third-party container rows omit the status or wrapper markup expected by single-row previews, using the model-based preview as a privacy-safe fallback.
-- Reliability: Add lifecycle ownership, stale-response cancellation, bounded cooldowns, targeted API reads, structural-change fallback, and privacy-safe aggregate diagnostics without exposing container identities or server response details.
-- Test: Replace live-Unraid scheduled validation and encrypted target secrets with deterministic isolated fixtures covering current, legacy, limited, denied, partial, unavailable, rate-limited, schema-drift, and future-native host profiles.
-- UI/UX: Polish the Settings update indicator, responsive typography, README badges, banner presentation, rolling clone-traffic badge, and repository analytics while retaining light, dark, mobile, keyboard, and reduced-motion support.
-- Quality: Expand runtime, browser, localization, privacy, compatibility, packaging, install, release, and workflow coverage for the complete stable promotion.
-- Docs: Update the Wiki-linked repository documentation, API architecture, compatibility boundaries, prerelease qualification, contribution guidance, and release metadata for the API-first rollout.
+###2026.08.19.06
+- Fix: Keep populated Docker folders visible when Hide empty folders removes earlier empty rows and later folders have high saved-order positions.
+- Reliability: Insert folder shells relative to connected rows in the reconciled host order and leave member rows under Unraid ownership if a shell cannot be attached.
+- Diagnostics: Report aggregate successful, fallback, and failed folder-shell insertion counts without exposing folder or container identities.
+- Test: Reproduce the reported 25-folder and 18-container layout with Hide empty folders enabled, disabled, and enabled again across repeated renders.
+
+
+###2026.08.19.05
+- Fix: Restore Docker folder boxes for folders created through the Add Folder wizard when Unraid renders container rows with short container IDs instead of container names.
+- Reliability: Resolve Docker row identities through the normalized runtime container model and preserve deterministic first-folder ownership when rules overlap.
+- Diagnostics: Add privacy-safe aggregate folder-grouping evidence for host-row resolution, claimed members, missing members, rendered folders, and hide-empty removals.
+- Test: Reproduce the reported 25-folder and 18-container layout with manual, regex, label, and advanced-rule membership in unit and browser fixtures.
+
+
+###2026.08.19.04
+- Fix: Stop API container identity differences from recursively scheduling Unraid Docker list reloads and eliminate the resulting 5-7 second Docker-page refresh loop.
+- Fix: Stop blank or unreachable container icon URLs from generating repeated requests by using the local fallback immediately and remembering failed sources across later renders for the current page session.
+- Reliability: Keep Unraid's native Docker/PHP configuration revision authoritative for structural changes, enrich only matching containers through API-first reads, and preserve native rows while Docker is busy.
+- Performance: Replace broad action-followup redraws with incremental runtime reconciliation and remove duplicate deferred support-snapshot scheduling.
+- Diagnostics: Add five-session Docker refresh history, privacy-safe reload-source attribution, busy-cycle recovery, API-mismatch aggregates, browser-error aging, and the `FVPLUS-DKR-REFRESH-001` loop verdict.
+- Diagnostics: Count completed renders by monotonic generation and keep trace-health timestamps current so exported support bundles accurately describe the observed session.
+- Privacy: Keep refresh and API evidence bounded and free of container identities, raw API payloads, GraphQL queries, URLs, tokens, cookies, call stacks, process lists, and syslogs.
+- Test: Validate the stable candidate through complete lint, static analysis, unit, workflow, release, install, deterministic-build, browser, theme, responsive, performance, dependency, Git-integrity, and GitHub security checks.
+
+
+###2026.08.19.03
+- Diagnostics: Count completed Docker renders from the monotonic render generation even when a later runtime-sync snapshot supplies the stored page evidence.
+- Diagnostics: Advance the trace-health top-level timestamp on every trace or page-snapshot write while preserving the other trace sections.
+- Performance: Remove the duplicate Docker page-snapshot timer and keep deferred snapshot scheduling owned by the diagnostics module.
+- Test: Add regression coverage for runtime-sync render attribution, duplicate-generation suppression, timestamp freshness, and single-owner snapshot scheduling.
+- Quality: Complete the full release, workflow, browser, theme, performance, dependency, Git-integrity, and GitHub security audit before the main merge.
+
+
+###2026.08.19.02
+- Diagnostics: Retain up to five bounded Docker-page session summaries with start/end time, duration, exit reason, load/render/request counts, reload cadence, native busy-cycle recovery, and restored-folder evidence.
+- Diagnostics: Classify full Docker reloads by fixed privacy-safe sources and derive `healthy`, `suspected`, or `confirmed` refresh-loop verdicts with reference `FVPLUS-DKR-REFRESH-001`.
+- Reliability: Record API identity differences as aggregate counts only and keep Unraid's native configuration revision authoritative without requesting a host reload from the mismatch path.
+- Diagnostics: Preserve detailed browser-error evidence for the current session and previous 30 days while reducing older retained errors to category counts.
+- Maintenance: Extend sanitized support-bundle comparison to highlight refresh-loop, busy-cycle, API-mismatch, mutation, and transfer regressions.
+- Privacy: Keep Docker refresh diagnostics bounded and free of container names, IDs, raw API payloads, GraphQL queries, URLs, tokens, cookies, process lists, syslogs, and call stacks.
+
+
+###2026.08.19.01
+- Fix: Stop API container identity differences from recursively scheduling Unraid Docker list reloads after every FolderView render.
+- Reliability: Keep Unraid's native Docker/PHP configuration revision path authoritative for structural changes while using GraphQL only to enrich containers already present in the host runtime map.
+- Reliability: Detect Unraid's visible Docker busy-poll cycle and temporarily preserve its native rows instead of rebuilding every folder and preview on each host refresh.
+- Performance: Avoid repeated full runtime request bundles, folder grouping, preview hydration, and DOM replacement during unresolved API identity differences or native Docker service polling.
+- Test: Add coordinator, host busy-indicator, and double-reload regression coverage, then validate the fix through the complete lint/test suite, real-browser fixtures, and large-runtime performance budgets.
 
 
 ###2026.08.18.07
@@ -8619,7 +8658,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

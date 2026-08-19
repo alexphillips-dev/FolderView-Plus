@@ -1,4 +1,4 @@
-const SAFE_KEY = /(version|channel|schema|count|status|health|mode|layout|width|height|viewport|touch|theme|available|enabled|duration|timestamp|checked|source|provider|result|reason|errorcode|severity|category|included|fresh|age|render)/i;
+const SAFE_KEY = /(version|channel|schema|count|status|health|mode|layout|width|height|viewport|touch|theme|available|enabled|duration|timestamp|checked|source|provider|result|reason|errorcode|severity|category|included|fresh|age|render|reload|loadlist|listview|request|busy|cadence|mismatch|folder|mutation|record|resource|transfer|session|verdict|started|ended|exit|bootstrap|manual|revision|followup|poll|caller)/i;
 const SENSITIVE_KEY = /(name|path|url|address|ip|mac|token|cookie|header|agent|identity|uuid|(?:^|_)id$)/i;
 const MAX_DEPTH = 8;
 const MAX_ROWS = 300;

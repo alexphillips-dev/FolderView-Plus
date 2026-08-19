@@ -59,6 +59,7 @@ const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.get
     debug: FOLDER_VIEW_DEBUG_MODE
 }) || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
+const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
 let dockerApiIntegration = null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
@@ -399,6 +400,12 @@ if (!dockerRuntimeColumnControllerModule || typeof dockerRuntimeColumnController
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.column-controller.js', 'ok', 'Docker column controller ready');
 }
+if (!dockerFolderGroupingModule || typeof dockerFolderGroupingModule.createSession !== 'function') {
+    dockerBootstrapMissingModules.push('docker.runtime.folder-grouping.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.folder-grouping.js', 'missing', 'Docker folder grouping unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.folder-grouping.js', 'ok', 'Docker folder grouping ready');
+}
 if (typeof dockerRuntimeShared.createFolderRowActionsController !== 'function') {
     dockerBootstrapMissingModules.push('folder.runtime.row-actions.js');
     setDockerFatalBannerModuleStatus('folder.runtime.row-actions.js', 'missing', 'folder row action lifecycle unavailable');
@@ -519,6 +526,7 @@ markDockerFatalBannerStep('Docker runtime modules resolved');
 let dockerHostGuardsApi = null;
 let dockerRuntimeDiagnosticsApi = null;
 let dockerRuntimeReconcileApi = null;
+let dockerFolderGroupingSession = null;
 const dockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
 const getDockerHostGuardsApi = () => {
     if (!dockerHostGuardsApi && dockerHostGuardsModule && typeof dockerHostGuardsModule.createApi === 'function') {
@@ -1065,7 +1073,8 @@ const getDockerRuntimeDiagnosticsApi = () => {
             resolveExpectedMemberActionToken: (entry = {}) => resolveDockerSupportBundleExpectedMemberActionToken(entry),
             getRuntimeInfoEntry: (containerName) => dockerRuntimeInfoByName?.[containerName] || {},
             getCorrelationContext: () => buildDockerDiagnosticsCorrelationContext(),
-            getLayoutStabilityDiagnostics: () => getDockerRuntimeLayoutStabilitySnapshot()
+            getLayoutStabilityDiagnostics: () => getDockerRuntimeLayoutStabilitySnapshot(),
+            getFolderGroupingDiagnostics: () => dockerFolderGroupingSession?.snapshot?.() || { available: false }
         });
     }
     return dockerRuntimeDiagnosticsApi;
@@ -1144,7 +1153,6 @@ const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
-const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY || 'fv.support.bundle.docker.page.v1';
 const getDockerRuntimePrivacyOptions = (prefs = null) => {
     const normalized = utils.normalizePrefs(prefs || folderTypePrefs || {});
     const dashboard = normalized?.dashboard && typeof normalized.dashboard === 'object' ? normalized.dashboard : {};
@@ -1312,12 +1320,6 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     const resolvedUntil = Math.max(readDockerHostUpdateSyncSuspendedUntil(), nextUntil);
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
-};
-const updateDockerTraceHealth = (traceName, success, details = {}) => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    return diagnosticsApi && typeof diagnosticsApi.updateTraceHealth === 'function'
-        ? diagnosticsApi.updateTraceHealth(traceName, success, details)
-        : false;
 };
 const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
@@ -1951,6 +1953,7 @@ const buildDockerTooltipContent = (ct) => {
         const actionMap = new Set(['start', 'resume', 'stop', 'pause', 'restart']);
         if (actionMap.has(action) && containerId) {
             const refreshTarget = getDockerRuntimeReconcileApi()?.getLifecycleRefreshCallbackName?.() || 'loadlist';
+            if (refreshTarget === 'loadlist') getDockerRuntimeDiagnosticsApi()?.markReloadSource?.('plugin-action-followup');
             eventControl({ action, container: containerId }, refreshTarget);
             return;
         }
@@ -3848,7 +3851,7 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
         applyPrefs: (prefs) => applyRuntimePrefs(prefs),
         savePrefs: saveDockerRuntimeToolbarPrefs,
         refreshRuntimeView: () => {
-            queueLoadlistRefresh({ suppressLoadingUi: true });
+            queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'manual-host-refresh' });
             return Promise.resolve();
         },
         getFolders: () => globalFolders || {},
@@ -4722,7 +4725,8 @@ const createFolders = async () => {
         containersInfo = { ...dockerRuntimeInfoByName };
     }
     folders = reconcileDockerMemberIdentities(folders, containersInfo);
-    let order = readDockerHostOrderFromDom();
+    dockerFolderGroupingSession = dockerFolderGroupingModule.createSession({ document, containersInfo });
+    let order = dockerFolderGroupingSession.readOrder();
     let prefsResponse = {};
     try {
         prefsResponse = prom[3] ? JSON.parse(prom[3]) : {};
@@ -4830,8 +4834,6 @@ const createFolders = async () => {
         if (container && folderRegex.test(container)) {
             let id = container.replace(folderRegex, '');
             if (folders[id]) {
-                // Pass 'order' (the live array) to createFolder.
-                // 'position' is the current 'key' (index of the folder placeholder in the 'order' array).
                 const removedCount = createFolder(
                     folders[id],
                     id,
@@ -4850,14 +4852,11 @@ const createFolders = async () => {
     }
     dockerPerf.end('createFolders.renderOrdered', { orderedEntries: order.length });
 
-    // Draw the foldes outside of the order
     dockerPerf.begin('createFolders.renderRemaining');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
-    // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
-        // Add the folder on top of the array
         order.unshift(`folder-${id}`);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Unshifted folder-${id} to order. New order:`, [...order]);
         createFolder(
@@ -5083,7 +5082,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const advanced = $.cookie('docker_listview_mode') == 'advanced';
 
-    // --- Correctly build combinedContainers ---
     const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
     const originalContainersFromDefinition = precomputed
         ? (Array.isArray(precomputed.explicit) ? [...precomputed.explicit] : [])
@@ -5132,7 +5130,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             type: 'docker'
         });
     ruleMatches.forEach(pushCombined);
-
     if (FOLDER_VIEW_DEBUG_MODE) {
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by folder label ('${folder.name}'):`, labelMatches);
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by auto rules:`, ruleMatches);
@@ -5146,8 +5143,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         && Number.isFinite(lazyPreviewThreshold)
         && combinedContainers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
-    // --- End of combinedContainers build ---
-
+    dockerFolderGroupingSession?.beginFolder?.(id, precomputed || {}, combinedContainers.length);
     const colspan = document.querySelector("#docker_containers > thead > tr").childElementCount - 5;
     const hoverClass = folder.settings.preview_hover && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : '';
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
@@ -5164,32 +5160,21 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" data-fvplus-style="fv-u-569beu"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced${advancedVisibleClass}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced${advancedVisibleClass}"><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" data-fvplus-style="fv-u-sfjn3c"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" data-fvplus-style="fv-u-uydnfn"><div data-fvplus-style="fv-u-1gl0zeh"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
-    if (positionInMainOrder === 0) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position 0 (before).`);
-        $('#docker_list > tr.sortable').eq(0).before($(fld)); // Always eq(0) for 'before' the first sortable
-    } else {
-        // Find the actual DOM element that is currently at positionInMainOrder - 1 in the *visible sortable list*
-        // This needs to be robust to items already having been moved.
-        // A safer bet is to find the *last processed item* or *first non-folder item* if the folder is inserted later.
-        // For now, using the direct index, assuming other sortables are still in place.
-        if ($('#docker_list > tr.sortable').length > 0 && positionInMainOrder > 0) {
-             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position ${positionInMainOrder} (after eq ${positionInMainOrder-1} of current sortables).`);
-             $('#docker_list > tr.sortable').eq(positionInMainOrder - 1).after($(fld));
-        } else if ($('#docker_list > tr.sortable').length === 0 && positionInMainOrder === 0) {
-            // If no sortables exist yet (e.g., first folder, all others are new)
-             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No sortables found, inserting folder at the beginning of #docker_list.`);
-            $('#docker_list').prepend($(fld));
-        } else {
-             if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Could not determine insertion point for folder. Position: ${positionInMainOrder}, Sortables count: ${$('#docker_list > tr.sortable').length}`);
-             // Fallback: append to the list if other logic fails
-             $('#docker_list').append($(fld));
-        }
+    const $createdFolderRow = $(fld);
+    const shellInsertion = dockerFolderGroupingSession.insertFolderRow(
+        id,
+        $createdFolderRow.get(0),
+        positionInMainOrder,
+        liveOrderArray
+    );
+    if (!shellInsertion.inserted) {
+        dockerFolderGroupingSession.finishFolder(id, { renderedMemberCount: 0, removedByHideEmpty: false });
+        if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Folder shell insertion failed; member rows were left under host ownership.`);
+        return remBefore;
     }
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Folder shell inserted with strategy ${shellInsertion.strategy}.`);
     const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
     const depthIndentPx = safeDepth * 20;
-    const $createdFolderRow = $('#docker_list > tr.folder[data-fv-folder-id]')
-        .filter((_, element) => String(element.getAttribute('data-fv-folder-id') || '') === id)
-        .first();
     dockerFolderRowActionsController.decorate($createdFolderRow, id);
     $createdFolderRow
         .attr('data-folder-depth', String(safeDepth))
@@ -5313,7 +5298,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let newFolder = {};
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized newFolder for processed containers.`);
 
-    // Preserve the saved folder order index in lifecycle event details for host integrations.
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order: orderSnapshotAtFolderStart,
         completedFolderIds: foldersDone,
@@ -5344,8 +5328,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Original index ${originalIndexOfContainerInSnapshot} < folder position ${positionInMainOrder}. Incremented remBefore to ${remBefore}.`);
         }
 
-        let $containerTR = $(document.getElementById(`ct-${container_name_in_folder}`));
-        if (!$containerTR.length || !$containerTR.hasClass('sortable')) {
+        let $containerTR = dockerFolderGroupingSession
+            ? $(dockerFolderGroupingSession.claim(id, container_name_in_folder))
+            : $(document.getElementById(`ct-${container_name_in_folder}`));
+        if (!dockerFolderGroupingSession && (!$containerTR.length || !$containerTR.hasClass('sortable'))) {
             if(FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: TR not found by ID or not sortable. Fallback search...`);
             $containerTR = $("#docker_list > tr.sortable").filter(function() {
                 return $(this).find("td.ct-name .appname").text().trim() === container_name_in_folder;
@@ -5923,7 +5909,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         folder.settings?.folder_update_highlight === true && upToDate === false
     );
     const total = Object.entries(folder.containers).length;
-    if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
+    const removedByHideEmpty = folderTypePrefs?.hideEmptyFolders === true && total === 0;
+    dockerFolderGroupingSession?.finishFolder?.(id, { renderedMemberCount: total, removedByHideEmpty });
+    if (removedByHideEmpty) {
         $(`tr.folder-id-${id}`).remove();
         $(`tr#name-${id}`).remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): hideEmptyFolders enabled, removed empty folder row.`);
@@ -7085,17 +7073,21 @@ const addDockerFolderContext = (id) => {
     opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
-
     context.attach('#' + id, opts);
     queueDockerFolderContextQuickIcons();
     queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };
-
 // Route Unraid host lifecycle hooks through the shared adapter while retaining legacy aliases.
 getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
+    if (dockerNativeBusyPollInFlight) {
+        appendDockerRequestBundleTrace('listview', { nativeBusyActive: true, reloadSource: 'unraid-native-busy-poll' });
+        dockerNativeBusyPollInFlight = false;
+        if (typeof window.listview_original === 'function') invokeOriginal();
+        return;
+    }
     appendDockerRequestBundleTrace('listview', {
         currentPage: String(location?.pathname || ''),
         loadedFolder: loadedFolder === true,
@@ -7108,7 +7100,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.error('[FV3_DEBUG] Patched listview: window.listview_original is not a function!');
     }
-
     if (!loadedFolder) {
         dockerHostLoadOwnsLoadingUi = true;
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
@@ -7130,13 +7121,20 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     missingMessage: 'Docker host listview hook was unavailable during bootstrap.',
     missingDetails: ['window.listview was not a function when FolderView Plus initialized.']
 });
-
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
     bindDockerContainerContextStatePatch();
     bindDockerListViewModeCookieHook();
+    dockerNativeBusyPollInFlight = getDockerHostGuardsApi()?.isNativeBusyPollActive?.() === true;
+    if (dockerNativeBusyPollInFlight) {
+        appendDockerRequestBundleTrace('loadlist', { nativeBusyActive: true, reloadSource: 'unraid-native-busy-poll' });
+        loadedFolder = true;
+        folderReq = null;
+        if (typeof window.loadlist_original === 'function') invokeOriginal();
+        return;
+    }
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
@@ -7147,7 +7145,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     });
     folderReq = ensureDockerFolderReqForHostRender();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
-
     if (typeof window.loadlist_original === 'function') {
         invokeOriginal();
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Called original loadlist.');
@@ -7162,7 +7159,6 @@ getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     missingMessage: 'Docker host loadlist hook was unavailable during bootstrap.',
     missingDetails: ['window.loadlist was not a function when FolderView Plus initialized.']
 });
-
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 const applyDockerSettingsPinSyncPayload = (payload) => {
@@ -7175,7 +7171,7 @@ const applyDockerSettingsPinSyncPayload = (payload) => {
         syncDockerPinnedFolderUi();
         return;
     }
-    queueLoadlistRefresh({ suppressLoadingUi: true });
+    queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-config-revision' });
 };
 const bindDockerSettingsPinSyncListener = () => {
     window.addEventListener('storage', (event) => {
@@ -7341,6 +7337,7 @@ let dockerBootstrapPrefsPromise = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
+let dockerNativeBusyPollInFlight = false;
 let lastLiveRefreshStateSignature = '';
 let lastLiveRefreshStateEntityCount = 0;
 let lastDockerRuntimeSnapshotToken = '';
@@ -7369,18 +7366,6 @@ let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(fol
     itemCount: 0
 });
 
-const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    const writeOk = diagnosticsApi && typeof diagnosticsApi.writeSupportBundleStorageRecord === 'function'
-        ? diagnosticsApi.writeSupportBundleStorageRecord(storageKey, value)
-        : false;
-    if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
-        updateDockerTraceHealth('pageSnapshot', writeOk, {
-            reason: String(value?.reason || '').trim() || 'runtime-sync'
-        });
-    }
-    return writeOk;
-};
 const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.resolveDockerMemberUpdateState === 'function') {
@@ -7410,15 +7395,6 @@ const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
     return 'unknown';
 };
 
-const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
-    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
-    return diagnosticsApi && typeof diagnosticsApi.collectPageSnapshot === 'function'
-        ? diagnosticsApi.collectPageSnapshot(reason)
-        : null;
-};
-
-let dockerSupportBundlePageSnapshotWriteTimer = null;
-let dockerSupportBundlePageSnapshotPendingReason = '';
 const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
     if (!(diagnosticsApi && typeof diagnosticsApi.queuePageSnapshot === 'function')) {
@@ -7430,19 +7406,6 @@ const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs =
         ? Math.max(safeDelay, 1200)
         : safeDelay;
     diagnosticsApi.queuePageSnapshot(safeReason, offCriticalPathDelay);
-    dockerSupportBundlePageSnapshotPendingReason = safeReason;
-    if (dockerSupportBundlePageSnapshotWriteTimer) {
-        clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
-    }
-    dockerSupportBundlePageSnapshotWriteTimer = window.setTimeout(() => {
-        dockerSupportBundlePageSnapshotWriteTimer = null;
-        const snapshotReason = dockerSupportBundlePageSnapshotPendingReason || safeReason;
-        dockerSupportBundlePageSnapshotPendingReason = '';
-        const snapshot = collectDockerSupportBundlePageSnapshot(snapshotReason);
-        if (snapshot) {
-            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
-        }
-    }, offCriticalPathDelay);
 };
 const bindDockerUpdateActionClickCapture = () => {
     getDockerRuntimeReconcileApi()?.bindUpdateActionClickCapture?.();
@@ -7463,6 +7426,7 @@ const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) =
 
 const shouldSuppressDockerRuntimeLoadingUi = () => dockerHostLoadOwnsLoadingUi || nextDockerRenderSuppressLoadingUi || activeDockerRenderSuppressLoadingUi;
 const queueLoadlistRefresh = (options = {}) => {
+    getDockerRuntimeDiagnosticsApi()?.markReloadSource?.(options?.reloadSource || 'plugin-action-followup');
     const normalizedOptions = {
         suppressLoadingUi: options?.suppressLoadingUi === true
     };
@@ -7492,14 +7456,12 @@ const queueLoadlistRefresh = (options = {}) => {
         loadlist();
     }, delayMs);
 };
-
 const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), options = {}) => {
     const liveUpdateQuery = mode === 'state' && options?.liveUpdateStatus === true
         ? '&liveupdate=1'
         : '';
     return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}${liveUpdateQuery}&nocache=1&_=${cacheBust || Date.now()}`;
 };
-
 const rememberDockerRuntimeSnapshot = (snapshot) => {
     if (snapshot?.snapshotToken) {
         lastDockerRuntimeSnapshotToken = String(snapshot.snapshotToken);
@@ -7511,7 +7473,6 @@ const rememberDockerRuntimeSnapshot = (snapshot) => {
         };
     }
 };
-
 const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
     if (!lastDockerRuntimeSnapshotToken || !snapshot?.revisions) {
         return true;
@@ -7531,7 +7492,8 @@ const getDockerApiIntegration = () => {
                 return true;
             },
             onStatus: (status) => dockerHostCompatibilityController?.updateProviderEvidence?.({ provider: { apiRead: status } }),
-            requestStructuralRefresh: () => queueLoadlistRefresh({ suppressLoadingUi: true }),
+            onIdentityMismatch: (details) => getDockerRuntimeDiagnosticsApi()?.recordApiMismatch?.(details),
+            requestStructuralRefresh: (details = {}) => queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: details?.reason === 'config-revision-changed' ? 'plugin-config-revision' : 'plugin-action-followup' }),
             readConfigSnapshot: async () => runtimeSnapshotApi?.parsePayload?.(await pluginRequestClient.getJson(
                 runtimeSnapshotApi.buildUrl('docker', 'config', { forceRefresh: false }), { cache: false })),
             isConfigCurrent: dockerRuntimeSnapshotConfigMatches,
@@ -7559,7 +7521,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             });
             return;
         }
-        queueLoadlistRefresh({ suppressLoadingUi: true });
+        queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-action-followup' });
     };
     const applyStatePayload = async () => {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
@@ -7654,7 +7616,6 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
         });
     }
 };
-
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     if (options?.apiFirst !== false) {
         try {
@@ -7665,7 +7626,6 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     }
     return refreshDockerRuntimeStateFromPhp({ ...options, apiFirst: false });
 };
-
 const readDockerHostOrderFromDom = () => {
     const order = [];
     document.querySelectorAll('#docker_list > tr.sortable').forEach((row) => {
@@ -8007,7 +7967,6 @@ window.addEventListener('pagehide', () => {
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dockerPinnedFolderServerReconcileTimer);
     clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
-    clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
     clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
     dockerFolderRowActionsController.destroy();
     dockerRuntimeColumnControllerApi.dispose();

@@ -76,7 +76,7 @@ test('view and empty-folder preference changes use the immediate conflict-safe s
     assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker', patch, \{[\s\S]*currentPrefs,[\s\S]*immediate: true/);
     assert.match(actionBarJs, /savePrefs\(\{ pageViewMode: normalizedMode \}, nextPrefs\)/);
     assert.match(actionBarJs, /savePrefs\(\{ hideEmptyFolders \}, nextPrefs\)/);
-    assert.match(dockerJs, /refreshRuntimeView: \(\) => \{[\s\S]*queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\)/);
+    assert.match(dockerJs, /refreshRuntimeView: \(\) => \{[\s\S]*queueLoadlistRefresh\(\{ suppressLoadingUi: true, reloadSource: 'manual-host-refresh' \}\)/);
     assert.match(actionBarJs, /await refreshRuntimeView\(\)/);
     assert.doesNotMatch(actionBarJs, /queueRuntimeRender/);
     assert.match(dockerJs, /const requestBundle = ensureDockerFolderReqForHostRender\(\{[\s\S]*forceRefresh: options\?\.forceRefresh === true/);

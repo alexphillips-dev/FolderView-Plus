@@ -41,3 +41,40 @@ test('comparator refuses full or unmanifested bundles', () => {
         /redaction manifest/
     );
 });
+
+test('comparator includes refresh-loop, busy, API mismatch, mutation, and transfer regressions', () => {
+    const telemetry = (loadlist, mutationRecords, transferBytes, status) => ({
+        dockerDiagnostics: {
+            refreshDiagnostics: {
+                verdict: { status, fullReloads: loadlist, renders: loadlist },
+                totals: { loadlist, listview: loadlist, requests: loadlist },
+                apiMismatch: { observedCount: loadlist, providerOnlyCount: 0, runtimeOnlyCount: loadlist },
+                nativeBusy: { passCount: loadlist, cycleCount: 1 },
+                completedSessions: Array.from({ length: loadlist }, () => ({ privateName: 'ui-private' }))
+            }
+        },
+        runtimePerformance: {
+            surfaces: {
+                docker: {
+                    workload: {
+                        mutations: { records: mutationRecords },
+                        resources: { transferBytes }
+                    }
+                }
+            }
+        }
+    });
+    const report = compareSanitizedSupportBundles(
+        bundle({ uiTelemetry: telemetry(1, 100, 2048, 'healthy') }),
+        bundle({ uiTelemetry: telemetry(7, 8000, 1048576, 'confirmed') })
+    );
+    const paths = new Set(report.differences.map((row) => row.path));
+    assert.equal(paths.has('uiTelemetry.dockerDiagnostics.refreshDiagnostics.verdict.status'), true);
+    assert.equal(paths.has('uiTelemetry.dockerDiagnostics.refreshDiagnostics.totals.loadlist'), true);
+    assert.equal(paths.has('uiTelemetry.dockerDiagnostics.refreshDiagnostics.apiMismatch.observedCount'), true);
+    assert.equal(paths.has('uiTelemetry.dockerDiagnostics.refreshDiagnostics.nativeBusy.passCount'), true);
+    assert.equal(paths.has('uiTelemetry.dockerDiagnostics.refreshDiagnostics.completedSessions[]#count'), true);
+    assert.equal(paths.has('uiTelemetry.runtimePerformance.surfaces.docker.workload.mutations.records'), true);
+    assert.equal(paths.has('uiTelemetry.runtimePerformance.surfaces.docker.workload.resources.transferBytes'), true);
+    assert.doesNotMatch(JSON.stringify(report), /ui-private/);
+});

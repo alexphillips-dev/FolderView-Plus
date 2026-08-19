@@ -8,7 +8,7 @@
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
       "scripts/folderviewplus.js": { "limit": 11793, "target": 1200, "history": [12092, 11793] },
-      "scripts/docker.js": { "limit": 8028, "target": 1000, "history": [8839, 8045, 8028] },
+      "scripts/docker.js": { "limit": 7986, "target": 1000, "history": [8839, 8045, 8028, 7986] },
       "server/lib.php": { "limit": 2649, "target": 400, "history": [7556, 2649] },
       "scripts/folder.js": { "limit": 4773, "target": 700, "history": [5522, 4773] },
       "scripts/folderviewplus.wizard.js": { "limit": 4165, "target": 500, "history": [4849, 4165] },
@@ -75,7 +75,7 @@
       "scripts/runtime.transport.js": { "limit": 499, "target": 499, "history": [1060, 499] },
       "scripts/folderviewplus.bulk-assignment.js": { "limit": 1023, "target": 500, "history": [1023] },
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
-      "scripts/docker.runtime.diagnostics.js": { "limit": 946, "target": 500, "history": [946] },
+      "scripts/docker.runtime.diagnostics.js": { "limit": 945, "target": 500, "history": [946, 945] },
       "scripts/folderviewplus.theme-resolver.js": { "limit": 930, "target": 700, "history": [930] },
       "scripts/folderviewplus.theme-surface.js": { "limit": 113, "target": 100, "history": [113] },
       "scripts/folderviewplus.diagnostics-actions.js": { "limit": 176, "target": 160, "history": [176] },
@@ -103,7 +103,8 @@
       "scripts/folderviewplus.wizard-review.js": { "limit": 322, "target": 280, "history": [322] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.capabilities.js": { "limit": 77, "target": 70, "history": [77] },
-      "scripts/docker.runtime.api-coordinator.js": { "limit": 453, "target": 420, "history": [453] },
+      "scripts/docker.runtime.api-coordinator.js": { "limit": 433, "target": 420, "history": [453, 433] },
+      "scripts/docker.runtime.refresh-diagnostics.js": { "limit": 263, "target": 250, "history": [263] },
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
       "styles/folderviewplus.css": { "limit": 14477, "target": 14477, "history": [14489, 14477] },
@@ -144,7 +145,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -642,11 +643,23 @@
       "owner": "declarative-action-runtime",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
       "stateModel": "singleton",
-      "dependsOn": [],
+      "dependsOn": ["scripts/runtime.image-fallbacks.js"],
       "compatibilityGlobals": ["FolderViewPlusCspEvents", "FolderViewPlusCspEventsInstalled"],
       "global": "FolderViewPlusCspEvents",
       "loader": "window",
       "exports": ["allowedHandlers", "execute", "getAction", "install", "parseArgument", "registerActions", "resolveAction", "snapshot", "splitTopLevel", "supportedEvents", "unregisterOwner"]
+    },
+    {
+      "file": "scripts/runtime.image-fallbacks.js",
+      "owner": "shared-image-fallback-cache",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
+      "stateModel": "singleton",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "imageFallbacks",
+      "loader": "commonjs",
+      "exports": ["has", "record", "snapshot"]
     },
     {
       "file": "scripts/folderviewplus.actions-support.js",
@@ -875,6 +888,22 @@
       "exports": ["normalizeName", "deepFreeze", "normalizePort", "normalizeMount", "normalizeContainer", "identityTokens", "resolveContainerIdentity", "mergeContainers"]
     },
     {
+      "file": "scripts/docker.runtime.folder-grouping.js",
+      "owner": "docker-runtime-grouping",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerFolderGrouping",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["normalizeToken", "buildIdentityIndex", "readRowCandidates", "createSession"],
+      "lifecycleFactories": [
+        { "name": "createSession", "exports": ["readOrder", "beginFolder", "insertFolderRow", "claim", "finishFolder", "snapshot"] }
+      ]
+    },
+    {
       "file": "scripts/docker.runtime.capabilities.js",
       "owner": "docker-runtime-capabilities",
       "consumers": ["docker", "dashboard"],
@@ -915,6 +944,22 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["readNodeGeometry", "compareGeometry"]
+    },
+    {
+      "file": "scripts/docker.runtime.refresh-diagnostics.js",
+      "owner": "docker-runtime-diagnostics",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerRefreshDiagnostics",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["STORAGE_KEY", "SESSION_LIMIT", "SOURCE_VALUES", "buildOrderFingerprint", "buildVerdict", "createTracker"],
+      "lifecycleFactories": [
+        { "name": "createTracker", "exports": ["record", "recordPageSnapshot", "recordApiMismatch", "markReloadSource", "snapshot", "dispose"] }
+      ]
     },
     {
       "file": "scripts/docker.runtime.provider-health.js",

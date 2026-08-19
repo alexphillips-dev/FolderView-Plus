@@ -23,7 +23,7 @@
     const DIAGNOSTIC_REQUEST_LIMIT = 16;
     const DIAGNOSTIC_STEP_LIMIT = 10;
     const DIAGNOSTIC_ACTION_LIMIT = 10;
-    const BROWSER_ERROR_LIMIT = 30;
+    const BROWSER_ERROR_LIMIT = 200;
     const MODULE_EVENT_LIMIT = 80;
     const RECOVERY_ATTEMPT_LIMIT = 8;
     const browserErrorSessionStartedAt = new Date().toISOString();

@@ -382,7 +382,7 @@
         const collectLoadedAssetTelemetry = browserCollectors?.collectLoadedAssetTelemetry || (() => ({ count: 0, entries: [] }));
         const collectBrowserConsoleErrors = browserCollectors?.collectBrowserConsoleErrors || (() => ({
             storageKey: 'fv.support.bundle.consoleErrors.v1',
-            maxEntries: 30,
+            maxEntries: 200,
             count: 0,
             entries: []
         }));
@@ -551,7 +551,8 @@
                 pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
                 bulkUpdateTrace: collectDockerBulkUpdateTrace(uiRedactor),
                 requestBundleTrace: collectDockerRequestBundleTrace(uiRedactor),
-                traceHealth: collectDockerTraceHealth(uiRedactor)
+                traceHealth: collectDockerTraceHealth(uiRedactor),
+                refreshDiagnostics: browserCollectors?.collectDockerRefreshDiagnostics?.(uiRedactor) || { available: false }
             };
             existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
             existingUiTelemetry.dashboardVisual = collectDashboardVisualDiagnostics(uiRedactor, {

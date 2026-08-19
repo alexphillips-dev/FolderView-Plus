@@ -7,7 +7,8 @@
     root.FolderViewPlusSupportBundleBrowserModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const CONSOLE_ERROR_STORAGE_KEY = 'fv.support.bundle.consoleErrors.v1';
-    const CONSOLE_ERROR_LIMIT = 30;
+    const CONSOLE_ERROR_LIMIT = 200;
+    const CONSOLE_ERROR_RECENT_MS = 30 * 24 * 60 * 60 * 1000;
     const DASHBOARD_VISUAL_STALE_AFTER_MS = 30 * 60 * 1000;
     const clientStorageIsAvailable = (kind) => {
         try {
@@ -217,7 +218,7 @@
                     entries: Array.isArray(fallbackStorage) ? fallbackStorage : []
                 };
             const sessionId = String(snapshot.sessionId || '').trim();
-            const entries = (Array.isArray(snapshot.entries) ? snapshot.entries : [])
+            const retainedEntries = (Array.isArray(snapshot.entries) ? snapshot.entries : [])
                 .slice(-CONSOLE_ERROR_LIMIT)
                 .map((entry) => {
                     const safeEntry = entry && typeof entry === 'object' && !Array.isArray(entry) ? entry : {};
@@ -228,15 +229,29 @@
                         currentSession: safeEntry.currentSession === true || Boolean(sessionId && entrySessionId === sessionId)
                     };
                 });
-            const timestamps = entries
+            const timestamps = retainedEntries
                 .map((entry) => String(entry.at || '').trim())
                 .filter(Boolean)
                 .sort();
-            const currentSessionCount = entries.filter((entry) => entry.currentSession === true).length;
+            const currentSessionCount = retainedEntries.filter((entry) => entry.currentSession === true).length;
+            const nowMs = Number.isFinite(Number(options.nowMs)) ? Number(options.nowMs) : Date.now();
+            const recentCutoff = nowMs - CONSOLE_ERROR_RECENT_MS;
+            const entries = retainedEntries.filter((entry) => entry.currentSession === true || Date.parse(String(entry.at || '')) >= recentCutoff);
+            const olderEntries = retainedEntries.filter((entry) => {
+                const observedAt = Date.parse(String(entry.at || ''));
+                return entry.currentSession !== true && Number.isFinite(observedAt) && observedAt < recentCutoff;
+            });
+            const olderByCategory = {};
+            olderEntries.forEach((entry) => {
+                const category = String(entry.category || 'unknown').trim() || 'unknown';
+                olderByCategory[category] = Math.max(0, Number(olderByCategory[category]) || 0) + 1;
+            });
+            const unknownAgeCount = retainedEntries.filter((entry) => !Number.isFinite(Date.parse(String(entry.at || '')))).length;
             return {
                 storageKey: String(snapshot.storageKey || CONSOLE_ERROR_STORAGE_KEY),
                 maxEntries: Number.isFinite(Number(snapshot.maxEntries)) ? Number(snapshot.maxEntries) : CONSOLE_ERROR_LIMIT,
                 count: entries.length,
+                retainedCount: retainedEntries.length,
                 collectionPluginVersion: String(
                     snapshot.collectionPluginVersion || options.pluginVersion || 'unknown'
                 ).trim() || 'unknown',
@@ -245,7 +260,12 @@
                 sessionId: sessionId || null,
                 sessionStartedAt: String(snapshot.sessionStartedAt || '').trim() || null,
                 currentSessionCount,
-                historicalCount: Math.max(0, entries.length - currentSessionCount),
+                last30DaysCount: entries.filter((entry) => entry.currentSession !== true).length,
+                historicalCount: Math.max(0, retainedEntries.length - currentSessionCount),
+                olderCount: olderEntries.length,
+                unknownAgeCount,
+                olderByCategory,
+                detailsScope: 'current-session-and-last-30-days',
                 entries
             };
         };
@@ -316,6 +336,16 @@
                 return { available: false };
             }
             return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.traceHealth', 'traceHealth', {
+                available: true,
+                ...record
+            });
+        };
+        const collectDockerRefreshDiagnostics = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerRefreshDiagnostics || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.refreshDiagnostics', 'refreshDiagnostics', {
                 available: true,
                 ...record
             });
@@ -491,6 +521,7 @@
             collectDockerBulkUpdateTrace,
             collectDockerRequestBundleTrace,
             collectDockerTraceHealth,
+            collectDockerRefreshDiagnostics,
             collectDashboardLayoutDiagnostics,
             collectDashboardVisualDiagnostics,
             collectRuntimePageDiagnostics,
@@ -504,6 +535,7 @@
         clientStorageIsAvailable,
         CONSOLE_ERROR_STORAGE_KEY,
         CONSOLE_ERROR_LIMIT,
+        CONSOLE_ERROR_RECENT_MS,
         DASHBOARD_VISUAL_STALE_AFTER_MS
     });
 }));

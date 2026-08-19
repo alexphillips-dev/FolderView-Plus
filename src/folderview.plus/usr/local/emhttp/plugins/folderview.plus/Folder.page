@@ -77,7 +77,7 @@ try {
     ];
 }
 ?>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.image-fallbacks.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
 <?php emitJsonBootstrapMeta('fvplus-folder-editor-context', [
     'pageType' => $folderEditorPageType,

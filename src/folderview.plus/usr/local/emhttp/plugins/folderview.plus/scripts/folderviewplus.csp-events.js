@@ -34,7 +34,6 @@
     const supportedEvents = ['click', 'change', 'input', 'keydown', 'submit', 'error'];
     const actionRecords = new Map();
     const actionNamePattern = /^[A-Za-z_$][\w$]*$/;
-
     const normalizeOwner = (value) => {
         const owner = String(value || '').trim();
         if (!owner) {
@@ -204,6 +203,7 @@
             if (!fallback.startsWith('/') || fallback.startsWith('//')) {
                 throw new Error('Unsafe image fallback path.');
             }
+            win?.FolderViewPlusFoundationModules?.imageFallbacks?.record?.(element?.getAttribute?.('src'));
             if (element?.dataset?.fvplusFallbackApplied === 'true' || element?.getAttribute?.('src') === fallback) {
                 return { returned: false, value: undefined };
             }

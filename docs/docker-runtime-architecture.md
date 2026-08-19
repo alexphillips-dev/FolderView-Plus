@@ -16,7 +16,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Owns dynamic capability-path checks, unavailable/legacy snapshots, provider accessors, and privacy-safe compatibility evidence mapping.
 - `scripts/docker.runtime.api-coordinator.js`
   - Owns API-first list and targeted reconciliation for the legacy Docker renderer.
-  - Merges only schema-confirmed runtime fields into the PHP-authoritative identity/metadata map, serializes requests, rejects stale work, schedules structural host refreshes, and applies permanent/transient failure policy.
+  - Merges only schema-confirmed runtime fields into the PHP-authoritative identity/metadata map, serializes requests, rejects stale work, schedules structural host refreshes only for verified configuration revisions, and applies permanent/transient failure policy.
 - `scripts/docker.runtime.container-model.js`
   - Normalizes GraphQL, PHP runtime, and DOM fallback records into one immutable container contract.
 - `scripts/docker.runtime.provider-health.js`
@@ -27,6 +27,10 @@ This document tracks the staged modularization of `docker.js` while preserving U
 - `scripts/docker.runtime.column-controller.js`
   - Owns Docker app-column measurement, cached-width bootstrap, gap enforcement, reflow scheduling, theme/viewport/font hooks, resizer observation, and teardown.
   - Receives runtime state and host dependencies from `docker.js`; it does not own Docker rows, preferences, or render orchestration.
+- `scripts/docker.runtime.refresh-diagnostics.js`
+  - Owns bounded, privacy-safe Docker session summaries, reload-source attribution, native busy-cycle evidence, API mismatch aggregates, and the automatic refresh-loop verdict.
+  - Counts completed renders by monotonic render generation, while `docker.runtime.diagnostics.js` remains the single owner of deferred page-snapshot scheduling.
+  - Retains five completed sessions and never stores container names, identifiers, API payloads, URLs, call stacks, or host process details.
 - `scripts/runtime.folder-ordering.js`
   - Owns deterministic folder depth, saved-order slot replacement, and Docker order reconciliation shared by Docker, VM, and Dashboard.
   - Preserves live folder-slot order for the default created mode while applying explicit sort and pin preferences consistently.

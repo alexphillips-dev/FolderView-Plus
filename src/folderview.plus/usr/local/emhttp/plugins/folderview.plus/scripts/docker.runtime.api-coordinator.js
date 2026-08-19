@@ -155,10 +155,8 @@
         const requestLegacyFallback = typeof deps.requestLegacyFallback === 'function'
             ? deps.requestLegacyFallback
             : async () => false;
-        const requestStructuralRefresh = typeof deps.requestStructuralRefresh === 'function'
-            ? deps.requestStructuralRefresh
-            : () => {};
         const onStatus = typeof deps.onStatus === 'function' ? deps.onStatus : () => {};
+        const onIdentityMismatch = typeof deps.onIdentityMismatch === 'function' ? deps.onIdentityMismatch : () => {};
         let disposed = false;
         let generation = 0;
         let inFlight = null;
@@ -232,13 +230,6 @@
             cooldownUntil = now() + TRANSIENT_COOLDOWNS_MS[index];
             publishStatus();
         };
-        const scheduleStructuralRefresh = (details) => {
-            if (structuralRefreshPending || disposed) return;
-            structuralRefreshPending = true;
-            Promise.resolve().then(() => requestStructuralRefresh(details)).finally(() => {
-                structuralRefreshPending = false;
-            });
-        };
         const run = (work) => {
             if (inFlight) return inFlight;
             const currentGeneration = ++generation;
@@ -257,11 +248,7 @@
             if (disposed || options.generation !== generation) return { applied: false, stale: true };
             const merged = mergeProviderContainers(getRuntimeMap(), containers, capabilitySnapshot());
             if (merged.structuralChanged) {
-                scheduleStructuralRefresh({
-                    reason: 'api-identity-set-changed',
-                    providerOnlyCount: merged.providerOnlyCount,
-                    runtimeOnlyCount: merged.runtimeOnlyCount
-                });
+                onIdentityMismatch({ providerOnlyCount: merged.providerOnlyCount, runtimeOnlyCount: merged.runtimeOnlyCount, hostReloadRequested: false });
                 return { applied: false, structuralChanged: true, ...merged };
             }
             if (merged.changed.length > 0) applyRuntimeMap(merged.runtimeMap, merged);
@@ -311,7 +298,7 @@
                 const currentMap = getRuntimeMap();
                 const key = findRuntimeKey(entry, currentMap);
                 if (!key) {
-                    scheduleStructuralRefresh({ reason: 'api-target-identity-missing' });
+                    onIdentityMismatch({ targeted: true, providerOnlyCount: 1, runtimeOnlyCount: 0, hostReloadRequested: false });
                     return { applied: false, structuralChanged: true };
                 }
                 const mergedEntry = mergeContainerIntoRuntimeEntry(currentMap[key], entry, capabilitySnapshot());

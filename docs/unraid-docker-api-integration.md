@@ -113,6 +113,8 @@ Every mutation:
 
 Autostart GraphQL persistence remains capability-gated and is not exposed by FolderView Plus UI. The existing Unraid preference path remains authoritative until an isolated, reproducible mutation contract proves order, wait values, persistence, rollback, and legacy UI synchronization.
 
+API container reads enrich state only when they match the native PHP/DOM identity set. A full-list or targeted identity mismatch is diagnostic evidence, not a reason to call the host `loadlist()` function. FolderView Plus records only provider-only/runtime-only counts and first/last observation times, while native configuration revisions remain the structural refresh authority.
+
 ## Bounded logs
 
 The provider can request a 1–500-line Docker log tail when `docker.logs` is available. This is an internal API for a future explicitly reviewed troubleshooting surface:

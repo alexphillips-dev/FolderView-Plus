@@ -8,6 +8,7 @@ const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const bridgePath = path.join(pluginRoot, 'scripts/folderviewplus.csp-events.js');
 const bridgeSource = fs.readFileSync(bridgePath, 'utf8');
+const imageFallbackSource = fs.readFileSync(path.join(pluginRoot, 'scripts/runtime.image-fallbacks.js'), 'utf8');
 
 const sourceFiles = [];
 const walk = (directory) => {
@@ -43,7 +44,8 @@ const createBridge = () => {
         }
     };
     window.window = window;
-    const context = vm.createContext({ window, globalThis: window });
+    const context = vm.createContext({ window, globalThis: window, URL });
+    vm.runInContext(imageFallbackSource, context, { filename: 'runtime.image-fallbacks.js' });
     vm.runInContext(bridgeSource, context, { filename: bridgePath });
     return { api: window.FolderViewPlusCspEvents, listeners, locationCalls, window };
 };
@@ -140,14 +142,16 @@ test('declarative action registry rejects invalid handlers and cross-owner colli
 });
 
 test('declarative event bridge blocks arbitrary globals and unsafe image fallbacks', () => {
-    const { api } = createBridge();
+    const { api, window } = createBridge();
     const element = createElement();
     const event = { preventDefault() {} };
     assert.throws(() => api.execute("alert('no')", element, event), /not allowlisted/);
     assert.throws(() => api.execute("this.src='https://attacker.invalid/icon.png'", element, event), /Unsafe image fallback/);
+    element.setAttribute('src', 'https://icons.example.invalid/missing.png');
     api.execute("this.src='/plugins/folderview.plus/folder-icon.png'", element, event);
     assert.equal(element.getAttribute('src'), '/plugins/folderview.plus/folder-icon.png');
     assert.equal(element.dataset.fvplusFallbackApplied, 'true');
+    assert.equal(window.FolderViewPlusFoundationModules.imageFallbacks.has('https://icons.example.invalid/missing.png'), true);
 });
 
 test('event bridge installs delegated handlers including capture-phase image errors', () => {
@@ -158,6 +162,31 @@ test('event bridge installs delegated handlers including capture-phase image err
     const event = { preventDefault() {} };
     api.execute("window.location.href='/Plugins'", createElement(), event);
     assert.deepEqual(locationCalls, ['/Plugins']);
+});
+
+test('image fallback cache loads before the CSP event bridge on every loader path', () => {
+    for (const pageName of ['FolderViewPlus.page', 'Folder.page']) {
+        const page = fs.readFileSync(path.join(pluginRoot, pageName), 'utf8');
+        const cacheIndex = page.indexOf('runtime.image-fallbacks.js');
+        const bridgeIndex = page.indexOf('folderviewplus.csp-events.js');
+        assert.ok(cacheIndex >= 0 && cacheIndex < bridgeIndex, pageName);
+    }
+    const customLoader = fs.readFileSync(path.join(pluginRoot, 'scripts/custom.php'), 'utf8');
+    const cacheIndex = customLoader.indexOf('runtime.image-fallbacks.js');
+    const bridgeIndex = customLoader.indexOf('folderviewplus.csp-events.js');
+    assert.ok(cacheIndex >= 0 && cacheIndex < bridgeIndex);
+});
+
+test('image fallback cache stays bounded and ignores inline image payloads', () => {
+    const { window } = createBridge();
+    const cache = window.FolderViewPlusFoundationModules.imageFallbacks;
+    assert.equal(cache.record('data:image/png;base64,AAAA'), false);
+    for (let index = 0; index < 129; index += 1) {
+        assert.equal(cache.record(`https://icons.example.invalid/missing-${index}.png`), true);
+    }
+    assert.deepEqual({ ...cache.snapshot() }, { count: 128, limit: 128 });
+    assert.equal(cache.has('https://icons.example.invalid/missing-0.png'), false);
+    assert.equal(cache.has('https://icons.example.invalid/missing-128.png'), true);
 });
 
 test('all runtime handler names represented in declarative source remain allowlisted', () => {

@@ -5,6 +5,7 @@
       "id": "settings-page",
       "source": "FolderViewPlus.page",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.safe-dom.js",
         "scripts/folderviewplus.page-bootstrap.js",
@@ -119,9 +120,11 @@
         "scripts/runtime.host-adapter.js",
         "scripts/runtime.host-compatibility.js",
         "scripts/docker.runtime.container-model.js",
+        "scripts/docker.runtime.folder-grouping.js",
         "scripts/docker.runtime.capabilities.js",
         "scripts/docker.runtime.providers.js",
         "scripts/docker.runtime.api-coordinator.js",
+        "scripts/docker.runtime.refresh-diagnostics.js",
         "scripts/docker.runtime.provider-health.js",
         "scripts/runtime.folder-ordering.js",
         "scripts/runtime.live-refresh.js",
@@ -253,6 +256,7 @@
       "id": "folder-editor-page",
       "source": "Folder.page",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.page-bootstrap.js",
         "scripts/folder.editor.page-bootstrap.js",
@@ -312,6 +316,7 @@
       "id": "custom-script-bootstrap",
       "source": "scripts/custom.php",
       "references": [
+        "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
         "scripts/folderviewplus.safe-dom.js",
         "scripts/runtime.custom-script-loader.js"

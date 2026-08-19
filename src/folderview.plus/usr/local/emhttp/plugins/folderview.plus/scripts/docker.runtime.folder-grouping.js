@@ -93,6 +93,7 @@
 
     const createSession = (options = {}) => {
         const doc = options.document || null;
+        const listRoot = options.listRoot || doc?.getElementById?.('docker_list') || null;
         const selector = String(options.rowSelector || '#docker_list > tr.sortable:not(.folder), #docker_list tr.folder-element');
         const identityIndex = buildIdentityIndex(options.containersInfo);
         const rowRecords = [];
@@ -134,8 +135,56 @@
                 claimedRowCount: 0,
                 missingRowCount: 0,
                 renderedMemberCount: 0,
+                shellInserted: false,
+                shellInsertionStrategy: 'none',
                 removedByHideEmpty: false
             });
+        };
+        const isDirectListRow = (row) => !!listRoot && !!row && (
+            row.parentElement === listRoot || row.parentNode === listRoot
+        );
+        const resolveOrderRow = (identity) => {
+            const token = normalizeToken(identity);
+            if (!token || !listRoot) return null;
+            if (token.startsWith('folder-')) {
+                const folderId = token.slice(7);
+                return Array.from(listRoot.children || []).find((row) => (
+                    normalizeToken(row?.dataset?.fvFolderId) === folderId
+                )) || null;
+            }
+            const canonicalName = identityIndex.resolve(token) || token;
+            return rowByCanonicalName.get(canonicalName) || null;
+        };
+        const insertFolderRow = (folderId, folderRow, position, liveOrder = []) => {
+            const entry = folderEntries.get(String(folderId || ''));
+            const order = asArray(liveOrder);
+            const resolvedPosition = Math.max(0, Math.min(order.length, Math.floor(Number(position) || 0)));
+            let strategy = 'failed';
+            if (listRoot && folderRow && typeof listRoot.insertBefore === 'function') {
+                for (let index = resolvedPosition + 1; index < order.length; index++) {
+                    const anchor = resolveOrderRow(order[index]);
+                    if (!isDirectListRow(anchor) || anchor === folderRow) continue;
+                    listRoot.insertBefore(folderRow, anchor);
+                    strategy = 'before-next';
+                    break;
+                }
+                for (let index = resolvedPosition - 1; strategy === 'failed' && index >= 0; index--) {
+                    const anchor = resolveOrderRow(order[index]);
+                    if (!isDirectListRow(anchor) || anchor === folderRow) continue;
+                    listRoot.insertBefore(folderRow, anchor.nextSibling || null);
+                    strategy = 'after-previous';
+                }
+                if (strategy === 'failed' && typeof listRoot.appendChild === 'function') {
+                    listRoot.appendChild(folderRow);
+                    strategy = 'append';
+                }
+            }
+            const inserted = isDirectListRow(folderRow);
+            if (entry) {
+                entry.shellInserted = inserted;
+                entry.shellInsertionStrategy = inserted ? strategy : 'failed';
+            }
+            return Object.freeze({ inserted, strategy: inserted ? strategy : 'failed' });
         };
         const claim = (folderId, requestedIdentity) => {
             const canonicalName = identityIndex.resolve(requestedIdentity) || normalizeToken(requestedIdentity);
@@ -163,12 +212,20 @@
                 claimedRowCount: result.claimedRowCount + entry.claimedRowCount,
                 missingRowCount: result.missingRowCount + entry.missingRowCount,
                 renderedMemberCount: result.renderedMemberCount + entry.renderedMemberCount,
+                insertedShellCount: result.insertedShellCount + (entry.shellInserted ? 1 : 0),
+                failedShellCount: result.failedShellCount + (entry.shellInserted ? 0 : 1),
+                fallbackShellCount: result.fallbackShellCount + (
+                    entry.shellInserted && entry.shellInsertionStrategy !== 'before-next' ? 1 : 0
+                ),
                 removedByHideEmptyCount: result.removedByHideEmptyCount + (entry.removedByHideEmpty ? 1 : 0)
             }), {
                 combinedCandidateCount: 0,
                 claimedRowCount: 0,
                 missingRowCount: 0,
                 renderedMemberCount: 0,
+                insertedShellCount: 0,
+                failedShellCount: 0,
+                fallbackShellCount: 0,
                 removedByHideEmptyCount: 0
             });
             return clone({
@@ -191,6 +248,7 @@
         return Object.freeze({
             readOrder: () => rowRecords.map((entry) => entry.canonicalName || entry.fallbackName).filter(Boolean),
             beginFolder,
+            insertFolderRow,
             claim,
             finishFolder,
             snapshot

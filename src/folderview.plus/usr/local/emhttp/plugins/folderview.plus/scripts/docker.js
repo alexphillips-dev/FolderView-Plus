@@ -5160,26 +5160,21 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" data-fvplus-style="fv-u-569beu"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced${advancedVisibleClass}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced${advancedVisibleClass}"><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" data-fvplus-style="fv-u-sfjn3c"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" data-fvplus-style="fv-u-uydnfn"><div data-fvplus-style="fv-u-1gl0zeh"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
-    if (positionInMainOrder === 0) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position 0 (before).`);
-        $('#docker_list > tr.sortable').eq(0).before($(fld)); // Always eq(0) for 'before' the first sortable
-    } else {
-        if ($('#docker_list > tr.sortable').length > 0 && positionInMainOrder > 0) {
-             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Inserting folder HTML at position ${positionInMainOrder} (after eq ${positionInMainOrder-1} of current sortables).`);
-             $('#docker_list > tr.sortable').eq(positionInMainOrder - 1).after($(fld));
-        } else if ($('#docker_list > tr.sortable').length === 0 && positionInMainOrder === 0) {
-             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No sortables found, inserting folder at the beginning of #docker_list.`);
-            $('#docker_list').prepend($(fld));
-        } else {
-             if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Could not determine insertion point for folder. Position: ${positionInMainOrder}, Sortables count: ${$('#docker_list > tr.sortable').length}`);
-             $('#docker_list').append($(fld));
-        }
+    const $createdFolderRow = $(fld);
+    const shellInsertion = dockerFolderGroupingSession.insertFolderRow(
+        id,
+        $createdFolderRow.get(0),
+        positionInMainOrder,
+        liveOrderArray
+    );
+    if (!shellInsertion.inserted) {
+        dockerFolderGroupingSession.finishFolder(id, { renderedMemberCount: 0, removedByHideEmpty: false });
+        if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Folder shell insertion failed; member rows were left under host ownership.`);
+        return remBefore;
     }
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Folder shell inserted with strategy ${shellInsertion.strategy}.`);
     const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
     const depthIndentPx = safeDepth * 20;
-    const $createdFolderRow = $('#docker_list > tr.folder[data-fv-folder-id]')
-        .filter((_, element) => String(element.getAttribute('data-fv-folder-id') || '') === id)
-        .first();
     dockerFolderRowActionsController.decorate($createdFolderRow, id);
     $createdFolderRow
         .attr('data-folder-depth', String(safeDepth))

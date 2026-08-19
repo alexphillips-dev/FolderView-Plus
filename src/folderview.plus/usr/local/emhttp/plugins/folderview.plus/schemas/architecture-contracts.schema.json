@@ -900,7 +900,7 @@
       "typeChecked": true,
       "exports": ["normalizeToken", "buildIdentityIndex", "readRowCandidates", "createSession"],
       "lifecycleFactories": [
-        { "name": "createSession", "exports": ["readOrder", "beginFolder", "claim", "finishFolder", "snapshot"] }
+        { "name": "createSession", "exports": ["readOrder", "beginFolder", "insertFolderRow", "claim", "finishFolder", "snapshot"] }
       ]
     },
     {

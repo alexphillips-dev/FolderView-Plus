@@ -30,15 +30,22 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
 test('Docker late wizard folders claim canonical host rows before hide-empty filtering', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-folder-grouping`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureDockerFolderGrouping.result);
-    assert.equal(result.order.length, 18);
-    assert.equal(result.folderBoxes, 6);
-    assert.equal(result.groupedMembers, 17);
-    assert.equal(result.standaloneMembers, 1);
-    assert.equal(result.snapshot.hostRows.resolved, 18);
-    assert.equal(result.snapshot.folders.total, 25);
-    assert.equal(result.snapshot.folders.claimedRowCount, 17);
-    assert.equal(result.snapshot.folders.missingRowCount, 0);
-    assert.equal(result.snapshot.folders.removedByHideEmptyCount, 19);
+    assert.equal(result.hidden.order.length, 18);
+    assert.equal(result.hidden.folderBoxes, 6);
+    assert.deepEqual(result.hidden.folderOrder, ['folder-3', 'folder-8', 'folder-21', 'folder-22', 'folder-23', 'folder-24']);
+    assert.equal(result.hidden.groupedMembers, 17);
+    assert.equal(result.hidden.standaloneMembers, 1);
+    assert.equal(result.hidden.snapshot.hostRows.resolved, 18);
+    assert.equal(result.hidden.snapshot.folders.total, 25);
+    assert.equal(result.hidden.snapshot.folders.claimedRowCount, 17);
+    assert.equal(result.hidden.snapshot.folders.missingRowCount, 0);
+    assert.equal(result.hidden.snapshot.folders.insertedShellCount, 25);
+    assert.equal(result.hidden.snapshot.folders.failedShellCount, 0);
+    assert.equal(result.hidden.snapshot.folders.removedByHideEmptyCount, 19);
+    assert.equal(result.shown.folderBoxes, 25);
+    assert.equal(result.shown.groupedMembers, 17);
+    assert.deepEqual(result.repeatedHidden.folderOrder, result.hidden.folderOrder);
+    assert.equal(result.repeatedHidden.snapshot.folders.failedShellCount, 0);
 });
 
 test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {

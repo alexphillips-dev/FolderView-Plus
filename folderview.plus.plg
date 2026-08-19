@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.19.05">
-<!ENTITY md5 "1287aa00a59356621d8898ef1a0ba4a2">
-<!ENTITY sha256 "dfd2cf4f4d27815b68ec1950b5e2e5bb5dcfabd4f439c67a97a4e83fd3011f49">
+<!ENTITY version "2026.08.19.06">
+<!ENTITY md5 "60c8be921ecc319067726bb9ffda9ccd">
+<!ENTITY sha256 "94d29a56f17577d10242da0fe898eb0cb52a1d9b265ae155532a16d3457b1a59">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.19.06
+- Fix: Keep populated Docker folders visible when Hide empty folders removes earlier empty rows and later folders have high saved-order positions.
+- Reliability: Insert folder shells relative to connected rows in the reconciled host order and leave member rows under Unraid ownership if a shell cannot be attached.
+- Diagnostics: Report aggregate successful, fallback, and failed folder-shell insertion counts without exposing folder or container identities.
+- Test: Reproduce the reported 25-folder and 18-container layout with Hide empty folders enabled, disabled, and enabled again across repeated renders.
+
 
 ###2026.08.19.05
 - Fix: Restore Docker folder boxes for folders created through the Add Folder wizard when Unraid renders container rows with short container IDs instead of container names.

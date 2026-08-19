@@ -51,7 +51,7 @@
         "scripts/lib/fixture-browser-runner.mjs"
       ],
       "testCount": 42,
-      "assertionCount": 527,
+      "assertionCount": 534,
       "pageEvaluateCount": 105,
       "orderedTitleSha256": "ee3028477ae78db47c8f3487c5c43a5779b5b75e80a0f05e1f2c498a53116b44"
     }

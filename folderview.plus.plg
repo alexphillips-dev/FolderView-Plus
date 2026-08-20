@@ -5,18 +5,26 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.20.01">
-<!ENTITY md5 "4aba377f7ff913ac9a59befdaebdd78a">
-<!ENTITY sha256 "66ef8fd9e6c7ff10de19560196e88ffe1c85e4e9434142aae2df17c8ef4dd6d1">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.20.02">
+<!ENTITY md5 "c58c8bb851e14cbdc2764b50cfbb322b">
+<!ENTITY sha256 "f0b2143536d393b8c641b9ac154795230aae5a3eb3ff319facbfc13bdb871b46">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.20.02
+- Fix: Allow protected FolderView Plus actions through a correctly configured TLS-terminating reverse proxy by validating the external host, protocol, and port as one coherent authority.
+- Security: Keep strict POST, request-marker, install-token, one-time nonce, transaction, same-origin, and rate-limit controls while rejecting partial, repeated, malformed, spoofed-host, or conflicting forwarded headers.
+- Diagnostics: Add privacy-safe request-security reason codes to diagnostics and support bundles without recording hostnames, addresses, ports, or raw forwarded-header values.
+- Docs: Document supported SWAG forwarding, recovery from `Blocked by request guard`, and unsafe proxy workarounds to avoid.
+- Test: Cover direct HTTP/HTTPS, standard and nonstandard proxy ports, IPv6, malformed or spoofed forwarded values, and Origin/Referer disagreements.
+
 
 ###2026.08.20.01
 - Fix: Allow protected FolderView Plus actions through a correctly configured TLS-terminating reverse proxy by validating the external `Host`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Port` authority as one coherent tuple.
@@ -8666,7 +8674,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

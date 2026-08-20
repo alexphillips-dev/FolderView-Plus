@@ -3,6 +3,7 @@
     require_once __DIR__ . '/lib.process.php';
     require_once __DIR__ . '/lib.filesystem-security.php';
     require_once __DIR__ . '/lib.security.php';
+    require_once __DIR__ . '/lib.request-authority.php';
 
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
@@ -751,90 +752,6 @@
             header('X-FV-Trace: ' . getRequestTraceId());
             header('X-FV-Transaction: ' . getRequestTransactionId());
         }
-    }
-
-    function normalizeHostForCompare(string $host): string {
-        $host = strtolower(trim($host));
-        if ($host === '') {
-            return '';
-        }
-        if ($host[0] === '[' && substr($host, -1) === ']') {
-            return substr($host, 1, -1);
-        }
-        return $host;
-    }
-
-    function parseHostPortFromUrl(string $url): array {
-        $parts = @parse_url($url);
-        if (!is_array($parts)) {
-            return ['', null];
-        }
-        $host = normalizeHostForCompare((string)($parts['host'] ?? ''));
-        if ($host === '') {
-            return ['', null];
-        }
-        $port = isset($parts['port']) ? (int)$parts['port'] : null;
-        if ($port === null) {
-            $scheme = strtolower((string)($parts['scheme'] ?? ''));
-            if ($scheme === 'http') {
-                $port = 80;
-            } elseif ($scheme === 'https') {
-                $port = 443;
-            }
-        }
-        return [$host, $port];
-    }
-
-    function parseCurrentRequestHostPort(): array {
-        $hostHeader = trim((string)($_SERVER['HTTP_HOST'] ?? ''));
-        if ($hostHeader === '') {
-            return ['', null];
-        }
-        $isHttps = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
-        $probeUrl = ($isHttps ? 'https://' : 'http://') . $hostHeader;
-        [$host, $port] = parseHostPortFromUrl($probeUrl);
-        if ($host === '') {
-            return ['', null];
-        }
-        if ($port === null && isset($_SERVER['SERVER_PORT'])) {
-            $serverPort = (int)$_SERVER['SERVER_PORT'];
-            if ($serverPort > 0) {
-                $port = $serverPort;
-            }
-        }
-        return [$host, $port];
-    }
-
-    function isSameOriginHeaderValue(string $urlValue): bool {
-        if ($urlValue === '' || strtolower($urlValue) === 'null') {
-            return false;
-        }
-        [$requestHost, $requestPort] = parseCurrentRequestHostPort();
-        if ($requestHost === '') {
-            return false;
-        }
-        [$headerHost, $headerPort] = parseHostPortFromUrl($urlValue);
-        if ($headerHost === '' || $headerHost !== $requestHost) {
-            return false;
-        }
-        if ($headerPort !== null && $requestPort !== null && $headerPort !== $requestPort) {
-            return false;
-        }
-        return true;
-    }
-
-    function isTrustedMutationContext(): bool {
-        // Do not require client headers to exist; only block when a provided
-        // Origin/Referer explicitly points to a different host/port.
-        $origin = getRequestHeaderValue('Origin');
-        if ($origin !== '' && !isSameOriginHeaderValue($origin)) {
-            return false;
-        }
-        $referer = getRequestHeaderValue('Referer');
-        if ($referer !== '' && !isSameOriginHeaderValue($referer)) {
-            return false;
-        }
-        return true;
     }
 
     function getOptionalRequestTokenPath(): string {

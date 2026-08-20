@@ -515,10 +515,10 @@ function diagnosticsResolveSupportBundleChannel(): string {
             'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
             'runtimeIntegrity' => is_array($diagnostics['runtimeIntegrity'] ?? null) ? $diagnostics['runtimeIntegrity'] : [],
             'securityAudit' => is_array($diagnostics['securityAudit'] ?? null) ? $diagnostics['securityAudit'] : [],
+            'requestSecurity' => is_array($diagnostics['requestSecurity'] ?? null) ? $diagnostics['requestSecurity'] : [],
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
     }
-
     function diagnosticsBuildSupportBundleHealthAndHistorySection(array $diagnostics, array $integrityFindings, array &$redactor): array {
         $summary = is_array($diagnostics['summary'] ?? null) ? $diagnostics['summary'] : [];
         $history = is_array($diagnostics['importExportHistory'] ?? null) ? $diagnostics['importExportHistory'] : [];

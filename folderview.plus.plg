@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.19.06">
-<!ENTITY md5 "60c8be921ecc319067726bb9ffda9ccd">
-<!ENTITY sha256 "94d29a56f17577d10242da0fe898eb0cb52a1d9b265ae155532a16d3457b1a59">
+<!ENTITY version "2026.08.20.01">
+<!ENTITY md5 "4aba377f7ff913ac9a59befdaebdd78a">
+<!ENTITY sha256 "66ef8fd9e6c7ff10de19560196e88ffe1c85e4e9434142aae2df17c8ef4dd6d1">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.20.01
+- Fix: Allow protected FolderView Plus actions through a correctly configured TLS-terminating reverse proxy by validating the external `Host`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Port` authority as one coherent tuple.
+- Security: Keep strict POST, request-marker, install-token, one-time nonce, transaction, same-origin, and rate-limit controls unchanged; reject partial, repeated, malformed, spoofed-host, and conflicting-port forwarded headers.
+- Diagnostics: Add privacy-safe request-security reason codes to diagnostics and support bundles without recording hostnames, addresses, ports, or raw forwarded-header values.
+- Docs: Add SWAG reverse-proxy requirements, a troubleshooting flow for `Blocked by request guard`, and guidance not to inject `X-FV-Request` or remove browser origin headers at the proxy.
+- Test: Cover direct HTTP/HTTPS, standard SWAG forwarding, nonstandard ports, IPv6, spoofed and malformed tuples, and independent Origin/Referer disagreement.
+
 
 ###2026.08.19.06
 - Fix: Keep populated Docker folders visible when Hide empty folders removes earlier empty rows and later folders have high saved-order positions.

@@ -19,6 +19,7 @@ This folder holds project documentation that does not need to stay at the reposi
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - [Content Security Policy readiness](security/CSP_READINESS.md)
 - [Package trust and provenance](security/PACKAGE_TRUST.md)
+- [Request security and reverse-proxy requirements](security/REQUEST_SECURITY.md)
 
 ## Architecture
 

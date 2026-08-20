@@ -569,6 +569,14 @@ test('release notes builder supports curated per-version override files', () => 
     assert.match(buildReleaseNotes, /cat "\$\{OVERRIDE_FILE\}"/);
 });
 
+test('release notes keep concise provenance without embedded commit history', () => {
+    assert.match(buildReleaseNotes, /### Release provenance/);
+    assert.match(buildReleaseNotes, /Full source comparison/);
+    assert.doesNotMatch(buildReleaseNotes, /git log --no-merges/);
+    assert.doesNotMatch(buildReleaseNotes, /### Included commit history/);
+    assert.match(releaseNotesConsistencyGuard, /Generated release notes must not include commit history/);
+});
+
 test('release note parsers distinguish category headings from version headings', () => {
     const versionHeadingPattern = '/^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}[[:space:]]*$/';
     for (const script of [buildReleaseNotes, ensureChanges, releaseGuard]) {

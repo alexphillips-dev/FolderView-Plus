@@ -83,6 +83,15 @@ $diagnostics = [
             'clientIpHash' => 'ip-static'
         ]
     ],
+    'requestSecurity' => [
+        'schemaVersion' => 1,
+        'enforcementMode' => 'strict',
+        'trustedContext' => true,
+        'authoritySource' => 'forwarded',
+        'forwardedAuthorityStatus' => 'valid',
+        'originStatus' => 'forwarded',
+        'refererStatus' => 'forwarded'
+    ],
     'hashes' => [
         'dockerFolders' => [
             'file' => 'docker.folder.json',
@@ -723,6 +732,15 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.match(bundle.system.request.userAgentHash, /^[0-9a-f]{16}$/);
     assert.equal(bundle.system.request.clientIp, '192.168.x.x');
     assert.match(bundle.system.request.clientIpHash, /^[0-9a-f]{16}$/);
+    assert.deepEqual(bundle.system.requestSecurity, {
+        schemaVersion: 1,
+        enforcementMode: 'strict',
+        trustedContext: true,
+        authoritySource: 'forwarded',
+        forwardedAuthorityStatus: 'valid',
+        originStatus: 'forwarded',
+        refererStatus: 'forwarded'
+    });
     assert.equal(bundle.system.pathHealth.customIcons.path.path, 'PlexSecretIcon.png');
     assert.match(bundle.system.pathHealth.customIcons.path.pathHash, /^[0-9a-f]{16}$/);
     assert.equal(bundle.system.pathHealth.customIcons.topReferences[0].name, null);
@@ -816,6 +834,8 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.match(bundle.system.request.userAgentHash, /^[0-9a-f]{12}$/);
     assert.equal(bundle.system.request.clientIp, '192.168.6.25');
     assert.match(bundle.system.request.clientIpHash, /^[0-9a-f]{12}$/);
+    assert.equal(bundle.system.requestSecurity.forwardedAuthorityStatus, 'valid');
+    assert.equal(bundle.system.requestSecurity.authoritySource, 'forwarded');
     assert.equal(bundle.system.pathHealth.customIcons.path.path, '/boot/config/plugins/folderview.plus/images/custom/PlexSecretIcon.png');
     assert.equal(bundle.system.pathHealth.customIcons.topReferences[0].name, 'PlexMediaServer');
     assert.equal(bundle.system.pathHealth.customIcons.repairHint, 'Delete /boot/config/plugins/folderview.plus/images/custom/PlexSecretIcon.png if unused.');

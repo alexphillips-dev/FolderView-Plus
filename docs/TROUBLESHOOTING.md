@@ -48,6 +48,41 @@ https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/<commit>/fold
 
 Do not edit `/boot/config/plugins/folderview.plus/version` to force an update. See [Installation and Upgrades](INSTALLATION_AND_UPGRADES.md#not-reinstalling-same-version).
 
+### Reverse Proxy Actions Say `Blocked by request guard`
+
+If pages load through SWAG or another TLS-terminating reverse proxy but create,
+save, backup, restore, or other protected actions return HTTP 403, first test
+the same action through the normal Unraid address. If direct access works, keep
+the request guard enabled and verify the proxy authority headers.
+
+For SWAG, include its standard proxy configuration in the Unraid location:
+
+```nginx
+include /config/nginx/proxy.conf;
+proxy_pass http://<unraid-address>:<unraid-port>;
+```
+
+The resulting request must provide one value for each of these headers:
+
+```nginx
+proxy_set_header Host              $host;
+proxy_set_header X-Forwarded-Host  $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port  $server_port;
+```
+
+Do not add `X-FV-Request` in the proxy, remove `Origin` or `Referer`, or disable
+the FolderView Plus guard. The plugin request client supplies its own request
+marker. FolderView Plus rejects partial, repeated, malformed, or conflicting
+forwarded values, including a forwarded hostname that differs from `Host`.
+
+After changing SWAG, reload its Nginx configuration, hard-refresh the Unraid
+page, and retry one protected action. If it still fails, export a sanitized
+support bundle through the failing proxy URL. The
+`system.requestSecurity` section reports privacy-safe origin and forwarded
+authority reason codes without recording the hostname, IP address, or raw
+header values. See [Request security and abuse controls](security/REQUEST_SECURITY.md#reverse-proxies).
+
 ### Import Fails Validation
 
 Make sure Docker exports are imported into Docker and VM exports into VMs. Re-export with the latest plugin version if the file came from older tooling.

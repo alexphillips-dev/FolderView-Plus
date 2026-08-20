@@ -50,6 +50,9 @@ const toBashPath = (value) => {
     const match = normalized.match(/^([A-Za-z]):\/(.*)$/);
     return match ? `/mnt/${match[1].toLowerCase()}/${match[2]}` : normalized;
 };
+const readArchiveWithTar = (args) => process.platform === 'win32'
+    ? execFileSync('wsl.exe', ['--exec', 'tar', ...args], { cwd: repoRoot, encoding: 'utf8' })
+    : execFileSync('tar', args, { cwd: repoRoot, encoding: 'utf8' });
 const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
     const environment = {
         FVPLUS_PLUGIN_DIR: toBashPath(pluginDir),
@@ -166,7 +169,8 @@ test('manifest resolves and requires the installed asset-pack activation helper'
 });
 
 test('asset pack contains only its manifest and supported runtime icons', () => {
-    const entries = execFileSync('tar', ['-tf', archivePath], { encoding: 'utf8' })
+    const readableArchivePath = process.platform === 'win32' ? toBashPath(archivePath) : archivePath;
+    const entries = readArchiveWithTar(['-tf', readableArchivePath])
         .split(/\r?\n/)
         .filter(Boolean);
     assert.ok(entries.includes('asset-pack.json'));
@@ -176,7 +180,7 @@ test('asset pack contains only its manifest and supported runtime icons', () => 
         return !/^third-party-icons\/.*\.(?:png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(entry);
     });
     assert.deepEqual(invalid, []);
-    const embedded = JSON.parse(execFileSync('tar', ['-xOf', archivePath, 'asset-pack.json'], { encoding: 'utf8' }));
+    const embedded = JSON.parse(readArchiveWithTar(['-xOf', readableArchivePath, 'asset-pack.json']));
     assert.equal(embedded.id, 'folderview.plus-icons');
     assert.equal(embedded.version, version);
     assert.equal(embedded.fileCount, countSourceIcons(iconSourceRoot));

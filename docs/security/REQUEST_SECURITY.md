@@ -21,6 +21,34 @@ The browser request client performs nonce acquisition automatically. Mutation
 retries remain disabled, so an uncertain response is reconciled from current
 server state instead of replaying an operation.
 
+### Reverse proxies
+
+FolderView Plus supports a TLS-terminating reverse proxy without disabling its
+same-origin guard. A proxied request can use its external authority only when
+all of these headers are present as one coherent, single-valued tuple:
+
+- `Host` and `X-Forwarded-Host` contain the same browser-facing hostname;
+- `X-Forwarded-Proto` is exactly `http` or `https`;
+- `X-Forwarded-Port` is a valid port from 1 through 65535; and
+- an explicit port in `X-Forwarded-Host`, when present, equals
+  `X-Forwarded-Port`.
+
+The request `Origin` and `Referer`, when supplied by the browser, must match
+either the direct Unraid authority or that validated forwarded authority.
+Partial, comma-separated, malformed, or conflicting forwarded headers are
+ignored and the request fails closed when its origin does not match directly.
+The forwarded headers never replace the request marker, install token, nonce,
+transaction, POST, or rate-limit controls.
+
+The standard LinuxServer SWAG `proxy.conf` supplies the required host,
+forwarded-host, forwarded-protocol, and forwarded-port headers. A custom
+location must retain those settings. It does not need to inject
+`X-FV-Request`; the FolderView Plus browser client supplies its own marker.
+
+Request-security diagnostics expose only bounded reason codes such as
+`valid`, `partial`, `host-mismatch`, and `port-mismatch`. Hostnames, addresses,
+and header values are not included in that diagnostic section.
+
 The unload telemetry action is the only normal replay-protection exception. It
 uses `sendBeacon`, cannot synchronously request a nonce, remains protected by the
 install token and same-origin checks, and has a bounded high-volume telemetry

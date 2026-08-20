@@ -130,7 +130,6 @@
     }
 
     require_once(__DIR__ . '/lib.diagnostics-redaction.php');
-
     require_once(__DIR__ . '/lib.diagnostics-integrity.php');
 
     require_once(__DIR__ . '/lib.diagnostics-summary.php');
@@ -239,6 +238,7 @@
             'durableStorage' => getDurableStorageRuntimeSnapshot(),
             'runtimeIntegrity' => $runtimeIntegrity,
             'securityAudit' => $securityAudit,
+            'requestSecurity' => getMutationRequestSecurityDiagnostics(),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
             'customIcons' => $customIcons,
             'importExportHistory' => [

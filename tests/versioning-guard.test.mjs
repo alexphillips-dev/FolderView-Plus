@@ -16,6 +16,7 @@ const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-m
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
 const scheduledWorkflowHealthPath = path.join(repoRoot, '.github/workflows/scheduled-workflow-health.yml');
+const dependencyVulnerabilityScanPath = path.join(repoRoot, '.github/workflows/dependency-vulnerability-scan.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const fixtureBrowserShellPath = path.join(repoRoot, 'scripts/fixture_browser_tests.sh');
@@ -89,6 +90,7 @@ const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuar
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
 const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
 const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'utf8');
+const dependencyVulnerabilityScan = fs.readFileSync(dependencyVulnerabilityScanPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
@@ -429,6 +431,19 @@ test('scheduled workflow watchdog alerts on missing expected successes and close
     assert.match(scheduledWorkflowHealth, /node scripts\/scheduled_workflow_health\.mjs/);
     assert.match(scheduledWorkflowHealth, /Scheduled workflow health requires attention/);
     assert.match(scheduledWorkflowHealth, /gh issue close/);
+});
+
+test('scheduled dependency vulnerability scanning covers the generated SBOM', () => {
+    assert.match(dependencyVulnerabilityScan, /schedule:/);
+    assert.match(dependencyVulnerabilityScan, /workflow_dispatch:/);
+    assert.match(dependencyVulnerabilityScan, /permissions:\s*\n\s*contents:\s*read/);
+    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.5\.0/);
+    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.5\.0/);
+    assert.match(dependencyVulnerabilityScan, /--sbom=docs\/sbom\.cdx\.json/);
+    assert.match(dependencyVulnerabilityScan, /github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/);
+    assert.match(dependencyVulnerabilityScan, /--fail-on-vuln=true/);
+    assert.match(dependencyVulnerabilityScan, /Enforce clean vulnerability scan/);
+    assert.doesNotMatch(dependencyVulnerabilityScan, /secrets\.|live-unraid|FVPLUS_UNRAID/i);
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {

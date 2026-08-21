@@ -40,7 +40,7 @@ test('workflow-only changes use focused workflow validation', () => {
 
 test('workflow changes allow the generated SBOM as a focused validation companion', () => {
     const result = classifyPaths([
-        '.github/workflows/codeql.yml',
+        '.github/workflows/dependency-vulnerability-scan.yml',
         'docs/sbom.cdx.json'
     ]);
     assert.deepEqual(result.outputs, {

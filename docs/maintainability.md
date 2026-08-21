@@ -25,6 +25,8 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - `scripts/action_pin_guard.mjs` rejects mutable references.
 - Dependabot proposes grouped weekly npm and GitHub Actions updates. jQuery major upgrades remain deliberate because Unraid host compatibility must be reviewed.
 - `docs/sbom.cdx.json` is a generated CycloneDX inventory of shipped browser libraries, Unraid-provided runtime contracts, npm development tools, and GitHub Actions. `scripts/runtime_components.json` is the canonical runtime inventory and classifies every file under `scripts/include`; run `npm run sbom` after runtime dependency, npm, or action changes. CI uses `npm run sbom:check`.
+- `.github/workflows/dependency-vulnerability-scan.yml` scans that generated inventory against OSV every Wednesday and on demand. Versioned components with supported package identifiers are evaluated for known vulnerabilities; SARIF is retained and published to GitHub code scanning, and a reported vulnerability fails the job for review. Inventory entries without a usable package identifier remain visible for manual upstream review rather than being silently treated as scanned.
+- Repository Actions policy permits only GitHub-owned actions plus the SHA-pinned `github/codeql-action@*`, `ossf/scorecard-action@*`, and `google/osv-scanner-action/*@*` patterns needed by the security workflows. Verified-publisher actions are not enabled globally.
 - PHPStan is downloaded at a pinned version and SHA-256 by `scripts/phpstan_guard.sh`; it is development-only and is never shipped in the plugin archive.
 
 ## UI, localization, and diagnostics
@@ -39,11 +41,12 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 
 ## Operational review
 
-- The daily Unraid compatibility monitor opens or updates one deduplicated GitHub issue when a reviewed stable/prerelease OS version, PHP runtime, Docker API/schema, native-page gate, relevant Docker/VM/Dashboard webGUI file, Community Applications starter contract, canonical template, or public catalog entry changes.
+- The daily Unraid compatibility monitor opens or updates one deduplicated GitHub issue when a reviewed stable/prerelease OS version, PHP runtime, Docker API/schema, native-page gate, relevant Docker/VM/Dashboard webGUI file, plugin-manager install/update/downgrade contract, Community Applications starter contract, canonical template, or public catalog entry changes.
 - `docs/unraid-compatibility-baseline.json` records human-reviewed upstream versions and Git blob signatures. Automation reports drift but never modifies or approves the baseline.
 - Isolated PHP 8.3/8.4 profiles represent the oldest supported, current stable, and current prerelease Unraid runtimes. The compatibility lane syntax-checks every shipped PHP file and runs a request-authority smoke contract without connecting to a server.
 - Community Applications validation uses the official public portal guidance, starter repository, catalog feed, and canonical template. The authenticated portal Validate/Scan session is never stored in GitHub Actions.
 - The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. It does not connect to live Unraid targets or require live-system repository secrets.
+- The scheduled workflow watchdog checks the most recent successful CodeQL, OpenSSF Scorecard, OSV dependency scan, compatibility, browser-fixture, and clone-traffic jobs. It maintains one deduplicated recovery issue if an expected success is missing, failed, or stale.
 - Follow [Unraid Docker prerelease qualification](unraid-docker-prerelease-qualification.md) before changing native-page safe mode.
 - Audit current and reachable package history with `bash scripts/artifact_history_audit.sh` and `bash scripts/artifact_history_audit.sh --history`.
 - Follow [artifact retention](artifact-retention.md) before any coordinated Git LFS or history migration. History rewriting is intentionally never automated.

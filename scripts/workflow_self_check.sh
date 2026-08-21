@@ -31,6 +31,7 @@ for (const relativePath of [
   '.github/workflows/release-on-main.yml',
   '.github/workflows/codeql.yml',
   '.github/workflows/dependency-review.yml',
+  '.github/workflows/dependency-vulnerability-scan.yml',
   '.github/workflows/scorecard.yml',
   '.github/workflows/clone-traffic-badge.yml',
   '.github/workflows/scheduled-validation.yml',
@@ -67,6 +68,7 @@ const releaseOnMainWorkflow = read('.github/workflows/release-on-main.yml');
 const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
 const codeqlWorkflow = read('.github/workflows/codeql.yml');
 const dependencyReviewWorkflow = read('.github/workflows/dependency-review.yml');
+const dependencyVulnerabilityScanWorkflow = read('.github/workflows/dependency-vulnerability-scan.yml');
 const scorecardWorkflow = read('.github/workflows/scorecard.yml');
 const cloneTrafficBadgeWorkflow = read('.github/workflows/clone-traffic-badge.yml');
 const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
@@ -193,6 +195,15 @@ if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/.test(scorecardWorkflow)
     || !/id-token:\s*write/.test(scorecardWorkflow)) {
   fail('OpenSSF Scorecard must publish signed results to GitHub code scanning with pinned actions.');
 }
+if (!/schedule:/.test(dependencyVulnerabilityScanWorkflow)
+    || !/workflow_dispatch:/.test(dependencyVulnerabilityScanWorkflow)
+    || !/google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.5\.0/.test(dependencyVulnerabilityScanWorkflow)
+    || !/google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.5\.0/.test(dependencyVulnerabilityScanWorkflow)
+    || !/--sbom=docs\/sbom\.cdx\.json/.test(dependencyVulnerabilityScanWorkflow)
+    || !/--fail-on-vuln=true/.test(dependencyVulnerabilityScanWorkflow)
+    || !/github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/.test(dependencyVulnerabilityScanWorkflow)) {
+  fail('Dependency vulnerability scanning must use pinned OSV actions, scan the generated SBOM, fail on vulnerabilities, and publish SARIF.');
+}
 if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g) || []).length !== 2 ||
     !/Attest release archive provenance/.test(releaseOnMainWorkflow) ||
     !/Attest release archive SBOM/.test(releaseOnMainWorkflow) ||
@@ -204,7 +215,13 @@ if (!/FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/.test(releaseOnMainWorkflow)
     || !/FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must run deterministic browser, theme, and responsive fixture coverage.');
 }
-const validationWorkflows = [ciWorkflow, backmergeWorkflow, releaseOnMainWorkflow, scheduledValidationWorkflow].join('\n');
+const validationWorkflows = [
+  ciWorkflow,
+  backmergeWorkflow,
+  releaseOnMainWorkflow,
+  scheduledValidationWorkflow,
+  dependencyVulnerabilityScanWorkflow
+].join('\n');
 if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/.test(validationWorkflows)) {
   fail('Tracked validation workflows must not accept live-Unraid targets or secrets.');
 }
@@ -328,11 +345,18 @@ if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
     || !/Scheduled workflow health requires attention/.test(scheduledWorkflowHealthWorkflow)) {
   fail('Scheduled workflow health must check run freshness and maintain a deduplicated recovery alert.');
 }
+const scheduledWorkflowHealthScript = read('scripts/scheduled_workflow_health.mjs');
+for (const workflowFile of ['codeql.yml', 'scorecard.yml', 'dependency-vulnerability-scan.yml']) {
+  if (!scheduledWorkflowHealthScript.includes(`workflowFile: '${workflowFile}'`)) {
+    fail(`Scheduled workflow health must monitor ${workflowFile}.`);
+  }
+}
 for (const [workflowName, workflow, jobNames] of [
   ['release-on-main', releaseOnMainWorkflow, ['release']],
   ['backmerge-main-to-dev', backmergeWorkflow, ['backmerge']],
   ['codeql', codeqlWorkflow, ['analyze']],
   ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
+  ['dependency-vulnerability-scan', dependencyVulnerabilityScanWorkflow, ['scan']],
   ['scorecard', scorecardWorkflow, ['analysis']],
   ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['refresh']],
   ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
@@ -365,6 +389,7 @@ for (const workflowPath of [
   '.github/workflows/release-on-main.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
   '.github/workflows/clone-traffic-badge.yml',
+  '.github/workflows/dependency-vulnerability-scan.yml',
   '.github/workflows/scheduled-workflow-health.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml'
 ]) {

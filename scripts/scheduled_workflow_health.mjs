@@ -18,6 +18,21 @@ export const SCHEDULED_WORKFLOW_TARGETS = Object.freeze([
         workflowFile: 'clone-traffic-badge.yml',
         label: 'Rolling Clone Traffic Badge',
         maximumSuccessAgeHours: 72
+    }),
+    Object.freeze({
+        workflowFile: 'codeql.yml',
+        label: 'CodeQL',
+        maximumSuccessAgeHours: 204
+    }),
+    Object.freeze({
+        workflowFile: 'scorecard.yml',
+        label: 'OpenSSF Scorecard',
+        maximumSuccessAgeHours: 204
+    }),
+    Object.freeze({
+        workflowFile: 'dependency-vulnerability-scan.yml',
+        label: 'Dependency Vulnerability Scan',
+        maximumSuccessAgeHours: 204
     })
 ]);
 

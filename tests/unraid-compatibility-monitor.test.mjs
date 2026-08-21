@@ -102,3 +102,22 @@ test('release scanner keeps stable and prerelease channels separate', (t) => {
     assert.equal(result.stable.version, '7.3.2');
     assert.equal(result.prerelease.version, '7.5.0-rc.2');
 });
+
+test('reviewed webGUI baseline covers plugin installation and update contracts', () => {
+    const baseline = JSON.parse(fs.readFileSync(new URL('../docs/unraid-compatibility-baseline.json', import.meta.url), 'utf8'));
+    const files = Object.keys(baseline.webgui.files || {});
+    const pluginManagerFiles = files.filter((file) => file.startsWith('emhttp/plugins/dynamix.plugin.manager/'));
+    assert.ok(pluginManagerFiles.length >= 15);
+    for (const required of [
+        'emhttp/plugins/dynamix.plugin.manager/PluginInstall.page',
+        'emhttp/plugins/dynamix.plugin.manager/Plugins.page',
+        'emhttp/plugins/dynamix.plugin.manager/include/Downgrade.php',
+        'emhttp/plugins/dynamix.plugin.manager/pre-hooks/pre_plugin_checks',
+        'emhttp/plugins/dynamix.plugin.manager/post-hooks/post_plugin_checks',
+        'emhttp/plugins/dynamix.plugin.manager/scripts/PluginAPI.php',
+        'emhttp/plugins/dynamix.plugin.manager/scripts/plugin',
+        'emhttp/plugins/dynamix.plugin.manager/scripts/plugincheck'
+    ]) {
+        assert.match(baseline.webgui.files[required] || '', /^[0-9a-f]{40}$/, `${required} must have a reviewed Git blob SHA`);
+    }
+});

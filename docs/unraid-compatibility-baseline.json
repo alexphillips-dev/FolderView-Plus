@@ -36,7 +36,25 @@
       "emhttp/plugins/dynamix.vm.manager/include/VMajax.php": "34acadd4d73c7f1f1556db9ac685d11a4cb6bed2",
       "emhttp/plugins/dynamix.vm.manager/include/UserPrefs.php": "57169f4224842b9151dabe8b9d2613e3f6206a20",
       "emhttp/plugins/dynamix/Dashboard.page": "3c5d1a68ac7103fe7c286e8e36956b5174c22915",
-      "emhttp/plugins/dynamix/include/DashboardApps.php": "53ad8efab59e7453a350578204e317c3656c5c28"
+      "emhttp/plugins/dynamix/include/DashboardApps.php": "53ad8efab59e7453a350578204e317c3656c5c28",
+      "emhttp/plugins/dynamix.plugin.manager/PluginHelpers.page": "15a2397ead358ef9834922e9c3cb3880f8f3399c",
+      "emhttp/plugins/dynamix.plugin.manager/PluginInstall.page": "663dd369df119e0f8cfd2ac9ad9074b7d6da1024",
+      "emhttp/plugins/dynamix.plugin.manager/Plugins.page": "f98e82ed8bab64c83edac85114e69b9b231eaefd",
+      "emhttp/plugins/dynamix.plugin.manager/PluginsError.page": "10b746975962642cd17f00d3d14c29ac8246a094",
+      "emhttp/plugins/dynamix.plugin.manager/PluginsStale.page": "b226866b8fe80c236d98ab80ab706812ab7aa40e",
+      "emhttp/plugins/dynamix.plugin.manager/include/Downgrade.php": "9742e7bbc3fd41320f4f30b715a9712ad2006c5e",
+      "emhttp/plugins/dynamix.plugin.manager/include/PluginHelpers.php": "1ea0258b824d71316caf9f857a861e483a8a3dc4",
+      "emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php": "3500f5e326ac0458f37db67e3ef794cf4037816e",
+      "emhttp/plugins/dynamix.plugin.manager/include/ShowPlugins.php": "f238d1bec1399bc03280a263f199eec34ce59338",
+      "emhttp/plugins/dynamix.plugin.manager/post-hooks/post_plugin_checks": "0f9f6ad6178473844338b1f6fb15214fcddb1a04",
+      "emhttp/plugins/dynamix.plugin.manager/pre-hooks/pre_plugin_checks": "0bd6047ef6fd9aa50a6eee091773594a05901e67",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/PluginAPI.php": "66b457448f9364320d941b6416a670a125bc6abb",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/checkall": "3033b88051d663a02d9124772f7cd07e852181ca",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/multiplugin": "3c87d6171ea679d10c3a9b8ee5a626d26478dfce",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/plugin": "d9fa17beeae39b86863bcb57ca2123878b47acfb",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/plugin_rm": "6a9210fdd14dfebcebf4ce85af606b7a12b926c3",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/plugincheck": "301537304151ca963bd167f4d62c91e2215d1df4",
+      "emhttp/plugins/dynamix.plugin.manager/scripts/showchanges": "f5b85fba05e141e14146336cc4a99d6b5975b9f8"
     }
   },
   "communityApplications": {

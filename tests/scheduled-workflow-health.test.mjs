@@ -69,6 +69,20 @@ test('scheduled workflow health monitors the daily clone badge with a bounded gr
     assert.equal(stale.reason, 'successful-run-stale');
 });
 
+test('scheduled workflow health monitors weekly security workflows', () => {
+    const expected = new Map([
+        ['codeql.yml', 'CodeQL'],
+        ['scorecard.yml', 'OpenSSF Scorecard'],
+        ['dependency-vulnerability-scan.yml', 'Dependency Vulnerability Scan']
+    ]);
+    for (const [workflowFile, label] of expected) {
+        const securityTarget = SCHEDULED_WORKFLOW_TARGETS.find((candidate) => candidate.workflowFile === workflowFile);
+        assert.ok(securityTarget, `${workflowFile} must be monitored`);
+        assert.equal(securityTarget.label, label);
+        assert.equal(securityTarget.maximumSuccessAgeHours, 204);
+    }
+});
+
 test('scheduled workflow health rejects missing, failed, and stale successes', () => {
     const missing = evaluateWorkflowRuns({ target, nowMs, runs: [] });
     assert.equal(missing.healthy, false);

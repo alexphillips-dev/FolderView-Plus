@@ -118,6 +118,19 @@
     },
     {
       "type": "application",
+      "name": "google/osv-scanner-action",
+      "version": "06b2ab4348248b456ee06c9e953637f55e03504f",
+      "scope": "optional",
+      "purl": "pkg:github/google/osv-scanner-action@06b2ab4348248b456ee06c9e953637f55e03504f",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
       "name": "ossf/scorecard-action",
       "version": "2d1146689b8cda280b9bc96326124645441f03bc",
       "scope": "optional",

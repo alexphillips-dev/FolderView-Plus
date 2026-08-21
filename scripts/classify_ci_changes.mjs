@@ -38,6 +38,10 @@ export const FILTERS = Object.freeze({
         'scripts/scheduled_workflow_health.mjs',
         'scripts/codeql_alert_guard.mjs',
         'scripts/unraid_docker_upstream_monitor.sh',
+        'scripts/unraid_compatibility_monitor.mjs',
+        'scripts/community_applications_guard.mjs',
+        'scripts/php_runtime_compatibility.sh',
+        'docs/unraid-compatibility-baseline.json',
         'tests/ci-change-classifier.test.mjs',
         'tests/versioning-guard.test.mjs'
     ],

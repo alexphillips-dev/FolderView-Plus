@@ -12,6 +12,8 @@ bash scripts/unraid_docker_upstream_monitor.sh --json
 
 Review the official Unraid release notes and generated API contract. If the monitor reports `active` or `unknown`, do not force legacy mode. Preserve native-page safe mode, update the reviewed schema baseline only after inspecting the upstream change, and add an isolated fixture that represents the new host or schema outcome.
 
+The scheduled compatibility workflow also runs `scripts/unraid_compatibility_monitor.mjs` against `docs/unraid-compatibility-baseline.json`. Review every reported stable/prerelease OS, PHP, webGUI, API, and Community Applications signal. Baseline changes are human-reviewed repository updates; the workflow intentionally cannot approve upstream drift itself.
+
 ## 2. Maintain the isolated profile matrix
 
 Profiles live in `tests/fixtures/unraid-api/`. Every profile is synthetic and must contain no real server, user, workload, path, address, URL, token, or cookie data.
@@ -32,7 +34,25 @@ Profiles live in `tests/fixtures/unraid-api/`. Every profile is synthetic and mu
 
 When an upstream change cannot be expressed by an existing profile, add one minimal profile and a contract test before changing runtime behavior.
 
-## 3. Validate legacy API-first reads
+## 3. Validate supported PHP runtimes
+
+`scripts/php_runtime_compatibility.sh` syntax-checks every shipped PHP file and executes a standalone request-authority contract. The scheduled workflow runs it in three isolated container profiles matching the oldest supported Unraid release, the current stable release, and the current prerelease recorded in `docs/unraid-compatibility-baseline.json`.
+
+PHP patch changes in official Unraid release notes are review signals. Update the matrix only after the image exists, the full shipped PHP surface passes, and any new deprecation or behavior difference is understood.
+
+## 4. Validate Community Applications publication
+
+`scripts/community_applications_guard.mjs` compares the stable repository metadata and manifest with:
+
+- The official Community Applications repository XML guidance.
+- The official starter plugin contract.
+- The canonical `unraid-ca-templates` FolderView Plus entry.
+- The public Community Applications feed entry.
+- The version currently published through the stable plugin manifest.
+
+The interactive portal's authenticated **Validate** and **Scan** actions remain a manual release/submission check. CI uses only public inputs and never stores a Community Applications login or browser session.
+
+## 5. Validate legacy API-first reads
 
 The expected sequence on a legacy Docker table is:
 
@@ -45,7 +65,7 @@ The expected sequence on a legacy Docker table is:
 
 API state may update running, paused, status, autostart, and only optional fields proven by introspection. PHP metadata such as paths, ports, mounts, shell, template links, project data, and fallback URLs must remain intact.
 
-## 4. Validate lifecycle and mutation ownership
+## 6. Validate lifecycle and mutation ownership
 
 On the legacy Docker page and Dashboard:
 
@@ -57,7 +77,7 @@ On the legacy Docker page and Dashboard:
 
 A schema field existing is necessary but not sufficient to expose a persistent or destructive mutation. Such a feature needs its own isolated persistence, conflict, rollback, and failure fixtures plus explicit product approval.
 
-## 5. Validate failures and lifecycle cleanup
+## 7. Validate failures and lifecycle cleanup
 
 Confirm:
 
@@ -68,7 +88,7 @@ Confirm:
 - Navigation and `pagehide` abort active requests, close subscriptions, cancel reconnect, and reject stale results.
 - Repeated Docker, Settings, and Dashboard navigation creates no duplicate handlers, observers, timers, requests, or rows.
 
-## 6. Validate native coexistence
+## 8. Validate native coexistence
 
 Against `future-native-host` and `future-docker-host.html`, confirm:
 
@@ -80,7 +100,7 @@ Against `future-native-host` and `future-docker-host.html`, confirm:
 
 Any organizer migration requires a separately approved schema review, conflict model, backup/rollback design, explicit user confirmation, and isolated cross-version tests.
 
-## 7. Validate diagnostics and privacy
+## 9. Validate diagnostics and privacy
 
 Evidence may contain only:
 
@@ -93,10 +113,11 @@ Evidence may contain only:
 
 It must never contain container, VM, or folder names/IDs; paths; IPs; URLs; labels; log content; CSRF values; cookies; tokens; GraphQL variables; raw schema responses; or raw server errors.
 
-## 8. Run qualification
+## 10. Run qualification
 
 ```bash
-node --test tests/docker-runtime-api-coordinator.test.mjs tests/unraid-api-fixtures.test.mjs tests/unraid-docker-future-compatibility.test.mjs tests/unraid-upstream-monitor.test.mjs
+node --test tests/docker-runtime-api-coordinator.test.mjs tests/unraid-api-fixtures.test.mjs tests/unraid-docker-future-compatibility.test.mjs tests/unraid-upstream-monitor.test.mjs tests/unraid-compatibility-monitor.test.mjs tests/community-applications-guard.test.mjs
+sh scripts/php_runtime_compatibility.sh
 bash scripts/run_ci_suite.sh --lane lint --lane tests
 bash scripts/run_ci_suite.sh --lane workflow-tests --lane workflow-guards --lane docs-guards
 bash scripts/run_ci_suite.sh --lane fixture-browser
@@ -109,7 +130,7 @@ bash scripts/install_smoke.sh
 
 `browser-smoke` is a deterministic Chromium fixture profile. `theme-matrix` runs the same local inventory across Chromium, Firefox, WebKit, light/dark color schemes, and desktop/smartphone viewports. Scheduled validation uses the isolated fixture suite and has no live-system secrets.
 
-## 9. Make the release decision
+## 11. Make the release decision
 
 Keep native Docker-page ownership with Unraid unless all of these are true:
 

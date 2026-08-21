@@ -2,7 +2,7 @@
 
 This document defines how FolderView Plus coexists with the current table-based Unraid Docker page and the native component/API replacement being developed by Unraid.
 
-The upstream implementation was last reviewed on 2026-08-18 against Unraid API v4.37.1. That release added PKCE support to Unraid OIDC without changing the Docker interface, generated Docker GraphQL contract, native Docker page, or organizer implementation. The generated Docker contract retained the reviewed signature, and Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The native Docker implementation therefore remains prerelease, and safe mode plus the existing organizer boundary remain unchanged.
+The upstream implementation was last reviewed on 2026-08-21 against Unraid API v4.37.2. That release adds TXZ-install cleanup for stale Unraid API web-component files without changing the Docker interface, generated Docker GraphQL contract, native Docker page, or organizer implementation. The generated Docker contract retained the reviewed signature, and Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The native Docker implementation therefore remains prerelease, and safe mode plus the existing organizer boundary remain unchanged.
 
 ## Host generations
 
@@ -103,13 +103,13 @@ The `docker-api-legacy.html` fixture and `tests/fixtures/unraid-api/*.json` veri
 
 ## Activation triggers
 
-`scripts/unraid_docker_upstream_monitor.sh` treats any of these as a review signal:
+`scripts/unraid_docker_upstream_monitor.sh` treats any of these as a Docker/API review signal:
 
 1. Upstream `docker-containers-page.modification.ts` changes to `shouldApply: true`.
 2. Supplied official release notes announce a native/new Docker page or interface.
 3. The tracked Docker GraphQL schema signature changes or a required capability disappears.
 4. The latest official Unraid API release differs from the reviewed baseline.
 
-An unrecognizable source shape is also a blocking signal because silently assuming the replacement remains disabled would be unsafe. The scheduled workflow `.github/workflows/unraid-docker-upstream-monitor.yml` checks the source gate, GraphQL schema, API release, and current Unraid release notes weekly and can be run manually.
+An unrecognizable source shape is also a blocking signal because silently assuming the replacement remains disabled would be unsafe. The daily workflow `.github/workflows/unraid-docker-upstream-monitor.yml` combines that focused check with `scripts/unraid_compatibility_monitor.mjs`. It also compares reviewed stable/prerelease Unraid versions, PHP runtimes, exact Docker/VM/Dashboard webGUI file signatures, the official Community Applications starter contract, the public catalog listing, and portal guidance. A drift issue never approves or rewrites a baseline automatically.
 
 See [Unraid Docker Prerelease Qualification](unraid-docker-prerelease-qualification.md) before changing the coexistence policy.

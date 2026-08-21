@@ -22,14 +22,14 @@ test('scheduled workflow health accepts a recent scheduled success', () => {
     const result = evaluateWorkflowRuns({
         target,
         nowMs,
-        runs: [run({ createdAt: '2026-08-04T12:00:00Z' })]
+        runs: [run({ createdAt: '2026-08-08T12:01:00Z' })]
     });
     assert.equal(result.healthy, true);
     assert.equal(result.reason, 'healthy');
     assert.equal(result.latestSuccess.event, 'schedule');
 });
 
-test('scheduled workflow health accepts a manual proof run until the weekly interval expires', () => {
+test('scheduled workflow health accepts a manual proof run until the daily-monitor grace period expires', () => {
     const result = evaluateWorkflowRuns({
         target,
         nowMs,
@@ -37,6 +37,12 @@ test('scheduled workflow health accepts a manual proof run until the weekly inte
     });
     assert.equal(result.healthy, true);
     assert.equal(result.latestSuccess.event, 'workflow_dispatch');
+});
+
+test('scheduled workflow health identifies the daily Unraid compatibility monitor', () => {
+    assert.equal(target.workflowFile, 'unraid-docker-upstream-monitor.yml');
+    assert.equal(target.label, 'Unraid Compatibility Monitor');
+    assert.equal(target.maximumSuccessAgeHours, 72);
 });
 
 test('scheduled workflow health monitors the daily clone badge with a bounded grace period', () => {

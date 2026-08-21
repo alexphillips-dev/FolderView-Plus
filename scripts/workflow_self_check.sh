@@ -49,6 +49,10 @@ for (const relativePath of [
   'scripts/runtime_perf_baseline.json',
   'scripts/scheduled_workflow_health.mjs',
   'scripts/codeql_alert_guard.mjs',
+  'scripts/community_applications_guard.mjs',
+  'scripts/php_runtime_compatibility.sh',
+  'scripts/unraid_compatibility_monitor.mjs',
+  'docs/unraid-compatibility-baseline.json',
   'scripts/build_release_notes.sh',
   'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
@@ -256,20 +260,44 @@ if (!/Back-merge follow-up required/.test(backmergeWorkflow) ||
 if (/git push origin dev/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must not push directly to protected dev.');
 }
-if (!/schedule:/.test(upstreamMonitorWorkflow) || !/workflow_dispatch:/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor must support scheduled and manual checks.');
+if (!/name:\s*Unraid Compatibility Monitor/.test(upstreamMonitorWorkflow)
+    || !/cron:\s*'43 9 \* \* \*'/.test(upstreamMonitorWorkflow)
+    || !/workflow_dispatch:/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid compatibility monitor must run daily and support manual checks.');
 }
-if (!/scripts\/unraid_docker_upstream_monitor\.sh/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor workflow must use the repository monitor script.');
+if (!/scripts\/unraid_docker_upstream_monitor\.sh/.test(upstreamMonitorWorkflow)
+    || !/scripts\/unraid_compatibility_monitor\.mjs/.test(upstreamMonitorWorkflow)
+    || !/scripts\/community_applications_guard\.mjs/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid compatibility monitor must evaluate Docker/API, OS/webGUI, and Community Applications contracts.');
 }
 if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor must keep repository contents read-only.');
+  fail('Unraid compatibility monitor must keep repository contents read-only.');
 }
 if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor must be able to open a deduplicated compatibility alert.');
+  fail('Unraid compatibility monitor must be able to open a deduplicated compatibility alert.');
 }
-if (!/Close resolved compatibility alert/.test(upstreamMonitorWorkflow) || !/gh issue close/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor must close its compatibility alert after a reviewed recovery.');
+if (!/Close resolved compatibility review issues/.test(upstreamMonitorWorkflow) || !/gh issue close/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid compatibility monitor must close its compatibility alert after a reviewed recovery.');
+}
+if (!/Run isolated compatibility fixtures on upstream drift/.test(upstreamMonitorWorkflow)
+    || !/--lane tests --lane fixture-browser/.test(upstreamMonitorWorkflow)
+    || !/npx playwright install --with-deps chromium/.test(upstreamMonitorWorkflow)) {
+  fail('Upstream drift must run isolated contract and browser fixtures before review.');
+}
+if (!/php-runtime-compatibility:/.test(upstreamMonitorWorkflow)
+    || !/php:8\.3\.8-cli-alpine/.test(upstreamMonitorWorkflow)
+    || !/php:8\.4\.23-cli-alpine/.test(upstreamMonitorWorkflow)
+    || !/php:8\.4\.24-cli-alpine/.test(upstreamMonitorWorkflow)
+    || !/scripts\/php_runtime_compatibility\.sh/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid compatibility monitor must test the oldest, stable, and prerelease PHP runtime profiles in isolation.');
+}
+if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|secrets\.[A-Za-z0-9_]*UNRAID/i.test(upstreamMonitorWorkflow)) {
+  fail('Unraid compatibility monitoring must not accept live-Unraid targets or secrets.');
+}
+if (!/ca\.unraid\.net\/submit\/help\/repository-xml/.test(upstreamMonitorWorkflow)
+    || !/ca\.unraid\.net\/assets\/feed\/applicationFeed\.json/.test(upstreamMonitorWorkflow)
+    || !/unraid-community-apps-starter/.test(upstreamMonitorWorkflow)) {
+  fail('Community Applications validation must use the official portal guidance, public feed, and starter contract.');
 }
 if (!/permissions:\s*\n\s*contents:\s*read/.test(scheduledValidationWorkflow)
     || /issues:\s*write/.test(scheduledValidationWorkflow)) {
@@ -309,7 +337,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['refresh']],
   ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
   ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
-  ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
+  ['unraid-compatibility-monitor', upstreamMonitorWorkflow, ['monitor', 'php-runtime-compatibility']]
 ]) {
   for (const jobName of jobNames) {
     if (!/timeout-minutes:\s*[1-9][0-9]*/.test(jobBlock(workflow, jobName))) {

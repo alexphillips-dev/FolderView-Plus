@@ -421,7 +421,7 @@ test('scheduled validation runs deterministic cross-browser fixtures without liv
     assert.doesNotMatch(scheduledValidationWorkflow, /gh issue/);
 });
 
-test('scheduled workflow watchdog alerts on missing weekly successes and closes recovered alerts', () => {
+test('scheduled workflow watchdog alerts on missing expected successes and closes recovered alerts', () => {
     assert.match(scheduledWorkflowHealth, /schedule:/);
     assert.match(scheduledWorkflowHealth, /workflow_dispatch:/);
     assert.match(scheduledWorkflowHealth, /actions:\s*read/);

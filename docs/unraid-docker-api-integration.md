@@ -147,6 +147,8 @@ Integration remains disabled regardless of those individual booleans until Unrai
 
 The reviewed baseline is `docs/unraid-docker-upstream-baseline.json`. A gate change, schema change, missing required token, or newer API release produces a review signal and opens or updates the scheduled compatibility issue. Monitoring never changes runtime behavior automatically.
 
+The daily `scripts/unraid_compatibility_monitor.mjs` orchestration adds stable/prerelease Unraid release notes, PHP runtime changes, exact relevant `unraid/webgui` file signatures, and Community Applications publication contracts. All baselines require a reviewed repository change; CI never advances them automatically.
+
 ## Validation
 
 Focused contracts live in:

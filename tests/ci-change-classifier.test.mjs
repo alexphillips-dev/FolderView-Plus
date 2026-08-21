@@ -52,6 +52,19 @@ test('workflow changes allow the generated SBOM as a focused validation companio
     });
 });
 
+test('upstream compatibility monitor scripts and baseline use focused workflow validation', () => {
+    const result = classifyPaths([
+        '.github/workflows/unraid-docker-upstream-monitor.yml',
+        'scripts/unraid_compatibility_monitor.mjs',
+        'scripts/community_applications_guard.mjs',
+        'scripts/php_runtime_compatibility.sh',
+        'docs/unraid-compatibility-baseline.json'
+    ]);
+    assert.equal(result.outputs.workflow_only, true);
+    assert.equal(result.outputs.needs_browser, false);
+    assert.equal(result.outputs.needs_theme, false);
+});
+
 test('workflow changes mixed with ordinary documentation still use broad validation', () => {
     const result = classifyPaths([
         '.github/workflows/codeql.yml',

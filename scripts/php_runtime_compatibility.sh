@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 PHP_BIN="${FVPLUS_PHP_BIN:-php}"
 EXPECTED_PREFIX="${FVPLUS_EXPECT_PHP_VERSION_PREFIX:-}"
 

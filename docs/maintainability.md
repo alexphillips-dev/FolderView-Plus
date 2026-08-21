@@ -15,8 +15,8 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - Dev versions are allocated above versions visible in the archive, manifests, branch history, and version tags.
 - Historical reproducibility checks use `FVPLUS_HISTORICAL_REBUILD=1` only inside isolated guard worktrees.
 - Main-to-dev back-merges build a fresh dev package from merged source; packaged/source drift is never bypassed.
-- Release-mode validation fails closed unless the configured Unraid version matrix, browser smoke target, and black/white theme matrix can run. A missing live target is a release failure, not a skipped check.
-- Release notes include source commit, archive SHA-256, previous stable tag, a full comparison URL, and bounded commit history.
+- Release-mode validation fails closed unless the isolated Unraid fixture profiles, browser smoke fixtures, and black/white theme matrix can run. Repository validation never accepts a live Unraid URL, session, cookie, or credential.
+- Release notes include source commit, archive SHA-256, previous stable tag, and a full comparison URL alongside curated user-facing changes; they never embed raw commit history.
 - Remote publication validation downloads and hashes the archive bytes. Its retry messages distinguish stale manifests, unavailable artifacts, stale checksum files, and stale archive content.
 
 ## Supply chain and dependencies
@@ -39,7 +39,10 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 
 ## Operational review
 
-- The scheduled Unraid Docker monitor opens or updates one deduplicated GitHub issue when the upstream interface leaves its dormant state.
+- The daily Unraid compatibility monitor opens or updates one deduplicated GitHub issue when a reviewed stable/prerelease OS version, PHP runtime, Docker API/schema, native-page gate, relevant Docker/VM/Dashboard webGUI file, Community Applications starter contract, canonical template, or public catalog entry changes.
+- `docs/unraid-compatibility-baseline.json` records human-reviewed upstream versions and Git blob signatures. Automation reports drift but never modifies or approves the baseline.
+- Isolated PHP 8.3/8.4 profiles represent the oldest supported, current stable, and current prerelease Unraid runtimes. The compatibility lane syntax-checks every shipped PHP file and runs a request-authority smoke contract without connecting to a server.
+- Community Applications validation uses the official public portal guidance, starter repository, catalog feed, and canonical template. The authenticated portal Validate/Scan session is never stored in GitHub Actions.
 - The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. It does not connect to live Unraid targets or require live-system repository secrets.
 - Follow [Unraid Docker prerelease qualification](unraid-docker-prerelease-qualification.md) before changing native-page safe mode.
 - Audit current and reachable package history with `bash scripts/artifact_history_audit.sh` and `bash scripts/artifact_history_audit.sh --history`.

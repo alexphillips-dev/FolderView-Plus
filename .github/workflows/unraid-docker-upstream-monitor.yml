@@ -1,8 +1,8 @@
-name: Unraid Docker Upstream Monitor
+name: Unraid Compatibility Monitor
 
 on:
   schedule:
-    - cron: '43 9 * * 2'
+    - cron: '43 9 * * *'
   workflow_dispatch:
 
 permissions:
@@ -10,14 +10,14 @@ permissions:
   issues: write
 
 concurrency:
-  group: folderview-plus-unraid-docker-upstream-monitor
+  group: folderview-plus-unraid-compatibility-monitor
   cancel-in-progress: true
 
 jobs:
   monitor:
-    name: Check Docker API and native page compatibility
+    name: Check official Unraid and Community Applications contracts
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
 
     steps:
       - name: Checkout FolderView Plus
@@ -25,69 +25,181 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Fetch current Unraid release notes
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Fetch official upstream contracts
+        id: upstream
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/unraid/docs.git "${RUNNER_TEMP}/unraid-docs"
-          git -C "${RUNNER_TEMP}/unraid-docs" sparse-checkout set docs/unraid-os/release-notes
+          upstream_root="${RUNNER_TEMP}/fvplus-upstream"
+          docs_root="${upstream_root}/unraid-docs"
+          webgui_root="${upstream_root}/unraid-webgui"
+          ca_root="${upstream_root}/community-apps-starter"
+          mkdir -p "${upstream_root}"
 
-      - name: Check upstream activation signals
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/unraid/docs.git "${docs_root}"
+          git -C "${docs_root}" sparse-checkout set docs/unraid-os/release-notes
+
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/unraid/webgui.git "${webgui_root}"
+          git -C "${webgui_root}" sparse-checkout set --no-cone \
+            emhttp/plugins/dynamix.docker.manager/DockerContainers.page \
+            emhttp/plugins/dynamix.docker.manager/include/DockerContainers.php \
+            emhttp/plugins/dynamix.docker.manager/include/UserPrefs.php \
+            emhttp/plugins/dynamix.docker.manager/javascript/docker.js \
+            emhttp/plugins/dynamix.docker.manager/nchan/docker_load \
+            emhttp/plugins/dynamix.vm.manager/VMMachines.page \
+            emhttp/plugins/dynamix.vm.manager/include/VMMachines.php \
+            emhttp/plugins/dynamix.vm.manager/include/VMajax.php \
+            emhttp/plugins/dynamix.vm.manager/include/UserPrefs.php \
+            emhttp/plugins/dynamix/Dashboard.page \
+            emhttp/plugins/dynamix/include/DashboardApps.php
+
+          git clone --depth 1 https://github.com/unraid/unraid-community-apps-starter.git "${ca_root}"
+
+          curl -fsSL --connect-timeout 20 --max-time 90 \
+            https://ca.unraid.net/submit/help/repository-xml \
+            -o "${upstream_root}/ca-repository-help.html"
+          curl -fsSL --connect-timeout 20 --max-time 180 \
+            https://ca.unraid.net/assets/feed/applicationFeed.json \
+            -o "${upstream_root}/applicationFeed.json"
+          curl -fsSL --connect-timeout 20 --max-time 90 \
+            https://raw.githubusercontent.com/alexphillips-dev/unraid-ca-templates/main/folderview.plus.xml \
+            -o "${upstream_root}/catalog-folderview.plus.xml"
+          curl -fsSL --connect-timeout 20 --max-time 90 \
+            https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.xml \
+            -o "${upstream_root}/main-folderview.plus.xml"
+          curl -fsSL --connect-timeout 20 --max-time 90 \
+            https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg \
+            -o "${upstream_root}/main-folderview.plus.plg"
+
+          {
+            echo "root=${upstream_root}"
+            echo "docs_root=${docs_root}"
+            echo "webgui_root=${webgui_root}"
+            echo "webgui_commit=$(git -C "${webgui_root}" rev-parse HEAD)"
+            echo "ca_root=${ca_root}"
+            echo "ca_commit=$(git -C "${ca_root}" rev-parse HEAD)"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Evaluate Docker API and native-page contract
+        id: docker
+        shell: bash
+        run: |
+          set +e
+          bash scripts/unraid_docker_upstream_monitor.sh \
+            --release-notes-dir "${{ steps.upstream.outputs.docs_root }}/docs/unraid-os/release-notes" \
+            --json > "${RUNNER_TEMP}/docker-monitor.json"
+          monitor_exit=$?
+          set -e
+          if [[ "${monitor_exit}" -ne 0 && "${monitor_exit}" -ne 20 && "${monitor_exit}" -ne 21 ]]; then
+            echo "Unexpected Docker monitor exit: ${monitor_exit}" >&2
+            exit "${monitor_exit}"
+          fi
+          cat "${RUNNER_TEMP}/docker-monitor.json"
+
+      - name: Validate Community Applications publication contract
+        id: ca
+        shell: bash
+        run: |
+          set +e
+          node scripts/community_applications_guard.mjs \
+            --metadata "${{ steps.upstream.outputs.root }}/main-folderview.plus.xml" \
+            --manifest "${{ steps.upstream.outputs.root }}/main-folderview.plus.plg" \
+            --catalog-template "${{ steps.upstream.outputs.root }}/catalog-folderview.plus.xml" \
+            --feed "${{ steps.upstream.outputs.root }}/applicationFeed.json" \
+            --portal-help "${{ steps.upstream.outputs.root }}/ca-repository-help.html" \
+            --starter-plugin "${{ steps.upstream.outputs.ca_root }}/plugins/example-plugin.xml" \
+            --expected-branch main \
+            --report "${RUNNER_TEMP}/community-applications-report.md" \
+            --json > "${RUNNER_TEMP}/community-applications.json"
+          ca_exit=$?
+          set -e
+          if [[ "${ca_exit}" -ne 0 && "${ca_exit}" -ne 20 && "${ca_exit}" -ne 21 ]]; then
+            echo "Unexpected Community Applications guard exit: ${ca_exit}" >&2
+            exit "${ca_exit}"
+          fi
+          cat "${RUNNER_TEMP}/community-applications.json"
+
+      - name: Evaluate reviewed compatibility baselines
         id: monitor
         shell: bash
         run: |
-          bash scripts/unraid_docker_upstream_monitor.sh \
-            --release-notes-dir "${RUNNER_TEMP}/unraid-docs/docs/unraid-os/release-notes" \
+          set +e
+          node scripts/unraid_compatibility_monitor.mjs \
+            --baseline docs/unraid-compatibility-baseline.json \
+            --release-notes-dir "${{ steps.upstream.outputs.docs_root }}/docs/unraid-os/release-notes" \
+            --webgui-dir "${{ steps.upstream.outputs.webgui_root }}" \
+            --webgui-commit "${{ steps.upstream.outputs.webgui_commit }}" \
+            --ca-starter-dir "${{ steps.upstream.outputs.ca_root }}" \
+            --ca-starter-commit "${{ steps.upstream.outputs.ca_commit }}" \
+            --docker-result "${RUNNER_TEMP}/docker-monitor.json" \
+            --ca-result "${RUNNER_TEMP}/community-applications.json" \
+            --report "${RUNNER_TEMP}/unraid-compatibility-report.md" \
             --github-output "${GITHUB_OUTPUT}" \
-            --json
+            --json > "${RUNNER_TEMP}/unraid-compatibility.json"
+          monitor_exit=$?
+          set -e
+          if [[ "${monitor_exit}" -ne 0 && "${monitor_exit}" -ne 20 && "${monitor_exit}" -ne 21 ]]; then
+            echo "Unexpected compatibility monitor exit: ${monitor_exit}" >&2
+            exit "${monitor_exit}"
+          fi
+          cat "${RUNNER_TEMP}/unraid-compatibility.json"
 
-      - name: Publish monitor summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo "## Unraid Docker interface monitor"
-            echo
-            echo "- Status: \`${{ steps.monitor.outputs.status || 'unknown' }}\`"
-            echo "- Reason: \`${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}\`"
-            echo "- Source gate: \`${{ steps.monitor.outputs.source_gate || 'unknown' }}\`"
-            echo "- Release announcement: \`${{ steps.monitor.outputs.release_announcement || 'unknown' }}\`"
-            echo "- Docker schema: \`${{ steps.monitor.outputs.schema_status || 'unknown' }}\`"
-            echo "- Latest API release: \`${{ steps.monitor.outputs.latest_api_release || 'unknown' }}\`"
-            echo "- API release baseline: \`${{ steps.monitor.outputs.api_release_status || 'unknown' }}\`"
-          } >> "${GITHUB_STEP_SUMMARY}"
-
-      - name: Create or update compatibility alert
-        if: always() && steps.monitor.outputs.status != 'dormant'
+      - name: Run isolated compatibility fixtures on upstream drift
+        id: compatibility
+        if: steps.monitor.outputs.status != 'matched'
+        continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
-          STATUS: ${{ steps.monitor.outputs.status || 'unknown' }}
-          REASON: ${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}
-          SOURCE_GATE: ${{ steps.monitor.outputs.source_gate || 'unknown' }}
-          RELEASE_ANNOUNCEMENT: ${{ steps.monitor.outputs.release_announcement || 'unknown' }}
-          SCHEMA_STATUS: ${{ steps.monitor.outputs.schema_status || 'unknown' }}
-          SCHEMA_SIGNATURE: ${{ steps.monitor.outputs.schema_signature || 'unknown' }}
-          LATEST_API_RELEASE: ${{ steps.monitor.outputs.latest_api_release || 'unknown' }}
-          API_RELEASE_STATUS: ${{ steps.monitor.outputs.api_release_status || 'unknown' }}
+          FVPLUS_FIXTURE_BROWSERS: chromium
         shell: bash
         run: |
           set -euo pipefail
-          title="Unraid Docker upstream compatibility review required"
-          body_file="$(mktemp)"
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+          bash scripts/run_ci_suite.sh --lane tests --lane fixture-browser
+
+      - name: Publish compatibility summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "${RUNNER_TEMP}/unraid-compatibility-report.md" ]]; then
+            cat "${RUNNER_TEMP}/unraid-compatibility-report.md" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          if [[ -f "${RUNNER_TEMP}/community-applications-report.md" ]]; then
+            cat "${RUNNER_TEMP}/community-applications-report.md" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+      - name: Create or update compatibility review issue
+        if: always() && steps.monitor.outputs.status != 'matched'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIXTURE_OUTCOME: ${{ steps.compatibility.outcome || 'not-run' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Unraid compatibility review required"
+          body_file="${RUNNER_TEMP}/compatibility-issue.md"
           {
-            echo "The scheduled FolderView Plus monitor detected an upstream Docker interface state that is no longer safely dormant."
+            if [[ -s "${RUNNER_TEMP}/unraid-compatibility-report.md" ]]; then
+              cat "${RUNNER_TEMP}/unraid-compatibility-report.md"
+            else
+              echo "# Unraid Compatibility Monitor"
+              echo
+              echo "The consolidated report was unavailable because an upstream fetch or monitor step failed. Inspect the linked workflow run for the exact failure."
+            fi
             echo
-            echo "- Status: \`${STATUS}\`"
-            echo "- Reason: \`${REASON}\`"
-            echo "- Source gate: \`${SOURCE_GATE}\`"
-            echo "- Release announcement: \`${RELEASE_ANNOUNCEMENT}\`"
-            echo "- Docker schema: \`${SCHEMA_STATUS}\`"
-            echo "- Docker schema signature: \`${SCHEMA_SIGNATURE}\`"
-            echo "- Latest API release: \`${LATEST_API_RELEASE}\`"
-            echo "- API release baseline: \`${API_RELEASE_STATUS}\`"
+            if [[ -s "${RUNNER_TEMP}/community-applications-report.md" ]]; then
+              cat "${RUNNER_TEMP}/community-applications-report.md"
+            else
+              echo "## Community Applications"
+              echo
+              echo "The Community Applications report was unavailable."
+            fi
+            echo
+            echo "- Isolated compatibility fixtures: \`${FIXTURE_OUTCOME}\`"
             echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo
-            echo "Follow \`docs/unraid-docker-prerelease-qualification.md\`. Keep native-page safe mode enabled until fixture and live-host qualification pass."
           } > "${body_file}"
           issue_number="$(
             gh issue list \
@@ -98,28 +210,73 @@ jobs:
               | head -n 1
           )"
           if [[ -n "${issue_number}" ]]; then
-            gh issue comment "${issue_number}" --body-file "${body_file}"
-            echo "Updated compatibility issue #${issue_number}."
+            gh issue edit "${issue_number}" --body-file "${body_file}"
           else
             gh issue create --title "${title}" --body-file "${body_file}"
           fi
 
-      - name: Close resolved compatibility alert
-        if: steps.monitor.outputs.status == 'dormant'
+      - name: Close resolved compatibility review issues
+        if: steps.monitor.outputs.status == 'matched'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          title="Unraid Docker upstream compatibility review required"
-          issue_number="$(
-            gh issue list \
-              --state open \
-              --search "\"${title}\" in:title" \
-              --json number,title \
-              --jq ".[] | select(.title == \"${title}\") | .number" \
-              | head -n 1
-          )"
-          if [[ -n "${issue_number}" ]]; then
-            gh issue close "${issue_number}" --comment "The current Unraid API release and Docker schema have been reviewed and now match the compatibility baseline."
-          fi
+          for title in \
+            "Unraid compatibility review required" \
+            "Unraid Docker upstream compatibility review required"; do
+            issue_number="$(
+              gh issue list \
+                --state open \
+                --search "\"${title}\" in:title" \
+                --json number,title \
+                --jq ".[] | select(.title == \"${title}\") | .number" \
+                | head -n 1
+            )"
+            if [[ -n "${issue_number}" ]]; then
+              gh issue close "${issue_number}" --comment "The official Unraid, API, webGUI, PHP, and Community Applications contracts now match the reviewed FolderView Plus baselines."
+            fi
+          done
+
+      - name: Enforce reviewed compatibility state
+        if: always() && (steps.monitor.outputs.status != 'matched' || steps.compatibility.outcome == 'failure')
+        shell: bash
+        run: |
+          echo "::error title=Unraid compatibility review required::Official upstream state differs from the human-reviewed FolderView Plus baselines or isolated compatibility validation failed."
+          exit 1
+
+  php-runtime-compatibility:
+    name: PHP ${{ matrix.php }} / ${{ matrix.profile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: oldest-supported
+            unraid: 7.0.0
+            php: 8.3.8
+            image: php:8.3.8-cli-alpine
+          - profile: current-stable
+            unraid: 7.3.2
+            php: 8.4.23
+            image: php:8.4.23-cli-alpine
+          - profile: current-prerelease
+            unraid: 7.4.0-beta.1
+            php: 8.4.24
+            image: php:8.4.24-cli-alpine
+
+    steps:
+      - name: Checkout FolderView Plus
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate shipped PHP on isolated Unraid runtime profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
+            --workdir /workspace \
+            --env "FVPLUS_EXPECT_PHP_VERSION_PREFIX=${{ matrix.php }}" \
+            "${{ matrix.image }}" \
+            sh scripts/php_runtime_compatibility.sh

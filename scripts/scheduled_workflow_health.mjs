@@ -6,8 +6,8 @@ import { pathToFileURL } from 'node:url';
 export const SCHEDULED_WORKFLOW_TARGETS = Object.freeze([
     Object.freeze({
         workflowFile: 'unraid-docker-upstream-monitor.yml',
-        label: 'Unraid Docker Upstream Monitor',
-        maximumSuccessAgeHours: 204
+        label: 'Unraid Compatibility Monitor',
+        maximumSuccessAgeHours: 72
     }),
     Object.freeze({
         workflowFile: 'scheduled-validation.yml',

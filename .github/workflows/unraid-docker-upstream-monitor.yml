@@ -54,7 +54,25 @@ jobs:
             emhttp/plugins/dynamix.vm.manager/include/VMajax.php \
             emhttp/plugins/dynamix.vm.manager/include/UserPrefs.php \
             emhttp/plugins/dynamix/Dashboard.page \
-            emhttp/plugins/dynamix/include/DashboardApps.php
+            emhttp/plugins/dynamix/include/DashboardApps.php \
+            emhttp/plugins/dynamix.plugin.manager/PluginHelpers.page \
+            emhttp/plugins/dynamix.plugin.manager/PluginInstall.page \
+            emhttp/plugins/dynamix.plugin.manager/Plugins.page \
+            emhttp/plugins/dynamix.plugin.manager/PluginsError.page \
+            emhttp/plugins/dynamix.plugin.manager/PluginsStale.page \
+            emhttp/plugins/dynamix.plugin.manager/include/Downgrade.php \
+            emhttp/plugins/dynamix.plugin.manager/include/PluginHelpers.php \
+            emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php \
+            emhttp/plugins/dynamix.plugin.manager/include/ShowPlugins.php \
+            emhttp/plugins/dynamix.plugin.manager/post-hooks/post_plugin_checks \
+            emhttp/plugins/dynamix.plugin.manager/pre-hooks/pre_plugin_checks \
+            emhttp/plugins/dynamix.plugin.manager/scripts/PluginAPI.php \
+            emhttp/plugins/dynamix.plugin.manager/scripts/checkall \
+            emhttp/plugins/dynamix.plugin.manager/scripts/multiplugin \
+            emhttp/plugins/dynamix.plugin.manager/scripts/plugin \
+            emhttp/plugins/dynamix.plugin.manager/scripts/plugin_rm \
+            emhttp/plugins/dynamix.plugin.manager/scripts/plugincheck \
+            emhttp/plugins/dynamix.plugin.manager/scripts/showchanges
 
           git clone --depth 1 https://github.com/unraid/unraid-community-apps-starter.git "${ca_root}"
 

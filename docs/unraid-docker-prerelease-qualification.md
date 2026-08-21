@@ -12,7 +12,7 @@ bash scripts/unraid_docker_upstream_monitor.sh --json
 
 Review the official Unraid release notes and generated API contract. If the monitor reports `active` or `unknown`, do not force legacy mode. Preserve native-page safe mode, update the reviewed schema baseline only after inspecting the upstream change, and add an isolated fixture that represents the new host or schema outcome.
 
-The scheduled compatibility workflow also runs `scripts/unraid_compatibility_monitor.mjs` against `docs/unraid-compatibility-baseline.json`. Review every reported stable/prerelease OS, PHP, webGUI, API, and Community Applications signal. Baseline changes are human-reviewed repository updates; the workflow intentionally cannot approve upstream drift itself.
+The scheduled compatibility workflow also runs `scripts/unraid_compatibility_monitor.mjs` against `docs/unraid-compatibility-baseline.json`. Review every reported stable/prerelease OS, PHP, webGUI, plugin-manager, API, and Community Applications signal. Plugin-manager coverage includes the install, update, downgrade, removal, pre/post-check, and change-display paths that can affect FolderView Plus installation and updates. Baseline changes are human-reviewed repository updates; the workflow intentionally cannot approve upstream drift itself.
 
 ## 2. Maintain the isolated profile matrix
 

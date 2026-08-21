@@ -29,8 +29,11 @@ no new high-or-higher security findings before a protected branch can be merged.
 Dependency Review separately rejects pull requests that introduce high-or-critical
 known vulnerabilities or licenses outside the repository's approved quality-tooling
 set. OpenSSF Scorecard publishes a scheduled supply-chain posture report to code
-scanning. Code-quality findings remain part of CI and triage without being
-mislabeled as security vulnerabilities.
+scanning. The weekly OSV job scans the generated CycloneDX dependency inventory,
+uploads SARIF, and fails when it reports a known vulnerability. A scheduled-workflow
+watchdog checks that CodeQL, Scorecard, and OSV continue producing timely successful
+runs and maintains one recovery issue if they do not. Code-quality findings remain
+part of CI and triage without being mislabeled as security vulnerabilities.
 
 ## Review Procedure
 

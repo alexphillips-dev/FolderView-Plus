@@ -28,6 +28,34 @@
             width: var(--fvplus-docker-app-column-width);
             height: 20px;
         }
+
+        .fixture-context-preview {
+            display: flex;
+            width: 760px;
+            min-height: 42px;
+            margin-top: 10px;
+        }
+
+        .fixture-context-preview .folder-preview-row,
+        .fixture-context-preview .folder-preview-wrapper,
+        .fixture-context-preview .fv-docker-preview-card {
+            display: flex;
+            align-items: center;
+        }
+
+        .fixture-context-preview .fv-docker-preview-card {
+            gap: 6px;
+            min-width: 240px;
+            min-height: 34px;
+            padding: 4px 8px;
+        }
+
+        .fixture-context-preview .hand {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            background: #777;
+        }
     </style>
 </head>
 <body>
@@ -43,6 +71,29 @@
         <button class="folder-dropdown">Toggle</button>
     </div>
     <div id="width-probe"></div>
+    <table hidden aria-hidden="true">
+        <tbody>
+            <tr id="fixture-context-source-rows-2">
+                <td class="ct-name">
+                    <span class="outer">
+                        <span id="fixture-native-rows-2" class="hand" title="Rows 2 native context" onclick="fixtureNativePreviewContext.attach(event, 'rows-2')"><img class="img" alt=""></span>
+                        <span class="inner"><span class="appname"><a class="exec" onclick="fixtureNativePreviewContext.edit(event)">Rows 2 app</a></span><br><i id="load-fixture-native-rows-2" class="fa fa-play started green-text"></i><span class="state">started</span></span>
+                    </span>
+                </td>
+            </tr>
+            <tr id="fixture-context-source-unlimited">
+                <td class="ct-name">
+                    <span class="outer">
+                        <span id="fixture-native-unlimited" class="hand" title="Unlimited native context" onclick="fixtureNativePreviewContext.attach(event, 'unlimited')"><img class="img" alt=""></span>
+                        <span class="inner"><span class="appname"><a class="exec" onclick="fixtureNativePreviewContext.edit(event)">Unlimited app</a></span><br><i id="load-fixture-native-unlimited" class="fa fa-play started green-text"></i><span class="state">started</span></span>
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="fixture-context-preview-rows-2" class="folder-preview fv-preview-multirow fixture-context-preview" data-preview-rows="2"></div>
+    <div id="fixture-context-preview-unlimited" class="folder-preview fv-preview-multirow fv-preview-unlimited-rows fixture-context-preview" data-preview-rows="0"></div>
+    <div id="fixture-native-context-menu" hidden>Native context opened</div>
 
     <script src="/vendor/jquery.js"></script>
     <script src="/plugin/scripts/runtime.column-layout.js"></script>
@@ -133,6 +184,7 @@
                 };
             }
         };
+        window.localStorage.removeItem(window.FolderViewPlusDockerPreviewActions.PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY);
         const actionsApi = window.FolderViewPlusDockerPreviewActions.createApi({
             window,
             document,
@@ -147,6 +199,107 @@
             getSafeWebuiUrl: (value) => /^https?:\/\//.test(String(value || '')) ? String(value) : '',
             openWebuiInNewTab: () => {},
             openTerminal: () => {}
+        });
+        window.fixtureNativePreviewContext = {
+            attachCount: 0,
+            openCount: 0,
+            editCount: 0,
+            quickActionCount: 0,
+            lastKey: '',
+            lastPoint: null,
+            attach(event, key) {
+                this.attachCount += 1;
+                const triggerId = String(event?.currentTarget?.id || '');
+                const namespace = `.fvFixtureNativeContext${String(key || '').replace(/[^a-z0-9]/gi, '')}`;
+                window.jQuery(document)
+                    .off(`click${namespace}`, `#${triggerId}`)
+                    .on(`click${namespace}`, `#${triggerId}`, (openEvent) => {
+                        openEvent.preventDefault();
+                        openEvent.stopPropagation();
+                        this.openCount += 1;
+                        this.lastKey = key;
+                        this.lastPoint = {
+                            clientX: Number(openEvent.clientX || 0),
+                            clientY: Number(openEvent.clientY || 0)
+                        };
+                        document.querySelector('#fixture-native-context-menu').hidden = false;
+                    });
+            },
+            edit(event) {
+                event?.preventDefault?.();
+                this.editCount += 1;
+            },
+            reset() {
+                this.attachCount = 0;
+                this.openCount = 0;
+                this.editCount = 0;
+                this.quickActionCount = 0;
+                this.lastKey = '';
+                this.lastPoint = null;
+                document.querySelector('#fixture-native-context-menu').hidden = true;
+            }
+        };
+        const buildNativeContextPreview = (key) => {
+            const $sourceRow = window.jQuery(`#fixture-context-source-${key}`);
+            const $preview = window.jQuery(`#fixture-context-preview-${key}`);
+            const runtimeShared = window.FolderViewDockerRuntimeShared;
+            const settings = {
+                preview_rows: key === 'unlimited' ? 0 : 2,
+                preview_vertical_bars: false
+            };
+            const items = [0, 1].map(() => {
+                const $item = $sourceRow.find('td.ct-name > span.outer').first().clone();
+                actionsApi.sanitizeDockerPreviewContextClone($item);
+                $item.find('br').remove();
+                $item.addClass('fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1');
+                const $inner = $item.children('span.inner').first();
+                const $appName = $inner.children('span.appname').first();
+                const $status = window.jQuery('<span class="fv-preview-status-compact"></span>');
+                $appName.nextAll().each((_, node) => $status.append(node));
+                const $quickActions = window.jQuery('<span class="fv-preview-actions-compact"><span class="folder-element-custom-btn"><button type="button" class="fixture-context-quick-action">Quick action</button></span></span>');
+                $quickActions.on('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    window.fixtureNativePreviewContext.quickActionCount += 1;
+                });
+                $inner.append(window.jQuery('<span class="fv-preview-meta-compact"></span>').append($status, $quickActions));
+                actionsApi.normalizeDockerPreviewStatusMarkup($item);
+                $preview.append(window.jQuery('<div class="folder-preview-wrapper"></div>').append($item));
+                actionsApi.bindDockerPreviewDefaultContextBridge($item, $sourceRow, settings);
+                return $item;
+            });
+            for (let pass = 0; pass < 2; pass += 1) {
+                const wrappers = runtimeShared.flattenPreviewWrappers($preview);
+                runtimeShared.finalizePreviewRows($preview, wrappers.map((wrapper) => [wrapper]), settings);
+                actionsApi.auditDockerPreviewContextBridges($preview, settings);
+            }
+            return items;
+        };
+        buildNativeContextPreview('rows-2');
+        buildNativeContextPreview('unlimited');
+        window.fixtureNativePreviewContext.breakRows2HandlersAndAudit = () => {
+            const $preview = window.jQuery('#fixture-context-preview-rows-2');
+            const rows = $preview.children('.folder-preview-row').get();
+            $preview.empty();
+            rows.forEach((row) => $preview.append(row));
+            return actionsApi.auditDockerPreviewContextBridges($preview, { preview_rows: 2 });
+        };
+        window.fixtureNativePreviewContext.snapshot = () => ({
+            attachCount: window.fixtureNativePreviewContext.attachCount,
+            openCount: window.fixtureNativePreviewContext.openCount,
+            editCount: window.fixtureNativePreviewContext.editCount,
+            quickActionCount: window.fixtureNativePreviewContext.quickActionCount,
+            lastKey: window.fixtureNativePreviewContext.lastKey,
+            lastPoint: window.fixtureNativePreviewContext.lastPoint,
+            menuVisible: !document.querySelector('#fixture-native-context-menu').hidden,
+            sourceRows2IdCount: document.querySelectorAll('#fixture-native-rows-2').length,
+            sourceUnlimitedIdCount: document.querySelectorAll('#fixture-native-unlimited').length,
+            previewNativeIdCount: document.querySelectorAll('.fixture-context-preview [id^="fixture-native-"]').length,
+            previewInlineHandlerCount: document.querySelectorAll('.fixture-context-preview [onclick], .fixture-context-preview [oncontextmenu]').length,
+            startedClassCount: document.querySelectorAll('.fixture-context-preview .state.fv-preview-status-started').length,
+            bridgeCount: document.querySelectorAll('.fixture-context-preview [data-fv-preview-context="native"][role="button"][tabindex="0"]').length,
+            previewRowCount: document.querySelectorAll('.fixture-context-preview .folder-preview-row').length,
+            diagnostics: actionsApi.getPreviewContextDiagnosticsSnapshot()
         });
         const layoutEngine = window.FolderViewPlusRuntimeColumnLayout.createColumnLayoutEngine({
             minWidth: 118,

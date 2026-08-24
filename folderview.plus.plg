@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.20.02">
-<!ENTITY md5 "c58c8bb851e14cbdc2764b50cfbb322b">
-<!ENTITY sha256 "f0b2143536d393b8c641b9ac154795230aae5a3eb3ff319facbfc13bdb871b46">
+<!ENTITY version "2026.08.24.04">
+<!ENTITY md5 "40bc8d9fb97c06c9b5025cef2660e157">
+<!ENTITY sha256 "9f4eca819eddf4f5a501137f13b743a259a52fff7a35d6e74278b797641ff259">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -18,12 +18,37 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.08.20.02
-- Fix: Allow protected FolderView Plus actions through a correctly configured TLS-terminating reverse proxy by validating the external host, protocol, and port as one coherent authority.
-- Security: Keep strict POST, request-marker, install-token, one-time nonce, transaction, same-origin, and rate-limit controls while rejecting partial, repeated, malformed, spoofed-host, or conflicting forwarded headers.
-- Diagnostics: Add privacy-safe request-security reason codes to diagnostics and support bundles without recording hostnames, addresses, ports, or raw forwarded-header values.
-- Docs: Document supported SWAG forwarding, recovery from `Blocked by request guard`, and unsafe proxy workarounds to avoid.
-- Test: Cover direct HTTP/HTTPS, standard and nonstandard proxy ports, IPv6, malformed or spoofed forwarded values, and Origin/Referer disagreements.
+###2026.08.24.04
+- Fix: Keep Docker preview context menus clickable in every visible row when Preview Rows is set to 2, 3, 4, or Unlimited, including after repeated layout reconciliation.
+- Compatibility: Route Default-context preview activation through the original Unraid Docker control without copying host IDs or inline handlers, while preserving WebUI, logs, and console quick actions.
+- Accessibility: Support first-click mouse activation from the preview icon, name, and status plus Enter and Space keyboard activation.
+- Fix: Preserve the correct started, paused, and stopped styling on compact Docker preview status text and icons.
+- Diagnostics: Add a short-lived, privacy-safe support-bundle summary of preview row mode and numeric row position, bridge binding and handler integrity, activation category, input method, dispatch outcomes, and bounded failure reasons.
+- Privacy: Exclude folder and container identities, selectors, URLs, and pointer coordinates from preview context diagnostics.
+- Maintenance: Add daily public-contract monitoring for Unraid stable and prerelease versions, PHP runtimes, Docker/VM/Dashboard and plugin-manager surfaces, Docker API/native-page signals, and Community Applications publication without live-Unraid credentials.
+- Security: Add weekly OSV scanning of the generated SBOM, scheduled-workflow health coverage, and tool-scoped CodeQL alert enforcement so unrelated Scorecard findings do not fail CodeQL analysis.
+- Compatibility: Refresh the reviewed Unraid/API baseline while retaining native-Docker safe mode and human approval for every upstream baseline change.
+- Test: Cover multi-row and Unlimited preview interaction, repeated finalization, handler-loss detection, persistence, accessibility, status styling, and privacy boundaries in Chromium and Firefox.
+
+
+###2026.08.24.03
+- Diagnostics: Add privacy-safe Docker preview context-menu evidence to support bundles, including configured row mode, numeric preview-row position, binding integrity, trigger and input categories, dispatch outcomes, and bounded failure reasons.
+- Privacy: Retain the diagnostic record briefly across page navigation without collecting folder or container names, identifiers, selectors, URLs, or pointer coordinates.
+- Test: Verify multi-row and Unlimited preview context-menu diagnostics, persistence, failure detection, and privacy boundaries in Chromium and Firefox.
+
+
+###2026.08.24.02
+- Fix: Keep Docker container preview context menus clickable after multi-row layout when Preview Rows is set to 2, 3, 4, or Unlimited.
+- Reliability: Preserve preview interactions across repeated Docker and VM row layout reconciliation instead of removing their event handlers while rebuilding rows.
+- Test: Exercise mouse, keyboard, status-area, and quick-action behavior after repeated two-row and Unlimited preview layout in Chromium and Firefox.
+
+
+###2026.08.24.01
+- Fix: Restore Docker preview context menus when Preview Rows is set to 2, 3, 4, or Unlimited, including first-click activation from the icon, name, and status area.
+- Compatibility: Route compact Default-context previews through the original Unraid Docker control instead of copying host IDs or inline handlers into preview cards.
+- Accessibility: Support Enter and Space on the preview context control without nesting the existing WebUI, console, or log actions inside another interactive element.
+- Fix: Apply the correct started, paused, or stopped color classes to compact preview status text and icons.
+- Test: Add accessibility-enabled Chromium and Firefox coverage for multi-row and Unlimited previews, keyboard activation, quick-action isolation, duplicate-ID prevention, and status styling.
 
 
 ###2026.08.20.01

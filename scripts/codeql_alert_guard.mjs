@@ -3,8 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const actionableAlertsForCommit = (alerts, commitSha) => (Array.isArray(alerts) ? alerts : [])
+export const actionableAlertsForCommit = (alerts, commitSha, toolName = 'CodeQL') => (Array.isArray(alerts) ? alerts : [])
     .filter((alert) => String(alert?.state || '') === 'open')
+    .filter((alert) => !toolName || String(alert?.tool?.name || '') === toolName)
     .filter((alert) => !commitSha || String(alert?.most_recent_instance?.commit_sha || '') === commitSha);
 
 export const analysisAvailableForCommit = (analyses, commitSha, ref = '') => (Array.isArray(analyses) ? analyses : [])
@@ -32,7 +33,7 @@ const parseArgs = (argv) => {
 const fetchOpenAlerts = async ({ repository, token, ref }) => {
     const alerts = [];
     for (let page = 1; page <= 10; page += 1) {
-        const query = new URLSearchParams({ state: 'open', per_page: '100', page: String(page) });
+        const query = new URLSearchParams({ state: 'open', tool_name: 'CodeQL', per_page: '100', page: String(page) });
         if (ref) query.set('ref', ref);
         const endpoint = `https://api.github.com/repos/${repository}/code-scanning/alerts?${query}`;
         const response = await fetch(endpoint, {

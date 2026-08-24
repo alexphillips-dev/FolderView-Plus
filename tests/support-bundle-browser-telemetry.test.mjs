@@ -790,6 +790,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
         sanitizedRequestBundleTrace.entries[0].details.hookStates.window.openDocker.notes[0],
         /^update_container ui-[0-9a-f]{16}\*ui-[0-9a-f]{16}$/
     );
+    assert.match(telemetryModuleSource, /previewContextBridge:\s*collectDockerPreviewContextDiagnostics\(uiRedactor\)/);
 
     const fullBundle = {
         bundleMeta: { privacyMode: 'full' },
@@ -805,4 +806,47 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
         fullPageSnapshot.correlation.hookStates.window.openDocker.lastInvocation.containerNames,
         ['CloudBerryBackup', 'radarr']
     );
+});
+
+test('support bundle telemetry exports privacy-safe persisted preview context bridge evidence', () => {
+    const telemetryModule = loadTelemetryModule({});
+    const api = telemetryModule.createApi({
+        normalizeSupportBundleV2Payload: (bundle) => ({
+            ...bundle,
+            bundleMeta: { ...(bundle.bundleMeta || {}) },
+            uiTelemetry: { ...(bundle.uiTelemetry || {}) },
+            healthAndHistory: { ...(bundle.healthAndHistory || {}) },
+            redactionManifest: { ...(bundle.redactionManifest || {}) }
+        }),
+        readClientDiagnosticsStorageRecord: (key) => key === 'docker-preview-context-key' ? {
+            schemaVersion: 1,
+            counters: { handlerIntegrityFailures: 0, dispatchAttempts: 2, dispatchSuccesses: 2 },
+            rowModes: { '2': { bindings: 6 }, unlimited: { bindings: 6 } },
+            rowIndexes: { '1': { bound: 6 }, '2': { bound: 6 } },
+            lastEvent: {
+                type: 'dispatch',
+                outcome: 'success',
+                rowMode: 'unlimited',
+                rowIndex: 2,
+                triggerSource: 'status',
+                inputMethod: 'keyboard',
+                containerName: 'private-container'
+            }
+        } : null,
+        storageKeys: { dockerPreviewContext: 'docker-preview-context-key' }
+    });
+
+    const payload = api.collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized', redactionSalt: 'test-salt' }
+    });
+    const evidence = payload.uiTelemetry.dockerDiagnostics.previewContextBridge;
+
+    assert.equal(evidence.available, true);
+    assert.equal(evidence.counters.handlerIntegrityFailures, 0);
+    assert.equal(evidence.lastEvent.rowMode, 'unlimited');
+    assert.equal(evidence.lastEvent.rowIndex, 2);
+    assert.equal(evidence.lastEvent.triggerSource, 'status');
+    assert.equal(evidence.lastEvent.inputMethod, 'keyboard');
+    assert.match(evidence.lastEvent.containerName, /^ui-[0-9a-f]{16}$/);
+    assert.doesNotMatch(JSON.stringify(evidence), /private-container/);
 });

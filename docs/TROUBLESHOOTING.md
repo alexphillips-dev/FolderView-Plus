@@ -113,6 +113,12 @@ User-uploaded icons are separate from the asset pack. Their persistent source is
 
 Standard, Adaptive, and Maximum must preserve configured preview content. If only expanded rows appear, copy runtime diagnostics and attach a sanitized support bundle before changing the folder membership.
 
+### A Preview Container Menu Does Not Open
+
+Confirm the folder uses the Default preview context, then test the icon, name, and status in both the first visible preview row and the affected later row. Also test keyboard activation with Enter or Space. If the failure depends on Preview Rows `2`, `3`, `4`, or `Unlimited`, leave that setting unchanged while exporting the support bundle.
+
+The sanitized bundle retains a privacy-safe `uiTelemetry.dockerDiagnostics.previewContextBridge` summary across navigation to Settings. It records row-mode and numeric row-index buckets, eligible and bound bridge counts, post-layout handler-integrity results, dispatch attempts and outcomes, mouse or keyboard input, and icon/name/status/card trigger categories. It never records folder names, container names, IDs, selectors, URLs, or click coordinates.
+
 ### Native Rows Briefly Appear Before Folders
 
 This is expected during initial Docker or VM bootstrap. FolderView Plus lets Unraid render its native rows first, then performs one uninterrupted folder conversion. The page should not remain half grouped or paint folder rows one at a time.
@@ -184,6 +190,8 @@ Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs,
 The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots. Browser errors keep full details for the current session and the retained last-30-day window; older retained entries are reduced to aggregate counts by category.
 
 Docker support evidence includes recent session summaries, reload-source counts, the refresh-loop verdict, native busy-cycle recovery, and aggregate API identity mismatches. API mismatches record counts and first/last timestamps only. They never include container names or IDs, and they state the `native-structure-authoritative` policy and that an API mismatch did not request a host reload.
+
+Docker preview-context evidence adds bounded bridge-binding, row-finalization, handler-integrity, and dispatch counters. Row modes distinguish `1`, `2`, `3`, `4`, and `Unlimited`; row positions are numeric buckets, and the most recent event contains only an outcome, bounded failure reason, trigger category, input method, row mode, row index, and timestamp.
 
 To compare two systems without exposing their identities, export sanitized bundles from both and run:
 

@@ -672,6 +672,7 @@ const getSupportBundleTelemetryApi = () => {
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
                 dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
                 dockerRefreshDiagnostics: 'fv.support.bundle.docker.refreshDiagnostics.v1',
+                dockerPreviewContext: 'fv.support.bundle.docker.previewContextBridge.v1',
                 dashboardLayoutDocker: 'fv.support.bundle.dashboard.layout.docker.v1',
                 dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
                 dashboardVisualDocker: 'fv.support.bundle.dashboard.visual.docker.v1',
@@ -694,7 +695,6 @@ const getSupportBundleTelemetryApi = () => {
     }
     return supportBundleTelemetryApi;
 };
-
 const collectSupportBundleUiTelemetry = (bundle) => {
     const telemetryApi = getSupportBundleTelemetryApi();
     if (telemetryApi && typeof telemetryApi.collectSupportBundleUiTelemetry === 'function') {

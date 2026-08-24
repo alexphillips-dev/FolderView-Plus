@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { exerciseDockerPreviewContextDiagnostics } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
@@ -61,6 +62,10 @@ test('Docker single-row preview cloning falls back without stopping later member
     assert.deepEqual(result.invalidSelector, { ok: false, reason: 'preview-clone-failed' });
     assert.equal(result.renderedCount, 3, 'a malformed member must not stop subsequent preview rendering');
     assert.equal(result.fallbackCount, 2);
+});
+
+test('Docker multi-row previews bridge native context without cloned handlers or duplicate ids', async ({ page }) => {
+    await exerciseDockerPreviewContextDiagnostics({ page, baseUrl });
 });
 
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {

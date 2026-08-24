@@ -59,7 +59,7 @@ test('clone traffic credential is isolated from metrics branch publication', () 
 
 test('security policy links directly to private vulnerability reporting', () => {
     const policy = read('.github/SECURITY.md');
-    assert.match(policy, /https:\/\/github\.com\/alexphillips-dev\/FolderView-Plus\/security\/advisories\/new/);
+    assert.ok(policy.includes('https://github.com/alexphillips-dev/FolderView-Plus/security/advisories/new'));
 });
 
 test('dependency review blocks vulnerable or unapproved dependency changes', () => {

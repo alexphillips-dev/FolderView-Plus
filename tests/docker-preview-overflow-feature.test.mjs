@@ -75,6 +75,8 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(sharedRuntimeJs, /const flattenPreviewWrappers = \(\$preview\) =>/);
     assert.match(sharedRuntimeJs, /const restoreLinearPreviewLayout = \(\$preview,\s*settings = \{\}\) =>/);
     assert.match(sharedRuntimeJs, /const finalizePreviewRows = \(\$preview,\s*rowSlices = \[\],\s*settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /\$preview\.children\(\)\.detach\(\);/);
+    assert.doesNotMatch(sharedRuntimeJs, /\$preview\.empty\(\);/);
     assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const reconcileDockerPreviewActionButtons = \(\$target,[\s\S]*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /ensureDockerPreviewActionSlot/);
@@ -116,6 +118,8 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const flattenPreviewWrappers = typeof dockerRuntimeShared\.flattenPreviewWrappers === 'function'/);
     assert.match(dockerJs, /const restoreLinearPreviewLayout = typeof dockerRuntimeShared\.restoreLinearPreviewLayout === 'function'/);
     assert.match(dockerJs, /const finalizePreviewRows = typeof dockerRuntimeShared\.finalizePreviewRows === 'function'/);
+    assert.match(dockerJs, /\$preview\.children\(\)\.detach\(\);/);
+    assert.doesNotMatch(dockerJs, /\$preview\.empty\(\);/);
     assert.match(dockerJs, /renderDockerSingleRowPreview\(/);
     assert.match(dockerJs, /resilientSingleRowPreview\(1, 'td\.ct-name > span\.outer'/);
     assert.match(dockerJs, /resilientSingleRowPreview\(3, 'td\.ct-name > span\.outer > span\.inner'/);

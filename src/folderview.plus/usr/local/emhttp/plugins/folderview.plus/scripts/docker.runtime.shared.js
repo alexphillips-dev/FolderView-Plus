@@ -342,7 +342,7 @@
         }
         const addDividers = settings?.preview_vertical_bars === true;
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
-        $preview.empty();
+        $preview.children().detach();
         const addRowSeparators = settings?.preview_row_separator === true || settings?.previewRowSeparator === true;
         const rowSeparatorColor = settings?.preview_row_separator_color || settings?.previewRowSeparatorColor || barsColor;
         rowSlices.forEach((slice, rowIndex) => {

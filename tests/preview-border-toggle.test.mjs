@@ -164,6 +164,8 @@ test('vm preview renderer honors explicit preview border OFF values', () => {
     assert.match(vmJs, /const applyFolderPreviewLayout = typeof runtimeShared\.applyFolderPreviewLayout === 'function'/);
     assert.match(vmJs, /const restoreLinearPreviewLayout = typeof runtimeShared\.restoreLinearPreviewLayout === 'function'/);
     assert.match(vmJs, /const finalizePreviewRows = typeof runtimeShared\.finalizePreviewRows === 'function'/);
+    assert.match(vmJs, /\$preview\.children\(\)\.detach\(\);/);
+    assert.doesNotMatch(vmJs, /\$preview\.empty\(\);/);
     assert.match(vmJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\);/);
     assert.match(vmJs, /applyFolderPreviewLayout\(\$preview,\s*folder\.settings\);/);
     assert.match(vmJs, /layoutFolderPreviewRows\(\$preview,\s*folder\.settings\);/);

@@ -90,8 +90,9 @@ test('Docker multi-row previews bridge native context without cloned handlers or
     result = await exercise('#fixture-context-preview-rows-2 .fixture-context-quick-action');
     assert.deepEqual(
         [result.quickActionCount, result.openCount, result.sourceRows2IdCount, result.sourceUnlimitedIdCount,
-            result.previewNativeIdCount, result.previewInlineHandlerCount, result.startedClassCount, result.bridgeCount],
-        [1, 0, 1, 1, 0, 0, 2, 2]
+            result.previewNativeIdCount, result.previewInlineHandlerCount, result.startedClassCount, result.bridgeCount,
+            result.previewRowCount],
+        [1, 0, 1, 1, 0, 0, 2, 2, 2]
     );
 });
 

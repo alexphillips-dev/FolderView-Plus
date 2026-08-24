@@ -189,7 +189,7 @@ const finalizePreviewRows = typeof dockerRuntimeShared.finalizePreviewRows === '
         }
         const addDividers = settings?.preview_vertical_bars === true;
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
-        $preview.empty();
+        $preview.children().detach();
         rowSlices.forEach((slice) => {
             const $row = $('<div class="folder-preview-row"></div>');
             slice.forEach((wrapper, index) => {

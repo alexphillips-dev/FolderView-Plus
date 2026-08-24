@@ -257,10 +257,18 @@
             });
             $inner.append(window.jQuery('<span class="fv-preview-meta-compact"></span>').append($status, $quickActions));
             actionsApi.normalizeDockerPreviewStatusMarkup($item);
-            $preview.append(window.jQuery('<div class="folder-preview-row"></div>').append(
-                window.jQuery('<div class="folder-preview-wrapper"></div>').append($item)
-            ));
+            const $wrapper = window.jQuery('<div class="folder-preview-wrapper"></div>').append($item);
+            $preview.append($wrapper);
             actionsApi.bindDockerPreviewDefaultContextBridge($item, $sourceRow);
+            const runtimeShared = window.FolderViewDockerRuntimeShared;
+            const settings = {
+                preview_rows: key === 'unlimited' ? 0 : 2,
+                preview_vertical_bars: false
+            };
+            for (let pass = 0; pass < 2; pass += 1) {
+                const wrappers = runtimeShared.flattenPreviewWrappers($preview);
+                runtimeShared.finalizePreviewRows($preview, [wrappers], settings);
+            }
             return $item;
         };
         buildNativeContextPreview('rows-2');
@@ -278,7 +286,8 @@
             previewNativeIdCount: document.querySelectorAll('.fixture-context-preview [id^="fixture-native-"]').length,
             previewInlineHandlerCount: document.querySelectorAll('.fixture-context-preview [onclick], .fixture-context-preview [oncontextmenu]').length,
             startedClassCount: document.querySelectorAll('.fixture-context-preview .state.fv-preview-status-started').length,
-            bridgeCount: document.querySelectorAll('.fixture-context-preview [data-fv-preview-context="native"][role="button"][tabindex="0"]').length
+            bridgeCount: document.querySelectorAll('.fixture-context-preview [data-fv-preview-context="native"][role="button"][tabindex="0"]').length,
+            previewRowCount: document.querySelectorAll('.fixture-context-preview .folder-preview-row').length
         });
         const layoutEngine = window.FolderViewPlusRuntimeColumnLayout.createColumnLayoutEngine({
             minWidth: 118,

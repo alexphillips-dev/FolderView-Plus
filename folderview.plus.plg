@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.24.01">
-<!ENTITY md5 "dd3de0d879465c320c113f64e779a2a8">
-<!ENTITY sha256 "abb24d180ae0b29aa30e46c9a9bb22550e53a930f6d2cda60e071dcea093d574">
+<!ENTITY version "2026.08.24.02">
+<!ENTITY md5 "451b9bd851d3e3c4cf0188e76c851130">
+<!ENTITY sha256 "665ad6a547d62a834faf4c329e4f7df6b5767500701e992cd63b55db737a1d23">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.24.02
+- Fix: Keep Docker container preview context menus clickable after multi-row layout when Preview Rows is set to 2, 3, 4, or Unlimited.
+- Reliability: Preserve preview interactions across repeated Docker and VM row layout reconciliation instead of removing their event handlers while rebuilding rows.
+- Test: Exercise mouse, keyboard, status-area, and quick-action behavior after repeated two-row and Unlimited preview layout in Chromium and Firefox.
+
 
 ###2026.08.24.01
 - Fix: Restore Docker preview context menus when Preview Rows is set to 2, 3, 4, or Unlimited, including first-click activation from the icon, name, and status area.

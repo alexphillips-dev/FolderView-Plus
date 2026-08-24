@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 
 import { actionableAlertsForCommit, analysisAvailableForCommit } from '../scripts/codeql_alert_guard.mjs';
 
-const alert = ({ state = 'open', sha = 'current', number = 1 } = {}) => ({
+const alert = ({ state = 'open', sha = 'current', number = 1, tool = 'CodeQL' } = {}) => ({
     number,
     state,
+    tool: { name: tool },
     rule: { id: 'js/example' },
     most_recent_instance: {
         commit_sha: sha,
@@ -17,7 +18,8 @@ test('CodeQL guard reports only open alerts associated with the analyzed commit'
     const alerts = [
         alert({ number: 1 }),
         alert({ number: 2, state: 'dismissed' }),
-        alert({ number: 3, sha: 'older' })
+        alert({ number: 3, sha: 'older' }),
+        alert({ number: 4, tool: 'Scorecard' })
     ];
     assert.deepEqual(actionableAlertsForCommit(alerts, 'current').map((entry) => entry.number), [1]);
     assert.deepEqual(actionableAlertsForCommit(alerts, 'clean'), []);

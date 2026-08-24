@@ -12,7 +12,8 @@
 
 ## Reporting a Vulnerability
 
-Please report security issues privately through GitHub Security Advisories:
+Please report security issues privately through GitHub Security Advisories using
+[Report a vulnerability](https://github.com/alexphillips-dev/FolderView-Plus/security/advisories/new):
 
 1. Go to the repository `Security` tab.
 2. Select `Report a vulnerability`.

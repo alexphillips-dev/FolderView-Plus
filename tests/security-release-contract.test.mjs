@@ -15,6 +15,51 @@ test('CodeQL scans dev and main for pushes and pull requests', () => {
     assert.match(workflow, /pull_request:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
     assert.match(workflow, /queries: security-extended,security-and-quality/);
     assert.equal((workflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length, 3);
+    assert.match(workflow, /^permissions:\s*\n  actions:\s*read\s*\n  contents:\s*read\s*$/m);
+    const analyzeJob = workflow.match(/^  analyze:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+    assert.match(analyzeJob, /permissions:\s*\n\s*actions:\s*read\s*\n\s*contents:\s*read\s*\n\s*security-events:\s*write/);
+});
+
+test('write-capable workflows keep top-level permissions read-only and scope writes to jobs', () => {
+    const contracts = [
+        {
+            file: 'backmerge-main-to-dev.yml',
+            job: 'backmerge',
+            permissionPattern: /permissions:\s*\n\s*contents:\s*write\s*\n\s*pull-requests:\s*write/
+        },
+        {
+            file: 'release-on-main.yml',
+            job: 'release',
+            permissionPattern: /permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/
+        },
+        {
+            file: 'clone-traffic-badge.yml',
+            job: 'publish',
+            permissionPattern: /permissions:\s*\n\s*contents:\s*write/
+        }
+    ];
+    for (const contract of contracts) {
+        const workflow = read(path.join('.github', 'workflows', contract.file));
+        assert.match(workflow, /^permissions:\s*\n  contents:\s*read\s*$/m, contract.file);
+        const job = workflow.match(new RegExp(`^  ${contract.job}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'))?.[1] || '';
+        assert.match(job, contract.permissionPattern, contract.file);
+    }
+});
+
+test('clone traffic credential is isolated from metrics branch publication', () => {
+    const workflow = read('.github/workflows/clone-traffic-badge.yml');
+    const collectJob = workflow.match(/^  collect:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+    const publishJob = workflow.match(/^  publish:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+    assert.match(collectJob, /secrets\.FVPLUS_TRAFFIC_TOKEN/);
+    assert.doesNotMatch(collectJob, /github\.token/);
+    assert.match(publishJob, /github\.token/);
+    assert.doesNotMatch(publishJob, /secrets\.FVPLUS_TRAFFIC_TOKEN/);
+    assert.match(publishJob, /needs:\s*collect/);
+});
+
+test('security policy links directly to private vulnerability reporting', () => {
+    const policy = read('.github/SECURITY.md');
+    assert.match(policy, /https:\/\/github\.com\/alexphillips-dev\/FolderView-Plus\/security\/advisories\/new/);
 });
 
 test('dependency review blocks vulnerable or unapproved dependency changes', () => {

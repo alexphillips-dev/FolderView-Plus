@@ -571,6 +571,20 @@
     },
     {
       "type": "library",
+      "name": "fast-check",
+      "version": "4.9.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fast-check@4.9.0"
+    },
+    {
+      "type": "library",
       "name": "find-up",
       "version": "5.0.0",
       "scope": "optional",
@@ -1098,6 +1112,20 @@
         }
       ],
       "purl": "pkg:npm/playwright@1.62.1"
+    },
+    {
+      "type": "library",
+      "name": "pure-rand",
+      "version": "8.4.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/pure-rand@8.4.2"
     },
     {
       "type": "library",

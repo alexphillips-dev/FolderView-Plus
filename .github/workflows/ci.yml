@@ -138,6 +138,7 @@ jobs:
         run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
 
   guard-suite:
+    name: CI tests and guards
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: detect-changes

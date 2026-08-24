@@ -1395,8 +1395,8 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
         : '';
     const compactStatusMarkup = shouldHidePreviewStatus
         ? ''
-        : `<span class="fv-preview-status-compact" title="${previewStatusTitle}">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
+        : `<span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
                             </span>`;
     const inlineStatusMarkup = shouldHidePreviewStatus
         ? ''
@@ -1614,43 +1614,6 @@ const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName)
         .removeAttr('data-container-name')
         .removeAttr('title');
 };
-const bindCompactPreviewDefaultContext = ($item, $sourceRow) => {
-    if (!$item || !$item.length || !$sourceRow || !$sourceRow.length) {
-        return;
-    }
-    const $sourceTrigger = $sourceRow.find('td.ct-name > span.outer > span.hand').first();
-    const $fallbackTrigger = $sourceRow.find('td.ct-name > span.outer > span.inner > span.appname > a.exec').first();
-    const $nativeTrigger = $sourceTrigger.length ? $sourceTrigger : $fallbackTrigger;
-    if (!$nativeTrigger.length) {
-        return;
-    }
-    const inlineClick = String($nativeTrigger.attr('onclick') || '').trim();
-    const inlineContextMenu = String($nativeTrigger.attr('oncontextmenu') || '').trim();
-    const title = String($nativeTrigger.attr('title') || '').trim();
-    const targets = [
-        $item,
-        $item.find('.hand').first(),
-        $item.find('.inner').first(),
-        $item.find('span.appname').first(),
-        $item.find('span.appname > a.exec').first()
-    ].filter(($target) => $target && $target.length);
-    targets.forEach(($target) => {
-        $target.addClass('hand');
-        if (inlineClick) {
-            $target.attr('onclick', inlineClick);
-        }
-        if (inlineContextMenu) {
-            $target.attr('oncontextmenu', inlineContextMenu);
-        }
-        if (title) {
-            $target.attr('title', title);
-        }
-    });
-    const $appLink = $item.find('span.appname > a.exec').first();
-    if ($appLink.length && !$appLink.attr('href')) {
-        $appLink.attr('href', '#');
-    }
-};
 const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autostart = false) => {
     if (!$sourceRow || !$sourceRow.length) {
         return null;
@@ -1662,6 +1625,7 @@ const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autost
         return null;
     }
     const $item = $sourceOuter.clone();
+    getDockerPreviewActionsApi().sanitizeDockerPreviewContextClone($item);
     const compactMode = previewMode >= 1 && previewMode <= 4 ? previewMode : 1;
     const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
     $item.addClass(`fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${compactMode}${autostartClass}`);
@@ -1707,45 +1671,8 @@ const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autost
         }
         $inner.append($meta);
     }
+    getDockerPreviewActionsApi().normalizeDockerPreviewStatusMarkup($item);
     return $item;
-};
-const bindCompactPreviewDefaultContextProxy = ($item) => {
-    if (!$item || !$item.length) {
-        return;
-    }
-    const $menuTrigger = $item.find('span.hand, span.appname > a.exec').filter(function() {
-        return String($(this).attr('onclick') || '').trim().length > 0
-            || String($(this).attr('oncontextmenu') || '').trim().length > 0
-            || $(this).hasClass('hand')
-            || $(this).hasClass('exec');
-    }).first();
-    if (!$menuTrigger.length) {
-        return;
-    }
-    const usingAppNameTrigger = $menuTrigger.is('span.appname > a.exec');
-    const interactiveSelector = usingAppNameTrigger
-        ? 'span.appname, span.appname > a.exec, span.folder-element-custom-btn, span.folder-element-custom-btn > a, .fv-preview-actions-compact, .fv-preview-actions-compact *'
-        : '.hand, span.folder-element-custom-btn, span.folder-element-custom-btn > a, .fv-preview-actions-compact, .fv-preview-actions-compact *';
-    $item
-        .off('.fvCompactDefaultContextProxy')
-        .on('click.fvCompactDefaultContextProxy', function(event) {
-            const $target = $(event.target);
-            if ($target.closest(interactiveSelector).length) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            $menuTrigger.trigger('click');
-        })
-        .on('contextmenu.fvCompactDefaultContextProxy', function(event) {
-            const $target = $(event.target);
-            if ($target.closest(interactiveSelector).length) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            $menuTrigger.trigger('contextmenu');
-        });
 };
 const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     if (!$row || !$row.length) {
@@ -5208,11 +5135,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         const { $item, $tooltipTrigger } = builtPreview;
         $createdFolderPreview.append($item);
         if (folder.settings.context === 1) {
-            if (compactPreviewItem) {
-                bindCompactPreviewDefaultContextProxy($item);
-            } else {
-                bindCompactPreviewDefaultContext($item, $sourceRow);
-            }
+            getDockerPreviewActionsApi().bindDockerPreviewDefaultContextBridge($item, $sourceRow);
             return null;
         }
         if (folder.settings.context === 2 || folder.settings.context === 0) {

@@ -47,6 +47,150 @@
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
         const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';
         const dockerPreviewActionIconClassList = 'fa-globe fa-terminal fa-bars fa-refresh fa-spin fa-spinner fa-circle-o-notch';
+        const dockerPreviewQuickActionSelector = [
+            '.folder-element-custom-btn',
+            '.folder-element-custom-btn *',
+            '.fv-preview-actions-compact',
+            '.fv-preview-actions-compact *'
+        ].join(', ');
+
+        const resolveDockerNativePreviewContextTrigger = ($sourceRow) => {
+            if (!jq || !$sourceRow || !$sourceRow.length || typeof $sourceRow.find !== 'function') {
+                return jq ? jq() : null;
+            }
+            const $iconTrigger = $sourceRow.find('td.ct-name > span.outer > span.hand').first();
+            if ($iconTrigger.length) {
+                return $iconTrigger;
+            }
+            return $sourceRow.find('td.ct-name > span.outer > span.inner > span.appname > a.exec').first();
+        };
+
+        const sanitizeDockerPreviewContextClone = ($item) => {
+            if (!$item || !$item.length) {
+                return $item;
+            }
+            $item
+                .removeAttr('id onclick oncontextmenu')
+                .find('[onclick], [oncontextmenu]')
+                .removeAttr('onclick oncontextmenu');
+            $item.find('[id]').not('i[id^="load-"]').removeAttr('id');
+            return $item;
+        };
+
+        const resolveDockerPreviewActivationPoint = ($item, event = null) => {
+            const sourceEvent = event?.originalEvent || event || {};
+            const eventX = Number(sourceEvent.clientX);
+            const eventY = Number(sourceEvent.clientY);
+            if (Number.isFinite(eventX) && Number.isFinite(eventY) && sourceEvent.type !== 'keydown') {
+                return { clientX: eventX, clientY: eventY };
+            }
+            const itemNode = $item?.get?.(0) || null;
+            const rect = typeof itemNode?.getBoundingClientRect === 'function'
+                ? itemNode.getBoundingClientRect()
+                : null;
+            return {
+                clientX: rect ? rect.left + Math.max(1, rect.width / 2) : 0,
+                clientY: rect ? rect.top + Math.max(1, rect.height / 2) : 0
+            };
+        };
+
+        const dispatchDockerNativePreviewContext = ($nativeTrigger, $item, event = null) => {
+            const trigger = $nativeTrigger?.get?.(0) || null;
+            if (!trigger || typeof trigger.dispatchEvent !== 'function') {
+                return false;
+            }
+            const { clientX, clientY } = resolveDockerPreviewActivationPoint($item, event);
+            const MouseEventConstructor = win?.MouseEvent || fallbackWindow?.MouseEvent;
+            if (typeof MouseEventConstructor !== 'function') {
+                return false;
+            }
+            try {
+                trigger.dispatchEvent(new MouseEventConstructor('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: win || undefined,
+                    button: 0,
+                    buttons: 0,
+                    clientX,
+                    clientY
+                }));
+                return true;
+            } catch (_error) {
+                return false;
+            }
+        };
+
+        const bindDockerPreviewDefaultContextBridge = ($item, $sourceRow) => {
+            if (!jq || !$item || !$item.length) {
+                return false;
+            }
+            const $nativeTrigger = resolveDockerNativePreviewContextTrigger($sourceRow);
+            if (!$nativeTrigger || !$nativeTrigger.length) {
+                return false;
+            }
+            const nativeTitle = String($nativeTrigger.attr('title') || '').trim();
+            sanitizeDockerPreviewContextClone($item);
+            const $keyboardTarget = $item.find('span.hand, span.appname').first();
+            $item
+                .removeClass('fv-preview-trigger fv-preview-tooltip-proxy')
+                .removeAttr('role tabindex data-fv-preview-context')
+                .find('.fv-preview-trigger, .fv-preview-tooltip-proxy')
+                .removeClass('fv-preview-trigger fv-preview-tooltip-proxy');
+            if ($keyboardTarget.length) {
+                $keyboardTarget
+                    .attr('role', 'button')
+                    .attr('tabindex', '0')
+                    .attr('data-fv-preview-context', 'native');
+                if (nativeTitle) {
+                    $keyboardTarget.attr('title', nativeTitle);
+                }
+            }
+            $item
+                .off('.fvDockerNativePreviewContext')
+                .on('click.fvDockerNativePreviewContext', function(event) {
+                    if (jq(event.target).closest(dockerPreviewQuickActionSelector).length) {
+                        return;
+                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+                });
+            $keyboardTarget
+                .off('.fvDockerNativePreviewContext')
+                .on('keydown.fvDockerNativePreviewContext', function(event) {
+                    if (!['Enter', ' '].includes(event.key)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+                });
+            return true;
+        };
+
+        const normalizeDockerPreviewStatusMarkup = ($target) => {
+            if (!$target || !$target.length) {
+                return '';
+            }
+            const $statusIcon = $target.find('i.started, i.paused, i.stopped').first();
+            if (!$statusIcon.length) {
+                return '';
+            }
+            const stateClass = $statusIcon.hasClass('paused')
+                ? 'fv-preview-status-paused'
+                : ($statusIcon.hasClass('stopped') ? 'fv-preview-status-stopped' : 'fv-preview-status-started');
+            const $status = $target.find('.fv-preview-status-compact').first();
+            if (!$status.length) {
+                return '';
+            }
+            $status
+                .removeClass('fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped')
+                .addClass(stateClass)
+                .find('i.fa, span.state')
+                .removeClass('fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped')
+                .addClass(stateClass);
+            return stateClass;
+        };
 
         const cloneDockerSingleRowPreviewSource = ($sourceRow, selector, options = {}) => {
             if (!jq) {
@@ -776,6 +920,9 @@
         };
 
         return Object.freeze({
+            sanitizeDockerPreviewContextClone,
+            bindDockerPreviewDefaultContextBridge,
+            normalizeDockerPreviewStatusMarkup,
             cloneDockerSingleRowPreviewSource,
             renderDockerSingleRowPreview,
             runDockerPreviewRenderer,

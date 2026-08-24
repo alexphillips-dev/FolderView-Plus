@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.20.01">
-<!ENTITY md5 "4aba377f7ff913ac9a59befdaebdd78a">
-<!ENTITY sha256 "66ef8fd9e6c7ff10de19560196e88ffe1c85e4e9434142aae2df17c8ef4dd6d1">
+<!ENTITY version "2026.08.24.01">
+<!ENTITY md5 "dd3de0d879465c320c113f64e779a2a8">
+<!ENTITY sha256 "abb24d180ae0b29aa30e46c9a9bb22550e53a930f6d2cda60e071dcea093d574">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.24.01
+- Fix: Restore Docker preview context menus when Preview Rows is set to 2, 3, 4, or Unlimited, including first-click activation from the icon, name, and status area.
+- Compatibility: Route compact Default-context previews through the original Unraid Docker control instead of copying host IDs or inline handlers into preview cards.
+- Accessibility: Support Enter and Space on the preview context control without nesting the existing WebUI, console, or log actions inside another interactive element.
+- Fix: Apply the correct started, paused, or stopped color classes to compact preview status text and icons.
+- Test: Add accessibility-enabled Chromium and Firefox coverage for multi-row and Unlimited previews, keyboard activation, quick-action isolation, duplicate-ID prevention, and status styling.
+
 
 ###2026.08.20.01
 - Fix: Allow protected FolderView Plus actions through a correctly configured TLS-terminating reverse proxy by validating the external `Host`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Port` authority as one coherent tuple.

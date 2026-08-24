@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.24.02">
-<!ENTITY md5 "451b9bd851d3e3c4cf0188e76c851130">
-<!ENTITY sha256 "665ad6a547d62a834faf4c329e4f7df6b5767500701e992cd63b55db737a1d23">
+<!ENTITY version "2026.08.24.03">
+<!ENTITY md5 "54671066fb80abf96be4076ad82282ad">
+<!ENTITY sha256 "8e9a71b2985f065f9f21416dfce6dcb10cd72c1e24e34a00edf5508734b3f1f4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.24.03
+- Diagnostics: Add privacy-safe Docker preview context-menu evidence to support bundles, including configured row mode, numeric preview-row position, binding integrity, trigger and input categories, dispatch outcomes, and bounded failure reasons.
+- Privacy: Retain the diagnostic record briefly across page navigation without collecting folder or container names, identifiers, selectors, URLs, or pointer coordinates.
+- Test: Verify multi-row and Unlimited preview context-menu diagnostics, persistence, failure detection, and privacy boundaries in Chromium and Firefox.
+
 
 ###2026.08.24.02
 - Fix: Keep Docker container preview context menus clickable after multi-row layout when Preview Rows is set to 2, 3, 4, or Unlimited.

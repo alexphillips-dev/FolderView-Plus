@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { exerciseDockerPreviewContextDiagnostics } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
@@ -64,36 +65,7 @@ test('Docker single-row preview cloning falls back without stopping later member
 });
 
 test('Docker multi-row previews bridge native context without cloned handlers or duplicate ids', async ({ page }) => {
-    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
-    const snapshot = () => page.evaluate(() => window.fixtureNativePreviewContext.snapshot());
-    const exercise = async (selector, key = '') => {
-        await page.evaluate(() => window.fixtureNativePreviewContext.reset());
-        const target = page.locator(selector);
-        key ? await target.press(key) : await target.click();
-        return snapshot();
-    };
-    let result = await exercise('#fixture-context-preview-rows-2 .hand');
-    assert.deepEqual(
-        [result.attachCount, result.openCount, result.lastKey, result.menuVisible],
-        [1, 1, 'rows-2', true]
-    );
-    assert.ok(result.lastPoint.clientX > 0);
-    assert.ok(result.lastPoint.clientY > 0);
-    result = await exercise('#fixture-context-preview-unlimited .appname');
-    assert.deepEqual([result.openCount, result.editCount, result.lastKey], [1, 0, 'unlimited']);
-    result = await exercise('#fixture-context-preview-rows-2 .state');
-    assert.deepEqual([result.openCount, result.lastKey], [1, 'rows-2']);
-    result = await exercise('#fixture-context-preview-rows-2 [data-fv-preview-context="native"]', 'Enter');
-    assert.deepEqual([result.openCount, result.lastKey], [1, 'rows-2']);
-    result = await exercise('#fixture-context-preview-unlimited [data-fv-preview-context="native"]', 'Space');
-    assert.deepEqual([result.openCount, result.lastKey], [1, 'unlimited']);
-    result = await exercise('#fixture-context-preview-rows-2 .fixture-context-quick-action');
-    assert.deepEqual(
-        [result.quickActionCount, result.openCount, result.sourceRows2IdCount, result.sourceUnlimitedIdCount,
-            result.previewNativeIdCount, result.previewInlineHandlerCount, result.startedClassCount, result.bridgeCount,
-            result.previewRowCount],
-        [1, 0, 1, 1, 0, 0, 2, 2, 2]
-    );
+    await exerciseDockerPreviewContextDiagnostics({ page, baseUrl });
 });
 
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {

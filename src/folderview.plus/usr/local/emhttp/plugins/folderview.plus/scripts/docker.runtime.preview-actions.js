@@ -10,6 +10,174 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
+    const PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY = 'fv.support.bundle.docker.previewContextBridge.v1';
+    const PREVIEW_CONTEXT_DIAGNOSTICS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+    const PREVIEW_CONTEXT_ROW_MODES = Object.freeze(['1', '2', '3', '4', 'unlimited', 'unknown']);
+    const PREVIEW_CONTEXT_ROW_BUCKETS = Object.freeze(['1', '2', '3', '4', '5+', 'unknown']);
+    const PREVIEW_CONTEXT_COUNTER_KEYS = Object.freeze([
+        'bindAttempts', 'boundTargets', 'bindFailures', 'keyboardTargetsMissing', 'finalizationPasses',
+        'eligibleTargetsAudited', 'boundTargetsAudited', 'missingBridgeTargets', 'handlerIntegrityFailures',
+        'dispatchAttempts', 'dispatchSuccesses', 'dispatchFailures', 'quickActionBypasses', 'storageWriteFailures'
+    ]);
+    const PREVIEW_CONTEXT_FAILURE_REASONS = Object.freeze([
+        'item-missing', 'native-trigger-missing', 'keyboard-target-missing', 'bridge-missing',
+        'handler-missing', 'native-event-unavailable', 'dispatch-failed'
+    ]);
+    const PREVIEW_CONTEXT_METRIC_KEYS = Object.freeze([
+        'bindings', 'audits', 'eligible', 'bound', 'missing', 'handlerFailures',
+        'dispatchAttempts', 'dispatchSuccesses', 'dispatchFailures'
+    ]);
+    const hasOwn = (target, key) => Object.prototype.hasOwnProperty.call(target || {}, key);
+    const capPreviewContextCount = (value) => Math.max(0, Math.min(1000000, Math.round(Number(value) || 0)));
+    const normalizePreviewContextRowMode = (value) => {
+        const raw = String(value ?? '').trim().toLowerCase();
+        if (raw === '0' || raw === 'unlimited') return 'unlimited';
+        return PREVIEW_CONTEXT_ROW_MODES.includes(raw) ? raw : 'unknown';
+    };
+    const normalizePreviewContextRowIndex = (value) => {
+        const parsed = Math.max(0, Math.min(99, Math.round(Number(value) || 0)));
+        return parsed > 0 ? parsed : 0;
+    };
+    const getPreviewContextRowBucket = (value) => {
+        const index = normalizePreviewContextRowIndex(value);
+        return index > 4 ? '5+' : (index > 0 ? String(index) : 'unknown');
+    };
+    const createPreviewContextMetricMap = (keys) => Object.fromEntries(keys.map((key) => [key, Object.fromEntries(
+        PREVIEW_CONTEXT_METRIC_KEYS.map((metric) => [metric, 0])
+    )]));
+    const createPreviewContextDiagnosticsState = (nowIso) => ({
+        schemaVersion: 1,
+        sessionStartedAt: nowIso,
+        updatedAt: nowIso,
+        counters: Object.fromEntries(PREVIEW_CONTEXT_COUNTER_KEYS.map((key) => [key, 0])),
+        rowModes: createPreviewContextMetricMap(PREVIEW_CONTEXT_ROW_MODES),
+        rowIndexes: createPreviewContextMetricMap(PREVIEW_CONTEXT_ROW_BUCKETS),
+        triggerSources: { icon: 0, name: 0, status: 0, card: 0, unknown: 0 },
+        inputMethods: { mouse: 0, keyboard: 0, unknown: 0 },
+        failureReasons: Object.fromEntries(PREVIEW_CONTEXT_FAILURE_REASONS.map((key) => [key, 0])),
+        lastEvent: null
+    });
+    const createPreviewContextDiagnostics = (win) => {
+        const nowIso = () => new Date().toISOString();
+        const state = createPreviewContextDiagnosticsState(nowIso());
+        let storage = null;
+        try { storage = win?.localStorage || null; } catch (_error) { storage = null; }
+        try {
+            const stored = JSON.parse(String(storage?.getItem(PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY) || 'null'));
+            const storedAt = Date.parse(String(stored?.updatedAt || ''));
+            if (stored?.schemaVersion === 1 && Number.isFinite(storedAt) && Date.now() - storedAt <= PREVIEW_CONTEXT_DIAGNOSTICS_MAX_AGE_MS) {
+                state.sessionStartedAt = String(stored.sessionStartedAt || state.sessionStartedAt);
+                PREVIEW_CONTEXT_COUNTER_KEYS.forEach((key) => { state.counters[key] = capPreviewContextCount(stored.counters?.[key]); });
+                [
+                    [state.rowModes, stored.rowModes, PREVIEW_CONTEXT_ROW_MODES],
+                    [state.rowIndexes, stored.rowIndexes, PREVIEW_CONTEXT_ROW_BUCKETS]
+                ].forEach(([target, source, keys]) => keys.forEach((key) => PREVIEW_CONTEXT_METRIC_KEYS.forEach((metric) => {
+                    target[key][metric] = capPreviewContextCount(source?.[key]?.[metric]);
+                })));
+                Object.keys(state.triggerSources).forEach((key) => { state.triggerSources[key] = capPreviewContextCount(stored.triggerSources?.[key]); });
+                Object.keys(state.inputMethods).forEach((key) => { state.inputMethods[key] = capPreviewContextCount(stored.inputMethods?.[key]); });
+                PREVIEW_CONTEXT_FAILURE_REASONS.forEach((key) => { state.failureReasons[key] = capPreviewContextCount(stored.failureReasons?.[key]); });
+                const last = stored.lastEvent;
+                if (last && typeof last === 'object' && !Array.isArray(last)) {
+                    state.lastEvent = {
+                        at: String(last.at || ''),
+                        type: ['bind', 'finalization', 'dispatch'].includes(last.type) ? last.type : 'dispatch',
+                        outcome: ['success', 'failure', 'warning'].includes(last.outcome) ? last.outcome : 'failure',
+                        rowMode: normalizePreviewContextRowMode(last.rowMode),
+                        rowIndex: normalizePreviewContextRowIndex(last.rowIndex),
+                        triggerSource: hasOwn(state.triggerSources, last.triggerSource) ? last.triggerSource : 'unknown',
+                        inputMethod: hasOwn(state.inputMethods, last.inputMethod) ? last.inputMethod : 'unknown',
+                        reason: PREVIEW_CONTEXT_FAILURE_REASONS.includes(last.reason) ? last.reason : ''
+                    };
+                }
+            }
+        } catch (_error) {}
+        let writePending = false;
+        const flush = () => {
+            writePending = false;
+            state.updatedAt = nowIso();
+            try {
+                storage?.setItem(PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY, JSON.stringify(state));
+                return true;
+            } catch (_error) {
+                state.counters.storageWriteFailures = capPreviewContextCount(state.counters.storageWriteFailures + 1);
+                return false;
+            }
+        };
+        const persist = (immediate = false) => {
+            if (immediate || typeof win?.setTimeout !== 'function') return flush();
+            if (!writePending) {
+                writePending = true;
+                win.setTimeout(flush, 0);
+            }
+            return true;
+        };
+        const bump = (target, key, amount = 1) => {
+            if (target && hasOwn(target, key)) target[key] = capPreviewContextCount(target[key] + (Number(amount) || 0));
+        };
+        const modeMetric = (details, name, amount = 1) => {
+            const mode = normalizePreviewContextRowMode(details.rowMode);
+            bump(state.rowModes[mode], name, amount);
+        };
+        const rowMetric = (details, name, amount = 1) => {
+            const bucket = getPreviewContextRowBucket(details.rowIndex);
+            bump(state.rowIndexes[bucket], name, amount);
+        };
+        const metric = (details, name, amount = 1) => {
+            modeMetric(details, name, amount);
+            rowMetric(details, name, amount);
+        };
+        const setLastEvent = (type, details = {}) => {
+            state.lastEvent = {
+                at: nowIso(), type, outcome: details.outcome || 'success',
+                rowMode: normalizePreviewContextRowMode(details.rowMode),
+                rowIndex: normalizePreviewContextRowIndex(details.rowIndex),
+                triggerSource: hasOwn(state.triggerSources, details.triggerSource) ? details.triggerSource : 'unknown',
+                inputMethod: hasOwn(state.inputMethods, details.inputMethod) ? details.inputMethod : 'unknown',
+                reason: PREVIEW_CONTEXT_FAILURE_REASONS.includes(details.reason) ? details.reason : ''
+            };
+        };
+        return Object.freeze({
+            recordBinding(details = {}) {
+                bump(state.counters, 'bindAttempts'); metric(details, 'bindings');
+                if (details.success === true) bump(state.counters, 'boundTargets');
+                else { bump(state.counters, 'bindFailures'); bump(state.failureReasons, details.reason); }
+                if (details.keyboardTargetMissing === true) {
+                    bump(state.counters, 'keyboardTargetsMissing');
+                    bump(state.failureReasons, 'keyboard-target-missing');
+                }
+                setLastEvent('bind', { ...details, outcome: details.success === true ? (details.keyboardTargetMissing ? 'warning' : 'success') : 'failure' });
+                persist();
+            },
+            recordFinalization(details = {}) {
+                bump(state.counters, 'finalizationPasses'); modeMetric(details, 'audits');
+                [['eligibleTargetsAudited', 'eligible'], ['boundTargetsAudited', 'bound'], ['missingBridgeTargets', 'missing'], ['handlerIntegrityFailures', 'handlerFailures']]
+                    .forEach(([counter, name]) => { bump(state.counters, counter, details[counter]); modeMetric(details, name, details[counter]); });
+                (details.rows || []).forEach((row) => {
+                    const bucket = getPreviewContextRowBucket(row.rowIndex);
+                    [['eligible', row.eligible], ['bound', row.bound], ['missing', row.missing], ['handlerFailures', row.handlerFailures]]
+                        .forEach(([name, value]) => bump(state.rowIndexes[bucket], name, value));
+                });
+                const reason = details.handlerIntegrityFailures > 0 ? 'handler-missing' : (details.missingBridgeTargets > 0 ? 'bridge-missing' : '');
+                if (reason) bump(state.failureReasons, reason, reason === 'handler-missing' ? details.handlerIntegrityFailures : details.missingBridgeTargets);
+                setLastEvent('finalization', { ...details, reason, outcome: reason ? 'failure' : 'success' });
+                persist();
+            },
+            recordDispatch(details = {}) {
+                bump(state.counters, 'dispatchAttempts'); metric(details, 'dispatchAttempts');
+                const success = details.success === true;
+                bump(state.counters, success ? 'dispatchSuccesses' : 'dispatchFailures');
+                metric(details, success ? 'dispatchSuccesses' : 'dispatchFailures');
+                bump(state.triggerSources, details.triggerSource);
+                bump(state.inputMethods, details.inputMethod);
+                if (!success) bump(state.failureReasons, details.reason);
+                setLastEvent('dispatch', { ...details, outcome: success ? 'success' : 'failure' });
+                persist(true);
+            },
+            recordQuickActionBypass() { bump(state.counters, 'quickActionBypasses'); persist(); },
+            snapshot: () => JSON.parse(JSON.stringify(state))
+        });
+    };
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -42,6 +210,7 @@
         const appendRequestBundleTrace = typeof deps.appendRequestBundleTrace === 'function'
             ? deps.appendRequestBundleTrace
             : (() => false);
+        const previewContextDiagnostics = createPreviewContextDiagnostics(win);
         const debug = deps.debug === true;
         const webuiLinkRel = String(deps.webuiLinkRel || 'noopener noreferrer').trim() || 'noopener noreferrer';
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
@@ -94,15 +263,46 @@
             };
         };
 
+        const resolveDockerPreviewContextRowMode = ($item, settings = {}) => normalizePreviewContextRowMode(
+            $item?.attr?.('data-fv-preview-row-mode')
+            || $item?.closest?.('.folder-preview')?.attr?.('data-preview-rows')
+            || settings?.preview_rows
+            || settings?.previewRows
+        );
+
+        const resolveDockerPreviewContextRowIndex = ($item) => {
+            const $row = $item?.closest?.('.folder-preview-row');
+            if (!$row?.length) return 1;
+            const $rows = $row.parent().children('.folder-preview-row');
+            return Math.max(1, $rows.index($row) + 1);
+        };
+
+        const resolveDockerPreviewContextTriggerSource = (event = null) => {
+            if (!jq || !event?.target) return 'unknown';
+            const $target = jq(event.target);
+            if ($target.closest('span.hand').length) return 'icon';
+            if ($target.closest('span.appname').length) return 'name';
+            if ($target.closest('span.state, .fv-preview-status-compact').length) return 'status';
+            return 'card';
+        };
+
+        const hasNamespacedPreviewContextHandler = (node, eventType) => {
+            if (!node || typeof jq?._data !== 'function') return null;
+            const handlers = jq._data(node, 'events')?.[eventType];
+            return Array.isArray(handlers)
+                ? handlers.some((handler) => String(handler?.namespace || '').split('.').includes('fvDockerNativePreviewContext'))
+                : false;
+        };
+
         const dispatchDockerNativePreviewContext = ($nativeTrigger, $item, event = null) => {
             const trigger = $nativeTrigger?.get?.(0) || null;
             if (!trigger || typeof trigger.dispatchEvent !== 'function') {
-                return false;
+                return { ok: false, reason: 'native-trigger-missing' };
             }
             const { clientX, clientY } = resolveDockerPreviewActivationPoint($item, event);
             const MouseEventConstructor = win?.MouseEvent || fallbackWindow?.MouseEvent;
             if (typeof MouseEventConstructor !== 'function') {
-                return false;
+                return { ok: false, reason: 'native-event-unavailable' };
             }
             try {
                 trigger.dispatchEvent(new MouseEventConstructor('click', {
@@ -114,18 +314,36 @@
                     clientX,
                     clientY
                 }));
-                return true;
+                return { ok: true, reason: '' };
             } catch (_error) {
-                return false;
+                return { ok: false, reason: 'dispatch-failed' };
             }
         };
 
-        const bindDockerPreviewDefaultContextBridge = ($item, $sourceRow) => {
+        const recordDockerPreviewContextDispatch = ($nativeTrigger, $item, event = null) => {
+            const result = dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+            previewContextDiagnostics.recordDispatch({
+                success: result.ok,
+                reason: result.reason,
+                rowMode: resolveDockerPreviewContextRowMode($item),
+                rowIndex: resolveDockerPreviewContextRowIndex($item),
+                triggerSource: resolveDockerPreviewContextTriggerSource(event),
+                inputMethod: event?.type === 'keydown' ? 'keyboard' : 'mouse'
+            });
+            return result.ok;
+        };
+
+        const bindDockerPreviewDefaultContextBridge = ($item, $sourceRow, settings = {}) => {
+            const rowMode = resolveDockerPreviewContextRowMode($item, settings);
             if (!jq || !$item || !$item.length) {
+                previewContextDiagnostics.recordBinding({ success: false, reason: 'item-missing', rowMode });
                 return false;
             }
+            $item.attr('data-fv-preview-context-eligible', 'true').attr('data-fv-preview-row-mode', rowMode);
             const $nativeTrigger = resolveDockerNativePreviewContextTrigger($sourceRow);
             if (!$nativeTrigger || !$nativeTrigger.length) {
+                $item.attr('data-fv-preview-context-bound', 'false');
+                previewContextDiagnostics.recordBinding({ success: false, reason: 'native-trigger-missing', rowMode });
                 return false;
             }
             const nativeTitle = String($nativeTrigger.attr('title') || '').trim();
@@ -146,14 +364,16 @@
                 }
             }
             $item
+                .attr('data-fv-preview-context-bound', 'true')
                 .off('.fvDockerNativePreviewContext')
                 .on('click.fvDockerNativePreviewContext', function(event) {
                     if (jq(event.target).closest(dockerPreviewQuickActionSelector).length) {
+                        previewContextDiagnostics.recordQuickActionBypass();
                         return;
                     }
                     event.preventDefault();
                     event.stopPropagation();
-                    dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+                    recordDockerPreviewContextDispatch($nativeTrigger, $item, event);
                 });
             $keyboardTarget
                 .off('.fvDockerNativePreviewContext')
@@ -163,9 +383,56 @@
                     }
                     event.preventDefault();
                     event.stopPropagation();
-                    dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+                    recordDockerPreviewContextDispatch($nativeTrigger, $item, event);
                 });
+            previewContextDiagnostics.recordBinding({
+                success: true,
+                rowMode,
+                keyboardTargetMissing: !$keyboardTarget.length
+            });
             return true;
+        };
+
+        const auditDockerPreviewContextBridges = ($preview, settings = {}) => {
+            if (!jq || !$preview || !$preview.length) return null;
+            const rowMode = resolveDockerPreviewContextRowMode($preview, settings);
+            const $eligibleTargets = $preview.find('[data-fv-preview-context-eligible="true"]');
+            if (!$eligibleTargets.length) return null;
+            const rows = new Map();
+            let eligibleTargetsAudited = 0;
+            let boundTargetsAudited = 0;
+            let missingBridgeTargets = 0;
+            let handlerIntegrityFailures = 0;
+            $eligibleTargets.each((_, node) => {
+                const $item = jq(node);
+                const rowIndex = resolveDockerPreviewContextRowIndex($item);
+                const row = rows.get(rowIndex) || { rowIndex, eligible: 0, bound: 0, missing: 0, handlerFailures: 0 };
+                const bound = $item.attr('data-fv-preview-context-bound') === 'true';
+                const $keyboardTarget = $item.find('[data-fv-preview-context="native"]').first();
+                const clickHandlerPresent = hasNamespacedPreviewContextHandler(node, 'click');
+                const keyboardHandlerPresent = $keyboardTarget.length
+                    ? hasNamespacedPreviewContextHandler($keyboardTarget.get(0), 'keydown')
+                    : null;
+                const handlerMissing = clickHandlerPresent === false || keyboardHandlerPresent === false;
+                $item.attr('data-fv-preview-row-index', String(rowIndex));
+                eligibleTargetsAudited += 1;
+                row.eligible += 1;
+                if (bound) { boundTargetsAudited += 1; row.bound += 1; }
+                else { missingBridgeTargets += 1; row.missing += 1; }
+                if (handlerMissing) { handlerIntegrityFailures += 1; row.handlerFailures += 1; }
+                rows.set(rowIndex, row);
+            });
+            const details = {
+                rowMode,
+                rowIndex: 0,
+                eligibleTargetsAudited,
+                boundTargetsAudited,
+                missingBridgeTargets,
+                handlerIntegrityFailures,
+                rows: [...rows.values()].slice(0, 10)
+            };
+            previewContextDiagnostics.recordFinalization(details);
+            return details;
         };
 
         const normalizeDockerPreviewStatusMarkup = ($target) => {
@@ -916,12 +1183,15 @@
             });
             applyFolderPreviewLayout($preview, settings);
             layoutFolderPreviewRows($preview, settings);
+            auditDockerPreviewContextBridges($preview, settings);
             $preview.find('span.inner > span.appname').css('width', settings?.preview_text_width || '');
         };
 
         return Object.freeze({
             sanitizeDockerPreviewContextClone,
             bindDockerPreviewDefaultContextBridge,
+            auditDockerPreviewContextBridges,
+            getPreviewContextDiagnosticsSnapshot: previewContextDiagnostics.snapshot,
             normalizeDockerPreviewStatusMarkup,
             cloneDockerSingleRowPreviewSource,
             renderDockerSingleRowPreview,
@@ -937,6 +1207,7 @@
     };
 
     return Object.freeze({
-        createApi
+        createApi,
+        PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY
     });
 }));

@@ -350,7 +350,6 @@
                 ...record
             });
         };
-
         const collectDashboardLayoutDiagnostics = (uiRedactor) => {
             const collectType = (type, storageKey) => {
                 const record = readClientDiagnosticsStorageRecord(storageKey || '');

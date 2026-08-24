@@ -5135,7 +5135,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         const { $item, $tooltipTrigger } = builtPreview;
         $createdFolderPreview.append($item);
         if (folder.settings.context === 1) {
-            getDockerPreviewActionsApi().bindDockerPreviewDefaultContextBridge($item, $sourceRow);
+            getDockerPreviewActionsApi().bindDockerPreviewDefaultContextBridge($item, $sourceRow, folder.settings);
             return null;
         }
         if (folder.settings.context === 2 || folder.settings.context === 0) {
@@ -5811,13 +5811,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    getDockerPreviewActionsApi().auditDockerPreviewContextBridges($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     if (lazyPreviewActive) {
         const previewElement = $(`tr.folder-id-${id} div.folder-preview`).get(0);
         const rowElement = $(`tr.folder-id-${id}`).get(0);
         dockerDeferredPreviewController.defer(previewElement, {
             interactionTarget: rowElement,
             placeholder: `${combinedContainers.length} members · preview deferred`,
-            onHydrated: () => layoutFolderPreviewRows($(previewElement), folder.settings)
+            onHydrated: () => {
+                layoutFolderPreviewRows($(previewElement), folder.settings);
+                getDockerPreviewActionsApi().auditDockerPreviewContextBridges($(previewElement), folder.settings);
+            }
         });
     }
     if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);

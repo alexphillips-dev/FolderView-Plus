@@ -184,6 +184,7 @@
                 };
             }
         };
+        window.localStorage.removeItem(window.FolderViewPlusDockerPreviewActions.PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY);
         const actionsApi = window.FolderViewPlusDockerPreviewActions.createApi({
             window,
             document,
@@ -241,38 +242,48 @@
         const buildNativeContextPreview = (key) => {
             const $sourceRow = window.jQuery(`#fixture-context-source-${key}`);
             const $preview = window.jQuery(`#fixture-context-preview-${key}`);
-            const $item = $sourceRow.find('td.ct-name > span.outer').first().clone();
-            actionsApi.sanitizeDockerPreviewContextClone($item);
-            $item.find('br').remove();
-            $item.addClass('fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1');
-            const $inner = $item.children('span.inner').first();
-            const $appName = $inner.children('span.appname').first();
-            const $status = window.jQuery('<span class="fv-preview-status-compact"></span>');
-            $appName.nextAll().each((_, node) => $status.append(node));
-            const $quickActions = window.jQuery('<span class="fv-preview-actions-compact"><span class="folder-element-custom-btn"><button type="button" class="fixture-context-quick-action">Quick action</button></span></span>');
-            $quickActions.on('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                window.fixtureNativePreviewContext.quickActionCount += 1;
-            });
-            $inner.append(window.jQuery('<span class="fv-preview-meta-compact"></span>').append($status, $quickActions));
-            actionsApi.normalizeDockerPreviewStatusMarkup($item);
-            const $wrapper = window.jQuery('<div class="folder-preview-wrapper"></div>').append($item);
-            $preview.append($wrapper);
-            actionsApi.bindDockerPreviewDefaultContextBridge($item, $sourceRow);
             const runtimeShared = window.FolderViewDockerRuntimeShared;
             const settings = {
                 preview_rows: key === 'unlimited' ? 0 : 2,
                 preview_vertical_bars: false
             };
+            const items = [0, 1].map(() => {
+                const $item = $sourceRow.find('td.ct-name > span.outer').first().clone();
+                actionsApi.sanitizeDockerPreviewContextClone($item);
+                $item.find('br').remove();
+                $item.addClass('fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1');
+                const $inner = $item.children('span.inner').first();
+                const $appName = $inner.children('span.appname').first();
+                const $status = window.jQuery('<span class="fv-preview-status-compact"></span>');
+                $appName.nextAll().each((_, node) => $status.append(node));
+                const $quickActions = window.jQuery('<span class="fv-preview-actions-compact"><span class="folder-element-custom-btn"><button type="button" class="fixture-context-quick-action">Quick action</button></span></span>');
+                $quickActions.on('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    window.fixtureNativePreviewContext.quickActionCount += 1;
+                });
+                $inner.append(window.jQuery('<span class="fv-preview-meta-compact"></span>').append($status, $quickActions));
+                actionsApi.normalizeDockerPreviewStatusMarkup($item);
+                $preview.append(window.jQuery('<div class="folder-preview-wrapper"></div>').append($item));
+                actionsApi.bindDockerPreviewDefaultContextBridge($item, $sourceRow, settings);
+                return $item;
+            });
             for (let pass = 0; pass < 2; pass += 1) {
                 const wrappers = runtimeShared.flattenPreviewWrappers($preview);
-                runtimeShared.finalizePreviewRows($preview, [wrappers], settings);
+                runtimeShared.finalizePreviewRows($preview, wrappers.map((wrapper) => [wrapper]), settings);
+                actionsApi.auditDockerPreviewContextBridges($preview, settings);
             }
-            return $item;
+            return items;
         };
         buildNativeContextPreview('rows-2');
         buildNativeContextPreview('unlimited');
+        window.fixtureNativePreviewContext.breakRows2HandlersAndAudit = () => {
+            const $preview = window.jQuery('#fixture-context-preview-rows-2');
+            const rows = $preview.children('.folder-preview-row').get();
+            $preview.empty();
+            rows.forEach((row) => $preview.append(row));
+            return actionsApi.auditDockerPreviewContextBridges($preview, { preview_rows: 2 });
+        };
         window.fixtureNativePreviewContext.snapshot = () => ({
             attachCount: window.fixtureNativePreviewContext.attachCount,
             openCount: window.fixtureNativePreviewContext.openCount,
@@ -287,7 +298,8 @@
             previewInlineHandlerCount: document.querySelectorAll('.fixture-context-preview [onclick], .fixture-context-preview [oncontextmenu]').length,
             startedClassCount: document.querySelectorAll('.fixture-context-preview .state.fv-preview-status-started').length,
             bridgeCount: document.querySelectorAll('.fixture-context-preview [data-fv-preview-context="native"][role="button"][tabindex="0"]').length,
-            previewRowCount: document.querySelectorAll('.fixture-context-preview .folder-preview-row').length
+            previewRowCount: document.querySelectorAll('.fixture-context-preview .folder-preview-row').length,
+            diagnostics: actionsApi.getPreviewContextDiagnosticsSnapshot()
         });
         const layoutEngine = window.FolderViewPlusRuntimeColumnLayout.createColumnLayoutEngine({
             minWidth: 118,

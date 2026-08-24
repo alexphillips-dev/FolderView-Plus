@@ -395,6 +395,15 @@
         const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
         const collectDockerRequestBundleTrace = browserCollectors?.collectDockerRequestBundleTrace || (() => ({ available: false }));
         const collectDockerTraceHealth = browserCollectors?.collectDockerTraceHealth || (() => ({ available: false }));
+        const collectDockerPreviewContextDiagnostics = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerPreviewContext || '');
+            const available = Boolean(record && typeof record === 'object' && !Array.isArray(record));
+            return uiRedactor.sanitizeValue(
+                'uiTelemetry.dockerDiagnostics.previewContextBridge',
+                'previewContextBridge',
+                available ? { available, ...record } : { available }
+            );
+        };
         const collectDashboardLayoutDiagnostics = browserCollectors?.collectDashboardLayoutDiagnostics || (() => ({
             docker: { available: false },
             vm: { available: false }
@@ -552,7 +561,8 @@
                 bulkUpdateTrace: collectDockerBulkUpdateTrace(uiRedactor),
                 requestBundleTrace: collectDockerRequestBundleTrace(uiRedactor),
                 traceHealth: collectDockerTraceHealth(uiRedactor),
-                refreshDiagnostics: browserCollectors?.collectDockerRefreshDiagnostics?.(uiRedactor) || { available: false }
+                refreshDiagnostics: browserCollectors?.collectDockerRefreshDiagnostics?.(uiRedactor) || { available: false },
+                previewContextBridge: collectDockerPreviewContextDiagnostics(uiRedactor)
             };
             existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
             existingUiTelemetry.dashboardVisual = collectDashboardVisualDiagnostics(uiRedactor, {

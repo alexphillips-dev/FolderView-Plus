@@ -48,11 +48,12 @@
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
         "scripts/lib/fixture-browser-server.mjs",
-        "scripts/lib/fixture-browser-runner.mjs"
+        "scripts/lib/fixture-browser-runner.mjs",
+        "tests/browser/helpers/docker-preview-context.mjs"
       ],
       "testCount": 43,
-      "assertionCount": 542,
-      "pageEvaluateCount": 107,
+      "assertionCount": 557,
+      "pageEvaluateCount": 109,
       "orderedTitleSha256": "491369c2cae7533952fe8634ccef5185f1a713d57d2b440273973accb8d212aa"
     }
   }

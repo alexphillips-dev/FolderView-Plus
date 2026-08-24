@@ -94,7 +94,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const \$sourceOuter = \$sourceRow\.find\('td\.ct-name > span\.outer'\)\.first\(\)/);
     assert.match(dockerJs, /sanitizeDockerPreviewContextClone\(\$item\);/);
     assert.match(dockerJs, /normalizeDockerPreviewStatusMarkup\(\$item\);/);
-    assert.match(dockerPreviewActionsScript, /const bindDockerPreviewDefaultContextBridge = \(\$item, \$sourceRow\) =>/);
+    assert.match(dockerPreviewActionsScript, /const bindDockerPreviewDefaultContextBridge = \(\$item, \$sourceRow, settings = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /resolveDockerNativePreviewContextTrigger\(\$sourceRow\)/);
     assert.match(dockerPreviewActionsScript, /sanitizeDockerPreviewContextClone\(\$item\);/);
     assert.match(dockerPreviewActionsScript, /removeAttr\('id onclick oncontextmenu'\)/);
@@ -102,6 +102,11 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerPreviewActionsScript, /\.on\('keydown\.fvDockerNativePreviewContext'/);
     assert.match(dockerPreviewActionsScript, /\['Enter', ' '\]\.includes\(event\.key\)/);
     assert.match(dockerPreviewActionsScript, /closest\(dockerPreviewQuickActionSelector\)/);
+    assert.match(dockerPreviewActionsScript, /PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY = 'fv\.support\.bundle\.docker\.previewContextBridge\.v1'/);
+    assert.match(dockerPreviewActionsScript, /const auditDockerPreviewContextBridges = \(\$preview, settings = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /handlerIntegrityFailures/);
+    assert.match(dockerPreviewActionsScript, /recordDockerPreviewContextDispatch/);
+    assert.match(dockerPreviewActionsScript, /getPreviewContextDiagnosticsSnapshot/);
     assert.doesNotMatch(dockerJs, /\$target\.attr\('onclick', inlineClick\)/);
     assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger fv-preview-tooltip-proxy/);
@@ -111,7 +116,8 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const appendCompactPreview = \(folderTrId, ctid, autostart, previewEntry, \$sourceRow = null, options = \{\}\) =>/);
     assert.match(dockerJs, /if \(folder\.settings\.context === 1 && options\.preferNativeDefaultContext !== false\) \{/);
     assert.match(dockerJs, /compactPreviewItem = buildCompactPreviewDefaultContextItem\(\$sourceRow, folder\.settings, autostart\);/);
-    assert.match(dockerJs, /bindDockerPreviewDefaultContextBridge\(\$item, \$sourceRow\);/);
+    assert.match(dockerJs, /bindDockerPreviewDefaultContextBridge\(\$item, \$sourceRow, folder\.settings\);/);
+    assert.match(dockerJs, /auditDockerPreviewContextBridges\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\);/);
     assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);

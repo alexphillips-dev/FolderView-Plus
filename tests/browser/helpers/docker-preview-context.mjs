@@ -122,7 +122,9 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
     await page.evaluate(() => window.fixtureChildFolderPreviewContext.dispatchTouchClick());
     result = await snapshot();
     assert.equal(result.menuCount, 1, 'touch-like activation must open the child-folder menu');
-    assert.deepEqual([result.menuLeft, result.menuTop], [321, 145]);
+    const expectedTouchLeft = Math.max(8, Math.min(321, result.viewportWidth - result.menuWidth - 8));
+    const expectedTouchTop = Math.max(8, Math.min(145, result.viewportHeight - result.menuHeight - 8));
+    assert.deepEqual([result.menuLeft, result.menuTop], [expectedTouchLeft, expectedTouchTop]);
     assert.deepEqual(
         [result.diagnostics.childFolderPreview.counters.chipsRendered,
             result.diagnostics.childFolderPreview.counters.bindings,

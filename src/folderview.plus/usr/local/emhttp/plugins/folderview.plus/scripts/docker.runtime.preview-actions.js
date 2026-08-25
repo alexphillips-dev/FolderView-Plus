@@ -19,6 +19,10 @@
         'eligibleTargetsAudited', 'boundTargetsAudited', 'missingBridgeTargets', 'handlerIntegrityFailures',
         'dispatchAttempts', 'dispatchSuccesses', 'dispatchFailures', 'quickActionBypasses', 'storageWriteFailures'
     ]);
+    const CHILD_FOLDER_PREVIEW_COUNTER_KEYS = Object.freeze([
+        'chipsRendered', 'bindings', 'menuOpenAttempts', 'menuOpens', 'menuOpenFailures'
+    ]);
+    const CHILD_FOLDER_PREVIEW_INPUT_METHODS = Object.freeze(['mouse', 'keyboard', 'contextmenu', 'touch', 'unknown']);
     const PREVIEW_CONTEXT_FAILURE_REASONS = Object.freeze([
         'item-missing', 'native-trigger-missing', 'keyboard-target-missing', 'bridge-missing',
         'handler-missing', 'native-event-unavailable', 'dispatch-failed'
@@ -55,6 +59,11 @@
         triggerSources: { icon: 0, name: 0, status: 0, card: 0, unknown: 0 },
         inputMethods: { mouse: 0, keyboard: 0, unknown: 0 },
         failureReasons: Object.fromEntries(PREVIEW_CONTEXT_FAILURE_REASONS.map((key) => [key, 0])),
+        childFolderPreview: {
+            counters: Object.fromEntries(CHILD_FOLDER_PREVIEW_COUNTER_KEYS.map((key) => [key, 0])),
+            inputMethods: Object.fromEntries(CHILD_FOLDER_PREVIEW_INPUT_METHODS.map((key) => [key, 0])),
+            lastEvent: null
+        },
         lastEvent: null
     });
     const createPreviewContextDiagnostics = (win) => {
@@ -77,6 +86,24 @@
                 Object.keys(state.triggerSources).forEach((key) => { state.triggerSources[key] = capPreviewContextCount(stored.triggerSources?.[key]); });
                 Object.keys(state.inputMethods).forEach((key) => { state.inputMethods[key] = capPreviewContextCount(stored.inputMethods?.[key]); });
                 PREVIEW_CONTEXT_FAILURE_REASONS.forEach((key) => { state.failureReasons[key] = capPreviewContextCount(stored.failureReasons?.[key]); });
+                CHILD_FOLDER_PREVIEW_COUNTER_KEYS.forEach((key) => {
+                    state.childFolderPreview.counters[key] = capPreviewContextCount(stored.childFolderPreview?.counters?.[key]);
+                });
+                CHILD_FOLDER_PREVIEW_INPUT_METHODS.forEach((key) => {
+                    state.childFolderPreview.inputMethods[key] = capPreviewContextCount(stored.childFolderPreview?.inputMethods?.[key]);
+                });
+                const childFolderLast = stored.childFolderPreview?.lastEvent;
+                if (childFolderLast && typeof childFolderLast === 'object' && !Array.isArray(childFolderLast)) {
+                    state.childFolderPreview.lastEvent = {
+                        at: String(childFolderLast.at || ''),
+                        type: ['render', 'binding', 'menu-open'].includes(childFolderLast.type) ? childFolderLast.type : 'menu-open',
+                        outcome: ['success', 'failure'].includes(childFolderLast.outcome) ? childFolderLast.outcome : 'failure',
+                        inputMethod: CHILD_FOLDER_PREVIEW_INPUT_METHODS.includes(childFolderLast.inputMethod)
+                            ? childFolderLast.inputMethod
+                            : 'unknown',
+                        reason: childFolderLast.reason === 'document-unavailable' ? 'document-unavailable' : ''
+                    };
+                }
                 const last = stored.lastEvent;
                 if (last && typeof last === 'object' && !Array.isArray(last)) {
                     state.lastEvent = {
@@ -137,6 +164,17 @@
                 reason: PREVIEW_CONTEXT_FAILURE_REASONS.includes(details.reason) ? details.reason : ''
             };
         };
+        const setChildFolderPreviewLastEvent = (type, details = {}) => {
+            state.childFolderPreview.lastEvent = {
+                at: nowIso(),
+                type,
+                outcome: details.success === false ? 'failure' : 'success',
+                inputMethod: CHILD_FOLDER_PREVIEW_INPUT_METHODS.includes(details.inputMethod)
+                    ? details.inputMethod
+                    : 'unknown',
+                reason: details.reason === 'document-unavailable' ? 'document-unavailable' : ''
+            };
+        };
         return Object.freeze({
             recordBinding(details = {}) {
                 bump(state.counters, 'bindAttempts'); metric(details, 'bindings');
@@ -175,6 +213,27 @@
                 persist(true);
             },
             recordQuickActionBypass() { bump(state.counters, 'quickActionBypasses'); persist(); },
+            recordChildFolderPreviewRender() {
+                bump(state.childFolderPreview.counters, 'chipsRendered');
+                setChildFolderPreviewLastEvent('render');
+                persist();
+            },
+            recordChildFolderPreviewBinding() {
+                bump(state.childFolderPreview.counters, 'bindings');
+                setChildFolderPreviewLastEvent('binding');
+                persist();
+            },
+            recordChildFolderPreviewMenuOpen(details = {}) {
+                bump(state.childFolderPreview.counters, 'menuOpenAttempts');
+                const success = details.success === true;
+                bump(state.childFolderPreview.counters, success ? 'menuOpens' : 'menuOpenFailures');
+                bump(
+                    state.childFolderPreview.inputMethods,
+                    CHILD_FOLDER_PREVIEW_INPUT_METHODS.includes(details.inputMethod) ? details.inputMethod : 'unknown'
+                );
+                setChildFolderPreviewLastEvent('menu-open', { ...details, success });
+                persist(true);
+            },
             snapshot: () => JSON.parse(JSON.stringify(state))
         });
     };
@@ -1192,6 +1251,9 @@
             bindDockerPreviewDefaultContextBridge,
             auditDockerPreviewContextBridges,
             getPreviewContextDiagnosticsSnapshot: previewContextDiagnostics.snapshot,
+            recordChildFolderPreviewRender: previewContextDiagnostics.recordChildFolderPreviewRender,
+            recordChildFolderPreviewBinding: previewContextDiagnostics.recordChildFolderPreviewBinding,
+            recordChildFolderPreviewMenuOpen: previewContextDiagnostics.recordChildFolderPreviewMenuOpen,
             normalizeDockerPreviewStatusMarkup,
             cloneDockerSingleRowPreviewSource,
             renderDockerSingleRowPreview,

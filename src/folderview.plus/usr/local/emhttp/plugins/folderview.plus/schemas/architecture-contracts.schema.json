@@ -146,7 +146,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -942,6 +942,22 @@
       "lifecycleFactories": [
         { "name": "createCoordinator", "exports": ["prepare", "refreshAll", "reconcileContainer", "recheck", "status", "dispose"] },
         { "name": "createIntegration", "exports": ["prepare", "refresh", "tick", "status", "dispose"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.child-folder-preview-menu.js",
+      "owner": "docker-child-folder-preview-menu",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerChildFolderPreviewMenu",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"],
+      "lifecycleFactories": [
+        { "name": "createApi", "exports": ["close", "show"] }
       ]
     },
     {

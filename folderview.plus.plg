@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.24.03">
-<!ENTITY md5 "54671066fb80abf96be4076ad82282ad">
-<!ENTITY sha256 "8e9a71b2985f065f9f21416dfce6dcb10cd72c1e24e34a00edf5508734b3f1f4">
+<!ENTITY version "2026.08.25.01">
+<!ENTITY md5 "bc7c2511f1a3fdb073fa7dd28aa99263">
+<!ENTITY sha256 "7dfd5e03ee5f8624f75c3174cea43b9572ce4cb308cc7a6b25dc4762fa4fcd20">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.25.01
+- Fix: Open the same child-folder action menu from a collapsed parent preview when using a normal click, right-click, touch activation, Enter, or Space.
+- Accessibility: Position keyboard-opened menus beside the child-folder preview chip, focus the first menu action, and retain the existing Expand, Edit, and Open folder actions.
+- Diagnostics: Add bounded child-folder preview render, binding, menu-attempt, success, failure, and input-method counters to sanitized support bundles.
+- Privacy: Keep child-folder preview diagnostics free of folder names, identifiers, selectors, URLs, and pointer coordinates.
+- Test: Cover child-folder menu activation after repeated multi-row preview reconciliation and verify mouse, keyboard, context-menu, touch, focus, geometry, and diagnostic behavior in the browser fixture suite.
+
 
 ###2026.08.24.03
 - Diagnostics: Add privacy-safe Docker preview context-menu evidence to support bundles, including configured row mode, numeric preview-row position, binding integrity, trigger and input categories, dispatch outcomes, and bounded failure reasons.

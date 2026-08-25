@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { exerciseDockerPreviewContextDiagnostics } from '../helpers/docker-preview-context.mjs';
+import {
+    exerciseChildFolderPreviewContext,
+    exerciseDockerPreviewContextDiagnostics
+} from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
@@ -66,6 +69,10 @@ test('Docker single-row preview cloning falls back without stopping later member
 
 test('Docker multi-row previews bridge native context without cloned handlers or duplicate ids', async ({ page }) => {
     await exerciseDockerPreviewContextDiagnostics({ page, baseUrl });
+});
+
+test('Docker child-folder preview chip opens its action menu after multi-row reflow', async ({ page }) => {
+    await exerciseChildFolderPreviewContext({ page, baseUrl });
 });
 
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {

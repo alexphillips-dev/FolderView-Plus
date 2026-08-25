@@ -94,10 +94,23 @@
     <div id="fixture-context-preview-rows-2" class="folder-preview fv-preview-multirow fixture-context-preview" data-preview-rows="2"></div>
     <div id="fixture-context-preview-unlimited" class="folder-preview fv-preview-multirow fv-preview-unlimited-rows fixture-context-preview" data-preview-rows="0"></div>
     <div id="fixture-native-context-menu" hidden>Native context opened</div>
+    <table>
+        <tbody>
+            <tr class="folder-id-fixture-parent">
+                <td>
+                    <button type="button" class="dropDown-fixture-parent" active="true">Parent</button>
+                    <div id="fixture-child-folder-preview" class="folder-preview fv-preview-multirow fixture-context-preview" data-preview-rows="2"></div>
+                </td>
+            </tr>
+            <tr class="folder-id-fixture-child"><td>Child folder row</td></tr>
+        </tbody>
+    </table>
 
     <script src="/vendor/jquery.js"></script>
     <script src="/plugin/scripts/runtime.column-layout.js"></script>
     <script src="/plugin/scripts/docker.runtime.preview-actions.js"></script>
+    <script src="/plugin/scripts/docker.runtime.child-folder-preview-menu.js"></script>
+    <script src="/plugin/scripts/docker.runtime.hierarchy.js"></script>
     <script src="/plugin/scripts/runtime.shared-primitives.js"></script>
     <script src="/plugin/scripts/runtime.shared-diagnostics.js"></script>
     <script src="/plugin/scripts/runtime.shared-controls.js"></script>
@@ -277,6 +290,104 @@
         };
         buildNativeContextPreview('rows-2');
         buildNativeContextPreview('unlimited');
+        const childFolderFixtureState = { editCount: 0, actionCount: 0 };
+        const childFolderFixtureFolders = {
+            'fixture-parent': {
+                name: 'Private parent fixture',
+                settings: { preview: 1, preview_rows: 2 },
+                runtimeContainers: {},
+                status: { expanded: false }
+            },
+            'fixture-child': {
+                name: 'Private child fixture',
+                icon: '',
+                settings: { preview: 1, preview_rows: 2 },
+                runtimeContainers: {},
+                status: { expanded: false }
+            }
+        };
+        const childFolderFixtureHierarchy = {
+            ids: ['fixture-parent', 'fixture-child'],
+            parentById: { 'fixture-parent': '', 'fixture-child': 'fixture-parent' },
+            childrenById: { 'fixture-parent': ['fixture-child'], 'fixture-child': [] }
+        };
+        const layoutChildFolderFixtureRows = ($preview, settings) => {
+            const runtimeShared = window.FolderViewDockerRuntimeShared;
+            const wrappers = runtimeShared.flattenPreviewWrappers($preview);
+            runtimeShared.finalizePreviewRows($preview, wrappers.map((wrapper) => [wrapper]), settings);
+        };
+        const childFolderHierarchyApi = window.FolderViewPlusDockerRuntimeHierarchy.createApi({
+            window,
+            $: window.jQuery,
+            getGlobalFolders: () => childFolderFixtureFolders,
+            getDockerFolderHierarchy: () => childFolderFixtureHierarchy,
+            buildRuntimeContainerMapForFolder: (folderId, includeDescendants) => {
+                if (folderId === 'fixture-child') {
+                    return { childMember: { name: 'Private child member', state: true } };
+                }
+                if (folderId === 'fixture-parent' && includeDescendants !== true) {
+                    return {
+                        parentMemberOne: { name: 'Private parent member one', state: true },
+                        parentMemberTwo: { name: 'Private parent member two', state: true }
+                    };
+                }
+                return {};
+            },
+            buildDockerPreviewItem: ({ entry }) => ({
+                $item: window.jQuery('<span class="outer fv-docker-preview-card"><span class="inner"><span class="appname"></span></span></span>')
+                    .find('.appname').text(entry?.name || 'Member').end(),
+                $tooltipTrigger: window.jQuery()
+            }),
+            applyFolderPreviewLayout: () => {},
+            layoutFolderPreviewRows: layoutChildFolderFixtureRows,
+            editFolder: () => { childFolderFixtureState.editCount += 1; },
+            openFolderActions: () => { childFolderFixtureState.actionCount += 1; },
+            recordChildFolderPreviewRender: actionsApi.recordChildFolderPreviewRender,
+            recordChildFolderPreviewBinding: actionsApi.recordChildFolderPreviewBinding,
+            recordChildFolderPreviewMenuOpen: actionsApi.recordChildFolderPreviewMenuOpen
+        });
+        childFolderHierarchyApi.renderNestedAggregatePreview(
+            'fixture-parent',
+            childFolderFixtureFolders['fixture-parent'],
+            {},
+            { includeChildFolders: true }
+        );
+        for (let pass = 0; pass < 2; pass += 1) {
+            layoutChildFolderFixtureRows(
+                window.jQuery('#fixture-child-folder-preview'),
+                childFolderFixtureFolders['fixture-parent'].settings
+            );
+        }
+        window.fixtureChildFolderPreviewContext = {
+            closeMenu() {
+                window.jQuery('.fv-folder-preview-context-menu').remove();
+                window.jQuery(document).off('click.fvFolderPreviewContext keydown.fvFolderPreviewContext');
+            },
+            dispatchTouchClick() {
+                this.closeMenu();
+                const item = document.querySelector('#fixture-child-folder-preview .fv-folder-preview-child');
+                const event = new Event('click', { bubbles: true, cancelable: true });
+                Object.defineProperty(event, 'changedTouches', {
+                    value: [{ clientX: 321, clientY: 145 }]
+                });
+                item.dispatchEvent(event);
+            },
+            snapshot() {
+                const menu = document.querySelector('.fv-folder-preview-context-menu');
+                return {
+                    chipCount: document.querySelectorAll('#fixture-child-folder-preview .fv-folder-preview-child').length,
+                    rowCount: document.querySelectorAll('#fixture-child-folder-preview .folder-preview-row').length,
+                    menuCount: document.querySelectorAll('.fv-folder-preview-context-menu').length,
+                    menuLeft: Number.parseFloat(menu?.style?.left || '0'),
+                    menuTop: Number.parseFloat(menu?.style?.top || '0'),
+                    menuActions: Array.from(menu?.querySelectorAll('button') || []).map((button) => button.textContent.trim()),
+                    focusedAction: document.activeElement?.textContent?.trim() || '',
+                    editCount: childFolderFixtureState.editCount,
+                    actionCount: childFolderFixtureState.actionCount,
+                    diagnostics: actionsApi.getPreviewContextDiagnosticsSnapshot()
+                };
+            }
+        };
         window.fixtureNativePreviewContext.breakRows2HandlersAndAudit = () => {
             const $preview = window.jQuery('#fixture-context-preview-rows-2');
             const rows = $preview.children('.folder-preview-row').get();
@@ -298,7 +409,7 @@
             previewInlineHandlerCount: document.querySelectorAll('.fixture-context-preview [onclick], .fixture-context-preview [oncontextmenu]').length,
             startedClassCount: document.querySelectorAll('.fixture-context-preview .state.fv-preview-status-started').length,
             bridgeCount: document.querySelectorAll('.fixture-context-preview [data-fv-preview-context="native"][role="button"][tabindex="0"]').length,
-            previewRowCount: document.querySelectorAll('.fixture-context-preview .folder-preview-row').length,
+            previewRowCount: document.querySelectorAll('#fixture-context-preview-rows-2 .folder-preview-row, #fixture-context-preview-unlimited .folder-preview-row').length,
             diagnostics: actionsApi.getPreviewContextDiagnosticsSnapshot()
         });
         const layoutEngine = window.FolderViewPlusRuntimeColumnLayout.createColumnLayoutEngine({

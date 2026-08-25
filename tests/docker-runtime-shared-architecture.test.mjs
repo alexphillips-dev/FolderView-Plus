@@ -17,6 +17,7 @@ const runtimeSharedDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/pl
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
+const dockerChildFolderPreviewMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.child-folder-preview-menu.js');
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js');
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
@@ -54,6 +55,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
     const runtimeInfoIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.info.js');
     const previewActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
+    const childFolderPreviewMenuIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.child-folder-preview-menu.js');
     const runtimeHierarchyIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
     const runtimeActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.actions.js');
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
@@ -78,6 +80,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
     assert.ok(runtimeInfoIndex >= 0, 'docker runtime info script include is missing');
     assert.ok(previewActionsIndex >= 0, 'docker preview actions script include is missing');
+    assert.ok(childFolderPreviewMenuIndex >= 0, 'child-folder preview menu script include is missing');
     assert.ok(runtimeHierarchyIndex >= 0, 'docker hierarchy script include is missing');
     assert.ok(runtimeActionsIndex >= 0, 'docker actions script include is missing');
     assert.ok(hostGuardsIndex >= 0, 'docker host guards script include is missing');
@@ -106,7 +109,8 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(hostAdapterIndex < orderingIndex && orderingIndex < runtimeIndex, 'shared ordering must load after the host adapter and before docker.js');
     assert.ok(modulesIndex < runtimeInfoIndex, 'docker.modules.js must load before docker.runtime.info.js');
     assert.ok(runtimeInfoIndex < previewActionsIndex, 'docker.runtime.info.js must load before docker.runtime.preview-actions.js');
-    assert.ok(previewActionsIndex < runtimeHierarchyIndex, 'docker preview action helpers must load before docker.runtime.hierarchy.js');
+    assert.ok(previewActionsIndex < childFolderPreviewMenuIndex, 'docker preview action helpers must load before child-folder preview menus');
+    assert.ok(childFolderPreviewMenuIndex < runtimeHierarchyIndex, 'child-folder preview menus must load before docker.runtime.hierarchy.js');
     assert.ok(runtimeHierarchyIndex < runtimeActionsIndex, 'docker hierarchy helpers must load before docker.runtime.actions.js');
     assert.ok(runtimeActionsIndex < hostGuardsIndex, 'docker action helpers must load before docker.runtime.host-guards.js');
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
@@ -155,6 +159,10 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerPreviewActionsJs, /root\.FolderViewPlusDockerPreviewActions = factory\(\);/);
     assert.match(dockerPreviewActionsJs, /root\.FolderViewPlusDockerPreviewActionsModuleLoaded = true;/);
     assert.match(dockerPreviewActionsJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(dockerChildFolderPreviewMenuJs, /^\/\/ @ts-check/m);
+    assert.match(dockerChildFolderPreviewMenuJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
+    assert.match(dockerChildFolderPreviewMenuJs, /root\.FolderViewPlusFoundationModules\.dockerChildFolderPreviewMenu = factory\(\);/);
+    assert.match(dockerChildFolderPreviewMenuJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeHierarchyJs, /^\/\/ @ts-check/m);
     assert.match(dockerRuntimeHierarchyJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
     assert.match(dockerRuntimeHierarchyJs, /root\.FolderViewPlusDockerRuntimeHierarchy = factory\(\);/);
@@ -213,6 +221,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(dockerJs, /const dockerRuntimeInfoModule = window\.FolderViewPlusDockerRuntimeInfo \|\| null;/);
     assert.match(dockerJs, /const dockerPreviewActionsModule = window\.FolderViewPlusDockerPreviewActions \|\| null;/);
+    assert.match(dockerJs, /const dockerChildFolderPreviewMenuModule = window\.FolderViewPlusFoundationModules\?\.dockerChildFolderPreviewMenu \|\| null;/);
     assert.match(dockerJs, /const dockerRuntimeHierarchyModule = window\.FolderViewPlusDockerRuntimeHierarchy \|\| null;/);
     assert.match(dockerJs, /const dockerRuntimeActionsModule = window\.FolderViewPlusDockerRuntimeActions \|\| null;/);
     assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);

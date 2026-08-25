@@ -138,6 +138,7 @@
         "scripts/docker.modules.js",
         "scripts/docker.runtime.info.js",
         "scripts/docker.runtime.preview-actions.js",
+        "scripts/docker.runtime.child-folder-preview-menu.js",
         "scripts/docker.runtime.hierarchy.js",
         "scripts/docker.runtime.actions.js",
         "scripts/docker.runtime.host-guards.js",

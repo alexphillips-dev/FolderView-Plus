@@ -63,6 +63,7 @@ const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.docke
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
 let dockerApiIntegration = null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
+const dockerChildFolderPreviewMenuModule = window.FolderViewPlusFoundationModules?.dockerChildFolderPreviewMenu || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
@@ -443,6 +444,12 @@ if (
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'missing', 'Docker preview action helpers unavailable');
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'ok', 'Docker preview action helpers ready');
+}
+if (!dockerChildFolderPreviewMenuModule || typeof dockerChildFolderPreviewMenuModule.createApi !== 'function') {
+    dockerBootstrapMissingModules.push('docker.runtime.child-folder-preview-menu.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.child-folder-preview-menu.js', 'missing', 'child-folder preview menu unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.child-folder-preview-menu.js', 'ok', 'child-folder preview menu ready');
 }
 if (
     window.FolderViewPlusFolderPreviewModelModuleLoaded !== true
@@ -871,6 +878,7 @@ const getDockerRuntimeHierarchyApi = () => {
             applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
             previewModelModule: folderPreviewModelModule,
+            childFolderPreviewMenuModule: dockerChildFolderPreviewMenuModule,
             buildDockerPreviewItem: (options) => buildDockerPreviewItem(options),
             appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl, options = {}) =>
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options),
@@ -898,6 +906,9 @@ const getDockerRuntimeHierarchyApi = () => {
                 }
                 addDockerFolderContext(id);
             },
+            recordChildFolderPreviewRender: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewRender?.(),
+            recordChildFolderPreviewBinding: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewBinding?.(),
+            recordChildFolderPreviewMenuOpen: (details) => getDockerPreviewActionsApi()?.recordChildFolderPreviewMenuOpen?.(details),
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
             console: window.console
         });

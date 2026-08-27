@@ -52,8 +52,8 @@
         "tests/browser/helpers/docker-preview-context.mjs"
       ],
       "testCount": 45,
-      "assertionCount": 581,
-      "pageEvaluateCount": 112,
+      "assertionCount": 590,
+      "pageEvaluateCount": 114,
       "orderedTitleSha256": "faa27263f589dd378f39182490228219ffbc9c4e172e36de63f468fe1e767ca3"
     }
   }

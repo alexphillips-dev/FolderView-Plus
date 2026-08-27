@@ -91,6 +91,10 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
 
     let result = await snapshot();
     assert.deepEqual([result.chipCount, result.rowCount], [1, 3]);
+    assert.deepEqual(result.memberContextBindings, { default: 2, advanced: 0 });
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').first().click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextClicks, { default: 1, advanced: 0 });
 
     await chip.click();
     result = await snapshot();
@@ -141,4 +145,19 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
         JSON.stringify(result.diagnostics.childFolderPreview),
         /Private parent fixture|Private child fixture|fixture-parent|fixture-child/
     );
+
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.rerenderMemberContext(2, 'advanced'));
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').first().click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextBindings, { default: 2, advanced: 2 });
+    assert.deepEqual(result.memberContextClicks, { default: 1, advanced: 1 });
+    assert.equal(result.listViewMode, 'advanced');
+
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.rerenderMemberContext(1, 'advanced'));
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').nth(1).click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextBindings, { default: 4, advanced: 2 });
+    assert.deepEqual(result.memberContextClicks, { default: 2, advanced: 1 });
+    assert.equal(result.listViewMode, 'advanced');
+    assert.equal(result.memberContextAudits, 3);
 };

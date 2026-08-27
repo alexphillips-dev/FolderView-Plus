@@ -400,7 +400,8 @@ test('docker preview popup runtime stays enabled behind lazy advanced-preview in
     assert.match(dockerJs, /initializeDockerTooltipOnDemand\(\$\(tooltip_trigger_element\), \(\) => \$\(tooltip_trigger_element\)\.tooltipster\(\{/);
     assert.match(dockerJs, /\}\), triggerMode === 'hover'\);/);
     assert.match(dockerJs, /if \(DOCKER_PREVIEW_POPUP_ENABLED !== true\) \{\s*return;\s*\}/);
-    assert.match(dockerJs, /if\(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element\.length > 0\) \{/);
+    assert.match(dockerJs, /const bindAdvancedPreviewContext = \(\$contextTrigger, context = \{\}\) =>/);
+    assert.match(dockerJs, /if\(DOCKER_PREVIEW_POPUP_ENABLED && tooltipTarget\.length > 0\) \{/);
 });
 
 test('docker first paint keeps a lightweight loading shell and enriches state payload fields', () => {

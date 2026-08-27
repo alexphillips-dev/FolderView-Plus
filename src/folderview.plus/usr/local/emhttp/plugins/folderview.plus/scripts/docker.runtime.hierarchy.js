@@ -125,6 +125,12 @@
         const decorateDockerPreviewMemberTriggers = typeof deps.decorateDockerPreviewMemberTriggers === 'function'
             ? deps.decorateDockerPreviewMemberTriggers
             : (() => {});
+        const bindDockerNestedPreviewContext = typeof deps.bindDockerNestedPreviewContext === 'function'
+            ? deps.bindDockerNestedPreviewContext
+            : (() => false);
+        const auditDockerPreviewContextBridges = typeof deps.auditDockerPreviewContextBridges === 'function'
+            ? deps.auditDockerPreviewContextBridges
+            : (() => null);
         const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function' ? deps.getSafeWebuiUrl : ((value) => String(value || '').trim());
         const isCompactMultiRowPreview = typeof deps.isCompactMultiRowPreview === 'function' ? deps.isCompactMultiRowPreview : (() => false);
         const editFolder = typeof deps.editFolder === 'function' ? deps.editFolder : (() => {});
@@ -554,7 +560,7 @@
             const allowLogsQuickAction = quickActionPrefs.preview_logs === true;
             $preview.empty();
             for (const entry of entries) {
-                const { $item: item } = buildDockerPreviewItem({
+                const { $item: item, $tooltipTrigger } = buildDockerPreviewItem({
                     entry,
                     settings: folder?.settings || {},
                     autostart: entry?.autostart === true
@@ -579,6 +585,7 @@
                     containerName
                 );
                 $preview.append(item);
+                bindDockerNestedPreviewContext(item, $tooltipTrigger, entry, folder, id);
             }
             if (includeChildFolders) {
                 const folders = getGlobalFolders();
@@ -595,6 +602,7 @@
             $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
             applyFolderPreviewLayout($preview, folder?.settings || {});
             layoutFolderPreviewRows($preview, folder?.settings || {});
+            auditDockerPreviewContextBridges($preview, folder?.settings || {});
             $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
         };
 

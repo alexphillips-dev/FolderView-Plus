@@ -452,6 +452,49 @@
             return true;
         };
 
+        const findDockerNestedPreviewSourceRow = (entry = {}) => {
+            const containerId = String(entry?.shortId || entry?.id || entry?.info?.Id || '')
+                .replace(/^sha256:/i, '')
+                .trim();
+            if (containerId) {
+                const exactTrigger = doc?.getElementById?.(containerId) || null;
+                const exactRow = exactTrigger ? jq(exactTrigger).closest('tr') : jq();
+                if (exactRow.length) return exactRow.first();
+            }
+            const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+            if (!containerName) return jq();
+            return jq('tr.folder-element, div.folder-storage > tr').filter((_, row) => (
+                String(jq(row).find('td.ct-name .appname').first().text() || '').trim() === containerName
+            )).first();
+        };
+
+        const bindDockerNestedPreviewContext = (options = {}) => {
+            const $item = options.$item;
+            if (!jq || !$item || !$item.length) return false;
+            const settings = options.settings || {};
+            const contextMode = Number(settings.context ?? 1);
+            if (contextMode === 0) return false;
+            if (contextMode === 1) {
+                return bindDockerPreviewDefaultContextBridge(
+                    $item,
+                    findDockerNestedPreviewSourceRow(options.entry || {}),
+                    settings
+                );
+            }
+            if (contextMode !== 2 || typeof options.bindAdvancedContext !== 'function') return false;
+            const $trigger = options.$tooltipTrigger && options.$tooltipTrigger.length
+                ? options.$tooltipTrigger
+                : $item.find('.fv-preview-trigger').first();
+            const entry = options.entry || {};
+            const containerId = String(entry?.shortId || entry?.id || entry?.info?.Id || '')
+                .replace(/^sha256:/i, '')
+                .trim();
+            const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+            if (!$trigger.length || !containerId || !containerName) return false;
+            $trigger.attr('id', `folder-preview-${containerId}`).removeAttr('onclick');
+            return options.bindAdvancedContext($trigger, containerName) === true;
+        };
+
         const auditDockerPreviewContextBridges = ($preview, settings = {}) => {
             if (!jq || !$preview || !$preview.length) return null;
             const rowMode = resolveDockerPreviewContextRowMode($preview, settings);
@@ -1252,6 +1295,7 @@
         return Object.freeze({
             sanitizeDockerPreviewContextClone,
             bindDockerPreviewDefaultContextBridge,
+            bindDockerNestedPreviewContext,
             auditDockerPreviewContextBridges,
             getPreviewContextDiagnosticsSnapshot: previewContextDiagnostics.snapshot,
             recordChildFolderPreviewRender: previewContextDiagnostics.recordChildFolderPreviewRender,

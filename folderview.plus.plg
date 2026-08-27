@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.27.03">
-<!ENTITY md5 "eb90873aa3637ecb4927d842691dca6b">
-<!ENTITY sha256 "e5016eb8b88748c8f45540564b35a54af49c559c6ad9d038ec14e389e52de7d0">
+<!ENTITY version "2026.08.27.04">
+<!ENTITY md5 "10e6a8d315c4a46891d725944f4aaa38">
+<!ENTITY sha256 "ae96ef201042e51fcdecfd3b05cb49215cd1a5b523f3a70c5bf3411760c31af9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.27.04
+- Fix: Restore container context actions in collapsed parent-folder previews when the folder contains child folders.
+- Compatibility: Apply the correct Default or Advanced context behavior after nested previews are rebuilt, including Preview Rows 1+, Unlimited, and Unraid Basic or Advanced View.
+- Compatibility: Preserve the parent folder's popup settings and keep child-folder preview actions independent.
+- Test: Cover nested parent container actions in both context modes with Unraid Advanced View enabled, plus child-folder actions, browser fixtures, and large-runtime performance budgets.
+
 
 ###2026.08.27.03
 - Fix: Show the same pending lifecycle spinner for Docker containers in single-row and multi-row folder previews.

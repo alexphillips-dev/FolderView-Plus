@@ -700,6 +700,7 @@ let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
+const dockerAdvancedPreviewContextBindersByName = new Map();
 let dockerRuntimeActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -884,6 +885,10 @@ const getDockerRuntimeHierarchyApi = () => {
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options),
             decorateDockerPreviewMemberTriggers: ($targets, folderId, containerName) =>
                 decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
+            bindDockerNestedPreviewContext: ($item, $tooltipTrigger, entry, folder, folderId) =>
+                bindDockerNestedPreviewContext($item, $tooltipTrigger, entry, folder, folderId),
+            auditDockerPreviewContextBridges: ($preview, settings) =>
+                getDockerPreviewActionsApi()?.auditDockerPreviewContextBridges?.($preview, settings),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             editFolder: (id) => editFolder(id),
@@ -1984,6 +1989,18 @@ const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
 // Advanced preview popups are opt-in per folder; keep the runtime lazy so
 // default preview rendering stays lightweight until the user interacts.
 const DOCKER_PREVIEW_POPUP_ENABLED = true;
+
+const bindDockerNestedPreviewContext = ($item, $tooltipTrigger, entry = {}, folder = {}, folderId = '') => {
+    return getDockerPreviewActionsApi().bindDockerNestedPreviewContext({
+        $item, $tooltipTrigger, entry, settings: folder?.settings || {},
+        bindAdvancedContext: ($trigger, containerName) => {
+            const bindAdvancedContext = dockerAdvancedPreviewContextBindersByName.get(containerName);
+            return typeof bindAdvancedContext === 'function'
+                ? bindAdvancedContext($trigger, { folder, folderId })
+                : false;
+        }
+    });
+};
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -4623,6 +4640,7 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     dockerDeferredPreviewController.flush();
+    dockerAdvancedPreviewContextBindersByName.clear();
     const dockerRuntimeRoot = document.querySelector('#docker_list, #docker_view');
     dockerRuntimePerformanceTelemetry?.observe?.(dockerRuntimeRoot);
     dockerRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible', {
@@ -5407,9 +5425,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
 
-            if(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is valid. Deferring tooltipster initialization until first interaction.`);
-                const triggerMode = folder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
+            const bindAdvancedPreviewContext = ($contextTrigger, context = {}) => {
+                const contextFolder = context.folder && typeof context.folder === 'object' ? context.folder : folder;
+                const contextFolderId = String(context.folderId || id).trim() || id;
+                const tooltipTarget = $contextTrigger && $contextTrigger.length ? $contextTrigger : $();
+                if(DOCKER_PREVIEW_POPUP_ENABLED && tooltipTarget.length > 0) {
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: tooltip target is valid. Deferring tooltipster initialization until first interaction.`);
+                const triggerMode = contextFolder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
+                const tooltip_trigger_element = tooltipTarget;
                 initializeDockerTooltipOnDemand($(tooltip_trigger_element), () => $(tooltip_trigger_element).tooltipster({
                     interactive: true,
                     theme: ['tooltipster-docker-folder'],
@@ -5429,14 +5452,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
                         if (FOLDER_VIEW_DEBUG_MODE) {
                             console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionBefore. Instance:`, instance, "Helper:", helper, "Origin:", origin);
-                            console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Current folder settings for context:`, {...folder.settings});
+                            console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Current folder settings for context:`, {...contextFolder.settings});
                         }
 
                         // Dispatch your custom event
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-before event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-before', {detail: {
-                            folder: folder,
-                            id: id, // Folder ID
+                            folder: contextFolder,
+                            id: contextFolderId, // Folder ID
                             containerInfo: ct, // Container info
                             origin: origin,
                             charts: charts, 
@@ -5460,8 +5483,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-start event.`);
                         
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-ready-start', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: triggerOriginEl,
                             tooltip: tooltipDomEl,
@@ -5479,7 +5502,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                                 x: {
                                     type: 'realtime',
                                     realtime: {
-                                        duration: 1000*(folder.settings.context_graph_time || 60),
+                                        duration: 1000*(contextFolder.settings.context_graph_time || 60),
                                         refresh: 1000, 
                                         delay: 1000 
                                     },
@@ -5512,10 +5535,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                                 }
                             }
                         };
-                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Chart.js options:`, options, "Graph mode setting:", folder.settings.context_graph);
+                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Chart.js options:`, options, "Graph mode setting:", contextFolder.settings.context_graph);
 
                         charts = []; 
-                        switch (folder.settings.context_graph) {
+                        switch (contextFolder.settings.context_graph) {
                             case 0: 
                                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Graph mode 0 (None).`);
                                 diabled = [0, 1, 2]; 
@@ -5638,8 +5661,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-end event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-ready-end', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: triggerOriginEl,
                             tooltip: tooltipDomEl,
@@ -5656,8 +5679,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionAfter. Instance:`, instance, "Helper:", helper, "Origin:", origin);
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-after event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-after', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: origin,
                             charts, 
@@ -5689,11 +5712,20 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     },
                     content: $('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
                 }), triggerMode === 'hover');
-            } else if (FOLDER_VIEW_DEBUG_MODE && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
-                console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
-            } else {
-                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
-            }
+                return true;
+                }
+                if (FOLDER_VIEW_DEBUG_MODE && tooltipTarget.length > 0) {
+                    console.log(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
+                } else if (FOLDER_VIEW_DEBUG_MODE) {
+                    console.warn(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: tooltip target is not valid. Tooltipster was not initialized.`);
+                }
+                return false;
+            };
+            dockerAdvancedPreviewContextBindersByName.set(
+                String(container_name_in_folder || '').trim(),
+                bindAdvancedPreviewContext
+            );
+            bindAdvancedPreviewContext($(tooltip_trigger_element));
 
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);

@@ -315,11 +315,17 @@
         };
         buildNativeContextPreview('rows-2');
         buildNativeContextPreview('unlimited');
-        const childFolderFixtureState = { editCount: 0, actionCount: 0 };
+        const childFolderFixtureState = {
+            editCount: 0,
+            actionCount: 0,
+            contextBindings: { default: 0, advanced: 0 },
+            contextClicks: { default: 0, advanced: 0 },
+            contextAudits: 0
+        };
         const childFolderFixtureFolders = {
             'fixture-parent': {
                 name: 'Private parent fixture',
-                settings: { preview: 1, preview_rows: 2 },
+                settings: { preview: 1, preview_rows: 2, context: 1 },
                 runtimeContainers: {},
                 status: { expanded: false }
             },
@@ -352,17 +358,34 @@
                 }
                 if (folderId === 'fixture-parent' && includeDescendants !== true) {
                     return {
-                        parentMemberOne: { name: 'Private parent member one', state: true },
-                        parentMemberTwo: { name: 'Private parent member two', state: true }
+                        parentMemberOne: { name: 'Private parent member one', shortId: 'fixture-parent-one', state: true },
+                        parentMemberTwo: { name: 'Private parent member two', shortId: 'fixture-parent-two', state: true }
                     };
                 }
                 return {};
             },
-            buildDockerPreviewItem: ({ entry }) => ({
-                $item: window.jQuery('<span class="outer fv-docker-preview-card"><span class="inner"><span class="appname"></span></span></span>')
-                    .find('.appname').text(entry?.name || 'Member').end(),
-                $tooltipTrigger: window.jQuery()
-            }),
+            buildDockerPreviewItem: ({ entry }) => {
+                const $item = window.jQuery('<span class="outer fv-docker-preview-card"><span class="inner fv-preview-trigger"><span class="appname"></span></span></span>')
+                    .attr('data-fv-container-id', entry?.shortId || '')
+                    .find('.appname').text(entry?.name || 'Member').end();
+                return { $item, $tooltipTrigger: $item.find('.fv-preview-trigger').first() };
+            },
+            bindDockerNestedPreviewContext: ($item, _tooltipTrigger, _entry, folder) => {
+                const mode = Number(folder?.settings?.context || 1) === 2 ? 'advanced' : 'default';
+                childFolderFixtureState.contextBindings[mode] += 1;
+                $item
+                    .attr('data-fixture-parent-context', mode)
+                    .off('click.fixtureParentContext')
+                    .on('click.fixtureParentContext', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        childFolderFixtureState.contextClicks[mode] += 1;
+                    });
+                return true;
+            },
+            auditDockerPreviewContextBridges: () => {
+                childFolderFixtureState.contextAudits += 1;
+            },
             applyFolderPreviewLayout: () => {},
             layoutFolderPreviewRows: layoutChildFolderFixtureRows,
             editFolder: () => { childFolderFixtureState.editCount += 1; },
@@ -371,12 +394,13 @@
             recordChildFolderPreviewBinding: actionsApi.recordChildFolderPreviewBinding,
             recordChildFolderPreviewMenuOpen: actionsApi.recordChildFolderPreviewMenuOpen
         });
-        childFolderHierarchyApi.renderNestedAggregatePreview(
+        const renderChildFolderFixture = () => childFolderHierarchyApi.renderNestedAggregatePreview(
             'fixture-parent',
             childFolderFixtureFolders['fixture-parent'],
             {},
             { includeChildFolders: true }
         );
+        renderChildFolderFixture();
         for (let pass = 0; pass < 2; pass += 1) {
             layoutChildFolderFixtureRows(
                 window.jQuery('#fixture-child-folder-preview'),
@@ -397,6 +421,11 @@
                 });
                 item.dispatchEvent(event);
             },
+            rerenderMemberContext(contextMode, listViewMode = 'basic') {
+                childFolderFixtureFolders['fixture-parent'].settings.context = Number(contextMode);
+                document.cookie = `docker_listview_mode=${listViewMode}; path=/`;
+                renderChildFolderFixture();
+            },
             snapshot() {
                 const menu = document.querySelector('.fv-folder-preview-context-menu');
                 return {
@@ -413,6 +442,10 @@
                     focusedAction: document.activeElement?.textContent?.trim() || '',
                     editCount: childFolderFixtureState.editCount,
                     actionCount: childFolderFixtureState.actionCount,
+                    memberContextBindings: { ...childFolderFixtureState.contextBindings },
+                    memberContextClicks: { ...childFolderFixtureState.contextClicks },
+                    memberContextAudits: childFolderFixtureState.contextAudits,
+                    listViewMode: document.cookie.includes('docker_listview_mode=advanced') ? 'advanced' : 'basic',
                     diagnostics: actionsApi.getPreviewContextDiagnosticsSnapshot()
                 };
             }

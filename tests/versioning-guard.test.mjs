@@ -500,7 +500,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
-    assert.match(backmergeWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
+    assert.match(backmergeWorkflow, /Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
     assert.match(backmergeWorkflow, /bash scripts\/prepare_backmerge_dev_package\.sh/);
     assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
@@ -652,8 +652,7 @@ test('release-on-main workflow auto-publishes validated releases from current pl
 test('back-merge workflow validates merged dev state before pushing', () => {
     assert.match(backmergeWorkflow, /name:\s*Back-Merge Main To Dev/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
-    assert.match(backmergeWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
-    assert.match(backmergeWorkflow, /Sync main into dev/);
+    assert.match(backmergeWorkflow, /Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/);
     assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /Push back-merge branch when updated/);

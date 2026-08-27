@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Mascarar IPs públicos",
     "docker.privacy.mask-network-interfaces": "Mascarar interfaces de rede",
     "docker.privacy.mask-external-urls": "Mascarar URLs externas",
-    "docker.actions.capture-diagnostics": "Diagnóstico da página de captura"
+    "docker.actions.capture-diagnostics": "Diagnóstico da página de captura",
+    "docker.folder.hide": "Ocultar pasta",
+    "docker.folder.restore": "Restaurar pasta",
+    "docker.folder.restore-hidden-branch": "Restaurar branch oculto",
+    "docker.folder.hidden-indicator": "Oculto",
+    "docker.folder.unnamed": "Pasta",
+    "docker.folder.visibility-failed": "A preferência de visibilidade da pasta não pôde ser salva.",
+    "docker.visibility.hidden-folders": "Pastas ocultas",
+    "docker.visibility.restore-all": "Restaure todas as pastas ocultas",
+    "docker.visibility.hidden-title": "Pasta oculta",
+    "docker.visibility.folder-fallback": "Pasta",
+    "docker.visibility.hidden-message": "estava oculto da visualização do Docker.",
+    "docker.visibility.undo": "Desfazer",
+    "docker.visibility.all-hidden-title": "Todas as linhas da pasta estão ocultas.",
+    "docker.visibility.all-hidden-help": "Revele-os temporariamente ou restaure todas as pastas ocultas.",
+    "docker.visibility.show-hidden": "Mostrar pastas ocultas"
 }

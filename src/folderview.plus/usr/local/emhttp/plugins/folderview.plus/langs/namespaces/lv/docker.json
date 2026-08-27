@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Maskējiet publiskos IP",
     "docker.privacy.mask-network-interfaces": "Maskējiet tīkla saskarnes",
     "docker.privacy.mask-external-urls": "Maskējiet ārējos URL",
-    "docker.actions.capture-diagnostics": "Uzņemt lapas diagnostiku"
+    "docker.actions.capture-diagnostics": "Uzņemt lapas diagnostiku",
+    "docker.folder.hide": "Slēpt mapi",
+    "docker.folder.restore": "Atjaunot mapi",
+    "docker.folder.restore-hidden-branch": "Atjaunot slēpto zaru",
+    "docker.folder.hidden-indicator": "Slēpts",
+    "docker.folder.unnamed": "Mape",
+    "docker.folder.visibility-failed": "Mapes redzamības preferenci nevarēja saglabāt.",
+    "docker.visibility.hidden-folders": "Slēptās mapes",
+    "docker.visibility.restore-all": "Atjaunot visas slēptās mapes",
+    "docker.visibility.hidden-title": "Mape paslēpta",
+    "docker.visibility.folder-fallback": "Mape",
+    "docker.visibility.hidden-message": "tika paslēpts no Docker skata.",
+    "docker.visibility.undo": "Atsaukt",
+    "docker.visibility.all-hidden-title": "Visas mapju rindas ir paslēptas.",
+    "docker.visibility.all-hidden-help": "Atklājiet tos uz laiku vai atjaunojiet katru slēpto mapi.",
+    "docker.visibility.show-hidden": "Rādīt slēptās mapes"
 }

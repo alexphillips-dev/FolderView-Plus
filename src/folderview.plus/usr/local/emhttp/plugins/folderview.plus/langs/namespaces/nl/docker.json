@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Verberg openbare IPs",
     "docker.privacy.mask-network-interfaces": "Verberg netwerkinterfaces",
     "docker.privacy.mask-external-urls": "Verberg externe URL's",
-    "docker.actions.capture-diagnostics": "Paginadiagnostiek vastleggen"
+    "docker.actions.capture-diagnostics": "Paginadiagnostiek vastleggen",
+    "docker.folder.hide": "Map verbergen",
+    "docker.folder.restore": "Map herstellen",
+    "docker.folder.restore-hidden-branch": "Herstel verborgen tak",
+    "docker.folder.hidden-indicator": "Verborgen",
+    "docker.folder.unnamed": "Map",
+    "docker.folder.visibility-failed": "De voorkeur voor mapzichtbaarheid kan niet worden opgeslagen.",
+    "docker.visibility.hidden-folders": "Verborgen mappen",
+    "docker.visibility.restore-all": "Herstel alle verborgen mappen",
+    "docker.visibility.hidden-title": "Map verborgen",
+    "docker.visibility.folder-fallback": "Map",
+    "docker.visibility.hidden-message": "was verborgen in de Docker-weergave.",
+    "docker.visibility.undo": "Ongedaan maken",
+    "docker.visibility.all-hidden-title": "Alle maprijen zijn verborgen.",
+    "docker.visibility.all-hidden-help": "Onthul ze tijdelijk of herstel elke verborgen map.",
+    "docker.visibility.show-hidden": "Toon verborgen mappen"
 }

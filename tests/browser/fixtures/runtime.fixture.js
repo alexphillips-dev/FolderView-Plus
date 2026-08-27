@@ -128,6 +128,7 @@
     const normalizePrefs = (value = {}) => ({
         pageViewMode: ['host', 'command'].includes(String(value.pageViewMode || '')) ? value.pageViewMode : 'folderview',
         hideEmptyFolders: value.hideEmptyFolders === true,
+        hiddenFolderIds: Array.isArray(value.hiddenFolderIds) ? [...new Set(value.hiddenFolderIds.map(String).filter(Boolean))] : [],
         health: { warnStoppedPercent: Number(value.health?.warnStoppedPercent) || 60 }
     });
     const applyPrefs = (nextPrefs = prefs) => {
@@ -140,7 +141,38 @@
             row.hidden = mode === 'command';
         });
     };
-    const api = window.FolderViewPlusDockerRuntimeActionBar.createApi({
+    let api = null;
+    const hiddenFolders = window.FolderViewPlusFoundationModules.dockerHiddenFolders.createApi({
+        window,
+        document,
+        $: window.jQuery,
+        getFolders: () => folders,
+        getPrefs: () => prefs,
+        setPrefs: (value) => { prefs = normalizePrefs(value); },
+        normalizePrefs,
+        normalizeParentId: (value) => String(value || ''),
+        readFolderIdFromRow: (row) => String(row?.dataset?.folderId || ''),
+        readFolderOwnerFromRow: (row) => String(row?.dataset?.folderOwner || ''),
+        runtimeStateStore: { set: () => {} },
+        safeActionRunner: window.FolderViewDockerRuntimeShared.createSafeUiActionRunner(),
+        runGuardedAction: async (_name, action) => {
+            try { return { ok: true, value: await action() }; } catch (error) { return { ok: false, error }; }
+        },
+        savePrefs: async (patch) => {
+            prefs = normalizePrefs({ ...prefs, ...patch });
+            return prefs;
+        },
+        fetchPrefs: async () => prefs,
+        syncDependentUi: () => api?.sync(),
+        getFocusedFolderId: () => '',
+        clearFocusedFolder: () => events.push({ type: 'clear-focus' }),
+        offerUndo: (payload) => api?.offerHiddenFolderUndo(payload),
+        translate: (_key, fallback) => fallback,
+        escapeHtml: (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[char]))
+    });
+    api = window.FolderViewPlusDockerRuntimeActionBar.createApi({
         window,
         document,
         hostAdapter,
@@ -168,6 +200,7 @@
         getFocusedFolderId: () => '',
         clearFocusedFolder: () => events.push({ type: 'clear-focus' }),
         scheduleWidthReflow: () => {},
+        hiddenFolders,
         buildFolderHierarchy: () => ({ parentById: { media: '', updates: '', empty: '' } }),
         expandFolderBranch: (id) => events.push({ type: 'expand', id }),
         collapseFolderBranch: (id) => events.push({ type: 'collapse', id }),
@@ -179,6 +212,7 @@
 
     window.fixtureRuntime = {
         api,
+        hiddenFolders,
         events,
         privacyToggle: {
             rememberIdentity: () => {

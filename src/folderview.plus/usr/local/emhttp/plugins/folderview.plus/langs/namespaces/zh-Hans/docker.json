@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "隐藏公共 IPs",
     "docker.privacy.mask-network-interfaces": "隐藏网络接口",
     "docker.privacy.mask-external-urls": "屏蔽外部网址",
-    "docker.actions.capture-diagnostics": "捕获页面诊断"
+    "docker.actions.capture-diagnostics": "捕获页面诊断",
+    "docker.folder.hide": "隐藏文件夹",
+    "docker.folder.restore": "恢复文件夹",
+    "docker.folder.restore-hidden-branch": "恢复隐藏分支",
+    "docker.folder.hidden-indicator": "隐藏",
+    "docker.folder.unnamed": "文件夹",
+    "docker.folder.visibility-failed": "无法保存文件夹可见性首选项。",
+    "docker.visibility.hidden-folders": "隐藏文件夹",
+    "docker.visibility.restore-all": "恢复所有隐藏文件夹",
+    "docker.visibility.hidden-title": "文件夹隐藏",
+    "docker.visibility.folder-fallback": "文件夹",
+    "docker.visibility.hidden-message": "从 Docker 视图中隐藏了。",
+    "docker.visibility.undo": "撤消",
+    "docker.visibility.all-hidden-title": "所有文件夹行均被隐藏。",
+    "docker.visibility.all-hidden-help": "暂时显示它们或恢复每个隐藏文件夹。",
+    "docker.visibility.show-hidden": "显示隐藏文件夹"
 }

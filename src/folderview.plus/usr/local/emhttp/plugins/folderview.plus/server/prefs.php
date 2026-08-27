@@ -47,6 +47,7 @@ fvplus_json_try(function (): array {
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
         || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
         || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
+        || normalizeStringIdList($current['hiddenFolderIds'] ?? []) !== normalizeStringIdList($saved['hiddenFolderIds'] ?? [])
     );
     if ($orderPrefsChanged) {
         syncManualOrderWithFolders($type, readRawFolderMap($type));
@@ -75,7 +76,8 @@ fvplus_json_try(function (): array {
                 'backupCoalesced' => (bool)($backup['coalesced'] ?? false),
                 'sortMode' => (string)($saved['sortMode'] ?? 'created'),
                 'ruleCount' => count($saved['autoRules'] ?? []),
-                'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? [])
+                'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? []),
+                'hiddenFolderCount' => count($saved['hiddenFolderIds'] ?? [])
             ], 'ok', 'server');
             $auditRecorded = true;
         } catch (Throwable $err) {

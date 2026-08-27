@@ -206,6 +206,7 @@ const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
         manualOrder: [],
+        hiddenFolderIds: [],
         hideEmptyFolders: false,
         appColumnWidth: 'standard',
         autoRules: [],
@@ -2127,6 +2128,15 @@ const isDockerFolderPinned = (folderId) => {
     const runtimePinned = normalizeDockerPinnedFolderIdList(dockerRuntimeStateStore.get('pinnedFolderIds', []));
     return runtimePinned.includes(id);
 };
+const dockerHiddenFoldersModule = window.FolderViewPlusFoundationModules?.dockerHiddenFolders; const dockerHiddenFoldersApi = dockerHiddenFoldersModule.createApi({
+    window, document, $, runtimeStateStore: dockerRuntimeStateStore, safeActionRunner: dockerSafeUiActionRunner,
+    getFolders: () => globalFolders || {}, getPrefs: () => folderTypePrefs || {}, setPrefs: (prefs) => { folderTypePrefs = prefs; },
+    normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}), normalizeParentId: (id) => normalizeFolderParentId(id), readFolderIdFromRow: (row) => readFolderIdFromRow(row), readFolderOwnerFromRow: (row) => readFolderOwnerFromRow(row),
+    runGuardedAction: (name, action, context) => runDockerGuardedAction(name, action, context), savePrefs: (patch, currentPrefs) => saveDockerRuntimeToolbarPrefs(patch, currentPrefs), fetchPrefs: () => fetchDockerPinnedFolderPrefs(),
+    syncDependentUi: () => { applyDockerFocusedFolderState(); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode()); refreshDockerRuntimeSortableRows(); queueDockerRuntimeResizerBind(); scheduleDockerRuntimeWidthReflow('folder-visibility', 24); },
+    getFocusedFolderId: () => dockerFocusedFolderId, clearFocusedFolder: () => { dockerRuntimeStateStore.set({ focusedFolderId: '' }); dockerFocusedFolderId = ''; },
+    offerUndo: (payload) => dockerRuntimeActionBarApi?.offerHiddenFolderUndo?.(payload), translate: (key, fallback) => dockerT(key, fallback), escapeHtml, svgIcon: (name, options = {}) => window.FolderViewPlusUI?.svgIcon?.(name, options) || ''
+});
 const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {
         return '';
@@ -3674,7 +3684,7 @@ const restoreDockerNativeHostList = async (requestBundle = null) => {
             'folder-element',
             'fv-nested-hidden',
             'fv-folder-focus-hidden',
-            'fv-toolbar-filter-hidden'
+            'fv-toolbar-filter-hidden', 'fv-folder-user-hidden', 'fv-folder-hidden-revealed'
         );
         row.classList.add('sortable');
         row.style.removeProperty('display');
@@ -3829,6 +3839,7 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
             dockerFocusedFolderId = '';
         },
         scheduleWidthReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
+        hiddenFolders: dockerHiddenFoldersApi,
         buildFolderHierarchy,
         expandFolderBranch,
         collapseFolderBranch,
@@ -3894,6 +3905,7 @@ const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     refreshDockerPreviewTooltipContent(changedSet);
@@ -4907,6 +4919,7 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     runDockerRuntimeWidthReflow('pre-visible-folder-commit', {
@@ -6473,19 +6486,20 @@ const DOCKER_CONTEXT_QUICK_ACTION_LABELS = new Set([
     'pin folder',
     'unpin folder',
     'lock folder',
-    'unlock folder'
+    'unlock folder', ...dockerHiddenFoldersModule.QUICK_LABELS
 ]);
 const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter({
     menuClassName: 'fvplus-docker-context-menu',
     quickItemClassName: 'fvplus-docker-quick-item',
     clearClassName: 'fvplus-docker-quick-clear',
     labelSet: DOCKER_CONTEXT_QUICK_ACTION_LABELS,
+    minimumItems: 4, maximumItems: 4,
     iconClassCandidates: [
         'fa-bullseye',
         'fa-dot-circle-o',
         'fa-thumb-tack',
         'fa-lock',
-        'fa-unlock-alt'
+        'fa-unlock-alt', ...dockerHiddenFoldersModule.QUICK_ICON_CLASSES
     ]
 });
 const DOCKER_CONTEXT_MENU_SELECTORS = [
@@ -6500,6 +6514,7 @@ const queueDockerFolderContextQuickIcons = (attempt = 0) => {
         return;
     }
     dockerContextQuickStripAdapter.queueEnhance(attempt);
+    window.setTimeout(() => dockerHiddenFoldersApi?.decorateQuickIcon?.(DOCKER_CONTEXT_MENU_SELECTORS, attempt), 24);
 };
 const getVisibleDockerContextMenus = () => {
     const jq = window.jQuery || window.$;
@@ -6782,6 +6797,7 @@ const addDockerFolderContext = (id) => {
             toggleDockerFolderLock(id);
         }
     });
+    opts.push(dockerHiddenFoldersApi.buildQuickAction(id));
     appendDivider();
 
 
@@ -7727,6 +7743,7 @@ const applyRuntimePrefs = (prefs) => {
     queueDockerRuntimePrivacyToggleMount();
     renderRuntimeHealthBadge(globalFolders, normalized);
     scheduleLiveRefresh(normalized);
+    dockerHiddenFoldersApi.applyVisibility();
 };
 
 const bindDockerRuntimePreferenceSync = () => {
@@ -7737,9 +7754,9 @@ const bindDockerRuntimePreferenceSync = () => {
         if (snapshot?.type !== 'docker' || !snapshot?.prefs) {
             return;
         }
-        const nextPrefs = applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        const nextPrefs = dockerHiddenFoldersApi.reconcilePrefs(applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs)));
         folderTypePrefs = nextPrefs;
-        applyRuntimePrefs(nextPrefs);
+        applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
     });
 };
 bindDockerRuntimePreferenceSync();

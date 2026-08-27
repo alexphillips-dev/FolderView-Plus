@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Maske offentlige IP-er",
     "docker.privacy.mask-network-interfaces": "Maske nettverksgrensesnitt",
     "docker.privacy.mask-external-urls": "Maske eksterne nettadresser",
-    "docker.actions.capture-diagnostics": "Registreringssidediagnostikk"
+    "docker.actions.capture-diagnostics": "Registreringssidediagnostikk",
+    "docker.folder.hide": "Skjul mappe",
+    "docker.folder.restore": "Gjenopprett mappe",
+    "docker.folder.restore-hidden-branch": "Gjenopprett skjult gren",
+    "docker.folder.hidden-indicator": "Skjult",
+    "docker.folder.unnamed": "Mappe",
+    "docker.folder.visibility-failed": "Innstillingen for mappesynlighet kunne ikke lagres.",
+    "docker.visibility.hidden-folders": "Skjulte mapper",
+    "docker.visibility.restore-all": "Gjenopprett alle skjulte mapper",
+    "docker.visibility.hidden-title": "Mappe skjult",
+    "docker.visibility.folder-fallback": "Mappe",
+    "docker.visibility.hidden-message": "ble skjult fra Docker-visningen.",
+    "docker.visibility.undo": "Angre",
+    "docker.visibility.all-hidden-title": "Alle mapperader er skjult.",
+    "docker.visibility.all-hidden-help": "Avslør dem midlertidig eller gjenopprett hver skjulte mappe.",
+    "docker.visibility.show-hidden": "Vis skjulte mapper"
 }

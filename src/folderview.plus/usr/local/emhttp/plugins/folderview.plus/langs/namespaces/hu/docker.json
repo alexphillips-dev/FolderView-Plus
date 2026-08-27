@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Nyilvános IP-címek maszkolása",
     "docker.privacy.mask-network-interfaces": "Maszk hálózati interfészek",
     "docker.privacy.mask-external-urls": "Külső URL-ek maszkolása",
-    "docker.actions.capture-diagnostics": "Oldaldiagnosztika rögzítése"
+    "docker.actions.capture-diagnostics": "Oldaldiagnosztika rögzítése",
+    "docker.folder.hide": "Mappa elrejtése",
+    "docker.folder.restore": "Mappa visszaállítása",
+    "docker.folder.restore-hidden-branch": "Rejtett ág visszaállítása",
+    "docker.folder.hidden-indicator": "Rejtett",
+    "docker.folder.unnamed": "Mappa",
+    "docker.folder.visibility-failed": "A mappa láthatósági beállítását nem sikerült elmenteni.",
+    "docker.visibility.hidden-folders": "Rejtett mappák",
+    "docker.visibility.restore-all": "Állítsa vissza az összes rejtett mappát",
+    "docker.visibility.hidden-title": "Mappa elrejtve",
+    "docker.visibility.folder-fallback": "Mappa",
+    "docker.visibility.hidden-message": "el volt rejtve a Docker nézet elől.",
+    "docker.visibility.undo": "Visszavonás",
+    "docker.visibility.all-hidden-title": "Minden mappasor el van rejtve.",
+    "docker.visibility.all-hidden-help": "Ideiglenesen fedje fel őket, vagy állítson vissza minden rejtett mappát.",
+    "docker.visibility.show-hidden": "Rejtett mappák megjelenítése"
 }

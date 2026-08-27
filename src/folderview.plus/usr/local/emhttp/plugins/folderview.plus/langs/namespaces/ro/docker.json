@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Maschează IPs publice",
     "docker.privacy.mask-network-interfaces": "Maschează interfețele de rețea",
     "docker.privacy.mask-external-urls": "Maschează URL-urile externe",
-    "docker.actions.capture-diagnostics": "Capturați diagnosticarea paginii"
+    "docker.actions.capture-diagnostics": "Capturați diagnosticarea paginii",
+    "docker.folder.hide": "Ascunde folderul",
+    "docker.folder.restore": "Restaurați folderul",
+    "docker.folder.restore-hidden-branch": "Restaurați ramura ascunsă",
+    "docker.folder.hidden-indicator": "Ascuns",
+    "docker.folder.unnamed": "Dosar",
+    "docker.folder.visibility-failed": "Preferința de vizibilitate a folderului nu a putut fi salvată.",
+    "docker.visibility.hidden-folders": "Dosare ascunse",
+    "docker.visibility.restore-all": "Restaurați toate folderele ascunse",
+    "docker.visibility.hidden-title": "Folder ascuns",
+    "docker.visibility.folder-fallback": "Dosar",
+    "docker.visibility.hidden-message": "a fost ascuns din vizualizarea Docker.",
+    "docker.visibility.undo": "Anulați",
+    "docker.visibility.all-hidden-title": "Toate rândurile de foldere sunt ascunse.",
+    "docker.visibility.all-hidden-help": "Dezvăluiți-le temporar sau restaurați fiecare folder ascuns.",
+    "docker.visibility.show-hidden": "Afișează folderele ascunse"
 }

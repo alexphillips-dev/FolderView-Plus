@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 235,
+    "scannedFiles": 236,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -21,7 +21,7 @@
   "totals": {
     "inlineEventAttributes": 0,
     "inlineScriptBlocks": 0,
-    "externalScriptTags": 206,
+    "externalScriptTags": 207,
     "inlineStyleBlocks": 0,
     "inlineStyleAttributes": 0,
     "evalCalls": 0,
@@ -72,7 +72,7 @@
   "htmlStringSinkInventory": [
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1254,
+      "line": 1255,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -82,7 +82,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1265,
+      "line": 1266,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -92,7 +92,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1310,
+      "line": 1311,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -102,7 +102,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 3430,
+      "line": 3440,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -112,7 +112,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js",
-      "line": 274,
+      "line": 312,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -442,7 +442,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.ui.js",
-      "line": 85,
+      "line": 87,
       "sink": "insertAdjacentHTML(",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -452,7 +452,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.ui.js",
-      "line": 273,
+      "line": 275,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -522,7 +522,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 65,
+      "externalScriptTags": 66,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,

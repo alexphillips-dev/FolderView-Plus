@@ -8,6 +8,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const actionBarJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js');
+const hiddenFoldersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hidden-folders.js');
 const require = createRequire(import.meta.url);
 const actionBarModule = require(path.join(
     repoRoot,
@@ -38,7 +39,9 @@ test('FolderView action bar exposes the complete folder and troubleshooting cont
         'Health Issues',
         'Manage Folders',
         'View',
-        'Tools'
+        'Tools',
+        'Hidden folders',
+        'Restore all hidden folders'
     ]) {
         assert.ok(
             actionBarJs.includes(`'${label}'`) || actionBarJs.includes(`>${label}</span>`),
@@ -210,4 +213,17 @@ test('hiding empty folders reconciles an active empty-only filter before renderi
     assert.match(actionBarJs, /if \(!hideEmptyFolders \|\| folderFilterMode !== 'empty'\) return false/);
     assert.match(actionBarJs, /if \(reconcileFilterWithPrefs\(\)\) applyFilterState\(\)/);
     assert.match(actionBarJs, /actionMenuOpen = '';[\s\S]{0,1200}if \(tool === 'reset'\) resetView\(\)/);
+});
+
+test('hidden folder recovery remains available outside the hidden runtime rows', () => {
+    assert.match(actionBarJs, /data-fvplus-docker-hidden="toggle-reveal"/);
+    assert.match(actionBarJs, /data-fvplus-docker-hidden="restore-all"/);
+    assert.match(actionBarJs, /All folder rows are hidden\./);
+    assert.match(actionBarJs, /data-fvplus-docker-hidden="undo"/);
+    assert.match(actionBarJs, /setRevealHiddenFolders\(false\)/);
+    assert.doesNotMatch(actionBarJs, /resetView[\s\S]{0,500}restoreAllHiddenFolders/);
+    assert.match(dockerCss, /#docker_list > tr\.fv-folder-user-hidden\s*\{[\s\S]*display:\s*none !important/);
+    assert.match(dockerCss, /body\.fvplus-docker-reveal-hidden #docker_list > tr\.fv-folder-user-hidden/);
+    assert.match(hiddenFoldersJs, /const restoreAll = async \(\) =>/);
+    assert.match(hiddenFoldersJs, /hiddenFolderIds/);
 });

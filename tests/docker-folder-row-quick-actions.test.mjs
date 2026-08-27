@@ -8,6 +8,10 @@ const dockerScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
     'utf8'
 );
+const dockerHiddenFoldersScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hidden-folders.js'),
+    'utf8'
+);
 const dockerPreviewActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
@@ -46,13 +50,18 @@ const dockerFolderSameLevelMoveBlock = extractConstFunctionBlock(
     'ensureDockerFolderUnlocked'
 );
 
-test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
+test('docker context menu keeps focus/pin/lock/hide quick actions at the top', () => {
     assert.match(dockerScript, /text:\s*focused[\s\S]*getDockerMenuLabel\('clear-focus-folder',\s*'Clear focus'\)/);
     assert.match(dockerScript, /text:\s*pinned[\s\S]*getDockerMenuLabel\('unpin-folder',\s*'Unpin folder'\)/);
     assert.match(dockerScript, /text:\s*locked[\s\S]*getDockerMenuLabel\('unlock-folder',\s*'Unlock folder'\)/);
     assert.match(dockerScript, /toggleDockerFolderFocus\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderPin\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderLock\(id\)/);
+    assert.match(dockerHiddenFoldersScript, /translate\('docker\.folder\.hide',\s*'Hide folder'\)/);
+    assert.match(dockerHiddenFoldersScript, /hiddenOwnerId \? restoreFolder\(hiddenOwnerId\) : hideFolder\(id\)/);
+    assert.match(dockerScript, /minimumItems:\s*4/);
+    assert.match(dockerScript, /maximumItems:\s*4/);
+    assert.match(dockerHiddenFoldersScript, /svgIcon\(\$icon\.hasClass\('fa-eye-slash'\)/);
     assert.match(dockerScript, /queueDockerFolderContextQuickIcons\(/);
     assert.match(dockerScript, /createDockerContextMenuQuickStripAdapter/);
     assert.match(dockerScript, /dockerContextQuickStripAdapter/);

@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "公開IPsを隠す",
     "docker.privacy.mask-network-interfaces": "ネットワークインターフェイスを隠す",
     "docker.privacy.mask-external-urls": "外部URLをマスクする",
-    "docker.actions.capture-diagnostics": "ページ診断のキャプチャ"
+    "docker.actions.capture-diagnostics": "ページ診断のキャプチャ",
+    "docker.folder.hide": "フォルダを隠す",
+    "docker.folder.restore": "フォルダを復元する",
+    "docker.folder.restore-hidden-branch": "隠されたブランチを復元する",
+    "docker.folder.hidden-indicator": "隠された",
+    "docker.folder.unnamed": "フォルダー",
+    "docker.folder.visibility-failed": "フォルダーの表示設定を保存できませんでした。",
+    "docker.visibility.hidden-folders": "隠しフォルダー",
+    "docker.visibility.restore-all": "すべての隠しフォルダーを復元する",
+    "docker.visibility.hidden-title": "隠しフォルダー",
+    "docker.visibility.folder-fallback": "フォルダー",
+    "docker.visibility.hidden-message": "Docker ビューから隠蔽されました。",
+    "docker.visibility.undo": "元に戻す",
+    "docker.visibility.all-hidden-title": "すべてのフォルダー行が非表示になります。",
+    "docker.visibility.all-hidden-help": "一時的に表示するか、すべての隠しフォルダーを復元します。",
+    "docker.visibility.show-hidden": "隠しフォルダーを表示する"
 }

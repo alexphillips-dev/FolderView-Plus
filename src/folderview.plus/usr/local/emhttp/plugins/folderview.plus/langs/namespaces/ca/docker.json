@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Enmascarar les IP públiques",
     "docker.privacy.mask-network-interfaces": "Enmascarar interfícies de xarxa",
     "docker.privacy.mask-external-urls": "Enmascarar URL externs",
-    "docker.actions.capture-diagnostics": "Captura el diagnòstic de la pàgina"
+    "docker.actions.capture-diagnostics": "Captura el diagnòstic de la pàgina",
+    "docker.folder.hide": "Amaga la carpeta",
+    "docker.folder.restore": "Restaura la carpeta",
+    "docker.folder.restore-hidden-branch": "Restaura la branca oculta",
+    "docker.folder.hidden-indicator": "Ocult",
+    "docker.folder.unnamed": "Carpeta",
+    "docker.folder.visibility-failed": "La preferència de visibilitat de la carpeta no s'ha pogut desar.",
+    "docker.visibility.hidden-folders": "Carpetes ocultes",
+    "docker.visibility.restore-all": "Restaura totes les carpetes ocultes",
+    "docker.visibility.hidden-title": "Carpeta oculta",
+    "docker.visibility.folder-fallback": "Carpeta",
+    "docker.visibility.hidden-message": "s'ha amagat de la vista Docker.",
+    "docker.visibility.undo": "Desfer",
+    "docker.visibility.all-hidden-title": "Totes les files de carpetes estan amagades.",
+    "docker.visibility.all-hidden-help": "Revela'ls temporalment o restaura totes les carpetes ocultes.",
+    "docker.visibility.show-hidden": "Mostra les carpetes ocultes"
 }

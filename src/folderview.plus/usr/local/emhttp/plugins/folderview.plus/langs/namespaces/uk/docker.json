@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Приховати публічні IPs",
     "docker.privacy.mask-network-interfaces": "Приховати мережеві інтерфейси",
     "docker.privacy.mask-external-urls": "Приховати зовнішні URL",
-    "docker.actions.capture-diagnostics": "Діагностика захоплення сторінки"
+    "docker.actions.capture-diagnostics": "Діагностика захоплення сторінки",
+    "docker.folder.hide": "Приховати папку",
+    "docker.folder.restore": "Відновити папку",
+    "docker.folder.restore-hidden-branch": "Відновити приховану гілку",
+    "docker.folder.hidden-indicator": "Прихований",
+    "docker.folder.unnamed": "Папка",
+    "docker.folder.visibility-failed": "Не вдалося зберегти налаштування видимості папки.",
+    "docker.visibility.hidden-folders": "Приховані папки",
+    "docker.visibility.restore-all": "Відновити всі приховані папки",
+    "docker.visibility.hidden-title": "Папка прихована",
+    "docker.visibility.folder-fallback": "Папка",
+    "docker.visibility.hidden-message": "було приховано від перегляду Docker.",
+    "docker.visibility.undo": "Скасувати",
+    "docker.visibility.all-hidden-title": "Усі рядки папок приховано.",
+    "docker.visibility.all-hidden-help": "Розкрийте їх тимчасово або відновіть кожну приховану папку.",
+    "docker.visibility.show-hidden": "Показати приховані папки"
 }

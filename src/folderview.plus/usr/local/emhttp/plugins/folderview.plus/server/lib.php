@@ -1801,8 +1801,15 @@
     }
 
     function reconcileManualOrderPrefs(array $prefs, array $folders): array {
+        $nextPrefs = $prefs;
+        $nextPrefs['hiddenFolderIds'] = array_values(array_filter(
+            normalizeStringIdList($prefs['hiddenFolderIds'] ?? []),
+            static function ($id) use ($folders): bool {
+                return array_key_exists((string)$id, $folders);
+            }
+        ));
         if (($prefs['sortMode'] ?? 'created') !== 'manual') {
-            return $prefs;
+            return $nextPrefs;
         }
         $order = [];
         foreach ((array)($prefs['manualOrder'] ?? []) as $id) {
@@ -1815,8 +1822,8 @@
                 $order[] = $id;
             }
         }
-        $prefs['manualOrder'] = $order;
-        return $prefs;
+        $nextPrefs['manualOrder'] = $order;
+        return $nextPrefs;
     }
 
     function syncManualOrderWithFolders(string $type, array $folders): void {

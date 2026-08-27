@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Скрыть публичные IPs",
     "docker.privacy.mask-network-interfaces": "Скрыть сетевые интерфейсы",
     "docker.privacy.mask-external-urls": "Маскировать внешние URL",
-    "docker.actions.capture-diagnostics": "Диагностика страницы захвата"
+    "docker.actions.capture-diagnostics": "Диагностика страницы захвата",
+    "docker.folder.hide": "Скрыть папку",
+    "docker.folder.restore": "Восстановить папку",
+    "docker.folder.restore-hidden-branch": "Восстановить скрытую ветку",
+    "docker.folder.hidden-indicator": "Скрытый",
+    "docker.folder.unnamed": "Папка",
+    "docker.folder.visibility-failed": "Не удалось сохранить настройки видимости папки.",
+    "docker.visibility.hidden-folders": "Скрытые папки",
+    "docker.visibility.restore-all": "Восстановить все скрытые папки",
+    "docker.visibility.hidden-title": "Папка скрыта",
+    "docker.visibility.folder-fallback": "Папка",
+    "docker.visibility.hidden-message": "был скрыт из представления Docker.",
+    "docker.visibility.undo": "Отменить",
+    "docker.visibility.all-hidden-title": "Все строки папки скрыты.",
+    "docker.visibility.all-hidden-help": "Временно покажите их или восстановите все скрытые папки.",
+    "docker.visibility.show-hidden": "Показать скрытые папки"
 }

@@ -146,7 +146,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -1227,6 +1227,20 @@
       "lifecycleFactories": [
         { "name": "createDeferredPreviewController", "exports": ["start", "refresh", "destroy", "snapshot"] }
       ]
+    },
+    {
+      "file": "scripts/docker.runtime.hidden-folders.js",
+      "owner": "docker-hidden-folder-visibility",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerHiddenFolders",
+      "loader": "commonjs",
+      "exports": ["createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["normalizeIds", "reconcilePrefs", "getOwnerId", "getSummary", "applyVisibility", "hideFolder", "restoreFolder", "restoreAll", "setReveal", "buildQuickAction", "decorateQuickIcon", "svgIcon"]
     }
   ],
   "browserGlobals": {

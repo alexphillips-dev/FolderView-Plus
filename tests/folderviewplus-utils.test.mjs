@@ -995,12 +995,14 @@ test('getConflictReport detects multi-folder assignment conflicts', () => {
     assert.equal(plex.matchedFolderCount, 2);
 });
 
-test('normalizePrefs keeps pinned folders and hide-empty toggle', () => {
+test('normalizePrefs keeps pinned, hidden, and hide-empty folder preferences', () => {
     const prefs = utils.normalizePrefs({
         pinnedFolderIds: ['a', 'b', 'a', '', 'c'],
+        hiddenFolderIds: ['hidden-a', 'hidden-b', 'hidden-a', ''],
         hideEmptyFolders: true
     });
     assert.deepEqual(prefs.pinnedFolderIds, ['a', 'b', 'c']);
+    assert.deepEqual(prefs.hiddenFolderIds, ['hidden-a', 'hidden-b']);
     assert.equal(prefs.hideEmptyFolders, true);
 });
 

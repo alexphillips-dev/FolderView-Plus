@@ -318,6 +318,7 @@
             )
         };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
+        const hiddenFolderIds = normalizeStringIdList(incoming.hiddenFolderIds);
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
@@ -346,6 +347,7 @@
             sortMode,
             manualOrder,
             pinnedFolderIds,
+            hiddenFolderIds,
             expandedFolderState,
             hideEmptyFolders,
             appColumnWidth,

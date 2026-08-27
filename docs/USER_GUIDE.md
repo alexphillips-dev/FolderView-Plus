@@ -61,6 +61,8 @@ The Docker page View menu provides three supported modes:
 
 Changing views does not delete folder configuration. Use `Reset view` to clear temporary toolbar filters and return to the normal unfiltered state.
 
+Each Docker folder menu includes four quick actions: focus, pin, lock, and hide. Hiding a parent hides its complete nested branch and member rows from FolderView without deleting configuration or changing assignments. Use the temporary `Undo` notice immediately after hiding, or open `View -> Hidden folders` to reveal hidden rows. Revealed rows are dimmed and labeled `Hidden`; restore one from its folder menu or choose `Restore all hidden folders`. Hidden folders remain visible in Host list mode because that mode intentionally restores Unraid's native table.
+
 VM and Dashboard surfaces use the same saved Docker or VM folder configuration where applicable. Runtime state is reconciled incrementally so start, stop, pause, resume, and update results can update without rebuilding the entire page.
 
 ## Folder actions
@@ -69,7 +71,7 @@ The folder action sheet groups actions by purpose rather than placing every oper
 
 Common actions include:
 
-- Edit, pin, focus, lock, expand, or collapse a folder or branch.
+- Edit, pin, focus, lock, hide, expand, or collapse a folder or branch.
 - Start, stop, pause, resume, restart, or update eligible members.
 - Move a folder within its current level, under another folder, or back to the root.
 - Clone, export, import into, scan, repair, or delete a folder branch.

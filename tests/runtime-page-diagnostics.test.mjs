@@ -18,13 +18,24 @@ const createFixture = () => {
     const nodes = {
         'tr': [{}, {}],
         '.folder, .folder-showcase-outer': [{}],
+        '.folder.fv-folder-hidden-revealed': [{}, {}],
         '.folder[expanded="true"], .folder-showcase-outer[expanded="true"]': [{}],
         '.folder-preview-wrapper, .folder-element-docker, .folder-element-vm': [{}, {}, {}],
         '.spinner, .fv-runtime-loading-row, [aria-busy="true"]': [],
         '.fa-spin, .fa-spinner, .fa-circle-o-notch': [{}],
         '.error, .invalid, [aria-invalid="true"]': []
     };
-    const host = { clientWidth: 100, scrollWidth: 120, querySelectorAll: (selector) => nodes[selector] || [] };
+    const bodyAttributes = new Map([
+        ['data-fvplus-docker-hidden-explicit', '2'],
+        ['data-fvplus-docker-hidden-effective', '3'],
+        ['data-fvplus-docker-hidden-reveal', 'true']
+    ]);
+    const host = {
+        clientWidth: 100,
+        scrollWidth: 120,
+        querySelectorAll: (selector) => nodes[selector] || [],
+        getAttribute: (name) => bodyAttributes.get(name) || null
+    };
     const document = {
         body: host,
         documentElement: { clientWidth: 1200, scrollWidth: 1200 },
@@ -55,6 +66,10 @@ test('runtime page diagnostics captures allowlisted aggregate state only', () =>
     });
     assert.equal(snapshot.state.visibleRows, 2);
     assert.equal(snapshot.state.spinningControls, 1);
+    assert.equal(snapshot.state.hiddenFolderSelections, 2);
+    assert.equal(snapshot.state.effectivelyHiddenFolders, 3);
+    assert.equal(snapshot.state.revealedHiddenFolderRows, 2);
+    assert.equal(snapshot.state.revealHiddenFolders, true);
     assert.equal(snapshot.state.horizontalOverflow, true);
     assert.equal(snapshot.viewport.widthBucket, '1025-1440');
     const serialized = JSON.stringify(snapshot);

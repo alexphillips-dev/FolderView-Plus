@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "পাবলিক আইপি মাস্ক করুন",
     "docker.privacy.mask-network-interfaces": "মাস্ক নেটওয়ার্ক ইন্টারফেস",
     "docker.privacy.mask-external-urls": "এক্সটার্নাল ইউআরএল মাস্ক করুন",
-    "docker.actions.capture-diagnostics": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন"
+    "docker.actions.capture-diagnostics": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন",
+    "docker.folder.hide": "ফোল্ডার লুকান",
+    "docker.folder.restore": "ফোল্ডার পুনরুদ্ধার করুন",
+    "docker.folder.restore-hidden-branch": "লুকানো শাখা পুনরুদ্ধার করুন",
+    "docker.folder.hidden-indicator": "লুকানো",
+    "docker.folder.unnamed": "ফোল্ডার",
+    "docker.folder.visibility-failed": "ফোল্ডার দৃশ্যমানতা পছন্দ সংরক্ষণ করা যায়নি.",
+    "docker.visibility.hidden-folders": "লুকানো ফোল্ডার",
+    "docker.visibility.restore-all": "সমস্ত লুকানো ফোল্ডার পুনরুদ্ধার করুন",
+    "docker.visibility.hidden-title": "ফোল্ডার লুকানো",
+    "docker.visibility.folder-fallback": "ফোল্ডার",
+    "docker.visibility.hidden-message": "ডকার ভিউ থেকে লুকানো ছিল।",
+    "docker.visibility.undo": "পূর্বাবস্থায় ফেরান",
+    "docker.visibility.all-hidden-title": "সমস্ত ফোল্ডার সারি লুকানো হয়.",
+    "docker.visibility.all-hidden-help": "তাদের সাময়িকভাবে প্রকাশ করুন বা প্রতিটি লুকানো ফোল্ডার পুনরুদ্ধার করুন।",
+    "docker.visibility.show-hidden": "লুকানো ফোল্ডার দেখান"
 }

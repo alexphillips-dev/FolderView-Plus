@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Öffentlich maskieren IPs",
     "docker.privacy.mask-network-interfaces": "Maskieren Sie Netzwerkschnittstellen",
     "docker.privacy.mask-external-urls": "Externe URLs maskieren",
-    "docker.actions.capture-diagnostics": "Erfassen Sie Seitendiagnosen"
+    "docker.actions.capture-diagnostics": "Erfassen Sie Seitendiagnosen",
+    "docker.folder.hide": "Ordner ausblenden",
+    "docker.folder.restore": "Ordner wiederherstellen",
+    "docker.folder.restore-hidden-branch": "Verborgenen Zweig wiederherstellen",
+    "docker.folder.hidden-indicator": "Versteckt",
+    "docker.folder.unnamed": "Ordner",
+    "docker.folder.visibility-failed": "Die Sichtbarkeitseinstellung für den Ordner konnte nicht gespeichert werden.",
+    "docker.visibility.hidden-folders": "Versteckte Ordner",
+    "docker.visibility.restore-all": "Alle versteckten Ordner wiederherstellen",
+    "docker.visibility.hidden-title": "Ordner ausgeblendet",
+    "docker.visibility.folder-fallback": "Ordner",
+    "docker.visibility.hidden-message": "wurde aus der Docker-Ansicht ausgeblendet.",
+    "docker.visibility.undo": "Rückgängig machen",
+    "docker.visibility.all-hidden-title": "Alle Ordnerzeilen werden ausgeblendet.",
+    "docker.visibility.all-hidden-help": "Zeigen Sie sie vorübergehend an oder stellen Sie alle versteckten Ordner wieder her.",
+    "docker.visibility.show-hidden": "Versteckte Ordner anzeigen"
 }

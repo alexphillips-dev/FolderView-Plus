@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Maskirajte javne IP adrese",
     "docker.privacy.mask-network-interfaces": "Maskirajte mrežna sučelja",
     "docker.privacy.mask-external-urls": "Maskirajte vanjske URL-ove",
-    "docker.actions.capture-diagnostics": "Dijagnostika stranice snimanja"
+    "docker.actions.capture-diagnostics": "Dijagnostika stranice snimanja",
+    "docker.folder.hide": "Sakrij mapu",
+    "docker.folder.restore": "Vrati mapu",
+    "docker.folder.restore-hidden-branch": "Vrati skrivenu granu",
+    "docker.folder.hidden-indicator": "Skriveno",
+    "docker.folder.unnamed": "Mapa",
+    "docker.folder.visibility-failed": "Postavka vidljivosti mape nije mogla biti spremljena.",
+    "docker.visibility.hidden-folders": "Skrivene mape",
+    "docker.visibility.restore-all": "Vratite sve skrivene mape",
+    "docker.visibility.hidden-title": "Mapa skrivena",
+    "docker.visibility.folder-fallback": "Mapa",
+    "docker.visibility.hidden-message": "bio je skriven od pogleda Dockera.",
+    "docker.visibility.undo": "Poništi",
+    "docker.visibility.all-hidden-title": "Svi redovi mape su skriveni.",
+    "docker.visibility.all-hidden-help": "Privremeno ih otkrijte ili vratite svaku skrivenu mapu.",
+    "docker.visibility.show-hidden": "Prikaži skrivene mape"
 }

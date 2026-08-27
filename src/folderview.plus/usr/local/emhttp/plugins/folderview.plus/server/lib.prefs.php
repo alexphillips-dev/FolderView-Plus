@@ -9,6 +9,7 @@
             'sortMode' => 'created',
             'manualOrder' => [],
             'pinnedFolderIds' => [],
+            'hiddenFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
@@ -442,6 +443,7 @@
         }
         $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $normalized['hiddenFolderIds'] = normalizeStringIdList($prefs['hiddenFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');

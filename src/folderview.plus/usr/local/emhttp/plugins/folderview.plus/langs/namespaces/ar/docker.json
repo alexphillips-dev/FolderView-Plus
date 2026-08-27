@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "إخفاء عناوين IP العامة",
     "docker.privacy.mask-network-interfaces": "قناع واجهات الشبكة",
     "docker.privacy.mask-external-urls": "إخفاء عناوين URL الخارجية",
-    "docker.actions.capture-diagnostics": "التقاط تشخيصات الصفحة"
+    "docker.actions.capture-diagnostics": "التقاط تشخيصات الصفحة",
+    "docker.folder.hide": "إخفاء المجلد",
+    "docker.folder.restore": "استعادة المجلد",
+    "docker.folder.restore-hidden-branch": "استعادة الفرع المخفي",
+    "docker.folder.hidden-indicator": "مخفي",
+    "docker.folder.unnamed": "مجلد",
+    "docker.folder.visibility-failed": "لا يمكن حفظ تفضيلات رؤية المجلد.",
+    "docker.visibility.hidden-folders": "المجلدات المخفية",
+    "docker.visibility.restore-all": "استعادة كافة المجلدات المخفية",
+    "docker.visibility.hidden-title": "المجلد مخفي",
+    "docker.visibility.folder-fallback": "مجلد",
+    "docker.visibility.hidden-message": "تم إخفاؤه من عرض Docker.",
+    "docker.visibility.undo": "تراجع",
+    "docker.visibility.all-hidden-title": "كافة صفوف المجلدات مخفية.",
+    "docker.visibility.all-hidden-help": "اكشف عنها مؤقتًا أو قم باستعادة كل مجلد مخفي.",
+    "docker.visibility.show-hidden": "إظهار المجلدات المخفية"
 }

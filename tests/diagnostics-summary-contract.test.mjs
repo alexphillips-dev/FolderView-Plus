@@ -60,6 +60,7 @@ const buildIntegrityChecks = (overrides = {}) => ({
     invalidAutoRules: { count: 0, rules: [] },
     missingManualOrderIds: { count: 0, ids: [] },
     missingPinnedFolderIds: { count: 0, ids: [] },
+    missingHiddenFolderIds: { count: 0, ids: [] },
     duplicateAssignments: {
         explicit: { count: 0, examples: [] },
         regex: { count: 0, examples: [] },
@@ -123,4 +124,15 @@ test('diagnostics summary still surfaces concrete path issues first', () => {
     const dockerCard = summary.cards.find((card) => card.key === 'docker');
     assert.ok(dockerCard, 'docker summary card is missing');
     assert.equal(dockerCard.detail, 'Missing /boot/config/plugins/folderview.plus/docker.folder.json');
+});
+
+test('diagnostics summary identifies stale hidden-folder preferences', () => {
+    const summary = runOverviewSummary({
+        typesData: buildTypesData(buildIntegrityChecks({
+            issuesCount: 1,
+            missingHiddenFolderIds: { count: 1, ids: ['removed-folder'] }
+        }))
+    });
+    const dockerCard = summary.cards.find((card) => card.key === 'docker');
+    assert.equal(dockerCard?.detail, '1 hidden folder id no longer matches an existing folder.');
 });

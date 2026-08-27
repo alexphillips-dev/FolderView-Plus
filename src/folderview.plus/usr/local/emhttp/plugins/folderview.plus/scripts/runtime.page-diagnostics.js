@@ -78,8 +78,8 @@
                 highContrast: snapshot?.appearance?.highContrast === true
             },
             state: {
-                visibleRows: boundedCount(snapshot?.state?.visibleRows),
-                folderRows: boundedCount(snapshot?.state?.folderRows),
+                visibleRows: boundedCount(snapshot?.state?.visibleRows), folderRows: boundedCount(snapshot?.state?.folderRows),
+                hiddenFolderSelections: boundedCount(snapshot?.state?.hiddenFolderSelections), effectivelyHiddenFolders: boundedCount(snapshot?.state?.effectivelyHiddenFolders), revealedHiddenFolderRows: boundedCount(snapshot?.state?.revealedHiddenFolderRows), revealHiddenFolders: snapshot?.state?.revealHiddenFolders === true,
                 expandedFolders: boundedCount(snapshot?.state?.expandedFolders),
                 visibleMembers: boundedCount(snapshot?.state?.visibleMembers),
                 loadingIndicators: boundedCount(snapshot?.state?.loadingIndicators),
@@ -152,8 +152,8 @@
                 highContrast: matchesMedia(win, '(prefers-contrast: more)')
             },
             state: {
-                visibleRows: countVisible(host, 'tr', win),
-                folderRows: countVisible(host, '.folder, .folder-showcase-outer', win),
+                visibleRows: countVisible(host, 'tr', win), folderRows: countVisible(host, '.folder, .folder-showcase-outer', win),
+                hiddenFolderSelections: boundedCount(doc?.body?.getAttribute?.('data-fvplus-docker-hidden-explicit')), effectivelyHiddenFolders: boundedCount(doc?.body?.getAttribute?.('data-fvplus-docker-hidden-effective')), revealedHiddenFolderRows: countVisible(host, '.folder.fv-folder-hidden-revealed', win), revealHiddenFolders: doc?.body?.getAttribute?.('data-fvplus-docker-hidden-reveal') === 'true',
                 expandedFolders: countVisible(host, '.folder[expanded="true"], .folder-showcase-outer[expanded="true"]', win),
                 visibleMembers: countVisible(host, '.folder-preview-wrapper, .folder-element-docker, .folder-element-vm', win),
                 loadingIndicators: countVisible(host, '.spinner, .fv-runtime-loading-row, [aria-busy="true"]', win),

@@ -13,6 +13,7 @@
         "../tests/browser/cases/docker.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
+        "../tests/browser/cases/docker-hidden-folders.mjs",
         "../tests/browser/cases/settings.mjs",
         "../tests/browser/cases/settings-start-order.mjs",
         "../tests/browser/cases/folder-editor.mjs",
@@ -28,6 +29,7 @@
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
+    { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
@@ -40,6 +42,7 @@
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
+        "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
@@ -51,10 +54,10 @@
         "scripts/lib/fixture-browser-runner.mjs",
         "tests/browser/helpers/docker-preview-context.mjs"
       ],
-      "testCount": 45,
-      "assertionCount": 590,
-      "pageEvaluateCount": 114,
-      "orderedTitleSha256": "faa27263f589dd378f39182490228219ffbc9c4e172e36de63f468fe1e767ca3"
+      "testCount": 46,
+      "assertionCount": 597,
+      "pageEvaluateCount": 116,
+      "orderedTitleSha256": "f8441d00a18459448330ef2614c04826f0bca1a3be986b7a8e4734e2e27a7a88"
     }
   }
 }

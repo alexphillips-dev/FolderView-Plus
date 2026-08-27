@@ -9,6 +9,7 @@ import { registerFoundationFixtureCases } from '../tests/browser/cases/foundatio
 import { registerDockerFixtureCases } from '../tests/browser/cases/docker.mjs';
 import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs';
 import { registerRuntimeInteractionsFixtureCases } from '../tests/browser/cases/runtime-interactions.mjs';
+import { registerDockerHiddenFolderFixtureCases } from '../tests/browser/cases/docker-hidden-folders.mjs';
 import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs';
 import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs';
@@ -45,6 +46,7 @@ registerFoundationFixtureCases(caseContext);
 registerDockerFixtureCases(caseContext);
 registerDashboardLifecycleFixtureCases(caseContext);
 registerRuntimeInteractionsFixtureCases(caseContext);
+registerDockerHiddenFolderFixtureCases(caseContext);
 registerSettingsFixtureCases(caseContext);
 registerSettingsStartOrderFixtureCases(caseContext);
 registerFolderEditorFixtureCases(caseContext);

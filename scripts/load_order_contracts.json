@@ -146,6 +146,7 @@
         "scripts/docker.runtime.diagnostics.js",
         "scripts/docker.runtime.reconcile.js",
         "scripts/docker.runtime.command-view.js",
+        "scripts/docker.runtime.hidden-folders.js",
         "scripts/docker.runtime.action-bar.js",
         "scripts/docker.js",
         "scripts/docker.page-bootstrap.js",

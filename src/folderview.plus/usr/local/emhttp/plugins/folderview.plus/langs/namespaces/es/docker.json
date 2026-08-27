@@ -44,5 +44,20 @@
     "docker.privacy.mask-public-ips": "Enmascarar IPs público",
     "docker.privacy.mask-network-interfaces": "Enmascarar interfaces de red",
     "docker.privacy.mask-external-urls": "Enmascarar URLs externas",
-    "docker.actions.capture-diagnostics": "Capturar diagnóstico de página"
+    "docker.actions.capture-diagnostics": "Capturar diagnóstico de página",
+    "docker.folder.hide": "Ocultar carpeta",
+    "docker.folder.restore": "Restaurar carpeta",
+    "docker.folder.restore-hidden-branch": "Restaurar rama oculta",
+    "docker.folder.hidden-indicator": "Oculto",
+    "docker.folder.unnamed": "Carpeta",
+    "docker.folder.visibility-failed": "No se pudo guardar la preferencia de visibilidad de la carpeta.",
+    "docker.visibility.hidden-folders": "Carpetas ocultas",
+    "docker.visibility.restore-all": "Restaurar todas las carpetas ocultas",
+    "docker.visibility.hidden-title": "Carpeta oculta",
+    "docker.visibility.folder-fallback": "Carpeta",
+    "docker.visibility.hidden-message": "estaba oculto de la vista de Docker.",
+    "docker.visibility.undo": "Deshacer",
+    "docker.visibility.all-hidden-title": "Todas las filas de carpetas están ocultas.",
+    "docker.visibility.all-hidden-help": "Revélelos temporalmente o restaure todas las carpetas ocultas.",
+    "docker.visibility.show-hidden": "Mostrar carpetas ocultas"
 }

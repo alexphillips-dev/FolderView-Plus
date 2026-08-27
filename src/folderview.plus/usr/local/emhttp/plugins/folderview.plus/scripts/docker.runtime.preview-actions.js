@@ -581,6 +581,9 @@
             }
             try {
                 const $clone = nativePreview.$clone.addClass(options.autostart ? 'autostart' : '');
+                $clone
+                    .attr('data-fv-container-id', String(options.ctid || '').trim())
+                    .attr('data-fv-container-name', String(options.containerName || '').trim());
                 options.$preview.append($clone);
                 const $loadIcon = $clone.find('i[id^="load-"]').first();
                 const loadId = String($loadIcon.attr('id') || '').trim();

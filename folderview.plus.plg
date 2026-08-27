@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.27.02">
-<!ENTITY md5 "068df7e8e26eacd3b703e2682730544e">
-<!ENTITY sha256 "6216f87629e3f83e211cd2b795c72fd36d60271bbc5208ba5d602626651768bf">
+<!ENTITY version "2026.08.27.03">
+<!ENTITY md5 "eb90873aa3637ecb4927d842691dca6b">
+<!ENTITY sha256 "e5016eb8b88748c8f45540564b35a54af49c559c6ad9d038ec14e389e52de7d0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.27.03
+- Fix: Show the same pending lifecycle spinner for Docker containers in single-row and multi-row folder previews.
+- Fix: Keep Start, Resume, and Restart feedback on the folder's Started color instead of temporarily using the Paused color; Pause and Stop continue to use their matching status colors.
+- Compatibility: Honor each folder's customized Started, Paused, and Stopped indicator colors while lifecycle actions are pending.
+- Test: Cover single-row lifecycle identity, action-specific pending colors, spinner cleanup, browser fixtures, responsive themes, and large-runtime performance budgets.
+
 
 ###2026.08.27.02
 - Fix: Restore native-style folder status presentation with green started indicators and independently white status text by default.

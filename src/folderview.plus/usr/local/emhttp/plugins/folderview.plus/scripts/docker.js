@@ -5174,7 +5174,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const resilientSingleRowPreview = (previewMode, selector, folderTrId, ctid, autostart, previewEntry, $sourceRow) =>
         getDockerPreviewActionsApi().renderDockerSingleRowPreview({
             $sourceRow, $preview: $createdFolderPreview, selector, previewMode,
-            context: folder.settings.context, ctid, autostart,
+            context: folder.settings.context, ctid, containerName: previewEntry?.name, autostart,
             appendModelPreview: () => appendCompactPreview(
                 folderTrId, ctid, autostart, previewEntry, $sourceRow,
                 { preferNativeDefaultContext: false }
@@ -5195,7 +5195,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                const $previewItem = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`)
+                    .clone()
+                    .addClass(`${autostart ? 'autostart' : ''}`)
+                    .attr('data-fv-container-id', String(ctid || '').trim())
+                    .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($previewItem);
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
                     tmpId.attr("id", "folder-preview-" + ctid);
@@ -5223,7 +5228,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
-                lstSpan.children('span.inner:last').append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                const $previewItem = lstSpan.children('span.inner:last')
+                    .attr('data-fv-container-id', String(ctid || '').trim())
+                    .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
+                $previewItem.append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
                     tmpId.attr("id", "folder-preview-" + ctid);

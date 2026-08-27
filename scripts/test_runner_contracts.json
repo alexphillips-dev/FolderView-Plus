@@ -51,10 +51,10 @@
         "scripts/lib/fixture-browser-runner.mjs",
         "tests/browser/helpers/docker-preview-context.mjs"
       ],
-      "testCount": 44,
-      "assertionCount": 574,
-      "pageEvaluateCount": 111,
-      "orderedTitleSha256": "e8874d908c50198ade0e21b8915113cd8ac998edfaf75bb8938378bc1d050c1c"
+      "testCount": 45,
+      "assertionCount": 581,
+      "pageEvaluateCount": 112,
+      "orderedTitleSha256": "faa27263f589dd378f39182490228219ffbc9c4e172e36de63f468fe1e767ca3"
     }
   }
 }

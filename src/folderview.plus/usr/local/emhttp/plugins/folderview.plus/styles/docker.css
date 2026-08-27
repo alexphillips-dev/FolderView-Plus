@@ -979,7 +979,21 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="start"] i.fv-preview-lifecycle-pending,
+.folder-preview [data-fv-lifecycle-action="resume"] i.fv-preview-lifecycle-pending,
+.folder-preview [data-fv-lifecycle-action="restart"] i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="pause"] i.fv-preview-lifecycle-pending {
     color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="stop"] i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
 }
 
 .folder-preview-wrapper .inner > span.appname {

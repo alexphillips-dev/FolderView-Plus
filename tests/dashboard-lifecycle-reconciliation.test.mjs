@@ -258,11 +258,13 @@ test('Docker native lifecycle hook marks and restores a matching compact preview
     assert.match(iconAttributes.get('class'), /fa-refresh/);
     assert.match(iconAttributes.get('class'), /fa-spin/);
     assert.equal(surfaceAttributes.get('aria-busy'), 'true');
+    assert.equal(surfaceAttributes.get('data-fv-lifecycle-action'), 'restart');
 
     scheduled[0].handler();
     await flushPromises();
     assert.equal(iconAttributes.get('class'), 'fa fa-play fv-preview-status-started');
     assert.equal(surfaceAttributes.has('aria-busy'), false);
+    assert.equal(surfaceAttributes.has('data-fv-lifecycle-action'), false);
     assert.equal(iconAttributes.has('data-fv-lifecycle-icon-class'), false);
 });
 

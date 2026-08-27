@@ -175,6 +175,7 @@
                         previewMode: 1,
                         context: 1,
                         ctid: `fixture-${index}`,
+                        containerName: `fixture-container-${index}`,
                         appendModelPreview: () => {
                             fallbackCount += 1;
                             const $fallback = window.jQuery('<span class="fixture-model-fallback">Fallback</span>');
@@ -193,8 +194,32 @@
                     missingWrapper: { ok: missingWrapper.ok, reason: missingWrapper.reason },
                     invalidSelector: { ok: invalidSelector.ok, reason: invalidSelector.reason },
                     renderedCount: renderTarget.children().length,
+                    renderedContainerId: renderTarget.children().first().attr('data-fv-container-id'),
+                    renderedContainerName: renderTarget.children().first().attr('data-fv-container-name'),
                     fallbackCount
                 };
+            }
+        };
+        window.fixtureDockerLifecyclePendingColors = {
+            run: () => {
+                const $preview = window.jQuery('<div class="folder-preview"></div>')
+                    .css('--fvplus-folder-status-started', '#11aa22')
+                    .css('--fvplus-folder-status-paused', '#cc9900')
+                    .css('--fvplus-folder-status-stopped', '#dd2233');
+                const colors = {};
+                ['start', 'resume', 'restart', 'pause', 'stop'].forEach((action) => {
+                    const $surface = window.jQuery('<span></span>').attr('data-fv-lifecycle-action', action);
+                    const $icon = window.jQuery('<i class="fa fa-refresh fa-spin fv-preview-lifecycle-pending"></i>');
+                    $surface.append($icon);
+                    $preview.append($surface);
+                });
+                window.jQuery(document.body).append($preview);
+                $preview.children().each((_, surface) => {
+                    const action = surface.getAttribute('data-fv-lifecycle-action');
+                    colors[action] = window.getComputedStyle(surface.querySelector('i')).color;
+                });
+                $preview.remove();
+                return colors;
             }
         };
         window.localStorage.removeItem(window.FolderViewPlusDockerPreviewActions.PREVIEW_CONTEXT_DIAGNOSTICS_STORAGE_KEY);

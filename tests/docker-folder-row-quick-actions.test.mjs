@@ -253,7 +253,15 @@ test('docker lifecycle reconciliation restores expanded preview action icons fro
     assert.match(dockerReconcileScript, /const markDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
     assert.match(dockerReconcileScript, /const clearDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
     assert.match(dockerReconcileScript, /const restartWarmupPending = action === 'restart'/);
-    assert.match(dockerCss, /\.folder-preview i\.fv-preview-lifecycle-pending\s*\{/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-container-id', String\(options\.ctid \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-container-name', String\(options\.containerName \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /context: folder\.settings\.context, ctid, containerName: previewEntry\?\.name, autostart/);
+    assert.match(dockerScript, /span\.hand:last`\)[\s\S]*?\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)[\s\S]*?\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /lstSpan\.children\('span\.inner:last'\)[\s\S]*?\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)[\s\S]*?\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerCss, /\.folder-preview i\.fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="restart"[^}]*fv-preview-lifecycle-pending[\s\S]*?var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="pause"[^}]*fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-paused,\s*var\(--fvplus-status-paused\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="stop"[^}]*fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-stopped,\s*var\(--fvplus-status-stopped\)\)/);
 });
 
 test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {

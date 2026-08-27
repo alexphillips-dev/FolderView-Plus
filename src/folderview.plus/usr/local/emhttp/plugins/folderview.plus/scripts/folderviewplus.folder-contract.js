@@ -5,7 +5,8 @@
     const DEFAULT_FOLDER_STATUS_COLORS = Object.freeze({
         started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     });
     const LEGACY_DEFAULT_FOLDER_STARTED_COLOR = '#ffffff';
     const DEFAULT_FOLDER_ACCENT_COLOR = '#ffca63';

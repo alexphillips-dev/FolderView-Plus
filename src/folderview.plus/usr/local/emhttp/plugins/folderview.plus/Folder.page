@@ -898,6 +898,10 @@ try {
                                 <span>Stopped</span>
                                 <input type="color" name="status_color_stopped" data-fvplus-style="fv-u-88tzw1">
                             </label>
+                            <label class="folder-status-color-item">
+                                <span>Text</span>
+                                <input type="color" name="status_color_text" data-fvplus-style="fv-u-88tzw1">
+                            </label>
                         </div>
                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
@@ -907,7 +911,7 @@ try {
             </dl>
             <blockquote class="inline_help">
                 <p>
-                    Set custom colors for this folder's status icon and text across Docker, VMs, and Dashboard views.
+                    Set the Started, Paused, and Stopped indicator colors independently from the status text color across Docker, VMs, and Dashboard views.
                     <br>
                     The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
                 </p>

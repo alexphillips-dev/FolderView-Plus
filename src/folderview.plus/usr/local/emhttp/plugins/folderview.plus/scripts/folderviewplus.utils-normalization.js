@@ -30,7 +30,8 @@
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     };
     const DEFAULT_HEALTH_PREFS = {
         cardsEnabled: true,
@@ -108,7 +109,7 @@
         const source = isPlainObject(settings) ? settings : {}; const normalizedStarted = normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
         return { started: !startedExplicit && normalizedStarted === '#ffffff' ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: normalizeHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)
         };
     };
 

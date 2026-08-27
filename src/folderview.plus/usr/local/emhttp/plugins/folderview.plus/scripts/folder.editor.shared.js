@@ -246,6 +246,9 @@
                     status_color_stopped: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_stopped, deps.defaultFolderStatusColors?.stopped || '#ff4d4d')
                         : String(settings.status_color_stopped || deps.defaultFolderStatusColors?.stopped || '#ff4d4d'),
+                    status_color_text: typeof deps.normalizeHexColor === 'function'
+                        ? deps.normalizeHexColor(settings.status_color_text, deps.defaultFolderStatusColors?.text || '#ffffff')
+                        : String(settings.status_color_text || deps.defaultFolderStatusColors?.text || '#ffffff'),
                     status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true,
                     health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
                     health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),

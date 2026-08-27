@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.27.01">
-<!ENTITY md5 "85711fbb85c095ea5821117060b3b205">
-<!ENTITY sha256 "500d264b9e8d2e0a2121296be776c27832197bd414bd6dd600cb2d0cddb15b65">
+<!ENTITY version "2026.08.27.02">
+<!ENTITY md5 "068df7e8e26eacd3b703e2682730544e">
+<!ENTITY sha256 "6216f87629e3f83e211cd2b795c72fd36d60271bbc5208ba5d602626651768bf">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.27.02
+- Fix: Restore native-style folder status presentation with green started indicators and independently white status text by default.
+- Feature: Add a Text color picker to the modern folder editor Status section so status labels can be customized separately from Started, Paused, and Stopped indicators.
+- Compatibility: Apply the independent status text color across Docker folders and previews, VM folders, Dashboard folders, inherited defaults, starter templates, and existing folders without requiring migration.
+- Diagnostics: Include the normalized status text color in privacy-safe folder integrity diagnostics.
+- Localization: Translate the new status text control and updated guidance across all 27 supported locales.
+- Test: Cover status text normalization, editor persistence, runtime theme separation, localization, browser fixtures, responsive themes, and large-runtime performance budgets.
+
 
 ###2026.08.27.01
 - Fix: Use green as the default started-status color in the folder editor and across Docker, VM, and Dashboard folder surfaces.

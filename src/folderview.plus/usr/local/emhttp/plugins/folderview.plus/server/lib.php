@@ -401,7 +401,8 @@
     const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
         'started' => '#55b72d',
         'paused' => '#b8860b',
-        'stopped' => '#ff4d4d'
+        'stopped' => '#ff4d4d',
+        'text' => '#ffffff'
     ];
     const FVPLUS_LEGACY_CONFIG_DIRS = [
         '/boot/config/plugins/folder.view3',

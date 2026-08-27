@@ -113,6 +113,7 @@
             const safeHoverAnimation = ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(hoverAnimationToken) ? hoverAnimationToken : 'none';
             const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
+            const statusTextColor = normalizeHexColor(form.status_color_text?.value, deps.defaultFolderStatusColors?.text || '#ffffff');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
             const name = String(form.name?.value || '').trim() || 'Unnamed folder';
             const hideNestedPreviewItems = form.preview_hide_nested_items?.checked === true;
@@ -233,8 +234,11 @@
                 }
                 const statusNode = memberNode.querySelector('.fv-live-member-status');
                 if (statusNode instanceof HTMLElement) {
-                    statusNode.style.color = safeStateColor;
+                    statusNode.style.color = statusNode.classList.contains('is-symbol') ? safeStateColor : statusTextColor;
                 }
+            });
+            canvas.find('.fv-live-member-status:not(.is-symbol)').each((_, statusNode) => {
+                if (statusNode instanceof HTMLElement) statusNode.style.color = statusTextColor;
             });
         };
 
@@ -283,6 +287,7 @@
             $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#55b72d'));
             $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused?.value, deps.defaultFolderStatusColors?.paused || '#b8860b'));
             $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped?.value, deps.defaultFolderStatusColors?.stopped || '#ff4d4d'));
+            $('#fvSwatchText').css('background-color', normalizeHexColor(form.status_color_text?.value, deps.defaultFolderStatusColors?.text || '#ffffff'));
             $('#fvSwatchAccent').css('background-color', accentColor);
             $('#fvAccentSwatchItem').toggle(accentEnabled);
 

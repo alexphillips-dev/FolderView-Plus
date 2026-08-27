@@ -84,7 +84,7 @@ const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', optio
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#55b72d',
     paused: '#b8860b',
-    stopped: '#ff4d4d'
+    stopped: '#ff4d4d', text: '#ffffff'
 };
 const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderStatusColorOverrides === 'function'
     ? dockerRuntimeShared.applyFolderStatusColorOverrides

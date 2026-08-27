@@ -49,9 +49,9 @@ test('runtime css defines canonical fvplus status tokens and legacy graph aliase
 });
 
 test('status state classes resolve through css variables instead of hardcoded runtime values', () => {
-    assert.match(dockerCss, /span\.folder-state\.fv-folder-state-started\s*\{[\s\S]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /span\.folder-state\.fv-folder-state-started\s*\{[\s\S]*var\(--fvplus-folder-status-text,\s*#ffffff\)/);
     assert.match(dockerCss, /i\.folder-load-status\.started\s*\{[\s\S]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
-    assert.match(vmCss, /span\.folder-state\.fv-folder-state-started\s*\{[\s\S]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(vmCss, /span\.folder-state\.fv-folder-state-started\s*\{[\s\S]*var\(--fvplus-folder-status-text,\s*#ffffff\)/);
     assert.match(vmCss, /i\.folder-load-status\.started\s*\{[\s\S]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
 });
 
@@ -95,6 +95,8 @@ test('runtime context menus follow resolved dark and light theme tokens', () => 
 
 test('runtime scripts avoid inline status color painting and use row-level css variable overrides', () => {
     assert.match(sharedRuntimeJs, /const FOLDER_STATUS_COLOR_STYLE_PROPS = Object\.freeze/);
+    assert.match(sharedRuntimeJs, /text:\s*'--fvplus-folder-status-text'/);
+    assert.match(sharedRuntimeJs, /text:\s*normalizeStatusHexColor\(source\.status_color_text,\s*DEFAULT_FOLDER_STATUS_COLORS\.text\)/);
     assert.match(sharedRuntimeJs, /const applyFolderStatusColorOverrides = \(\$folderRow, settings\) =>/);
     assert.match(dockerJs, /applyFolderStatusColorOverrides\(\$folderRow,\s*folder\.settings\)/);
     assert.match(vmJs, /const applyFolderStatusColorOverrides = typeof runtimeShared\.applyFolderStatusColorOverrides === 'function'/);
@@ -104,6 +106,7 @@ test('runtime scripts avoid inline status color painting and use row-level css v
     assert.match(dashboardJs, /const resolveDashboardFolderStatusColors = \(settings\) => \{/);
     assert.match(dashboardJs, /started:\s*'var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)\)'/);
     assert.match(dashboardJs, /const statusColors = resolveDashboardFolderStatusColors\(folder\.settings\);/);
+    assert.match(dashboardJs, /\$statusText\.text\([^;]+\)\.css\('color',\s*statusColors\.text\)/);
 });
 
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
@@ -253,6 +256,7 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
     assert.match(dockerCss, /\.fv-preview-status-started\s*\{[^}]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
     assert.match(dockerCss, /\.fv-preview-status-paused\s*\{[^}]*var\(--fvplus-folder-status-paused,\s*var\(--fvplus-status-paused\)\)/);
     assert.match(dockerCss, /\.fv-preview-status-stopped\s*\{[^}]*var\(--fvplus-folder-status-stopped,\s*var\(--fvplus-status-stopped\)\)/);
+    assert.match(dockerCss, /\.folder-preview \.fv-preview-status-compact \.state,[\s\S]*var\(--fvplus-folder-status-text,\s*#ffffff\)/);
     assert.match(cspUtilitiesCss, /\.fv-popup-guide\s*\{[^}]*color:\s*var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)/);
     assert.match(cspUtilitiesCss, /\.fv-popup-panel\s*\{[^}]*background:\s*var\(--fvplus-runtime-menu-header-bg,\s*transparent\)/);
     assert.doesNotMatch(dockerRuntimeActionsJs, /color:\s*#e8edf7/);

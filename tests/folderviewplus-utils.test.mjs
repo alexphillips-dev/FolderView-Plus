@@ -505,7 +505,8 @@ test('getFolderStatusColors normalizes and defaults values', () => {
     assert.deepEqual(defaults, {
         started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     });
 
     assert.equal(utils.getFolderStatusColors({ status_color_started: '#ffffff' }).started, '#55b72d');
@@ -517,12 +518,14 @@ test('getFolderStatusColors normalizes and defaults values', () => {
     const custom = utils.getFolderStatusColors({
         status_color_started: '#AbC',
         status_color_paused: '#123456',
-        status_color_stopped: 'bad-value'
+        status_color_stopped: 'bad-value',
+        status_color_text: '#fed'
     });
     assert.deepEqual(custom, {
         started: '#aabbcc',
         paused: '#123456',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffeedd'
     });
 });
 

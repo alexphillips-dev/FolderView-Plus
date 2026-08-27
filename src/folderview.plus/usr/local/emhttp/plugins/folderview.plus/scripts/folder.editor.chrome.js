@@ -46,7 +46,7 @@
             { key: 'color', title: 'Chevron Color', description: 'Override the folder row chevron color.', fields: ['dropdown_color'] }
         ],
         status: [
-            { key: 'status-colors', title: 'Status Colors', description: 'Set the started, paused, and stopped colors used by folder rows.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
+            { key: 'status-colors', title: 'Status Colors', description: 'Set indicator colors and the independent status text color used by folder rows.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped', 'status_color_text'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
             { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
             { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', advancedOnly: true, fields: ['status_warn_stopped_percent'] },
             { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
@@ -393,7 +393,7 @@
                         <div class="fv-live-swatches">
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
-                            <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                            <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                     </div>

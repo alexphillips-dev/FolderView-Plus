@@ -24,7 +24,7 @@ const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.pn
 const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#55b72d',
     paused: '#b8860b',
-    stopped: '#ff4d4d'
+    stopped: '#ff4d4d', text: '#ffffff'
 };
 const normalizeStatusHexColor = typeof runtimeShared.normalizeStatusHexColor === 'function'
     ? runtimeShared.normalizeStatusHexColor

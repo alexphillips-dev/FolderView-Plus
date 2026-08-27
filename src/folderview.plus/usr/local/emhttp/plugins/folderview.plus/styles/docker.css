@@ -555,7 +555,7 @@ tr.fv-folder-locked .folder-appname {
 }
 
 span.folder-state.fv-folder-state-started {
-    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 span.folder-state {
@@ -565,11 +565,11 @@ span.folder-state {
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 i.folder-load-status.started {
@@ -971,6 +971,11 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .fv-preview-status-stopped {
     color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
+}
+
+.folder-preview .fv-preview-status-compact .state,
+.folder-preview span.state[class*="fv-preview-status-"] {
+    color: var(--fvplus-folder-status-text, #ffffff) !important;
 }
 
 .folder-preview i.fv-preview-lifecycle-pending {

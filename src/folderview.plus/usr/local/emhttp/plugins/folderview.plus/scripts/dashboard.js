@@ -37,7 +37,8 @@ const dashboardT = (key, fallback = '', ...params) => (
 const localDefaultFolderStatusColors = {
     started: '#55b72d',
     paused: '#b8860b',
-    stopped: '#ff4d4d'
+    stopped: '#ff4d4d',
+    text: '#ffffff'
 };
 const localResolvedFolderStatusColors = {
     started: 'var(--fvplus-folder-status-started, var(--fvplus-status-started, var(--fvplus-theme-foreground, currentColor)))',
@@ -88,7 +89,8 @@ const resolveDashboardFolderStatusColors = (settings) => {
             : colors.paused,
         stopped: colors.stopped === localDefaultFolderStatusColors.stopped
             ? localResolvedFolderStatusColors.stopped
-            : colors.stopped
+            : colors.stopped,
+        text: colors.text || localDefaultFolderStatusColors.text
     };
 };
 const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
@@ -156,7 +158,8 @@ const utils = window.FolderViewPlusUtils || {
         return {
             started: normalizeStatusHexColor(incoming.status_color_started, localDefaultFolderStatusColors.started),
             paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
-            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
+            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped),
+            text: normalizeStatusHexColor(incoming.status_color_text, localDefaultFolderStatusColors.text)
         };
     },
     escapeHtml: (value) => String(value ?? '')
@@ -1954,7 +1957,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);
-    $statusText.css('color', statusColors.stopped);
+    $statusText.css('color', statusColors.text);
     
     //set the status of a folder
 
@@ -1972,7 +1975,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
         const $nextStatusIcon = $(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-docker"></i>`);
         $nextStatusIcon.css('color', statusColor);
         $statusIcon.replaceWith($nextStatusIcon);
-        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColors.text);
     }
 
     if(autostart === 0) {
@@ -2218,7 +2221,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);
-    $statusText.css('color', statusColors.stopped);
+    $statusText.css('color', statusColors.text);
     if (started) {
         const allStartedArePaused = paused > 0 && paused === started;
         const statusClass = allStartedArePaused ? 'paused' : 'started';
@@ -2229,7 +2232,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
         const $nextStatusIcon = $(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-vm"></i>`);
         $nextStatusIcon.css('color', statusColor);
         $statusIcon.replaceWith($nextStatusIcon);
-        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColors.text);
     }
 
     if(autostart === 0) {
@@ -2687,7 +2690,7 @@ const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
         .addClass(`fa ${aggregate.icon} ${aggregate.className}`)
         .removeAttr('aria-busy')
         .css('color', statusColor);
-    $statusText.text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`).css('color', statusColor);
+    $statusText.text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`).css('color', statusColors.text);
     $outer.add($folderSurface).removeClass('no-autostart autostart-off autostart-partial autostart-full no-managed managed-partial managed-full');
     if (autostart === 0) $outer.add($folderSurface).addClass('no-autostart');
     else if (autostartStarted === 0) $outer.add($folderSurface).addClass('autostart-off');

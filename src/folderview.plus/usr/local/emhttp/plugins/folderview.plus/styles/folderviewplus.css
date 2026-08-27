@@ -3544,7 +3544,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     --fvplus-theme-accent: var(--fvplus-settings-accent, #f0a030);
     --fvplus-theme-surface-panel: var(--fvplus-settings-surface-panel, #1b1d20);
     --fvplus-theme-border-subtle: var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
-    --fvplus-status-started: #ffffff;
+    --fvplus-status-started: #55b72d;
     --fvplus-status-paused: #b8860b;
     --fvplus-status-stopped: #ff4d4d;
     --fvplus-graph-cpu: #5aa4ff;

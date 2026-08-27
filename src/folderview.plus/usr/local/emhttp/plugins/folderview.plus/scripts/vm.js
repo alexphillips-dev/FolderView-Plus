@@ -22,7 +22,7 @@ const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {})
 );
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };

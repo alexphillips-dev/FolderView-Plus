@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.25.01">
-<!ENTITY md5 "bc7c2511f1a3fdb073fa7dd28aa99263">
-<!ENTITY sha256 "7dfd5e03ee5f8624f75c3174cea43b9572ce4cb308cc7a6b25dc4762fa4fcd20">
+<!ENTITY version "2026.08.27.01">
+<!ENTITY md5 "85711fbb85c095ea5821117060b3b205">
+<!ENTITY sha256 "500d264b9e8d2e0a2121296be776c27832197bd414bd6dd600cb2d0cddb15b65">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.27.01
+- Fix: Use green as the default started-status color in the folder editor and across Docker, VM, and Dashboard folder surfaces.
+- Compatibility: Migrate the previous unmodified white started-status default to green while preserving white when it is explicitly selected and saved in the modern folder editor.
+- Fix: Show a visible pending spinner on compact multi-row Docker previews while a container lifecycle action, including Restart, is in progress.
+- Fix: Keep Restart pending through the initial already-running snapshot, then restore the container preview to its current started, paused, or stopped state after reconciliation.
+- Diagnostics: Record privacy-safe counts for lifecycle preview surfaces and pending or restored status icons without exporting container identities.
+- Test: Cover legacy and explicit status-color behavior, compact-preview lifecycle feedback, restart timing, browser fixtures, responsive themes, and large-runtime performance budgets.
+
 
 ###2026.08.25.01
 - Fix: Open the same child-folder action menu from a collapsed parent preview when using a normal click, right-click, touch activation, Enter, or Space.

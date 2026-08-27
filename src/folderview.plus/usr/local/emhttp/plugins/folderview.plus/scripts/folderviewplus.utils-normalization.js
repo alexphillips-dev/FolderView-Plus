@@ -28,7 +28,7 @@
     const PERFORMANCE_PROFILE_OPTIONS = ['standard', 'adaptive', 'maximum'];
     const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
         stopped: '#ff4d4d'
     };
@@ -105,9 +105,8 @@
     } = utilityFoundation;
 
     const getFolderStatusColors = (settings) => {
-        const source = isPlainObject(settings) ? settings : {};
-        return {
-            started: normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        const source = isPlainObject(settings) ? settings : {}; const normalizedStarted = normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
+        return { started: !startedExplicit && normalizedStarted === '#ffffff' ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
             stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
         };

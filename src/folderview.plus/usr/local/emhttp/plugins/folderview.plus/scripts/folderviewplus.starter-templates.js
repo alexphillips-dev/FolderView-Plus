@@ -566,7 +566,7 @@ const buildStarterFolderPayload = (name, iconPath = DEFAULT_STARTER_FOLDER_ICON)
         preview_vertical_bars_color: '#afa89e',
         folder_accent_enabled: false,
         folder_accent_color: '#ffca63',
-        status_color_started: '#ffffff',
+        status_color_started: '#55b72d',
         status_color_paused: '#b8860b',
         status_color_stopped: '#ff4d4d',
         health_warn_stopped_percent: '',

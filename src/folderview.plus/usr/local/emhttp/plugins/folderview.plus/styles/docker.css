@@ -973,6 +973,10 @@ tr.folder.fv-parent-expanded div.folder-preview {
     color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
 }
 
+.folder-preview i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused)) !important;
+}
+
 .folder-preview-wrapper .inner > span.appname {
     display: inline-block;
     overflow: clip;

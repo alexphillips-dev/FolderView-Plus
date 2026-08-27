@@ -248,6 +248,12 @@ test('docker lifecycle reconciliation restores expanded preview action icons fro
     assert.match(dockerScript, /getDockerRuntimeInfoEntries: \(\) => Object\.values\(dockerRuntimeInfoByName \|\| \{\}\),/);
     assert.match(dockerScript, /syncDockerVisibleFoldersFromRuntimeCache: \(changedNames = null\) => syncDockerVisibleFoldersFromRuntimeCache\(changedNames\),/);
     assert.match(dockerReconcileScript, /remainingBusyPreviewActionIconCount:/);
+    assert.match(dockerScript, /\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerReconcileScript, /const markDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
+    assert.match(dockerReconcileScript, /const clearDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
+    assert.match(dockerReconcileScript, /const restartWarmupPending = action === 'restart'/);
+    assert.match(dockerCss, /\.folder-preview i\.fv-preview-lifecycle-pending\s*\{/);
 });
 
 test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {

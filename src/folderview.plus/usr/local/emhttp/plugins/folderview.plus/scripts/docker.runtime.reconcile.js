@@ -20,6 +20,19 @@
     const DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME = '__fvplusDockerLifecycleRefresh';
     const DOCKER_LIFECYCLE_REFRESH_DELAYS_MS = Object.freeze([0, 750, 2000]);
     const DOCKER_LIFECYCLE_ACTIONS = new Set(['start', 'stop', 'pause', 'resume', 'restart']);
+    const DOCKER_LIFECYCLE_PREVIEW_SURFACE_SELECTOR = [
+        '.folder-preview [data-fv-container-id]',
+        '.folder-preview [data-fv-container-name]'
+    ].join(', ');
+    const DOCKER_LIFECYCLE_STATUS_ICON_SELECTOR = [
+        '.fv-preview-status-compact i.fa',
+        '.fv-preview-status-inline i.fa',
+        'i.started',
+        'i.paused',
+        'i.stopped'
+    ].join(', ');
+    const DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE = 'data-fv-lifecycle-icon-class';
+    const DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE = 'data-fv-lifecycle-pending';
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -86,22 +99,99 @@
             if (action === 'pause') return state.active === true && state.paused === true;
             return ['start', 'resume', 'restart'].includes(action) && state.active === true && state.paused !== true;
         };
+        const getDockerLifecyclePreviewSurfaces = (request = {}) => {
+            const entry = resolveDockerLifecycleEntry(request);
+            const requestId = String(request?.container || '').replace(/^sha256:/i, '').trim();
+            const entryIds = [
+                requestId,
+                entry?.shortId,
+                entry?.id,
+                entry?.info?.Id
+            ].map((value) => String(value || '').replace(/^sha256:/i, '').trim()).filter(Boolean);
+            const entryName = String(entry?.name || entry?.info?.Name || '').trim();
+            const matchesIdentity = (surface) => {
+                const surfaceId = String(surface?.getAttribute?.('data-fv-container-id') || '').replace(/^sha256:/i, '').trim();
+                const surfaceName = String(surface?.getAttribute?.('data-fv-container-name') || '').trim();
+                const idMatch = surfaceId && entryIds.some((candidate) => (
+                    candidate === surfaceId
+                    || (candidate.length >= 12 && surfaceId.length >= 12 && candidate.slice(0, 12) === surfaceId.slice(0, 12))
+                ));
+                return Boolean(idMatch || (entryName && surfaceName === entryName));
+            };
+            return Array.from(doc?.querySelectorAll?.(DOCKER_LIFECYCLE_PREVIEW_SURFACE_SELECTOR) || [])
+                .filter(matchesIdentity);
+        };
+        const getDockerLifecycleStatusIcons = (surface) => Array.from(
+            surface?.querySelectorAll?.(DOCKER_LIFECYCLE_STATUS_ICON_SELECTOR) || []
+        );
+        const markDockerLifecycleSurfacePending = (request = {}) => {
+            const action = String(request?.action || '').trim().toLowerCase();
+            const surfaces = getDockerLifecyclePreviewSurfaces(request);
+            let iconCount = 0;
+            surfaces.forEach((surface) => {
+                surface?.setAttribute?.(DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE, 'true');
+                surface?.setAttribute?.('aria-busy', 'true');
+                surface?.setAttribute?.('data-fv-lifecycle-action', action);
+                getDockerLifecycleStatusIcons(surface).forEach((icon) => {
+                    if (!icon?.hasAttribute?.(DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE)) {
+                        icon?.setAttribute?.(DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE, String(icon?.getAttribute?.('class') || ''));
+                    }
+                    const classNames = String(icon?.getAttribute?.('class') || '')
+                        .split(/\s+/)
+                        .filter((className) => className && ![
+                            'fa-play', 'fa-pause', 'fa-square', 'fa-refresh', 'fa-spin',
+                            'started', 'paused', 'stopped', 'green-text', 'orange-text', 'red-text',
+                            'fv-preview-status-started', 'fv-preview-status-paused', 'fv-preview-status-stopped',
+                            'fv-preview-lifecycle-pending'
+                        ].includes(className));
+                    icon?.setAttribute?.('class', [...new Set([...classNames, 'fa', 'fa-refresh', 'fa-spin', 'fv-preview-lifecycle-pending'])].join(' '));
+                    icon?.setAttribute?.('aria-busy', 'true');
+                    iconCount += 1;
+                });
+            });
+            return { surfaces, iconCount };
+        };
+        const clearDockerLifecycleSurfacePending = (request = {}) => {
+            const matched = getDockerLifecyclePreviewSurfaces(request);
+            const pending = Array.from(doc?.querySelectorAll?.(`[${DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE}="true"]`) || []);
+            const surfaces = Array.from(new Set([...matched, ...pending]));
+            let restoredIconCount = 0;
+            surfaces.forEach((surface) => {
+                getDockerLifecycleStatusIcons(surface).forEach((icon) => {
+                    if (icon?.hasAttribute?.(DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE)) {
+                        icon?.setAttribute?.('class', String(icon?.getAttribute?.(DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE) || ''));
+                        icon?.removeAttribute?.(DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE);
+                        restoredIconCount += 1;
+                    }
+                    icon?.removeAttribute?.('aria-busy');
+                });
+                surface?.removeAttribute?.(DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE);
+                surface?.removeAttribute?.('data-fv-lifecycle-action');
+                surface?.removeAttribute?.('aria-busy');
+            });
+            return { surfaces, restoredIconCount };
+        };
         const countBusyPreviewActionIcons = () => doc?.querySelectorAll?.([
             '.folder-preview .fv-preview-action-slot i.fa-spin',
             '.folder-preview .fv-preview-action-slot i.fa-spinner',
-            '.folder-preview .fv-preview-action-slot i.fa-circle-o-notch'
+            '.folder-preview .fv-preview-action-slot i.fa-circle-o-notch',
+            `.folder-preview i[${DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE}]`
         ].join(', ')).length || 0;
         const defaultPrepareLifecycleSurface = (request = {}) => {
+            const pendingSurface = markDockerLifecycleSurfacePending(request);
             appendDockerBulkUpdateTrace('lifecycleSurfacePrepared', {
                 action: String(request?.action || '').trim().toLowerCase(),
                 observedState: defaultLifecycleStateSnapshot(request),
+                previewSurfaceCount: pendingSurface.surfaces.length,
+                pendingStatusIconCount: pendingSurface.iconCount,
                 busyPreviewActionIconCount: countBusyPreviewActionIcons()
             });
-            return true;
+            return pendingSurface.surfaces.length > 0;
         };
         const defaultFinalizeLifecycleSurface = (request = {}, outcome = {}) => {
             const entry = resolveDockerLifecycleEntry(request);
             const name = String(entry?.info?.Name || '').trim();
+            const restoredSurface = clearDockerLifecycleSurfacePending(request);
             syncDockerVisibleFoldersFromRuntimeCache(name ? new Set([name]) : null);
             const remainingBusyIconCount = countBusyPreviewActionIcons();
             appendDockerBulkUpdateTrace('lifecycleSurfaceFinalized', {
@@ -112,6 +202,8 @@
                 attempt: Number(outcome?.attempt || 0),
                 observedState: outcome?.observedState || defaultLifecycleStateSnapshot(request),
                 matchedRuntimeEntry: Boolean(entry),
+                previewSurfaceCount: restoredSurface.surfaces.length,
+                restoredStatusIconCount: restoredSurface.restoredIconCount,
                 remainingBusyPreviewActionIconCount: remainingBusyIconCount
             });
             queueDockerSupportBundlePageSnapshot('lifecycle-surface-finalized', 80);
@@ -527,7 +619,11 @@
                     }))
                         .then((success) => {
                             const observedState = getDockerLifecycleStateSnapshot(request);
+                            const restartWarmupPending = action === 'restart'
+                                && attemptIndex === 0
+                                && dockerLifecycleRefreshDelaysMs.length > 1;
                             const settled = success === true
+                                && restartWarmupPending !== true
                                 && isDockerLifecycleStateSettled
                                 && isDockerLifecycleStateSettled(request) === true;
                             if (settled) {

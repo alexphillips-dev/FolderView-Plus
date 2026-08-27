@@ -503,10 +503,16 @@ test('orderFoldersByPrefs keeps child folders nested after parent in sorted outp
 test('getFolderStatusColors normalizes and defaults values', () => {
     const defaults = utils.getFolderStatusColors({});
     assert.deepEqual(defaults, {
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
         stopped: '#ff4d4d'
     });
+
+    assert.equal(utils.getFolderStatusColors({ status_color_started: '#ffffff' }).started, '#55b72d');
+    assert.equal(utils.getFolderStatusColors({
+        status_color_started: '#ffffff',
+        status_color_started_explicit: true
+    }).started, '#ffffff');
 
     const custom = utils.getFolderStatusColors({
         status_color_started: '#AbC',

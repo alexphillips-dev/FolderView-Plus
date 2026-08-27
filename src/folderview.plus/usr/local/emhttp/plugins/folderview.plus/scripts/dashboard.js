@@ -35,7 +35,7 @@ const dashboardT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
 );
 const localDefaultFolderStatusColors = {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
@@ -82,9 +82,7 @@ const resolveDashboardFolderStatusColors = (settings) => {
         return colors;
     }
     return {
-        started: colors.started === localDefaultFolderStatusColors.started
-            ? localResolvedFolderStatusColors.started
-            : colors.started,
+        started: colors.started,
         paused: colors.paused === localDefaultFolderStatusColors.paused
             ? localResolvedFolderStatusColors.paused
             : colors.paused,

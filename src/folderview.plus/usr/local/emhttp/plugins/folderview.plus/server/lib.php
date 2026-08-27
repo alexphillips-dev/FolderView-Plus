@@ -399,7 +399,7 @@
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
     const FVPLUS_DOCKER_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
-        'started' => '#ffffff',
+        'started' => '#55b72d',
         'paused' => '#b8860b',
         'stopped' => '#ff4d4d'
     ];

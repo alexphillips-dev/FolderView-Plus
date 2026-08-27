@@ -279,7 +279,7 @@ const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const folderEditorRegexSelectionModule = window.FolderViewPlusFoundationModules?.folderEditorRegexSelection || null;
 const folderEditorMemberListModule = window.FolderViewPlusFoundationModules?.folderEditorMemberList || null;
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
@@ -1072,7 +1072,7 @@ const buildParentSmartDefaults = (parentFolder) => {
         dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
         folder_accent_enabled: isFolderAccentEnabled(settings),
         folder_accent_color: normalizeHexColor(settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR),
-        status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        status_color_started: utils?.getFolderStatusColors?.(settings)?.started || normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
         status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
         status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true
@@ -3839,7 +3839,7 @@ const buildFolderPayloadFromForm = (e) => {
             dropdown_hover_color: normalizeHexColor(e.dropdown_hover_color.value.toString(), DEFAULT_DROPDOWN_HOVER_COLOR),
             folder_accent_enabled: e.folder_accent_enabled.checked,
             folder_accent_color: normalizeHexColor(e.folder_accent_color.value.toString(), DEFAULT_FOLDER_ACCENT_COLOR),
-            status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
+            status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started), status_color_started_explicit: true,
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
             status_color_lock: e.status_color_lock?.checked === true,

@@ -123,7 +123,7 @@
             status: Object.freeze({
                 folder_accent_enabled: false,
                 folder_accent_color: deps.defaultFolderAccentColor || '#ffca63',
-                status_color_started: deps.defaultFolderStatusColors?.started || '#ffffff',
+                status_color_started: deps.defaultFolderStatusColors?.started || '#55b72d',
                 status_color_paused: deps.defaultFolderStatusColors?.paused || '#b8860b',
                 status_color_stopped: deps.defaultFolderStatusColors?.stopped || '#ff4d4d',
                 status_color_lock: false,

@@ -82,7 +82,7 @@ const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', optio
         : null
 );
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
@@ -1417,6 +1417,13 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const textWidth = String(settings?.preview_text_width || '').trim();
     const textWidthData = textWidth ? ` data-fv-preview-text-width="${escapeHtml(textWidth)}"` : '';
     const autostartClass = autostart ? ' autostart' : '';
+    const decoratePreviewIdentity = ($item) => {
+        const containerId = String(entry?.shortId || entry?.id || entry?.info?.Id || '').replace(/^sha256:/i, '').trim();
+        const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+        if (containerId) $item.attr('data-fv-container-id', containerId);
+        if (containerName) $item.attr('data-fv-container-name', containerName);
+        return $item;
+    };
     let itemMarkup = '';
     let triggerSelector;
 
@@ -1463,7 +1470,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 triggerSelector = '.fv-docker-preview-card';
                 break;
         }
-        const $compactItem = $(itemMarkup);
+        const $compactItem = decoratePreviewIdentity($(itemMarkup));
         return {
             $item: $compactItem,
             $tooltipTrigger: triggerSelector === '.fv-docker-preview-card'
@@ -1516,7 +1523,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             break;
     }
 
-    const $item = $(itemMarkup);
+    const $item = decoratePreviewIdentity($(itemMarkup));
     return {
         $item,
         $tooltipTrigger: $item.find(triggerSelector).first()
@@ -5144,6 +5151,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 autostart
             });
         const { $item, $tooltipTrigger } = builtPreview;
+        $item
+            .attr('data-fv-container-id', String(ctid || '').trim())
+            .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
         $createdFolderPreview.append($item);
         if (folder.settings.context === 1) {
             getDockerPreviewActionsApi().bindDockerPreviewDefaultContextBridge($item, $sourceRow, folder.settings);

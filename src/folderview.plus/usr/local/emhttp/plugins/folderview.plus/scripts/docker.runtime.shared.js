@@ -29,7 +29,7 @@
     const runtimeJquery = window.jQuery || window.$ || null;
 
     const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || Object.freeze({
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
         stopped: '#ff4d4d'
     });
@@ -159,9 +159,9 @@
     };
 
     const getFolderStatusColors = (settings) => {
-        const source = settings && typeof settings === 'object' ? settings : {};
+        const source = settings && typeof settings === 'object' ? settings : {}; const normalizedStarted = normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
         return {
-            started: normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            started: !startedExplicit && normalizedStarted === (folderContract?.LEGACY_DEFAULT_FOLDER_STARTED_COLOR || '#ffffff') ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeStatusHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
             stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
         };
@@ -170,7 +170,7 @@
     const getFolderStatusColorOverrides = (settings) => {
         const colors = getFolderStatusColors(settings);
         return {
-            started: colors.started !== DEFAULT_FOLDER_STATUS_COLORS.started ? colors.started : '',
+            started: colors.started,
             paused: colors.paused !== DEFAULT_FOLDER_STATUS_COLORS.paused ? colors.paused : '',
             stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : ''
         };

@@ -280,7 +280,7 @@
                     ? 'Preview disabled'
                     : `${previewLabel} - ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
             );
-            $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#ffffff'));
+            $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#55b72d'));
             $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused?.value, deps.defaultFolderStatusColors?.paused || '#b8860b'));
             $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped?.value, deps.defaultFolderStatusColors?.stopped || '#ff4d4d'));
             $('#fvSwatchAccent').css('background-color', accentColor);

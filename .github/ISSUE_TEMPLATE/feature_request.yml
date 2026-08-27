@@ -49,6 +49,9 @@ body:
       multiple: true
       options:
         - Docker tab rendering
+        - Docker container actions / context menus
+        - Docker API / provider compatibility
+        - Unraid native Docker / prerelease compatibility
         - VM tab rendering
         - Dashboard widgets
         - Settings basic view
@@ -60,8 +63,12 @@ body:
         - Custom icon upload/third-party icons
         - Safe mode / conflict detection
         - Mobile / touch behavior
+        - Docker Start Order
+        - Diagnostics / support bundles
+        - Reverse proxy / access paths
+        - Privacy / security behavior
         - Update/Release process
-        - Docs/README
+        - Docs / Wiki / README
         - Other
     validations:
       required: true

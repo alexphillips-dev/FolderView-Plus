@@ -1,8 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Documentation and Install Guide
-    url: https://github.com/alexphillips-dev/FolderView-Plus#readme
-    about: Check install, update, and usage guidance before opening an issue.
+  - name: FolderView Plus Wiki
+    url: https://github.com/alexphillips-dev/FolderView-Plus/wiki
+    about: Start with the complete installation, update, configuration, and usage documentation.
+  - name: Troubleshooting Guide
+    url: https://github.com/alexphillips-dev/FolderView-Plus/wiki/Troubleshooting
+    about: Check symptom-specific troubleshooting before opening an issue.
+  - name: Diagnostics and Public Sharing Safety
+    url: https://github.com/alexphillips-dev/FolderView-Plus/wiki/Activity-Diagnostics-and-Support
+    about: Learn how to export and review a sanitized support bundle for a public report.
   - name: FolderView Plus Support Thread (Unraid Forum)
     url: https://forums.unraid.net/topic/197631-plugin-folderview-plus/
     about: Plugin support thread for installation, usage, and compatibility questions.

@@ -41,6 +41,7 @@ for (const relativePath of [
   'scripts/run_ci_suite.sh',
   'scripts/actionlint_guard.sh',
   'scripts/classify_ci_changes.mjs',
+  'scripts/issue_form_guard.mjs',
   'scripts/csp_readiness_guard.mjs',
   'scripts/fixture_browser_tests.sh',
   'scripts/fixture_browser_tests.mjs',
@@ -121,6 +122,13 @@ if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh')))
 }
 if (!/test_runner_contract_guard\.mjs/.test(read('scripts/run_ci_suite.sh'))) {
   fail('The shared lint lane must enforce split test-runner contracts.');
+}
+if (!/run_timed_step issue-form-contract/.test(read('scripts/run_ci_suite.sh'))) {
+  fail('Workflow and full guard lanes must enforce issue-form contracts.');
+}
+if (!/'\.github\/ISSUE_TEMPLATE\/\*\*'/.test(read('scripts/classify_ci_changes.mjs'))
+    || !/'scripts\/issue_form_guard\.mjs'/.test(read('scripts/classify_ci_changes.mjs'))) {
+  fail('Issue forms and their guard must be classified as workflow changes.');
 }
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');

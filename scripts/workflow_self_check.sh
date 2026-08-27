@@ -255,8 +255,8 @@ if (!/upload-artifact@[0-9a-f]{40}\s+# v7/.test(backmergeWorkflow)) {
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
 }
-if (!/Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must install locked Node validation dependencies before running the full suite.');
+if (!/Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must install locked Node validation dependencies from the merged dev tree before packaging and validation.');
 }
 if (!/Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must commit the rebuilt dev package before validation and push.');

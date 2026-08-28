@@ -227,15 +227,28 @@
                     folder_accent_color: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.folder_accent_color, deps.defaultFolderAccentColor || '#ffca63')
                         : String(settings.folder_accent_color || deps.defaultFolderAccentColor || '#ffca63'),
-                    status_color_started: typeof deps.normalizeHexColor === 'function'
-                        ? deps.normalizeHexColor(settings.status_color_started, deps.defaultFolderStatusColors?.started || '#ffffff')
-                        : String(settings.status_color_started || deps.defaultFolderStatusColors?.started || '#ffffff'),
+                    status_color_started: (() => {
+                        const defaultStarted = deps.defaultFolderStatusColors?.started || '#55b72d';
+                        const normalizedStarted = typeof deps.normalizeHexColor === 'function'
+                            ? deps.normalizeHexColor(settings.status_color_started, defaultStarted)
+                            : String(settings.status_color_started || defaultStarted).toLowerCase();
+                        const startedExplicit = settings.status_color_started_explicit === true
+                            || settings.statusColorStartedExplicit === true;
+                        return !startedExplicit && normalizedStarted === '#ffffff'
+                            ? defaultStarted
+                            : normalizedStarted;
+                    })(),
+                    status_color_started_explicit: settings.status_color_started_explicit === true
+                        || settings.statusColorStartedExplicit === true,
                     status_color_paused: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_paused, deps.defaultFolderStatusColors?.paused || '#b8860b')
                         : String(settings.status_color_paused || deps.defaultFolderStatusColors?.paused || '#b8860b'),
                     status_color_stopped: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_stopped, deps.defaultFolderStatusColors?.stopped || '#ff4d4d')
                         : String(settings.status_color_stopped || deps.defaultFolderStatusColors?.stopped || '#ff4d4d'),
+                    status_color_text: typeof deps.normalizeHexColor === 'function'
+                        ? deps.normalizeHexColor(settings.status_color_text, deps.defaultFolderStatusColors?.text || '#ffffff')
+                        : String(settings.status_color_text || deps.defaultFolderStatusColors?.text || '#ffffff'),
                     status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true,
                     health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
                     health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),

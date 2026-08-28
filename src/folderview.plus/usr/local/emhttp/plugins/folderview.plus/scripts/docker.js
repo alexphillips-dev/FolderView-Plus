@@ -63,9 +63,11 @@ const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.docke
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
 let dockerApiIntegration = null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
+const dockerChildFolderPreviewMenuModule = window.FolderViewPlusFoundationModules?.dockerChildFolderPreviewMenu || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
+const folderWebuiProfilesModule = window.FolderViewPlusFoundationModules?.folderWebuiProfiles || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
@@ -81,9 +83,9 @@ const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', optio
         : null
 );
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
-    stopped: '#ff4d4d'
+    stopped: '#ff4d4d', text: '#ffffff'
 };
 const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderStatusColorOverrides === 'function'
     ? dockerRuntimeShared.applyFolderStatusColorOverrides
@@ -205,6 +207,7 @@ const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
         manualOrder: [],
+        hiddenFolderIds: [],
         hideEmptyFolders: false,
         appColumnWidth: 'standard',
         autoRules: [],
@@ -443,6 +446,12 @@ if (
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'missing', 'Docker preview action helpers unavailable');
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'ok', 'Docker preview action helpers ready');
+}
+if (!dockerChildFolderPreviewMenuModule || typeof dockerChildFolderPreviewMenuModule.createApi !== 'function') {
+    dockerBootstrapMissingModules.push('docker.runtime.child-folder-preview-menu.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.child-folder-preview-menu.js', 'missing', 'child-folder preview menu unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.child-folder-preview-menu.js', 'ok', 'child-folder preview menu ready');
 }
 if (
     window.FolderViewPlusFolderPreviewModelModuleLoaded !== true
@@ -693,6 +702,7 @@ let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
+const dockerAdvancedPreviewContextBindersByName = new Map();
 let dockerRuntimeActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -871,11 +881,16 @@ const getDockerRuntimeHierarchyApi = () => {
             applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
             previewModelModule: folderPreviewModelModule,
+            childFolderPreviewMenuModule: dockerChildFolderPreviewMenuModule,
             buildDockerPreviewItem: (options) => buildDockerPreviewItem(options),
             appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl, options = {}) =>
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options),
             decorateDockerPreviewMemberTriggers: ($targets, folderId, containerName) =>
                 decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
+            bindDockerNestedPreviewContext: ($item, $tooltipTrigger, entry, folder, folderId) =>
+                bindDockerNestedPreviewContext($item, $tooltipTrigger, entry, folder, folderId),
+            auditDockerPreviewContextBridges: ($preview, settings) =>
+                getDockerPreviewActionsApi()?.auditDockerPreviewContextBridges?.($preview, settings),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             editFolder: (id) => editFolder(id),
@@ -898,6 +913,9 @@ const getDockerRuntimeHierarchyApi = () => {
                 }
                 addDockerFolderContext(id);
             },
+            recordChildFolderPreviewRender: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewRender?.(),
+            recordChildFolderPreviewBinding: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewBinding?.(),
+            recordChildFolderPreviewMenuOpen: (details) => getDockerPreviewActionsApi()?.recordChildFolderPreviewMenuOpen?.(details),
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
             console: window.console
         });
@@ -936,6 +954,7 @@ const getDockerRuntimeActionsApi = () => {
             runDockerGuardedAction: (actionName, action, context = {}) =>
                 runDockerGuardedAction(actionName, action, context),
             getDockerMenuLabel: (key, fallback) => getDockerMenuLabel(key, fallback),
+            webuiProfiles: folderWebuiProfilesModule,
             folderEvents,
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
@@ -1014,13 +1033,13 @@ const buildDockerIsolatedViewDeps = () => ({
     readPinnedFolderIds: (prefs = {}) => Array.isArray(prefs?.pinnedFolderIds) ? prefs.pinnedFolderIds : [],
     isFolderLocked: (folderId) => isDockerFolderLocked(folderId),
     createFolderBtn: () => createFolderBtn(),
-    editFolder: (id) => editFolder(id),
+    editFolder: (id, options = {}) => editFolder(id, options),
     actionFolder: (id, action, options = {}) => actionFolder(id, action, options),
     updateFolder: (id, options = {}) => updateFolder(id, options),
     forceUpdateFolder: (id, options = {}) => forceUpdateFolder(id, options),
     getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
-    openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false) =>
-        openFolderWebuisFromMenu(id, runningOnly, includeDescendants),
+    openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false, profileId = '') =>
+        openFolderWebuisFromMenu(id, runningOnly, includeDescendants, profileId),
     openWebuiInNewTab: (url) => openWebuiInNewTab(url),
     openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
     openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
@@ -1406,6 +1425,13 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const textWidth = String(settings?.preview_text_width || '').trim();
     const textWidthData = textWidth ? ` data-fv-preview-text-width="${escapeHtml(textWidth)}"` : '';
     const autostartClass = autostart ? ' autostart' : '';
+    const decoratePreviewIdentity = ($item) => {
+        const containerId = String(entry?.shortId || entry?.id || entry?.info?.Id || '').replace(/^sha256:/i, '').trim();
+        const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+        if (containerId) $item.attr('data-fv-container-id', containerId);
+        if (containerName) $item.attr('data-fv-container-name', containerName);
+        return $item;
+    };
     let itemMarkup = '';
     let triggerSelector;
 
@@ -1452,7 +1478,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 triggerSelector = '.fv-docker-preview-card';
                 break;
         }
-        const $compactItem = $(itemMarkup);
+        const $compactItem = decoratePreviewIdentity($(itemMarkup));
         return {
             $item: $compactItem,
             $tooltipTrigger: triggerSelector === '.fv-docker-preview-card'
@@ -1505,7 +1531,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             break;
     }
 
-    const $item = $(itemMarkup);
+    const $item = decoratePreviewIdentity($(itemMarkup));
     return {
         $item,
         $tooltipTrigger: $item.find(triggerSelector).first()
@@ -1967,6 +1993,18 @@ const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
 // default preview rendering stays lightweight until the user interacts.
 const DOCKER_PREVIEW_POPUP_ENABLED = true;
 
+const bindDockerNestedPreviewContext = ($item, $tooltipTrigger, entry = {}, folder = {}, folderId = '') => {
+    return getDockerPreviewActionsApi().bindDockerNestedPreviewContext({
+        $item, $tooltipTrigger, entry, settings: folder?.settings || {},
+        bindAdvancedContext: ($trigger, containerName) => {
+            const bindAdvancedContext = dockerAdvancedPreviewContextBindersByName.get(containerName);
+            return typeof bindAdvancedContext === 'function'
+                ? bindAdvancedContext($trigger, { folder, folderId })
+                : false;
+        }
+    });
+};
+
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
     if (typeof utils.orderFoldersByPrefs === 'function') {
@@ -2092,6 +2130,16 @@ const isDockerFolderPinned = (folderId) => {
     const runtimePinned = normalizeDockerPinnedFolderIdList(dockerRuntimeStateStore.get('pinnedFolderIds', []));
     return runtimePinned.includes(id);
 };
+const dockerHiddenFoldersModule = window.FolderViewPlusFoundationModules?.dockerHiddenFolders; const dockerHiddenFoldersApi = dockerHiddenFoldersModule.createApi({
+    window, document, $, runtimeStateStore: dockerRuntimeStateStore, safeActionRunner: dockerSafeUiActionRunner,
+    getFolders: () => globalFolders || {}, getPrefs: () => folderTypePrefs || {}, setPrefs: (prefs) => { folderTypePrefs = prefs; },
+    normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}), normalizeParentId: (id) => normalizeFolderParentId(id), readFolderIdFromRow: (row) => readFolderIdFromRow(row), readFolderOwnerFromRow: (row) => readFolderOwnerFromRow(row),
+    runGuardedAction: (name, action, context) => runDockerGuardedAction(name, action, context), savePrefs: (patch, currentPrefs) => saveDockerRuntimeToolbarPrefs(patch, currentPrefs), fetchPrefs: () => fetchDockerPinnedFolderPrefs(),
+    syncDependentUi: () => { applyDockerFocusedFolderState(); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode()); refreshDockerRuntimeSortableRows(); queueDockerRuntimeResizerBind(); scheduleDockerRuntimeWidthReflow('folder-visibility', 24); },
+    getFocusedFolderId: () => dockerFocusedFolderId, clearFocusedFolder: () => { dockerRuntimeStateStore.set({ focusedFolderId: '' }); dockerFocusedFolderId = ''; },
+    offerUndo: (payload) => dockerRuntimeActionBarApi?.offerHiddenFolderUndo?.(payload), dismissUndo: (folderId = '') => dockerRuntimeActionBarApi?.clearHiddenFolderUndo?.(folderId),
+    translate: (key, fallback) => dockerT(key, fallback), escapeHtml, svgIcon: (name, options = {}) => window.FolderViewPlusUI?.svgIcon?.(name, options) || ''
+});
 const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {
         return '';
@@ -3639,7 +3687,7 @@ const restoreDockerNativeHostList = async (requestBundle = null) => {
             'folder-element',
             'fv-nested-hidden',
             'fv-folder-focus-hidden',
-            'fv-toolbar-filter-hidden'
+            'fv-toolbar-filter-hidden', 'fv-folder-user-hidden', 'fv-folder-hidden-revealed'
         );
         row.classList.add('sortable');
         row.style.removeProperty('display');
@@ -3794,6 +3842,7 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
             dockerFocusedFolderId = '';
         },
         scheduleWidthReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
+        hiddenFolders: dockerHiddenFoldersApi,
         buildFolderHierarchy,
         expandFolderBranch,
         collapseFolderBranch,
@@ -3859,6 +3908,7 @@ const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     refreshDockerPreviewTooltipContent(changedSet);
@@ -4605,6 +4655,7 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     dockerDeferredPreviewController.flush();
+    dockerAdvancedPreviewContextBindersByName.clear();
     const dockerRuntimeRoot = document.querySelector('#docker_list, #docker_view');
     dockerRuntimePerformanceTelemetry?.observe?.(dockerRuntimeRoot);
     dockerRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible', {
@@ -4871,6 +4922,7 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     runDockerRuntimeWidthReflow('pre-visible-folder-commit', {
@@ -5133,6 +5185,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 autostart
             });
         const { $item, $tooltipTrigger } = builtPreview;
+        $item
+            .attr('data-fv-container-id', String(ctid || '').trim())
+            .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
         $createdFolderPreview.append($item);
         if (folder.settings.context === 1) {
             getDockerPreviewActionsApi().bindDockerPreviewDefaultContextBridge($item, $sourceRow, folder.settings);
@@ -5153,7 +5208,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const resilientSingleRowPreview = (previewMode, selector, folderTrId, ctid, autostart, previewEntry, $sourceRow) =>
         getDockerPreviewActionsApi().renderDockerSingleRowPreview({
             $sourceRow, $preview: $createdFolderPreview, selector, previewMode,
-            context: folder.settings.context, ctid, autostart,
+            context: folder.settings.context, ctid, containerName: previewEntry?.name, autostart,
             appendModelPreview: () => appendCompactPreview(
                 folderTrId, ctid, autostart, previewEntry, $sourceRow,
                 { preferNativeDefaultContext: false }
@@ -5174,7 +5229,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                const $previewItem = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`)
+                    .clone()
+                    .addClass(`${autostart ? 'autostart' : ''}`)
+                    .attr('data-fv-container-id', String(ctid || '').trim())
+                    .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($previewItem);
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
                     tmpId.attr("id", "folder-preview-" + ctid);
@@ -5202,7 +5262,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
-                lstSpan.children('span.inner:last').append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                const $previewItem = lstSpan.children('span.inner:last')
+                    .attr('data-fv-container-id', String(ctid || '').trim())
+                    .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
+                $previewItem.append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
                     tmpId.attr("id", "folder-preview-" + ctid);
@@ -5378,9 +5441,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
 
-            if(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is valid. Deferring tooltipster initialization until first interaction.`);
-                const triggerMode = folder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
+            const bindAdvancedPreviewContext = ($contextTrigger, context = {}) => {
+                const contextFolder = context.folder && typeof context.folder === 'object' ? context.folder : folder;
+                const contextFolderId = String(context.folderId || id).trim() || id;
+                const tooltipTarget = $contextTrigger && $contextTrigger.length ? $contextTrigger : $();
+                if(DOCKER_PREVIEW_POPUP_ENABLED && tooltipTarget.length > 0) {
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: tooltip target is valid. Deferring tooltipster initialization until first interaction.`);
+                const triggerMode = contextFolder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
+                const tooltip_trigger_element = tooltipTarget;
                 initializeDockerTooltipOnDemand($(tooltip_trigger_element), () => $(tooltip_trigger_element).tooltipster({
                     interactive: true,
                     theme: ['tooltipster-docker-folder'],
@@ -5400,14 +5468,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
                         if (FOLDER_VIEW_DEBUG_MODE) {
                             console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionBefore. Instance:`, instance, "Helper:", helper, "Origin:", origin);
-                            console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Current folder settings for context:`, {...folder.settings});
+                            console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Current folder settings for context:`, {...contextFolder.settings});
                         }
 
                         // Dispatch your custom event
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-before event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-before', {detail: {
-                            folder: folder,
-                            id: id, // Folder ID
+                            folder: contextFolder,
+                            id: contextFolderId, // Folder ID
                             containerInfo: ct, // Container info
                             origin: origin,
                             charts: charts, 
@@ -5431,8 +5499,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-start event.`);
                         
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-ready-start', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: triggerOriginEl,
                             tooltip: tooltipDomEl,
@@ -5450,7 +5518,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                                 x: {
                                     type: 'realtime',
                                     realtime: {
-                                        duration: 1000*(folder.settings.context_graph_time || 60),
+                                        duration: 1000*(contextFolder.settings.context_graph_time || 60),
                                         refresh: 1000, 
                                         delay: 1000 
                                     },
@@ -5483,10 +5551,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                                 }
                             }
                         };
-                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Chart.js options:`, options, "Graph mode setting:", folder.settings.context_graph);
+                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Chart.js options:`, options, "Graph mode setting:", contextFolder.settings.context_graph);
 
                         charts = []; 
-                        switch (folder.settings.context_graph) {
+                        switch (contextFolder.settings.context_graph) {
                             case 0: 
                                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Graph mode 0 (None).`);
                                 diabled = [0, 1, 2]; 
@@ -5609,8 +5677,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-end event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-ready-end', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: triggerOriginEl,
                             tooltip: tooltipDomEl,
@@ -5627,8 +5695,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionAfter. Instance:`, instance, "Helper:", helper, "Origin:", origin);
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-after event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-after', {detail: {
-                            folder: folder,
-                            id: id,
+                            folder: contextFolder,
+                            id: contextFolderId,
                             containerInfo: ct,
                             origin: origin,
                             charts, 
@@ -5660,11 +5728,20 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     },
                     content: $('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
                 }), triggerMode === 'hover');
-            } else if (FOLDER_VIEW_DEBUG_MODE && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
-                console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
-            } else {
-                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
-            }
+                return true;
+                }
+                if (FOLDER_VIEW_DEBUG_MODE && tooltipTarget.length > 0) {
+                    console.log(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
+                } else if (FOLDER_VIEW_DEBUG_MODE) {
+                    console.warn(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: tooltip target is not valid. Tooltipster was not initialized.`);
+                }
+                return false;
+            };
+            dockerAdvancedPreviewContextBindersByName.set(
+                String(container_name_in_folder || '').trim(),
+                bindAdvancedPreviewContext
+            );
+            bindAdvancedPreviewContext($(tooltip_trigger_element));
 
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
@@ -6154,12 +6231,7 @@ const buildDockerFolderEditorUrl = (id = '', options = {}) => {
         ? actionsApi.buildDockerFolderEditorUrl(id, options)
         : `/Docker/Folder?type=docker&_=${String(Date.now())}#type=docker`;
 };
-const editFolder = (id) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.editFolder === 'function') {
-        actionsApi.editFolder(id);
-    }
-};
+const editFolder = (id, options = {}) => getDockerRuntimeActionsApi()?.editFolder?.(id, options);
 const createChildFolder = (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.createChildFolder === 'function') {
@@ -6218,12 +6290,8 @@ const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = 
         : [];
 };
 
-const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.openFolderWebuisFromMenu === 'function') {
-        actionsApi.openFolderWebuisFromMenu(id, runningOnly, includeDescendants);
-    }
-};
+const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false, profileId = '') =>
+    getDockerRuntimeActionsApi()?.openFolderWebuisFromMenu?.(id, runningOnly, includeDescendants, profileId);
 
 const copyDockerFolderSettingsFromMenu = async (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
@@ -6412,19 +6480,20 @@ const DOCKER_CONTEXT_QUICK_ACTION_LABELS = new Set([
     'pin folder',
     'unpin folder',
     'lock folder',
-    'unlock folder'
+    'unlock folder', ...dockerHiddenFoldersModule.QUICK_LABELS
 ]);
 const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter({
     menuClassName: 'fvplus-docker-context-menu',
     quickItemClassName: 'fvplus-docker-quick-item',
     clearClassName: 'fvplus-docker-quick-clear',
     labelSet: DOCKER_CONTEXT_QUICK_ACTION_LABELS,
+    minimumItems: 4, maximumItems: 4,
     iconClassCandidates: [
         'fa-bullseye',
         'fa-dot-circle-o',
         'fa-thumb-tack',
         'fa-lock',
-        'fa-unlock-alt'
+        'fa-unlock-alt', ...dockerHiddenFoldersModule.QUICK_ICON_CLASSES
     ]
 });
 const DOCKER_CONTEXT_MENU_SELECTORS = [
@@ -6439,6 +6508,7 @@ const queueDockerFolderContextQuickIcons = (attempt = 0) => {
         return;
     }
     dockerContextQuickStripAdapter.queueEnhance(attempt);
+    window.setTimeout(() => dockerHiddenFoldersApi?.decorateQuickIcon?.(DOCKER_CONTEXT_MENU_SELECTORS, attempt), 24);
 };
 const getVisibleDockerContextMenus = () => {
     const jq = window.jQuery || window.$;
@@ -6721,6 +6791,7 @@ const addDockerFolderContext = (id) => {
             toggleDockerFolderLock(id);
         }
     });
+    opts.push(dockerHiddenFoldersApi.buildQuickAction(id));
     appendDivider();
 
 
@@ -6898,6 +6969,11 @@ const addDockerFolderContext = (id) => {
         });
         appendDivider();
     }
+
+    if (folderWebuiProfilesModule?.appendRuntimeMenuItems?.(opts, {
+        profiles: folderData.settings.webui_profiles, runtimeEntries: getScopedRuntimeContainersForFolder(id, false), getSafeWebuiUrl, translate: dockerT,
+        onOpen: (profileId) => openFolderWebuisFromMenu(id, true, false, profileId), onManage: () => editFolder(id, { section: 'webuiProfiles' })
+    })) appendDivider();
 
     opts.push({
         text: $.i18n('edit'),
@@ -7666,6 +7742,7 @@ const applyRuntimePrefs = (prefs) => {
     queueDockerRuntimePrivacyToggleMount();
     renderRuntimeHealthBadge(globalFolders, normalized);
     scheduleLiveRefresh(normalized);
+    dockerHiddenFoldersApi.applyVisibility();
 };
 
 const bindDockerRuntimePreferenceSync = () => {
@@ -7676,9 +7753,9 @@ const bindDockerRuntimePreferenceSync = () => {
         if (snapshot?.type !== 'docker' || !snapshot?.prefs) {
             return;
         }
-        const nextPrefs = applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        const nextPrefs = dockerHiddenFoldersApi.reconcilePrefs(applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs)));
         folderTypePrefs = nextPrefs;
-        applyRuntimePrefs(nextPrefs);
+        applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
     });
 };
 bindDockerRuntimePreferenceSync();

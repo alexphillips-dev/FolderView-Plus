@@ -85,8 +85,8 @@
         const folderDefaultsSettings = isPlainObject(folderDefaultsProfileRaw.settings)
             ? JSON.parse(JSON.stringify(folderDefaultsProfileRaw.settings))
             : {};
-        const folderDefaultsActionsRaw = Array.isArray(folderDefaultsProfileRaw.actions) ? folderDefaultsProfileRaw.actions : [];
-        const folderDefaultsActions = [];
+        delete folderDefaultsSettings.webui_profiles; delete folderDefaultsSettings.webuiProfiles;
+        const folderDefaultsActionsRaw = Array.isArray(folderDefaultsProfileRaw.actions) ? folderDefaultsProfileRaw.actions : [], folderDefaultsActions = [];
         folderDefaultsActionsRaw.forEach((entry) => {
             if (!isPlainObject(entry)) {
                 return;
@@ -318,6 +318,7 @@
             )
         };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
+        const hiddenFolderIds = normalizeStringIdList(incoming.hiddenFolderIds);
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
@@ -346,6 +347,7 @@
             sortMode,
             manualOrder,
             pinnedFolderIds,
+            hiddenFolderIds,
             expandedFolderState,
             hideEmptyFolders,
             appColumnWidth,

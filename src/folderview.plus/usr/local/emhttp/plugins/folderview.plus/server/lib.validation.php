@@ -152,6 +152,9 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
         if (array_key_exists('pinnedFolderIds', $payload)) {
             fvplus_validation_assert_list_of_scalarish($payload['pinnedFolderIds'], 'pinnedFolderIds', 10000);
         }
+        if (array_key_exists('hiddenFolderIds', $payload)) {
+            fvplus_validation_assert_list_of_scalarish($payload['hiddenFolderIds'], 'hiddenFolderIds', 10000);
+        }
         if (array_key_exists('expandedFolderState', $payload)) {
             fvplus_validation_assert_assoc_map($payload['expandedFolderState'], 'expandedFolderState', 20000);
         }

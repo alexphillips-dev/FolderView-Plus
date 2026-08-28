@@ -53,6 +53,17 @@
         const collapseFolderBranch = typeof deps.collapseFolderBranch === 'function' ? deps.collapseFolderBranch : (() => {});
         const createFolder = typeof deps.createFolder === 'function' ? deps.createFolder : (() => {});
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
+        const hiddenFolders = deps.hiddenFolders || {};
+        const getHiddenVisibilitySummary = typeof hiddenFolders.getSummary === 'function'
+            ? hiddenFolders.getSummary
+            : (() => ({ explicitCount: 0, effectiveCount: 0, totalFolderCount: 0, revealHiddenFolders: false }));
+        const applyHiddenFolderState = typeof hiddenFolders.applyVisibility === 'function' ? hiddenFolders.applyVisibility : (() => {});
+        const setRevealHiddenFolders = typeof hiddenFolders.setReveal === 'function' ? hiddenFolders.setReveal : (() => false);
+        const restoreHiddenFolder = typeof hiddenFolders.restoreFolder === 'function' ? hiddenFolders.restoreFolder : (async () => false);
+        const restoreAllHiddenFolders = typeof hiddenFolders.restoreAll === 'function' ? hiddenFolders.restoreAll : (async () => false);
+        const svgIcon = typeof hiddenFolders.svgIcon === 'function'
+            ? hiddenFolders.svgIcon
+            : ((name, options = {}) => `<i class="fa ${name === 'eye-off' ? 'fa-eye-slash' : 'fa-eye'} ${escapeHtml(options.className || '')}" aria-hidden="true"></i>`);
         const translate = typeof deps.translate === 'function'
             ? deps.translate
             : ((key, fallback = '') => win?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
@@ -66,6 +77,8 @@
         let eventsBound = false;
         let busy = false;
         let menuPositionFrame = 0;
+        let hiddenFolderUndo = null;
+        let hiddenFolderUndoTimer = 0;
 
         const getListRows = () => hostAdapter && typeof hostAdapter.queryRows === 'function'
             ? hostAdapter.queryRows('all')
@@ -175,6 +188,7 @@
                 });
             }
             applyFocusedFolderState();
+            applyHiddenFolderState();
             scheduleWidthReflow('toolbar-filter', 24);
         };
 
@@ -186,13 +200,31 @@
                 ${count === null ? '' : `<span class="fvplus-docker-action-count fv-ui-badge">${Number(count) || 0}</span>`}
             </button>`;
 
-        const buildViewMenuHtml = (currentMode) => VIEW_OPTIONS.map((option) => `
+        const buildViewMenuHtml = (currentMode) => {
+            const hiddenState = getHiddenVisibilitySummary();
+            const hiddenCount = Math.max(0, Number(hiddenState?.explicitCount) || 0);
+            const revealHidden = hiddenState?.revealHiddenFolders === true;
+            const modeOptions = VIEW_OPTIONS.map((option) => `
             <button type="button" role="menuitemradio" aria-checked="${option.value === currentMode ? 'true' : 'false'}"
                 class="fvplus-docker-action-menu-item fv-ui-button${option.value === currentMode ? ' is-selected' : ''}"
                 data-fvplus-docker-view="${escapeHtml(option.value)}">
                 <i class="fa ${escapeHtml(option.icon)}" aria-hidden="true"></i><span>${escapeHtml(translate(option.i18nKey, option.label))}</span>
                 <i class="fa fa-check fvplus-docker-action-menu-check" aria-hidden="true"></i>
             </button>`).join('');
+            const hiddenLabel = `${translate('docker.visibility.hidden-folders', 'Hidden folders')} (${hiddenCount})`;
+            return `${modeOptions}
+                <span class="fvplus-docker-action-menu-divider" role="separator"></span>
+                <button type="button" role="menuitemcheckbox" aria-checked="${revealHidden ? 'true' : 'false'}"
+                    class="fvplus-docker-action-menu-item fv-ui-button${revealHidden ? ' is-selected' : ''}"
+                    data-fvplus-docker-hidden="toggle-reveal" ${hiddenCount > 0 ? '' : 'disabled'}>
+                    ${svgIcon(revealHidden ? 'eye-off' : 'eye', { className: 'fvplus-docker-action-svg' })}<span>${escapeHtml(hiddenLabel)}</span>
+                    <i class="fa fa-check fvplus-docker-action-menu-check" aria-hidden="true"></i>
+                </button>
+                <button type="button" role="menuitem" class="fvplus-docker-action-menu-item fv-ui-button"
+                    data-fvplus-docker-hidden="restore-all" ${hiddenCount > 0 ? '' : 'disabled'}>
+                    <i class="fa fa-undo" aria-hidden="true"></i><span>${escapeHtml(translate('docker.visibility.restore-all', 'Restore all hidden folders'))}</span>
+                </button>`;
+        };
 
         const buildToolsMenuHtml = () => {
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
@@ -259,6 +291,12 @@
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
             if (reconcileFilterWithPrefs()) applyFilterState();
             const state = summarize();
+            const hiddenState = getHiddenVisibilitySummary();
+            const allFoldersHidden = isFolderView
+                && hiddenState?.revealHiddenFolders !== true
+                && Number(hiddenState?.totalFolderCount || 0) > 0
+                && Number(hiddenState?.effectiveCount || 0) >= Number(hiddenState?.totalFolderCount || 0);
+            const undoActive = !!hiddenFolderUndo && Number(hiddenFolderUndo.expiresAt || 0) > Date.now();
             const folderControls = isFolderView ? `
                 ${buildActionButtonHtml({ action: 'add-folder', label: translate('docker.actions.add-folder', 'Add Folder'), icon: 'fa-plus' })}
                 ${buildActionButtonHtml({ action: 'expand-all', label: translate('docker.actions.expand-all', 'Expand All'), icon: 'fa-expand' })}
@@ -287,7 +325,18 @@
                         </button>
                         <span class="fvplus-docker-action-menu${actionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildToolsMenuHtml()}</span>
                     </span>
-                </div>`;
+                </div>
+                ${undoActive ? `<div class="fvplus-docker-visibility-notice is-undo" role="status">
+                    ${svgIcon('eye-off', { className: 'fvplus-docker-visibility-notice-icon' })}
+                    <span><strong>${escapeHtml(translate('docker.visibility.hidden-title', 'Folder hidden'))}</strong> ${escapeHtml(String(hiddenFolderUndo.folderName || translate('docker.visibility.folder-fallback', 'Folder')))} ${escapeHtml(translate('docker.visibility.hidden-message', 'was hidden from the Docker view.'))}</span>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="undo">${escapeHtml(translate('docker.visibility.undo', 'Undo'))}</button>
+                </div>` : ''}
+                ${allFoldersHidden ? `<div class="fvplus-docker-visibility-notice is-empty" role="status">
+                    ${svgIcon('eye-off', { className: 'fvplus-docker-visibility-notice-icon' })}
+                    <span><strong>${escapeHtml(translate('docker.visibility.all-hidden-title', 'All folder rows are hidden.'))}</strong> ${escapeHtml(translate('docker.visibility.all-hidden-help', 'Reveal them temporarily or restore every hidden folder.'))}</span>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="toggle-reveal">${escapeHtml(translate('docker.visibility.show-hidden', 'Show hidden folders'))}</button>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="restore-all">${escapeHtml(translate('docker.visibility.restore-all', 'Restore all hidden folders'))}</button>
+                </div>` : ''}`;
             Array.from(bar.querySelectorAll('button')).forEach((button) => {
                 button.disabled = button.disabled || busy;
             });
@@ -408,7 +457,36 @@
             actionMenuOpen = '';
             folderFilterMode = 'all';
             clearFocusedFolder();
+            setRevealHiddenFolders(false);
             applyFilterState();
+            sync();
+        };
+
+        const clearHiddenFolderUndo = (folderId = '') => {
+            const expectedId = String(folderId || '').trim();
+            if (expectedId && String(hiddenFolderUndo?.folderId || '') !== expectedId) return false;
+            if (hiddenFolderUndoTimer) {
+                win?.clearTimeout?.(hiddenFolderUndoTimer);
+                hiddenFolderUndoTimer = 0;
+            }
+            hiddenFolderUndo = null;
+            return true;
+        };
+
+        const offerHiddenFolderUndo = ({ folderId = '', folderName = '' } = {}) => {
+            clearHiddenFolderUndo();
+            const id = String(folderId || '').trim();
+            if (!id) return;
+            hiddenFolderUndo = {
+                folderId: id,
+                folderName: String(folderName || translate('docker.visibility.folder-fallback', 'Folder')),
+                expiresAt: Date.now() + 10000
+            };
+            hiddenFolderUndoTimer = win?.setTimeout?.(() => {
+                hiddenFolderUndoTimer = 0;
+                hiddenFolderUndo = null;
+                sync();
+            }, 10000) || 0;
             sync();
         };
 
@@ -441,6 +519,37 @@
                 event.preventDefault();
                 const route = String(routeButton.getAttribute('data-fvplus-docker-route') || '');
                 if (SETTINGS_ROUTES[route] && win?.location) win.location.href = SETTINGS_ROUTES[route];
+                return;
+            }
+            const hiddenButton = target.closest?.('[data-fvplus-docker-hidden]');
+            if (hiddenButton && !hiddenButton.disabled) {
+                event.preventDefault();
+                const action = String(hiddenButton.getAttribute('data-fvplus-docker-hidden') || '');
+                actionMenuOpen = '';
+                if (action === 'toggle-reveal') {
+                    folderFilterMode = 'all';
+                    clearFocusedFolder();
+                    const current = getHiddenVisibilitySummary()?.revealHiddenFolders === true;
+                    setRevealHiddenFolders(!current);
+                    applyFilterState();
+                    sync();
+                }
+                if (action === 'restore-all') {
+                    runTask(async () => {
+                        await restoreAllHiddenFolders();
+                        clearHiddenFolderUndo();
+                        setRevealHiddenFolders(false);
+                        applyFilterState();
+                    });
+                }
+                if (action === 'undo' && hiddenFolderUndo?.folderId) {
+                    const undoId = hiddenFolderUndo.folderId;
+                    clearHiddenFolderUndo(undoId);
+                    runTask(async () => {
+                        await restoreHiddenFolder(undoId);
+                        applyFilterState();
+                    });
+                }
                 return;
             }
             const toolButton = target.closest?.('[data-fvplus-docker-tool]');
@@ -540,7 +649,9 @@
             setFilterMode: setFolderFilter,
             setPageViewMode,
             resetView,
-            getFilterMode: () => folderFilterMode
+            getFilterMode: () => folderFilterMode,
+            offerHiddenFolderUndo,
+            clearHiddenFolderUndo
         });
     };
 

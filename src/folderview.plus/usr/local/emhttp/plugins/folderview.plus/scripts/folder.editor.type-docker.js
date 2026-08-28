@@ -124,6 +124,8 @@
                 State: state,
                 RawState: state,
                 UpdateAvailable: manager === 'dockerman' && updated === false,
+                WebUi: String(entry?.WebUi || entry?.WebUI || entry?.webui || '').trim(),
+                webuiCapability: entry?.webuiCapability === true ? true : (entry?.webuiCapability === false ? false : null),
                 Identity: {
                     kind: 'docker',
                     containerId: String(entry?.shortId || entry?.id || entry?.Id || '').replace(/^sha256:/i, '').slice(0, 64),

@@ -174,6 +174,15 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
+  const qualifiedMenuLabelRegex = /\bgetDockerMenuLabel\(\s*['"]([^'"]+\.[^'"]+)['"]/g;
+  while ((match = qualifiedMenuLabelRegex.exec(source)) !== null) {
+    const key = match[1].trim();
+    if (!key) continue;
+    const line = lineNumberAt(source, match.index);
+    if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+    referencedKeys.get(key).push(`${relPath}:${line}`);
+  }
+
   const declaredApplicationKeyRegexes = [
     /\bi18nKey\s*:\s*['"]([^'"]+)['"]/g,
     /\b(?:labelKey|placeholderKey)\s*:\s*['"](editor\.rules\.templates\.[^'"]+)['"]/g

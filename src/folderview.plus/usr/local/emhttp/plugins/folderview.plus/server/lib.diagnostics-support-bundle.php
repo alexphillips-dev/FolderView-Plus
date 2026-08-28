@@ -240,12 +240,8 @@ function diagnosticsResolveSupportBundleChannel(): string {
                     'pluginState.' . $type . '.prefs.expandedFolderState',
                     is_array($typeData['expandedFolderState'] ?? null) ? $typeData['expandedFolderState'] : []
                 ),
-                'pinnedFolders' => diagnosticsSupportBundleRedactFolderIdList(
-                    $redactor,
-                    $type,
-                    'pluginState.' . $type . '.prefs.pinnedFolders.*',
-                    is_array($typeData['pinnedFolderIds'] ?? null) ? $typeData['pinnedFolderIds'] : []
-                ),
+                'pinnedFolders' => diagnosticsSupportBundleRedactFolderIdList($redactor, $type, 'pluginState.' . $type . '.prefs.pinnedFolders.*', is_array($typeData['pinnedFolderIds'] ?? null) ? $typeData['pinnedFolderIds'] : []),
+                'hiddenFolders' => diagnosticsSupportBundleRedactFolderIdList($redactor, $type, 'pluginState.' . $type . '.prefs.hiddenFolders.*', is_array($typeData['hiddenFolderIds'] ?? null) ? $typeData['hiddenFolderIds'] : []),
                 'hideEmptyFolders' => (bool)($typeData['hideEmptyFolders'] ?? false),
                 'appColumnWidth' => (string)($typeData['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => (bool)($typeData['setupWizardCompleted'] ?? false),

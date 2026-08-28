@@ -114,6 +114,7 @@
         const clearClassName = String(options.clearClassName || 'fvplus-docker-quick-clear');
         const labelSet = options.labelSet instanceof Set ? options.labelSet : new Set();
         const iconClassCandidates = Array.isArray(options.iconClassCandidates) ? options.iconClassCandidates : [];
+        const minimumItems = Math.max(1, Number(options.minimumItems) || 3), maximumItems = Math.max(minimumItems, Number(options.maximumItems) || minimumItems);
         const selectors = Array.isArray(options.selectors) && options.selectors.length
             ? options.selectors
             : [
@@ -167,10 +168,8 @@
             if (!$menu || !$menu.length) {
                 return false;
             }
-            const $quickItems = $menu.children('li').filter((_, item) => isQuickItem($(item))).slice(0, 3);
-            if ($quickItems.length < 3) {
-                return false;
-            }
+            const $quickItems = $menu.children('li').filter((_, item) => isQuickItem($(item))).slice(0, maximumItems);
+            if ($quickItems.length < minimumItems) return false;
             $menu.addClass(menuClassName);
             $quickItems.each((_, item) => {
                 const $item = $(item);

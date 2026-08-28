@@ -61,15 +61,39 @@ The Docker page View menu provides three supported modes:
 
 Changing views does not delete folder configuration. Use `Reset view` to clear temporary toolbar filters and return to the normal unfiltered state.
 
+Each Docker folder menu includes four quick actions: focus, pin, lock, and hide. Hiding a parent hides its complete nested branch and member rows from FolderView without deleting configuration or changing assignments. Use the temporary `Undo` notice immediately after hiding, or open `View -> Hidden folders` to reveal hidden rows. Revealed rows are dimmed and labeled `Hidden`; restore one from its folder menu or choose `Restore all hidden folders`. Hidden folders remain visible in Host list mode because that mode intentionally restores Unraid's native table.
+
 VM and Dashboard surfaces use the same saved Docker or VM folder configuration where applicable. Runtime state is reconciled incrementally so start, stop, pause, resume, and update results can update without rebuilding the entire page.
 
 ## Folder actions
+
+### Custom WebUI profiles for Docker folders
+
+Use a custom WebUI profile when you regularly open only part of a Docker folder. Profiles do not store URLs. They store selected direct-member names and resolve each container's current safe WebUI address and running state at launch time.
+
+To create a profile:
+
+1. Edit a Docker folder and open **WebUI Profiles**.
+2. Select **Add profile** and enter a unique name.
+3. Select one or more direct folder members. Search, **Select all with WebUI**, and **Clear selection** are available for larger folders.
+4. Save the folder. Empty profiles and duplicate names are rejected.
+5. Open the folder menu on the Docker page, choose **Open WebUI profile**, and select the profile. Its ready count shows how many selected WebUIs can open now.
+
+Only selected containers that are running, not paused, and expose a safe WebUI are opened. Stopped, paused, removed, or currently unavailable members remain selected for later but are skipped. If a browser blocks one or more tabs, allow popups for the Unraid host and retry the same profile. The original **Open all WebUIs** action still opens every ready WebUI in that folder.
+
+Use **Manage WebUI profiles** in the folder menu to return directly to the editor section. Profiles can be duplicated, reordered, or deleted. Each folder supports up to 100 profiles with up to 250 selected members per profile. Container renames are reconciled automatically when FolderView Plus can uniquely identify the renamed container; unresolved members are labeled unavailable so the selection can be corrected manually.
+
+Profiles follow a full folder clone and are preserved by folder export/import and backup/restore. Generic **Copy Folder Settings**, reusable templates, smart defaults, and saved folder defaults omit them so container-specific selections are not applied to unrelated folders.
+
+> Screenshot placeholder: WebUI Profiles editor showing named profiles and selected members.
+
+> Screenshot placeholder: Docker folder menu showing Open all WebUIs, Open WebUI profile, ready counts, and Manage WebUI profiles.
 
 The folder action sheet groups actions by purpose rather than placing every operation in one flat menu. Available actions depend on folder type, hierarchy position, lock state, and current member state.
 
 Common actions include:
 
-- Edit, pin, focus, lock, expand, or collapse a folder or branch.
+- Edit, pin, focus, lock, hide, expand, or collapse a folder or branch.
 - Start, stop, pause, resume, restart, or update eligible members.
 - Move a folder within its current level, under another folder, or back to the root.
 - Clone, export, import into, scan, repair, or delete a folder branch.

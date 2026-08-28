@@ -4,23 +4,43 @@ title: "[Translation]: "
 labels:
   - translation
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve FolderView Plus. Check the [Translation and Accessibility Wiki page](https://github.com/alexphillips-dev/FolderView-Plus/wiki/Translation-and-Accessibility) for terminology, placeholders, review expectations, and right-to-left guidance.
+
   - type: dropdown
     id: language
     attributes:
       label: Language
       options:
-        - Spanish (es)
-        - German (de)
-        - French (fr)
-        - Italian (it)
-        - Polish (pl)
-        - Dutch (nl)
-        - Portuguese - Brazil (pt-BR)
-        - Portuguese - Portugal (pt-PT)
+        - Arabic (ar)
+        - Bengali (bn)
+        - Catalan (ca)
         - Chinese - Simplified (zh-Hans)
+        - Chinese - Traditional (zh-Hant)
+        - Croatian (hr)
+        - Czech (cs)
+        - Danish (da)
+        - Dutch (nl)
+        - French (fr)
+        - German (de)
+        - Hungarian (hu)
+        - Italian (it)
         - Japanese (ja)
         - Korean (ko)
-        - Another registered locale
+        - Latvian (lv)
+        - Norwegian Bokmål (nb)
+        - Polish (pl)
+        - Portuguese - Brazil (pt-BR)
+        - Portuguese - Portugal (pt-PT)
+        - Romanian (ro)
+        - Russian (ru)
+        - Spanish (es)
+        - Swedish (sv)
+        - Turkish (tr)
+        - Ukrainian (uk)
+        - Another locale or regional variant
     validations:
       required: true
   - type: dropdown

@@ -16,7 +16,6 @@ on:
 permissions:
   actions: read
   contents: read
-  security-events: write
 
 concurrency:
   group: folderview-plus-codeql-${{ github.ref }}
@@ -25,6 +24,10 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (JavaScript)
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

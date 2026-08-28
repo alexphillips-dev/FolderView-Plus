@@ -823,6 +823,16 @@ test('support bundle telemetry exports privacy-safe persisted preview context br
             counters: { handlerIntegrityFailures: 0, dispatchAttempts: 2, dispatchSuccesses: 2 },
             rowModes: { '2': { bindings: 6 }, unlimited: { bindings: 6 } },
             rowIndexes: { '1': { bound: 6 }, '2': { bound: 6 } },
+            childFolderPreview: {
+                counters: { chipsRendered: 1, bindings: 1, menuOpenAttempts: 3, menuOpens: 3, menuOpenFailures: 0 },
+                inputMethods: { mouse: 1, keyboard: 1, contextmenu: 1, touch: 0, unknown: 0 },
+                lastEvent: {
+                    type: 'menu-open',
+                    outcome: 'success',
+                    inputMethod: 'contextmenu',
+                    folderName: 'private-folder'
+                }
+            },
             lastEvent: {
                 type: 'dispatch',
                 outcome: 'success',
@@ -847,6 +857,9 @@ test('support bundle telemetry exports privacy-safe persisted preview context br
     assert.equal(evidence.lastEvent.rowIndex, 2);
     assert.equal(evidence.lastEvent.triggerSource, 'status');
     assert.equal(evidence.lastEvent.inputMethod, 'keyboard');
+    assert.equal(evidence.childFolderPreview.counters.menuOpens, 3);
+    assert.equal(evidence.childFolderPreview.inputMethods.contextmenu, 1);
+    assert.match(evidence.childFolderPreview.lastEvent.folderName, /^ui-[0-9a-f]{16}$/);
     assert.match(evidence.lastEvent.containerName, /^ui-[0-9a-f]{16}$/);
-    assert.doesNotMatch(JSON.stringify(evidence), /private-container/);
+    assert.doesNotMatch(JSON.stringify(evidence), /private-container|private-folder/);
 });

@@ -4954,7 +4954,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ) {
     border: 0 !important;
     border-radius: 8px !important;
@@ -4982,7 +4983,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):hover,
 :is(
     .fv-editor-hero-actions > button,
@@ -5001,7 +5003,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):focus-visible {
     background: var(--fv-editor-button-hover-top) !important;
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
@@ -5024,7 +5027,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):active {
     background: var(--fv-editor-button-active-top) !important;
     box-shadow: var(--fv-editor-button-shadow-active) !important;
@@ -5295,6 +5299,130 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     display: none !important;
 }
 
+.fv-webui-profiles-section dl,
+.fv-webui-profiles-section dd {
+    width: 100%;
+}
+
+#fvWebuiProfilesWorkspace {
+    display: grid;
+    gap: 0.85rem;
+    width: 100%;
+}
+
+.fv-webui-profiles-toolbar,
+.fv-webui-profile-head,
+.fv-webui-profile-tools,
+.fv-webui-profile-member {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.fv-webui-profiles-toolbar,
+.fv-webui-profile-head {
+    justify-content: space-between;
+}
+
+.fv-webui-profiles-toolbar p,
+.fv-webui-profile-card p {
+    margin: 0;
+}
+
+.fv-webui-profile-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.fv-webui-profile-card {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    border: 1px solid var(--fv-editor-border, rgba(127, 127, 127, 0.35));
+    border-radius: 8px;
+    background: var(--fv-editor-panel, rgba(127, 127, 127, 0.06));
+}
+
+.fv-webui-profile-name,
+.fv-webui-profile-tools input[type="search"] {
+    min-width: 0;
+    border-color: var(--fv-editor-border, currentColor);
+    background: var(--fv-editor-input-bg, inherit);
+    color: inherit;
+}
+
+.fv-webui-profile-name {
+    flex: 1 1 18rem;
+    font-weight: 700;
+}
+
+.fv-webui-profile-actions,
+.fv-webui-profile-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.fv-webui-profile-tools input[type="search"] {
+    flex: 1 1 14rem;
+}
+
+.fv-webui-profile-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 34px;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+}
+
+.fv-webui-profile-button:focus-visible {
+    outline: 2px solid var(--fv-editor-focus-ring) !important;
+    outline-offset: 2px;
+}
+
+.fv-webui-profile-button > i,
+.fv-webui-profile-button > span {
+    color: inherit !important;
+}
+
+.fv-webui-profile-members {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.45rem;
+}
+
+.fv-webui-profile-member {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--fv-editor-border, rgba(127, 127, 127, 0.3));
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.fv-webui-profile-member > span {
+    grid-column: 2;
+    opacity: 0.72;
+    font-size: 0.86rem;
+}
+
+.fv-webui-profile-member.is-unavailable {
+    border-style: dashed;
+    opacity: 0.75;
+}
+
+.fv-webui-profiles-status {
+    min-height: 1.3em;
+}
+
+.fv-webui-profiles-status.is-error,
+.fv-input-error {
+    color: var(--fv-editor-danger, #e05252);
+    border-color: var(--fv-editor-danger, #e05252) !important;
+}
+
 @media (max-width: 980px) {
     #fvEditorChrome {
         position: static;
@@ -5376,6 +5504,23 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 
     .fv-member-chip-row {
         width: 100%;
+    }
+
+    .fv-webui-profiles-toolbar,
+    .fv-webui-profile-head,
+    .fv-webui-profile-tools {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fv-webui-profile-actions,
+    .fv-webui-profile-button,
+    .fv-webui-profile-tools input[type="search"] {
+        width: 100%;
+    }
+
+    .fv-webui-profile-actions .fv-webui-profile-button {
+        flex: 1 1 9rem;
     }
 
     .fv-custom-icon-row {

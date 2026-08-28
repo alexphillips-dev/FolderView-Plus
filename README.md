@@ -79,6 +79,14 @@ Unraid's Docker and VM pages can become difficult to scan as your server grows. 
 | Use the Activity Center, Settings diagnostics, runtime banners, folder editor bootstrap diagnostics, and sanitized support bundles to understand what happened and share useful reports. | Uses shared dark/light theme tokens, modernized Settings and editor surfaces, runtime-safe menu styling, and compatibility guards for Unraid themes and legacy installs. |
 | <img src="docs/images/screenshots/activity-center.png" alt="Activity Center" /> | <img src="docs/images/screenshots/theme-dark-mode.png" alt="Dark mode UI" /> |
 
+### Custom WebUI profiles
+
+Docker folders can keep multiple named WebUI launch profiles (up to 100 per folder), such as `Media Admin`, `Monitoring`, or `Daily Tools`. Each profile selects direct members of that folder; launching it opens only selected containers that are currently running and have a safe WebUI available. The original **Open all WebUIs** action remains available.
+
+Create and maintain profiles from the folder editor's **WebUI Profiles** section, then launch them from the folder menu under **Open WebUI profile**. Profiles are included with folder clone, export, import, backup, and restore operations, but are intentionally excluded from generic settings copy/paste, templates, and saved defaults because their member selections belong to one specific folder.
+
+> Screenshot placeholder: WebUI Profiles editor and Docker folder profile submenu.
+
 ## Install
 
 Install from Unraid:

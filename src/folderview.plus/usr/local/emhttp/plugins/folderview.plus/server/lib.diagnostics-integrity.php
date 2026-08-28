@@ -88,7 +88,7 @@ function readUnraidVersionString(): ?string {
         return [
             'started' => diagnosticsNormalizeStatusColor($settings['status_color_started'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['started']),
             'paused' => diagnosticsNormalizeStatusColor($settings['status_color_paused'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['paused']),
-            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped'])
+            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped']), 'text' => diagnosticsNormalizeStatusColor($settings['status_color_text'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['text'])
         ];
     }
 
@@ -664,13 +664,8 @@ function readUnraidVersionString(): ?string {
                 $missingManualOrderIds[] = $manualId;
             }
         }
-        $missingPinnedFolderIds = [];
-        foreach (($prefs['pinnedFolderIds'] ?? []) as $pinnedId) {
-            $pinnedId = (string)$pinnedId;
-            if ($pinnedId !== '' && !array_key_exists($pinnedId, $folders)) {
-                $missingPinnedFolderIds[] = $pinnedId;
-            }
-        }
+        $missingPreferenceFolderIds = static fn($ids): array => array_values(array_filter(normalizeStringIdList($ids), static fn($id): bool => !array_key_exists((string)$id, $folders)));
+        $missingPinnedFolderIds = $missingPreferenceFolderIds($prefs['pinnedFolderIds'] ?? []); $missingHiddenFolderIds = $missingPreferenceFolderIds($prefs['hiddenFolderIds'] ?? []);
 
         $pathHealth = diagnosticsBuildPathHealth($type, $privacyMode);
         $pathIssueCount = count($pathHealth['issues'] ?? []);
@@ -693,6 +688,7 @@ function readUnraidVersionString(): ?string {
             + count($invalidRules)
             + count($missingManualOrderIds)
             + count($missingPinnedFolderIds)
+            + count($missingHiddenFolderIds)
             + $orphanedCount
             + $buildConflicts($effectiveAssignments)['count']
             + $pathIssueCount
@@ -728,6 +724,10 @@ function readUnraidVersionString(): ?string {
             'missingPinnedFolderIds' => [
                 'count' => count($missingPinnedFolderIds),
                 'ids' => array_values(array_unique($missingPinnedFolderIds))
+            ],
+            'missingHiddenFolderIds' => [
+                'count' => count($missingHiddenFolderIds),
+                'ids' => array_values(array_unique($missingHiddenFolderIds))
             ],
             'duplicateAssignments' => [
                 'explicit' => $buildConflicts($explicitAssignments),

@@ -8,6 +8,10 @@ const dockerScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
     'utf8'
 );
+const dockerHiddenFoldersScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hidden-folders.js'),
+    'utf8'
+);
 const dockerPreviewActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
@@ -46,13 +50,18 @@ const dockerFolderSameLevelMoveBlock = extractConstFunctionBlock(
     'ensureDockerFolderUnlocked'
 );
 
-test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
+test('docker context menu keeps focus/pin/lock/hide quick actions at the top', () => {
     assert.match(dockerScript, /text:\s*focused[\s\S]*getDockerMenuLabel\('clear-focus-folder',\s*'Clear focus'\)/);
     assert.match(dockerScript, /text:\s*pinned[\s\S]*getDockerMenuLabel\('unpin-folder',\s*'Unpin folder'\)/);
     assert.match(dockerScript, /text:\s*locked[\s\S]*getDockerMenuLabel\('unlock-folder',\s*'Unlock folder'\)/);
     assert.match(dockerScript, /toggleDockerFolderFocus\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderPin\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderLock\(id\)/);
+    assert.match(dockerHiddenFoldersScript, /translate\('docker\.folder\.hide',\s*'Hide folder'\)/);
+    assert.match(dockerHiddenFoldersScript, /hiddenOwnerId \? restoreFolder\(hiddenOwnerId\) : hideFolder\(id\)/);
+    assert.match(dockerScript, /minimumItems:\s*4/);
+    assert.match(dockerScript, /maximumItems:\s*4/);
+    assert.match(dockerHiddenFoldersScript, /svgIcon\(\$icon\.hasClass\('fa-eye-slash'\)/);
     assert.match(dockerScript, /queueDockerFolderContextQuickIcons\(/);
     assert.match(dockerScript, /createDockerContextMenuQuickStripAdapter/);
     assert.match(dockerScript, /dockerContextQuickStripAdapter/);
@@ -248,6 +257,20 @@ test('docker lifecycle reconciliation restores expanded preview action icons fro
     assert.match(dockerScript, /getDockerRuntimeInfoEntries: \(\) => Object\.values\(dockerRuntimeInfoByName \|\| \{\}\),/);
     assert.match(dockerScript, /syncDockerVisibleFoldersFromRuntimeCache: \(changedNames = null\) => syncDockerVisibleFoldersFromRuntimeCache\(changedNames\),/);
     assert.match(dockerReconcileScript, /remainingBusyPreviewActionIconCount:/);
+    assert.match(dockerScript, /\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerReconcileScript, /const markDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
+    assert.match(dockerReconcileScript, /const clearDockerLifecycleSurfacePending = \(request = \{\}\) =>/);
+    assert.match(dockerReconcileScript, /const restartWarmupPending = action === 'restart'/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-container-id', String\(options\.ctid \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-container-name', String\(options\.containerName \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /context: folder\.settings\.context, ctid, containerName: previewEntry\?\.name, autostart/);
+    assert.match(dockerScript, /span\.hand:last`\)[\s\S]*?\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)[\s\S]*?\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerScript, /lstSpan\.children\('span\.inner:last'\)[\s\S]*?\.attr\('data-fv-container-id', String\(ctid \|\| ''\)\.trim\(\)\)[\s\S]*?\.attr\('data-fv-container-name', String\(previewEntry\?\.name \|\| ''\)\.trim\(\)\)/);
+    assert.match(dockerCss, /\.folder-preview i\.fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="restart"[^}]*fv-preview-lifecycle-pending[\s\S]*?var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="pause"[^}]*fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-paused,\s*var\(--fvplus-status-paused\)\)/);
+    assert.match(dockerCss, /data-fv-lifecycle-action="stop"[^}]*fv-preview-lifecycle-pending\s*\{[^}]*var\(--fvplus-folder-status-stopped,\s*var\(--fvplus-status-stopped\)\)/);
 });
 
 test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {

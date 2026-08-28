@@ -202,6 +202,24 @@ test('normalizeFolderMap rejects prototype keys and unsafe identifiers', () => {
     assert.equal(utils.normalizeFolderId('bad/id'), '');
 });
 
+test('normalizeFolderMap rejects non-string names and members without coercion', () => {
+    const nonCoercible = { toString: 0 };
+    const normalized = utils.normalizeFolderMap({
+        unsafe: {
+            name: nonCoercible,
+            containers: []
+        },
+        safe: {
+            name: ' Safe ',
+            containers: [' plex ', nonCoercible, 42, 'plex', 'sonarr']
+        }
+    });
+
+    assert.deepEqual(Object.keys(normalized), ['safe']);
+    assert.equal(normalized.safe.name, 'Safe');
+    assert.deepEqual(normalized.safe.containers, ['plex', 'sonarr']);
+});
+
 test('normalizeFolderMembers is exported and normalizes arrays/objects', () => {
     assert.equal(typeof utils.normalizeFolderMembers, 'function');
     assert.deepEqual(
@@ -503,20 +521,29 @@ test('orderFoldersByPrefs keeps child folders nested after parent in sorted outp
 test('getFolderStatusColors normalizes and defaults values', () => {
     const defaults = utils.getFolderStatusColors({});
     assert.deepEqual(defaults, {
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     });
+
+    assert.equal(utils.getFolderStatusColors({ status_color_started: '#ffffff' }).started, '#55b72d');
+    assert.equal(utils.getFolderStatusColors({
+        status_color_started: '#ffffff',
+        status_color_started_explicit: true
+    }).started, '#ffffff');
 
     const custom = utils.getFolderStatusColors({
         status_color_started: '#AbC',
         status_color_paused: '#123456',
-        status_color_stopped: 'bad-value'
+        status_color_stopped: 'bad-value',
+        status_color_text: '#fed'
     });
     assert.deepEqual(custom, {
         started: '#aabbcc',
         paused: '#123456',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffeedd'
     });
 });
 
@@ -931,7 +958,11 @@ test('buildImportDiffRows reports row-level changed fields', () => {
 
 test('export/import roundtrip smoke works for full payload', () => {
     const original = {
-        abc: { name: 'One', containers: ['x'] },
+        abc: {
+            name: 'One',
+            containers: ['x'],
+            settings: { webui_profiles: [{ id: 'tools', name: 'Tools', containers: ['x'] }] }
+        },
         def: { name: 'Two', containers: [] }
     };
     const exported = utils.buildFullExportPayload({
@@ -945,6 +976,7 @@ test('export/import roundtrip smoke works for full payload', () => {
     assert.deepEqual(Object.keys(parsed.folders), ['abc', 'def']);
     assert.equal(parsed.folders.abc.name, 'One');
     assert.deepEqual(parsed.folders.abc.containers, ['x']);
+    assert.deepEqual(parsed.folders.abc.settings.webui_profiles, original.abc.settings.webui_profiles);
     assert.equal(parsed.folders.def.name, 'Two');
     assert.deepEqual(parsed.folders.def.containers, []);
 
@@ -986,12 +1018,14 @@ test('getConflictReport detects multi-folder assignment conflicts', () => {
     assert.equal(plex.matchedFolderCount, 2);
 });
 
-test('normalizePrefs keeps pinned folders and hide-empty toggle', () => {
+test('normalizePrefs keeps pinned, hidden, and hide-empty folder preferences', () => {
     const prefs = utils.normalizePrefs({
         pinnedFolderIds: ['a', 'b', 'a', '', 'c'],
+        hiddenFolderIds: ['hidden-a', 'hidden-b', 'hidden-a', ''],
         hideEmptyFolders: true
     });
     assert.deepEqual(prefs.pinnedFolderIds, ['a', 'b', 'c']);
+    assert.deepEqual(prefs.hiddenFolderIds, ['hidden-a', 'hidden-b']);
     assert.equal(prefs.hideEmptyFolders, true);
 });
 

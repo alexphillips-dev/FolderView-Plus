@@ -3,10 +3,12 @@
     'use strict';
 
     const DEFAULT_FOLDER_STATUS_COLORS = Object.freeze({
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     });
+    const LEGACY_DEFAULT_FOLDER_STARTED_COLOR = '#ffffff';
     const DEFAULT_FOLDER_ACCENT_COLOR = '#ffca63';
     const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
     const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
@@ -141,6 +143,7 @@
 
     window.FolderViewPlusFolderContract = {
         DEFAULT_FOLDER_STATUS_COLORS,
+        LEGACY_DEFAULT_FOLDER_STARTED_COLOR,
         DEFAULT_FOLDER_ACCENT_COLOR,
         DEFAULT_PREVIEW_BORDER_COLOR,
         DEFAULT_PREVIEW_BORDER_WIDTH,

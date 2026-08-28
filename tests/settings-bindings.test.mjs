@@ -459,7 +459,8 @@ test('empty-state actions are delegated and create-folder uses modal input inste
     assert.match(script, /STARTER_TEMPLATE_BLUEPRINTS = Object\.freeze/);
     assert.match(script, /settings:\s*\{[\s\S]*preview:\s*1/);
     assert.match(script, /preview_border:\s*true/);
-    assert.match(script, /status_color_started:\s*'#ffffff'/);
+    assert.match(script, /status_color_started:\s*'#55b72d'/);
+    assert.match(script, /status_color_text:\s*'#ffffff'/);
     assert.match(script, /dashboard_overflow:\s*'default'/);
     assert.doesNotMatch(script, /window\.prompt\('Folder name:'/);
 });

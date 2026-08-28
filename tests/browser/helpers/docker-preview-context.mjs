@@ -83,3 +83,81 @@ export const exerciseDockerPreviewContextDiagnostics = async ({ page, baseUrl })
     );
     assert.equal(result.diagnostics.failureReasons['handler-missing'], 2);
 };
+
+export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const chip = page.locator('#fixture-child-folder-preview .fv-folder-preview-child');
+    const snapshot = () => page.evaluate(() => window.fixtureChildFolderPreviewContext.snapshot());
+
+    let result = await snapshot();
+    assert.deepEqual([result.chipCount, result.rowCount], [1, 3]);
+    assert.deepEqual(result.memberContextBindings, { default: 2, advanced: 0 });
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').first().click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextClicks, { default: 1, advanced: 0 });
+
+    await chip.click();
+    result = await snapshot();
+    assert.equal(result.menuCount, 1, 'normal click must open the child-folder menu');
+    assert.ok(result.menuLeft > 0);
+    assert.ok(result.menuTop > 0);
+    assert.deepEqual(result.menuActions, ['Expand to folder', 'Edit folder', 'Open folder actions']);
+    await page.getByRole('menuitem', { name: 'Edit folder' }).click();
+    result = await snapshot();
+    assert.deepEqual([result.menuCount, result.editCount], [0, 1]);
+
+    await chip.focus();
+    await chip.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.textContent?.includes('Expand to folder'));
+    result = await snapshot();
+    assert.equal(result.menuCount, 1, 'keyboard activation must open the child-folder menu');
+    assert.equal(result.focusedAction, 'Expand to folder');
+    assert.ok(result.menuLeft > 0, 'keyboard activation must use the chip geometry');
+    assert.ok(result.menuTop > 0, 'keyboard activation must use the chip geometry');
+    await page.keyboard.press('Escape');
+
+    await chip.click({ button: 'right' });
+    result = await snapshot();
+    assert.equal(result.menuCount, 1, 'right-click must keep opening the child-folder menu');
+    await page.getByRole('menuitem', { name: 'Open folder actions' }).click();
+    result = await snapshot();
+    assert.deepEqual([result.menuCount, result.actionCount], [0, 1]);
+
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.dispatchTouchClick());
+    result = await snapshot();
+    assert.equal(result.menuCount, 1, 'touch-like activation must open the child-folder menu');
+    const expectedTouchLeft = Math.max(8, Math.min(321, result.viewportWidth - result.menuWidth - 8));
+    const expectedTouchTop = Math.max(8, Math.min(145, result.viewportHeight - result.menuHeight - 8));
+    assert.deepEqual([result.menuLeft, result.menuTop], [expectedTouchLeft, expectedTouchTop]);
+    assert.deepEqual(
+        [result.diagnostics.childFolderPreview.counters.chipsRendered,
+            result.diagnostics.childFolderPreview.counters.bindings,
+            result.diagnostics.childFolderPreview.counters.menuOpenAttempts,
+            result.diagnostics.childFolderPreview.counters.menuOpens,
+            result.diagnostics.childFolderPreview.counters.menuOpenFailures],
+        [1, 1, 4, 4, 0]
+    );
+    assert.deepEqual(
+        result.diagnostics.childFolderPreview.inputMethods,
+        { mouse: 1, keyboard: 1, contextmenu: 1, touch: 1, unknown: 0 }
+    );
+    assert.doesNotMatch(
+        JSON.stringify(result.diagnostics.childFolderPreview),
+        /Private parent fixture|Private child fixture|fixture-parent|fixture-child/
+    );
+
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.rerenderMemberContext(2, 'advanced'));
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').first().click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextBindings, { default: 2, advanced: 2 });
+    assert.deepEqual(result.memberContextClicks, { default: 1, advanced: 1 });
+    assert.equal(result.listViewMode, 'advanced');
+
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.rerenderMemberContext(1, 'advanced'));
+    await page.locator('#fixture-child-folder-preview .fv-nested-preview-item').nth(1).click();
+    result = await snapshot();
+    assert.deepEqual(result.memberContextBindings, { default: 4, advanced: 2 });
+    assert.deepEqual(result.memberContextClicks, { default: 2, advanced: 1 });
+    assert.equal(result.listViewMode, 'advanced');
+    assert.equal(result.memberContextAudits, 3);
+};

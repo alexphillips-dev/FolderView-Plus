@@ -41,6 +41,7 @@ for (const relativePath of [
   'scripts/run_ci_suite.sh',
   'scripts/actionlint_guard.sh',
   'scripts/classify_ci_changes.mjs',
+  'scripts/issue_form_guard.mjs',
   'scripts/csp_readiness_guard.mjs',
   'scripts/fixture_browser_tests.sh',
   'scripts/fixture_browser_tests.mjs',
@@ -88,6 +89,9 @@ if (!/detect-changes:/.test(ciWorkflow)) {
 if (!/quality:/.test(ciWorkflow)) {
   fail('CI workflow must define a quality summary job.');
 }
+if (!/^  guard-suite:\s*$[\s\S]*?^    name:\s*CI tests and guards\s*$/m.test(ciWorkflow)) {
+  fail('CI guard-suite must expose an always-present test signal recognized by repository quality scanners.');
+}
 if (/dorny\/paths-filter@/.test(ciWorkflow)) {
   fail('CI workflow must use the repository-owned change classifier instead of dorny/paths-filter.');
 }
@@ -118,6 +122,13 @@ if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh')))
 }
 if (!/test_runner_contract_guard\.mjs/.test(read('scripts/run_ci_suite.sh'))) {
   fail('The shared lint lane must enforce split test-runner contracts.');
+}
+if (!/run_timed_step issue-form-contract/.test(read('scripts/run_ci_suite.sh'))) {
+  fail('Workflow and full guard lanes must enforce issue-form contracts.');
+}
+if (!/'\.github\/ISSUE_TEMPLATE\/\*\*'/.test(read('scripts/classify_ci_changes.mjs'))
+    || !/'scripts\/issue_form_guard\.mjs'/.test(read('scripts/classify_ci_changes.mjs'))) {
+  fail('Issue forms and their guard must be classified as workflow changes.');
 }
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');
@@ -173,8 +184,9 @@ for (const [name, workflow] of [
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
-if (!/permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must grant only the release, OIDC, and attestation permissions required for signed provenance.');
+if (!/^permissions:\s*\n  contents:\s*read\s*$/m.test(releaseOnMainWorkflow)
+    || !/permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/.test(jobBlock(releaseOnMainWorkflow, 'release'))) {
+  fail('Release On Main must keep top-level access read-only and scope release, OIDC, and attestation writes to its release job.');
 }
 if ((codeqlWorkflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length !== 3) {
   fail('CodeQL must use commit-pinned v4 init, autobuild, and analyze actions.');
@@ -184,6 +196,10 @@ if (!/node scripts\/codeql_alert_guard\.mjs --commit-sha/.test(codeqlWorkflow)) 
 }
 if (!/schedule:/.test(codeqlWorkflow) || !/workflow_dispatch:/.test(codeqlWorkflow)) {
   fail('CodeQL must run on schedule and support manual recovery checks.');
+}
+if (!/^permissions:\s*\n  actions:\s*read\s*\n  contents:\s*read\s*$/m.test(codeqlWorkflow)
+    || !/permissions:\s*\n\s*actions:\s*read\s*\n\s*contents:\s*read\s*\n\s*security-events:\s*write/.test(jobBlock(codeqlWorkflow, 'analyze'))) {
+  fail('CodeQL must keep top-level access read-only and scope security-events write to the analyze job.');
 }
 if (!/actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/.test(dependencyReviewWorkflow)
     || !/fail-on-severity:\s*high/.test(dependencyReviewWorkflow)
@@ -260,8 +276,9 @@ if (!/bash scripts\/prepare_backmerge_dev_package\.sh/.test(backmergeWorkflow) |
     /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must package merged source instead of bypassing packaged/source drift validation.');
 }
-if (!/pull-requests:\s*write/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must have pull-requests: write permission.');
+if (!/^permissions:\s*\n  contents:\s*read\s*$/m.test(backmergeWorkflow)
+    || !/permissions:\s*\n\s*contents:\s*write\s*\n\s*pull-requests:\s*write/.test(jobBlock(backmergeWorkflow, 'backmerge'))) {
+  fail('Back-merge workflow must keep top-level access read-only and scope contents and pull-request writes to the backmerge job.');
 }
 if (!/Create or update back-merge PR/.test(backmergeWorkflow) ||
     !/gh api --method POST/.test(backmergeWorkflow) ||
@@ -330,15 +347,20 @@ if (!/FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/.test(scheduledValidati
 if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|gh issue/.test(scheduledValidationWorkflow)) {
   fail('Scheduled validation must not depend on live-Unraid targets, secrets, or issue automation.');
 }
+const cloneTrafficCollectJob = jobBlock(cloneTrafficBadgeWorkflow, 'collect');
+const cloneTrafficPublishJob = jobBlock(cloneTrafficBadgeWorkflow, 'publish');
 if (!/schedule:/.test(cloneTrafficBadgeWorkflow)
     || !/workflow_dispatch:/.test(cloneTrafficBadgeWorkflow)
-    || !/permissions:\s*\n\s*contents:\s*write/.test(cloneTrafficBadgeWorkflow)
-    || !/secrets\.FVPLUS_TRAFFIC_TOKEN/.test(cloneTrafficBadgeWorkflow)
-    || !/repos\/\$\{GITHUB_REPOSITORY\}\/traffic\/clones/.test(cloneTrafficBadgeWorkflow)
-    || !/github\.token/.test(cloneTrafficBadgeWorkflow)
+    || !/^permissions:\s*\n  contents:\s*read\s*$/m.test(cloneTrafficBadgeWorkflow)
+    || !/secrets\.FVPLUS_TRAFFIC_TOKEN/.test(cloneTrafficCollectJob)
+    || /github\.token/.test(cloneTrafficCollectJob)
+    || !/repos\/\$\{GITHUB_REPOSITORY\}\/traffic\/clones/.test(cloneTrafficCollectJob)
+    || !/permissions:\s*\n\s*contents:\s*write/.test(cloneTrafficPublishJob)
+    || !/github\.token/.test(cloneTrafficPublishJob)
+    || /secrets\.FVPLUS_TRAFFIC_TOKEN/.test(cloneTrafficPublishJob)
     || !/--branch metrics/.test(cloneTrafficBadgeWorkflow)
     || !/Total clones \\u00b7 14d/.test(cloneTrafficBadgeWorkflow)) {
-  fail('Clone traffic badge workflow must publish the authenticated rolling 14-day total to the isolated metrics branch.');
+  fail('Clone traffic badge workflow must isolate authenticated collection from the write-scoped metrics publisher.');
 }
 if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
     || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
@@ -361,7 +383,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
   ['dependency-vulnerability-scan', dependencyVulnerabilityScanWorkflow, ['scan']],
   ['scorecard', scorecardWorkflow, ['analysis']],
-  ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['refresh']],
+  ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['collect', 'publish']],
   ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
   ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
   ['unraid-compatibility-monitor', upstreamMonitorWorkflow, ['monitor', 'php-runtime-compatibility']]

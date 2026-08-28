@@ -24,12 +24,12 @@
         <table id="docker_containers">
             <thead><tr><th>Application</th><th>Version</th><th>Network</th><th>Container IP</th><th>Container port</th><th>LAN IP:PORT</th></tr></thead>
             <tbody id="docker_list">
-                <tr class="folder folder-id-media" data-folder-id="media"><td class="ct-name folder-name">Media</td><td colspan="5">1/2 started</td></tr>
+                <tr class="folder folder-id-media" data-folder-id="media"><td class="ct-name folder-name folder-appname">Media</td><td colspan="5">1/2 started</td></tr>
                 <tr class="folder-element sortable" data-folder-owner="media" data-name="plex"><td class="ct-name">Plex</td><td>up-to-date</td><td>bridge</td><td>172.17.0.2</td><td>32400/TCP</td><td>10.0.0.10:32400</td></tr>
                 <tr class="folder-element sortable" data-folder-owner="media" data-name="sonarr"><td class="ct-name">Sonarr</td><td>up-to-date</td><td>bridge</td><td>172.17.0.3</td><td>8989/TCP</td><td>10.0.0.10:8989</td></tr>
-                <tr class="folder folder-id-updates" data-folder-id="updates"><td class="ct-name folder-name">Updates</td><td colspan="5">1 update</td></tr>
+                <tr class="folder folder-id-updates" data-folder-id="updates"><td class="ct-name folder-name folder-appname">Updates</td><td colspan="5">1 update</td></tr>
                 <tr class="folder-element sortable" data-folder-owner="updates" data-name="toolbox"><td class="ct-name">Toolbox</td><td>update ready</td><td>bridge</td><td>172.17.0.4</td><td>8080/TCP</td><td>10.0.0.10:8080</td></tr>
-                <tr class="folder folder-id-empty" data-folder-id="empty"><td class="ct-name folder-name">Empty</td><td colspan="5">0 members</td></tr>
+                <tr class="folder folder-id-empty" data-folder-id="empty"><td class="ct-name folder-name folder-appname">Empty</td><td colspan="5">0 members</td></tr>
                 <tr class="sortable" data-name="orphan"><td class="ct-name">Orphan</td><td>up-to-date</td><td>bridge</td><td>172.17.0.8</td><td>9000/TCP</td><td>10.0.0.10:9000</td></tr>
             </tbody>
         </table>
@@ -50,6 +50,7 @@
     <script src="/plugin/scripts/runtime.shared-diagnostics.js"></script>
     <script src="/plugin/scripts/runtime.shared-controls.js"></script>
     <script src="/plugin/scripts/docker.runtime.shared.js"></script>
+    <script src="/plugin/scripts/docker.runtime.hidden-folders.js"></script>
     <script src="/plugin/scripts/docker.runtime.action-bar.js"></script>
     <script src="/plugin/scripts/docker.runtime.reconcile.js"></script>
     <script src="/fixtures/runtime.fixture.js"></script>

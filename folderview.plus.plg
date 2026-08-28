@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.24.04">
-<!ENTITY md5 "40bc8d9fb97c06c9b5025cef2660e157">
-<!ENTITY sha256 "9f4eca819eddf4f5a501137f13b743a259a52fff7a35d6e74278b797641ff259">
+<!ENTITY version "2026.08.28.05">
+<!ENTITY md5 "2787a33e9d66e22bc4976cef9cd4c014">
+<!ENTITY sha256 "f71ee236840caadc58c6e22630a311670fa39d39f48293d086182cf0bb4dae88">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -18,17 +18,103 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.08.24.04
-- Fix: Keep Docker preview context menus clickable in every visible row when Preview Rows is set to 2, 3, 4, or Unlimited, including after repeated layout reconciliation.
-- Compatibility: Route Default-context preview activation through the original Unraid Docker control without copying host IDs or inline handlers, while preserving WebUI, logs, and console quick actions.
-- Accessibility: Support first-click mouse activation from the preview icon, name, and status plus Enter and Space keyboard activation.
-- Fix: Preserve the correct started, paused, and stopped styling on compact Docker preview status text and icons.
-- Diagnostics: Add a short-lived, privacy-safe support-bundle summary of preview row mode and numeric row position, bridge binding and handler integrity, activation category, input method, dispatch outcomes, and bounded failure reasons.
-- Privacy: Exclude folder and container identities, selectors, URLs, and pointer coordinates from preview context diagnostics.
-- Maintenance: Add daily public-contract monitoring for Unraid stable and prerelease versions, PHP runtimes, Docker/VM/Dashboard and plugin-manager surfaces, Docker API/native-page signals, and Community Applications publication without live-Unraid credentials.
-- Security: Add weekly OSV scanning of the generated SBOM, scheduled-workflow health coverage, and tool-scoped CodeQL alert enforcement so unrelated Scorecard findings do not fail CodeQL analysis.
-- Compatibility: Refresh the reviewed Unraid/API baseline while retaining native-Docker safe mode and human approval for every upstream baseline change.
-- Test: Cover multi-row and Unlimited preview interaction, repeated finalization, handler-loss detection, persistence, accessibility, status styling, and privacy boundaries in Chromium and Firefox.
+###2026.08.28.05
+- Feature: Add a fourth **Hide** quick action to Docker folder menus, including nested-branch hiding, a temporary **Show hidden folders** view, **Restore all hidden folders**, and an immediate 10-second **Undo** action without deleting folder configuration or changing Unraid's native Host list.
+- Feature: Add reusable custom WebUI profiles to each Docker folder so any number of named profiles can open only the selected running, unpaused container WebUIs, with create, duplicate, reorder, search, unavailable-member, and delete controls in the modern folder editor.
+- Fix: Restore reliable container and child-folder context menus across single-row, multi-row, nested, collapsed, Preview Rows 1+, Unlimited, and Unraid Basic or Advanced View layouts, including mouse, right-click, touch, Enter, and Space activation.
+- Fix: Show consistent lifecycle progress on single-row and multi-row Docker previews, keep Restart pending through its initial running snapshot, and use the action's destination status color until reconciliation completes.
+- UI/UX: Use Unraid's native green started indicator with white status text by default, add a separate **Text** color picker, and apply customized Started, Paused, Stopped, and Text colors consistently across Docker, VM, Dashboard, inherited defaults, and starter templates.
+- UI/UX: Make hidden-folder recovery, Undo, and custom WebUI profile controls theme-aware, responsive, and keyboard accessible instead of inheriting Unraid's orange button treatment.
+- Reliability: Persist hidden-folder choices through conflict-safe preference updates, preserve profiles through clone, export/import, backup, restore, and unique member renames, and keep folder-specific profiles out of generic settings transfers and defaults that may target unrelated containers.
+- Compatibility: Preserve explicitly selected white started indicators while migrating only the old unmodified white default to green, and acknowledge Unraid API v4.37.3 while keeping current legacy Docker behavior and future API capability monitoring bounded and fail-closed.
+- Security: Reject malformed non-string folder names and container identifiers without invoking attacker-controlled coercion hooks, strengthen property-based input coverage, and tighten repository security-policy, CodeQL, workflow-permission, package-trust, and release contracts.
+- Privacy: Extend sanitized diagnostics with aggregate context-menu, lifecycle, hidden-folder, and WebUI-profile health evidence while withholding folder names, container names, profile names, URLs, selectors, coordinates, and other runtime identities.
+- Localization: Translate the new hidden-folder, WebUI-profile, and status-text interfaces across all 27 supported locales and keep dynamic Docker menu labels covered by strict localization validation.
+- UX: Improve GitHub bug, support, feature, and translation intake forms with clearer reproduction, version, branch, diagnostics, privacy, compatibility, and testing fields.
+- Maintenance: Add proactive Unraid/API compatibility checks, dependency and SBOM vulnerability monitoring, scheduled workflow watchdogs, manual CodeQL recovery checks, exact-tool CodeQL alert filtering, and validated main-to-dev back-merge ordering without introducing live-Unraid automation.
+- Compatibility: No manual migration is required. Existing folders, assignments, rules, colors, backups, and imports remain compatible; hidden-folder state is reversible, and custom WebUI profiles remain scoped to their Docker folder.
+- Test: Expand isolated browser, mobile, keyboard, theme, localization, fuzz, security, diagnostics, workflow, and large-library performance coverage for every behavior in this release.
+
+
+###2026.08.28.04
+- Fix: Keep hidden-folder restore labels and custom WebUI profile warnings registered as active localized UI text.
+- Reliability: Prevent strict localization validation and main-to-dev back-merges from rejecting those live Docker translation keys.
+- Security: Reject malformed non-string folder names and container identifiers without invoking attacker-controlled coercion hooks.
+- Test: Rebuild all 27 locale catalogs and verify hidden-folder behavior, localization coverage, and security workflow contracts.
+
+
+###2026.08.28.03
+- UI/UX: Style every custom WebUI profile editor action with FolderView Plus controls instead of Unraid's default orange button treatment.
+- Accessibility: Preserve visible keyboard focus and use the plugin's theme-aware text, surface, hover, active, disabled, and shadow tokens across dark and light themes.
+- Test: Verify custom WebUI profile buttons override hostile host defaults and follow the final dark and light theme palettes in an isolated browser fixture.
+
+
+###2026.08.28.02
+- Feature: Add reusable custom WebUI profiles to each Docker folder so one menu action can open only the selected container WebUIs.
+- UI/UX: Add profile creation, naming, duplication, ordering, search, WebUI-aware selection, unavailable-member visibility, and deletion to the modern Docker folder editor, with responsive keyboard-accessible controls.
+- Reliability: Resolve each selected container's current WebUI only when a profile is launched, open direct running and unpaused members only, retain renamed members through identity reconciliation, and fail closed when a profile no longer exists.
+- Compatibility: Preserve folder-specific profiles through clone, full export/import, backup, and restore while excluding them from generic settings copy/paste, templates, and saved defaults that may target different containers.
+- Privacy: Add support-bundle profile health counts without exporting profile names, container names, or WebUI addresses.
+- Localization: Translate the custom WebUI profile editor and Docker menu across every supported locale.
+- Docs: Document profile setup, launch behavior, popup handling, migration behavior, and current screenshot placeholders in the README and user guide.
+- Test: Cover browser, mobile, keyboard, theme, persistence, launch eligibility, popup safety, rename, transfer, diagnostics, localization, and large-library performance behavior using isolated fixtures.
+
+
+###2026.08.28.01
+- Fix: Show the 10-second Docker folder **Undo** notice immediately when a folder is hidden instead of waiting for preference persistence to finish.
+- Reliability: Keep the optimistic hide and Undo actions conflict-safe, dismiss only the matching notice during restoration, and remove a failed hide notice before rolling the folder state back.
+- UI/UX: Style Undo, Show hidden folders, and Restore all hidden folders with scoped theme tokens so Unraid host button rules cannot force an orange outline.
+- Test: Cover deferred preference saves, save failure rollback, folder-aware notice dismissal, and 552 browser combinations across light and dark themes, desktop and mobile viewports, and Chromium, Firefox, and WebKit.
+
+
+###2026.08.27.05
+- Feature: Add a fourth **Hide** quick action to Docker folder menus. Hiding a parent folder temporarily removes its complete nested branch from FolderView without deleting folders, assignments, rules, or settings.
+- UX: Add a hidden-folder count, temporary **Show hidden folders** view, **Restore all hidden folders** action, and a 10-second **Undo** notice so hidden rows always remain recoverable.
+- UX: Dim temporarily revealed folders and mark them as hidden while leaving Unraid's native Host list unchanged.
+- Reliability: Persist hidden-folder choices through the existing conflict-safe preference flow, preserve the newest choice during rapid or cross-tab updates, clear focus when its folder is hidden, and prune references to deleted folders.
+- Diagnostics: Add privacy-safe hidden-folder counts, hashed identifiers, integrity checks, and effective visibility state to runtime diagnostics and support bundles.
+- Localization: Add the hidden-folder interface text to all 27 supported locale catalogs.
+- Test: Cover nested branch hiding, reveal, restore-all, undo, preference conflicts, diagnostics, accessibility, browser rendering, themes, and runtime performance.
+
+
+###2026.08.27.04
+- Fix: Restore container context actions in collapsed parent-folder previews when the folder contains child folders.
+- Compatibility: Apply the correct Default or Advanced context behavior after nested previews are rebuilt, including Preview Rows 1+, Unlimited, and Unraid Basic or Advanced View.
+- Compatibility: Preserve the parent folder's popup settings and keep child-folder preview actions independent.
+- Test: Cover nested parent container actions in both context modes with Unraid Advanced View enabled, plus child-folder actions, browser fixtures, and large-runtime performance budgets.
+
+
+###2026.08.27.03
+- Fix: Show the same pending lifecycle spinner for Docker containers in single-row and multi-row folder previews.
+- Fix: Keep Start, Resume, and Restart feedback on the folder's Started color instead of temporarily using the Paused color; Pause and Stop continue to use their matching status colors.
+- Compatibility: Honor each folder's customized Started, Paused, and Stopped indicator colors while lifecycle actions are pending.
+- Test: Cover single-row lifecycle identity, action-specific pending colors, spinner cleanup, browser fixtures, responsive themes, and large-runtime performance budgets.
+
+
+###2026.08.27.02
+- Fix: Restore native-style folder status presentation with green started indicators and independently white status text by default.
+- Feature: Add a Text color picker to the modern folder editor Status section so status labels can be customized separately from Started, Paused, and Stopped indicators.
+- Compatibility: Apply the independent status text color across Docker folders and previews, VM folders, Dashboard folders, inherited defaults, starter templates, and existing folders without requiring migration.
+- Diagnostics: Include the normalized status text color in privacy-safe folder integrity diagnostics.
+- Localization: Translate the new status text control and updated guidance across all 27 supported locales.
+- Test: Cover status text normalization, editor persistence, runtime theme separation, localization, browser fixtures, responsive themes, and large-runtime performance budgets.
+
+
+###2026.08.27.01
+- Fix: Use green as the default started-status color in the folder editor and across Docker, VM, and Dashboard folder surfaces.
+- Compatibility: Migrate the previous unmodified white started-status default to green while preserving white when it is explicitly selected and saved in the modern folder editor.
+- Fix: Show a visible pending spinner on compact multi-row Docker previews while a container lifecycle action, including Restart, is in progress.
+- Fix: Keep Restart pending through the initial already-running snapshot, then restore the container preview to its current started, paused, or stopped state after reconciliation.
+- Diagnostics: Record privacy-safe counts for lifecycle preview surfaces and pending or restored status icons without exporting container identities.
+- Test: Cover legacy and explicit status-color behavior, compact-preview lifecycle feedback, restart timing, browser fixtures, responsive themes, and large-runtime performance budgets.
+
+
+###2026.08.25.01
+- Fix: Open the same child-folder action menu from a collapsed parent preview when using a normal click, right-click, touch activation, Enter, or Space.
+- Accessibility: Position keyboard-opened menus beside the child-folder preview chip, focus the first menu action, and retain the existing Expand, Edit, and Open folder actions.
+- Diagnostics: Add bounded child-folder preview render, binding, menu-attempt, success, failure, and input-method counters to sanitized support bundles.
+- Privacy: Keep child-folder preview diagnostics free of folder names, identifiers, selectors, URLs, and pointer coordinates.
+- Test: Cover child-folder menu activation after repeated multi-row preview reconciliation and verify mouse, keyboard, context-menu, touch, focus, geometry, and diagnostic behavior in the browser fixture suite.
 
 
 ###2026.08.24.03

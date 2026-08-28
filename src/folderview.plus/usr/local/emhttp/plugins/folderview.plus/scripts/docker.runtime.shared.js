@@ -29,9 +29,9 @@
     const runtimeJquery = window.jQuery || window.$ || null;
 
     const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || Object.freeze({
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d', text: '#ffffff'
     });
     const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
     const DEFAULT_PREVIEW_BORDER_COLOR = folderContract?.DEFAULT_PREVIEW_BORDER_COLOR || '#afa89e';
@@ -44,7 +44,7 @@
     const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
         started: '--fvplus-folder-status-started',
         paused: '--fvplus-folder-status-paused',
-        stopped: '--fvplus-folder-status-stopped'
+        stopped: '--fvplus-folder-status-stopped', text: '--fvplus-folder-status-text'
     });
 
     const normalizeStatusHexColor = typeof folderContract?.normalizeHexColor === 'function'
@@ -159,20 +159,19 @@
     };
 
     const getFolderStatusColors = (settings) => {
-        const source = settings && typeof settings === 'object' ? settings : {};
+        const source = settings && typeof settings === 'object' ? settings : {}; const normalizedStarted = normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
         return {
-            started: normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            started: !startedExplicit && normalizedStarted === (folderContract?.LEGACY_DEFAULT_FOLDER_STARTED_COLOR || '#ffffff') ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeStatusHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: normalizeStatusHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)
         };
     };
 
     const getFolderStatusColorOverrides = (settings) => {
-        const colors = getFolderStatusColors(settings);
-        return {
-            started: colors.started !== DEFAULT_FOLDER_STATUS_COLORS.started ? colors.started : '',
+        const colors = getFolderStatusColors(settings); return {
+            started: colors.started,
             paused: colors.paused !== DEFAULT_FOLDER_STATUS_COLORS.paused ? colors.paused : '',
-            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : ''
+            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : '', text: colors.text !== DEFAULT_FOLDER_STATUS_COLORS.text ? colors.text : ''
         };
     };
 
@@ -193,7 +192,7 @@
         const locked = settings?.status_color_lock === true || settings?.statusColorLock === true;
         style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
         style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
-        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped); style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.text);
         if (overrides.started || locked) {
             style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started || getFolderStatusColors(settings).started, locked ? 'important' : '');
         }
@@ -203,6 +202,7 @@
         if (overrides.stopped || locked) {
             style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped || getFolderStatusColors(settings).stopped, locked ? 'important' : '');
         }
+        if (overrides.text || locked) style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.text, overrides.text || getFolderStatusColors(settings).text, locked ? 'important' : '');
     };
 
     const applyFolderAccentStyle = ($folderRow, settings) => {

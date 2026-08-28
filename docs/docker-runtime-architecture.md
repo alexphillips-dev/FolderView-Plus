@@ -87,7 +87,7 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 - Bootstrap repeats host detection after parsing, then enables legacy styles, loads legacy custom overrides in sequence, and finally loads `docker.js` only for a confirmed complete table contract.
 - Native and unknown generations keep every legacy stylesheet inert and return before custom overrides, adapters, hooks, requests, observers, or jQuery prefilters are created.
 - Unraid lifecycle globals (`loadlist`, `listview`, `openDocker`, `eventControl`, and `addDockerContainerContext`) are wrapped idempotently by the adapter, with compatibility aliases retained for host/plugin interoperability.
-- Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
+- Context menu quick actions (Focus/Pin/Lock/Hide) are enhanced through the adapter rather than ad-hoc DOM logic. Hidden folder IDs persist in normalized Docker preferences, parent visibility applies to the complete branch, and the View menu provides temporary reveal and restore-all recovery paths.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
 - Preview hydration diagnostics record unavailable WebUI slots, disconnected targets, absolute movement, row movement, and movement relative to the owning row without retaining container or folder identities.
 - The main Docker runtime line budget is ratcheted from 8,839 to 8,028 lines. Column layout/control moved behind a lifecycle-owned factory, while reusable ordering and live-refresh seams reduced duplicate ownership across Docker, VM, and Dashboard.

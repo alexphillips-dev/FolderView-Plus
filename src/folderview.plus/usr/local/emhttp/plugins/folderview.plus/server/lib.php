@@ -399,9 +399,10 @@
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
     const FVPLUS_DOCKER_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
-        'started' => '#ffffff',
+        'started' => '#55b72d',
         'paused' => '#b8860b',
-        'stopped' => '#ff4d4d'
+        'stopped' => '#ff4d4d',
+        'text' => '#ffffff'
     ];
     const FVPLUS_LEGACY_CONFIG_DIRS = [
         '/boot/config/plugins/folder.view3',
@@ -444,6 +445,7 @@
 
     require_once(__DIR__ . '/lib.api-contract.php');
     require_once(__DIR__ . '/lib.preflight.php');
+    require_once(__DIR__ . '/lib.webui-profiles.php');
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
     require_once(__DIR__ . '/lib.docker-runtime.php');
@@ -1198,6 +1200,10 @@
         if (!is_array($normalized['settings'] ?? null)) {
             $normalized['settings'] = [];
         }
+        $normalized['settings']['webui_profiles'] = fvplusNormalizeWebuiProfiles(
+            $normalized['settings']['webui_profiles'] ?? ($normalized['settings']['webuiProfiles'] ?? [])
+        );
+        unset($normalized['settings']['webuiProfiles']);
         $rawPreviewRows = $normalized['settings']['preview_rows']
             ?? ($normalized['settings']['previewRows']
                 ?? ($normalized['preview_rows']
@@ -1330,7 +1336,7 @@
         $normalized['settings'] = [];
         if (array_key_exists('settings', $payload) && is_array($payload['settings'])) {
             $settingsCarrier = normalizeFolderContentPayload(['settings' => $payload['settings']]);
-            $normalized['settings'] = is_array($settingsCarrier['settings'] ?? null) ? $settingsCarrier['settings'] : [];
+            $normalized['settings'] = fvplusStripWebuiProfilesFromSettings($settingsCarrier['settings'] ?? []);
         }
 
         $normalizedActions = [];
@@ -1800,8 +1806,15 @@
     }
 
     function reconcileManualOrderPrefs(array $prefs, array $folders): array {
+        $nextPrefs = $prefs;
+        $nextPrefs['hiddenFolderIds'] = array_values(array_filter(
+            normalizeStringIdList($prefs['hiddenFolderIds'] ?? []),
+            static function ($id) use ($folders): bool {
+                return array_key_exists((string)$id, $folders);
+            }
+        ));
         if (($prefs['sortMode'] ?? 'created') !== 'manual') {
-            return $prefs;
+            return $nextPrefs;
         }
         $order = [];
         foreach ((array)($prefs['manualOrder'] ?? []) as $id) {
@@ -1814,8 +1827,8 @@
                 $order[] = $id;
             }
         }
-        $prefs['manualOrder'] = $order;
-        return $prefs;
+        $nextPrefs['manualOrder'] = $order;
+        return $nextPrefs;
     }
 
     function syncManualOrderWithFolders(string $type, array $folders): void {
@@ -1998,7 +2011,7 @@
         if ($id === '') {
             $id = generateId(12);
         }
-        $settings = is_array($template['settings'] ?? null) ? $template['settings'] : [];
+        $settings = fvplusStripWebuiProfilesFromSettings($template['settings'] ?? []);
         $actions = is_array($template['actions'] ?? null) ? array_values($template['actions']) : [];
         return [
             'id' => $id,
@@ -2079,7 +2092,7 @@
             'name' => $name,
             'icon' => (string)($folder['icon'] ?? ''),
             'regex' => (string)($folder['regex'] ?? ''),
-            'settings' => is_array($folder['settings'] ?? null) ? $folder['settings'] : [],
+            'settings' => fvplusStripWebuiProfilesFromSettings($folder['settings'] ?? []),
             'actions' => is_array($folder['actions'] ?? null) ? $folder['actions'] : [],
             'createdAt' => gmdate('c')
         ];
@@ -2554,7 +2567,6 @@
     }
 
     require_once(__DIR__ . '/lib.folder-rules.php'); require_once(__DIR__ . '/lib.docker-start-order-sequence.php');
-
     require_once(__DIR__ . '/lib.docker-order.php');
 
     require_once(__DIR__ . '/lib.folder-mutations.php');

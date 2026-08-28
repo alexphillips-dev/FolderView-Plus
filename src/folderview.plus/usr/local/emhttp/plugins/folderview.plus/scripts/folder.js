@@ -278,10 +278,11 @@ const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker |
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const folderEditorRegexSelectionModule = window.FolderViewPlusFoundationModules?.folderEditorRegexSelection || null;
 const folderEditorMemberListModule = window.FolderViewPlusFoundationModules?.folderEditorMemberList || null;
+const folderWebuiProfilesModule = window.FolderViewPlusFoundationModules?.folderWebuiProfiles || null;
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
-    started: '#ffffff',
+    started: '#55b72d',
     paused: '#b8860b',
-    stopped: '#ff4d4d'
+    stopped: '#ff4d4d', text: '#ffffff'
 };
 const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
 const DEFAULT_BORDER_COLOR = folderContract?.DEFAULT_PREVIEW_BORDER_COLOR || '#afa89e';
@@ -402,6 +403,7 @@ if (!folderEditorRegexSelectionModule || typeof folderEditorRegexSelectionModule
 if (!folderEditorMemberListModule || typeof folderEditorMemberListModule.createApi !== 'function' || typeof folderEditorMemberListModule.normalizeChildFolderOrder !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.member-list.js');
 }
+if (!folderWebuiProfilesModule || typeof folderWebuiProfilesModule.createEditorApi !== 'function') folderEditorBootstrapMissingModules.push('folder.webui-profiles.js');
 if (!bulkAssignmentSharedModule || typeof bulkAssignmentSharedModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folderviewplus.bulk-assignment.shared.js');
 }
@@ -441,7 +443,7 @@ let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
 let folderEditorRegexSelectionApi = null;
-let folderEditorMemberListApi = null;
+let folderEditorMemberListApi = null, folderWebuiProfilesApi = null;
 let folderEditorIconsApi = null;
 let folderEditorTypeApi = null;
 let folderBulkAssignmentSharedApi = null;
@@ -452,7 +454,7 @@ let editorRecalcTimer = null;
 let nameRegexSyncTimer = null;
 let lastNameRegexSyncValue = '';
 let editorMode = 'basic';
-let activeEditorSection = 'general';
+let activeEditorSection = folderEditorHashParams.get('section') || folderEditorQueryParams.get('section') || 'general';
 let advancedSectionCollapsedState = {};
 let memberBulkMoveInFlight = false;
 let memberBulkMoveUndoState = null;
@@ -480,7 +482,7 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'folder_accent_color',
     'status_color_started',
     'status_color_paused',
-    'status_color_stopped',
+    'status_color_stopped', 'status_color_text',
     'status_color_lock'
 ]);
 
@@ -1072,9 +1074,9 @@ const buildParentSmartDefaults = (parentFolder) => {
         dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
         folder_accent_enabled: isFolderAccentEnabled(settings),
         folder_accent_color: normalizeHexColor(settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR),
-        status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        status_color_started: utils?.getFolderStatusColors?.(settings)?.started || normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
+        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text),
         status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true
     };
 };
@@ -1316,23 +1318,20 @@ const getFolderEditorIconsApi = () => {
     return folderEditorIconsApi;
 };
 
-const renderBuiltInIconPicker = () => {
-    getFolderEditorIconsApi()?.renderBuiltInIconPicker();
-};
-
-const bindIconPickerEvents = async () => {
-    await getFolderEditorIconsApi()?.bindIconPickerEvents();
-};
+const renderBuiltInIconPicker = () => { getFolderEditorIconsApi()?.renderBuiltInIconPicker(); };
+const bindIconPickerEvents = async () => { await getFolderEditorIconsApi()?.bindIconPickerEvents(); };
 const getAllMembers = () => {
     const map = new Map();
     [...selectedRegex, ...selected, ...choose].forEach((member) => {
-        if (!map.has(member.Name)) {
-            map.set(member.Name, member);
-        }
+        if (!map.has(member.Name)) map.set(member.Name, member);
     });
     return [...map.values()];
 };
-
+const getFolderWebuiProfilesApi = () => {
+    if (folderWebuiProfilesApi || typeof folderWebuiProfilesModule?.createEditorApi !== 'function') return folderWebuiProfilesApi;
+    folderWebuiProfilesApi = folderWebuiProfilesModule.createEditorApi({ window, document, form: getForm(), type, getMembers: getAllMembers, translate: folderEditorT });
+    return folderWebuiProfilesApi;
+};
 const computeFormSnapshot = () => {
     const form = getForm();
     const state = {
@@ -1341,12 +1340,10 @@ const computeFormSnapshot = () => {
         childFolders: [],
         actions: $('input[name*="custom_action"]').map((_, el) => $(el).val()).get()
     };
-
     $(form).find(':input[name]').each((_, element) => {
         if (!element.name) {
             return;
         }
-
         const value = element.type === 'checkbox' ? element.checked : $(element).val();
         if (Object.prototype.hasOwnProperty.call(state.fields, element.name)) {
             if (!Array.isArray(state.fields[element.name])) {
@@ -1357,7 +1354,6 @@ const computeFormSnapshot = () => {
             state.fields[element.name] = value;
         }
     });
-
     $('table.sortable > tbody > tr').each((_, row) => {
         const input = $(row).find('input.container-switch');
         state.members.push({
@@ -1374,7 +1370,6 @@ const computeFormSnapshot = () => {
 
     return JSON.stringify(state);
 };
-
 const getFolderEditorStateApi = () => {
     if (folderEditorStateApi || typeof folderEditorStateModule?.createApi !== 'function') {
         return folderEditorStateApi;
@@ -1744,6 +1739,7 @@ const registerFolderEditorModuleTeardown = () => {
         folderThemeSurfaceBinding?.disconnect();
         folderEditorRegexSelectionApi?.dispose();
         folderEditorMemberListApi?.dispose();
+        folderWebuiProfilesApi?.dispose();
     }, { once: true });
 };
 
@@ -1751,7 +1747,7 @@ const resetStatusColorDefaults = () => {
     const form = $('div.canvas > form')[0];
     form.status_color_started.value = DEFAULT_FOLDER_STATUS_COLORS.started;
     form.status_color_paused.value = DEFAULT_FOLDER_STATUS_COLORS.paused;
-    form.status_color_stopped.value = DEFAULT_FOLDER_STATUS_COLORS.stopped;
+    form.status_color_stopped.value = DEFAULT_FOLDER_STATUS_COLORS.stopped; form.status_color_text.value = DEFAULT_FOLDER_STATUS_COLORS.text;
     if (typeof scheduleEditorRecalculation === 'function') {
         scheduleEditorRecalculation(0);
     }
@@ -2273,6 +2269,7 @@ const validateForm = () => {
         validateParentFolderSelection(),
         validateRegexField(),
         validateFolderWebUiUrl(),
+        getFolderWebuiProfilesApi()?.validate() !== false,
         validateContextGraphTime(),
         validateHealthWarnThreshold(),
         validateHealthCriticalThreshold(),
@@ -2953,7 +2950,7 @@ const initEditorChrome = () => {
                         <div class="fv-live-swatches">
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
-                            <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                            <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                         <div id="fvDockerSignals" class="fv-docker-signals" data-fvplus-style="fv-u-xcjvns">
@@ -3058,7 +3055,7 @@ const initEditorChrome = () => {
     updateMemberBulkMoveUi();
 
     editorMode = loadEditorModePreference();
-    activeEditorSection = normalizeActiveEditorSection('general', editorMode);
+    activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
     advancedSectionCollapsedState = loadAdvancedCollapseState();
     $('#fvRegexSimulatorInput').off('input').on('input', updateRegexSimulator);
     $('#fvSuggestDefaults').off('click').on('click', suggestDefaultsFromMembers);
@@ -3157,6 +3154,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('icon', normalizedFolder.icon);
     setFieldChecked('folder_webui', normalizedFolder.settings.folder_webui || false);
     setFieldValue('folder_webui_url', normalizedFolder.settings.folder_webui_url || '');
+    getFolderWebuiProfilesApi()?.hydrate(normalizedFolder.settings.webui_profiles || normalizedFolder.settings.webuiProfiles || []);
     setFieldValue('preview', String(normalizedFolder.settings.preview));
     setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
     setFieldValue('preview_overflow', normalizedFolder.settings.preview_overflow || normalizedFolder.settings.previewOverflow || 'default');
@@ -3195,7 +3193,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('folder_accent_color', normalizeHexColor(normalizedFolder.settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR));
     setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
     setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
-    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)); setFieldValue('status_color_text', normalizeHexColor(normalizedFolder.settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text));
     setFieldChecked('status_color_lock', normalizedFolder.settings.status_color_lock === true || normalizedFolder.settings.statusColorLock === true);
     setFieldValue('health_warn_stopped_percent', normalizedFolder.settings.health_warn_stopped_percent === undefined
         || normalizedFolder.settings.health_warn_stopped_percent === null
@@ -3506,6 +3504,7 @@ const startFolderEditorRuntime = async () => {
     await bindIconPickerEvents();
 
     updateList();
+    getFolderWebuiProfilesApi()?.refreshMembers();
     applySectionTags();
     initEditorChrome();
     updateForm();
@@ -3797,6 +3796,7 @@ const buildFolderPayloadFromForm = (e) => {
         settings: {
             folder_webui: e.folder_webui.checked,
             folder_webui_url: e.folder_webui_url.value.toString(),
+            webui_profiles: getFolderWebuiProfilesApi()?.serialize() || [],
             preview: parseInt(e.preview.value.toString()),
             preview_rows: normalizedPreviewRows,
             preview_overflow: ['expand_row', 'scroll'].includes(String(e.preview_overflow?.value)) ? String(e.preview_overflow.value) : 'default',
@@ -3839,9 +3839,9 @@ const buildFolderPayloadFromForm = (e) => {
             dropdown_hover_color: normalizeHexColor(e.dropdown_hover_color.value.toString(), DEFAULT_DROPDOWN_HOVER_COLOR),
             folder_accent_enabled: e.folder_accent_enabled.checked,
             folder_accent_color: normalizeHexColor(e.folder_accent_color.value.toString(), DEFAULT_FOLDER_ACCENT_COLOR),
-            status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
+            status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started), status_color_started_explicit: true,
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
-            status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
+            status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(e.status_color_text.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.text),
             status_color_lock: e.status_color_lock?.checked === true,
             health_warn_stopped_percent: healthWarnThreshold,
             health_critical_stopped_percent: healthCriticalThreshold,

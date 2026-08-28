@@ -550,12 +550,45 @@ tr.fv-folder-locked .folder-appname {
     display: none !important;
 }
 
+#docker_list > tr.fv-folder-user-hidden {
+    display: none !important;
+}
+
+body.fvplus-docker-reveal-hidden #docker_list > tr.fv-folder-user-hidden:not(.fv-toolbar-filter-hidden):not(.fv-folder-focus-hidden) {
+    display: table-row !important;
+    opacity: 0.58;
+}
+
+body.fvplus-docker-reveal-hidden #docker_list > tr.folder.fv-folder-hidden-revealed > td {
+    background-image: linear-gradient(rgba(255, 154, 60, 0.045), rgba(255, 154, 60, 0.045));
+}
+
+.fv-folder-hidden-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+    margin-left: 0.45rem;
+    color: #ff9a3c;
+    font-size: 0.86em;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.fv-folder-hidden-indicator-icon,
+.fvplus-docker-quick-svg,
+.fvplus-docker-action-svg,
+.fvplus-docker-visibility-notice-icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+}
+
 .folder-update-text {
     white-space: nowrap;
 }
 
 span.folder-state.fv-folder-state-started {
-    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 span.folder-state {
@@ -565,11 +598,11 @@ span.folder-state {
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
+    color: var(--fvplus-folder-status-text, #ffffff);
 }
 
 i.folder-load-status.started {
@@ -970,6 +1003,29 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .fv-preview-status-stopped {
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
+}
+
+.folder-preview .fv-preview-status-compact .state,
+.folder-preview span.state[class*="fv-preview-status-"] {
+    color: var(--fvplus-folder-status-text, #ffffff) !important;
+}
+
+.folder-preview i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="start"] i.fv-preview-lifecycle-pending,
+.folder-preview [data-fv-lifecycle-action="resume"] i.fv-preview-lifecycle-pending,
+.folder-preview [data-fv-lifecycle-action="restart"] i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="pause"] i.fv-preview-lifecycle-pending {
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused)) !important;
+}
+
+.folder-preview [data-fv-lifecycle-action="stop"] i.fv-preview-lifecycle-pending {
     color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
 }
 
@@ -1391,6 +1447,12 @@ div.folder-preview-4 span.outer {
     font-size: 14px !important;
 }
 
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item .fvplus-docker-quick-svg {
+    width: 15px;
+    height: 15px;
+    font-size: 15px !important;
+}
+
 .fvplus-docker-context-menu > li.fvplus-docker-quick-clear {
     clear: both;
 }
@@ -1688,6 +1750,59 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     background: rgba(128, 128, 128, 0.32);
 }
 
+.fvplus-docker-action-menu-item .fvplus-docker-action-svg {
+    justify-self: center;
+}
+
+.fvplus-docker-visibility-notice {
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.58rem 0.72rem;
+    border: 1px solid rgba(255, 154, 60, 0.48);
+    border-radius: 6px;
+    background: rgba(255, 154, 60, 0.08);
+    color: inherit;
+}
+
+.fvplus-docker-visibility-notice > span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fvplus-docker-visibility-notice > button {
+    flex: 0 0 auto;
+    margin: 0 !important;
+}
+
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button {
+    border: 1px solid var(--fvplus-ui-border-subtle, rgba(128, 128, 128, 0.34)) !important;
+    background: var(--fvplus-ui-control, rgba(128, 128, 128, 0.1)) !important;
+    color: var(--fvplus-ui-text-primary, inherit) !important;
+    box-shadow: none !important;
+}
+
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button:hover:not(:disabled) {
+    border-color: var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.58)) !important;
+    background: var(--fvplus-ui-control-hover, rgba(128, 128, 128, 0.2)) !important;
+    color: var(--fvplus-ui-text-primary, inherit) !important;
+}
+
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button:focus-visible {
+    border-color: var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.58)) !important;
+    box-shadow: 0 0 0 3px var(--fvplus-ui-focus-ring, rgba(74, 179, 255, 0.24)) !important;
+    outline: 0 !important;
+}
+
+.fvplus-docker-visibility-notice.is-undo {
+    border-color: rgba(85, 183, 45, 0.52);
+    background: rgba(85, 183, 45, 0.08);
+}
+
 #docker_list > tr.fv-toolbar-filter-hidden {
     display: none !important;
 }
@@ -1726,5 +1841,14 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 
     .fvplus-docker-action-separator {
         display: none;
+    }
+
+    .fvplus-docker-visibility-notice {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .fvplus-docker-visibility-notice > span {
+        flex-basis: calc(100% - 2rem);
     }
 }

@@ -9,6 +9,7 @@
             'sortMode' => 'created',
             'manualOrder' => [],
             'pinnedFolderIds' => [],
+            'hiddenFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
@@ -108,6 +109,7 @@
         $incoming = is_array($value) ? $value : [];
         $profileIncoming = is_array($incoming['profile'] ?? null) ? $incoming['profile'] : [];
         $settingsIncoming = is_array($profileIncoming['settings'] ?? null) ? $profileIncoming['settings'] : [];
+        $settingsIncoming = fvplusStripWebuiProfilesFromSettings($settingsIncoming);
         $actionsIncoming = is_array($profileIncoming['actions'] ?? null) ? $profileIncoming['actions'] : [];
         $normalizedActions = [];
 
@@ -442,6 +444,7 @@
         }
         $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $normalized['hiddenFolderIds'] = normalizeStringIdList($prefs['hiddenFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');

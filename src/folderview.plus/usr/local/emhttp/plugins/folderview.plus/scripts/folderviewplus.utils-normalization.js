@@ -28,9 +28,10 @@
     const PERFORMANCE_PROFILE_OPTIONS = ['standard', 'adaptive', 'maximum'];
     const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
-        started: '#ffffff',
+        started: '#55b72d',
         paused: '#b8860b',
-        stopped: '#ff4d4d'
+        stopped: '#ff4d4d',
+        text: '#ffffff'
     };
     const DEFAULT_HEALTH_PREFS = {
         cardsEnabled: true,
@@ -105,11 +106,10 @@
     } = utilityFoundation;
 
     const getFolderStatusColors = (settings) => {
-        const source = isPlainObject(settings) ? settings : {};
-        return {
-            started: normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        const source = isPlainObject(settings) ? settings : {}; const normalizedStarted = normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
+        return { started: !startedExplicit && normalizedStarted === '#ffffff' ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: normalizeHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)
         };
     };
 
@@ -243,7 +243,7 @@
             return Array.from(
                 new Set(
                     value
-                        .map((item) => String(item || '').trim())
+                        .filter((item) => typeof item === 'string').map((item) => item.trim())
                         .filter((item) => item !== '')
                 )
             );
@@ -279,7 +279,7 @@
             return null;
         }
 
-        const name = String(value.name || '').trim();
+        const name = typeof value.name === 'string' ? value.name.trim() : '';
         if (name === '') {
             return null;
         }

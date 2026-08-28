@@ -6,25 +6,21 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: folderview-plus-clone-traffic-badge
   cancel-in-progress: false
 
 jobs:
-  refresh:
+  collect:
     if: github.repository == 'alexphillips-dev/FolderView-Plus'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      badge_json: ${{ steps.badge.outputs.badge_json }}
 
     steps:
-      - name: Checkout FolderView Plus
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
       - name: Build rolling clone badge data
         id: badge
         env:
@@ -56,19 +52,35 @@ jobs:
           };
           fs.writeFileSync(badgePath, `${JSON.stringify(badge)}\n`, 'utf8');
           NODE
-          echo "badge_path=${badge_path}" >> "${GITHUB_OUTPUT}"
+          echo "badge_json=$(cat "${badge_path}")" >> "${GITHUB_OUTPUT}"
+
+  publish:
+    if: github.repository == 'alexphillips-dev/FolderView-Plus'
+    needs: collect
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
 
       - name: Publish rolling clone badge data
         env:
           GH_TOKEN: ${{ github.token }}
-          BADGE_PATH: ${{ steps.badge.outputs.badge_path }}
+          BADGE_JSON: ${{ needs.collect.outputs.badge_json }}
         shell: bash
         run: |
           set -euo pipefail
           metrics_dir="${RUNNER_TEMP}/folderview-plus-metrics"
+          badge_path="${RUNNER_TEMP}/clone-traffic.json"
+          if [[ -z "${BADGE_JSON:-}" ]]; then
+            echo "::error title=Clone badge data missing::The isolated collection job returned no badge data."
+            exit 1
+          fi
+          printf '%s\n' "${BADGE_JSON}" > "${badge_path}"
           gh auth setup-git
           git clone --depth 1 --branch metrics "https://github.com/${GITHUB_REPOSITORY}.git" "${metrics_dir}"
-          cp "${BADGE_PATH}" "${metrics_dir}/clone-traffic.json"
+          cp "${badge_path}" "${metrics_dir}/clone-traffic.json"
           cd "${metrics_dir}"
           if git diff --quiet -- clone-traffic.json; then
             echo "Rolling clone count is unchanged."

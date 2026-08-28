@@ -23,7 +23,8 @@ const FVPLUS_API_ERROR_LOG = ${phpSingleQuote(apiErrorLogPath)};
 const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
     'started' => '#00ff00',
     'paused' => '#f5c100',
-    'stopped' => '#ff4d4f'
+    'stopped' => '#ff4d4f',
+    'text' => '#ffffff'
 ];
 
 function readInstalledManifestPathCandidates(): array {

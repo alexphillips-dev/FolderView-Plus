@@ -8,6 +8,8 @@ body:
       value: |
         Thanks for reporting this. Please include only the details needed to reproduce the issue quickly.
 
+        This issue is public. Export a **sanitized** support bundle before refreshing the affected page when possible, review its preview, and never attach credentials, tokens, cookies, private URLs, a full/unsanitized bundle, or a raw configuration export.
+
   - type: checkboxes
     id: precheck
     attributes:
@@ -15,7 +17,7 @@ body:
       options:
         - label: I searched existing issues and did not find an open duplicate.
           required: true
-        - label: I reproduced this on the latest version from this repository (main or latest commit URL).
+        - label: I reproduced this on the latest stable release, or I entered the exact requested dev/commit-specific version below.
           required: true
 
   - type: input
@@ -34,6 +36,19 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: release_channel
+    attributes:
+      label: Installed release channel
+      options:
+        - Stable / main
+        - Dev testing build
+        - Commit-specific build
+        - Local or manually modified package
+        - Unknown
+    validations:
+      required: true
+
   - type: input
     id: browser_device
     attributes:
@@ -49,10 +64,39 @@ body:
       label: Install/update method
       options:
         - Community Applications
-        - plugin install (main URL)
+        - plugin install (stable/main URL)
+        - plugin install (dev URL)
         - plugin install (commit-specific URL)
         - Local file/manual
         - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: access_method
+    attributes:
+      label: How do you access Unraid?
+      options:
+        - Direct LAN IP
+        - Local hostname
+        - Reverse proxy or custom domain
+        - Unraid Connect
+        - Tailscale or another VPN
+        - Other or unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: docker_view_mode
+    attributes:
+      label: Unraid Docker view mode
+      description: Select Not applicable when this is not a Docker-page issue.
+      options:
+        - Basic View
+        - Advanced View
+        - Tested in both
+        - Not applicable
+        - Unsure
     validations:
       required: true
 
@@ -83,12 +127,29 @@ body:
       required: true
 
   - type: dropdown
+    id: configuration_origin
+    attributes:
+      label: Configuration origin
+      options:
+        - Fresh FolderView Plus configuration
+        - Upgraded from an earlier FolderView Plus version
+        - Imported from FolderView3
+        - Imported from FolderView2
+        - Restored from a backup or export
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
     id: affected_area
     attributes:
       label: Affected area
       multiple: true
       options:
         - Docker tab rendering
+        - Docker container actions / context menus
+        - Docker API / provider compatibility
+        - Unraid native Docker / prerelease compatibility
         - VM tab rendering
         - Dashboard widgets
         - Settings basic view
@@ -101,6 +162,11 @@ body:
         - Safe mode / conflict detection
         - Mobile / touch behavior
         - Install / update detection
+        - Reverse proxy / request guard
+        - Diagnostics / support bundles
+        - Docker Start Order
+        - Plugin lifecycle / installation / updates
+        - Privacy / security behavior
         - Other
     validations:
       required: true
@@ -143,6 +209,15 @@ body:
       required: true
 
   - type: textarea
+    id: relevant_settings
+    attributes:
+      label: Relevant FolderView Plus settings
+      description: List settings related to the problem, such as Preview style, Preview Rows, overflow behavior, context mode, nested-folder visibility, hide-empty folders, Performance Mode, view mode, sorting, or custom colors.
+      placeholder: "Example: Preview Rows = Unlimited; Context = Advanced; parent folder contains one child folder"
+    validations:
+      required: false
+
+  - type: textarea
     id: logs
     attributes:
       label: Relevant logs / console output
@@ -151,10 +226,32 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: support_bundle_status
+    attributes:
+      label: Sanitized support bundle status
+      description: Export from Settings -> FolderView Plus -> Advanced -> Diagnostics and review the preview before sharing.
+      options:
+        - Attached below
+        - Unable to export because Settings or Diagnostics will not load
+        - Unable to export because installation failed
+        - Not applicable to this report
+        - Need instructions
+    validations:
+      required: true
+
   - type: textarea
     id: attachments
     attributes:
       label: Attachments (optional but helpful)
-      description: Drag and drop screenshots, recordings, export JSON, or diagnostics JSON.
+      description: Drag and drop screenshots, recordings, or a sanitized support bundle. Do not attach a full/unsanitized bundle or raw configuration export publicly.
     validations:
       required: false
+
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: Public attachment confirmation
+      options:
+        - label: I reviewed my attachments and removed credentials, tokens, cookies, private URLs, unsanitized diagnostics, and raw configuration exports.
+          required: true

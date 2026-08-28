@@ -7,8 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: folderview-plus-backmerge-main-to-dev
@@ -16,6 +15,9 @@ concurrency:
 
 jobs:
   backmerge:
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:

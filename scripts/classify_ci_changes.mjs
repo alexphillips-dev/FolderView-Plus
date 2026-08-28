@@ -27,8 +27,10 @@ export const FILTERS = Object.freeze({
     workflows: [
         '.github/workflows/**',
         '.github/actions/**',
+        '.github/ISSUE_TEMPLATE/**',
         'scripts/classify_ci_changes.mjs',
         'scripts/actionlint_guard.sh',
+        'scripts/issue_form_guard.mjs',
         'scripts/run_ci_suite.sh',
         'scripts/test_runner_contract_guard.mjs',
         'scripts/build_release_notes.sh',

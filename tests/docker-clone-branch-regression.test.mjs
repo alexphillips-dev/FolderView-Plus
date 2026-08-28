@@ -76,7 +76,8 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
         icon: 'icon.svg',
         settings: {
             layout: 'grid',
-            nested: { enabled: true }
+            nested: { enabled: true },
+            webui_profiles: [{ id: 'media', name: 'Media tools', containers: ['plex'] }]
         },
         regex: '^media',
         containers: ['plex'],
@@ -98,6 +99,8 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
     assert.equal(payload.parentId, 'child-parent');
     assert.notStrictEqual(payload.settings, source.settings);
     assert.notStrictEqual(payload.settings.nested, source.settings.nested);
+    assert.notStrictEqual(payload.settings.webui_profiles, source.settings.webui_profiles);
+    assert.deepEqual(payload.settings.webui_profiles, source.settings.webui_profiles);
     assert.notStrictEqual(payload.containers, source.containers);
     assert.notStrictEqual(payload.actions, source.actions);
     assert.notStrictEqual(payload.actions[0], source.actions[0]);

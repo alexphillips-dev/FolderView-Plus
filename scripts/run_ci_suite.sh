@@ -249,6 +249,7 @@ run_lane() {
       ;;
     workflow-guards)
       run_timed_step actionlint bash scripts/actionlint_guard.sh
+      run_timed_step issue-form-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/issue_form_guard.mjs")"
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
@@ -275,6 +276,7 @@ run_lane() {
       run_timed_step repro-build bash scripts/repro_build_guard.sh
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
+      run_timed_step issue-form-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/issue_form_guard.mjs")"
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
       ;;
     fixture-browser)

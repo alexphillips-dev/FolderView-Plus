@@ -92,7 +92,7 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
     assert.match(dockerRuntimeActionsJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.match(dockerRuntimeActionsJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.match(dockerRuntimeActionsJs, /win\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
-    assert.match(dockerJs, /const editFolder = \(id\) => \{[\s\S]*actionsApi\.editFolder\(id\);/);
+    assert.match(dockerJs, /const editFolder = \(id, options = \{\}\) => getDockerRuntimeActionsApi\(\)\?\.editFolder\?\.\(id, options\);/);
     assert.match(vmJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
     assert.match(vmJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
     assert.match(vmJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);

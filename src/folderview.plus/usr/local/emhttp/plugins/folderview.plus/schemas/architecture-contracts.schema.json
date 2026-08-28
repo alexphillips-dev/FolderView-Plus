@@ -19,6 +19,7 @@
       "scripts/folderviewplus.utils.js": { "limit": 88, "target": 88, "history": [2346, 2054, 88] },
       "scripts/folderviewplus.utils-normalization.js": { "limit": 443, "target": 400, "history": [452, 443] },
       "scripts/folderviewplus.utils-prefs.js": { "limit": 383, "target": 380, "history": [448, 383] },
+      "scripts/folder.webui-profiles.js": { "limit": 447, "target": 400, "history": [447] },
       "scripts/folderviewplus.utils-ordering.js": { "limit": 185, "target": 180, "history": [270, 185] },
       "scripts/folderviewplus.utils-transfer.js": { "limit": 645, "target": 620, "history": [717, 645] },
       "scripts/folderviewplus.utils-rules.js": { "limit": 533, "target": 500, "history": [598, 533] },
@@ -47,6 +48,7 @@
       "server/lib.diagnostics-integrity.php": { "limit": 741, "target": 400, "history": [741] },
       "server/lib.diagnostics-redaction.php": { "limit": 495, "target": 400, "history": [495] },
       "server/lib.diagnostics-summary.php": { "limit": 785, "target": 400, "history": [785] },
+      "server/lib.webui-profiles.php": { "limit": 128, "target": 120, "history": [128] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
@@ -146,7 +148,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js", "scripts/folder.webui-profiles.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -176,7 +178,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["folder-editor"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folder.editor.shared.js", "scripts/folder.editor.schema.js", "scripts/folder.editor.state.js", "scripts/folder.editor.members.js", "scripts/folder.editor.hierarchy.js", "scripts/folder.editor.regex-selection.js", "scripts/folder.editor.member-list.js", "scripts/folder.editor.legacy-rule-model.js", "scripts/folderviewplus.rule-templates.js", "scripts/folder.editor.rule-template-workspace.js", "scripts/folder.editor.type-docker.js", "scripts/folder.editor.type-vm.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/folder.editor.shared.js", "scripts/folder.editor.schema.js", "scripts/folder.editor.state.js", "scripts/folder.editor.members.js", "scripts/folder.editor.hierarchy.js", "scripts/folder.editor.regex-selection.js", "scripts/folder.editor.member-list.js", "scripts/folder.webui-profiles.js", "scripts/folder.editor.legacy-rule-model.js", "scripts/folderviewplus.rule-templates.js", "scripts/folder.editor.rule-template-workspace.js", "scripts/folder.editor.type-docker.js", "scripts/folder.editor.type-vm.js"],
       "lifecycle": { "startup": "loader-managed-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["submitForm", "updateForm", "updateRegex", "customAction"]
     },
@@ -196,7 +198,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -231,6 +233,16 @@
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 11, "sha256": "4b55393420a54ede2692f9513c50d19aa31a49e4950bcbd155c3de720294b254" }
+    },
+    {
+      "file": "server/lib.webui-profiles.php",
+      "owner": "server-folder-webui-profiles",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 5, "sha256": "4f00673340cef720edd4334bc1c56fffa0704ae017057c204fce07d0fe61afe8" }
     },
     {
       "file": "server/lib.release-notes.php",
@@ -417,7 +429,7 @@
       "owner": "server-folder-mutations",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.backup-snapshots.php", "server/lib.docker-order.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.backup-snapshots.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 7, "sha256": "ed85e1dd77855f1a445e2029e0c581c3fbf55df7477571e4538614bcac35824f" }
@@ -467,7 +479,7 @@
       "owner": "server-diagnostics-summary",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.diagnostics-integrity.php"],
+      "dependsOn": ["server/lib.diagnostics-integrity.php", "server/lib.webui-profiles.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
       "functionInventory": { "count": 12, "sha256": "a58ee2ba2b616c31d868a9736a527f2647589af5bee06c91bcd231e6010fe9d7" }
@@ -871,6 +883,22 @@
       ]
     },
     {
+      "file": "scripts/folder.webui-profiles.js",
+      "owner": "shared-folder-webui-profiles",
+      "consumers": ["docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderWebuiProfiles",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["MAX_PROFILES", "MAX_PROFILE_MEMBERS", "MAX_PROFILE_NAME_LENGTH", "normalizeProfiles", "stripProfilesFromSettings", "renameProfileMember", "collectProfileTargets", "summarizeProfiles", "resolveProfileLaunch", "appendRuntimeMenuItems", "createEditorApi"],
+      "lifecycleFactories": [
+        { "name": "createEditorApi", "exports": ["hydrate", "render", "refreshMembers", "serialize", "validate", "snapshot", "dispose"] }
+      ]
+    },
+    {
       "file": "scripts/docker.runtime.column-controller.js",
       "owner": "docker-runtime-layout",
       "consumers": ["docker"],
@@ -942,6 +970,22 @@
       "lifecycleFactories": [
         { "name": "createCoordinator", "exports": ["prepare", "refreshAll", "reconcileContainer", "recheck", "status", "dispose"] },
         { "name": "createIntegration", "exports": ["prepare", "refresh", "tick", "status", "dispose"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.child-folder-preview-menu.js",
+      "owner": "docker-child-folder-preview-menu",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerChildFolderPreviewMenu",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"],
+      "lifecycleFactories": [
+        { "name": "createApi", "exports": ["close", "show"] }
       ]
     },
     {
@@ -1211,6 +1255,20 @@
       "lifecycleFactories": [
         { "name": "createDeferredPreviewController", "exports": ["start", "refresh", "destroy", "snapshot"] }
       ]
+    },
+    {
+      "file": "scripts/docker.runtime.hidden-folders.js",
+      "owner": "docker-hidden-folder-visibility",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerHiddenFolders",
+      "loader": "commonjs",
+      "exports": ["createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["normalizeIds", "reconcilePrefs", "getOwnerId", "getSummary", "applyVisibility", "hideFolder", "restoreFolder", "restoreAll", "setReveal", "buildQuickAction", "decorateQuickIcon", "svgIcon"]
     }
   ],
   "browserGlobals": {

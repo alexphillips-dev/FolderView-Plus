@@ -202,6 +202,24 @@ test('normalizeFolderMap rejects prototype keys and unsafe identifiers', () => {
     assert.equal(utils.normalizeFolderId('bad/id'), '');
 });
 
+test('normalizeFolderMap rejects non-string names and members without coercion', () => {
+    const nonCoercible = { toString: 0 };
+    const normalized = utils.normalizeFolderMap({
+        unsafe: {
+            name: nonCoercible,
+            containers: []
+        },
+        safe: {
+            name: ' Safe ',
+            containers: [' plex ', nonCoercible, 42, 'plex', 'sonarr']
+        }
+    });
+
+    assert.deepEqual(Object.keys(normalized), ['safe']);
+    assert.equal(normalized.safe.name, 'Safe');
+    assert.deepEqual(normalized.safe.containers, ['plex', 'sonarr']);
+});
+
 test('normalizeFolderMembers is exported and normalizes arrays/objects', () => {
     assert.equal(typeof utils.normalizeFolderMembers, 'function');
     assert.deepEqual(

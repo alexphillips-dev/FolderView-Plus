@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.28.03">
-<!ENTITY md5 "b19457599141dfa084e1bc8a755b55a6">
-<!ENTITY sha256 "255a697535c6b14f95631fa836889a0ddda0c11c388ee2bd313ed21d779e0093">
+<!ENTITY version "2026.08.28.04">
+<!ENTITY md5 "9c44e6b2784eaa83b27fe0658cebe19d">
+<!ENTITY sha256 "4c9da7f4379224d2b65ff9957c08ab5e996d6c8d7082762504f7415ef1f95194">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.28.04
+- Fix: Keep hidden-folder restore labels and custom WebUI profile warnings registered as active localized UI text.
+- Reliability: Prevent strict localization validation and main-to-dev back-merges from rejecting those live Docker translation keys.
+- Security: Reject malformed non-string folder names and container identifiers without invoking attacker-controlled coercion hooks.
+- Test: Rebuild all 27 locale catalogs and verify hidden-folder behavior, localization coverage, and security workflow contracts.
+
 
 ###2026.08.28.03
 - UI/UX: Style every custom WebUI profile editor action with FolderView Plus controls instead of Unraid's default orange button treatment.

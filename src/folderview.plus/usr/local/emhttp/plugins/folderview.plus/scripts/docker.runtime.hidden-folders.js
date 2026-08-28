@@ -222,7 +222,9 @@
             const hiddenByAncestor = !!hiddenOwnerId && hiddenOwnerId !== id;
             return {
                 text: hiddenOwnerId
-                    ? translate(hiddenByAncestor ? 'docker.folder.restore-hidden-branch' : 'docker.folder.restore', hiddenByAncestor ? 'Restore hidden branch' : 'Restore folder')
+                    ? (hiddenByAncestor
+                        ? translate('docker.folder.restore-hidden-branch', 'Restore hidden branch')
+                        : translate('docker.folder.restore', 'Restore folder'))
                     : translate('docker.folder.hide', 'Hide folder'),
                 icon: hiddenOwnerId ? 'fa-eye' : 'fa-eye-slash',
                 action: (event) => {

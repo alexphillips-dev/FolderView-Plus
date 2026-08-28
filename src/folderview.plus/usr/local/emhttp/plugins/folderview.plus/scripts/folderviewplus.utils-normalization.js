@@ -243,7 +243,7 @@
             return Array.from(
                 new Set(
                     value
-                        .map((item) => String(item || '').trim())
+                        .filter((item) => typeof item === 'string').map((item) => item.trim())
                         .filter((item) => item !== '')
                 )
             );
@@ -279,7 +279,7 @@
             return null;
         }
 
-        const name = String(value.name || '').trim();
+        const name = typeof value.name === 'string' ? value.name.trim() : '';
         if (name === '') {
             return null;
         }

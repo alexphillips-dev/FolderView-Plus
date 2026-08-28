@@ -2135,7 +2135,8 @@ const dockerHiddenFoldersModule = window.FolderViewPlusFoundationModules?.docker
     runGuardedAction: (name, action, context) => runDockerGuardedAction(name, action, context), savePrefs: (patch, currentPrefs) => saveDockerRuntimeToolbarPrefs(patch, currentPrefs), fetchPrefs: () => fetchDockerPinnedFolderPrefs(),
     syncDependentUi: () => { applyDockerFocusedFolderState(); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode()); refreshDockerRuntimeSortableRows(); queueDockerRuntimeResizerBind(); scheduleDockerRuntimeWidthReflow('folder-visibility', 24); },
     getFocusedFolderId: () => dockerFocusedFolderId, clearFocusedFolder: () => { dockerRuntimeStateStore.set({ focusedFolderId: '' }); dockerFocusedFolderId = ''; },
-    offerUndo: (payload) => dockerRuntimeActionBarApi?.offerHiddenFolderUndo?.(payload), translate: (key, fallback) => dockerT(key, fallback), escapeHtml, svgIcon: (name, options = {}) => window.FolderViewPlusUI?.svgIcon?.(name, options) || ''
+    offerUndo: (payload) => dockerRuntimeActionBarApi?.offerHiddenFolderUndo?.(payload), dismissUndo: (folderId = '') => dockerRuntimeActionBarApi?.clearHiddenFolderUndo?.(folderId),
+    translate: (key, fallback) => dockerT(key, fallback), escapeHtml, svgIcon: (name, options = {}) => window.FolderViewPlusUI?.svgIcon?.(name, options) || ''
 });
 const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {

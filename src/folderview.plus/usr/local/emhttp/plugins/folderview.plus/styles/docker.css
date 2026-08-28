@@ -1779,6 +1779,25 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     margin: 0 !important;
 }
 
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button {
+    border: 1px solid var(--fvplus-ui-border-subtle, rgba(128, 128, 128, 0.34)) !important;
+    background: var(--fvplus-ui-control, rgba(128, 128, 128, 0.1)) !important;
+    color: var(--fvplus-ui-text-primary, inherit) !important;
+    box-shadow: none !important;
+}
+
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button:hover:not(:disabled) {
+    border-color: var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.58)) !important;
+    background: var(--fvplus-ui-control-hover, rgba(128, 128, 128, 0.2)) !important;
+    color: var(--fvplus-ui-text-primary, inherit) !important;
+}
+
+.fvplus-docker-visibility-notice > .fvplus-docker-visibility-button:focus-visible {
+    border-color: var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.58)) !important;
+    box-shadow: 0 0 0 3px var(--fvplus-ui-focus-ring, rgba(74, 179, 255, 0.24)) !important;
+    outline: 0 !important;
+}
+
 .fvplus-docker-visibility-notice.is-undo {
     border-color: rgba(85, 183, 45, 0.52);
     background: rgba(85, 183, 45, 0.08);

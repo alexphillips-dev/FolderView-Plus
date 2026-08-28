@@ -220,10 +220,23 @@ test('hidden folder recovery remains available outside the hidden runtime rows',
     assert.match(actionBarJs, /data-fvplus-docker-hidden="restore-all"/);
     assert.match(actionBarJs, /All folder rows are hidden\./);
     assert.match(actionBarJs, /data-fvplus-docker-hidden="undo"/);
+    assert.match(actionBarJs, /fvplus-docker-visibility-button/);
+    assert.match(actionBarJs, /const clearHiddenFolderUndo = \(folderId = ''\) =>/);
     assert.match(actionBarJs, /setRevealHiddenFolders\(false\)/);
     assert.doesNotMatch(actionBarJs, /resetView[\s\S]{0,500}restoreAllHiddenFolders/);
     assert.match(dockerCss, /#docker_list > tr\.fv-folder-user-hidden\s*\{[\s\S]*display:\s*none !important/);
     assert.match(dockerCss, /body\.fvplus-docker-reveal-hidden #docker_list > tr\.fv-folder-user-hidden/);
+    assert.match(dockerCss, /\.fvplus-docker-visibility-notice > \.fvplus-docker-visibility-button\s*\{[\s\S]*--fvplus-ui-border-subtle[\s\S]*--fvplus-ui-control[\s\S]*--fvplus-ui-text-primary/);
     assert.match(hiddenFoldersJs, /const restoreAll = async \(\) =>/);
     assert.match(hiddenFoldersJs, /hiddenFolderIds/);
+});
+
+test('hidden-folder Undo dismissal is scoped to the matching folder', () => {
+    const api = actionBarModule.createApi({
+        window: { addEventListener() {}, setTimeout: () => 1, clearTimeout() {}, Element: null, HTMLElement: null },
+        document: { addEventListener() {}, querySelectorAll: () => [], getElementById: () => null, querySelector: () => null }
+    });
+    api.offerHiddenFolderUndo({ folderId: 'media', folderName: 'Media' });
+    assert.equal(api.clearHiddenFolderUndo('updates'), false);
+    assert.equal(api.clearHiddenFolderUndo('media'), true);
 });

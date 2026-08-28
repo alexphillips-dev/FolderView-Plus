@@ -70,6 +70,63 @@ test('newer optimistic hidden-folder intent survives an older preference broadca
     assert.deepEqual(api.reconcilePrefs({ hiddenFolderIds: [] }).hiddenFolderIds, ['root']);
 });
 
+test('hide offers Undo before deferred persistence resolves', async () => {
+    let prefs = { hiddenFolderIds: [] };
+    let resolveSave;
+    const undoOffers = [];
+    const emptyCollection = { toggleClass: () => emptyCollection, each: () => emptyCollection };
+    const api = hiddenFoldersModule.createApi({
+        $: () => emptyCollection,
+        getPrefs: () => prefs,
+        setPrefs: (value) => { prefs = value; },
+        normalizePrefs: (value) => ({ ...value, hiddenFolderIds: Array.isArray(value.hiddenFolderIds) ? value.hiddenFolderIds : [] }),
+        getFolders: () => ({ root: { name: 'Root' } }),
+        runtimeStateStore: { set: () => {} },
+        safeActionRunner: {
+            run: async (_key, action, settings) => {
+                const intent = { isLatest: () => true };
+                settings.onIntent(intent);
+                return action(intent);
+            }
+        },
+        savePrefs: () => new Promise((resolve) => { resolveSave = resolve; }),
+        offerUndo: (payload) => undoOffers.push(payload)
+    });
+    const pending = api.hideFolder('root');
+    assert.deepEqual(prefs.hiddenFolderIds, ['root']);
+    assert.deepEqual(undoOffers, [{ folderId: 'root', folderName: 'Root' }]);
+    resolveSave({ hiddenFolderIds: ['root'] });
+    assert.equal(await pending, true);
+    assert.equal(undoOffers.length, 1);
+});
+
+test('failed hide dismisses only its optimistic Undo notice', async () => {
+    let prefs = { hiddenFolderIds: [] };
+    const dismissed = [];
+    const emptyCollection = { toggleClass: () => emptyCollection, each: () => emptyCollection };
+    const api = hiddenFoldersModule.createApi({
+        $: () => emptyCollection,
+        getPrefs: () => prefs,
+        setPrefs: (value) => { prefs = value; },
+        normalizePrefs: (value) => ({ ...value, hiddenFolderIds: Array.isArray(value.hiddenFolderIds) ? value.hiddenFolderIds : [] }),
+        getFolders: () => ({ root: { name: 'Root' } }),
+        runtimeStateStore: { set: () => {} },
+        safeActionRunner: {
+            run: async (_key, action, settings) => {
+                const intent = { isLatest: () => true };
+                settings.onIntent(intent);
+                return action(intent);
+            }
+        },
+        savePrefs: async () => { throw new Error('save failed'); },
+        fetchPrefs: async () => ({ hiddenFolderIds: [] }),
+        dismissUndo: (folderId) => dismissed.push(folderId)
+    });
+    assert.equal(await api.hideFolder('root'), false);
+    assert.deepEqual(prefs.hiddenFolderIds, []);
+    assert.deepEqual(dismissed, ['root']);
+});
+
 test('hidden-folder diagnostics retain counts and hash folder identities', () => {
     assert.match(diagnosticsPhp, /prefs\.hiddenFolders\.\*/);
     assert.match(diagnosticsPhp, /diagnosticsSupportBundleRedactFolderIdList/);

@@ -12,6 +12,8 @@
     let prefs = { pageViewMode: 'folderview', hideEmptyFolders: false, health: { warnStoppedPercent: 60 } };
     const events = [];
     let refreshCount = 0;
+    let deferHiddenFolderSave = false;
+    let pendingHiddenFolderSave = null;
     const hostAdapter = window.FolderViewPlusRuntimeHostAdapters.getOrCreate('docker', { window, document });
     const privacyEvents = [];
     let privacySwitchInitializeCount = 0;
@@ -159,7 +161,13 @@
             try { return { ok: true, value: await action() }; } catch (error) { return { ok: false, error }; }
         },
         savePrefs: async (patch) => {
-            prefs = normalizePrefs({ ...prefs, ...patch });
+            const nextPrefs = normalizePrefs({ ...prefs, ...patch });
+            if (deferHiddenFolderSave) {
+                return new Promise((resolve, reject) => {
+                    pendingHiddenFolderSave = { nextPrefs, resolve, reject };
+                });
+            }
+            prefs = nextPrefs;
             return prefs;
         },
         fetchPrefs: async () => prefs,
@@ -167,6 +175,7 @@
         getFocusedFolderId: () => '',
         clearFocusedFolder: () => events.push({ type: 'clear-focus' }),
         offerUndo: (payload) => api?.offerHiddenFolderUndo(payload),
+        dismissUndo: (folderId = '') => api?.clearHiddenFolderUndo(folderId),
         translate: (_key, fallback) => fallback,
         escapeHtml: (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -213,6 +222,27 @@
     window.fixtureRuntime = {
         api,
         hiddenFolders,
+        hiddenFolderPersistence: {
+            defer: () => { deferHiddenFolderSave = true; },
+            isPending: () => !!pendingHiddenFolderSave,
+            resolve: () => {
+                const pending = pendingHiddenFolderSave;
+                pendingHiddenFolderSave = null;
+                deferHiddenFolderSave = false;
+                if (!pending) return false;
+                prefs = pending.nextPrefs;
+                pending.resolve(prefs);
+                return true;
+            },
+            reject: () => {
+                const pending = pendingHiddenFolderSave;
+                pendingHiddenFolderSave = null;
+                deferHiddenFolderSave = false;
+                if (!pending) return false;
+                pending.reject(new Error('fixture hidden-folder save failed'));
+                return true;
+            }
+        },
         events,
         privacyToggle: {
             rememberIdentity: () => {

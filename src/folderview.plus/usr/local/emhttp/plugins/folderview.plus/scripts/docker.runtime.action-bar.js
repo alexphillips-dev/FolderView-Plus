@@ -329,13 +329,13 @@
                 ${undoActive ? `<div class="fvplus-docker-visibility-notice is-undo" role="status">
                     ${svgIcon('eye-off', { className: 'fvplus-docker-visibility-notice-icon' })}
                     <span><strong>${escapeHtml(translate('docker.visibility.hidden-title', 'Folder hidden'))}</strong> ${escapeHtml(String(hiddenFolderUndo.folderName || translate('docker.visibility.folder-fallback', 'Folder')))} ${escapeHtml(translate('docker.visibility.hidden-message', 'was hidden from the Docker view.'))}</span>
-                    <button type="button" class="fv-ui-button" data-fvplus-docker-hidden="undo">${escapeHtml(translate('docker.visibility.undo', 'Undo'))}</button>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="undo">${escapeHtml(translate('docker.visibility.undo', 'Undo'))}</button>
                 </div>` : ''}
                 ${allFoldersHidden ? `<div class="fvplus-docker-visibility-notice is-empty" role="status">
                     ${svgIcon('eye-off', { className: 'fvplus-docker-visibility-notice-icon' })}
                     <span><strong>${escapeHtml(translate('docker.visibility.all-hidden-title', 'All folder rows are hidden.'))}</strong> ${escapeHtml(translate('docker.visibility.all-hidden-help', 'Reveal them temporarily or restore every hidden folder.'))}</span>
-                    <button type="button" class="fv-ui-button" data-fvplus-docker-hidden="toggle-reveal">${escapeHtml(translate('docker.visibility.show-hidden', 'Show hidden folders'))}</button>
-                    <button type="button" class="fv-ui-button" data-fvplus-docker-hidden="restore-all">${escapeHtml(translate('docker.visibility.restore-all', 'Restore all hidden folders'))}</button>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="toggle-reveal">${escapeHtml(translate('docker.visibility.show-hidden', 'Show hidden folders'))}</button>
+                    <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="restore-all">${escapeHtml(translate('docker.visibility.restore-all', 'Restore all hidden folders'))}</button>
                 </div>` : ''}`;
             Array.from(bar.querySelectorAll('button')).forEach((button) => {
                 button.disabled = button.disabled || busy;
@@ -462,12 +462,15 @@
             sync();
         };
 
-        const clearHiddenFolderUndo = () => {
+        const clearHiddenFolderUndo = (folderId = '') => {
+            const expectedId = String(folderId || '').trim();
+            if (expectedId && String(hiddenFolderUndo?.folderId || '') !== expectedId) return false;
             if (hiddenFolderUndoTimer) {
                 win?.clearTimeout?.(hiddenFolderUndoTimer);
                 hiddenFolderUndoTimer = 0;
             }
             hiddenFolderUndo = null;
+            return true;
         };
 
         const offerHiddenFolderUndo = ({ folderId = '', folderName = '' } = {}) => {
@@ -541,9 +544,9 @@
                 }
                 if (action === 'undo' && hiddenFolderUndo?.folderId) {
                     const undoId = hiddenFolderUndo.folderId;
+                    clearHiddenFolderUndo(undoId);
                     runTask(async () => {
                         await restoreHiddenFolder(undoId);
-                        clearHiddenFolderUndo();
                         applyFilterState();
                     });
                 }

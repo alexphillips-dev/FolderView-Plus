@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.27.05">
-<!ENTITY md5 "77364d5309dae0b444ebcfdc4f82ddb2">
-<!ENTITY sha256 "5fba9f842534e82d8fc9e7cf69d68d67e737a2448fbf6e8760994dc05f07fca2">
+<!ENTITY version "2026.08.28.01">
+<!ENTITY md5 "94c9074ba781ec8d84c318fe3be33023">
+<!ENTITY sha256 "e3ed087328f3bec0d5d34d64660eed99359f2cb28c925718d052d5f4084febca">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.28.01
+- Fix: Show the 10-second Docker folder **Undo** notice immediately when a folder is hidden instead of waiting for preference persistence to finish.
+- Reliability: Keep the optimistic hide and Undo actions conflict-safe, dismiss only the matching notice during restoration, and remove a failed hide notice before rolling the folder state back.
+- UI/UX: Style Undo, Show hidden folders, and Restore all hidden folders with scoped theme tokens so Unraid host button rules cannot force an orange outline.
+- Test: Cover deferred preference saves, save failure rollback, folder-aware notice dismissal, and 552 browser combinations across light and dark themes, desktop and mobile viewports, and Chromium, Firefox, and WebKit.
+
 
 ###2026.08.27.05
 - Feature: Add a fourth **Hide** quick action to Docker folder menus. Hiding a parent folder temporarily removes its complete nested branch from FolderView without deleting folders, assignments, rules, or settings.

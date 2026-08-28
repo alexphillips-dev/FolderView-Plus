@@ -32,6 +32,7 @@
         const getFocusedFolderId = typeof deps.getFocusedFolderId === 'function' ? deps.getFocusedFolderId : (() => '');
         const clearFocusedFolder = typeof deps.clearFocusedFolder === 'function' ? deps.clearFocusedFolder : (() => {});
         const offerUndo = typeof deps.offerUndo === 'function' ? deps.offerUndo : (() => {});
+        const dismissUndo = typeof deps.dismissUndo === 'function' ? deps.dismissUndo : (() => false);
         const translate = typeof deps.translate === 'function' ? deps.translate : ((_key, fallback) => fallback || '');
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
         const svgIcon = typeof deps.svgIcon === 'function' ? deps.svgIcon : (() => '');
@@ -149,6 +150,7 @@
             if (!id || !folders[id]) return false;
             const previousIds = getExplicitIds();
             const hidden = requestedHidden === true;
+            const folderName = String(folders[id]?.name || translate('docker.folder.unnamed', 'Folder'));
             const nextIds = hidden
                 ? (previousIds.includes(id) ? previousIds : [...previousIds, id])
                 : previousIds.filter((entry) => entry !== id);
@@ -159,16 +161,15 @@
                     pendingIdsOverride = null;
                     applyIds(confirmedIds);
                     syncUi();
-                    if (hidden && options.offerUndo !== false) {
-                        offerUndo({ folderId: id, folderName: String(folders[id]?.name || translate('docker.folder.unnamed', 'Folder')) });
-                    }
                 }, {
                     userMessage: translate('docker.folder.visibility-failed', 'The folder visibility preference could not be saved.'),
                     userVisible: true
                 });
                 if (!result.ok && intent.isLatest()) {
                     pendingIdsOverride = null;
+                    if (hidden) dismissUndo(id);
                     await recoverLatestFailure(previousIds);
+                    if (!hidden && previousIds.includes(id)) offerUndo({ folderId: id, folderName });
                 }
                 return result.ok;
             }, {
@@ -177,6 +178,8 @@
                     pendingIdsOverride = { ids: normalizeIds(nextIds), expiresAt: Date.now() + 10000 };
                     applyIds(nextIds);
                     if (hidden && getOwnerId(getFocusedFolderId())) clearFocusedFolder();
+                    if (hidden && options.offerUndo !== false) offerUndo({ folderId: id, folderName });
+                    if (!hidden) dismissUndo(id);
                     syncUi();
                 }
             });
@@ -205,7 +208,7 @@
                 return result.ok;
             }, {
                 queueIfBusy: true,
-                onIntent: () => { pendingIdsOverride = { ids: [], expiresAt: Date.now() + 10000 }; applyIds([]); syncUi(); }
+                onIntent: () => { pendingIdsOverride = { ids: [], expiresAt: Date.now() + 10000 }; applyIds([]); dismissUndo(); syncUi(); }
             });
         };
         const setReveal = (enabled) => {

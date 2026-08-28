@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
+import { assertImmediateThemedUndo } from '../helpers/docker-hidden-folder-context.mjs';
 
 export const registerDockerHiddenFolderFixtureCases = ({ test, baseUrl }) => {
 test('Docker hidden folders remain recoverable through reveal, restore all, and undo', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
-    await page.evaluate(() => window.fixtureRuntime.hiddenFolders.hideFolder('media'));
-    assert.equal(await page.locator('#docker_list > tr.fv-folder-user-hidden').count(), 3);
-    assert.equal(await page.locator('#docker_list > tr.folder-id-media').isVisible(), false);
+    await assertImmediateThemedUndo(page, 'media');
 
     await page.click('[data-fvplus-docker-menu="view"]');
     const revealControl = page.locator('#fvplus-docker-action-bar .fvplus-docker-action-menu.is-open [data-fvplus-docker-hidden="toggle-reveal"]');

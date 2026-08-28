@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Cofnij",
     "docker.visibility.all-hidden-title": "Wszystkie wiersze folderów są ukryte.",
     "docker.visibility.all-hidden-help": "Odkryj je tymczasowo lub przywróć każdy ukryty folder.",
-    "docker.visibility.show-hidden": "Pokaż ukryte foldery"
+    "docker.visibility.show-hidden": "Pokaż ukryte foldery",
+    "docker.webui-profiles.open": "Otwórz profil WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 z $3 gotowy)",
+    "docker.webui-profiles.manage": "Zarządzaj profilami WebUI",
+    "docker.webui-profiles.none-title": "Brak gotowych interfejsów WebUI",
+    "docker.webui-profiles.none-body": "Żaden z wybranych kontenerów nie działa z dostępnym interfejsem WebUI."
 }

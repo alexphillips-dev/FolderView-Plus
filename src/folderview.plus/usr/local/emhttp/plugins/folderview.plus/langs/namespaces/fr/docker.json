@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Annuler",
     "docker.visibility.all-hidden-title": "Toutes les lignes de dossiers sont masquées.",
     "docker.visibility.all-hidden-help": "Révélez-les temporairement ou restaurez chaque dossier caché.",
-    "docker.visibility.show-hidden": "Afficher les dossiers cachés"
+    "docker.visibility.show-hidden": "Afficher les dossiers cachés",
+    "docker.webui-profiles.open": "Ouvrir le profil WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 sur $3 prêt)",
+    "docker.webui-profiles.manage": "Gérer les profils WebUI",
+    "docker.webui-profiles.none-title": "Aucune interface Web n'est prête",
+    "docker.webui-profiles.none-body": "Aucun des conteneurs sélectionnés ne s'exécute avec une interface Web disponible."
 }

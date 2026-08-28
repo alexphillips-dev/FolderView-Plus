@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Скасувати",
     "docker.visibility.all-hidden-title": "Усі рядки папок приховано.",
     "docker.visibility.all-hidden-help": "Розкрийте їх тимчасово або відновіть кожну приховану папку.",
-    "docker.visibility.show-hidden": "Показати приховані папки"
+    "docker.visibility.show-hidden": "Показати приховані папки",
+    "docker.webui-profiles.open": "Відкрийте профіль WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 з $3 готовий)",
+    "docker.webui-profiles.manage": "Керуйте профілями WebUI",
+    "docker.webui-profiles.none-title": "Немає готових WebUI",
+    "docker.webui-profiles.none-body": "Жоден із вибраних контейнерів не працює з доступним WebUI."
 }

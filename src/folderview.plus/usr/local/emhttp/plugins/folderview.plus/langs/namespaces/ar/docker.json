@@ -59,5 +59,10 @@
     "docker.visibility.undo": "تراجع",
     "docker.visibility.all-hidden-title": "كافة صفوف المجلدات مخفية.",
     "docker.visibility.all-hidden-help": "اكشف عنها مؤقتًا أو قم باستعادة كل مجلد مخفي.",
-    "docker.visibility.show-hidden": "إظهار المجلدات المخفية"
+    "docker.visibility.show-hidden": "إظهار المجلدات المخفية",
+    "docker.webui-profiles.open": "افتح ملف تعريف WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 من $3 جاهز)",
+    "docker.webui-profiles.manage": "إدارة ملفات تعريف WebUI",
+    "docker.webui-profiles.none-title": "لا توجد واجهات WebUI جاهزة",
+    "docker.webui-profiles.none-body": "لا يتم تشغيل أي من الحاويات المحددة باستخدام واجهة WebUI المتوفرة."
 }

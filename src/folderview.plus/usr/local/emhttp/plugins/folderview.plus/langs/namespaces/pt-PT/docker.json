@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Desfazer",
     "docker.visibility.all-hidden-title": "Todas as linhas da pasta estão ocultas.",
     "docker.visibility.all-hidden-help": "Revele-os temporariamente ou restaure todas as pastas ocultas.",
-    "docker.visibility.show-hidden": "Mostrar pastas ocultas"
+    "docker.visibility.show-hidden": "Mostrar pastas ocultas",
+    "docker.webui-profiles.open": "Abra o perfil WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 de $3 pronto)",
+    "docker.webui-profiles.manage": "Gerenciar perfis WebUI",
+    "docker.webui-profiles.none-title": "Nenhuma WebUIs pronta",
+    "docker.webui-profiles.none-body": "Nenhum dos contêineres selecionados está em execução com uma WebUI disponível."
 }

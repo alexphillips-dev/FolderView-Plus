@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Geri al",
     "docker.visibility.all-hidden-title": "Tüm klasör satırları gizlidir.",
     "docker.visibility.all-hidden-help": "Bunları geçici olarak açığa çıkarın veya tüm gizli klasörleri geri yükleyin.",
-    "docker.visibility.show-hidden": "Gizli klasörleri göster"
+    "docker.visibility.show-hidden": "Gizli klasörleri göster",
+    "docker.webui-profiles.open": "WebUI profilini aç",
+    "docker.webui-profiles.ready": "$1 ($2 / $3 hazır)",
+    "docker.webui-profiles.manage": "WebUI profillerini yönetin",
+    "docker.webui-profiles.none-title": "Hazır WebUI yok",
+    "docker.webui-profiles.none-body": "Seçilen kapsayıcılardan hiçbiri kullanılabilir bir WebUI ile çalışmıyor."
 }

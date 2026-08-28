@@ -940,7 +940,11 @@ test('buildImportDiffRows reports row-level changed fields', () => {
 
 test('export/import roundtrip smoke works for full payload', () => {
     const original = {
-        abc: { name: 'One', containers: ['x'] },
+        abc: {
+            name: 'One',
+            containers: ['x'],
+            settings: { webui_profiles: [{ id: 'tools', name: 'Tools', containers: ['x'] }] }
+        },
         def: { name: 'Two', containers: [] }
     };
     const exported = utils.buildFullExportPayload({
@@ -954,6 +958,7 @@ test('export/import roundtrip smoke works for full payload', () => {
     assert.deepEqual(Object.keys(parsed.folders), ['abc', 'def']);
     assert.equal(parsed.folders.abc.name, 'One');
     assert.deepEqual(parsed.folders.abc.containers, ['x']);
+    assert.deepEqual(parsed.folders.abc.settings.webui_profiles, original.abc.settings.webui_profiles);
     assert.equal(parsed.folders.def.name, 'Two');
     assert.deepEqual(parsed.folders.def.containers, []);
 

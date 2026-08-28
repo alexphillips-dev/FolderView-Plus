@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Atsaukt",
     "docker.visibility.all-hidden-title": "Visas mapju rindas ir paslēptas.",
     "docker.visibility.all-hidden-help": "Atklājiet tos uz laiku vai atjaunojiet katru slēpto mapi.",
-    "docker.visibility.show-hidden": "Rādīt slēptās mapes"
+    "docker.visibility.show-hidden": "Rādīt slēptās mapes",
+    "docker.webui-profiles.open": "Atveriet WebUI profilu",
+    "docker.webui-profiles.ready": "$1 ($2 no $3 gatavs)",
+    "docker.webui-profiles.manage": "Pārvaldiet WebUI profilus",
+    "docker.webui-profiles.none-title": "Nav gatavs WebUI",
+    "docker.webui-profiles.none-body": "Neviens no atlasītajiem konteineriem nedarbojas ar pieejamu WebUI."
 }

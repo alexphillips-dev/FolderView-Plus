@@ -445,6 +445,7 @@
 
     require_once(__DIR__ . '/lib.api-contract.php');
     require_once(__DIR__ . '/lib.preflight.php');
+    require_once(__DIR__ . '/lib.webui-profiles.php');
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
     require_once(__DIR__ . '/lib.docker-runtime.php');
@@ -1199,6 +1200,10 @@
         if (!is_array($normalized['settings'] ?? null)) {
             $normalized['settings'] = [];
         }
+        $normalized['settings']['webui_profiles'] = fvplusNormalizeWebuiProfiles(
+            $normalized['settings']['webui_profiles'] ?? ($normalized['settings']['webuiProfiles'] ?? [])
+        );
+        unset($normalized['settings']['webuiProfiles']);
         $rawPreviewRows = $normalized['settings']['preview_rows']
             ?? ($normalized['settings']['previewRows']
                 ?? ($normalized['preview_rows']
@@ -1331,7 +1336,7 @@
         $normalized['settings'] = [];
         if (array_key_exists('settings', $payload) && is_array($payload['settings'])) {
             $settingsCarrier = normalizeFolderContentPayload(['settings' => $payload['settings']]);
-            $normalized['settings'] = is_array($settingsCarrier['settings'] ?? null) ? $settingsCarrier['settings'] : [];
+            $normalized['settings'] = fvplusStripWebuiProfilesFromSettings($settingsCarrier['settings'] ?? []);
         }
 
         $normalizedActions = [];
@@ -2006,7 +2011,7 @@
         if ($id === '') {
             $id = generateId(12);
         }
-        $settings = is_array($template['settings'] ?? null) ? $template['settings'] : [];
+        $settings = fvplusStripWebuiProfilesFromSettings($template['settings'] ?? []);
         $actions = is_array($template['actions'] ?? null) ? array_values($template['actions']) : [];
         return [
             'id' => $id,
@@ -2087,7 +2092,7 @@
             'name' => $name,
             'icon' => (string)($folder['icon'] ?? ''),
             'regex' => (string)($folder['regex'] ?? ''),
-            'settings' => is_array($folder['settings'] ?? null) ? $folder['settings'] : [],
+            'settings' => fvplusStripWebuiProfilesFromSettings($folder['settings'] ?? []),
             'actions' => is_array($folder['actions'] ?? null) ? $folder['actions'] : [],
             'createdAt' => gmdate('c')
         ];
@@ -2562,7 +2567,6 @@
     }
 
     require_once(__DIR__ . '/lib.folder-rules.php'); require_once(__DIR__ . '/lib.docker-start-order-sequence.php');
-
     require_once(__DIR__ . '/lib.docker-order.php');
 
     require_once(__DIR__ . '/lib.folder-mutations.php');

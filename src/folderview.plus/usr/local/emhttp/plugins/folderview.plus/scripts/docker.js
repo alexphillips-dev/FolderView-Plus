@@ -67,6 +67,7 @@ const dockerChildFolderPreviewMenuModule = window.FolderViewPlusFoundationModule
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
+const folderWebuiProfilesModule = window.FolderViewPlusFoundationModules?.folderWebuiProfiles || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
@@ -953,6 +954,7 @@ const getDockerRuntimeActionsApi = () => {
             runDockerGuardedAction: (actionName, action, context = {}) =>
                 runDockerGuardedAction(actionName, action, context),
             getDockerMenuLabel: (key, fallback) => getDockerMenuLabel(key, fallback),
+            webuiProfiles: folderWebuiProfilesModule,
             folderEvents,
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
@@ -1031,13 +1033,13 @@ const buildDockerIsolatedViewDeps = () => ({
     readPinnedFolderIds: (prefs = {}) => Array.isArray(prefs?.pinnedFolderIds) ? prefs.pinnedFolderIds : [],
     isFolderLocked: (folderId) => isDockerFolderLocked(folderId),
     createFolderBtn: () => createFolderBtn(),
-    editFolder: (id) => editFolder(id),
+    editFolder: (id, options = {}) => editFolder(id, options),
     actionFolder: (id, action, options = {}) => actionFolder(id, action, options),
     updateFolder: (id, options = {}) => updateFolder(id, options),
     forceUpdateFolder: (id, options = {}) => forceUpdateFolder(id, options),
     getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
-    openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false) =>
-        openFolderWebuisFromMenu(id, runningOnly, includeDescendants),
+    openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false, profileId = '') =>
+        openFolderWebuisFromMenu(id, runningOnly, includeDescendants, profileId),
     openWebuiInNewTab: (url) => openWebuiInNewTab(url),
     openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
     openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
@@ -6229,12 +6231,7 @@ const buildDockerFolderEditorUrl = (id = '', options = {}) => {
         ? actionsApi.buildDockerFolderEditorUrl(id, options)
         : `/Docker/Folder?type=docker&_=${String(Date.now())}#type=docker`;
 };
-const editFolder = (id) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.editFolder === 'function') {
-        actionsApi.editFolder(id);
-    }
-};
+const editFolder = (id, options = {}) => getDockerRuntimeActionsApi()?.editFolder?.(id, options);
 const createChildFolder = (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.createChildFolder === 'function') {
@@ -6293,12 +6290,8 @@ const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = 
         : [];
 };
 
-const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.openFolderWebuisFromMenu === 'function') {
-        actionsApi.openFolderWebuisFromMenu(id, runningOnly, includeDescendants);
-    }
-};
+const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false, profileId = '') =>
+    getDockerRuntimeActionsApi()?.openFolderWebuisFromMenu?.(id, runningOnly, includeDescendants, profileId);
 
 const copyDockerFolderSettingsFromMenu = async (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
@@ -6976,6 +6969,11 @@ const addDockerFolderContext = (id) => {
         });
         appendDivider();
     }
+
+    if (folderWebuiProfilesModule?.appendRuntimeMenuItems?.(opts, {
+        profiles: folderData.settings.webui_profiles, runtimeEntries: getScopedRuntimeContainersForFolder(id, false), getSafeWebuiUrl, translate: dockerT,
+        onOpen: (profileId) => openFolderWebuisFromMenu(id, true, false, profileId), onManage: () => editFolder(id, { section: 'webuiProfiles' })
+    })) appendDivider();
 
     opts.push({
         text: $.i18n('edit'),

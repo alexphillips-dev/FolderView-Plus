@@ -59,5 +59,10 @@
     "docker.visibility.undo": "元に戻す",
     "docker.visibility.all-hidden-title": "すべてのフォルダー行が非表示になります。",
     "docker.visibility.all-hidden-help": "一時的に表示するか、すべての隠しフォルダーを復元します。",
-    "docker.visibility.show-hidden": "隠しフォルダーを表示する"
+    "docker.visibility.show-hidden": "隠しフォルダーを表示する",
+    "docker.webui-profiles.open": "WebUI プロファイルを開く",
+    "docker.webui-profiles.ready": "$1（$3件中$2件準備完了）",
+    "docker.webui-profiles.manage": "WebUIプロファイルの管理",
+    "docker.webui-profiles.none-title": "WebUI が準備されていません",
+    "docker.webui-profiles.none-body": "選択したコンテナはどれも、利用可能な WebUI で実行されていません。"
 }

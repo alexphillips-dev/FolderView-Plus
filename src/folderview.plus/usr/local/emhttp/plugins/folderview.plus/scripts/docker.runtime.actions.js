@@ -61,7 +61,7 @@
         const getDockerMenuLabel = typeof deps.getDockerMenuLabel === 'function'
             ? deps.getDockerMenuLabel
             : ((_key, fallback) => String(fallback || _key || '').trim());
-        const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
+        const webuiProfiles = deps.webuiProfiles || win?.FolderViewPlusFoundationModules?.folderWebuiProfiles || null, requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
         const folderSettingsTransfer = deps.folderSettingsTransfer
             || (typeof win?.FolderViewPlusFolderSettingsTransfer?.createApi === 'function'
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
@@ -518,7 +518,6 @@
                 // Editor prefill is best-effort only.
             }
         };
-
         const buildDockerFolderEditorUrl = (id = '', options = {}) => {
             const params = new URLSearchParams();
             const hashParams = new URLSearchParams();
@@ -533,23 +532,23 @@
                 params.set('parentId', parentId);
                 hashParams.set('parentId', parentId);
             }
+            const section = String(options?.section || '').trim();
+            if (section === 'webuiProfiles') { params.set('section', section); hashParams.set('section', section); }
             params.set('_', String(Date.now()));
             return `/Docker/Folder?${params.toString()}#${hashParams.toString()}`;
         };
-
-        const editFolder = (id) => {
+        const editFolder = (id, options = {}) => {
             if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {
                 return;
             }
             debugLog(`[FV3_DEBUG] editFolder (id: ${id}): Redirecting to edit page.`);
             seedFolderEditorPrefill('docker', id);
-            const targetUrl = buildDockerFolderEditorUrl(id);
+            const targetUrl = buildDockerFolderEditorUrl(id, options);
             recordFolderEditorLaunchDebug('docker', 'docker', id, targetUrl);
             if (win?.location) {
                 win.location.href = targetUrl;
             }
         };
-
         const createChildFolder = (parentId) => {
             const safeParentId = normalizeFolderParentId(parentId);
             if (!safeParentId || !getFolderById(safeParentId)) {
@@ -617,7 +616,7 @@
                 return out;
             }, []);
 
-        const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
+        const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls, retryLabel = 'Open all WebUIs') => {
             const blockedList = Array.isArray(blockedUrls) ? blockedUrls.slice(0, 6) : [];
             const linkHtml = blockedList
                 .map((url) => `<li data-fvplus-style="fv-u-1hp70hq"><a class="fv-popup-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`)
@@ -644,7 +643,7 @@
                 `<ol data-fvplus-style="fv-u-wbhnsm">`,
                 `<li>Click the popup-blocked icon in your browser address bar.</li>`,
                 `<li>Choose to always allow popups/redirects for this Unraid host.</li>`,
-                `<li>Run <strong>Open all WebUIs</strong> again.</li>`,
+                `<li>Run <strong>${escapeHtml(retryLabel)}</strong> again.</li>`,
                 `</ol>`,
                 `</div>`,
                 `<div class="fv-popup-panel">`,
@@ -671,12 +670,16 @@
                 confirmButtonText: 'Got it'
             });
         };
-
-        const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
+        const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false, profileId = '') => {
             runDockerGuardedAction('open-folder-webuis', async () => {
                 hideAllTips();
-                const urls = Array.from(new Set(collectFolderWebuiTargets(id, includeDescendants, runningOnly)));
+                const profileResult = profileId && typeof webuiProfiles?.resolveProfileLaunch === 'function' ? webuiProfiles.resolveProfileLaunch(
+                    getFolderById(id)?.settings, profileId, getScopedRuntimeContainersForFolder(id, false), { runningOnly, getSafeWebuiUrl }
+                ) : null;
+                const profile = profileResult?.profile || null;
+                const urls = Array.from(new Set(profileId ? (profileResult?.urls || []) : collectFolderWebuiTargets(id, includeDescendants, runningOnly)));
                 if (!urls.length) {
+                    if (profile) swalFn({ title: getDockerMenuLabel('docker.webui-profiles.none-title', 'No WebUIs ready'), text: getDockerMenuLabel('docker.webui-profiles.none-body', 'None of the selected containers are running with an available WebUI.'), type: 'info' });
                     return;
                 }
                 const blocked = [];
@@ -691,13 +694,10 @@
                     }
                 }
                 if (blocked.length > 0) {
-                    showFolderWebuiPopupWarning(urls.length - blocked.length, urls.length, blocked);
+                    showFolderWebuiPopupWarning(urls.length - blocked.length, urls.length, blocked, profile?.name || 'Open all WebUIs');
                 }
-            }, {
-                userVisible: false
-            });
+            }, { userVisible: false });
         };
-
         const buildDockerFolderClonePayload = (source, overrides = {}) => {
             const sourceName = String(source?.name || '').trim() || 'Folder';
             const sourceParentId = normalizeFolderParentId(source?.parentId || source?.parent_id || '');

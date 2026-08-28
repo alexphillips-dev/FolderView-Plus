@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Angre",
     "docker.visibility.all-hidden-title": "Alle mapperader er skjult.",
     "docker.visibility.all-hidden-help": "Avslør dem midlertidig eller gjenopprett hver skjulte mappe.",
-    "docker.visibility.show-hidden": "Vis skjulte mapper"
+    "docker.visibility.show-hidden": "Vis skjulte mapper",
+    "docker.webui-profiles.open": "Åpne WebUI-profilen",
+    "docker.webui-profiles.ready": "$1 ($2 av $3 klar)",
+    "docker.webui-profiles.manage": "Administrer WebUI-profiler",
+    "docker.webui-profiles.none-title": "Ingen WebUIer er klare",
+    "docker.webui-profiles.none-body": "Ingen av de valgte beholderne kjører med et tilgjengelig WebUI."
 }

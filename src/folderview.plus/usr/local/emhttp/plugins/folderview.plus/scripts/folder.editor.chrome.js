@@ -17,6 +17,7 @@
         preview: { title: 'Preview', icon: 'fa-eye', advanced: false, description: 'Control preview layout, context, borders, dividers, and inline preview actions.' },
         chevron: { title: 'Chevron', icon: 'fa-chevron-down', advanced: false, description: 'Pick the dropdown style and the primary / hover colors used in folder rows.' },
         status: { title: 'Status', icon: 'fa-heartbeat', advanced: false, description: 'Adjust status colors and optional health or warning thresholds for the folder.' },
+        webuiProfiles: { title: 'WebUI Profiles', icon: 'fa-external-link', advanced: false, description: 'Create named groups that open only selected Docker container WebUIs.' },
         rules: { title: 'Rules', icon: 'fa-code', advanced: true, description: 'Optional automation rules for auto-including matching containers or VMs.' },
         actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Optional custom actions that appear in this folder’s context menu.' },
         advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true, description: 'Tune Docker / VM / Dashboard specific behavior and other advanced defaults.' }
@@ -51,6 +52,7 @@
             { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', advancedOnly: true, fields: ['status_warn_stopped_percent'] },
             { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
         ],
+        webuiProfiles: [{ key: 'webui-profiles', title: 'Custom WebUI Profiles', description: 'Select the direct folder members opened by each named profile.', match: (row) => row?.id === 'fvWebuiProfilesSection' }],
         rules: [
             { key: 'auto-rules', title: 'Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' },
             { key: 'regex', title: 'Legacy Rule Compatibility', description: 'Review and convert an older folder-level name regex.', fields: ['regex'] }
@@ -75,7 +77,6 @@
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
     let folderEditorTypeApi = null;
-
     const resolveFolderEditorTypeModule = () => {
         if (pageType === 'docker') {
             return root.FolderViewPlusFolderEditorTypeDocker || null;
@@ -85,7 +86,6 @@
         }
         return null;
     };
-
     const getFolderEditorTypeApi = () => {
         if (folderEditorTypeApi) {
             return folderEditorTypeApi;
@@ -101,7 +101,6 @@
         }
         return folderEditorTypeApi;
     };
-
     const mergeSectionRows = (baseRows, extraRows) => {
         const merged = { ...baseRows };
         const source = extraRows && typeof extraRows === 'object' ? extraRows : {};
@@ -538,6 +537,7 @@
             findBasicByFieldName(form, 'status_color_started'),
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
+        webuiProfiles: pageType === 'docker' ? [form.querySelector('#fvWebuiProfilesSection')] : [],
         rules: [
             findBasicByFieldName(form, 'regex'),
             root.document.getElementById('fvFolderAutoRulesPanel')

@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Rückgängig machen",
     "docker.visibility.all-hidden-title": "Alle Ordnerzeilen werden ausgeblendet.",
     "docker.visibility.all-hidden-help": "Zeigen Sie sie vorübergehend an oder stellen Sie alle versteckten Ordner wieder her.",
-    "docker.visibility.show-hidden": "Versteckte Ordner anzeigen"
+    "docker.visibility.show-hidden": "Versteckte Ordner anzeigen",
+    "docker.webui-profiles.open": "Öffnen Sie das WebUI-Profil",
+    "docker.webui-profiles.ready": "$1 ($2 von $3 bereit)",
+    "docker.webui-profiles.manage": "WebUI-Profile verwalten",
+    "docker.webui-profiles.none-title": "Keine WebUIs bereit",
+    "docker.webui-profiles.none-body": "Keiner der ausgewählten Container wird mit einer verfügbaren WebUI ausgeführt."
 }

@@ -85,8 +85,8 @@
         const folderDefaultsSettings = isPlainObject(folderDefaultsProfileRaw.settings)
             ? JSON.parse(JSON.stringify(folderDefaultsProfileRaw.settings))
             : {};
-        const folderDefaultsActionsRaw = Array.isArray(folderDefaultsProfileRaw.actions) ? folderDefaultsProfileRaw.actions : [];
-        const folderDefaultsActions = [];
+        delete folderDefaultsSettings.webui_profiles; delete folderDefaultsSettings.webuiProfiles;
+        const folderDefaultsActionsRaw = Array.isArray(folderDefaultsProfileRaw.actions) ? folderDefaultsProfileRaw.actions : [], folderDefaultsActions = [];
         folderDefaultsActionsRaw.forEach((entry) => {
             if (!isPlainObject(entry)) {
                 return;

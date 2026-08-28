@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Undo",
     "docker.visibility.all-hidden-title": "All folder rows are hidden.",
     "docker.visibility.all-hidden-help": "Reveal them temporarily or restore every hidden folder.",
-    "docker.visibility.show-hidden": "Show hidden folders"
+    "docker.visibility.show-hidden": "Show hidden folders",
+    "docker.webui-profiles.open": "Open WebUI profile",
+    "docker.webui-profiles.ready": "$1 ($2 of $3 ready)",
+    "docker.webui-profiles.manage": "Manage WebUI profiles",
+    "docker.webui-profiles.none-title": "No WebUIs ready",
+    "docker.webui-profiles.none-body": "None of the selected containers are running with an available WebUI."
 }

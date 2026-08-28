@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Desfer",
     "docker.visibility.all-hidden-title": "Totes les files de carpetes estan amagades.",
     "docker.visibility.all-hidden-help": "Revela'ls temporalment o restaura totes les carpetes ocultes.",
-    "docker.visibility.show-hidden": "Mostra les carpetes ocultes"
+    "docker.visibility.show-hidden": "Mostra les carpetes ocultes",
+    "docker.webui-profiles.open": "Obriu el perfil d'UI Web",
+    "docker.webui-profiles.ready": "$1 ($2 de $3 llest)",
+    "docker.webui-profiles.manage": "Gestionar perfils WebUI",
+    "docker.webui-profiles.none-title": "No hi ha cap IU preparada",
+    "docker.webui-profiles.none-body": "Cap dels contenidors seleccionats s'està executant amb una UI disponible."
 }

@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Poništi",
     "docker.visibility.all-hidden-title": "Svi redovi mape su skriveni.",
     "docker.visibility.all-hidden-help": "Privremeno ih otkrijte ili vratite svaku skrivenu mapu.",
-    "docker.visibility.show-hidden": "Prikaži skrivene mape"
+    "docker.visibility.show-hidden": "Prikaži skrivene mape",
+    "docker.webui-profiles.open": "Otvorite WebUI profil",
+    "docker.webui-profiles.ready": "$1 ($2 od $3 spreman)",
+    "docker.webui-profiles.manage": "Upravljanje WebUI profilima",
+    "docker.webui-profiles.none-title": "WebUI nije spreman",
+    "docker.webui-profiles.none-body": "Nijedan od odabranih spremnika ne radi s dostupnim WebUI."
 }

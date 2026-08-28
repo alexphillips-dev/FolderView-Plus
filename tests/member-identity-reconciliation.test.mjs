@@ -23,7 +23,10 @@ test('a uniquely identified renamed Docker member keeps folder state and action 
                     mountDestinations: ['/config', '/tv']
                 }
             },
-            actions: [{ type: 0, containers: ['old-name'], conatiners: ['old-name'] }]
+            actions: [{ type: 0, containers: ['old-name'], conatiners: ['old-name'] }],
+            settings: {
+                webui_profiles: [{ id: 'media', name: 'Media tools', containers: ['old-name'] }]
+            }
         }
     };
     const runtime = {
@@ -41,6 +44,7 @@ test('a uniquely identified renamed Docker member keeps folder state and action 
     assert.deepEqual(result.folders.media.hiddenPreviewMembers, ['new-name']);
     assert.deepEqual(result.folders.media.actions[0].containers, ['new-name']);
     assert.deepEqual(result.folders.media.actions[0].conatiners, ['new-name']);
+    assert.deepEqual(result.folders.media.settings.webui_profiles[0].containers, ['new-name']);
     assert.equal(result.diagnostics.renamed, 1);
     assert.equal(result.patches.media.renames['old-name'], 'new-name');
 });

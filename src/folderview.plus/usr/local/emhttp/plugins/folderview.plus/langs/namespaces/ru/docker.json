@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Отменить",
     "docker.visibility.all-hidden-title": "Все строки папки скрыты.",
     "docker.visibility.all-hidden-help": "Временно покажите их или восстановите все скрытые папки.",
-    "docker.visibility.show-hidden": "Показать скрытые папки"
+    "docker.visibility.show-hidden": "Показать скрытые папки",
+    "docker.webui-profiles.open": "Открыть профиль веб-интерфейса",
+    "docker.webui-profiles.ready": "$1 ($2 из $3 готов)",
+    "docker.webui-profiles.manage": "Управление профилями веб-интерфейса",
+    "docker.webui-profiles.none-title": "Нет готовых веб-интерфейсов",
+    "docker.webui-profiles.none-body": "Ни один из выбранных контейнеров не работает с доступным веб-интерфейсом."
 }

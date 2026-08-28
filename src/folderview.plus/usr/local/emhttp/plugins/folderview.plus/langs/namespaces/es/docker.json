@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Deshacer",
     "docker.visibility.all-hidden-title": "Todas las filas de carpetas están ocultas.",
     "docker.visibility.all-hidden-help": "Revélelos temporalmente o restaure todas las carpetas ocultas.",
-    "docker.visibility.show-hidden": "Mostrar carpetas ocultas"
+    "docker.visibility.show-hidden": "Mostrar carpetas ocultas",
+    "docker.webui-profiles.open": "Abrir perfil WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 de $3 listo)",
+    "docker.webui-profiles.manage": "Administrar perfiles de WebUI",
+    "docker.webui-profiles.none-title": "No hay UI web listas",
+    "docker.webui-profiles.none-body": "Ninguno de los contenedores seleccionados se ejecuta con una WebUI disponible."
 }

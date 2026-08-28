@@ -19,17 +19,23 @@ const runtimeSharedControlsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'),
     'utf8'
 );
+const webuiProfilesScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.webui-profiles.js'),
+    'utf8'
+);
 const runtimeSharedControls = require(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js'
 ));
+const dockerRuntimeActions = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
+const webuiProfiles = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.webui-profiles.js');
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
     assert.match(runtimeSharedControlsScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
-    assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) => \{/);
-    assert.match(dockerRuntimeActionsScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
+    assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false, profileId = ''\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false, profileId = ''\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
     assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, true\)/);
     assert.match(dockerRuntimeActionsScript, /entry\?\.state === true && entry\?\.pause !== true/);
@@ -40,6 +46,42 @@ test('docker folder context supports open-all-webui actions with scoped options'
     assert.match(dockerRuntimeActionsScript, /Blocked WebUIs \(manual open\)/);
     assert.match(dockerScript, /dockerRuntimeInfoByName/);
     assert.match(dockerScript, /openFolderWebuisFromMenu\(id, true, false\)/);
+    assert.match(dockerScript, /appendRuntimeMenuItems/);
+    assert.match(webuiProfilesScript, /docker\.webui-profiles\.open/);
+    assert.match(dockerScript, /editFolder\(id, \{ section: 'webuiProfiles' \}\)/);
+});
+
+test('custom WebUI profile launches only selected running direct members', async () => {
+    const opened = [];
+    const api = dockerRuntimeActions.createApi({
+        window: { setTimeout, location: { host: 'tower.local' } },
+        document: {},
+        webuiProfiles,
+        getGlobalFolders: () => ({
+            media: {
+                settings: {
+                    webui_profiles: [{ id: 'media-tools', name: 'Media tools', containers: ['Plex', 'Tautulli', 'Stopped'] }]
+                }
+            }
+        }),
+        getScopedRuntimeContainersForFolder: () => ({
+            Plex: { state: true, pause: false, webui: 'http://plex/' },
+            Tautulli: { state: true, pause: false, webui: 'http://tautulli/' },
+            Stopped: { state: false, pause: false, webui: 'http://stopped/' },
+            Other: { state: true, pause: false, webui: 'http://other/' }
+        }),
+        getSafeWebuiUrl: (value) => value,
+        openWebuiPopupWindow: (url) => { opened.push(url); return true; },
+        runDockerGuardedAction: async (_name, action) => action()
+    });
+
+    api.openFolderWebuisFromMenu('media', true, false, 'media-tools');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(opened, ['http://plex/', 'http://tautulli/']);
+
+    api.openFolderWebuisFromMenu('media', true, false, 'missing-profile');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(opened, ['http://plex/', 'http://tautulli/']);
 });
 
 test('open-all WebUI popup detection uses a secured blank handle before navigation', () => {

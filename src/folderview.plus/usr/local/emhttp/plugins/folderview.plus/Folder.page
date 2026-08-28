@@ -127,6 +127,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.webui-profiles.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js')?>"></script>
@@ -1164,6 +1165,18 @@ try {
                     <br>
                     Editing this field will replace manual member selections with the current regex matches.
                 </p>
+            </blockquote>
+        </div>
+        <div id="fvWebuiProfilesSection" class="basic fv-webui-profiles-section">
+            <dl>
+                <dt data-i18n="editor.webui-profiles.title">WebUI profiles:</dt>
+                <dd>
+                    <input type="hidden" name="webui_profiles" value="[]">
+                    <div id="fvWebuiProfilesWorkspace"></div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="editor.webui-profiles.help">Create reusable actions that open only the selected running containers. Current WebUI addresses are resolved when the profile is launched.</p>
             </blockquote>
         </div>
         <div class="basic custom-action-wrapper-parent">

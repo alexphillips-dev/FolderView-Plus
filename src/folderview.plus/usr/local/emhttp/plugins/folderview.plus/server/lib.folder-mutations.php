@@ -264,9 +264,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             ];
         });
     }
-
-    function applyFolderMemberIdentityPatches(string $type, array $patches): array {
-        $type = ensureType($type);
+    function applyFolderMemberIdentityPatches(string $type, array $patches): array { $type = ensureType($type);
         $fileData = readRawFolderMap($type);
         $changedFolderIds = [];
         $renameCount = 0;
@@ -306,6 +304,9 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                     }
                 }
                 unset($action);
+                $profiles = fvplusNormalizeWebuiProfiles($folder['settings']['webui_profiles'] ?? []);
+                foreach ($profiles as &$profile) $profile['containers'] = array_values(array_unique(array_map(static fn($name) => $name === $oldName ? $newName : $name, $profile['containers'])));
+                unset($profile); $folder['settings']['webui_profiles'] = $profiles;
                 if (is_array($folder['memberIdentities'][$oldName] ?? null)) {
                     $folder['memberIdentities'][$newName] = $folder['memberIdentities'][$oldName];
                     unset($folder['memberIdentities'][$oldName]);
@@ -356,7 +357,6 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             'metadata' => readConfigMetadata($type, true)
         ];
     }
-
     function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {
         $type = ensureType($type);
         $normalizedSettings = normalizeFolderSettingsTransferPayload($settingsPayload);

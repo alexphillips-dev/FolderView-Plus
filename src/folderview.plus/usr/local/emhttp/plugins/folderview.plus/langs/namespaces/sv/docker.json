@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Ångra",
     "docker.visibility.all-hidden-title": "Alla mapprader är dolda.",
     "docker.visibility.all-hidden-help": "Visa dem tillfälligt eller återställ alla dolda mappar.",
-    "docker.visibility.show-hidden": "Visa dolda mappar"
+    "docker.visibility.show-hidden": "Visa dolda mappar",
+    "docker.webui-profiles.open": "Open WebUI profile",
+    "docker.webui-profiles.ready": "$1 ($2 av $3 redo)",
+    "docker.webui-profiles.manage": "Manage WebUI profiles",
+    "docker.webui-profiles.none-title": "No WebUIs ready",
+    "docker.webui-profiles.none-body": "Ingen av de valda behållarna körs med ett tillgängligt WebUI."
 }

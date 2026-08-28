@@ -66,7 +66,9 @@ test('modern folder editor schema fields all exist in the page markup and metada
 test('modern folder editor load path covers every schema-backed field', () => {
     assert.match(folderJs, /populateParentFolderOptions\(/);
 
-    const fieldsLoadedViaBinding = schemaFields.filter((fieldName) => fieldName !== 'parent_folder_id');
+    const fieldsLoadedViaBinding = schemaFields.filter(
+        (fieldName) => !['parent_folder_id', 'webui_profiles'].includes(fieldName)
+    );
     fieldsLoadedViaBinding.forEach((fieldName) => {
         assert.match(
             folderJs,
@@ -74,6 +76,7 @@ test('modern folder editor load path covers every schema-backed field', () => {
             `Expected modern folder editor loader to bind ${fieldName}.`
         );
     });
+    assert.match(folderJs, /getFolderWebuiProfilesApi\(\)\?\.hydrate\(normalizedFolder\.settings\.webui_profiles/);
 
     assert.match(folderJs, /const getFolderEditorStateApi = \(\) =>/);
     assert.match(folderJs, /const restoreSectionSavedValues = \(sectionKey\) => \{\s*getFolderEditorStateApi\(\)\?\.restoreSectionSavedValues\(sectionKey\);\s*\};/);

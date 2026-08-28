@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Vrátit zpět",
     "docker.visibility.all-hidden-title": "Všechny řádky složek jsou skryté.",
     "docker.visibility.all-hidden-help": "Dočasně je odhalte nebo obnovte každou skrytou složku.",
-    "docker.visibility.show-hidden": "Zobrazit skryté složky"
+    "docker.visibility.show-hidden": "Zobrazit skryté složky",
+    "docker.webui-profiles.open": "Otevřete profil WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 z $3 připraveno)",
+    "docker.webui-profiles.manage": "Správa profilů WebUI",
+    "docker.webui-profiles.none-title": "Nejsou připravena žádná rozhraní WebUI",
+    "docker.webui-profiles.none-body": "Žádný z vybraných kontejnerů není spuštěn s dostupným rozhraním WebUI."
 }

@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Visszavonás",
     "docker.visibility.all-hidden-title": "Minden mappasor el van rejtve.",
     "docker.visibility.all-hidden-help": "Ideiglenesen fedje fel őket, vagy állítson vissza minden rejtett mappát.",
-    "docker.visibility.show-hidden": "Rejtett mappák megjelenítése"
+    "docker.visibility.show-hidden": "Rejtett mappák megjelenítése",
+    "docker.webui-profiles.open": "Nyissa meg a WebUI profilt",
+    "docker.webui-profiles.ready": "$1 ($2/$3 kész)",
+    "docker.webui-profiles.manage": "WebUI-profilok kezelése",
+    "docker.webui-profiles.none-title": "Nincs kész WebUI",
+    "docker.webui-profiles.none-body": "A kiválasztott tárolók egyike sem fut elérhető WebUI-val."
 }

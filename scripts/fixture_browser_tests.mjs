@@ -13,8 +13,8 @@ import { registerDockerHiddenFolderFixtureCases } from '../tests/browser/cases/d
 import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs';
 import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs';
+import { registerFolderWebuiProfileFixtureCases } from '../tests/browser/cases/folder-webui-profiles.mjs';
 import { registerImportFixtureCases } from '../tests/browser/cases/import.mjs';
-
 const scriptPath = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(scriptPath), '..');
 const pluginDir = path.join(rootDir, 'src', 'folderview.plus', 'usr', 'local', 'emhttp', 'plugins', 'folderview.plus');
@@ -49,7 +49,7 @@ registerRuntimeInteractionsFixtureCases(caseContext);
 registerDockerHiddenFolderFixtureCases(caseContext);
 registerSettingsFixtureCases(caseContext);
 registerSettingsStartOrderFixtureCases(caseContext);
-registerFolderEditorFixtureCases(caseContext);
+registerFolderEditorFixtureCases(caseContext); registerFolderWebuiProfileFixtureCases(caseContext);
 registerImportFixtureCases(caseContext);
 
 await runFixtureBrowserSuite({

@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Annulla",
     "docker.visibility.all-hidden-title": "Tutte le righe delle cartelle sono nascoste.",
     "docker.visibility.all-hidden-help": "Riveli temporaneamente o ripristina ogni cartella nascosta.",
-    "docker.visibility.show-hidden": "Mostra cartelle nascoste"
+    "docker.visibility.show-hidden": "Mostra cartelle nascoste",
+    "docker.webui-profiles.open": "Apri il profilo WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 di $3 pronto)",
+    "docker.webui-profiles.manage": "Gestire i profili WebUI",
+    "docker.webui-profiles.none-title": "Nessuna WebUI pronta",
+    "docker.webui-profiles.none-body": "Nessuno dei contenitori selezionati è in esecuzione con una WebUI disponibile."
 }

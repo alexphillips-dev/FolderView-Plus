@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Ongedaan maken",
     "docker.visibility.all-hidden-title": "Alle maprijen zijn verborgen.",
     "docker.visibility.all-hidden-help": "Onthul ze tijdelijk of herstel elke verborgen map.",
-    "docker.visibility.show-hidden": "Toon verborgen mappen"
+    "docker.visibility.show-hidden": "Toon verborgen mappen",
+    "docker.webui-profiles.open": "Open WebUI-profiel",
+    "docker.webui-profiles.ready": "$1 ($2 van $3 gereed)",
+    "docker.webui-profiles.manage": "Beheer WebUI-profielen",
+    "docker.webui-profiles.none-title": "Geen WebUI's gereed",
+    "docker.webui-profiles.none-body": "Geen van de geselecteerde containers draait met een beschikbare WebUI."
 }

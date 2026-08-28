@@ -17,6 +17,7 @@
         "../tests/browser/cases/settings.mjs",
         "../tests/browser/cases/settings-start-order.mjs",
         "../tests/browser/cases/folder-editor.mjs",
+        "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/import.mjs"
       ]
     }
@@ -34,6 +35,7 @@
     { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
+    { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" }
   ],
   "intent": {
@@ -47,6 +49,7 @@
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
+        "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/import.mjs"
       ],
       "supportFiles": [
@@ -56,10 +59,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 46,
-      "assertionCount": 603,
-      "pageEvaluateCount": 119,
-      "orderedTitleSha256": "f8441d00a18459448330ef2614c04826f0bca1a3be986b7a8e4734e2e27a7a88"
+      "testCount": 48,
+      "assertionCount": 609,
+      "pageEvaluateCount": 121,
+      "orderedTitleSha256": "4087538f57226caccec63842a5c4cad06f48d5b60702246292d8b7574c150a20"
     }
   }
 }

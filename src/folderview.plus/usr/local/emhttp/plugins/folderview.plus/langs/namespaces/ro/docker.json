@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Anulați",
     "docker.visibility.all-hidden-title": "Toate rândurile de foldere sunt ascunse.",
     "docker.visibility.all-hidden-help": "Dezvăluiți-le temporar sau restaurați fiecare folder ascuns.",
-    "docker.visibility.show-hidden": "Afișează folderele ascunse"
+    "docker.visibility.show-hidden": "Afișează folderele ascunse",
+    "docker.webui-profiles.open": "Deschideți profilul WebUI",
+    "docker.webui-profiles.ready": "$1 ($2 din $3 gata)",
+    "docker.webui-profiles.manage": "Gestionați profilurile WebUI",
+    "docker.webui-profiles.none-title": "Nicio interfață web gata",
+    "docker.webui-profiles.none-body": "Niciunul dintre containerele selectate nu rulează cu un WebUI disponibil."
 }

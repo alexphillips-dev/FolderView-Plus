@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.28.01">
-<!ENTITY md5 "94c9074ba781ec8d84c318fe3be33023">
-<!ENTITY sha256 "e3ed087328f3bec0d5d34d64660eed99359f2cb28c925718d052d5f4084febca">
+<!ENTITY version "2026.08.28.02">
+<!ENTITY md5 "77a9c67cd4f5db3e23fc73e8316d4412">
+<!ENTITY sha256 "451ee2fa011a7f5c867c9b8f46bc9d5e6783795a637ba72e61e0f0e75fd299d4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.28.02
+- Feature: Add reusable custom WebUI profiles to each Docker folder so one menu action can open only the selected container WebUIs.
+- UI/UX: Add profile creation, naming, duplication, ordering, search, WebUI-aware selection, unavailable-member visibility, and deletion to the modern Docker folder editor, with responsive keyboard-accessible controls.
+- Reliability: Resolve each selected container's current WebUI only when a profile is launched, open direct running and unpaused members only, retain renamed members through identity reconciliation, and fail closed when a profile no longer exists.
+- Compatibility: Preserve folder-specific profiles through clone, full export/import, backup, and restore while excluding them from generic settings copy/paste, templates, and saved defaults that may target different containers.
+- Privacy: Add support-bundle profile health counts without exporting profile names, container names, or WebUI addresses.
+- Localization: Translate the custom WebUI profile editor and Docker menu across every supported locale.
+- Docs: Document profile setup, launch behavior, popup handling, migration behavior, and current screenshot placeholders in the README and user guide.
+- Test: Cover browser, mobile, keyboard, theme, persistence, launch eligibility, popup safety, rename, transfer, diagnostics, localization, and large-library performance behavior using isolated fixtures.
+
 
 ###2026.08.28.01
 - Fix: Show the 10-second Docker folder **Undo** notice immediately when a folder is hidden instead of waiting for preference persistence to finish.

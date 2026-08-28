@@ -38,6 +38,8 @@
         const normalizedSettings = source.settings && typeof source.settings === 'object'
             ? deepClone(source.settings) || {}
             : {};
+        delete normalizedSettings.webui_profiles;
+        delete normalizedSettings.webuiProfiles;
         const actions = Array.isArray(source.actions) ? source.actions : [];
         const normalizedActions = [];
         let droppedMemberBoundActionCount = 0;

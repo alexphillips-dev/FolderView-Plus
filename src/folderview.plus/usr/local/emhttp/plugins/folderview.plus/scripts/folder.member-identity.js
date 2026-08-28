@@ -1,12 +1,12 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folder.webui-profiles.js'));
         return;
     }
-    root.FolderViewPlusMemberIdentity = factory();
+    root.FolderViewPlusMemberIdentity = factory(root.FolderViewPlusFoundationModules?.folderWebuiProfiles);
     root.FolderViewPlusMemberIdentityModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(webuiProfiles) {
     'use strict';
 
     const asObject = (value) => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
@@ -197,6 +197,7 @@
             folder.memberIdentities = normalizeIdentityMap(folder.memberIdentities || folder.member_identities, safeType);
             folder.hiddenPreviewMembers = uniqueStrings(folder.hiddenPreviewMembers || folder.hidden_preview);
             folder.actions = Array.isArray(folder.actions) ? folder.actions.map((action) => ({ ...asObject(action) })) : [];
+            folder.settings = { ...asObject(folder.settings) };
             folder.containers.forEach((name) => {
                 if (liveNames.has(name)) {
                     claimedNames.add(name);
@@ -234,6 +235,9 @@
                 folder.containers = renameListEntry(folder.containers, oldName, newName);
                 folder.hiddenPreviewMembers = renameListEntry(folder.hiddenPreviewMembers, oldName, newName);
                 folder.actions = renameActionTargets(folder.actions, oldName, newName);
+                if (typeof webuiProfiles?.renameProfileMember === 'function') {
+                    folder.settings.webui_profiles = webuiProfiles.renameProfileMember(folder.settings.webui_profiles, oldName, newName);
+                }
                 delete folder.memberIdentities[oldName];
                 folder.memberIdentities[newName] = resolution.candidate.identity;
                 renames[oldName] = newName;

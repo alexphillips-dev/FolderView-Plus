@@ -45,13 +45,13 @@ const patterns = {
 };
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 const explicitHtmlSinkReviews = new Map([
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1311', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3441', 'The loading overlay contains plugin-authored static markup only.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1313', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3443', 'The loading overlay contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:312', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js:504', 'Names, identifiers, states, actions, and error text are escaped; counts are normalized numbers and image sources are sanitized.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js:221', 'The stable-toggle controller accepts only plugin-owned markup builders and validates the expected input after mounting.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:471', 'buildTopChrome returns plugin-authored editor chrome with no persisted-value interpolation.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:485', 'The action bar shell contains plugin-authored static markup only.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:470', 'buildTopChrome returns plugin-authored editor chrome with no persisted-value interpolation.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:484', 'The action bar shell contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:604', 'Panel titles and descriptions come from the frozen plugin-authored section metadata table.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:680', 'Section keys and labels come from the plugin-authored editor metadata tables.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:832', 'The preview image source is a fixed plugin asset path.'],

@@ -6,16 +6,39 @@
     <title>FolderView Plus folder action fixture</title>
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
+    <link rel="stylesheet" href="/plugin/styles/folder.css">
     <style>body { margin: 2rem; background: #171717; color: #eee; font-family: Arial, sans-serif; }</style>
 </head>
 <body>
     <button id="open-folder-actions" type="button">Open Media actions</button>
+    <form id="fvFolderEditorForm" class="folder-editor-form">
+        <div id="fvWebuiProfilesSection" class="basic fv-webui-profiles-section">
+            <input type="hidden" name="webui_profiles" value="[]">
+            <div id="fvWebuiProfilesWorkspace"></div>
+        </div>
+        <label><input type="checkbox" name="containers[]" value="Plex" checked>Plex</label>
+        <label><input type="checkbox" name="containers[]" value="Tautulli" checked>Tautulli</label>
+        <label><input type="checkbox" name="containers[]" value="Stopped" checked>Stopped</label>
+    </form>
     <script src="/vendor/jquery.js"></script>
     <script src="/fixtures/folder-editor.fixture.js"></script>
+    <script src="/plugin/scripts/folder.webui-profiles.js"></script>
     <script src="/plugin/scripts/folderviewplus.folder-editor.js"></script>
     <script>
         document.getElementById('open-folder-actions').addEventListener('click', (event) => {
             window.FolderViewPlusFolderEditor.openFolderRowQuickActions('docker', 'media', event);
+        });
+        window.fixtureFolderEditor.webuiProfiles = window.FolderViewPlusFoundationModules.folderWebuiProfiles.createEditorApi({
+            window,
+            document,
+            form: document.getElementById('fvFolderEditorForm'),
+            type: 'docker',
+            getMembers: () => [
+                { Name: 'Plex', State: { Running: true }, WebUi: 'http://plex/' },
+                { Name: 'Tautulli', State: { Running: true }, webuiCapability: true },
+                { Name: 'Stopped', State: { Running: false } }
+            ],
+            translate: (_key, fallback) => fallback
         });
         window.fixtureFolderEditor.ready = true;
     </script>

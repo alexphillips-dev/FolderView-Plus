@@ -1,4 +1,4 @@
-<?php
+<?php require_once __DIR__ . '/lib.webui-profiles.php';
 function diagnosticsStateKindForDockerItem(array $item): string {
         $state = is_array($item['info']['State'] ?? null) ? $item['info']['State'] : [];
         $running = (bool)($state['Running'] ?? false);
@@ -83,8 +83,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
         $memberTotals = ['started' => 0, 'paused' => 0, 'stopped' => 0, 'total' => 0];
         $entityStateCounts = ['started' => 0, 'paused' => 0, 'stopped' => 0];
         $updateCounts = ['available' => 0, 'upToDate' => 0, 'unknown' => 0, 'total' => 0];
-        $assignedItemSet = [];
-
+        $assignedItemSet = []; $webuiProfileDiagnostics = fvplusMergeWebuiProfileDiagnostics([], []);
         foreach ($infoByName as $name => $item) {
             if (!is_array($item)) {
                 continue;
@@ -135,7 +134,9 @@ function diagnosticsStateKindForDockerItem(array $item): string {
                     $members[] = $name;
                 }
             }
-
+            if ($type === 'docker') {
+                $webuiProfileDiagnostics = fvplusMergeWebuiProfileDiagnostics($webuiProfileDiagnostics, fvplusBuildWebuiProfileDiagnostics($folder['settings'] ?? [], $members));
+            }
             $started = 0;
             $paused = 0;
             $stopped = 0;
@@ -233,7 +234,6 @@ function diagnosticsStateKindForDockerItem(array $item): string {
                 );
             }
         }
-
         $entityDetails = [];
         $entityDetailsTotal = 0;
         $entityDetailsMaxEntries = 200;
@@ -306,6 +306,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
             'maxDepth' => $maxDepth,
             'updateCounts' => $updateCounts,
             'managerCounts' => $managerCounts,
+            'webuiProfiles' => $webuiProfileDiagnostics,
             'entityDetails' => [
                 'total' => $entityDetailsTotal,
                 'maxEntries' => $entityDetailsMaxEntries,

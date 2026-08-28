@@ -59,5 +59,10 @@
     "docker.visibility.undo": "Fortryd",
     "docker.visibility.all-hidden-title": "Alle mapperækker er skjulte.",
     "docker.visibility.all-hidden-help": "Vis dem midlertidigt eller gendan hver skjult mappe.",
-    "docker.visibility.show-hidden": "Vis skjulte mapper"
+    "docker.visibility.show-hidden": "Vis skjulte mapper",
+    "docker.webui-profiles.open": "Åbn WebUI-profilen",
+    "docker.webui-profiles.ready": "$1 ($2 af $3 klar)",
+    "docker.webui-profiles.manage": "Administrer WebUI-profiler",
+    "docker.webui-profiles.none-title": "Ingen WebUI'er klar",
+    "docker.webui-profiles.none-body": "Ingen af de valgte containere kører med en tilgængelig WebUI."
 }

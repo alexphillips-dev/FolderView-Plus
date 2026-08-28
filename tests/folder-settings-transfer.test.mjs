@@ -62,7 +62,8 @@ test('folder settings transfer copies only safe settings payload fields', () => 
         icon: 'folder.png',
         settings: {
             preview: 2,
-            override_default_actions: true
+            override_default_actions: true,
+            webui_profiles: [{ id: 'media', name: 'Media', containers: ['one'] }]
         },
         actions: [
             { type: 1, name: 'Script action', script: 'echo ok' },
@@ -77,6 +78,7 @@ test('folder settings transfer copies only safe settings payload fields', () => 
     assert.deepEqual(Object.keys(entry.payload).sort(), ['actions', 'icon', 'settings']);
     assert.equal(entry.payload.icon, 'folder.png');
     assert.equal(entry.payload.settings.preview, 2);
+    assert.equal(entry.payload.settings.webui_profiles, undefined);
     assert.equal(entry.payload.actions.length, 1);
     assert.equal(entry.payload.actions[0].name, 'Script action');
     assert.deepEqual(Array.from(entry.meta.omittedTopLevelKeys), ['name', 'parentId', 'regex', 'containers', 'id', 'createdAt', 'updatedAt']);

@@ -55,6 +55,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.webui-profiles.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.privacy.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.core.js')?>"></script>

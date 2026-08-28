@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import {
     SCHEDULED_WORKFLOW_TARGETS,
@@ -8,6 +10,7 @@ import {
 
 const target = SCHEDULED_WORKFLOW_TARGETS[0];
 const nowMs = Date.parse('2026-08-10T12:00:00Z');
+const root = path.resolve(process.cwd());
 
 const run = ({ event = 'schedule', status = 'completed', conclusion = 'success', createdAt, updatedAt = createdAt } = {}) => ({
     event,
@@ -37,6 +40,13 @@ test('scheduled workflow health accepts a manual proof run until the daily-monit
     });
     assert.equal(result.healthy, true);
     assert.equal(result.latestSuccess.event, 'workflow_dispatch');
+});
+
+test('every monitored workflow supports a manual proof run', () => {
+    for (const { workflowFile } of SCHEDULED_WORKFLOW_TARGETS) {
+        const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', workflowFile), 'utf8');
+        assert.match(workflow, /^\s{2}workflow_dispatch:\s*$/m, workflowFile);
+    }
 });
 
 test('scheduled workflow health identifies the daily Unraid compatibility monitor', () => {

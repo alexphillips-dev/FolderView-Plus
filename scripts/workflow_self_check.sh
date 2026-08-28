@@ -182,6 +182,9 @@ if ((codeqlWorkflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-
 if (!/node scripts\/codeql_alert_guard\.mjs --commit-sha/.test(codeqlWorkflow)) {
   fail('CodeQL must enforce zero open alerts for the analyzed commit.');
 }
+if (!/schedule:/.test(codeqlWorkflow) || !/workflow_dispatch:/.test(codeqlWorkflow)) {
+  fail('CodeQL must run on schedule and support manual recovery checks.');
+}
 if (!/actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/.test(dependencyReviewWorkflow)
     || !/fail-on-severity:\s*high/.test(dependencyReviewWorkflow)
     || !/license-check:\s*true/.test(dependencyReviewWorkflow)

@@ -194,6 +194,9 @@ if ((codeqlWorkflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-
 if (!/node scripts\/codeql_alert_guard\.mjs --commit-sha/.test(codeqlWorkflow)) {
   fail('CodeQL must enforce zero open alerts for the analyzed commit.');
 }
+if (!/schedule:/.test(codeqlWorkflow) || !/workflow_dispatch:/.test(codeqlWorkflow)) {
+  fail('CodeQL must run on schedule and support manual recovery checks.');
+}
 if (!/^permissions:\s*\n  actions:\s*read\s*\n  contents:\s*read\s*$/m.test(codeqlWorkflow)
     || !/permissions:\s*\n\s*actions:\s*read\s*\n\s*contents:\s*read\s*\n\s*security-events:\s*write/.test(jobBlock(codeqlWorkflow, 'analyze'))) {
   fail('CodeQL must keep top-level access read-only and scope security-events write to the analyze job.');

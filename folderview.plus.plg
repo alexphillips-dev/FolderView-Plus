@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.28.02">
-<!ENTITY md5 "77a9c67cd4f5db3e23fc73e8316d4412">
-<!ENTITY sha256 "451ee2fa011a7f5c867c9b8f46bc9d5e6783795a637ba72e61e0f0e75fd299d4">
+<!ENTITY version "2026.08.28.03">
+<!ENTITY md5 "b19457599141dfa084e1bc8a755b55a6">
+<!ENTITY sha256 "255a697535c6b14f95631fa836889a0ddda0c11c388ee2bd313ed21d779e0093">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.28.03
+- UI/UX: Style every custom WebUI profile editor action with FolderView Plus controls instead of Unraid's default orange button treatment.
+- Accessibility: Preserve visible keyboard focus and use the plugin's theme-aware text, surface, hover, active, disabled, and shadow tokens across dark and light themes.
+- Test: Verify custom WebUI profile buttons override hostile host defaults and follow the final dark and light theme palettes in an isolated browser fixture.
+
 
 ###2026.08.28.02
 - Feature: Add reusable custom WebUI profiles to each Docker folder so one menu action can open only the selected container WebUIs.

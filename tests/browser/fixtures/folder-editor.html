@@ -7,9 +7,13 @@
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
     <link rel="stylesheet" href="/plugin/styles/folder.css">
-    <style>body { margin: 2rem; background: #171717; color: #eee; font-family: Arial, sans-serif; }</style>
+    <style>
+        body { margin: 2rem; background: #171717; color: #eee; font-family: Arial, sans-serif; }
+        html[data-fvplus-host-theme="white"] body { background: #f8f9fb; color: #27313d; }
+        button { border: 2px solid rgb(255, 128, 0) !important; background: transparent !important; color: rgb(255, 128, 0) !important; }
+    </style>
 </head>
-<body>
+<body class="canvas">
     <button id="open-folder-actions" type="button">Open Media actions</button>
     <form id="fvFolderEditorForm" class="folder-editor-form">
         <div id="fvWebuiProfilesSection" class="basic fv-webui-profiles-section">

@@ -4954,7 +4954,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ) {
     border: 0 !important;
     border-radius: 8px !important;
@@ -4982,7 +4983,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):hover,
 :is(
     .fv-editor-hero-actions > button,
@@ -5001,7 +5003,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):focus-visible {
     background: var(--fv-editor-button-hover-top) !important;
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
@@ -5024,7 +5027,8 @@ table.sortable td:nth-child(4) {
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
-    .fv-folder-action-dialog .ui-dialog-buttonpane button
+    .fv-folder-action-dialog .ui-dialog-buttonpane button,
+    .fv-webui-profile-button
 ):active {
     background: var(--fv-editor-button-active-top) !important;
     box-shadow: var(--fv-editor-button-shadow-active) !important;
@@ -5369,27 +5373,18 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     justify-content: center;
     gap: 0.35rem;
     min-height: 34px;
-    border: 1px solid var(--fv-editor-border, rgba(127, 127, 127, 0.55));
-    border-radius: 5px;
-    background: var(--fv-editor-button-bg, rgba(127, 127, 127, 0.12));
-    color: inherit;
+    padding: 0.35rem 0.65rem;
     cursor: pointer;
 }
 
-.fv-webui-profile-button:hover,
 .fv-webui-profile-button:focus-visible {
-    border-color: var(--fv-editor-accent, #f28c28);
-    outline: 2px solid color-mix(in srgb, var(--fv-editor-accent, #f28c28) 45%, transparent);
-    outline-offset: 1px;
+    outline: 2px solid var(--fv-editor-focus-ring) !important;
+    outline-offset: 2px;
 }
 
-.fv-webui-profile-button.is-primary {
-    border-color: var(--fv-editor-accent, #f28c28);
-}
-
-.fv-webui-profile-button.is-danger {
-    border-color: var(--fv-editor-danger, #e05252);
-    color: inherit;
+.fv-webui-profile-button > i,
+.fv-webui-profile-button > span {
+    color: inherit !important;
 }
 
 .fv-webui-profile-members {

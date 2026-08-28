@@ -13,6 +13,7 @@ test('CodeQL scans dev and main for pushes and pull requests', () => {
     const workflow = read('.github/workflows/codeql.yml');
     assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
     assert.match(workflow, /pull_request:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
+    assert.match(workflow, /workflow_dispatch:/);
     assert.match(workflow, /queries: security-extended,security-and-quality/);
     assert.equal((workflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length, 3);
 });

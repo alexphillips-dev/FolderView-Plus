@@ -5,18 +5,36 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.28.04">
-<!ENTITY md5 "9c44e6b2784eaa83b27fe0658cebe19d">
-<!ENTITY sha256 "4c9da7f4379224d2b65ff9957c08ab5e996d6c8d7082762504f7415ef1f95194">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.08.28.05">
+<!ENTITY md5 "2787a33e9d66e22bc4976cef9cd4c014">
+<!ENTITY sha256 "f71ee236840caadc58c6e22630a311670fa39d39f48293d086182cf0bb4dae88">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.28.05
+- Feature: Add a fourth **Hide** quick action to Docker folder menus, including nested-branch hiding, a temporary **Show hidden folders** view, **Restore all hidden folders**, and an immediate 10-second **Undo** action without deleting folder configuration or changing Unraid's native Host list.
+- Feature: Add reusable custom WebUI profiles to each Docker folder so any number of named profiles can open only the selected running, unpaused container WebUIs, with create, duplicate, reorder, search, unavailable-member, and delete controls in the modern folder editor.
+- Fix: Restore reliable container and child-folder context menus across single-row, multi-row, nested, collapsed, Preview Rows 1+, Unlimited, and Unraid Basic or Advanced View layouts, including mouse, right-click, touch, Enter, and Space activation.
+- Fix: Show consistent lifecycle progress on single-row and multi-row Docker previews, keep Restart pending through its initial running snapshot, and use the action's destination status color until reconciliation completes.
+- UI/UX: Use Unraid's native green started indicator with white status text by default, add a separate **Text** color picker, and apply customized Started, Paused, Stopped, and Text colors consistently across Docker, VM, Dashboard, inherited defaults, and starter templates.
+- UI/UX: Make hidden-folder recovery, Undo, and custom WebUI profile controls theme-aware, responsive, and keyboard accessible instead of inheriting Unraid's orange button treatment.
+- Reliability: Persist hidden-folder choices through conflict-safe preference updates, preserve profiles through clone, export/import, backup, restore, and unique member renames, and keep folder-specific profiles out of generic settings transfers and defaults that may target unrelated containers.
+- Compatibility: Preserve explicitly selected white started indicators while migrating only the old unmodified white default to green, and acknowledge Unraid API v4.37.3 while keeping current legacy Docker behavior and future API capability monitoring bounded and fail-closed.
+- Security: Reject malformed non-string folder names and container identifiers without invoking attacker-controlled coercion hooks, strengthen property-based input coverage, and tighten repository security-policy, CodeQL, workflow-permission, package-trust, and release contracts.
+- Privacy: Extend sanitized diagnostics with aggregate context-menu, lifecycle, hidden-folder, and WebUI-profile health evidence while withholding folder names, container names, profile names, URLs, selectors, coordinates, and other runtime identities.
+- Localization: Translate the new hidden-folder, WebUI-profile, and status-text interfaces across all 27 supported locales and keep dynamic Docker menu labels covered by strict localization validation.
+- UX: Improve GitHub bug, support, feature, and translation intake forms with clearer reproduction, version, branch, diagnostics, privacy, compatibility, and testing fields.
+- Maintenance: Add proactive Unraid/API compatibility checks, dependency and SBOM vulnerability monitoring, scheduled workflow watchdogs, manual CodeQL recovery checks, exact-tool CodeQL alert filtering, and validated main-to-dev back-merge ordering without introducing live-Unraid automation.
+- Compatibility: No manual migration is required. Existing folders, assignments, rules, colors, backups, and imports remain compatible; hidden-folder state is reversible, and custom WebUI profiles remain scoped to their Docker folder.
+- Test: Expand isolated browser, mobile, keyboard, theme, localization, fuzz, security, diagnostics, workflow, and large-library performance coverage for every behavior in this release.
+
 
 ###2026.08.28.04
 - Fix: Keep hidden-folder restore labels and custom WebUI profile warnings registered as active localized UI text.
@@ -8767,7 +8785,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

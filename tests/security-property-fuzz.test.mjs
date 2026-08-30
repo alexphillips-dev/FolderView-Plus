@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import fc from 'fast-check';
+import fc from './helpers/fast-check.js';
 import {
     compareSanitizedSupportBundles,
     renderSupportBundleComparisonMarkdown

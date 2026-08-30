@@ -74,8 +74,9 @@ test('dependency review blocks vulnerable or unapproved dependency changes', () 
     assert.match(workflow, /warn-only: false/);
 });
 
-test('OpenSSF Scorecard publishes pinned SARIF results on a schedule', () => {
+test('OpenSSF Scorecard refreshes main findings and publishes pinned SARIF results', () => {
     const workflow = read('.github/workflows/scorecard.yml');
+    assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- main/);
     assert.match(workflow, /schedule:/);
     assert.match(workflow, /workflow_dispatch:/);
     assert.match(workflow, /ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/);
@@ -83,6 +84,14 @@ test('OpenSSF Scorecard publishes pinned SARIF results on a schedule', () => {
     assert.match(workflow, /publish_results: true/);
     assert.match(workflow, /security-events: write/);
     assert.match(workflow, /id-token: write/);
+});
+
+test('OpenSSF Scorecard can detect the fast-check property-test harness', () => {
+    const adapter = read('tests/helpers/fast-check.js');
+    const suite = read('tests/security-property-fuzz.test.mjs');
+    assert.match(adapter, /require\(['"]fast-check['"]\)/);
+    assert.match(suite, /from ['"]\.\/helpers\/fast-check\.js['"]/);
+    assert.match(suite, /fc\.assert\(fc\.property\(/);
 });
 
 test('workflows never upload live Unraid browser evidence', () => {

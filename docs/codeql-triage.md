@@ -28,8 +28,9 @@ CodeQL Action v4 runs for pushes and pull requests targeting both `dev` and
 no new high-or-higher security findings before a protected branch can be merged.
 Dependency Review separately rejects pull requests that introduce high-or-critical
 known vulnerabilities or licenses outside the repository's approved quality-tooling
-set. OpenSSF Scorecard publishes a scheduled supply-chain posture report to code
-scanning. The weekly OSV job scans the generated CycloneDX dependency inventory,
+set. OpenSSF Scorecard publishes a supply-chain posture report to code scanning
+on every `main` push and on its weekly schedule. The weekly OSV job scans the
+generated CycloneDX dependency inventory,
 uploads SARIF, and fails when it reports a known vulnerability. A scheduled-workflow
 watchdog checks that CodeQL, Scorecard, and OSV continue producing timely successful
 runs and maintains one recovery issue if they do not. Code-quality findings remain

@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd",
+      "version": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd",
+      "purl": "pkg:github/github/codeql-action@cdf488f595d80d6e07e03d4674febd5ab45fa938",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "06b2ab4348248b456ee06c9e953637f55e03504f",
+      "version": "ffa0a5f39214d80778c9b494822d94d0d9668458",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@06b2ab4348248b456ee06c9e953637f55e03504f",
+      "purl": "pkg:github/google/osv-scanner-action@ffa0a5f39214d80778c9b494822d94d0d9668458",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -1004,7 +1004,7 @@
     {
       "type": "library",
       "name": "opencc-js",
-      "version": "1.4.1",
+      "version": "1.4.2",
       "scope": "optional",
       "licenses": [
         {
@@ -1013,7 +1013,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/opencc-js@1.4.1"
+      "purl": "pkg:npm/opencc-js@1.4.2"
     },
     {
       "type": "library",

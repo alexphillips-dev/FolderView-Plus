@@ -5,18 +5,30 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.03.01">
-<!ENTITY md5 "7f5396965cb380f03724d0fe12e6f2d5">
-<!ENTITY sha256 "c9b804d8771c3cd1e492e4a6606e07d3b57546fd43940dba4db225efef5e210b">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.09.03.02">
+<!ENTITY md5 "a6e2e74c874ffacd57ba4381580c063b">
+<!ENTITY sha256 "e5eeddfb6da6b357f5e8f76ef2ff41c601fdb33019f307e85eafee61c3401867">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.03.02
+- Fix: Make folder status text follow the active Unraid theme by default, keeping it dark and readable on white themes and light on dark themes across Docker, VM, Dashboard, and multi-row preview surfaces.
+- UI/UX: Add a localized **Theme default** option beside the folder status Text picker. Choosing a Text color creates a custom override; resetting the status palette restores automatic theme behavior.
+- Compatibility: Migrate unmarked white status-text values from the previous default to automatic theme text, preserve existing non-white custom colors, and retain deliberately selected white after it is saved with the new explicit override marker.
+- Reliability: Prevent **Lock status colors** from forcing white text while Text remains automatic, while continuing to lock explicitly selected custom text colors.
+- Diagnostics: Report whether each privacy-safe folder status-text result uses the active theme or a custom override, and include a color value only for an active custom override.
+- Localization: Translate the Theme default control and updated status-color guidance across all 27 supported locales.
+- Security: Refresh the immutable CodeQL and OSV workflow action revisions used by automated code and dependency scanning.
+- Maintenance: Update the OpenCC localization quality tool to 1.4.2.
+- Test: Add migration, locked-color, CSS-token, Dashboard computed-style, editor persistence, localization, browser fixture, package, and runtime-performance coverage for automatic and explicit status-text colors.
+
 
 ###2026.09.03.01
 - Fix: Make folder status text inherit the active Unraid theme by default so it remains dark and readable on white themes and light on dark themes across Docker, VM, Dashboard, and multi-row preview surfaces.
@@ -8777,7 +8789,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

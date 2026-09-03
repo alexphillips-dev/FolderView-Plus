@@ -241,7 +241,7 @@ tr.fv-folder-locked .folder-appname {
 }
 
 span.folder-state.fv-folder-state-started {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 span.folder-state {
@@ -251,11 +251,11 @@ span.folder-state {
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 i.folder-load-status.started {

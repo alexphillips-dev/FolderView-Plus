@@ -159,11 +159,11 @@
     };
 
     const getFolderStatusColors = (settings) => {
-        const source = settings && typeof settings === 'object' ? settings : {}; const normalizedStarted = normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
+        const source = settings && typeof settings === 'object' ? settings : {}; const normalizedStarted = normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true; const hasTextExplicitMarker = Object.prototype.hasOwnProperty.call(source, 'status_color_text_explicit') || Object.prototype.hasOwnProperty.call(source, 'statusColorTextExplicit'); const normalizedText = normalizeStatusHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text); const textExplicit = hasTextExplicitMarker ? (source.status_color_text_explicit === true || source.statusColorTextExplicit === true) : normalizedText !== DEFAULT_FOLDER_STATUS_COLORS.text;
         return {
             started: !startedExplicit && normalizedStarted === (folderContract?.LEGACY_DEFAULT_FOLDER_STARTED_COLOR || '#ffffff') ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
             paused: normalizeStatusHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: normalizeStatusHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)
+            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: textExplicit ? normalizedText : ''
         };
     };
 
@@ -171,7 +171,7 @@
         const colors = getFolderStatusColors(settings); return {
             started: colors.started,
             paused: colors.paused !== DEFAULT_FOLDER_STATUS_COLORS.paused ? colors.paused : '',
-            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : '', text: colors.text !== DEFAULT_FOLDER_STATUS_COLORS.text ? colors.text : ''
+            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : '', text: colors.text
         };
     };
 
@@ -202,7 +202,7 @@
         if (overrides.stopped || locked) {
             style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped || getFolderStatusColors(settings).stopped, locked ? 'important' : '');
         }
-        if (overrides.text || locked) style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.text, overrides.text || getFolderStatusColors(settings).text, locked ? 'important' : '');
+        if (overrides.text) style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.text, overrides.text, locked ? 'important' : '');
     };
 
     const applyFolderAccentStyle = ($folderRow, settings) => {

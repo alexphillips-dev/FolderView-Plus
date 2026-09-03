@@ -588,7 +588,7 @@ body.fvplus-docker-reveal-hidden #docker_list > tr.folder.fv-folder-hidden-revea
 }
 
 span.folder-state.fv-folder-state-started {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 span.folder-state {
@@ -598,11 +598,11 @@ span.folder-state {
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: var(--fvplus-folder-status-text, #ffffff);
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }
 
 i.folder-load-status.started {
@@ -1008,7 +1008,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview .fv-preview-status-compact .state,
 .folder-preview span.state[class*="fv-preview-status-"] {
-    color: var(--fvplus-folder-status-text, #ffffff) !important;
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor))) !important;
 }
 
 .folder-preview i.fv-preview-lifecycle-pending {

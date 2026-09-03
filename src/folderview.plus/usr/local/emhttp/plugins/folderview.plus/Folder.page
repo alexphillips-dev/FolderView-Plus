@@ -903,6 +903,10 @@ try {
                                 <span>Text</span>
                                 <input type="color" name="status_color_text" data-fvplus-style="fv-u-88tzw1">
                             </label>
+                            <label class="folder-status-text-auto">
+                                <input type="checkbox" name="status_color_text_auto" checked>
+                                <span>Theme default</span>
+                            </label>
                         </div>
                         <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
@@ -912,7 +916,7 @@ try {
             </dl>
             <blockquote class="inline_help">
                 <p>
-                    Set the Started, Paused, and Stopped indicator colors independently from the status text color across Docker, VMs, and Dashboard views.
+                    Set the Started, Paused, and Stopped indicator colors independently from the status text color across Docker, VMs, and Dashboard views. Keep Theme default enabled to use readable text from the active Unraid theme; choosing a Text color creates a custom override.
                     <br>
                     The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
                 </p>

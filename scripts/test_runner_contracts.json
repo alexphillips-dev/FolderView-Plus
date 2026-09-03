@@ -12,6 +12,7 @@
         "../tests/browser/cases/foundation.mjs",
         "../tests/browser/cases/docker.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
+        "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
         "../tests/browser/cases/docker-hidden-folders.mjs",
         "../tests/browser/cases/settings.mjs",
@@ -30,6 +31,7 @@
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
+    { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
@@ -46,6 +48,7 @@
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
+        "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/settings.mjs",
@@ -62,10 +65,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 49,
-      "assertionCount": 617,
+      "testCount": 50,
+      "assertionCount": 619,
       "pageEvaluateCount": 124,
-      "orderedTitleSha256": "8d5719c0e640edebabad9e8721447f53f85350e8555b26a4e890cfdab1a5a804"
+      "orderedTitleSha256": "07bd86e810827798a790c6fba302f7bcfe546a1c1dc08f2ffba50473a02cfe9d"
     }
   }
 }

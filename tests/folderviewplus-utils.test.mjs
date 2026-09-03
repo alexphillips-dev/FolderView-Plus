@@ -524,7 +524,7 @@ test('getFolderStatusColors normalizes and defaults values', () => {
         started: '#55b72d',
         paused: '#b8860b',
         stopped: '#ff4d4d',
-        text: '#ffffff'
+        text: ''
     });
 
     assert.equal(utils.getFolderStatusColors({ status_color_started: '#ffffff' }).started, '#55b72d');
@@ -545,6 +545,16 @@ test('getFolderStatusColors normalizes and defaults values', () => {
         stopped: '#ff4d4d',
         text: '#ffeedd'
     });
+
+    assert.equal(utils.getFolderStatusColors({ status_color_text: '#ffffff' }).text, '');
+    assert.equal(utils.getFolderStatusColors({
+        status_color_text: '#ffffff',
+        status_color_text_explicit: true
+    }).text, '#ffffff');
+    assert.equal(utils.getFolderStatusColors({
+        status_color_text: '#123456',
+        status_color_text_explicit: false
+    }).text, '');
 });
 
 test('getAutoRuleMatches supports docker label and regex rules', () => {

@@ -84,11 +84,11 @@ function readUnraidVersionString(): ?string {
     }
 
     function diagnosticsFolderStatusColors(array $folder): array {
-        $settings = is_array($folder['settings'] ?? null) ? $folder['settings'] : [];
+        $settings = is_array($folder['settings'] ?? null) ? $folder['settings'] : []; $hasTextExplicitMarker = array_key_exists('status_color_text_explicit', $settings) || array_key_exists('statusColorTextExplicit', $settings); $normalizedText = diagnosticsNormalizeStatusColor($settings['status_color_text'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['text']); $textExplicit = $hasTextExplicitMarker ? (($settings['status_color_text_explicit'] ?? false) === true || ($settings['statusColorTextExplicit'] ?? false) === true) : $normalizedText !== FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['text'];
         return [
             'started' => diagnosticsNormalizeStatusColor($settings['status_color_started'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['started']),
             'paused' => diagnosticsNormalizeStatusColor($settings['status_color_paused'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['paused']),
-            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped']), 'text' => diagnosticsNormalizeStatusColor($settings['status_color_text'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['text'])
+            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped']), 'text' => $textExplicit ? $normalizedText : null, 'textMode' => $textExplicit ? 'custom' : 'theme'
         ];
     }
 

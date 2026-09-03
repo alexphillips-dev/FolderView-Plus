@@ -4048,6 +4048,19 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     color: var(--fv-editor-text-primary);
 }
 
+.folder-status-text-auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    margin: 0;
+    color: var(--fv-editor-text-primary);
+    white-space: nowrap;
+}
+
+.folder-status-text-auto > input {
+    margin: 0;
+}
+
 table.sortable {
     width: 100%;
     margin: 0 auto;

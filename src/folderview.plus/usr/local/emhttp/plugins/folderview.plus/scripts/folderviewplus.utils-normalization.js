@@ -106,11 +106,8 @@
     } = utilityFoundation;
 
     const getFolderStatusColors = (settings) => {
-        const source = isPlainObject(settings) ? settings : {}; const normalizedStarted = normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true;
-        return { started: !startedExplicit && normalizedStarted === '#ffffff' ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted,
-            paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: normalizeHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)
-        };
+        const source = isPlainObject(settings) ? settings : {}; const normalizedStarted = normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started); const startedExplicit = source.status_color_started_explicit === true || source.statusColorStartedExplicit === true; const hasTextExplicitMarker = Object.prototype.hasOwnProperty.call(source, 'status_color_text_explicit') || Object.prototype.hasOwnProperty.call(source, 'statusColorTextExplicit'); const normalizedText = normalizeHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text); const textExplicit = hasTextExplicitMarker ? (source.status_color_text_explicit === true || source.statusColorTextExplicit === true) : normalizedText !== DEFAULT_FOLDER_STATUS_COLORS.text;
+        return { started: !startedExplicit && normalizedStarted === '#ffffff' ? DEFAULT_FOLDER_STATUS_COLORS.started : normalizedStarted, paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused), stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), text: textExplicit ? normalizedText : '' };
     };
 
     const clampNumber = (value, min, max, fallback) => {

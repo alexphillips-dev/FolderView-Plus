@@ -249,6 +249,17 @@
                     status_color_text: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_text, deps.defaultFolderStatusColors?.text || '#ffffff')
                         : String(settings.status_color_text || deps.defaultFolderStatusColors?.text || '#ffffff'),
+                    status_color_text_explicit: (() => {
+                        const hasExplicitMarker = Object.prototype.hasOwnProperty.call(settings, 'status_color_text_explicit')
+                            || Object.prototype.hasOwnProperty.call(settings, 'statusColorTextExplicit');
+                        if (hasExplicitMarker) {
+                            return settings.status_color_text_explicit === true || settings.statusColorTextExplicit === true;
+                        }
+                        const normalizedText = typeof deps.normalizeHexColor === 'function'
+                            ? deps.normalizeHexColor(settings.status_color_text, deps.defaultFolderStatusColors?.text || '#ffffff')
+                            : String(settings.status_color_text || deps.defaultFolderStatusColors?.text || '#ffffff').toLowerCase();
+                        return normalizedText !== (deps.defaultFolderStatusColors?.text || '#ffffff');
+                    })(),
                     status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true,
                     health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
                     health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),

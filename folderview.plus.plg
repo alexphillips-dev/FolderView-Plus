@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.28.04">
-<!ENTITY md5 "9c44e6b2784eaa83b27fe0658cebe19d">
-<!ENTITY sha256 "4c9da7f4379224d2b65ff9957c08ab5e996d6c8d7082762504f7415ef1f95194">
+<!ENTITY version "2026.09.03.01">
+<!ENTITY md5 "7f5396965cb380f03724d0fe12e6f2d5">
+<!ENTITY sha256 "c9b804d8771c3cd1e492e4a6606e07d3b57546fd43940dba4db225efef5e210b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.03.01
+- Fix: Make folder status text inherit the active Unraid theme by default so it remains dark and readable on white themes and light on dark themes across Docker, VM, Dashboard, and multi-row preview surfaces.
+- UI/UX: Add a clearly labeled **Theme default** option beside the folder status Text picker; changing the picker creates a custom override, while resetting status colors restores automatic theme behavior.
+- Compatibility: Migrate unmarked white status-text values introduced by the previous default to automatic theme text, preserve existing non-white custom colors, and retain deliberately selected white after it is saved with the new explicit override marker.
+- Reliability: Prevent **Lock status colors** from forcing white text when the Text color remains automatic, while continuing to lock explicitly selected custom text colors.
+- Diagnostics: Report whether folder status text uses the theme or a custom override without exposing folder identities; include the custom color only when an override is active.
+- Localization: Translate the Theme default control and updated status-color guidance across all 27 supported locales.
+- Test: Add isolated migration, locked-color, CSS token, Dashboard computed-style, editor persistence, localization, and browser fixture coverage for automatic and explicit status-text colors.
+
 
 ###2026.08.28.04
 - Fix: Keep hidden-folder restore labels and custom WebUI profile warnings registered as active localized UI text.

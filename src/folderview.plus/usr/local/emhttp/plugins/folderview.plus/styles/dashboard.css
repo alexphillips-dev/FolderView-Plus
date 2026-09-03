@@ -36,6 +36,11 @@
     --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
 }
 
+tbody#docker_view .folder-showcase-outer span.folder-state-docker,
+tbody#vm_view .folder-showcase-outer span.folder-state-vm {
+    color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
+}
+
 body[data-fv-theme-class="light"] {
     --fvplus-dashboard-quick-action-fg: #435062;
     --fvplus-dashboard-quick-action-bg-top: rgba(251, 247, 242, 0.97);

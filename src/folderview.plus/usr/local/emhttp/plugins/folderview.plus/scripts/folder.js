@@ -482,10 +482,9 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'folder_accent_color',
     'status_color_started',
     'status_color_paused',
-    'status_color_stopped', 'status_color_text',
+    'status_color_stopped', 'status_color_text', 'status_color_text_auto',
     'status_color_lock'
 ]);
-
 const parseSnapshotState = (raw) => {
     try {
         const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -514,7 +513,7 @@ const normalizeComparableValue = (value) => {
     }
     return String(value);
 };
-
+const isFolderStatusTextColorExplicit = (settings) => { const source = settings && typeof settings === 'object' ? settings : {}; const normalizedColors = utils?.getFolderStatusColors?.(source); if (normalizedColors && typeof normalizedColors.text === 'string') return normalizedColors.text !== ''; const hasMarker = Object.prototype.hasOwnProperty.call(source, 'status_color_text_explicit') || Object.prototype.hasOwnProperty.call(source, 'statusColorTextExplicit'); return hasMarker ? (source.status_color_text_explicit === true || source.statusColorTextExplicit === true) : normalizeHexColor(source.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text) !== DEFAULT_FOLDER_STATUS_COLORS.text; };
 const areComparableValuesEqual = (left, right) => JSON.stringify(normalizeComparableValue(left)) === JSON.stringify(normalizeComparableValue(right));
 
 const setFormControlValue = (fieldName, value) => {
@@ -1076,7 +1075,7 @@ const buildParentSmartDefaults = (parentFolder) => {
         folder_accent_color: normalizeHexColor(settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR),
         status_color_started: utils?.getFolderStatusColors?.(settings)?.started || normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text),
+        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text), status_color_text_auto: !isFolderStatusTextColorExplicit(settings),
         status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true
     };
 };
@@ -1747,7 +1746,7 @@ const resetStatusColorDefaults = () => {
     const form = $('div.canvas > form')[0];
     form.status_color_started.value = DEFAULT_FOLDER_STATUS_COLORS.started;
     form.status_color_paused.value = DEFAULT_FOLDER_STATUS_COLORS.paused;
-    form.status_color_stopped.value = DEFAULT_FOLDER_STATUS_COLORS.stopped; form.status_color_text.value = DEFAULT_FOLDER_STATUS_COLORS.text;
+    form.status_color_stopped.value = DEFAULT_FOLDER_STATUS_COLORS.stopped; form.status_color_text.value = DEFAULT_FOLDER_STATUS_COLORS.text; if (form.status_color_text_auto) form.status_color_text_auto.checked = true;
     if (typeof scheduleEditorRecalculation === 'function') {
         scheduleEditorRecalculation(0);
     }
@@ -3193,7 +3192,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('folder_accent_color', normalizeHexColor(normalizedFolder.settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR));
     setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
     setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
-    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)); setFieldValue('status_color_text', normalizeHexColor(normalizedFolder.settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text));
+    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)); setFieldValue('status_color_text', normalizeHexColor(normalizedFolder.settings.status_color_text, DEFAULT_FOLDER_STATUS_COLORS.text)); setFieldChecked('status_color_text_auto', !isFolderStatusTextColorExplicit(normalizedFolder.settings));
     setFieldChecked('status_color_lock', normalizedFolder.settings.status_color_lock === true || normalizedFolder.settings.statusColorLock === true);
     setFieldValue('health_warn_stopped_percent', normalizedFolder.settings.health_warn_stopped_percent === undefined
         || normalizedFolder.settings.health_warn_stopped_percent === null
@@ -3533,7 +3532,8 @@ const startFolderEditorRuntime = async () => {
             || fieldName === 'preview_border_color'
             || fieldName === 'preview_vertical_bars_color'
             || fieldName === 'preview_row_separator_color'
-            || fieldName === 'folder_accent_color';
+            || fieldName === 'folder_accent_color' || fieldName === 'status_color_started' || fieldName === 'status_color_paused' || fieldName === 'status_color_stopped' || fieldName === 'status_color_text';
+        if (fieldName === 'status_color_text' && form.status_color_text_auto) form.status_color_text_auto.checked = false;
         markSmartDefaultFieldTouched(fieldName);
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
@@ -3556,7 +3556,7 @@ const startFolderEditorRuntime = async () => {
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width' || fieldName === 'preview_border_glow'
-            || fieldName === 'folder_accent_enabled' || fieldName === 'folder_accent_color') {
+            || fieldName === 'folder_accent_enabled' || fieldName === 'folder_accent_color' || fieldName === 'status_color_started' || fieldName === 'status_color_paused' || fieldName === 'status_color_stopped' || fieldName === 'status_color_text' || fieldName === 'status_color_text_auto') {
             if (event.type === 'input' && isLivePreviewColorField) {
                 scheduleEditorPreviewRender();
                 markUnsavedIndicatorDirty();
@@ -3841,7 +3841,7 @@ const buildFolderPayloadFromForm = (e) => {
             folder_accent_color: normalizeHexColor(e.folder_accent_color.value.toString(), DEFAULT_FOLDER_ACCENT_COLOR),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started), status_color_started_explicit: true,
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
-            status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(e.status_color_text.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.text),
+            status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped), status_color_text: normalizeHexColor(e.status_color_text.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.text), status_color_text_explicit: e.status_color_text_auto?.checked !== true,
             status_color_lock: e.status_color_lock?.checked === true,
             health_warn_stopped_percent: healthWarnThreshold,
             health_critical_stopped_percent: healthCriticalThreshold,

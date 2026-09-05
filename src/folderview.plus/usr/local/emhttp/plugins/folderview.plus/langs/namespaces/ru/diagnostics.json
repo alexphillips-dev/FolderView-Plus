@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Повторная попытка…",
     "diagnostics.bootstrap.retry-succeeded": "Загрузка возобновлена",
     "diagnostics.bootstrap.retry-failed": "Повторная попытка не удалась",
-    "diagnostics.capture.page-action": "Диагностика страницы захвата"
+    "diagnostics.capture.page-action": "Диагностика страницы захвата",
+    "diagnostics.cards.docker": "Конфигурация Docker",
+    "diagnostics.cards.vm": "Конфигурация виртуальной машины",
+    "diagnostics.cards.needs-attention": "Требует внимания",
+    "diagnostics.cards.checked": "Проверено $1",
+    "diagnostics.cards.issue-count": "Проблемы, требующие внимания: $1",
+    "diagnostics.orphans.count": "Отсутствующие ссылки: $1",
+    "diagnostics.orphans.folders": "Затронутые папки: $1. Просмотрите сохраненные ссылки ниже.",
+    "diagnostics.orphans.folder": "Папка $1",
+    "diagnostics.orphans.folder-count": "$1: $2 отсутствуют ссылки.",
+    "diagnostics.orphans.members": "Отсутствуют элементы: $1",
+    "diagnostics.orphans.more": "Ещё $1 ссылок не показано.",
+    "diagnostics.orphans.hidden": "На этом очищенном снимке имена скрыты. Запустите проверку работоспособности, чтобы просмотреть затронутые элементы на этой странице.",
+    "diagnostics.orphans.repair": "Удалить недостающие ссылки",
+    "diagnostics.orphans.scope": "Удаляет сохраненные ссылки на отсутствующие элементы в папках Docker и VM. Контейнеры и виртуальные машины не удаляются.",
+    "diagnostics.repair.backup": "Резервная копия конфигурации создается перед изменением сохраненных ссылок.",
+    "diagnostics.repair.confirm": "Подтвердить изменения",
+    "diagnostics.repair.run": "Запустить исправление"
 }

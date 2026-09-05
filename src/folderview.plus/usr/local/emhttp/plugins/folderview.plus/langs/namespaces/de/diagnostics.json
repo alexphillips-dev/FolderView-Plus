@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Erneuter Versuch…",
     "diagnostics.bootstrap.retry-succeeded": "Laden fortgesetzt",
     "diagnostics.bootstrap.retry-failed": "Erneuter Versuch fehlgeschlagen",
-    "diagnostics.capture.page-action": "Erfassen Sie Seitendiagnosen"
+    "diagnostics.capture.page-action": "Erfassen Sie Seitendiagnosen",
+    "diagnostics.cards.docker": "Docker-Konfiguration",
+    "diagnostics.cards.vm": "VM-Konfiguration",
+    "diagnostics.cards.needs-attention": "Handlungsbedarf",
+    "diagnostics.cards.checked": "Geprüft am $1",
+    "diagnostics.cards.issue-count": "Zu prüfende Probleme: $1",
+    "diagnostics.orphans.count": "Fehlende Verweise: $1",
+    "diagnostics.orphans.folders": "Betroffene Ordner: $1. Prüfen Sie die unten aufgeführten gespeicherten Verweise.",
+    "diagnostics.orphans.folder": "Ordner $1",
+    "diagnostics.orphans.folder-count": "$1: $2 Verweise auf fehlende Einträge.",
+    "diagnostics.orphans.members": "Fehlende Einträge: $1",
+    "diagnostics.orphans.more": "$1 weitere Verweise werden nicht angezeigt.",
+    "diagnostics.orphans.hidden": "Namen sind in diesem bereinigten Diagnosebericht ausgeblendet. Führen Sie eine Gesundheitsprüfung durch, um die betroffenen Einträge auf dieser Seite anzuzeigen.",
+    "diagnostics.orphans.repair": "Verweise auf fehlende Einträge entfernen",
+    "diagnostics.orphans.scope": "Entfernt gespeicherte Verweise auf fehlende Einträge in Docker- und VM-Ordnern. Container und VMs werden nicht gelöscht.",
+    "diagnostics.repair.backup": "Vor dem Ändern gespeicherter Verweise wird eine Sicherung der Konfiguration erstellt.",
+    "diagnostics.repair.confirm": "Änderungen bestätigen",
+    "diagnostics.repair.run": "Reparatur ausführen"
 }

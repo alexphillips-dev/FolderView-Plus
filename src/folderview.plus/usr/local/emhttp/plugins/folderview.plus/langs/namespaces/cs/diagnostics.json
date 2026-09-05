@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Probíhá další pokus…",
     "diagnostics.bootstrap.retry-succeeded": "Načítání pokračuje",
     "diagnostics.bootstrap.retry-failed": "Další pokus se nezdařil",
-    "diagnostics.capture.page-action": "Diagnostika snímací stránky"
+    "diagnostics.capture.page-action": "Diagnostika snímací stránky",
+    "diagnostics.cards.docker": "Konfigurace Dockeru",
+    "diagnostics.cards.vm": "Konfigurace virtuálního počítače",
+    "diagnostics.cards.needs-attention": "Vyžaduje pozornost",
+    "diagnostics.cards.checked": "Zkontrolováno $1",
+    "diagnostics.cards.issue-count": "Problémy vyžadující pozornost: $1",
+    "diagnostics.orphans.count": "Chybějící reference: $1",
+    "diagnostics.orphans.folders": "Dotčené složky: $1. Prohlédněte si níže uložené reference.",
+    "diagnostics.orphans.folder": "Složka $1",
+    "diagnostics.orphans.folder-count": "$1: $2 chybějící reference.",
+    "diagnostics.orphans.members": "Chybějící položky: $1",
+    "diagnostics.orphans.more": "$1 další reference nejsou uvedeny.",
+    "diagnostics.orphans.hidden": "V tomto vyčištěném snímku jsou skryta jména. Chcete-li zobrazit dotčené položky na této stránce, spusťte kontrolu stavu.",
+    "diagnostics.orphans.repair": "Odstraňte chybějící odkazy",
+    "diagnostics.orphans.scope": "Odebere uložené odkazy na chybějící položky ve složkách Docker i VM. Kontejnery a virtuální počítače nebudou odstraněny.",
+    "diagnostics.repair.backup": "Před změnou uložených referencí se vytvoří záloha konfigurace.",
+    "diagnostics.repair.confirm": "Potvrďte změny",
+    "diagnostics.repair.run": "Spustit opravu"
 }

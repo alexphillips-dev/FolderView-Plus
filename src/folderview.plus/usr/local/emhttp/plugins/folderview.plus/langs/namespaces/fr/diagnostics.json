@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Nouvelle tentative…",
     "diagnostics.bootstrap.retry-succeeded": "Chargement repris",
     "diagnostics.bootstrap.retry-failed": "La nouvelle tentative a échoué",
-    "diagnostics.capture.page-action": "Diagnostic de la page de capture"
+    "diagnostics.capture.page-action": "Diagnostic de la page de capture",
+    "diagnostics.cards.docker": "Configuration de Docker",
+    "diagnostics.cards.vm": "Configuration de la machine virtuelle",
+    "diagnostics.cards.needs-attention": "A besoin d'attention",
+    "diagnostics.cards.checked": "Vérifié $1",
+    "diagnostics.cards.issue-count": "Problèmes nécessitant une attention : $1",
+    "diagnostics.orphans.count": "Références manquantes : $1",
+    "diagnostics.orphans.folders": "Dossiers concernés : $1. Consultez les références enregistrées ci-dessous.",
+    "diagnostics.orphans.folder": "Dossier $1",
+    "diagnostics.orphans.folder-count": "$1 : $2 références manquantes.",
+    "diagnostics.orphans.members": "Éléments manquants : $1",
+    "diagnostics.orphans.more": "$1 références supplémentaires ne sont pas affichées.",
+    "diagnostics.orphans.hidden": "Les noms sont masqués dans cet instantané nettoyé. Exécutez une vérification de l'état pour afficher les éléments concernés sur cette page.",
+    "diagnostics.orphans.repair": "Supprimer les références manquantes",
+    "diagnostics.orphans.scope": "Supprime les références enregistrées aux éléments manquants dans les dossiers Docker et VM. Les conteneurs et les machines virtuelles ne sont pas supprimés.",
+    "diagnostics.repair.backup": "Une sauvegarde de configuration est créée avant que les références enregistrées ne soient modifiées.",
+    "diagnostics.repair.confirm": "Confirmer les modifications",
+    "diagnostics.repair.run": "Exécuter la réparation"
 }

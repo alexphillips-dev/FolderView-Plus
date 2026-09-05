@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "A tentar novamente…",
     "diagnostics.bootstrap.retry-succeeded": "Carregamento retomado",
     "diagnostics.bootstrap.retry-failed": "A nova tentativa falhou",
-    "diagnostics.capture.page-action": "Diagnóstico da página de captura"
+    "diagnostics.capture.page-action": "Diagnóstico da página de captura",
+    "diagnostics.cards.docker": "Configuração do Docker",
+    "diagnostics.cards.vm": "Configuração de VM",
+    "diagnostics.cards.needs-attention": "Precisa de atenção",
+    "diagnostics.cards.checked": "Verificado $1",
+    "diagnostics.cards.issue-count": "Problemas que requerem atenção: $1",
+    "diagnostics.orphans.count": "Referências ausentes: $1",
+    "diagnostics.orphans.folders": "Pastas afetadas: $1. Revise as referências salvas abaixo.",
+    "diagnostics.orphans.folder": "Pasta $1",
+    "diagnostics.orphans.folder-count": "$1: $2 referências ausentes.",
+    "diagnostics.orphans.members": "Itens ausentes: $1",
+    "diagnostics.orphans.more": "$1 mais referências não estão listadas.",
+    "diagnostics.orphans.hidden": "Os nomes estão ocultos neste instantâneo higienizado. Execute uma verificação de integridade para visualizar os itens afetados nesta página.",
+    "diagnostics.orphans.repair": "Remover referências ausentes",
+    "diagnostics.orphans.scope": "Remove referências salvas a itens ausentes nas pastas Docker e VM. Contêineres e VMs não são excluídos.",
+    "diagnostics.repair.backup": "Um backup de configuração é criado antes que as referências salvas sejam alteradas.",
+    "diagnostics.repair.confirm": "Confirmar alterações",
+    "diagnostics.repair.run": "Executar reparo"
 }

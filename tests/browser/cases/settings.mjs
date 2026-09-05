@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-
+import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
+registerDiagnosticsOrphanFixtureCases({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1180, height: 720 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
@@ -28,7 +29,6 @@ test('Settings chrome keeps search and mode controls aligned without clipping', 
     const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
     assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
 });
-
 test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
     const readLayout = async () => page.evaluate(async () => {
         await window.fixtureSettings.viewSettingsReady;
@@ -330,7 +330,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.additionalSectionVisible, false);
     assert.equal(layout.secondaryHealthCardsVisible, false);
     assert.equal(layout.technicalDetailsCount, 0);
-    assert.equal(layout.coreColumns, 6);
+    assert.ok(layout.coreColumns >= 4 && layout.coreColumns <= 6, 'desktop health cards must adapt to the available width');
     assert.equal(layout.hasHealthySummary, true);
     assert.equal(layout.hasClearFindings, true);
     assert.equal(layout.metricSvgIcons, 3);

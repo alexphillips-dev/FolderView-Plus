@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Tekrar deneniyor…",
     "diagnostics.bootstrap.retry-succeeded": "Yükleme devam ediyor",
     "diagnostics.bootstrap.retry-failed": "Tekrar deneme başarısız",
-    "diagnostics.capture.page-action": "Yakalama sayfası teşhisleri"
+    "diagnostics.capture.page-action": "Yakalama sayfası teşhisleri",
+    "diagnostics.cards.docker": "Docker yapılandırması",
+    "diagnostics.cards.vm": "VM yapılandırması",
+    "diagnostics.cards.needs-attention": "Dikkat edilmesi gerekiyor",
+    "diagnostics.cards.checked": "$1 kontrol edildi",
+    "diagnostics.cards.issue-count": "Dikkat edilmesi gereken sorunlar: $1",
+    "diagnostics.orphans.count": "Eksik referanslar: $1",
+    "diagnostics.orphans.folders": "Etkilenen klasörler: $1. Aşağıdaki kayıtlı referansları inceleyin.",
+    "diagnostics.orphans.folder": "Klasör $1",
+    "diagnostics.orphans.folder-count": "$1: $2 eksik referanslar.",
+    "diagnostics.orphans.members": "Eksik öğeler: $1",
+    "diagnostics.orphans.more": "$1 daha fazla referans listelenmiyor.",
+    "diagnostics.orphans.hidden": "Bu arındırılmış anlık görüntüde isimler gizlidir. Bu sayfadaki etkilenen öğeleri görüntülemek için bir durum denetimi çalıştırın.",
+    "diagnostics.orphans.repair": "Eksik referansları kaldır",
+    "diagnostics.orphans.scope": "Hem Docker hem de VM klasörlerindeki eksik öğelere ilişkin kayıtlı referansları kaldırır. Kapsayıcılar ve VM'ler silinmez.",
+    "diagnostics.repair.backup": "Kaydedilen referanslar değiştirilmeden önce bir konfigürasyon yedeği oluşturulur.",
+    "diagnostics.repair.confirm": "Değişiklikleri onayla",
+    "diagnostics.repair.run": "Onarımı çalıştır"
 }

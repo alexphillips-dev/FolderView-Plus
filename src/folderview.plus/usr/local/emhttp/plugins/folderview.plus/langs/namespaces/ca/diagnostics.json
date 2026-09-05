@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Tornant-ho a provar…",
     "diagnostics.bootstrap.retry-succeeded": "S'ha reprès la càrrega",
     "diagnostics.bootstrap.retry-failed": "Ha fallat el nou intent",
-    "diagnostics.capture.page-action": "Captura el diagnòstic de la pàgina"
+    "diagnostics.capture.page-action": "Captura el diagnòstic de la pàgina",
+    "diagnostics.cards.docker": "Configuració de Docker",
+    "diagnostics.cards.vm": "Configuració de la VM",
+    "diagnostics.cards.needs-attention": "Necessita atenció",
+    "diagnostics.cards.checked": "S'ha comprovat $1",
+    "diagnostics.cards.issue-count": "Problemes que requereixen atenció: $1",
+    "diagnostics.orphans.count": "Falten referències: $1",
+    "diagnostics.orphans.folders": "Carpetes afectades: $1. Reviseu les referències desades a continuació.",
+    "diagnostics.orphans.folder": "Carpeta $1",
+    "diagnostics.orphans.folder-count": "$1: falten referències $2.",
+    "diagnostics.orphans.members": "Elements que falten: $1",
+    "diagnostics.orphans.more": "No es mostren $1 referències addicionals.",
+    "diagnostics.orphans.hidden": "Els noms s'amaguen en aquesta instantània desinfectada. Executeu una comprovació de salut per veure els elements afectats en aquesta pàgina.",
+    "diagnostics.orphans.repair": "Elimina les referències que falten",
+    "diagnostics.orphans.scope": "Elimina les referències desades als elements que falten a les carpetes de Docker i VM. Els contenidors i les màquines virtuals no s'eliminen.",
+    "diagnostics.repair.backup": "Es crea una còpia de seguretat de la configuració abans de canviar les referències desades.",
+    "diagnostics.repair.confirm": "Confirmeu els canvis",
+    "diagnostics.repair.run": "Executar la reparació"
 }

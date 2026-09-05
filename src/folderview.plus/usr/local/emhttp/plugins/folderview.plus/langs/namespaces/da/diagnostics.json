@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Prøver igen…",
     "diagnostics.bootstrap.retry-succeeded": "Indlæsning genoptaget",
     "diagnostics.bootstrap.retry-failed": "Nyt forsøg mislykkedes",
-    "diagnostics.capture.page-action": "Optag sidediagnostik"
+    "diagnostics.capture.page-action": "Optag sidediagnostik",
+    "diagnostics.cards.docker": "Docker-konfiguration",
+    "diagnostics.cards.vm": "VM konfiguration",
+    "diagnostics.cards.needs-attention": "Har brug for opmærksomhed",
+    "diagnostics.cards.checked": "Kontrolleret $1",
+    "diagnostics.cards.issue-count": "Problemer, der kræver opmærksomhed: $1",
+    "diagnostics.orphans.count": "Manglende referencer: $1",
+    "diagnostics.orphans.folders": "Berørte mapper: $1. Gennemgå de gemte referencer nedenfor.",
+    "diagnostics.orphans.folder": "Mappe $1",
+    "diagnostics.orphans.folder-count": "$1: $2 mangler referencer.",
+    "diagnostics.orphans.members": "Manglende elementer: $1",
+    "diagnostics.orphans.more": "$1 flere referencer er ikke angivet.",
+    "diagnostics.orphans.hidden": "Navne er skjult i dette desinficerede øjebliksbillede. Kør et sundhedstjek for at se berørte elementer på denne side.",
+    "diagnostics.orphans.repair": "Fjern manglende referencer",
+    "diagnostics.orphans.scope": "Fjerner gemte referencer til manglende elementer på tværs af både Docker- og VM-mapper. Containere og VM'er slettes ikke.",
+    "diagnostics.repair.backup": "En konfigurationssikkerhedskopi oprettes, før gemte referencer ændres.",
+    "diagnostics.repair.confirm": "Bekræft ændringer",
+    "diagnostics.repair.run": "Kør reparation"
 }

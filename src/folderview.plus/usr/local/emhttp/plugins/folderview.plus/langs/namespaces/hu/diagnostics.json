@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Újrapróbálás…",
     "diagnostics.bootstrap.retry-succeeded": "A betöltés folytatódik",
     "diagnostics.bootstrap.retry-failed": "Az újrapróbálás sikertelen",
-    "diagnostics.capture.page-action": "Oldaldiagnosztika rögzítése"
+    "diagnostics.capture.page-action": "Oldaldiagnosztika rögzítése",
+    "diagnostics.cards.docker": "Docker konfiguráció",
+    "diagnostics.cards.vm": "VM konfiguráció",
+    "diagnostics.cards.needs-attention": "Figyelmet igényel",
+    "diagnostics.cards.checked": "Ellenőrizve: $1",
+    "diagnostics.cards.issue-count": "Figyelmet igénylő problémák: $1",
+    "diagnostics.orphans.count": "Hiányzó hivatkozások: $1",
+    "diagnostics.orphans.folders": "Érintett mappák: $1. Tekintse át a mentett referenciákat alább.",
+    "diagnostics.orphans.folder": "$1 mappa",
+    "diagnostics.orphans.folder-count": "$1: $2 hiányzó hivatkozások.",
+    "diagnostics.orphans.members": "Hiányzó elemek: $1",
+    "diagnostics.orphans.more": "$1 további hivatkozás nincs felsorolva.",
+    "diagnostics.orphans.hidden": "A nevek el vannak rejtve ezen a megtisztított pillanatképen. Futtasson állapotfelmérést az oldalon található érintett elemek megtekintéséhez.",
+    "diagnostics.orphans.repair": "Távolítsa el a hiányzó hivatkozásokat",
+    "diagnostics.orphans.scope": "Eltávolítja a hiányzó elemekre vonatkozó mentett hivatkozásokat mind a Docker, mind a VM mappákban. A tárolók és a virtuális gépek nem törlődnek.",
+    "diagnostics.repair.backup": "A mentett hivatkozások módosítása előtt konfigurációs biztonsági másolat készül.",
+    "diagnostics.repair.confirm": "Erősítse meg a változtatásokat",
+    "diagnostics.repair.run": "Futtassa a javítást"
 }

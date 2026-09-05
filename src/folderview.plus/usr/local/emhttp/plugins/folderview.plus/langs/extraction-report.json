@@ -1,9 +1,9 @@
 {
     "catalog-version": "2026.08.10.1",
-    "generated-at": "2026-09-03",
+    "generated-at": "2026-09-05",
     "candidate-count": 0,
     "auto-bound-message-count": 1580,
-    "catalog-message-count": 2169,
+    "catalog-message-count": 2186,
     "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
         "FolderViewPlus.page": 552,

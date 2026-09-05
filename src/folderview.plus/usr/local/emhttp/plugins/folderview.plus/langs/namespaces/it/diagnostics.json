@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Nuovo tentativo…",
     "diagnostics.bootstrap.retry-succeeded": "Caricamento ripreso",
     "diagnostics.bootstrap.retry-failed": "Nuovo tentativo non riuscito",
-    "diagnostics.capture.page-action": "Cattura la diagnostica della pagina"
+    "diagnostics.capture.page-action": "Cattura la diagnostica della pagina",
+    "diagnostics.cards.docker": "Configurazione Docker",
+    "diagnostics.cards.vm": "Configurazione della macchina virtuale",
+    "diagnostics.cards.needs-attention": "Ha bisogno di attenzione",
+    "diagnostics.cards.checked": "Verificato il $1",
+    "diagnostics.cards.issue-count": "Problemi che richiedono attenzione: $1",
+    "diagnostics.orphans.count": "Riferimenti mancanti: $1",
+    "diagnostics.orphans.folders": "Cartelle interessate: $1. Controlla i riferimenti salvati di seguito.",
+    "diagnostics.orphans.folder": "Cartella $1",
+    "diagnostics.orphans.folder-count": "$1: $2 riferimenti mancanti.",
+    "diagnostics.orphans.members": "Elementi mancanti: $1",
+    "diagnostics.orphans.more": "$1 altri riferimenti non sono elencati.",
+    "diagnostics.orphans.hidden": "I nomi sono nascosti in questa istantanea ripulita. Esegui un controllo dello stato per visualizzare gli elementi interessati in questa pagina.",
+    "diagnostics.orphans.repair": "Rimuovere i riferimenti mancanti",
+    "diagnostics.orphans.scope": "Rimuove i riferimenti salvati agli elementi mancanti nelle cartelle Docker e VM. I contenitori e le VM non vengono eliminati.",
+    "diagnostics.repair.backup": "Viene creato un backup della configurazione prima che i riferimenti salvati vengano modificati.",
+    "diagnostics.repair.confirm": "Conferma le modifiche",
+    "diagnostics.repair.run": "Esegui la riparazione"
 }

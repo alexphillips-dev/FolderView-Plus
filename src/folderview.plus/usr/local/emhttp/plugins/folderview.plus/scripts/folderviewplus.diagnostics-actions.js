@@ -23,11 +23,10 @@
         const runRepair = typeof deps.runRepair === 'function' ? deps.runRepair : (() => Promise.resolve(false));
         const setBusy = typeof deps.setBusy === 'function' ? deps.setBusy : (() => {});
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
-        const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
-        const translate = typeof deps.translate === 'function' ? deps.translate : ((_key, fallback) => fallback);
-        const svgIcon = typeof deps.svgIcon === 'function' ? deps.svgIcon : (() => '');
-        const statusConfig = typeof deps.statusConfig === 'function' ? deps.statusConfig : (() => ({ icon: 'info-circle' }));
-        const actionData = typeof deps.actionData === 'function' ? deps.actionData : (() => '{}');
+        const translate = typeof deps.translate === 'function' ? deps.translate : ((_key, fallback, ...params) => (
+            fallback.replace(/\$(\d+)/g, (token, index) => String(params[Number(index) - 1] ?? token))
+        ));
+        const decorateCard = typeof deps.decorateCard === 'function' ? deps.decorateCard : ((card) => card);
         let actionsBound = false;
 
         const resolveRecommendedActionCardKey = (actionName, diagnostics = {}) => {
@@ -53,24 +52,33 @@
                 const action = String(entry?.action || '').trim();
                 const key = REPAIR_ACTIONS.has(action) ? resolveRecommendedActionCardKey(action, diagnostics) : '';
                 if (!key) return;
-                const actions = actionsByCard.get(key) || [];
-                actions.push({
-                    action,
-                    label: String(entry?.label || 'Run recommended repair').trim(),
-                    reason: String(entry?.reason || '').trim()
+                const keys = action === 'repair_orphaned_members'
+                    ? ['docker', 'vm'].filter((type) => Number(diagnostics?.types?.[type]?.integrityChecks?.orphanedMembers?.count || 0) > 0)
+                    : [key];
+                keys.forEach((cardKey) => {
+                    const actions = actionsByCard.get(cardKey) || [];
+                    actions.push({
+                        action,
+                        label: action === 'repair_orphaned_members'
+                            ? translate('diagnostics.orphans.repair', 'Remove missing references')
+                            : String(entry?.label || 'Run recommended repair').trim(),
+                        reason: action === 'repair_orphaned_members'
+                            ? translate('diagnostics.orphans.scope', 'Removes saved references to missing items across both Docker and VM folders. Containers and VMs are not deleted.')
+                            : String(entry?.reason || '').trim()
+                    });
+                    actionsByCard.set(cardKey, actions);
                 });
-                actionsByCard.set(key, actions);
             });
             return cards.map((card) => {
                 const actions = actionsByCard.get(String(card?.key || '').trim()) || [];
-                return {
+                return decorateCard({
                     ...card,
                     actions,
                     technicalDetails: Array.from(new Set([
                         ...(Array.isArray(card?.technicalDetails) ? card.technicalDetails : []),
                         ...actions.map((action) => action.reason).filter(Boolean)
                     ]))
-                };
+                }, diagnostics);
             });
         };
 
@@ -99,14 +107,14 @@
             const reason = String(data?.reason || '').trim();
             const createsBackup = ['repair_orphaned_members', 'repair_missing_custom_icons'].includes(action);
             const backupDetail = createsBackup
-                ? 'A configuration backup is created before saved references are changed.'
+                ? translate('diagnostics.repair.backup', 'A configuration backup is created before saved references are changed.')
                 : '';
             const options = {
-                title: 'Confirm changes',
+                title: translate('diagnostics.repair.confirm', 'Confirm changes'),
                 message: label,
                 detail: [reason, backupDetail].filter(Boolean).join(' '),
-                confirmLabel: 'Run repair',
-                cancelLabel: 'Cancel',
+                confirmLabel: translate('diagnostics.repair.run', 'Run repair'),
+                cancelLabel: translate('common.cancel', 'Cancel'),
                 tone: 'warning'
             };
             const confirmed = typeof win?.FolderViewPlusUI?.confirm === 'function'
@@ -131,34 +139,7 @@
             return true;
         };
 
-        const buildFindings = (model) => {
-            if (!model.findings.length) {
-                return `
-                    <section class="fv-diagnostics-findings is-clear" aria-labelledby="fv-diagnostics-findings-title">
-                        <div class="fv-diagnostics-findings-head">
-                            <h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3>
-                        </div>
-                        <div class="fv-diagnostics-clear-result">${svgIcon('check-circle')}<span><strong>${escapeHtml(translate('diagnostics.findings.none-title', 'No urgent issues detected'))}</strong><small>${escapeHtml(translate('diagnostics.findings.none-detail', 'Your system is operating normally.'))}</small></span></div>
-                    </section>
-                `;
-            }
-            const coreCardKeys = new Set(model.coreCards.map((card) => card.key));
-            return `
-                <section class="fv-diagnostics-findings" aria-labelledby="fv-diagnostics-findings-title">
-                    <div class="fv-diagnostics-findings-head"><h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3><span>${escapeHtml(`${model.findings.length} ${model.findings.length === 1 ? 'finding' : 'findings'}`)}</span></div>
-                    <div class="fv-diagnostics-findings-list">
-                        ${model.findings.map((finding) => {
-                            const status = statusConfig(finding.status);
-                            const content = `${svgIcon(status.icon)}<span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span>`;
-                            if (coreCardKeys.has(finding.key)) {
-                                return `<button type="button" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}" data-fv-ui-action="diagnostics-focus-card" data-fv-ui-action-data="${actionData({ key: finding.key })}" aria-controls="${escapeHtml(cardId(finding.key))}">${content}<i class="fa fa-angle-right" aria-hidden="true"></i></button>`;
-                            }
-                            return `<div class="fv-diagnostics-finding is-${escapeHtml(finding.status)} is-summary-only">${content}</div>`;
-                        }).join('')}
-                    </div>
-                </section>
-            `;
-        };
+        const buildFindings = typeof deps.buildFindings === 'function' ? deps.buildFindings : (() => '');
 
         return Object.freeze({
             cardId,

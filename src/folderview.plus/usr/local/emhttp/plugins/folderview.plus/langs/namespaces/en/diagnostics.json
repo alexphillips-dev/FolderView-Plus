@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Trying again…",
     "diagnostics.bootstrap.retry-succeeded": "Loading resumed",
     "diagnostics.bootstrap.retry-failed": "Try again failed",
-    "diagnostics.capture.page-action": "Capture page diagnostics"
+    "diagnostics.capture.page-action": "Capture page diagnostics",
+    "diagnostics.cards.docker": "Docker configuration",
+    "diagnostics.cards.vm": "VM configuration",
+    "diagnostics.cards.needs-attention": "Needs attention",
+    "diagnostics.cards.checked": "Checked $1",
+    "diagnostics.cards.issue-count": "Issues requiring attention: $1",
+    "diagnostics.orphans.count": "Missing references: $1",
+    "diagnostics.orphans.folders": "Affected folders: $1. Review the saved references below.",
+    "diagnostics.orphans.folder": "Folder $1",
+    "diagnostics.orphans.folder-count": "$1: $2 missing references.",
+    "diagnostics.orphans.members": "Missing items: $1",
+    "diagnostics.orphans.more": "$1 more references are not listed.",
+    "diagnostics.orphans.hidden": "Names are hidden in this sanitized snapshot. Run a health check to view affected items on this page.",
+    "diagnostics.orphans.repair": "Remove missing references",
+    "diagnostics.orphans.scope": "Removes saved references to missing items across both Docker and VM folders. Containers and VMs are not deleted.",
+    "diagnostics.repair.backup": "A configuration backup is created before saved references are changed.",
+    "diagnostics.repair.confirm": "Confirm changes",
+    "diagnostics.repair.run": "Run repair"
 }

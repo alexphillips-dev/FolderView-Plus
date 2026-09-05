@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Prøver på nytt…",
     "diagnostics.bootstrap.retry-succeeded": "Innlasting gjenopptatt",
     "diagnostics.bootstrap.retry-failed": "Nytt forsøk mislyktes",
-    "diagnostics.capture.page-action": "Registreringssidediagnostikk"
+    "diagnostics.capture.page-action": "Registreringssidediagnostikk",
+    "diagnostics.cards.docker": "Docker-konfigurasjon",
+    "diagnostics.cards.vm": "VM-konfigurasjon",
+    "diagnostics.cards.needs-attention": "Trenger oppmerksomhet",
+    "diagnostics.cards.checked": "Sjekket $1",
+    "diagnostics.cards.issue-count": "Problemer som krever oppmerksomhet: $1",
+    "diagnostics.orphans.count": "Manglende referanser: $1",
+    "diagnostics.orphans.folders": "Berørte mapper: $1. Se gjennom de lagrede referansene nedenfor.",
+    "diagnostics.orphans.folder": "Mappe $1",
+    "diagnostics.orphans.folder-count": "$1: $2 mangler referanser.",
+    "diagnostics.orphans.members": "Manglende elementer: $1",
+    "diagnostics.orphans.more": "$1 flere referanser er ikke oppført.",
+    "diagnostics.orphans.hidden": "Navn er skjult i dette desinficerte øyeblikksbildet. Kjør en helsesjekk for å se berørte elementer på denne siden.",
+    "diagnostics.orphans.repair": "Fjern manglende referanser",
+    "diagnostics.orphans.scope": "Fjerner lagrede referanser til manglende elementer på tvers av både Docker- og VM-mapper. Beholdere og VM-er slettes ikke.",
+    "diagnostics.repair.backup": "En konfigurasjonssikkerhetskopi opprettes før lagrede referanser endres.",
+    "diagnostics.repair.confirm": "Bekreft endringer",
+    "diagnostics.repair.run": "Kjør reparasjon"
 }

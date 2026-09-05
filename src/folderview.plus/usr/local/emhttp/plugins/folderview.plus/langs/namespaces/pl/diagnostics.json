@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Ponawianie próby…",
     "diagnostics.bootstrap.retry-succeeded": "Wczytywanie wznowione",
     "diagnostics.bootstrap.retry-failed": "Ponowna próba nie powiodła się",
-    "diagnostics.capture.page-action": "Przechwytywanie diagnostyki strony"
+    "diagnostics.capture.page-action": "Przechwytywanie diagnostyki strony",
+    "diagnostics.cards.docker": "Konfiguracja Dockera",
+    "diagnostics.cards.vm": "Konfiguracja maszyny wirtualnej",
+    "diagnostics.cards.needs-attention": "Potrzebuje uwagi",
+    "diagnostics.cards.checked": "Sprawdzono $1",
+    "diagnostics.cards.issue-count": "Problemy wymagające uwagi: $1",
+    "diagnostics.orphans.count": "Brakujące odniesienia: $1",
+    "diagnostics.orphans.folders": "Dotknięte foldery: $1. Przejrzyj zapisane referencje poniżej.",
+    "diagnostics.orphans.folder": "Folder $1",
+    "diagnostics.orphans.folder-count": "$1: $2 brakujące odniesienia.",
+    "diagnostics.orphans.members": "Brakujące elementy: $1",
+    "diagnostics.orphans.more": "$1 więcej referencji nie jest wymienionych.",
+    "diagnostics.orphans.hidden": "Nazwy są ukryte w tej oczyszczonej migawce. Uruchom kontrolę stanu, aby wyświetlić elementy na tej stronie, których dotyczy problem.",
+    "diagnostics.orphans.repair": "Usuń brakujące odniesienia",
+    "diagnostics.orphans.scope": "Usuwa zapisane odniesienia do brakujących elementów w folderach Docker i VM. Kontenery i maszyny wirtualne nie są usuwane.",
+    "diagnostics.repair.backup": "Przed zmianą zapisanych odniesień tworzona jest kopia zapasowa konfiguracji.",
+    "diagnostics.repair.confirm": "Potwierdź zmiany",
+    "diagnostics.repair.run": "Uruchom naprawę"
 }

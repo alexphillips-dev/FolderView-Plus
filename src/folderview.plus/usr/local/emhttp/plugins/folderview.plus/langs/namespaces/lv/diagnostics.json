@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Mēģina vēlreiz…",
     "diagnostics.bootstrap.retry-succeeded": "Ielāde atsākta",
     "diagnostics.bootstrap.retry-failed": "Atkārtotais mēģinājums neizdevās",
-    "diagnostics.capture.page-action": "Uzņemt lapas diagnostiku"
+    "diagnostics.capture.page-action": "Uzņemt lapas diagnostiku",
+    "diagnostics.cards.docker": "Docker konfigurācija",
+    "diagnostics.cards.vm": "VM konfigurācija",
+    "diagnostics.cards.needs-attention": "Nepieciešama uzmanība",
+    "diagnostics.cards.checked": "Pārbaudīts $1",
+    "diagnostics.cards.issue-count": "Problēmas, kurām jāpievērš uzmanība: $1",
+    "diagnostics.orphans.count": "Trūkst atsauces: $1",
+    "diagnostics.orphans.folders": "Ietekmētās mapes: $1. Pārskatiet tālāk saglabātās atsauces.",
+    "diagnostics.orphans.folder": "Mape $1",
+    "diagnostics.orphans.folder-count": "$1: $2 trūkst atsauču.",
+    "diagnostics.orphans.members": "Trūkst vienumi: $1",
+    "diagnostics.orphans.more": "$1 citas atsauces nav norādītas.",
+    "diagnostics.orphans.hidden": "Vārdi ir paslēpti šajā dezinficētajā momentuzņēmumā. Veiciet veselības pārbaudi, lai skatītu ietekmētos vienumus šajā lapā.",
+    "diagnostics.orphans.repair": "Noņemiet trūkstošās atsauces",
+    "diagnostics.orphans.scope": "Noņem saglabātās atsauces uz trūkstošajiem vienumiem gan Docker, gan VM mapēs. Konteineri un virtuālās mašīnas netiek dzēstas.",
+    "diagnostics.repair.backup": "Konfigurācijas dublējums tiek izveidots, pirms tiek mainītas saglabātās atsauces.",
+    "diagnostics.repair.confirm": "Apstipriniet izmaiņas",
+    "diagnostics.repair.run": "Palaidiet remontu"
 }

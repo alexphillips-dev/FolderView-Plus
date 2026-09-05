@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Opnieuw proberen…",
     "diagnostics.bootstrap.retry-succeeded": "Laden hervat",
     "diagnostics.bootstrap.retry-failed": "Opnieuw proberen mislukt",
-    "diagnostics.capture.page-action": "Paginadiagnostiek vastleggen"
+    "diagnostics.capture.page-action": "Paginadiagnostiek vastleggen",
+    "diagnostics.cards.docker": "Docker-configuratie",
+    "diagnostics.cards.vm": "VM-configuratie",
+    "diagnostics.cards.needs-attention": "Heeft aandacht nodig",
+    "diagnostics.cards.checked": "Gecontroleerd op $1",
+    "diagnostics.cards.issue-count": "Problemen die aandacht vereisen: $1",
+    "diagnostics.orphans.count": "Ontbrekende referenties: $1",
+    "diagnostics.orphans.folders": "Betrokken mappen: $1. Bekijk hieronder de opgeslagen referenties.",
+    "diagnostics.orphans.folder": "Map $1",
+    "diagnostics.orphans.folder-count": "$1: $2 ontbrekende referenties.",
+    "diagnostics.orphans.members": "Ontbrekende items: $1",
+    "diagnostics.orphans.more": "$1 meer referenties worden niet vermeld.",
+    "diagnostics.orphans.hidden": "Namen zijn verborgen in deze opgeschoonde momentopname. Voer een statuscheck uit om de getroffen items op deze pagina te bekijken.",
+    "diagnostics.orphans.repair": "Verwijder ontbrekende referenties",
+    "diagnostics.orphans.scope": "Verwijdert opgeslagen verwijzingen naar ontbrekende items in zowel Docker- als VM-mappen. Containers en VM's worden niet verwijderd.",
+    "diagnostics.repair.backup": "Er wordt een configuratieback-up gemaakt voordat opgeslagen referenties worden gewijzigd.",
+    "diagnostics.repair.confirm": "Bevestig wijzigingen",
+    "diagnostics.repair.run": "Voer reparatie uit"
 }

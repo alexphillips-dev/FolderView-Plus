@@ -226,7 +226,7 @@ test('diagnostics view maps server recommendations and confirms repairs without 
     );
 
     assert.equal(cards[0].actions[0].action, 'repair_orphaned_members');
-    assert.deepEqual(cards[0].technicalDetails, ['One saved member is missing.']);
+    assert.match(cards[0].technicalDetails.join(' '), /both Docker and VM folders/);
     assert.equal(view.bindActions(), true);
     assert.equal(view.bindActions(), false);
     assert.equal(await handlers.get('diagnostics-repair')({ data: cards[0].actions[0] }), true);

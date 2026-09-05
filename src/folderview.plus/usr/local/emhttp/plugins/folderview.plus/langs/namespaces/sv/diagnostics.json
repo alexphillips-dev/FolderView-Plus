@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Försöker igen…",
     "diagnostics.bootstrap.retry-succeeded": "Inläsningen återupptogs",
     "diagnostics.bootstrap.retry-failed": "Nytt försök misslyckades",
-    "diagnostics.capture.page-action": "Fånga sidans diagnostik"
+    "diagnostics.capture.page-action": "Fånga sidans diagnostik",
+    "diagnostics.cards.docker": "Docker-konfiguration",
+    "diagnostics.cards.vm": "VM-konfiguration",
+    "diagnostics.cards.needs-attention": "Behöver uppmärksamhet",
+    "diagnostics.cards.checked": "Kontrollerat $1",
+    "diagnostics.cards.issue-count": "Problem som kräver uppmärksamhet: $1",
+    "diagnostics.orphans.count": "Saknade referenser: $1",
+    "diagnostics.orphans.folders": "Berörda mappar: $1. Granska de sparade referenserna nedan.",
+    "diagnostics.orphans.folder": "Mapp $1",
+    "diagnostics.orphans.folder-count": "$1: $2 saknar referenser.",
+    "diagnostics.orphans.members": "Saknade föremål: $1",
+    "diagnostics.orphans.more": "$1 fler referenser är inte listade.",
+    "diagnostics.orphans.hidden": "Namn är dolda i denna sanerade ögonblicksbild. Kör en hälsokontroll för att se berörda objekt på den här sidan.",
+    "diagnostics.orphans.repair": "Ta bort saknade referenser",
+    "diagnostics.orphans.scope": "Tar bort sparade referenser till saknade objekt i både Docker- och VM-mappar. Behållare och virtuella datorer tas inte bort.",
+    "diagnostics.repair.backup": "En konfigurationsbackup skapas innan sparade referenser ändras.",
+    "diagnostics.repair.confirm": "Bekräfta ändringar",
+    "diagnostics.repair.run": "Kör reparation"
 }

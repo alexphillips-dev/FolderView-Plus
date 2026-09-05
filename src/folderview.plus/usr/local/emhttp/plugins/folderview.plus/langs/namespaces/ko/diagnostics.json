@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "다시 시도하는 중…",
     "diagnostics.bootstrap.retry-succeeded": "불러오기가 재개됨",
     "diagnostics.bootstrap.retry-failed": "다시 시도하지 못함",
-    "diagnostics.capture.page-action": "캡처 페이지 진단"
+    "diagnostics.capture.page-action": "캡처 페이지 진단",
+    "diagnostics.cards.docker": "도커 구성",
+    "diagnostics.cards.vm": "VM 구성",
+    "diagnostics.cards.needs-attention": "주의가 필요함",
+    "diagnostics.cards.checked": "확인 시간: $1",
+    "diagnostics.cards.issue-count": "주의가 필요한 문제: $1",
+    "diagnostics.orphans.count": "누락된 참조: $1",
+    "diagnostics.orphans.folders": "영향을 받는 폴더: $1. 아래에 저장된 참조를 검토하세요.",
+    "diagnostics.orphans.folder": "폴더 $1",
+    "diagnostics.orphans.folder-count": "$1: $2 참조가 누락되었습니다.",
+    "diagnostics.orphans.members": "누락된 항목: $1",
+    "diagnostics.orphans.more": "추가 참조 $1개는 표시되지 않습니다.",
+    "diagnostics.orphans.hidden": "개인정보를 제거한 진단 스냅샷에서는 이름이 숨겨집니다. 상태 검사를 실행하면 이 페이지에서 영향을 받는 항목을 볼 수 있습니다.",
+    "diagnostics.orphans.repair": "누락된 참조 제거",
+    "diagnostics.orphans.scope": "Docker 및 VM 폴더 모두에서 누락된 항목에 대해 저장된 참조를 제거합니다. 컨테이너와 VM은 삭제되지 않습니다.",
+    "diagnostics.repair.backup": "저장된 참조가 변경되기 전에 구성 백업이 생성됩니다.",
+    "diagnostics.repair.confirm": "변경사항 확인",
+    "diagnostics.repair.run": "복구 실행"
 }

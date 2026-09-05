@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Se încearcă din nou…",
     "diagnostics.bootstrap.retry-succeeded": "Încărcarea a fost reluată",
     "diagnostics.bootstrap.retry-failed": "Reîncercarea a eșuat",
-    "diagnostics.capture.page-action": "Capturați diagnosticarea paginii"
+    "diagnostics.capture.page-action": "Capturați diagnosticarea paginii",
+    "diagnostics.cards.docker": "Configurație Docker",
+    "diagnostics.cards.vm": "Configurare VM",
+    "diagnostics.cards.needs-attention": "Necesită atenție",
+    "diagnostics.cards.checked": "Verificat la $1",
+    "diagnostics.cards.issue-count": "Probleme care necesită atenție: $1",
+    "diagnostics.orphans.count": "Lipsesc referințe: $1",
+    "diagnostics.orphans.folders": "Dosarele afectate: $1. Consultați referințele salvate de mai jos.",
+    "diagnostics.orphans.folder": "Dosar $1",
+    "diagnostics.orphans.folder-count": "$1: $2 lipsesc referințe.",
+    "diagnostics.orphans.members": "Elemente lipsă: $1",
+    "diagnostics.orphans.more": "$1 alte referințe nu sunt listate.",
+    "diagnostics.orphans.hidden": "Numele sunt ascunse în acest instantaneu igienizat. Efectuați o verificare a stării de sănătate pentru a vedea articolele afectate de pe această pagină.",
+    "diagnostics.orphans.repair": "Eliminați referințele lipsă",
+    "diagnostics.orphans.scope": "Elimină referințele salvate la elementele lipsă atât în folderele Docker, cât și în VM. Containerele și VM-urile nu sunt șterse.",
+    "diagnostics.repair.backup": "Este creată o copie de rezervă a configurației înainte ca referințele salvate să fie modificate.",
+    "diagnostics.repair.confirm": "Confirmați modificările",
+    "diagnostics.repair.run": "Rulați reparația"
 }

@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Intentándolo de nuevo…",
     "diagnostics.bootstrap.retry-succeeded": "Carga reanudada",
     "diagnostics.bootstrap.retry-failed": "El nuevo intento falló",
-    "diagnostics.capture.page-action": "Capturar diagnóstico de página"
+    "diagnostics.capture.page-action": "Capturar diagnóstico de página",
+    "diagnostics.cards.docker": "Configuración de Docker",
+    "diagnostics.cards.vm": "Configuración de máquina virtual",
+    "diagnostics.cards.needs-attention": "necesita atencion",
+    "diagnostics.cards.checked": "Comprobado el $1",
+    "diagnostics.cards.issue-count": "Problemas que requieren atención: $1",
+    "diagnostics.orphans.count": "Referencias faltantes: $1",
+    "diagnostics.orphans.folders": "Carpetas afectadas: $1. Revise las referencias guardadas a continuación.",
+    "diagnostics.orphans.folder": "Carpeta $1",
+    "diagnostics.orphans.folder-count": "$1: $2 faltan referencias.",
+    "diagnostics.orphans.members": "Elementos faltantes: $1",
+    "diagnostics.orphans.more": "No se muestran $1 referencias adicionales.",
+    "diagnostics.orphans.hidden": "Los nombres están ocultos en esta instantánea desinfectada. Ejecute una verificación de estado para ver los elementos afectados en esta página.",
+    "diagnostics.orphans.repair": "Eliminar referencias faltantes",
+    "diagnostics.orphans.scope": "Elimina las referencias guardadas a elementos faltantes en las carpetas Docker y VM. Los contenedores y las máquinas virtuales no se eliminan.",
+    "diagnostics.repair.backup": "Se crea una copia de seguridad de la configuración antes de cambiar las referencias guardadas.",
+    "diagnostics.repair.confirm": "Confirmar cambios",
+    "diagnostics.repair.run": "Ejecutar reparación"
 }

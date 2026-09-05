@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "جارٍ المحاولة مرة أخرى…",
     "diagnostics.bootstrap.retry-succeeded": "تم استئناف التحميل",
     "diagnostics.bootstrap.retry-failed": "فشلت إعادة المحاولة",
-    "diagnostics.capture.page-action": "التقاط تشخيصات الصفحة"
+    "diagnostics.capture.page-action": "التقاط تشخيصات الصفحة",
+    "diagnostics.cards.docker": "إعداد Docker",
+    "diagnostics.cards.vm": "تكوين VM",
+    "diagnostics.cards.needs-attention": "يحتاج إلى اهتمام",
+    "diagnostics.cards.checked": "تم الفحص في $1",
+    "diagnostics.cards.issue-count": "المشكلات التي تتطلب الاهتمام: $1",
+    "diagnostics.orphans.count": "المراجع المفقودة: $1",
+    "diagnostics.orphans.folders": "المجلدات المتأثرة: $1. قم بمراجعة المراجع المحفوظة أدناه.",
+    "diagnostics.orphans.folder": "المجلد $1",
+    "diagnostics.orphans.folder-count": "$1: $2 مراجع مفقودة.",
+    "diagnostics.orphans.members": "العناصر المفقودة: $1",
+    "diagnostics.orphans.more": "لا يتم عرض $1 مراجع إضافية.",
+    "diagnostics.orphans.hidden": "الأسماء مخفية في هذه اللقطة المعقمة. قم بإجراء فحص صحي لعرض العناصر المتأثرة في هذه الصفحة.",
+    "diagnostics.orphans.repair": "إزالة المراجع المفقودة",
+    "diagnostics.orphans.scope": "يزيل المراجع المحفوظة للعناصر المفقودة عبر مجلدات Docker وVM. لا يتم حذف الحاويات وأجهزة VM.",
+    "diagnostics.repair.backup": "يتم إنشاء نسخة احتياطية للتكوين قبل تغيير المراجع المحفوظة.",
+    "diagnostics.repair.confirm": "تأكيد التغييرات",
+    "diagnostics.repair.run": "تشغيل الإصلاح"
 }

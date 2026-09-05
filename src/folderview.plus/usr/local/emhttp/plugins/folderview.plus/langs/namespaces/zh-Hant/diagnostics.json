@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "正在重試…",
     "diagnostics.bootstrap.retry-succeeded": "已恢復載入",
     "diagnostics.bootstrap.retry-failed": "重試失敗",
-    "diagnostics.capture.page-action": "擷取頁面診斷"
+    "diagnostics.capture.page-action": "擷取頁面診斷",
+    "diagnostics.cards.docker": "Docker配置",
+    "diagnostics.cards.vm": "虛擬機器配置",
+    "diagnostics.cards.needs-attention": "需要注意",
+    "diagnostics.cards.checked": "檢查時間：$1",
+    "diagnostics.cards.issue-count": "需要注意的問題：$1",
+    "diagnostics.orphans.count": "失效參照：$1",
+    "diagnostics.orphans.folders": "受影響的資料夾：$1。請檢查下方列出的已儲存參照。",
+    "diagnostics.orphans.folder": "資料夾 $1",
+    "diagnostics.orphans.folder-count": "$1：$2 缺少引用。",
+    "diagnostics.orphans.members": "遺失的項目：$1",
+    "diagnostics.orphans.more": "另有 $1 個參照未顯示。",
+    "diagnostics.orphans.hidden": "此已移除個人資訊的診斷快照會隱藏名稱。執行健全狀況檢查，即可在此頁面檢視受影響的項目。",
+    "diagnostics.orphans.repair": "刪除缺失的引用",
+    "diagnostics.orphans.scope": "刪除已儲存的 Docker 和 VM 資料夾中缺少專案的參考。容器和虛擬機器不會被刪除。",
+    "diagnostics.repair.backup": "變更已儲存的參照之前會建立設定備份。",
+    "diagnostics.repair.confirm": "確認更改",
+    "diagnostics.repair.run": "執行修復"
 }

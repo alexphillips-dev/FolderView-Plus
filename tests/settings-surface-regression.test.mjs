@@ -112,7 +112,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
-    assert.match(diagnosticsJs, /getDiagnosticsSummary:\s*\(\) => lastDiagnostics\?\.summary \|\| null/);
+    assert.match(diagnosticsJs, /getDiagnosticsSummary:\s*\(\) => lastDiagnostics\?\.privacyMode === 'full' \? null : \(lastDiagnostics\?\.summary \|\| null\)/);
     assert.match(diagnosticsJs, /enrichSupportBundlePreview:\s*collectSupportBundleUiTelemetry/);
     assert.match(supportBundleTelemetryJs, /payload\.bundleMeta\?\.previewOnly === true/);
     assert.match(supportBundleTelemetryJs, /payload\.healthAndHistory\.summary = \{ \.\.\.diagnosticsSummary \};/);
@@ -156,7 +156,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusRefreshCoreData/);
     assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = async \(\) => \{[\s\S]*await result\?\.runtimeHydrationPromise;/);
     assert.match(settingsJs, /coldLoad: settingsUiState\.initialized !== true/);
-    assert.match(settingsCss, /\.fv-diagnostics-health-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-health-grid\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*260px\),\s*1fr\)\);/);
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-card-section\.is-additional/);
     assert.match(settingsPage, /id="fv-diagnostics-support-title"[\s\S]*?>Share with support<\/h3>/);
     assert.match(settingsPage, /data-fv-ui-action="diagnostics-retest-performance"/);

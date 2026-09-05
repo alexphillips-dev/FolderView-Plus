@@ -7214,7 +7214,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-health-grid {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
     gap: 0.65rem;
 }
 
@@ -7249,16 +7249,22 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-health-card-head {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 0.45rem;
 }
 
 .fv-diagnostics-health-card-head > strong {
-    overflow: hidden;
     font-size: 1.22rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.fv-diagnostics-health-card-head > .fv-diagnostics-status-badge {
+    grid-column: 1 / -1;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .fv-diagnostics-health-card-icon {
@@ -7317,7 +7323,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-health-card-foot {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: space-between;
     gap: 0.4rem;
     margin-top: auto;
@@ -7330,6 +7337,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .fv-diagnostics-health-card-foot .fv-ui-svg-icon,
@@ -7345,6 +7354,31 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin: 0 !important;
     padding: 0.26rem 0.45rem !important;
     font-size: 1.12rem;
+}
+
+#fv-settings-root button.fv-diagnostics-context-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    max-width: 100%;
+    white-space: normal;
+    letter-spacing: normal;
+    text-transform: none;
+    text-align: start;
+}
+
+.fv-diagnostics-context-action > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.fv-diagnostics-health-card .fv-ui-svg-icon {
+    flex-shrink: 0;
+}
+
+.fv-diagnostics-card-details li {
+    overflow-wrap: anywhere;
 }
 
 .fv-diagnostics-card-details {
@@ -7847,10 +7881,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 @media (max-width: 1380px) {
-    .fv-diagnostics-health-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
     .fv-support-bundle-section-grid {
         grid-template-columns: repeat(4, minmax(90px, 1fr));
     }

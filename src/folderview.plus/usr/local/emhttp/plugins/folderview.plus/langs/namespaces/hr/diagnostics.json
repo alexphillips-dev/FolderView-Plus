@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Ponovni pokušaj…",
     "diagnostics.bootstrap.retry-succeeded": "Učitavanje nastavljeno",
     "diagnostics.bootstrap.retry-failed": "Ponovni pokušaj nije uspio",
-    "diagnostics.capture.page-action": "Dijagnostika stranice snimanja"
+    "diagnostics.capture.page-action": "Dijagnostika stranice snimanja",
+    "diagnostics.cards.docker": "Docker konfiguracija",
+    "diagnostics.cards.vm": "Konfiguracija VM-a",
+    "diagnostics.cards.needs-attention": "Treba pozornost",
+    "diagnostics.cards.checked": "Provjereno $1",
+    "diagnostics.cards.issue-count": "Problemi koji zahtijevaju pozornost: $1",
+    "diagnostics.orphans.count": "Nedostaju reference: $1",
+    "diagnostics.orphans.folders": "Zahvaćene mape: $1. Pregledajte spremljene reference u nastavku.",
+    "diagnostics.orphans.folder": "Mapa $1",
+    "diagnostics.orphans.folder-count": "$1: $2 nedostaju reference.",
+    "diagnostics.orphans.members": "Stavke koje nedostaju: $1",
+    "diagnostics.orphans.more": "$1 više referenci nije navedeno.",
+    "diagnostics.orphans.hidden": "Imena su skrivena u ovoj pročišćenoj snimci. Pokrenite provjeru stanja kako biste vidjeli zahvaćene stavke na ovoj stranici.",
+    "diagnostics.orphans.repair": "Uklonite reference koje nedostaju",
+    "diagnostics.orphans.scope": "Uklanja spremljene reference na stavke koje nedostaju u Docker i VM mapama. Spremnici i VM-ovi se ne brišu.",
+    "diagnostics.repair.backup": "Sigurnosna kopija konfiguracije stvara se prije promjene spremljenih referenci.",
+    "diagnostics.repair.confirm": "Potvrdite promjene",
+    "diagnostics.repair.run": "Pokreni popravak"
 }

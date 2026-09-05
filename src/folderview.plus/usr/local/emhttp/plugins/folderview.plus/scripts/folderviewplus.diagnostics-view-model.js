@@ -47,6 +47,45 @@
     };
     const countByStatus = (cards, statuses) => cards.filter((card) => statuses.includes(card.status)).length;
 
+    const decorateIntegrityCard = (card, diagnostics, translate) => {
+        const typeData = diagnostics?.types?.[card.key];
+        const orphans = typeData?.integrityChecks?.orphanedMembers;
+        const rows = Array.isArray(orphans?.folders) ? orphans.folders : [];
+        const missingCount = Math.max(0, Number(orphans?.count || 0));
+        const issueCount = Math.max(missingCount, Number(typeData?.integrityChecks?.issuesCount || 0));
+        const orphanDetails = rows.map((row, index) => {
+            const full = diagnostics.privacyMode === 'full';
+            const folderName = full ? typeData?.stateSnapshot?.folders?.[row.folderId]?.folderName : '';
+            const folderLabel = folderName || translate('diagnostics.orphans.folder', 'Folder $1', index + 1);
+            const count = Math.max(0, Number(row.count || 0));
+            const items = full && Array.isArray(row.items) ? row.items.map(String) : [];
+            const detail = translate('diagnostics.orphans.folder-count', '$1: $2 missing references.', folderLabel, count);
+            if (!full) return `${detail} ${translate('diagnostics.orphans.hidden', 'Names are hidden in this sanitized snapshot. Run a health check to view affected items on this page.')}`;
+            const remaining = Math.max(0, count - items.length);
+            return [
+                detail,
+                items.length ? translate('diagnostics.orphans.members', 'Missing items: $1', items.join(', ')) : '',
+                remaining ? translate('diagnostics.orphans.more', '$1 more references are not listed.', remaining) : ''
+            ].filter(Boolean).join(' ');
+        });
+        return {
+            ...card,
+            ...(card.key === 'docker' ? { label: translate('diagnostics.cards.docker', 'Docker configuration') } : {}),
+            ...(card.key === 'vm' ? { label: translate('diagnostics.cards.vm', 'VM configuration') } : {}),
+            ...(missingCount > 0 ? {
+                orphanDetails: true,
+                headline: translate('diagnostics.cards.issue-count', 'Issues requiring attention: $1', issueCount),
+                detail: translate('diagnostics.orphans.count', 'Missing references: $1', missingCount)
+                    + '. ' + translate('diagnostics.orphans.folders', 'Affected folders: $1. Review the saved references below.', rows.length)
+            } : {}),
+            technicalDetails: Array.from(new Set([
+                ...(missingCount > 0 && issueCount > missingCount && card.detail ? [card.detail] : []),
+                ...orphanDetails,
+                ...(Array.isArray(card.technicalDetails) ? card.technicalDetails : [])
+            ]))
+        };
+    };
+
     const derivePriorityFindings = (coreCards, advisoryCards) => (
         [...coreCards, ...advisoryCards]
             .filter((card) => ['error', 'warning'].includes(card.status))
@@ -190,6 +229,7 @@
         DEFAULT_STALE_AFTER_MS,
         normalizeStatus,
         normalizeCard,
-        buildDiagnosticsViewModel
+        buildDiagnosticsViewModel,
+        decorateIntegrityCard
     });
 }));

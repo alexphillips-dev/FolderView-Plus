@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "正在重试…",
     "diagnostics.bootstrap.retry-succeeded": "已恢复加载",
     "diagnostics.bootstrap.retry-failed": "重试失败",
-    "diagnostics.capture.page-action": "捕获页面诊断"
+    "diagnostics.capture.page-action": "捕获页面诊断",
+    "diagnostics.cards.docker": "Docker配置",
+    "diagnostics.cards.vm": "虚拟机配置",
+    "diagnostics.cards.needs-attention": "需要注意",
+    "diagnostics.cards.checked": "检查时间：$1",
+    "diagnostics.cards.issue-count": "需要注意的问题：$1",
+    "diagnostics.orphans.count": "失效引用：$1",
+    "diagnostics.orphans.folders": "受影响的文件夹：$1。请检查下面列出的已保存引用。",
+    "diagnostics.orphans.folder": "文件夹 $1",
+    "diagnostics.orphans.folder-count": "$1：$2 缺少引用。",
+    "diagnostics.orphans.members": "缺失项目：$1",
+    "diagnostics.orphans.more": "另有 $1 个引用未显示。",
+    "diagnostics.orphans.hidden": "名字隐藏在这个经过清理的快照中。运行运行状况检查以查看此页面上受影响的项目。",
+    "diagnostics.orphans.repair": "删除缺失的引用",
+    "diagnostics.orphans.scope": "删除已保存的对 Docker 和 VM 文件夹中缺失项目的引用。容器和虚拟机不会被删除。",
+    "diagnostics.repair.backup": "更改已保存的引用之前会创建配置备份。",
+    "diagnostics.repair.confirm": "确认更改",
+    "diagnostics.repair.run": "运行修复"
 }

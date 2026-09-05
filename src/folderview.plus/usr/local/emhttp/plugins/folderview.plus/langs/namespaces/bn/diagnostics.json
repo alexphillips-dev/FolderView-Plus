@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "আবার চেষ্টা করা হচ্ছে…",
     "diagnostics.bootstrap.retry-succeeded": "লোডিং আবার শুরু হয়েছে",
     "diagnostics.bootstrap.retry-failed": "পুনরায় চেষ্টা ব্যর্থ হয়েছে",
-    "diagnostics.capture.page-action": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন"
+    "diagnostics.capture.page-action": "পৃষ্ঠা ডায়াগনস্টিক ক্যাপচার করুন",
+    "diagnostics.cards.docker": "ডকার কনফিগারেশন",
+    "diagnostics.cards.vm": "ভিএম কনফিগারেশন",
+    "diagnostics.cards.needs-attention": "মনোযোগ প্রয়োজন",
+    "diagnostics.cards.checked": "চেক করা হয়েছে $1",
+    "diagnostics.cards.issue-count": "মনোযোগের প্রয়োজন এমন সমস্যাগুলি: $1",
+    "diagnostics.orphans.count": "অনুপস্থিত রেফারেন্স: $1",
+    "diagnostics.orphans.folders": "প্রভাবিত ফোল্ডার: $1৷ নীচে সংরক্ষিত রেফারেন্স পর্যালোচনা করুন.",
+    "diagnostics.orphans.folder": "ফোল্ডার $1",
+    "diagnostics.orphans.folder-count": "$1: $2 অনুপস্থিত রেফারেন্স।",
+    "diagnostics.orphans.members": "অনুপস্থিত আইটেম: $1",
+    "diagnostics.orphans.more": "$1 আরো রেফারেন্স তালিকাভুক্ত নয়।",
+    "diagnostics.orphans.hidden": "এই স্যানিটাইজড স্ন্যাপশটে নাম লুকানো আছে। এই পৃষ্ঠায় প্রভাবিত আইটেম দেখতে একটি স্বাস্থ্য পরীক্ষা চালান.",
+    "diagnostics.orphans.repair": "অনুপস্থিত রেফারেন্স সরান",
+    "diagnostics.orphans.scope": "ডকার এবং ভিএম উভয় ফোল্ডারে অনুপস্থিত আইটেমগুলির সংরক্ষিত রেফারেন্সগুলি সরিয়ে দেয়। ধারক এবং VM মুছে ফেলা হয় না.",
+    "diagnostics.repair.backup": "সংরক্ষিত রেফারেন্স পরিবর্তন করার আগে একটি কনফিগারেশন ব্যাকআপ তৈরি করা হয়।",
+    "diagnostics.repair.confirm": "পরিবর্তন নিশ্চিত করুন",
+    "diagnostics.repair.run": "মেরামত চালান"
 }

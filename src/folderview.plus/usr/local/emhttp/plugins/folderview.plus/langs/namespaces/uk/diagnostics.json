@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "Повторна спроба…",
     "diagnostics.bootstrap.retry-succeeded": "Завантаження відновлено",
     "diagnostics.bootstrap.retry-failed": "Повторна спроба не вдалася",
-    "diagnostics.capture.page-action": "Діагностика захоплення сторінки"
+    "diagnostics.capture.page-action": "Діагностика захоплення сторінки",
+    "diagnostics.cards.docker": "Конфігурація Docker",
+    "diagnostics.cards.vm": "Конфігурація віртуальної машини",
+    "diagnostics.cards.needs-attention": "Потребує уваги",
+    "diagnostics.cards.checked": "Перевірено $1",
+    "diagnostics.cards.issue-count": "Проблеми, які потребують уваги: $1",
+    "diagnostics.orphans.count": "Відсутні посилання: $1",
+    "diagnostics.orphans.folders": "Постраждалі папки: $1. Перегляньте збережені посилання нижче.",
+    "diagnostics.orphans.folder": "Папка $1",
+    "diagnostics.orphans.folder-count": "$1: $2 відсутні посилання.",
+    "diagnostics.orphans.members": "Відсутні елементи: $1",
+    "diagnostics.orphans.more": "$1 інших посилань немає в списку.",
+    "diagnostics.orphans.hidden": "На цьому очищеному знімку приховано імена. Виконайте перевірку працездатності, щоб переглянути постраждалі елементи на цій сторінці.",
+    "diagnostics.orphans.repair": "Видаліть відсутні посилання",
+    "diagnostics.orphans.scope": "Видаляє збережені посилання на відсутні елементи в папках Docker і VM. Контейнери та віртуальні машини не видаляються.",
+    "diagnostics.repair.backup": "Перед зміною збережених посилань створюється резервна копія конфігурації.",
+    "diagnostics.repair.confirm": "Підтвердити зміни",
+    "diagnostics.repair.run": "Виконати виправлення"
 }

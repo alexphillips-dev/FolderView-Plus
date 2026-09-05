@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.03.01">
-<!ENTITY md5 "7f5396965cb380f03724d0fe12e6f2d5">
-<!ENTITY sha256 "c9b804d8771c3cd1e492e4a6606e07d3b57546fd43940dba4db225efef5e210b">
+<!ENTITY version "2026.09.05.01">
+<!ENTITY md5 "5a96acc574ce01903a2ee0612ad981c4">
+<!ENTITY sha256 "7038e58399cec7295d79eba574952c101211bb1ad5b462c34ce7afb090f63611">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.05.01
+- Fix: Prevent System Health titles, status badges, timestamps, and repair buttons from overlapping or clipping when cards are narrow, including German text and Unraid's button styling.
+- Diagnostics: Show the affected folder names and missing Docker or VM member references in Technical details after running a health check. Both affected cards now provide details and access to the recommended repair.
+- UI/UX: Explain that removing missing references applies to both Docker and VM folders, creates configuration backups before changing saved references, and does not delete containers or VMs.
+- Privacy: Keep identifiable on-screen findings out of sanitized support previews and continue generating sanitized exports by default.
+- Localization: Translate the affected health-card labels, finding summaries, timestamps, repair actions, and confirmation text across all 27 supported locales.
+- Diagnostics: Technical details list up to 30 missing members per folder and report how many additional references are not listed.
+
 
 ###2026.09.03.01
 - Fix: Make folder status text inherit the active Unraid theme by default so it remains dark and readable on white themes and light on dark themes across Docker, VM, Dashboard, and multi-row preview surfaces.

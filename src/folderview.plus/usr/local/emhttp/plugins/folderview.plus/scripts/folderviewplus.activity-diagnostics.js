@@ -660,7 +660,7 @@ const getSupportBundleTelemetryApi = () => {
                 activeLocale: document.documentElement?.lang || 'en',
                 initialized: false
             },
-            getDiagnosticsSummary: () => lastDiagnostics?.summary || null,
+            getDiagnosticsSummary: () => lastDiagnostics?.privacyMode === 'full' ? null : (lastDiagnostics?.summary || null),
             readClientDiagnosticsStorageRecord,
             storageKeys: {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
@@ -1658,7 +1658,7 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
     const rawCoreCards = hasResults
         ? (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
             ...card,
-            freshness: String(card?.freshness || '').trim() || `Checked ${checkedAt}`
+            freshness: String(card?.freshness || '').trim() || diagnosticsT('diagnostics.cards.checked', 'Checked $1', checkedAt)
         }))
         : []; const coreCards = viewApi.decorateCardsWithRecommendedActions(rawCoreCards, diagnostics, summary);
     const themeCard = hasResults ? buildThemeDiagnosticsSummaryCard() : null;
@@ -1703,7 +1703,7 @@ const runDiagnostics = async () => {
     diagnosticsRunState = Object.freeze({ running: true, errorMessage: '' });
     renderDiagnosticsSummary(lastDiagnostics);
     try {
-        const diagnostics = await getDiagnostics();
+        const diagnostics = await getDiagnostics('full');
         diagnosticsRunState = Object.freeze({ running: false, errorMessage: '' });
         renderDiagnostics(diagnostics);
         runThemeDiagnostics();
@@ -1744,7 +1744,7 @@ const retestPerformanceDiagnostics = async () => {
 
 const repairDiagnostics = async (action, type = '') => {
     try {
-        const response = await runDiagnosticAction(action, type);
+        const response = await runDiagnosticAction(action, type, 'full');
         const diagnostics = response?.diagnostics || {};
         renderDiagnostics(diagnostics);
         diagnosticsSwal({

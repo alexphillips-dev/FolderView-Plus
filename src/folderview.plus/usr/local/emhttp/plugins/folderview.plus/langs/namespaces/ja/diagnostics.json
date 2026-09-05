@@ -117,5 +117,22 @@
     "diagnostics.bootstrap.retrying": "再試行しています…",
     "diagnostics.bootstrap.retry-succeeded": "読み込みを再開しました",
     "diagnostics.bootstrap.retry-failed": "再試行に失敗しました",
-    "diagnostics.capture.page-action": "ページ診断のキャプチャ"
+    "diagnostics.capture.page-action": "ページ診断のキャプチャ",
+    "diagnostics.cards.docker": "Docker の構成",
+    "diagnostics.cards.vm": "VM構成",
+    "diagnostics.cards.needs-attention": "注意が必要です",
+    "diagnostics.cards.checked": "確認日時: $1",
+    "diagnostics.cards.issue-count": "注意が必要な問題: $1",
+    "diagnostics.orphans.count": "参照がありません: $1",
+    "diagnostics.orphans.folders": "影響を受けるフォルダー: $1。以下の保存された参照を確認してください。",
+    "diagnostics.orphans.folder": "フォルダー $1",
+    "diagnostics.orphans.folder-count": "$1: $2 参照がありません。",
+    "diagnostics.orphans.members": "欠落しているアイテム: $1",
+    "diagnostics.orphans.more": "ほかに $1 件の参照は表示されていません。",
+    "diagnostics.orphans.hidden": "このサニタイズされたスナップショットでは名前が隠されています。ヘルスチェックを実行して、このページの影響を受けるアイテムを表示します。",
+    "diagnostics.orphans.repair": "不足している参照を削除する",
+    "diagnostics.orphans.scope": "Docker フォルダーと VM フォルダーの両方で、欠落している項目への保存された参照を削除します。コンテナーと VM は削除されません。",
+    "diagnostics.repair.backup": "保存された参照が変更される前に、構成のバックアップが作成されます。",
+    "diagnostics.repair.confirm": "変更を確認する",
+    "diagnostics.repair.run": "修復を実行する"
 }

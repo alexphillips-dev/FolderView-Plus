@@ -52,3 +52,38 @@ test('activity diagnostics registers before optional startup rendering', () => {
     assert.match(source, /if \(window\.FolderViewPlusDiagnosticsModuleLoaded === true\) \{\s*return;\s*\}/);
     assert.match(source, /\}\)\(window, document\);\s*$/);
 });
+
+test('full on-screen findings never replace sanitized preview or export summaries', async () => {
+    let telemetryDeps;
+    const requests = [];
+    const document = { readyState: 'loading', addEventListener() {}, getElementById: () => null };
+    const window = {
+        document,
+        FolderViewPlusSupportBundleTelemetry: { createApi(deps) {
+            telemetryDeps = deps;
+            return { collectSupportBundleUiTelemetry: (bundle) => bundle };
+        } },
+        FolderViewPlusSupportBundlePreview: { createApi(deps) {
+            return { refreshSupportBundlePreview: async () => deps.enrichSupportBundlePreview({
+                bundleMeta: { privacyMode: 'sanitized', previewOnly: true }, healthAndHistory: { summary: { totalIssues: 1 } }
+            }) };
+        } }
+    };
+    const context = vm.createContext({
+        window, document, console,
+        $: () => ({ length: 0 }),
+        apiGetJson: async (url) => {
+            requests.push(url);
+            return { ok: true, bundle: { bundleMeta: { privacyMode: 'sanitized' }, healthAndHistory: { summary: { totalIssues: 1 } } } };
+        }
+    });
+    vm.runInContext(source, context, { filename: modulePath });
+    const api = window.FolderViewPlusDiagnostics;
+    api.renderDiagnostics({ privacyMode: 'full', summary: { detail: 'private-folder-and-member' } });
+    assert.equal(telemetryDeps.getDiagnosticsSummary(), null);
+    const exported = await api.getSupportBundle();
+    assert.match(requests[0], /action=support_bundle&privacy=sanitized$/);
+    assert.doesNotMatch(JSON.stringify(exported), /private-folder-and-member/);
+    api.renderDiagnostics({ privacyMode: 'sanitized', summary: { totalIssues: 1 } });
+    assert.equal(telemetryDeps.getDiagnosticsSummary().totalIssues, 1);
+});

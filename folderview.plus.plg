@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.05.01">
-<!ENTITY md5 "5a96acc574ce01903a2ee0612ad981c4">
-<!ENTITY sha256 "7038e58399cec7295d79eba574952c101211bb1ad5b462c34ce7afb090f63611">
+<!ENTITY version "2026.09.11.01">
+<!ENTITY md5 "499b46a6faa14792a0c2abf9821d87d6">
+<!ENTITY sha256 "a71348b74fb4a679ccf3c6f737c4cd16c912fbfa6f830a2a5bf85f471c4e8107">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.11.01
+- Fix: Show affected folder names and missing Docker or VM references when Diagnostics loads automatically, without requiring a separate health check to replace sanitized placeholders.
+- Reliability: Prevent a delayed change-history refresh from replacing newer health-check or repair results in System Health.
+- Privacy: Keep support-bundle previews and exports sanitized by default while retaining named findings on the administrator's diagnostics page.
+
 
 ###2026.09.05.01
 - Fix: Prevent System Health titles, status badges, timestamps, and repair buttons from overlapping or clipping when cards are narrow, including German text and Unraid's button styling.

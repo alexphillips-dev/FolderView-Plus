@@ -1,6 +1,86 @@
 import assert from 'node:assert/strict';
 
+const loadHealthLifecycle = async (page, baseUrl) => {
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.support-bundle-telemetry.js` });
+    await page.evaluate(async () => {
+        const catalog = await fetch('/plugin/langs/namespaces/de/diagnostics.json').then((response) => response.json());
+        window.FolderViewPlusI18n = { t: (key, fallback, ...params) => (catalog[key] || fallback)
+            .replace(/\$(\d+)/g, (token, index) => String(params[Number(index) - 1] ?? token)) };
+        window.prefsByType = {};
+        window.advancedModuleStatusByKey = {};
+        window.getEffectiveThemeCompatibilityMode = () => 'auto';
+        window.markAdvancedModuleLoadSuccess = () => {};
+        window.markAdvancedModuleLoadError = () => {};
+        window.fixtureHealthErrors = [];
+        window.showError = (title, error) => window.fixtureHealthErrors.push(`${title}: ${error?.message || error}`);
+        window.fixtureHealthRequests = [];
+        window.fixtureHealthMarker = 'initial';
+        window.apiGetJson = async (url) => {
+            const params = new URL(url, window.location.origin).searchParams;
+            const action = params.get('action');
+            const privacyMode = params.get('privacy');
+            window.fixtureHealthRequests.push({ action, privacyMode });
+            if (action !== 'report') return { ok: true, bundle: {
+                bundleMeta: { privacyMode, previewOnly: action === 'support_bundle_preview' },
+                healthAndHistory: { summary: { totalIssues: 5 } }
+            } };
+            const report = { privacyMode, checkedAt: new Date().toISOString(), types: {}, recentTimeline: [],
+                summary: { cards: [], recommendedActions: [{ action: 'repair_orphaned_members' }] } };
+            for (const type of ['docker', 'vm']) {
+                const name = `private-fixture-${type}-${window.fixtureHealthMarker}`;
+                report.types[type] = {
+                    integrityChecks: { issuesCount: 1, orphanedMembers: { count: 1,
+                        folders: [{ folderId: type, count: 1, items: privacyMode === 'full' ? [name] : [] }] } },
+                    stateSnapshot: { folders: { [type]: { folderName: privacyMode === 'full' ? `${name}-folder` : '' } } }
+                };
+                report.summary.cards.push({ key: type, status: 'error', label: type });
+            }
+            if (window.fixtureHoldNextReport) {
+                window.fixtureHoldNextReport = false;
+                await new Promise((resolve) => { window.fixtureReleaseHistory = resolve; });
+            }
+            return { ok: true, diagnostics: report };
+        };
+    });
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+};
+
 export const registerDiagnosticsOrphanFixtureCases = ({ test, baseUrl }) => {
+    test('automatic diagnostics loading retains named findings through health checks, history refresh and page reload', async ({ page }) => {
+        await loadHealthLifecycle(page, baseUrl);
+        assert.equal(await page.evaluate(() => window.FolderViewPlusDiagnostics.refreshChangeHistory({ quiet: true })), true);
+        const cards = page.locator('#fv-diagnostics-card-docker, #fv-diagnostics-card-vm');
+        assert.match(await cards.allTextContents().then((rows) => rows.join(' ')), /private-fixture-docker-initial/);
+        assert.match(await cards.allTextContents().then((rows) => rows.join(' ')), /private-fixture-vm-initial/);
+        assert.doesNotMatch(await cards.allTextContents().then((rows) => rows.join(' ')), /bereinigten Diagnosesicht/);
+        await page.evaluate(async () => {
+            window.fixtureHoldNextReport = true;
+            window.fixtureHistoryPending = window.FolderViewPlusDiagnostics.refreshChangeHistory({ quiet: true });
+            window.fixtureHealthMarker = 'manual';
+            await window.FolderViewPlusDiagnostics.runDiagnostics();
+            window.fixtureReleaseHistory();
+            await window.fixtureHistoryPending;
+            window.FolderViewPlusDiagnostics.renderDiagnosticsSummary();
+        });
+        assert.match(await cards.allTextContents().then((rows) => rows.join(' ')), /private-fixture-docker-manual/);
+        assert.doesNotMatch(await cards.allTextContents().then((rows) => rows.join(' ')), /private-fixture-docker-initial/);
+        const privacy = await page.evaluate(async () => ({
+            bundle: await window.FolderViewPlusDiagnostics.getSupportBundle(),
+            preview: await window.FolderViewPlusHydrateDiagnosticsPreview({ force: true }),
+            requests: window.fixtureHealthRequests, errors: window.fixtureHealthErrors
+        }));
+        assert.deepEqual(privacy.errors, []);
+        assert.doesNotMatch(JSON.stringify([privacy.bundle, privacy.preview]), /private-fixture-/);
+        assert.ok(privacy.requests.filter(({ action }) => action === 'report').every(({ privacyMode }) => privacyMode === 'full'));
+        assert.ok(privacy.requests.filter(({ action }) => action !== 'report').every(({ privacyMode }) => privacyMode === 'sanitized'));
+        await loadHealthLifecycle(page, baseUrl);
+        assert.equal(await page.evaluate(() => window.FolderViewPlusDiagnostics.refreshChangeHistory({ quiet: true })), true);
+        assert.match(await cards.allTextContents().then((rows) => rows.join(' ')), /private-fixture-vm-initial/);
+        assert.deepEqual(await page.evaluate(() => window.fixtureHealthErrors), []);
+    });
+
     test('German orphan findings wrap host button styles and show both Docker and VM details', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
         await page.emulateMedia({ reducedMotion: 'reduce' });

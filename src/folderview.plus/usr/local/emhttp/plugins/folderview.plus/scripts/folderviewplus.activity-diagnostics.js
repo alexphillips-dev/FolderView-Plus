@@ -1312,7 +1312,6 @@ const withAdvancedOperationLock = async (type, scope, actionLabel, callback) => 
     }
 };
 
-
 const getCachedDiagnostics = () => lastDiagnostics;
 
 const getRecoveryTimelineStatusClass = (value) => {
@@ -1420,10 +1419,11 @@ const renderChangeHistory = (diagnostics) => {
 
 const refreshChangeHistory = async ({ quiet = false } = {}) => {
     const startedAt = perfNowMs();
+    const previousDiagnostics = lastDiagnostics;
     setAdvancedModuleStatus('change_history', 'loading');
     try {
-        const diagnostics = await getDiagnostics('sanitized');
-        renderDiagnostics(diagnostics);
+        const diagnostics = await getDiagnostics('full');
+        if (lastDiagnostics === previousDiagnostics && !diagnosticsRunState.running) renderDiagnostics(diagnostics);
         renderChangeHistory(diagnostics);
         recordPerformanceDiagnosticsSample('settings', 'diagnostics', perfNowMs() - startedAt, {
             source: 'change-history'

@@ -126,7 +126,7 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
 });
 
 test('lib.php can prune orphaned member references from saved folders', () => {
-    assert.match(libPhp, /function fvplusRepairOrphanedMemberReferences\(\): array/);
+    assert.match(libPhp, /function fvplusRepairOrphanedMemberReferences\(string \$type\): array/);
     assert.match(libPhp, /\$infoByName = readInfo\(\$type\);/);
     assert.match(libPhp, /\$normalizedFolder\['containers'\] = array_values\(array_filter\(\$members,/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-orphaned-members'\)/);
@@ -313,7 +313,7 @@ test('diagnostics endpoint emits support bundle v2 shape only', () => {
     assert.match(diagnosticsEndpointPhp, /'repair'\s*=>\s*\$repair,/);
     assert.match(diagnosticsEndpointPhp, /fvplusRepairMissingCustomIconReferences\(\)/);
     assert.match(diagnosticsEndpointPhp, /if \(\$action === 'repair_orphaned_members'\) \{/);
-    assert.match(diagnosticsEndpointPhp, /fvplusRepairOrphanedMemberReferences\(\)/);
+    assert.match(diagnosticsEndpointPhp, /fvplusRepairOrphanedMemberReferences\(\$type\)/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'bundleType'\s*=>\s*'FolderViewPlusSupportBundle',\s*[\r\n]+\s*'bundleVersion'\s*=>\s*1,/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'diagnostics'\s*=>\s*\$diagnostics/);
 });

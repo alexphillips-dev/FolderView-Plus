@@ -73,7 +73,8 @@ test('history cannot populate the health cards while an explicit check is pendin
 test('a late history response cannot restore pre-repair health findings', async () => {
     const { api, requests, errors } = createHarness();
     const history = api.refreshChangeHistory({ quiet: true });
-    const repair = api.repairDiagnostics('repair_orphaned_members');
+    const repair = api.repairDiagnostics('repair_orphaned_members', 'vm');
+    assert.equal(requests[1].body.type, 'vm');
     const repaired = snapshot('full', 'repaired');
     requests[1].resolve({ ok: true, diagnostics: repaired });
     await repair;

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.11.01">
-<!ENTITY md5 "499b46a6faa14792a0c2abf9821d87d6">
-<!ENTITY sha256 "a71348b74fb4a679ccf3c6f737c4cd16c912fbfa6f830a2a5bf85f471c4e8107">
+<!ENTITY version "2026.09.12.01">
+<!ENTITY md5 "7724c5a76789f4a0e73330d03f7bc9b4">
+<!ENTITY sha256 "d7277f3afd7dd49638896bf20130be48a787d3867efcab9a1c2e2a4dffe18662">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.12.01
+- Fix: Removing missing references from a Docker or VM System Health card now affects only that type. The other type's saved folder references remain unchanged, and each changed configuration is backed up before repair.
+- UI/UX: Give Docker and VM repairs distinct labels and confirmations, and report how many missing references were removed from the selected type.
+- Localization: Translate System Health summaries, card labels, counts, status badges, update messages, theme summaries, and repair feedback across all 27 supported languages. Detailed server error evidence remains available under Technical details.
+- Compatibility: Repairs without a valid Docker or VM selection are rejected. Hard-refresh the Unraid webGUI after updating to load the type-specific repair buttons.
+
 
 ###2026.09.11.01
 - Fix: Show affected folder names and missing Docker or VM references when Diagnostics loads automatically, without requiring a separate health check to replace sanitized placeholders.

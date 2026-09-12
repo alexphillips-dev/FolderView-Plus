@@ -59,11 +59,16 @@
                     const actions = actionsByCard.get(cardKey) || [];
                     actions.push({
                         action,
+                        ...(action === 'repair_orphaned_members' ? { type: cardKey } : {}),
                         label: action === 'repair_orphaned_members'
-                            ? translate('diagnostics.orphans.repair', 'Remove missing references')
+                            ? (cardKey === 'docker'
+                                ? translate('diagnostics.orphans.repair-docker', 'Remove missing Docker references')
+                                : translate('diagnostics.orphans.repair-vm', 'Remove missing VM references'))
                             : String(entry?.label || 'Run recommended repair').trim(),
                         reason: action === 'repair_orphaned_members'
-                            ? translate('diagnostics.orphans.scope', 'Removes saved references to missing items across both Docker and VM folders. Containers and VMs are not deleted.')
+                            ? (cardKey === 'docker'
+                                ? translate('diagnostics.orphans.scope-docker', 'Removes saved references to missing containers from Docker folders only. VM folders are unchanged. Containers are not deleted.')
+                                : translate('diagnostics.orphans.scope-vm', 'Removes saved references to missing VMs from VM folders only. Docker folders are unchanged. VMs are not deleted.'))
                             : String(entry?.reason || '').trim()
                     });
                     actionsByCard.set(cardKey, actions);
@@ -99,8 +104,10 @@
 
         const confirmRepair = async ({ data = {}, trigger = null } = {}) => {
             const action = String(data?.action || '').trim();
-            if (!REPAIR_ACTIONS.has(action)) {
-                showError('Repair unavailable', new Error('The recommended diagnostics action is not supported.'));
+            const type = String(data?.type || '').trim();
+            if (!REPAIR_ACTIONS.has(action) || (action === 'repair_orphaned_members' && !['docker', 'vm'].includes(type))) {
+                showError(translate('diagnostics.repair.unavailable', 'Repair unavailable'),
+                    new Error(translate('diagnostics.repair.invalid-scope', 'Refresh Diagnostics and select a repair for Docker or VM.')));
                 return false;
             }
             const label = String(data?.label || 'Run recommended repair').trim();
@@ -124,7 +131,7 @@
             if (trigger) trigger.disabled = true;
             setBusy(true);
             try {
-                return await runRepair(action);
+                return await runRepair(action, type);
             } finally {
                 setBusy(false);
                 if (trigger?.isConnected) trigger.disabled = false;

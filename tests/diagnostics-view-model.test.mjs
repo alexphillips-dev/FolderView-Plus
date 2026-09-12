@@ -217,7 +217,7 @@ test('diagnostics view maps server recommendations and confirms repairs without 
         document: {},
         escapeHtml: uiModule.escapeHtml,
         svgIcon: uiModule.svgIcon,
-        runRepair: async (action) => { repairs.push(action); return true; }
+        runRepair: async (action, type) => { repairs.push({ action, type }); return true; }
     });
     const cards = view.decorateCardsWithRecommendedActions(
         [{ key: 'docker', status: 'error', technicalDetails: [] }],
@@ -226,9 +226,9 @@ test('diagnostics view maps server recommendations and confirms repairs without 
     );
 
     assert.equal(cards[0].actions[0].action, 'repair_orphaned_members');
-    assert.match(cards[0].technicalDetails.join(' '), /both Docker and VM folders/);
+    assert.match(cards[0].technicalDetails.join(' '), /Docker folders only.*VM folders are unchanged/);
     assert.equal(view.bindActions(), true);
     assert.equal(view.bindActions(), false);
     assert.equal(await handlers.get('diagnostics-repair')({ data: cards[0].actions[0] }), true);
-    assert.deepEqual(repairs, ['repair_orphaned_members']);
+    assert.deepEqual(repairs, [{ action: 'repair_orphaned_members', type: 'docker' }]);
 });

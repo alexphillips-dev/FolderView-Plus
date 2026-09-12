@@ -30,7 +30,7 @@ const makeDiagnostics = (privacyMode = 'full') => ({
 const cards = ['docker', 'vm'].map((key) => ({ key, status: 'error', headline: 'Server summary', detail: 'Server detail' }));
 const summary = { recommendedActions: [{ action: 'repair_orphaned_members', label: 'Server repair', reason: 'Server reason' }] };
 
-test('both orphan cards show localized folder and member findings with one shared-scope repair each', () => {
+test('both orphan cards show localized folder and member findings with a type-specific repair each', () => {
     const view = viewModule.createApi({ escapeHtml: ui.escapeHtml, t: translate });
     const diagnostics = makeDiagnostics();
     const before = JSON.stringify(diagnostics);
@@ -41,7 +41,8 @@ test('both orphan cards show localized folder and member findings with one share
     assert.match(decorated[1].technicalDetails.join(' '), /Virtual machines.*old-vm/);
     for (const card of decorated) {
         assert.equal(card.actions.length, 1);
-        assert.match(card.actions[0].reason, /Docker- und VM-Ordnern/);
+        assert.equal(card.actions[0].type, card.key);
+        assert.equal(card.actions[0].reason, german[`diagnostics.orphans.scope-${card.key}`]);
         assert.match(view.buildCard(card), /<details/);
         assert.doesNotMatch(view.buildCard(card), /Server repair|Server reason|Server summary/);
     }
@@ -68,7 +69,7 @@ test('sanitized snapshots never render member tokens as names, and full reports 
     assert.ok(mixed.technicalDetails.includes('Server detail'), 'other integrity failures must remain visible');
 });
 
-test('VM-only findings receive the repair and confirmation explains both-type scope and backup before mutation', async () => {
+test('VM-only findings receive a VM repair and confirmation explains scope and backup before mutation', async () => {
     const diagnostics = makeDiagnostics();
     diagnostics.types.docker.integrityChecks = { issuesCount: 0, orphanedMembers: { count: 0, folders: [] } };
     let confirmed = false;
@@ -77,7 +78,7 @@ test('VM-only findings receive the repair and confirmation explains both-type sc
     const view = viewModule.createApi({
         escapeHtml: ui.escapeHtml,
         window: { FolderViewPlusUI: { confirm: async (options) => { prompts.push(options); return confirmed; } } },
-        runRepair: async (action) => { repairs.push(action); return true; }
+        runRepair: async (action, type) => { repairs.push({ action, type }); return true; }
     });
     const decorated = view.decorateCardsWithRecommendedActions(cards, diagnostics, summary);
     assert.equal(decorated[0].actions.length, 0);
@@ -85,8 +86,34 @@ test('VM-only findings receive the repair and confirmation explains both-type sc
     const data = decorated[1].actions[0];
     assert.equal(await view.confirmRepair({ data }), false);
     assert.equal(repairs.length, 0);
-    assert.match(prompts[0].detail, /both Docker and VM folders.*backup/);
+    assert.match(prompts[0].detail, /VM folders only.*Docker folders are unchanged.*backup/);
     confirmed = true;
     assert.equal(await view.confirmRepair({ data }), true);
-    assert.deepEqual(repairs, ['repair_orphaned_members']);
+    assert.deepEqual(repairs, [{ action: 'repair_orphaned_members', type: 'vm' }]);
+});
+
+test('rendered repairs preserve each card type and reject absent or invalid scope before confirmation', async () => {
+    const repairs = [], errors = [], prompts = [];
+    const view = viewModule.createApi({
+        escapeHtml: ui.escapeHtml,
+        window: { FolderViewPlusUI: { confirm: async (options) => { prompts.push(options); return true; } } },
+        showError: (...args) => errors.push(args),
+        runRepair: async (action, type) => { repairs.push({ action, type }); return true; }
+    });
+    const modelModule = require(path.join(pluginDir, 'scripts/folderviewplus.diagnostics-view-model.js'));
+    const model = modelModule.buildDiagnosticsViewModel({ hasResults: true,
+        coreCards: view.decorateCardsWithRecommendedActions(cards, makeDiagnostics(), summary) });
+    for (const card of model.coreCards) {
+        const html = view.buildCard(card);
+        const data = JSON.parse(html.match(/data-fv-ui-action-data="([^"]+)"/)[1].replaceAll('&quot;', '"'));
+        assert.equal(data.type, card.key);
+        assert.equal(await view.confirmRepair({ data }), true);
+    }
+    assert.deepEqual(repairs.map((entry) => entry.type), ['docker', 'vm']);
+    for (const type of [undefined, '', 'all', 'other']) {
+        assert.equal(await view.confirmRepair({ data: { action: 'repair_orphaned_members', type } }), false);
+    }
+    assert.equal(prompts.length, 2);
+    assert.equal(repairs.length, 2);
+    assert.equal(errors.length, 4);
 });

@@ -1442,38 +1442,19 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
 const formatCheckedAtLabel = (value) => {
     const date = new Date(String(value || '').trim());
     if (Number.isNaN(date.getTime())) {
-        return 'just now';
+        return diagnosticsT('diagnostics.value.just-now', 'just now');
     }
     return date.toLocaleString();
 };
 
 const buildThemeDiagnosticsSummaryCard = () => {
-    if (!lastThemeDiagnostics || typeof lastThemeDiagnostics !== 'object') {
-        return null;
-    }
-    const warnings = Array.isArray(lastThemeDiagnostics.warnings)
-        ? lastThemeDiagnostics.warnings.map((warning) => String(warning || '').trim()).filter(Boolean)
-        : [];
-    const adjustments = Array.isArray(lastThemeDiagnostics.adjustments) ? lastThemeDiagnostics.adjustments.map((entry) => String(entry || '').trim()).filter(Boolean) : [];
-    const resolver = lastThemeDiagnostics.resolver && typeof lastThemeDiagnostics.resolver === 'object'
-        ? lastThemeDiagnostics.resolver
-        : {};
-    const status = warnings.length > 0 ? 'warning' : 'healthy';
-    const appliedMode = String(resolver.appliedMode || '').trim() || normalizeDiagnosticsThemeMode(lastThemeDiagnostics.modeByType?.effective);
-    return {
-        key: 'theme',
-        label: 'Theme',
-        status,
-        headline: status === 'warning'
-            ? (warnings[0] || `Theme fallback mode ${appliedMode || 'safe'} is active.`)
-            : 'Theme diagnostics look healthy.',
-        detail: appliedMode
-            ? `Effective mode: ${appliedMode}.`
-            : 'Theme compatibility checks did not report any warnings.',
-        count: warnings.length,
-        freshness: `Checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
-        technicalDetails: [...warnings, ...adjustments]
-    };
+    if (!lastThemeDiagnostics || !diagnosticsViewModelModule?.buildThemeCard) return null;
+    return diagnosticsViewModelModule.buildThemeCard(lastThemeDiagnostics, {
+        t: diagnosticsT,
+        appliedMode: String(lastThemeDiagnostics.resolver?.appliedMode || '').trim()
+            || normalizeDiagnosticsThemeMode(lastThemeDiagnostics.modeByType?.effective),
+        checkedAtLabel: formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)
+    });
 };
 
 const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
@@ -1632,7 +1613,7 @@ const getDiagnosticsViewApi = () => {
         window, document,
         escapeHtml: diagnosticsEscapeHtml,
         svgIcon: window.FolderViewPlusUI?.svgIcon,
-        t: diagnosticsT, runRepair: (action) => repairDiagnostics(action), setBusy: (busy) => setDiagnosticsWorkspaceBusy(busy), showError: diagnosticsShowError
+        t: diagnosticsT, runRepair: (action, type) => repairDiagnostics(action, type), setBusy: (busy) => setDiagnosticsWorkspaceBusy(busy), showError: diagnosticsShowError
     }); diagnosticsViewApi.bindActions?.();
     return diagnosticsViewApi;
 };
@@ -1670,6 +1651,7 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
     const advisoryCards = [performanceCard, localizationCard]
         .filter((card) => card && ['warning', 'error'].includes(card.status));
     const model = diagnosticsViewModelModule.buildDiagnosticsViewModel({
+        t: diagnosticsT,
         hasResults,
         running: diagnosticsRunState.running,
         errorMessage: diagnosticsRunState.errorMessage,
@@ -1744,17 +1726,24 @@ const retestPerformanceDiagnostics = async () => {
 
 const repairDiagnostics = async (action, type = '') => {
     try {
+        if (action === 'repair_orphaned_members' && !['docker', 'vm'].includes(type)) {
+            throw new Error(diagnosticsT('diagnostics.repair.invalid-scope', 'Refresh Diagnostics and select a repair for Docker or VM.'));
+        }
         const response = await runDiagnosticAction(action, type, 'full');
         const diagnostics = response?.diagnostics || {};
         renderDiagnostics(diagnostics);
         diagnosticsSwal({
-            title: 'Repair complete',
-            text: String(response?.message || 'Repair action finished successfully.'),
+            title: diagnosticsT('diagnostics.repair.complete', 'Repair complete'),
+            text: action === 'repair_orphaned_members'
+                ? (type === 'docker'
+                    ? diagnosticsT('diagnostics.repair.done-docker', 'Removed $1 missing Docker references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0)
+                    : diagnosticsT('diagnostics.repair.done-vm', 'Removed $1 missing VM references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0))
+                : diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.'),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
     } catch (error) {
-        diagnosticsShowError('Repair failed', error);
+        diagnosticsShowError(diagnosticsT('diagnostics.repair.failed', 'Repair failed'), error);
     }
 };
 

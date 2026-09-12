@@ -108,7 +108,8 @@ fvplus_json_try(function (): array {
     }
 
     if ($action === 'repair_orphaned_members') {
-        $repair = fvplusRepairOrphanedMemberReferences();
+        $type = ensureType((string)($_POST['type'] ?? ''));
+        $repair = fvplusRepairOrphanedMemberReferences($type);
         return [
             'message' => 'Orphaned member references removed.',
             'repair' => $repair,

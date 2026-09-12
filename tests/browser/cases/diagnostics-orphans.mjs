@@ -15,6 +15,10 @@ const loadHealthLifecycle = async (page, baseUrl) => {
         window.markAdvancedModuleLoadError = () => {};
         window.fixtureHealthErrors = [];
         window.showError = (title, error) => window.fixtureHealthErrors.push(`${title}: ${error?.message || error}`);
+        window.fixtureRepairMessages = [];
+        window.swal = (options) => window.fixtureRepairMessages.push(options);
+        window.refreshType = async () => {};
+        window.refreshBackups = async () => {};
         window.fixtureHealthRequests = [];
         window.fixtureHealthMarker = 'initial';
         window.apiGetJson = async (url) => {
@@ -48,6 +52,73 @@ const loadHealthLifecycle = async (page, baseUrl) => {
 };
 
 export const registerDiagnosticsOrphanFixtureCases = ({ test, baseUrl }) => {
+    test('German card repairs keep the other type intact and render localized healthy results and feedback', async ({ page }) => {
+        await loadHealthLifecycle(page, baseUrl);
+        const activate = async (locator) => (await page.evaluate(() => navigator.maxTouchPoints > 0))
+            ? locator.tap() : locator.click();
+        await page.evaluate(async () => {
+            const report = (await window.apiGetJson('/diagnostics?action=report&privacy=full')).diagnostics;
+            report.pluginVersion = '2026.09.11.01';
+            report.runtimeIntegrity = { status: 'healthy' };
+            report.customIcons = { fileCount: 0 };
+            report.update = { ok: true, updateAvailable: false, currentVersion: report.pluginVersion };
+            for (const type of ['docker', 'vm']) Object.assign(report.types[type], {
+                folderCount: type === 'docker' ? 5 : 3, ruleCount: 0, backupCount: 25
+            });
+            report.summary.cards.push(...[
+                { key: 'storage', label: 'Storage and paths', headline: 'Paths look healthy.' },
+                { key: 'custom_icons', label: 'Custom icons', headline: 'Custom icon storage looks healthy.' },
+                { key: 'update', label: 'Update check', headline: 'Plugin is up to date.' }
+            ].map((card) => ({ ...card, status: 'healthy', count: 0 })));
+            window.fixtureMutationRequests = [];
+            window.fixtureRepairPrompts = [];
+            window.fixtureConfirmRepair = false;
+            window.FolderViewPlusUI = { ...window.FolderViewPlusUI, confirm: async (options) => {
+                window.fixtureRepairPrompts.push(options);
+                return window.fixtureConfirmRepair;
+            } };
+            window.apiPostJson = async (_url, payload) => {
+                if (!['docker', 'vm'].includes(payload.type)) throw new Error('Missing fixture repair type');
+                window.fixtureMutationRequests.push(payload);
+                report.types[payload.type].integrityChecks = { issuesCount: 0, orphanedMembers: { count: 0, folders: [] } };
+                const card = report.summary.cards.find((entry) => entry.key === payload.type);
+                Object.assign(card, { status: 'healthy', count: 0, headline: 'No issues detected.', detail: 'Server count fallback' });
+                return { ok: true, message: 'Orphaned member references removed.',
+                    repair: { type: payload.type, repairedMemberCount: 1, repairedFolderCount: 1 }, diagnostics: structuredClone(report) };
+            };
+            window.apiGetJson = async () => ({ ok: true, diagnostics: structuredClone(report) });
+            window.FolderViewPlusDiagnostics.renderDiagnostics(report);
+        });
+        const vmButton = page.locator('#fv-diagnostics-card-vm [data-fv-ui-action="diagnostics-repair"]');
+        await activate(vmButton);
+        assert.equal(await page.evaluate(() => window.fixtureMutationRequests.length), 0, 'cancel must not mutate either type');
+        await page.evaluate(() => { window.fixtureConfirmRepair = true; });
+        await activate(vmButton);
+        await page.waitForFunction(() => window.fixtureRepairMessages.length === 1);
+        assert.equal(await page.locator('#fv-diagnostics-card-vm [data-fv-ui-action="diagnostics-repair"]').count(), 0);
+        assert.equal(await page.locator('#fv-diagnostics-card-docker [data-fv-ui-action="diagnostics-repair"]').count(), 1);
+        assert.match(await page.locator('#fv-diagnostics-card-docker').textContent(), /private-fixture-docker-initial/);
+        await page.evaluate(() => window.FolderViewPlusDiagnostics.refreshChangeHistory({ quiet: true }));
+        await activate(page.locator('#fv-diagnostics-card-docker [data-fv-ui-action="diagnostics-repair"]'));
+        await page.waitForFunction(() => window.fixtureRepairMessages.length === 2);
+        const result = await page.evaluate(() => ({
+            types: window.fixtureMutationRequests.map((request) => request.type),
+            messages: window.fixtureRepairMessages, prompts: window.fixtureRepairPrompts,
+            errors: window.fixtureHealthErrors,
+            text: document.getElementById('fv-diagnostics-summary').textContent
+        }));
+        assert.deepEqual(result.types, ['vm', 'docker']);
+        assert.deepEqual(result.errors, []);
+        assert.match(result.prompts[0].detail, /Docker-Ordner bleiben unverändert/);
+        assert.match(result.prompts[2].detail, /VM-Ordner bleiben unverändert/);
+        assert.match(result.messages[0].text, /Entfernte fehlende VM-Verweise: 1\. Betroffene Ordner: 1\./);
+        assert.match(result.messages[1].text, /Entfernte fehlende Docker-Verweise: 1\. Betroffene Ordner: 1\./);
+        assert.equal(result.messages[0].title, 'Reparatur abgeschlossen');
+        assert.match(result.text, /Alle Systeme sind betriebsbereit|Speicher und Pfade|Benutzerdefinierte Symbole/);
+        assert.doesNotMatch(result.text, /All systems operational|Storage and paths|Custom icons|No issues detected|All checks passed|Up to date|Server count fallback/);
+        assert.equal(await page.locator('[data-fv-ui-action="diagnostics-repair"]').count(), 0);
+    });
+
     test('automatic diagnostics loading retains named findings through health checks, history refresh and page reload', async ({ page }) => {
         await loadHealthLifecycle(page, baseUrl);
         assert.equal(await page.evaluate(() => window.FolderViewPlusDiagnostics.refreshChangeHistory({ quiet: true })), true);
@@ -115,7 +186,7 @@ export const registerDiagnosticsOrphanFixtureCases = ({ test, baseUrl }) => {
             ].map((card) => ({ ...card, label: card.key, freshness: t('diagnostics.cards.checked', 'Checked $1', '5.9.2026, 16:59:55') })), report, {
                 recommendedActions: [{ action: 'repair_orphaned_members' }]
             });
-            const model = window.FolderViewPlusDiagnosticsViewModel.buildDiagnosticsViewModel({ hasResults: true, coreCards: cards });
+            const model = window.FolderViewPlusDiagnosticsViewModel.buildDiagnosticsViewModel({ t, hasResults: true, coreCards: cards });
             const host = document.getElementById('fv-diagnostics-summary');
             view.bindActions();
             view.render(host, model);
@@ -150,7 +221,7 @@ export const registerDiagnosticsOrphanFixtureCases = ({ test, baseUrl }) => {
                 assert.equal(card.whiteSpace, 'normal');
                 assert.ok(card.buttonHeight >= 36);
                 assert.match(card.text, /missing-fixture-item/);
-                assert.match(card.text, /Docker- und VM-Ordnern/);
+                assert.match(card.text, /unverändert/);
                 assert.doesNotMatch(card.text, /Missing references|Checked|Remove missing/);
             }
         }

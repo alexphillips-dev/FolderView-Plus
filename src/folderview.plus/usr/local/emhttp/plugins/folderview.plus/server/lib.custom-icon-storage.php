@@ -377,12 +377,12 @@ function fvplusAllowedCustomIconExtensions(): array {
         ];
     }
 
-    function fvplusRepairOrphanedMemberReferences(): array {
-        $repairedFolders = [];
-        $repairedMembers = [];
-        $typeCounts = ['docker' => 0, 'vm' => 0];
-
-        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+    function fvplusRepairOrphanedMemberReferences(string $type): array {
+        $type = ensureType($type);
+        return withConfigMutationLock(static function () use ($type): array {
+            $repairedFolders = [];
+            $repairedMembers = [];
+            $typeCounts = ['docker' => 0, 'vm' => 0];
             $folders = readRawFolderMap($type);
             $infoByName = readInfo($type);
             $validNames = array_fill_keys(array_keys(is_array($infoByName) ? $infoByName : []), true);
@@ -429,34 +429,32 @@ function fvplusAllowedCustomIconExtensions(): array {
             }
             unset($folder);
 
-            if (!$updated) {
-                continue;
+            if ($updated) {
+                createBackupSnapshot($type, 'before-repair-orphaned-members');
+                writeRawFolderMap($type, $folders);
+                if ($type === 'docker') {
+                    syncContainerOrder('docker');
+                }
+                appendDiagnosticsHistoryEvent(
+                    'repair_orphaned_members',
+                    $type,
+                    [
+                        'repairedFolderCount' => $typeFolderCount,
+                        'repairedMemberCount' => (int)($typeCounts[$type] ?? 0)
+                    ],
+                    'ok',
+                    'server'
+                );
             }
-
-            createBackupSnapshot($type, 'before-repair-orphaned-members');
-            writeRawFolderMap($type, $folders);
-            if ($type === 'docker') {
-                syncContainerOrder('docker');
-            }
-            appendDiagnosticsHistoryEvent(
-                'repair_orphaned_members',
-                $type,
-                [
-                    'repairedFolderCount' => $typeFolderCount,
-                    'repairedMemberCount' => (int)($typeCounts[$type] ?? 0)
-                ],
-                'ok',
-                'server'
-            );
-        }
-
-        return [
-            'repairedFolderCount' => count($repairedFolders),
-            'repairedMemberCount' => count($repairedMembers),
-            'repairedMembers' => array_values(array_keys($repairedMembers)),
-            'repairedFolders' => $repairedFolders,
-            'typeCounts' => $typeCounts
-        ];
+            return [
+                'type' => $type,
+                'repairedFolderCount' => count($repairedFolders),
+                'repairedMemberCount' => count($repairedMembers),
+                'repairedMembers' => array_values(array_keys($repairedMembers)),
+                'repairedFolders' => $repairedFolders,
+                'typeCounts' => $typeCounts
+            ];
+        });
     }
 
     function repairPluginPaths(): array {

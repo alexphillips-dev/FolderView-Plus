@@ -208,8 +208,15 @@ test('theme resolver heals unusable host accents and fully manages folder editor
     assert.match(themeResolverJs, /const accentResolution = resolveThemeStatusColor\(/);
     assert.match(themeResolverJs, /adjustments\.push\('Host accent color was auto-healed to preserve contrast\.'\)/);
     assert.match(themeResolverJs, /tokens: buildThemeTokenMap\(\{ classification \}, selectedPalette\),\s*adjustments,\s*warnings/);
-    assert.match(diagnosticsJs, /const status = warnings\.length > 0 \? 'warning' : 'healthy';/);
-    assert.match(diagnosticsJs, /technicalDetails: \[\.\.\.warnings, \.\.\.adjustments\]/);
+    assert.match(diagnosticsJs, /diagnosticsViewModelModule\.buildThemeCard\(lastThemeDiagnostics,/);
+    const viewModel = require(path.join(repoRoot,
+        'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js'));
+    for (const warnings of [[], ['Contrast needs attention.']]) {
+        const adjustments = ['Host accent color was auto-healed to preserve contrast.'];
+        const card = viewModel.buildThemeCard({ warnings, adjustments });
+        assert.equal(card.status, warnings.length ? 'warning' : 'healthy', 'automatic healing alone must not become a warning');
+        assert.deepEqual(card.technicalDetails, [...warnings, ...adjustments]);
+    }
     assert.match(diagnosticsJs, /const needsHeal = contrastFailures\.length > 0 \|\| statusFailures\.length > 0;/);
     assert.doesNotMatch(diagnosticsJs, /const needsHeal =[^;]*autoHealed/);
     assert.match(themeResolverJs, /const classification = detectedClassification === 'mixed'/);

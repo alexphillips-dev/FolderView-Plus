@@ -33,7 +33,16 @@
         const svgIcon = typeof deps.svgIcon === 'function'
             ? deps.svgIcon
             : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
-        const statusConfig = (status) => STATUS_CONFIG[status] || STATUS_CONFIG.healthy;
+        const statusConfig = (status) => ({
+            ...(STATUS_CONFIG[status] || STATUS_CONFIG.healthy),
+            label: ({
+                unchecked: () => translate('diagnostics.state.not-checked', 'Not checked'),
+                healthy: () => translate('diagnostics.status.healthy', 'Healthy'),
+                info: () => translate('diagnostics.status.notice', 'Notice'),
+                warning: () => translate('diagnostics.status.follow-up', 'Follow up'),
+                error: () => translate('diagnostics.cards.needs-attention', 'Needs attention')
+            }[status] || (() => translate('diagnostics.status.healthy', 'Healthy')))()
+        });
         const actionData = (value) => escapeHtml(JSON.stringify(value || {}));
         const actions = deps.actionsApi || ActionsModule?.createApi({
             window: win,
@@ -64,7 +73,7 @@
             const coreCardKeys = new Set(model.coreCards.map((card) => card.key));
             return `
                 <section class="fv-diagnostics-findings" aria-labelledby="fv-diagnostics-findings-title">
-                    <div class="fv-diagnostics-findings-head"><h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3><span>${escapeHtml(`${model.findings.length} ${model.findings.length === 1 ? 'finding' : 'findings'}`)}</span></div>
+                    <div class="fv-diagnostics-findings-head"><h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3><span>${escapeHtml(translate('diagnostics.findings.count', 'Findings: $1', model.findings.length))}</span></div>
                     <div class="fv-diagnostics-findings-list">
                         ${model.findings.map((finding) => {
                             const status = statusConfig(finding.status);
@@ -157,7 +166,9 @@
                         <div class="fv-diagnostics-metric is-core is-${escapeHtml(model.overall.status)}">
                             <dt>${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}</dt>
                             <dd>${escapeHtml(`${metrics.coreHealthy} / ${metrics.coreTotal}`)}</dd>
-                            <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small></dd>
+                            <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(model.overall.status === 'healthy'
+                                ? translate('diagnostics.metrics.passed', 'All checks passed')
+                                : translate('diagnostics.metrics.review', 'Review results below'))}</small></dd>
                             <dd class="fv-diagnostics-core-progress-wrap"><span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span data-fv-progress-percent="${corePercent}"></span></span></dd>
                         </div>
                     </dl>
@@ -184,7 +195,7 @@
             const healthy = cards.filter((card) => card.status === 'healthy').length;
             return `
                 <section class="fv-diagnostics-card-section is-system" aria-labelledby="${escapeHtml(id)}">
-                    <div class="fv-diagnostics-section-heading"><h3 id="${escapeHtml(id)}">${escapeHtml(title)}</h3><span>${escapeHtml(`${healthy} of ${cards.length} healthy`)}</span></div>
+                    <div class="fv-diagnostics-section-heading"><h3 id="${escapeHtml(id)}">${escapeHtml(title)}</h3><span>${escapeHtml(translate('diagnostics.cards.healthy-count', '$1 of $2 healthy', healthy, cards.length))}</span></div>
                     <div class="fv-diagnostics-health-grid">${cards.map(buildCard).join('')}</div>
                 </section>
             `;

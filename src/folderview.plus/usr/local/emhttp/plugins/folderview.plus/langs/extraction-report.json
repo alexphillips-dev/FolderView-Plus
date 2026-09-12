@@ -1,9 +1,9 @@
 {
     "catalog-version": "2026.08.10.1",
-    "generated-at": "2026-09-05",
+    "generated-at": "2026-09-12",
     "candidate-count": 0,
-    "auto-bound-message-count": 1580,
-    "catalog-message-count": 2186,
+    "auto-bound-message-count": 1577,
+    "catalog-message-count": 2241,
     "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
         "FolderViewPlus.page": 552,
@@ -15,6 +15,6 @@
         "scripts/folderviewplus.import.js": 76,
         "scripts/folderviewplus.settings-workspaces.js": 56,
         "scripts/docker.js": 54,
-        "scripts/folderviewplus.activity-diagnostics.js": 36
+        "scripts/folder.editor.icons.js": 34
     }
 }

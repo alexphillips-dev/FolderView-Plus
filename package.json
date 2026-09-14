@@ -16,6 +16,6 @@
     "fast-check": "4.9.0",
     "jquery": "3.7.1",
     "opencc-js": "1.4.2",
-    "playwright": "1.62.1"
+    "playwright": "1.63.0"
   }
 }

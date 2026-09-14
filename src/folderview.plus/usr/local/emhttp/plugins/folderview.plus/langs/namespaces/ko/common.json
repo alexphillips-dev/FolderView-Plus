@@ -11,5 +11,9 @@
     "common.cancel": "취소",
     "common.confirm": "확인",
     "common.confirm-type": "확인하려면 입력",
-    "common.loading": "로드 중…"
+    "common.loading": "로드 중…",
+    "common.state.ready": "준비",
+    "common.actions.clear": "지우기",
+    "common.state.all-good": "다 좋아",
+    "common.health.folder-summary": "폴더 상태: $1 시작됨 | $2 일시중지됨 | $3이 중지되었습니다."
 }

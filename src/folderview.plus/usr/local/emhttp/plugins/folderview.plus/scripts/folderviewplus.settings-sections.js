@@ -28,14 +28,15 @@ const ADVANCED_SECTION_KEYS = new Set([
     'conflict-inspector'
 ]);
 const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'];
+const translate = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
 const ADVANCED_GROUP_LABELS = {
-    automation: 'Automation',
-    rules: 'Rules',
-    recovery: 'Recovery',
-    operations: 'Operations',
-    startup: 'Start Order',
-    appearance: 'Appearance',
-    diagnostics: 'Diagnostics'
+    get automation() { return translate("settings.navigation.automation", "Automation"); },
+    get rules() { return translate("settings.navigation.rules", "Rules"); },
+    get recovery() { return translate("settings.navigation.recovery", "Recovery"); },
+    get operations() { return translate("settings.navigation.operations", "Operations"); },
+    get startup() { return translate("settings.navigation.startup", "Start Order"); },
+    get appearance() { return translate("settings.navigation.appearance", "Appearance"); },
+    get diagnostics() { return translate("diagnostics.title", "Diagnostics"); }
 };
 const SECTION_APPLY_BEHAVIOR = Object.freeze({
     customizations: 'instant',

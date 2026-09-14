@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Åbn konsollen",
     "docker.preview.view-logs": "Se logfiler",
     "docker.provider.hybrid-label": "Ældre Unraid WebGUI med GraphQL-data",
-    "docker.health.api-summary": "Docker API: $1 opdatering$2, $3 klar til genopbygning, $4 forældreløs, $5 portkonflikt$6",
+    "docker.health.api-summary": "Docker API: opdateringer: $1, klar til genopbygning: $2, forældreløs: $3, portkonflikter: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Værtsliste",
     "docker.views.command": "Kommando",

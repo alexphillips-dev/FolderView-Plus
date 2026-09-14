@@ -11,6 +11,8 @@
         const documentRef = deps.document || windowRef?.document || null;
         const $ = deps.$ || windowRef?.jQuery || windowRef?.$ || null;
         const utils = deps.utils || {};
+        const translate = (key, fallback, ...params) => windowRef?.FolderViewPlusI18n?.t?.(key, fallback, ...params)
+            || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match));
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
         const escapeJsString = (value) => String(value ?? '')
             .replace(/\\/g, '\\\\')
@@ -370,14 +372,13 @@
 
         const formatRecoveryReasonLabel = (value) => {
             const raw = String(value || '').trim();
-            if (!raw) {
-                return 'Manual';
-            }
-            return raw
-                .replace(/[_-]+/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .replace(/\b([a-z])/g, (match) => match.toUpperCase());
+            const reasons = {
+                manual: translate("settings.recovery.reason-manual", "Manual backup"),
+                'before-repair-orphaned-members': translate("settings.recovery.reason-repair", "Before removing missing references"),
+                'before-prefs-update': translate("settings.recovery.reason-preferences", "Before updating preferences"),
+                scheduled: translate("settings.recovery.reason-scheduled", "Scheduled backup")
+            };
+            return Object.prototype.hasOwnProperty.call(reasons, raw || 'manual') ? reasons[raw || 'manual'] : raw;
         };
 
         const getRecoveryBackupFolderCount = (backup) => {
@@ -395,9 +396,9 @@
         const formatRecoveryBackupFolderCount = (backup) => {
             const count = getRecoveryBackupFolderCount(backup);
             if (count === null) {
-                return 'Folder count unavailable';
+                return translate("settings.recovery.count-unavailable", "Folder count unavailable");
             }
-            return `${count} folder${count === 1 ? '' : 's'}`;
+            return translate("settings.recovery.folder-count", "Folders: $1", count);
         };
 
         const buildRecoveryOverviewHtml = (type) => {
@@ -414,30 +415,30 @@
             const scheduleEnabled = schedule.enabled === true;
             const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
             const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
-            const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : 'Not created yet';
-            const latestRestorableCreated = latestRestorable?.createdAt ? formatTimestamp(latestRestorable.createdAt) : 'None available';
-            const latestRestorableReason = latestRestorable ? formatRecoveryReasonLabel(latestRestorable.reason) : 'Create a backup after folders exist';
+            const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : translate("settings.recovery.not-created", "Not created yet");
+            const latestRestorableCreated = latestRestorable?.createdAt ? formatTimestamp(latestRestorable.createdAt) : translate("settings.recovery.none-available", "None available");
+            const latestRestorableReason = latestRestorable ? formatRecoveryReasonLabel(latestRestorable.reason) : translate("settings.recovery.create-after-folders", "Create a backup after folders exist");
             const folderCount = Object.keys(folders || {}).length;
             const statusClass = latestRestorable
                 ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
                 : 'is-warning';
             const statusLabel = latestRestorable
-                ? (scheduleEnabled ? 'Ready' : 'Watch')
-                : 'No backup yet';
+                ? (scheduleEnabled ? translate("common.state.ready", "Ready") : translate("settings.recovery.manual-backups", "Manual backups"))
+                : translate("settings.recovery.no-backup", "No backup yet");
             const headline = latestRestorable
-                ? `${title} recovery is ready.`
-                : `No restorable ${title} backup is available yet.`;
+                ? translate("settings.recovery.ready", "$1 recovery is ready.", title)
+                : translate("settings.recovery.no-restorable", "No restorable $1 backup is available yet.", title);
             const copy = latestRestorable
-                ? `Restore Latest will use ${escapeHtml(latestRestorableCreated)} and create a fresh safety backup first when folders exist.`
+                ? translate("settings.recovery.restore-summary", "Restore Latest will use $1 and create a fresh safety backup first when folders exist.", latestRestorableCreated)
                 : (latest
-                    ? 'Only empty snapshots were found. Restore Latest skips empty backups so it does not roll you back to no folders.'
-                    : 'Create a manual backup before making larger changes so you have a safe rollback point.');
+                    ? translate("settings.recovery.only-empty", "Only empty snapshots were found. Restore Latest skips empty backups so it does not roll you back to no folders.")
+                    : translate("settings.recovery.create-first", "Create a manual backup before making larger changes so you have a safe rollback point."));
             const scheduleCopy = scheduleEnabled
-                ? `${escapeHtml(`Runs every ${interval}h and keeps ${retention} snapshot${retention === 1 ? '' : 's'}.`)}`
-                : 'Manual only. Enable scheduled backups if you want automatic recovery points.';
+                ? translate("settings.recovery.schedule-summary", "Runs every $1 h and keeps $2 snapshots.", interval, retention)
+                : translate("settings.recovery.manual-help", "Manual only. Enable scheduled backups if you want automatic recovery points.");
             const latestRawCopy = latest
                 ? `${escapeHtml(latestCreated)} (${escapeHtml(formatRecoveryBackupFolderCount(latest))})`
-                : 'No snapshots yet';
+                : escapeHtml(translate("settings.recovery.no-snapshots", "No snapshots yet"));
 
             return `
                 <div class="fv-recovery-hero">
@@ -445,15 +446,15 @@
                         <div>
                             <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
                             <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
-                            <div class="fv-recovery-copy">${copy}</div>
+                            <div class="fv-recovery-copy">${escapeHtml(copy)}</div>
                         </div>
                         <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
                     </div>
                     <div class="fv-recovery-chip-row">
-                        <span class="fv-recovery-chip">${escapeHtml(`${folderCount} live folder${folderCount === 1 ? '' : 's'}`)}</span>
-                        <span class="fv-recovery-chip">${escapeHtml(`${backupCount} snapshot${backupCount === 1 ? '' : 's'}`)}</span>
-                        ${emptyCount > 0 ? `<span class="fv-recovery-chip is-warning">${escapeHtml(`${emptyCount} empty skipped by Restore Latest`)}</span>` : ''}
-                        <span class="fv-recovery-chip ${scheduleEnabled ? 'is-success' : ''}">${escapeHtml(scheduleEnabled ? `Scheduled every ${interval}h` : 'Manual backups')}</span>
+                        <span class="fv-recovery-chip">${escapeHtml(translate("settings.recovery.live-count", "Current folders: $1", folderCount))}</span>
+                        <span class="fv-recovery-chip">${escapeHtml(translate("settings.recovery.snapshot-count", "Snapshots: $1", backupCount))}</span>
+                        ${emptyCount > 0 ? `<span class="fv-recovery-chip is-warning">${escapeHtml(translate("settings.recovery.empty-count", "Empty snapshots skipped by Restore Latest: $1", emptyCount))}</span>` : ''}
+                        <span class="fv-recovery-chip ${scheduleEnabled ? 'is-success' : ''}">${escapeHtml(scheduleEnabled ? translate("settings.recovery.scheduled-every", "Scheduled every $1 h", interval) : translate("settings.recovery.manual-backups", "Manual backups"))}</span>
                     </div>
                 </div>
                 <div class="fv-recovery-stat-grid">
@@ -469,8 +470,8 @@
                     </div>
                     <div class="fv-recovery-stat-card">
                         <span class="fv-recovery-stat-label">Backup policy</span>
-                        <strong>${escapeHtml(scheduleEnabled ? `Every ${interval}h` : 'Manual only')}</strong>
-                        <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : scheduleCopy)}</span>
+                        <strong>${escapeHtml(scheduleEnabled ? translate("settings.recovery.every-hours", "Every $1 h", interval) : translate("settings.recovery.manual-only", "Manual only"))}</strong>
+                        <span>${escapeHtml(schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : scheduleCopy)}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
                         <span class="fv-recovery-stat-label">What is protected</span>
@@ -498,10 +499,10 @@
             const title = resolvedType === 'docker' ? 'Docker' : 'VM';
             if (!backups.length) {
                 recoverySelectedBackupByType[resolvedType] = '';
-                summaryEl.text('No backup snapshots are available yet.');
+                summaryEl.text(translate("settings.recovery.no-history", "No backup snapshots are available yet."));
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>${escapeHtml(`No ${title} backups yet.`)}</strong>
+                        <strong>${escapeHtml(translate("settings.recovery.none-for-type", "No $1 backups yet.", title))}</strong>
                         <span>Create a manual backup or run the scheduler to build recovery history.</span>
                     </div>
                 `;
@@ -513,16 +514,15 @@
             recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
             const created = formatTimestamp(selectedBackup?.createdAt || '');
             const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
-            const count = getRecoveryBackupFolderCount(selectedBackup);
-            const countLabel = count === null ? 'Folder count unavailable' : `${count} folder${count === 1 ? '' : 's'}`;
+            const countLabel = formatRecoveryBackupFolderCount(selectedBackup);
             const isEmpty = isRecoveryBackupEmpty(selectedBackup);
             const latestName = String(backups[0]?.name || '').trim();
             const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
             const emptyBadge = isEmpty ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : '';
             const optionsHtml = backups.map((backup, index) => {
                 const name = String(backup?.name || '').trim();
-                const emptyLabel = isRecoveryBackupEmpty(backup) ? ' - empty' : '';
-                const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}${emptyLabel}`;
+                const emptyLabel = isRecoveryBackupEmpty(backup) ? translate("settings.recovery.empty-suffix", " - empty") : '';
+                const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? translate("settings.recovery.latest-suffix", " (latest)") : ''}${emptyLabel}`;
                 const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
                 return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
             }).join('');
@@ -547,7 +547,7 @@
                 `;
             }).join('');
 
-            summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Empty snapshots stay visible for audit/history, but Restore Latest skips them.`);
+            summaryEl.text(translate("settings.recovery.history-summary", "Snapshots available: $1. Empty snapshots remain in the history but Restore Latest skips them.", backups.length));
             return `
                 <div class="fv-recovery-history-picker-row">
                     <label for="recovery-backup-entry-select">Choose snapshot</label>
@@ -647,13 +647,13 @@
             listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
             renderRecoveryEnvironmentSummary();
             safetyNote.text(latestRestorable
-                ? `Restore Latest will use ${formatTimestamp(latestRestorable.createdAt || '')}. A safety backup is created automatically before restore when folders exist.`
+                ? translate("settings.recovery.restore-summary", "Restore Latest will use $1 and create a fresh safety backup first when folders exist.", formatTimestamp(latestRestorable.createdAt || ''))
                 : (latest
-                    ? `Only empty ${title} snapshots are available. Create a new backup after folders exist before using Restore Latest.`
-                    : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`));
+                    ? translate("settings.recovery.empty-for-type", "Only empty $1 snapshots are available. Create a new backup after folders exist before using Restore Latest.", title)
+                    : translate("settings.recovery.create-for-type", "No $1 backup exists yet. Create one before making larger changes.", title)));
             policySummary.text(schedule.enabled === true
-                ? `Every ${schedule.intervalHours || 24}h, keep ${schedule.retention || 25}, ${schedule.lastRunAt ? `last run ${formatTimestamp(schedule.lastRunAt)}` : 'waiting for first run'}.`
-                : 'Manual backups only. Enable scheduled backups to keep automatic recovery points.');
+                ? translate("settings.recovery.policy-summary", "Every $1 h; retain $2; $3.", schedule.intervalHours || 24, schedule.retention || 25, schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : translate("settings.recovery.waiting", "Waiting for first run"))
+                : translate("settings.recovery.manual-help", "Manual only. Enable scheduled backups if you want automatic recovery points."));
             syncVisibleRecoveryCompareControls(resolvedType);
             windowRef?.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
         };
@@ -800,13 +800,13 @@
             const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
             const templateCount = templates.length;
             const latestTemplate = getLatestTemplateForType(resolvedType);
-            const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : 'Not saved yet';
+            const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : translate("settings.operations.not-saved", "Not saved yet");
             const headline = templateCount
-                ? `${templateCount} saved template${templateCount === 1 ? '' : 's'} ready for ${folderCount} folder${folderCount === 1 ? '' : 's'}.`
-                : `No saved ${title.toLowerCase()} templates yet.`;
+                ? translate("settings.operations.summary", "Saved templates: $1. Available folders: $2.", templateCount, folderCount)
+                : translate("settings.operations.no-templates", "No saved $1 templates yet.", title);
             const copy = folderCount
-                ? `Run live folder actions or reuse a template across ${folderCount} ${title === 'Docker' ? 'Docker folder' : 'VM folder'}${folderCount === 1 ? '' : 's'} from the same workspace.`
-                : `Create your first ${title === 'Docker' ? 'Docker' : 'VM'} folder to unlock runtime actions and reusable templates here.`;
+                ? translate("settings.operations.available-help", "Run folder actions or reuse templates here. Available $1 folders: $2.", title, folderCount)
+                : translate("settings.operations.create-first", "Create your first $1 folder to use folder actions and reusable templates here.", title);
             return `
                 <div class="fv-operations-overview-head">
                     <div>
@@ -814,18 +814,18 @@
                         <div class="fv-operations-headline">${escapeHtml(headline)}</div>
                         <div class="fv-operations-copy">${escapeHtml(copy)}</div>
                     </div>
-                    <span class="fv-recovery-history-badge">${templateCount > 0 ? 'Ready' : 'Needs first template'}</span>
+                    <span class="fv-recovery-history-badge">${escapeHtml(templateCount > 0 ? translate("common.state.ready", "Ready") : translate("settings.operations.needs-template", "Needs first template"))}</span>
                 </div>
                 <div class="fv-operations-stat-grid">
                     <div class="fv-operations-stat-card">
                         <span class="fv-operations-stat-label">Folders</span>
                         <strong>${escapeHtml(String(folderCount))}</strong>
-                        <span>${escapeHtml(`${title} folders available`)}</span>
+                        <span>${escapeHtml(translate("settings.operations.folders-available", "$1 folders available", title))}</span>
                     </div>
                     <div class="fv-operations-stat-card">
                         <span class="fv-operations-stat-label">Templates</span>
                         <strong>${escapeHtml(String(templateCount))}</strong>
-                        <span>${escapeHtml(templateCount === 1 ? 'Saved preset ready' : 'Saved presets ready')}</span>
+                        <span>${escapeHtml(translate("settings.operations.presets-ready", "Saved presets ready"))}</span>
                     </div>
                     <div class="fv-operations-stat-card">
                         <span class="fv-operations-stat-label">Live actions</span>
@@ -835,7 +835,7 @@
                     <div class="fv-operations-stat-card">
                         <span class="fv-operations-stat-label">Latest template</span>
                         <strong>${escapeHtml(latestLabel)}</strong>
-                        <span>${escapeHtml(latestTemplate?.name || 'Save one from a folder')}</span>
+                        <span ${latestTemplate?.name ? 'data-fvplus-user-content' : ''}>${escapeHtml(latestTemplate?.name || translate("settings.operations.save-help", "Save one from a folder"))}</span>
                     </div>
                 </div>
             `;
@@ -856,7 +856,7 @@
                 return `
                     <div class="fv-recovery-empty-state">
                         <strong>No runtime action preview yet.</strong>
-                        <span>Select a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder and action, then preview the plan before applying it.</span>
+                        <span>${escapeHtml(translate("settings.operations.preview-help", "Select a $1 folder and action, then preview the plan before applying it.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</span>
                     </div>
                 `;
             }
@@ -1002,7 +1002,7 @@
                 selectedOperationsTemplateIdByType[resolvedType] = '';
                 host.html(`
                     <div class="fv-recovery-empty-state">
-                        <strong>No saved ${resolvedType === 'docker' ? 'Docker' : 'VM'} templates yet.</strong>
+                        <strong>${escapeHtml(translate("settings.operations.no-templates", "No saved $1 templates yet.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</strong>
                         <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
                     </div>
                 `);
@@ -1035,7 +1035,7 @@
                 <div class="fv-operations-template-card">
                     <div class="fv-operations-template-head">
                         <div>
-                            <div class="fv-operations-template-title">${escapeHtml(templateName)}</div>
+                            <div class="fv-operations-template-title" data-fvplus-user-content>${escapeHtml(templateName)}</div>
                             <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
                         </div>
                         <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>

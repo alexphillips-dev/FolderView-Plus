@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Відкрити консоль",
     "docker.preview.view-logs": "Переглянути журнали",
     "docker.provider.hybrid-label": "Застарілий веб-інтерфейс Unraid із даними GraphQL",
-    "docker.health.api-summary": "Docker API: $1 оновлення$2, $3 готовий до перебудови, $4 неактивний, $5 конфлікт портів$6",
+    "docker.health.api-summary": "Docker API: оновлення: $1, готовий до перебудови: $2, втратив назву: $3, конфлікти портів: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Список хостів",
     "docker.views.command": "Команда",

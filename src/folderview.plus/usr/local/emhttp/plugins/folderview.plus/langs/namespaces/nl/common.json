@@ -11,5 +11,9 @@
     "common.cancel": "Annuleren",
     "common.confirm": "Bevestigen",
     "common.confirm-type": "Typ om te bevestigen",
-    "common.loading": "Laden…"
+    "common.loading": "Laden…",
+    "common.state.ready": "Klaar",
+    "common.actions.clear": "Wissen",
+    "common.state.all-good": "allemaal goed",
+    "common.health.folder-summary": "Mapstatus: $1 gestart | $2 gepauzeerd | $3 gestopt"
 }

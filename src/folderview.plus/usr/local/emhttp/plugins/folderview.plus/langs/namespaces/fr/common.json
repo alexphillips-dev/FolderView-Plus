@@ -11,5 +11,9 @@
     "common.cancel": "Annuler",
     "common.confirm": "Confirmer",
     "common.confirm-type": "Saisissez pour confirmer",
-    "common.loading": "Chargement…"
+    "common.loading": "Chargement…",
+    "common.state.ready": "Prêt",
+    "common.actions.clear": "Effacer",
+    "common.state.all-good": "tout va bien",
+    "common.health.folder-summary": "État du dossier : $1 démarré | $2 en pause | $3 arrêté"
 }

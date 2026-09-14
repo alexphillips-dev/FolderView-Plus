@@ -11,5 +11,9 @@
     "common.cancel": "取消",
     "common.confirm": "確認",
     "common.confirm-type": "輸入以確認",
-    "common.loading": "載入中..."
+    "common.loading": "載入中...",
+    "common.state.ready": "準備好",
+    "common.actions.clear": "清除",
+    "common.state.all-good": "一切都好",
+    "common.health.folder-summary": "資料夾運作狀況：$1 已啟動 | $2 暫停 | $3 已停止"
 }

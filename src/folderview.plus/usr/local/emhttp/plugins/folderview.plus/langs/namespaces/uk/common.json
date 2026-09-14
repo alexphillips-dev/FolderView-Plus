@@ -11,5 +11,9 @@
     "common.cancel": "Скасувати",
     "common.confirm": "Підтвердити",
     "common.confirm-type": "Введіть для підтвердження",
-    "common.loading": "Завантаження…"
+    "common.loading": "Завантаження…",
+    "common.state.ready": "Готовий",
+    "common.actions.clear": "Очистити",
+    "common.state.all-good": "все добре",
+    "common.health.folder-summary": "Справність папки: $1 розпочато | $2 призупинено | $3 зупинено"
 }

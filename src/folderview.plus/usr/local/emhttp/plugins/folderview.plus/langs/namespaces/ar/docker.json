@@ -27,7 +27,7 @@
     "docker.preview.open-console": "فتح وحدة التحكم",
     "docker.preview.view-logs": "عرض السجلات",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI مع بيانات GraphQL",
-    "docker.health.api-summary": "واجهة برمجة تطبيقات Docker: $1 تحديث$2، $3 جاهز لإعادة البناء، $4 معزول، $5 تعارض المنفذ$6",
+    "docker.health.api-summary": "Docker API: التحديثات: $1، جاهزة لإعادة البناء: $2، معزولة: $3، تعارضات المنافذ: $4",
     "docker.views.folderview": "عرض المجلد",
     "docker.views.host": "قائمة المضيفين",
     "docker.views.command": "القيادة",

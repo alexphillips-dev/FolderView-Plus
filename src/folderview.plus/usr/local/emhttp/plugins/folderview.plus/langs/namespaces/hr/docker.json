@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Otvorena konzola",
     "docker.preview.view-logs": "Pregledaj zapisnike",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI s GraphQL podacima",
-    "docker.health.api-summary": "Docker API: $1 ažuriranje$2, $3 spreman za ponovnu izgradnju, $4 napušten, $5 sukob priključaka$6",
+    "docker.health.api-summary": "Docker API: ažuriranja: $1, spreman za ponovnu izgradnju: $2, napušteno: $3, sukobi priključaka: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Popis domaćina",
     "docker.views.command": "Zapovjedi",

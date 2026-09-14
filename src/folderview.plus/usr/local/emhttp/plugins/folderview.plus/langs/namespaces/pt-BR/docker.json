@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Abrir console",
     "docker.preview.view-logs": "Ver registros",
     "docker.provider.hybrid-label": "WebGUI Unraid legado com dados GraphQL",
-    "docker.health.api-summary": "API Docker: $1 atualização$2, $3 pronto para reconstrução, $4 órfão, $5 conflito de porta$6",
+    "docker.health.api-summary": "API Docker: atualizações: $1, pronto para reconstruir: $2, órfão: $3, conflitos de porta: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",

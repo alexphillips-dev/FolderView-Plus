@@ -27,7 +27,7 @@
     "docker.preview.open-console": "কনসোল খুলুন",
     "docker.preview.view-logs": "লগ দেখুন",
     "docker.provider.hybrid-label": "GraphQL ডেটা সহ লিগ্যাসি Unraid WebGUI",
-    "docker.health.api-summary": "ডকার API: $1 update$2, $3 পুনর্নির্মাণ-প্রস্তুত, $4 অনাথ, $5 পোর্ট দ্বন্দ্ব$6",
+    "docker.health.api-summary": "ডকার API: আপডেট: $1, পুনর্নির্মাণের জন্য প্রস্তুত: $2, অনাথ: $3, পোর্ট বিরোধ: $4",
     "docker.views.folderview": "ফোল্ডারভিউ",
     "docker.views.host": "হোস্ট তালিকা",
     "docker.views.command": "আদেশ",

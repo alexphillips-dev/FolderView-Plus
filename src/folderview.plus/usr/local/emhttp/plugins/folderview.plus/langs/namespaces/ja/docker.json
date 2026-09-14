@@ -27,7 +27,7 @@
     "docker.preview.open-console": "コンソールを開く",
     "docker.preview.view-logs": "ログを表示する",
     "docker.provider.hybrid-label": "GraphQL データを使用したレガシー Unraid WebGUI",
-    "docker.health.api-summary": "Docker API: $1 update$2、$3 リビルド準備完了、$4 孤立、$5 ポート競合$6",
+    "docker.health.api-summary": "Docker API: 更新: $1、再構築の準備完了: $2、孤立: $3、ポートの競合: $4",
     "docker.views.folderview": "フォルダビュー",
     "docker.views.host": "ホストリスト",
     "docker.views.command": "コマンド",

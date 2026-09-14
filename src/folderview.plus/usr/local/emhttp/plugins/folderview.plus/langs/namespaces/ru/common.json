@@ -11,5 +11,9 @@
     "common.cancel": "Отмена",
     "common.confirm": "Подтвердить",
     "common.confirm-type": "Введите для подтверждения",
-    "common.loading": "Загрузка…"
+    "common.loading": "Загрузка…",
+    "common.state.ready": "Готово",
+    "common.actions.clear": "Очистить",
+    "common.state.all-good": "все хорошо",
+    "common.health.folder-summary": "Состояние папки: $1 запущено | $2 приостановлено | $3 остановлено"
 }

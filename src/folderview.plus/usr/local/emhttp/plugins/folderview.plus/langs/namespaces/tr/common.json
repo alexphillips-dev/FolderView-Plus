@@ -11,5 +11,9 @@
     "common.cancel": "İptal",
     "common.confirm": "Onayla",
     "common.confirm-type": "Onaylamak için yazın",
-    "common.loading": "Yükleniyor…"
+    "common.loading": "Yükleniyor…",
+    "common.state.ready": "Hazır",
+    "common.actions.clear": "Temizle",
+    "common.state.all-good": "her şey yolunda",
+    "common.health.folder-summary": "Klasör sağlığı: $1 başlatıldı | $2 duraklatıldı | $3 durduruldu"
 }

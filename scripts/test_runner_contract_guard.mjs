@@ -29,7 +29,7 @@ for (const entry of [...contract.entrypoints, ...contract.modules]) {
 const fixture = contract.intent.fixture;
 const fixtureCaseSource = fixture.files.map(read).join('\n');
 const fixtureAllSource = [...fixture.supportFiles, ...fixture.files].map(read).join('\n');
-const titles = [...fixtureCaseSource.matchAll(/^test\('([^']+)/gm)].map((match) => match[1]);
+const titles = [...fixtureCaseSource.matchAll(/^\s*test\('([^']+)/gm)].map((match) => match[1]);
 assert.equal(titles.length, fixture.testCount, 'Fixture test count changed.');
 assert.equal(count(fixtureAllSource, /\bassert\./g), fixture.assertionCount, 'Fixture assertion count changed.');
 assert.equal(count(fixtureAllSource, /\bpage\.evaluate/g), fixture.pageEvaluateCount, 'Fixture page-evaluate count changed.');

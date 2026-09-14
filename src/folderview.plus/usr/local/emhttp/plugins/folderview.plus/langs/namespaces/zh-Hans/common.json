@@ -11,5 +11,9 @@
     "common.cancel": "取消",
     "common.confirm": "确认",
     "common.confirm-type": "输入以确认",
-    "common.loading": "正在加载…"
+    "common.loading": "正在加载…",
+    "common.state.ready": "准备好",
+    "common.actions.clear": "清除",
+    "common.state.all-good": "一切都好",
+    "common.health.folder-summary": "文件夹运行状况：$1 已启动 | $2 暂停 | $3 已停止"
 }

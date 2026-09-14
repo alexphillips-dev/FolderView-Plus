@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Atveriet konsoli",
     "docker.preview.view-logs": "Skatīt žurnālus",
     "docker.provider.hybrid-label": "Mantotais Unraid WebGUI ar GraphQL datiem",
-    "docker.health.api-summary": "Docker API: $1 atjauninājums$2, $3 gatavs pārbūvei, $4 bāreņi, $5 portu konflikts$6",
+    "docker.health.api-summary": "Docker API: atjauninājumi: $1, gatavs pārbūvei: $2, bāreņi: $3, portu konflikti: $4",
     "docker.views.folderview": "Mapes skats",
     "docker.views.host": "Saimniekdatoru saraksts",
     "docker.views.command": "Pavēli",

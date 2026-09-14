@@ -11,5 +11,9 @@
     "common.cancel": "Zrušit",
     "common.confirm": "Potvrdit",
     "common.confirm-type": "Pro potvrzení napište",
-    "common.loading": "Načítání…"
+    "common.loading": "Načítání…",
+    "common.state.ready": "Připraveno",
+    "common.actions.clear": "Vymazat",
+    "common.state.all-good": "vše dobré",
+    "common.health.folder-summary": "Stav složky: $1 spuštěno | $2 pozastaveno | $3 zastaveno"
 }

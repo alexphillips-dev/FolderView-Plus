@@ -11,5 +11,9 @@
     "common.cancel": "Atcelt",
     "common.confirm": "Apstiprināt",
     "common.confirm-type": "Ievadiet, lai apstiprinātu",
-    "common.loading": "Notiek ielāde…"
+    "common.loading": "Notiek ielāde…",
+    "common.state.ready": "Gatavs",
+    "common.actions.clear": "Notīrīt",
+    "common.state.all-good": "viss labi",
+    "common.health.folder-summary": "Mapes stāvoklis: $1 sākts | $2 apturēts | $3 apturēta"
 }

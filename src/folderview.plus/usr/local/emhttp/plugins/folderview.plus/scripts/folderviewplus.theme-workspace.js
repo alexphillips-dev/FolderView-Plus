@@ -57,7 +57,7 @@
         const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : (async () => ({}));
         const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : (async () => ({}));
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
-        const translate = deps.translate || ((key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
+        const translate = deps.translate || ((key, fallback, ...params) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match)));
 
         let workspace = normalizeWorkspace({});
         let pendingScan = null;
@@ -121,13 +121,13 @@
             if (bytes >= 1024) {
                 return `${Math.round(bytes / 102.4) / 10} KB`;
             }
-            return `${bytes} bytes`;
+            return translate("settings.theme.bytes", "$1 bytes", bytes);
         };
 
         const formatDateShort = (value) => {
             const raw = String(value || '').trim();
             if (!raw) {
-                return 'Never';
+                return translate("settings.theme.never", "Never");
             }
             const date = new Date(raw);
             if (Number.isNaN(date.getTime())) {
@@ -141,6 +141,10 @@
             });
         };
 
+        const profileLabel = (profile) => profile.id === 'default' && profile.name === 'Default profile'
+            ? translate("settings.theme.default-profile", "Default profile") : profile.name;
+        const scopeLabel = (scope) => scope === 'global' ? translate("settings.theme.scope-global", "Global")
+            : ({ docker: 'Docker', vm: 'VMs', dashboard: 'Dashboard' }[scope] || scope);
         const getActiveTheme = () => workspace.themes.find((theme) => theme.id === workspace.activeThemeId) || null;
 
         const renderProfileControls = () => {
@@ -152,7 +156,7 @@
             const profileSelect = documentRef.getElementById('fv-theme-profile-select');
             const scopeSelect = documentRef.getElementById('fv-theme-profile-scope');
             if (profileSelect) {
-                profileSelect.innerHTML = workspace.profiles.map((profile) => `<option value="${escapeHtml(profile.id)}" ${profile.id === workspace.activeProfileId ? 'selected' : ''}>${escapeHtml(profile.name)}</option>`).join('');
+                profileSelect.innerHTML = workspace.profiles.map((profile) => `<option value="${escapeHtml(profile.id)}" ${profile.id === workspace.activeProfileId ? 'selected' : ''} ${profile.id === 'default' && profile.name === 'Default profile' ? '' : 'data-fvplus-user-content'}>${escapeHtml(profileLabel(profile))}</option>`).join('');
             }
             if (scopeSelect) scopeSelect.value = activeScope;
         };
@@ -171,16 +175,16 @@
             const activeFiles = Array.isArray(activeTheme?.files) ? activeTheme.files : [];
             const targets = ['docker', 'vm', 'dashboard'].filter((target) => activeFiles.some((file) => Array.isArray(file.tabs) && file.tabs.includes(target)));
             host.innerHTML = [
-                ['Active theme', activeTheme ? (activeTheme.name || activeTheme.id) : 'None'],
-                ['Profile / scope', `${getActiveProfile().name} / ${activeScope}`],
-                ['Managed themes', String(workspace.themes.length)],
-                ['Last checked', formatDateShort(workspace.lastCheckedAt)],
-                ['Customization', `${overrideCount} tokens, ${formatBytes(customCssBytes)} CSS`],
-                ['Output targets', targets.length ? targets.join(', ') : 'Token/custom layer only']
-            ].map(([label, value]) => `
+                [translate("settings.theme.active-theme", "Active theme"), activeTheme ? (activeTheme.name || activeTheme.id) : translate("settings.theme.none", "None"), Boolean(activeTheme)],
+                [translate("settings.theme.profile-scope", "Profile / scope"), `${profileLabel(getActiveProfile())} / ${scopeLabel(activeScope)}`, getActiveProfile().id !== 'default' || getActiveProfile().name !== 'Default profile'],
+                [translate("settings.theme.managed-themes", "Managed themes"), String(workspace.themes.length)],
+                [translate("settings.theme.last-checked", "Last checked"), formatDateShort(workspace.lastCheckedAt)],
+                [translate("settings.theme.customization", "Customization"), translate("settings.theme.customization-count", "Tokens: $1; CSS: $2", overrideCount, formatBytes(customCssBytes))],
+                [translate("settings.theme.output-targets", "Output targets"), targets.length ? targets.join(', ') : translate("settings.theme.custom-layer-only", "Token/custom layer only")]
+            ].map(([label, value, userContent]) => `
                 <div class="fv-theme-summary-card">
                     <span>${escapeHtml(label)}</span>
-                    <strong title="${escapeHtml(value)}">${escapeHtml(value)}</strong>
+                    <strong ${userContent ? 'data-fvplus-user-content' : ''} title="${escapeHtml(value)}">${escapeHtml(value)}</strong>
                 </div>
             `).join('');
         };
@@ -240,10 +244,10 @@
                     <label class="fv-theme-variable-row${hasOverride ? ' has-override' : ''}">
                         <span class="fv-theme-variable-copy">
                             <span>${escapeHtml(definition.label)}</span>
-                            <code>${escapeHtml(definition.token)}${hasOverride ? ' · override' : ' · default'}</code>
+                            <code>${escapeHtml(definition.token)}${escapeHtml(hasOverride ? translate("settings.theme.override-suffix", " · customized") : translate("settings.theme.default-suffix", " · default"))}</code>
                         </span>
                         <input type="color" data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback || '')}" value="${escapeHtml(value)}">
-                        <button type="button" class="fv-theme-token-reset" data-fv-theme-token-reset="${escapeHtml(definition.token)}" title="Reset ${escapeHtml(definition.label)}"><i class="fa fa-undo"></i></button>
+                        <button type="button" class="fv-theme-token-reset" data-fv-theme-token-reset="${escapeHtml(definition.token)}" title="${escapeHtml(translate("settings.theme.reset-token", "Reset $1", definition.label))}"><i class="fa fa-undo"></i></button>
                     </label>
                 `;
             }).join('');
@@ -276,7 +280,7 @@
                     <div class="fv-theme-workspace-entry${isActive ? ' is-active' : ''}">
                         <div class="fv-theme-workspace-entry-head">
                             <div>
-                                <div class="fv-theme-workspace-entry-title">${escapeHtml(theme.name || theme.id)}</div>
+                                <div class="fv-theme-workspace-entry-title" data-fvplus-user-content>${escapeHtml(theme.name || theme.id)}</div>
                                 <div class="fv-theme-workspace-entry-meta">${escapeHtml(sourceSummary)} · ${escapeHtml(filesSummary)}${theme.updateAvailable ? ' · update available' : ''}</div>
                             </div>
                             <span class="fv-rules-status-chip ${isActive ? 'is-healthy' : 'is-idle'}">${escapeHtml(isActive ? 'Active' : 'Inactive')}</span>
@@ -322,8 +326,8 @@
             applyPreviewCss();
             const activeTheme = getActiveTheme();
             setStatus(activeTheme
-                ? `Managed theme active: ${activeTheme.name || activeTheme.id}.`
-                : 'No managed theme is currently active.');
+                ? translate("settings.theme.active-status", "Managed theme active: $1.", activeTheme.name || activeTheme.id)
+                : translate("settings.theme.no-active-theme", "No managed theme is currently active."));
         };
 
         const setWorkspace = (nextWorkspace) => {

@@ -10,7 +10,7 @@
     'use strict';
 
     const createApi = (deps = {}) => {
-        const translate = deps.translate || ((key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
+        const translate = deps.translate || ((key, fallback, ...params) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match)));
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
@@ -35,9 +35,9 @@
         };
 
         const modeCopy = (plan) => {
-            if (plan.mode === 'unmanaged') return ['Unraid owns the start order.', 'FolderView Plus will preview the native order but will not rewrite the Docker autostart file.'];
-            if (plan.mode === 'custom-batches') return ['Custom batches are active.', 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.'];
-            return ['Docker page order is active.', 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'];
+            if (plan.mode === 'unmanaged') return [translate("settings.start-order.unmanaged-heading", "Unraid owns the start order."), translate("settings.start-order.unmanaged-copy", "FolderView Plus will preview the native order but will not rewrite the Docker autostart file.")];
+            if (plan.mode === 'custom-batches') return [translate("settings.start-order.batch-heading", "Custom batches are active."), translate("settings.start-order.batch-copy", "Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.")];
+            return [translate("settings.start-order.page-heading", "Docker page order is active."), translate("settings.start-order.page-copy", "Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.")];
         };
 
         const buildControlsHtml = (plan) => {
@@ -84,7 +84,7 @@
         const buildSequenceHtml = (preview, infoByName) => {
             const sequence = Array.isArray(preview?.sequence) ? preview.sequence : [];
             if (!sequence.length) return `<div class="fv-recovery-empty-state"><strong>${startOrderT('settings.start-order.none', 'No autostart containers detected.')}</strong><span>${startOrderT('settings.start-order.enable-autostart-help', 'Enable Docker autostart for a container to include it in the sequence.')}</span></div>`;
-            return `<div class="fv-start-order-table-wrap"><div class="fv-start-order-table"><div class="fv-start-order-table-head"><span>Order</span><span>Container</span><span>${startOrderT('settings.start-order.wait', 'Wait time')}</span><span>Enabled</span><span aria-hidden="true"></span></div><ol class="fv-docker-start-order-sequence">${sequence.map((entry, index) => {
+            return `<div class="fv-start-order-table-wrap"><div class="fv-start-order-table"><div class="fv-start-order-table-head"><span>${escapeHtml(translate("settings.start-order.order-column", "Order"))}</span><span>${escapeHtml(translate("settings.start-order.container-column", "Container"))}</span><span>${startOrderT('settings.start-order.wait', 'Wait time')}</span><span>Enabled</span><span aria-hidden="true"></span></div><ol class="fv-docker-start-order-sequence">${sequence.map((entry, index) => {
                 const name = String(entry?.name || '');
                 const encoded = encodeName(name);
                 return `<li><span class="fv-start-order-number">${index + 1}</span><span class="fv-start-order-container"><img src="${escapeHtml(rowIcon(infoByName?.[name]))}" alt="" data-fv-onerror="this.src='${iconFallback}'"><strong>${escapeHtml(name)}</strong>${entry?.batchId ? `<small>${escapeHtml(entry.batchId)}</small>` : ''}</span>${buildWaitControl(entry)}<label class="fv-start-order-switch"><input type="checkbox" checked aria-label="Autostart enabled for ${escapeHtml(name)}" data-fv-onchange="toggleDockerStartOrderAutostart('${encoded}', this.checked)"><span aria-hidden="true"></span></label><span class="fv-start-order-overflow" aria-hidden="true"><i class="fa fa-ellipsis-v"></i></span></li>`;
@@ -99,7 +99,7 @@
             const warnings = Array.isArray(preview?.warnings) ? preview.warnings : [];
             const stale = Array.isArray(preview?.staleAutostart) ? preview.staleAutostart : [];
             const warningHtml = [...warnings, ...stale.map((name) => `Stale autostart entry will be removed: ${name}`)].map((warning) => `<div class="fv-docker-start-order-warning"><i class="fa fa-exclamation-triangle"></i> ${escapeHtml(warning)}</div>`).join('');
-            return `<div class="fv-docker-start-order-preview-head"><strong><i class="fa fa-play" aria-hidden="true"></i> ${startOrderT('settings.start-order.preview-sequence', 'Preview autostart sequence')}</strong><span class="fv-docker-start-order-count">${Number(preview?.autostartCount) || 0} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span></div>${preview?.managed === false ? '<div class="fv-docker-start-order-warning"><i class="fa fa-lock"></i> Unmanaged mode: this sequence is read-only and FolderView Plus will not rewrite it.</div>' : ''}${warningHtml}${buildSequenceHtml(preview, options.infoByName || {})}${buildDisabledHtml(options.disabledNames)}<footer class="fv-start-order-notice"><i class="fa fa-info-circle" aria-hidden="true"></i><span>${startOrderT('settings.start-order.notice', 'Changes take effect on the next Docker service start (e.g., server reboot). Use “Preview order” to see the current sequence.')}</span></footer>`;
+            return `<div class="fv-docker-start-order-preview-head"><strong><i class="fa fa-play" aria-hidden="true"></i> ${startOrderT('settings.start-order.preview-sequence', 'Preview autostart sequence')}</strong><span class="fv-docker-start-order-count">${escapeHtml(translate("settings.start-order.counts", "Autostart containers: $1; containers detected: $2", Number(preview?.autostartCount) || 0, Number(preview?.containerCount) || 0))}</span></div>${preview?.managed === false ? '<div class="fv-docker-start-order-warning"><i class="fa fa-lock"></i> Unmanaged mode: this sequence is read-only and FolderView Plus will not rewrite it.</div>' : ''}${warningHtml}${buildSequenceHtml(preview, options.infoByName || {})}${buildDisabledHtml(options.disabledNames)}<footer class="fv-start-order-notice"><i class="fa fa-info-circle" aria-hidden="true"></i><span>${startOrderT('settings.start-order.notice', 'Changes take effect on the next Docker service start (e.g., server reboot). Use “Preview order” to see the current sequence.')}</span></footer>`;
         };
 
         return Object.freeze({ buildHeaderSummaryHtml, buildControlsHtml, buildBatchesHtml, buildPreviewPlaceholderHtml, buildPreviewHtml });

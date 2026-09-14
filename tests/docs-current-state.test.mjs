@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const root = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -58,12 +59,9 @@ test('performance profile metadata matches Settings, runtime, and architecture d
 });
 
 test('Advanced workspace names come from one current-state registry and match runtime labels', () => {
-    const block = settingsSections.match(/const ADVANCED_GROUP_LABELS\s*=\s*\{([\s\S]*?)\};/);
-    assert.ok(block);
-    const runtimeLabels = Array.from(block[1].matchAll(/([a-z][a-z0-9_-]*)\s*:\s*'([^']+)'/g), (match) => ({
-        id: match[1],
-        label: match[2]
-    }));
+    const window = {};
+    vm.runInNewContext(settingsSections, { window });
+    const runtimeLabels = Object.entries(window.ADVANCED_GROUP_LABELS).map(([id, label]) => ({ id, label }));
     assert.deepEqual(runtimeLabels, state.featureNames.advancedWorkspaces);
     for (const workspace of runtimeLabels) {
         assert.ok(readme.includes(`| ${workspace.label} |`));

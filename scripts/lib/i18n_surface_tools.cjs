@@ -53,6 +53,15 @@ const parseOpeningTag = (source, index) => {
 
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 
+const parseTextContainer = (source, index) => {
+    const opening = parseOpeningTag(source, index);
+    if (opening) return opening;
+    const prefix = source.slice(Math.max(0, index - 2000), index + 1);
+    // Button labels often follow an icon's closing tag instead of the opening button.
+    const trailingIcon = prefix.match(/(<(button|a|label)\b[^<>]*>)(?:\s*<(i|span|svg)\b[^<>]*>(?:(?!<\/?(?:button|a|label)\b)[\s\S])*?<\/\3>\s*)+$/i);
+    return trailingIcon ? { source: trailingIcon[1], tag: trailingIcon[2].toLowerCase() } : null;
+};
+
 const extractFileCandidates = (source, relativePath = '') => {
     const rows = [];
     const add = (value, kind, index, attribute = '') => {
@@ -71,14 +80,16 @@ const extractFileCandidates = (source, relativePath = '') => {
 
     const textRegex = />([^<>{}`$]*[A-Za-z][^<>{}`$]*)</g;
     while ((match = textRegex.exec(source)) !== null) {
-        const tag = parseOpeningTag(source, match.index);
+        const tag = parseTextContainer(source, match.index);
         if (!tag || EXCLUDED_TAGS.has(tag.tag) || /\b(?:data-i18n|data-i18n-ignore)\b/.test(tag.source)) continue;
         add(match[1], 'text', match.index);
     }
 
     const writerPatterns = [
         /\.(?:text|html)\(\s*'((?:\\.|[^'\\])*)'\s*\)/g,
-        /\.(?:text|html)\(\s*"((?:\\.|[^"\\])*)"\s*\)/g
+        /\.(?:text|html)\(\s*"((?:\\.|[^"\\])*)"\s*\)/g,
+        /\.(?:textContent|innerText)\s*=\s*'((?:\\.|[^'\\])*)'\s*;/g,
+        /\.(?:textContent|innerText)\s*=\s*"((?:\\.|[^"\\])*)"\s*;/g
     ];
     for (const regex of writerPatterns) {
         while ((match = regex.exec(source)) !== null) {

@@ -11,5 +11,9 @@
     "common.cancel": "Cancel·la",
     "common.confirm": "Confirmeu",
     "common.confirm-type": "Escriviu per confirmar",
-    "common.loading": "S'està carregant…"
+    "common.loading": "S'està carregant…",
+    "common.state.ready": "A punt",
+    "common.actions.clear": "Esborra",
+    "common.state.all-good": "tot bo",
+    "common.health.folder-summary": "Estat de la carpeta: $1 començat | $2 en pausa | $3 s'ha aturat"
 }

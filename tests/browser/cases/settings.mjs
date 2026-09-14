@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
+import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
-registerDiagnosticsOrphanFixtureCases({ test, baseUrl });
+registerLocalizationWorkspaceFixtureCases({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1180, height: 720 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });

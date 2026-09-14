@@ -11,5 +11,9 @@
     "common.cancel": "Anulează",
     "common.confirm": "Confirmă",
     "common.confirm-type": "Tastați pentru confirmare",
-    "common.loading": "Se încarcă…"
+    "common.loading": "Se încarcă…",
+    "common.state.ready": "Gata",
+    "common.actions.clear": "Șterge",
+    "common.state.all-good": "toate bune",
+    "common.health.folder-summary": "Sănătatea dosarului: $1 a început | $2 întrerupt | $3 sa oprit"
 }

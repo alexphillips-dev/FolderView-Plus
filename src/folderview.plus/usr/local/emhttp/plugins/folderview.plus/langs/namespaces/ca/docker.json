@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Consola oberta",
     "docker.preview.view-logs": "Veure registres",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI amb dades de GraphQL",
-    "docker.health.api-summary": "API Docker: $1 actualització$2, $3 preparat per a la reconstrucció, $4 orfe, $5 conflicte de port$6",
+    "docker.health.api-summary": "API de Docker: actualitzacions: $1, llest per reconstruir: $2, orfe: $3, conflictes de ports: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Llista d'amfitrions",
     "docker.views.command": "Comandament",

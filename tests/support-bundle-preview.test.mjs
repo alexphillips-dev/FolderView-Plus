@@ -75,8 +75,8 @@ test('support bundle preview shows sanitized runtime page evidence without Dashb
         }
     });
     assert.match(html, /Docker page/);
-    assert.match(html, /4 folders/);
-    assert.match(html, /1 spinning controls/);
+    assert.match(html, /folders: 4/);
+    assert.match(html, /loading controls: 1/);
     assert.match(html, /is-attention/);
     assert.doesNotMatch(html, /is-missing/);
 });

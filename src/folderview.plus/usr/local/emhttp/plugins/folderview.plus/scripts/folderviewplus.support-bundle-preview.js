@@ -85,6 +85,22 @@
                 fallback || key
             );
         };
+        const redactionLabels = {
+            hashedFields: translate("diagnostics.support.hashed", "Hashed"),
+            maskedFields: translate("diagnostics.support.masked", "Masked"),
+            omittedFields: translate("diagnostics.support.omitted", "Omitted"),
+            truncatedFields: translate("diagnostics.support.truncated", "Truncated")
+        };
+        const captureLabel = (value) => ({
+            fresh: translate("diagnostics.capture.fresh", "fresh"),
+            stale: translate("diagnostics.capture.stale", "stale"),
+            healthy: translate("diagnostics.capture.healthy", "healthy"),
+            warning: translate("diagnostics.capture.warning", "needs review"),
+            error: translate("diagnostics.capture.error", "error"),
+            desktop: translate("diagnostics.capture.desktop", "desktop"),
+            tablet: translate("diagnostics.capture.tablet", "tablet"),
+            mobile: translate("diagnostics.capture.mobile", "mobile")
+        }[value] || translate("diagnostics.capture.unknown", "unknown"));
         const svgIcon = typeof deps.svgIcon === 'function'
             ? deps.svgIcon
             : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
@@ -155,7 +171,7 @@
                         <strong>${escapeHtml(type === 'vm'
                             ? translate('diagnostics.capture.vm', 'VM Dashboard')
                             : translate('diagnostics.capture.docker', 'Docker Dashboard'))}</strong>
-                        <span>${escapeHtml(`${freshness}; ${formatAge(value.ageMs)}; ${viewportLabel}; ${touchLabel}; render ${verdict}.`)}</span>
+                        <span>${escapeHtml(translate("diagnostics.capture.visual-summary", "$1; $2; $3; $4; rendering: $5.", captureLabel(freshness), formatAge(value.ageMs), viewportLabel, touchLabel, captureLabel(verdict)))}</span>
                     </div>
                 `;
             });
@@ -164,8 +180,8 @@
                 const attention = state.spinningControls > 0 || state.errorIndicators > 0 || state.horizontalOverflow === true;
                 return `
                     <div class="fv-support-bundle-capture-row ${attention ? 'is-attention' : 'is-ready'}">
-                        <strong>${escapeHtml(`${surface === 'vm' ? 'VM' : (surface === 'docker' ? 'Docker' : 'Dashboard')} page`)}</strong>
-                        <span>${escapeHtml(`${value.viewport?.class || 'unknown'} viewport; ${state.folderRows || 0} folders; ${state.visibleMembers || 0} members; ${state.spinningControls || 0} spinning controls.`)}</span>
+                        <strong>${escapeHtml(translate("diagnostics.capture.page", "$1 page", surface === 'vm' ? 'VM' : (surface === 'docker' ? 'Docker' : 'Dashboard')))}</strong>
+                        <span>${escapeHtml(translate("diagnostics.capture.runtime-summary", "Viewport: $1; folders: $2; members: $3; loading controls: $4.", captureLabel(value.viewport?.class), state.folderRows || 0, state.visibleMembers || 0, state.spinningControls || 0))}</span>
                     </div>`;
             });
             const rows = [...visualRows, ...runtimeRows].join('');
@@ -198,7 +214,7 @@
             );
             return Object.entries(SUPPORT_BUNDLE_PREVIEW_SECTIONS).map(([sectionKey, sectionConfig]) => {
                 const hasObjectPayload = hasSectionPayload(normalized, sectionKey);
-                const statusLabel = hasObjectPayload ? 'Included' : 'Pending';
+                const statusLabel = hasObjectPayload ? translate("diagnostics.support.included", "Included") : translate("diagnostics.support.pending", "Pending");
                 const statusClass = hasObjectPayload ? 'is-ready' : 'is-pending';
                 return `
                     <article class="fv-support-bundle-section-card ${statusClass}">
@@ -243,7 +259,7 @@
                 <article class="fv-support-bundle-overview">
                     <div class="fv-diagnostics-support-card-head">
                         <div>${svgIcon('support')}<strong>${escapeHtml(translate('diagnostics.support.overview-title', 'Support bundle overview'))}</strong></div>
-                        <span class="fv-diagnostics-status-badge ${privacyMode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(privacyMode === 'full' ? 'Full mode' : 'Sanitized')}</span>
+                        <span class="fv-diagnostics-status-badge ${privacyMode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(privacyMode === 'full' ? translate("diagnostics.support.full-mode", "Full mode") : translate("diagnostics.support.sanitized", "Sanitized"))}</span>
                     </div>
                     <p>${escapeHtml(description)}</p>
                     <div class="fv-support-bundle-preview-meta">
@@ -277,17 +293,17 @@
                 || (mode === 'full' ? 'none' : 'per-bundle')
             ).trim() || 'per-bundle';
             const previewOnly = manifest.previewOnly === true || normalized.bundleMeta?.previewOnly === true;
-            const redactionItems = Object.entries(SUPPORT_BUNDLE_REDACTION_LABELS).map(([fieldKey, label]) => {
+            const redactionItems = Object.entries(redactionLabels).map(([fieldKey, label]) => {
                 const badgeTone = String(fieldKey).replace(/Fields$/, '').toLowerCase();
                 const count = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].length : 0;
                 const examples = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].slice(0, 3) : [];
-                const stateCopy = previewOnly ? 'on export' : String(count);
+                const stateCopy = previewOnly ? translate("diagnostics.support.on-export", "on export") : String(count);
                 if (previewOnly) {
-                    return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(`${label} fields are calculated when the export is created.`)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
+                    return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(translate("diagnostics.support.export-calculation", "$1 fields are calculated when the export is created.", label))}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
                 }
                 const title = examples.length
                     ? `${label}: ${examples.join(', ')}${count > examples.length ? ', ...' : ''}`
-                    : `${label}: none reported`;
+                    : translate("diagnostics.support.none-reported", "$1: none reported", label);
                 return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(title)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
             }).join('');
             const modeCopy = mode === 'full'
@@ -298,14 +314,14 @@
                 ['masked', 'maskedFields', translate('diagnostics.support.data-handling-masked', 'Partial context remains while sensitive content is obscured.')],
                 ['omitted', 'omittedFields', translate('diagnostics.support.data-handling-omitted', 'Unneeded diagnostic fields are removed.')],
                 ['truncated', 'truncatedFields', translate('diagnostics.support.data-handling-truncated', 'Long values or lists are shortened and marked incomplete.')]
-            ].map(([tone, labelKey, description]) => `<div class="is-${tone}"><dt>${escapeHtml(SUPPORT_BUNDLE_REDACTION_LABELS[labelKey])}</dt><dd>${escapeHtml(description)}</dd></div>`).join('');
+            ].map(([tone, labelKey, description]) => `<div class="is-${tone}"><dt>${escapeHtml(redactionLabels[labelKey])}</dt><dd>${escapeHtml(description)}</dd></div>`).join('');
             const saltCopy = mode === 'full'
                 ? translate('diagnostics.support.data-handling-full-scope', 'Full mode does not hash fields; large collections can still be shortened.')
                 : translate('diagnostics.support.data-handling-salt', 'Hash scope: $1. A fresh salt changes identifiers between bundles.', saltScope);
             return `
                 <details class="fv-support-bundle-privacy-details">
                     <summary class="fv-support-bundle-privacy-header">
-                        <span class="fv-support-bundle-privacy-summary">${svgIcon('shield')}<strong>${escapeHtml(mode === 'full' ? 'Full export' : 'Privacy and sanitization')}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? 'Full mode' : 'Sanitized')}</span></span>
+                        <span class="fv-support-bundle-privacy-summary">${svgIcon('shield')}<strong>${escapeHtml(mode === 'full' ? translate("diagnostics.support.full-export", "Full export") : translate("diagnostics.support.privacy", "Privacy and sanitization"))}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? translate("diagnostics.support.full-mode", "Full mode") : translate("diagnostics.support.sanitized", "Sanitized"))}</span></span>
                         <span class="fv-support-bundle-privacy-items">${redactionItems}</span>
                         <span class="fv-support-bundle-privacy-disclosure">${escapeHtml(translate('diagnostics.support.data-handling', 'Learn more about data handling'))} <i class="fa fa-angle-right" aria-hidden="true"></i></span>
                     </summary>

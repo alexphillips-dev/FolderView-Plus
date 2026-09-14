@@ -160,12 +160,10 @@ const advancedWorkspaces = Array.isArray(featureNames.advancedWorkspaces) ? feat
 if (advancedWorkspaces.length === 0) {
   fail('docs/current-state.json must define featureNames.advancedWorkspaces.');
 }
-const advancedLabelsMatch = settingsSectionsSource.match(/const ADVANCED_GROUP_LABELS\s*=\s*\{([\s\S]*?)\};/);
-if (!advancedLabelsMatch) {
-  fail('Could not parse the current Advanced workspace label registry.');
-}
-const runtimeAdvancedWorkspaces = Array.from(advancedLabelsMatch[1].matchAll(/([a-z][a-z0-9_-]*)\s*:\s*'([^']+)'/g))
-  .map((match) => ({ id: match[1], label: match[2] }));
+const settingsWindow = {};
+require('node:vm').runInNewContext(settingsSectionsSource, { window: settingsWindow });
+const runtimeAdvancedWorkspaces = Object.entries(settingsWindow.ADVANCED_GROUP_LABELS)
+  .map(([id, label]) => ({ id, label }));
 if (JSON.stringify(runtimeAdvancedWorkspaces) !== JSON.stringify(advancedWorkspaces)) {
   fail('docs/current-state.json Advanced workspace names do not match the Settings runtime registry.');
 }

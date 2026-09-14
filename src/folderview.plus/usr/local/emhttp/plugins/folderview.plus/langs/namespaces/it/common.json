@@ -11,5 +11,9 @@
     "common.cancel": "Annulla",
     "common.confirm": "Conferma",
     "common.confirm-type": "Digita per confermare",
-    "common.loading": "Caricamento…"
+    "common.loading": "Caricamento…",
+    "common.state.ready": "Pronto",
+    "common.actions.clear": "Cancella",
+    "common.state.all-good": "tutto bene",
+    "common.health.folder-summary": "Integrità della cartella: $1 avviato | $2 in pausa | $3 interrotto"
 }

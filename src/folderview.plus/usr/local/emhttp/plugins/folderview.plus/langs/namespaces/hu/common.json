@@ -11,5 +11,9 @@
     "common.cancel": "Mégsem",
     "common.confirm": "Erősítse meg",
     "common.confirm-type": "Írja be a megerősítéshez",
-    "common.loading": "Betöltés…"
+    "common.loading": "Betöltés…",
+    "common.state.ready": "Kész",
+    "common.actions.clear": "Törlés",
+    "common.state.all-good": "minden jó",
+    "common.health.folder-summary": "Mappa állapota: $1 elindítva | $2 szünetel | $3 leállt"
 }

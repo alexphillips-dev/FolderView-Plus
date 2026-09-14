@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Deschide consola",
     "docker.preview.view-logs": "Vizualizați jurnalele",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI cu date GraphQL",
-    "docker.health.api-summary": "API Docker: $1 actualizare$2, $3 pregătit pentru reconstrucție, $4 orfan, $5 conflict de port$6",
+    "docker.health.api-summary": "API Docker: actualizări: $1, gata de reconstruit: $2, orfan: $3, conflicte de porturi: $4",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Lista gazdă",
     "docker.views.command": "Comandă",

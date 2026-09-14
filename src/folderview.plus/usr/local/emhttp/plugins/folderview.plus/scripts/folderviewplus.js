@@ -12,7 +12,7 @@ settingsRuntimePerformanceTelemetry?.begin?.('settingsBootstrap');
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
-const themeResolver = window.FolderViewPlusThemeResolver || null, translateSettingsText = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
+const themeResolver = window.FolderViewPlusThemeResolver || null, translateSettingsText = (key, fallback, ...params) => window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match));
 const compareLocalizedText = (left, right, options = {}) => (
     window.FolderViewPlusI18n?.compare?.(left, right, options)
     ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
@@ -2183,7 +2183,7 @@ const refreshSectionHealthBadges = () => {
             badge.textContent = `${changedCount} changed`;
         } else {
             badge.classList.add('is-ok');
-            badge.textContent = 'all good';
+            badge.textContent = translateSettingsText("common.state.all-good", "all good");
         }
     }
 };
@@ -5808,7 +5808,7 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
         return 'Diagnostics export generated';
     }
     if (kind === 'support_bundle_export') {
-        return 'Support bundle exported';
+        return translateSettingsText("diagnostics.activity.exported", "Support bundle exported");
     }
     if (kind === 'conflict_scan') {
         return `${scope} conflict scan completed`;
@@ -7330,7 +7330,7 @@ const renderBackupScheduleControls = (type) => {
     $(`#${type}-backup-schedule-enabled`).prop('checked', schedule.enabled === true);
     $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 24));
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
-    const lastRunText = schedule.lastRunAt ? `Last scheduled run: ${formatTimestamp(schedule.lastRunAt)}` : 'Last scheduled run: never';
+    const lastRunText = schedule.lastRunAt ? translateSettingsText("settings.recovery.last-scheduled", "Last scheduled run: $1", formatTimestamp(schedule.lastRunAt)) : translateSettingsText("settings.recovery.never-scheduled", "Last scheduled run: never");
     $(`#${type}-backup-last-run`).text(lastRunText);
     if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
         $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);

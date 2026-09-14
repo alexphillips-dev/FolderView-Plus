@@ -27,7 +27,7 @@
     "docker.preview.open-console": "打开控制台",
     "docker.preview.view-logs": "查看日志",
     "docker.provider.hybrid-label": "带有 GraphQL 数据的旧版 Unraid WebGUI",
-    "docker.health.api-summary": "Docker API：$1 更新$2、$3 重建就绪、$4 孤立、$5 端口冲突$6",
+    "docker.health.api-summary": "Docker API：更新：$1，准备重建：$2，孤立：$3，端口冲突：$4",
     "docker.views.folderview": "文件夹视图",
     "docker.views.host": "主机列表",
     "docker.views.command": "命令",

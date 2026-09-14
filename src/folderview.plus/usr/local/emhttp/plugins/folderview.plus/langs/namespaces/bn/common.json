@@ -11,5 +11,9 @@
     "common.cancel": "বাতিল করুন",
     "common.confirm": "নিশ্চিত করুন",
     "common.confirm-type": "নিশ্চিত করতে টাইপ করুন",
-    "common.loading": "লোড হচ্ছে..."
+    "common.loading": "লোড হচ্ছে...",
+    "common.state.ready": "প্রস্তুত",
+    "common.actions.clear": "মুছে ফেলুন",
+    "common.state.all-good": "সব ভাল",
+    "common.health.folder-summary": "ফোল্ডার স্বাস্থ্য: $1 শুরু হয়েছে | $2 বিরাম দেওয়া হয়েছে | $3 থামল৷"
 }

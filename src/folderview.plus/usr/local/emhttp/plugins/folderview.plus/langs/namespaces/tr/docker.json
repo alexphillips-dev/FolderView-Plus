@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Konsolu aç",
     "docker.preview.view-logs": "Günlükleri görüntüle",
     "docker.provider.hybrid-label": "GraphQL verileriyle Eski Unraid WebGUI'si",
-    "docker.health.api-summary": "Docker API'si: $1 güncelleme$2, $3 yeniden oluşturmaya hazır, $4 yetim, $5 bağlantı noktası çakışması$6",
+    "docker.health.api-summary": "Docker API: güncellemeler: $1, yeniden oluşturulmaya hazır: $2, artık: $3, bağlantı noktası çakışmaları: $4",
     "docker.views.folderview": "Klasör Görünümü",
     "docker.views.host": "Ana bilgisayar listesi",
     "docker.views.command": "Komut",

@@ -3337,9 +3337,48 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-theme-module-head,
 .fv-theme-card-head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 12px;
     align-items: flex-start;
+}
+
+.fv-theme-module-head > div:first-child {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.fv-theme-module-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    max-width: 100%;
+}
+
+#fv-settings-root .fv-theme-module button,
+#fv-settings-root .fv-theme-profile-toolbar button {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.fv-theme-module,
+.fv-theme-customize-grid > *,
+.fv-theme-import-row input[type="text"] {
+    min-width: 0;
+}
+
+#fv-settings-root .fv-support-bundle-section-badge {
+    box-sizing: border-box;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.fv-support-bundle-section-badge .fv-ui-svg-icon {
+    flex-shrink: 0;
 }
 
 .fv-theme-module-head p {
@@ -3470,7 +3509,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-theme-customize-grid {
     display: grid;
-    grid-template-columns: minmax(280px, 0.9fr) minmax(280px, 0.75fr) minmax(360px, 1.35fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.75fr) minmax(0, 1.35fr);
     gap: 14px;
 }
 
@@ -7537,7 +7576,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-support-bundle-section-grid {
-    grid-template-columns: repeat(7, minmax(88px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
     align-self: stretch;
     align-items: stretch;
     gap: 0.45rem;
@@ -7882,7 +7921,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 @media (max-width: 1380px) {
     .fv-support-bundle-section-grid {
-        grid-template-columns: repeat(4, minmax(90px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
     }
 }
 
@@ -7982,7 +8021,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 
     .fv-support-bundle-section-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
     }
 
     #fv-settings-root .fv-support-bundle-redaction-card .fv-support-bundle-privacy-header {

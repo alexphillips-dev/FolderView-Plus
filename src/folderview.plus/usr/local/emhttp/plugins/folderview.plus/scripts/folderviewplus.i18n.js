@@ -47,6 +47,7 @@
     let pendingTranslationRoots = new Set();
     let translationFlushQueued = false;
     const lastAutoText = new WeakMap();
+    const earlyMessages = new Map();
     const ready = new Promise((resolve, reject) => {
         readyResolve = resolve;
         readyReject = reject;
@@ -104,6 +105,11 @@
         if (!normalizedKey) {
             return interpolateFallback(fallback, params);
         }
+        if (!state.initialized && fallback) {
+            const phrase = normalizeAutoPhrase(interpolateFallback(fallback, params));
+            earlyMessages.set(phrase, { key: normalizedKey, fallback, params });
+            if (earlyMessages.size > 500) earlyMessages.delete(earlyMessages.keys().next().value);
+        }
         let localized = '';
         try {
             if (typeof root.jQuery?.i18n === 'function') {
@@ -152,6 +158,8 @@
     };
 
     const resolveAutoTranslation = (phrase) => {
+        const early = earlyMessages.get(phrase);
+        if (state.initialized && early) return translate(early.key, early.fallback, ...early.params);
         const exactKey = autoPhraseIndex.get(phrase);
         if (exactKey) return translate(exactKey, phrase);
         for (const template of autoTemplateIndex) {

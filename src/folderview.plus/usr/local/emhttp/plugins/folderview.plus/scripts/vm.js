@@ -4,7 +4,7 @@ const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
-const themeResolver = window.FolderViewPlusThemeResolver || null, translateVmText = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
+const themeResolver = window.FolderViewPlusThemeResolver || null, translateVmText = (key, fallback, ...params) => window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match));
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
 const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
@@ -1250,7 +1250,7 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     } else if (pausedFolders > 0) {
         badge.classList.add('is-warning');
     }
-    badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
+    badge.textContent = translateVmText("common.health.folder-summary", "Folder health: $1 started | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
 };
 
 const showVmRuntimeLoadingRow = () => {

@@ -3239,10 +3239,12 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     } else if (pausedFolders > 0 || providerHealth?.severity === 'warning') {
         badge.classList.add('is-warning');
     }
-    const providerDetail = providerHealth
-        ? ` | ${providerHealth.text}`
-        : '';
-    badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped${providerDetail}`;
+    badge.textContent = dockerT("common.health.folder-summary", "Folder health: $1 started | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
+    if (providerHealth) {
+        const providerLabel = document.createElement('span');
+        providerLabel.textContent = providerHealth.text;
+        badge.append(document.createTextNode(' | '), providerLabel);
+    }
 };
 
 const dockerModules = window.FolderViewDockerModules || {};

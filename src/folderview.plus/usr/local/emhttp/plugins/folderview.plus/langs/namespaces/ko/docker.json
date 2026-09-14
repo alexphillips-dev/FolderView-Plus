@@ -27,7 +27,7 @@
     "docker.preview.open-console": "콘솔 열기",
     "docker.preview.view-logs": "로그 보기",
     "docker.provider.hybrid-label": "GraphQL 데이터가 포함된 레거시 Unraid WebGUI",
-    "docker.health.api-summary": "Docker API: $1 업데이트$2, $3 재구축 준비, $4 고아, $5 포트 충돌$6",
+    "docker.health.api-summary": "Docker API: 업데이트: $1, 재구축 준비 완료: $2, 고아: $3, 포트 충돌: $4",
     "docker.views.folderview": "폴더 보기",
     "docker.views.host": "호스트 목록",
     "docker.views.command": "명령",

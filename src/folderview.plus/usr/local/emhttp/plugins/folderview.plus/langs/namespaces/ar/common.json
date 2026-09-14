@@ -11,5 +11,9 @@
     "common.cancel": "إلغاء",
     "common.confirm": "تأكيد",
     "common.confirm-type": "اكتب للتأكيد",
-    "common.loading": "جارٍ التحميل…"
+    "common.loading": "جارٍ التحميل…",
+    "common.state.ready": "جاهز",
+    "common.actions.clear": "مسح",
+    "common.state.all-good": "كل شيء جيد",
+    "common.health.folder-summary": "صحة المجلد: $1 بدأت | $2 متوقف مؤقتًا | $3 توقف"
 }

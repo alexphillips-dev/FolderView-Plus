@@ -11,5 +11,9 @@
     "common.cancel": "Odustani",
     "common.confirm": "Potvrdi",
     "common.confirm-type": "Upišite za potvrdu",
-    "common.loading": "učitavanje..."
+    "common.loading": "učitavanje...",
+    "common.state.ready": "spreman",
+    "common.actions.clear": "Očisti",
+    "common.state.all-good": "sve dobro",
+    "common.health.folder-summary": "Zdravlje mape: $1 pokrenuto | $2 pauzirano | $3 zaustavljen"
 }

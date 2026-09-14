@@ -11,5 +11,9 @@
     "common.cancel": "Cancel",
     "common.confirm": "Confirm",
     "common.confirm-type": "Type to confirm",
-    "common.loading": "Loading…"
+    "common.loading": "Loading…",
+    "common.state.ready": "Ready",
+    "common.actions.clear": "Clear",
+    "common.state.all-good": "all good",
+    "common.health.folder-summary": "Folder health: $1 started | $2 paused | $3 stopped"
 }

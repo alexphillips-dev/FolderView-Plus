@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.12.01">
-<!ENTITY md5 "7724c5a76789f4a0e73330d03f7bc9b4">
-<!ENTITY sha256 "d7277f3afd7dd49638896bf20130be48a787d3867efcab9a1c2e2a4dffe18662">
+<!ENTITY version "2026.09.14.01">
+<!ENTITY md5 "b5ad06c15ff0e7b6b00350630ee15fc3">
+<!ENTITY sha256 "8f4b33f07655ea31ab5055a1bd2f744ef3835ed67ed1f06d83613b224e477e79">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.14.01
+- Fix: Docker and VM labels rendered while language catalogs are loading now update when translations become available, preserving existing controls and keyboard focus.
+- Localization: Translate the remaining reported activity, navigation, privacy, folder health, Recovery, Operations, Start Order, Appearance, and support-preview labels and summaries across all 27 supported languages. Correct German action labels and ambiguous History/Clear translations.
+- UI/UX: Let support-preview badges and Appearance action groups wrap to fit their available width, including narrow Settings panels and smartphone screens.
+- Compatibility: Saved folder names, profile names, backup identifiers, and configuration values are preserved. Hard-refresh the Unraid webGUI after updating to load the revised scripts, styles, and language catalogs.
+
 
 ###2026.09.12.01
 - Fix: Removing missing references from a Docker or VM System Health card now affects only that type. The other type's saved folder references remain unchanged, and each changed configuration is backed up before repair.

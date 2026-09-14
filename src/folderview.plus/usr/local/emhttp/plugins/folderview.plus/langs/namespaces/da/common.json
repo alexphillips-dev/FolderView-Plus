@@ -11,5 +11,9 @@
     "common.cancel": "Annuller",
     "common.confirm": "Bekræft",
     "common.confirm-type": "Skriv for at bekræfte",
-    "common.loading": "Indlæser..."
+    "common.loading": "Indlæser...",
+    "common.state.ready": "Klar",
+    "common.actions.clear": "Ryd",
+    "common.state.all-good": "alt godt",
+    "common.health.folder-summary": "Mappetilstand: $1 startede | $2 sat på pause | $3 stoppede"
 }

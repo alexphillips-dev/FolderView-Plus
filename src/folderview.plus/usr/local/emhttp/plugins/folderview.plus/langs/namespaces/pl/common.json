@@ -11,5 +11,9 @@
     "common.cancel": "Anuluj",
     "common.confirm": "Potwierdź",
     "common.confirm-type": "Wpisz, aby potwierdzić",
-    "common.loading": "Ładowanie…"
+    "common.loading": "Ładowanie…",
+    "common.state.ready": "Gotowy",
+    "common.actions.clear": "Wyczyść",
+    "common.state.all-good": "wszystko dobrze",
+    "common.health.folder-summary": "Kondycja folderu: $1 uruchomiono | $2 pauza | $3 zatrzymany"
 }

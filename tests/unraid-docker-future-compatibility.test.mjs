@@ -924,7 +924,7 @@ test('provider health controller derives aggregate severity and has a disposal b
     assert.equal(model.rebuilds, 1);
     assert.equal(model.orphaned, 1);
     assert.equal(model.conflicts, 2);
-    assert.match(model.text, /2 port conflicts/);
+    assert.match(model.text, /port conflicts: 2/);
     controller.dispose();
     assert.equal(controller.getSnapshot().disposed, true);
 });

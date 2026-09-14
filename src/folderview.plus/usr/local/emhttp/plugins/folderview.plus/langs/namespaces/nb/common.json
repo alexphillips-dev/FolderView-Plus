@@ -11,5 +11,9 @@
     "common.cancel": "Avbryt",
     "common.confirm": "Bekreft",
     "common.confirm-type": "Skriv for å bekrefte",
-    "common.loading": "Laster inn …"
+    "common.loading": "Laster inn …",
+    "common.state.ready": "Klar",
+    "common.actions.clear": "Tøm",
+    "common.state.all-good": "alt bra",
+    "common.health.folder-summary": "Mappehelse: $1 startet | $2 satt på pause | $3 stoppet"
 }

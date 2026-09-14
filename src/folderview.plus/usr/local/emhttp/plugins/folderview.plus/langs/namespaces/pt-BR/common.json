@@ -11,5 +11,9 @@
     "common.cancel": "Cancelar",
     "common.confirm": "Confirmar",
     "common.confirm-type": "Digite para confirmar",
-    "common.loading": "Carregando…"
+    "common.loading": "Carregando…",
+    "common.state.ready": "Pronto",
+    "common.actions.clear": "Limpar",
+    "common.state.all-good": "tudo bem",
+    "common.health.folder-summary": "Integridade da pasta: $1 iniciado | $2 pausado | $3 parou"
 }

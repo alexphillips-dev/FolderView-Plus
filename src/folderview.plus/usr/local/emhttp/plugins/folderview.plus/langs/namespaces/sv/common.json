@@ -11,5 +11,9 @@
     "common.cancel": "Avbryt",
     "common.confirm": "Bekräfta",
     "common.confirm-type": "Skriv för att bekräfta",
-    "common.loading": "Läser in…"
+    "common.loading": "Läser in…",
+    "common.state.ready": "Klar",
+    "common.actions.clear": "Rensa",
+    "common.state.all-good": "allt bra",
+    "common.health.folder-summary": "Mappstatus: $1 startade | $2 pausad | $3 stoppade"
 }

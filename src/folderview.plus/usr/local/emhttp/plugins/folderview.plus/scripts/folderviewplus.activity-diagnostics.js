@@ -1054,18 +1054,18 @@ const summarizeActivityFeed = () => {
     }, {});
     const total = activityFeedEntries.length;
     if (!total) {
-        return 'No recent activity.';
+        return diagnosticsT("diagnostics.activity.empty", "No recent activity.");
     }
     if (counts.error > 0) {
-        return `${counts.error} issue${counts.error === 1 ? '' : 's'} need attention.`;
+        return diagnosticsT("diagnostics.activity.errors", "Issues needing attention: $1.", counts.error);
     }
     if (counts.warning > 0) {
-        return `${counts.warning} item${counts.warning === 1 ? '' : 's'} need review.`;
+        return diagnosticsT("diagnostics.activity.warnings", "Items needing review: $1.", counts.warning);
     }
     if (counts.success > 0) {
-        return `${counts.success} action${counts.success === 1 ? '' : 's'} completed.`;
+        return diagnosticsT("diagnostics.activity.successes", "Completed actions: $1.", counts.success);
     }
-    return `${total} recent update${total === 1 ? '' : 's'}.`;
+    return diagnosticsT("diagnostics.activity.updates", "Recent updates: $1.", total);
 };
 
 const renderActivityFeed = () => {

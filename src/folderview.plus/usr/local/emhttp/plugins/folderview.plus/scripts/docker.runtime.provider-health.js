@@ -90,10 +90,7 @@
                 severity: conflicts > 0
                     ? 'danger'
                     : ((updates > 0 || rebuilds > 0 || orphaned > 0) ? 'warning' : 'healthy'),
-                text: translate('docker.health.api-summary',
-                    'Docker API: $1 update$2, $3 rebuild-ready, $4 orphaned, $5 port conflict$6',
-                    updates, updates === 1 ? '' : 's', rebuilds, orphaned,
-                    conflicts, conflicts === 1 ? '' : 's')
+                text: translate("docker.health.api-summary", "Docker API: updates: $1, ready to rebuild: $2, orphaned: $3, port conflicts: $4", updates, rebuilds, orphaned, conflicts)
             });
         };
         const dispose = () => {

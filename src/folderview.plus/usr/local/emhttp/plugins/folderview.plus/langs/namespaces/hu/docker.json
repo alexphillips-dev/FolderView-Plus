@@ -27,7 +27,7 @@
     "docker.preview.open-console": "Nyissa meg a konzolt",
     "docker.preview.view-logs": "Naplók megtekintése",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI GraphQL adatokkal",
-    "docker.health.api-summary": "Docker API: $1 frissítés$2, $3 újraépítésre kész, $4 árva, $5 portkonfliktus$6",
+    "docker.health.api-summary": "Docker API: frissítések: $1, újraépítésre kész: $2, árva: $3, portütközések: $4",
     "docker.views.folderview": "Mappanézet",
     "docker.views.host": "Gazdalista",
     "docker.views.command": "Parancs",

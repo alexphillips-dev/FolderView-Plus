@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -296,11 +297,13 @@ test('advanced settings no longer render the top maintenance action buttons', ()
 });
 
 test('advanced settings split auto-assignment rules into a dedicated Rules tab', () => {
+    const window = {};
+    vm.runInNewContext(settingsSectionsJs, { window });
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
     assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'\];/);
-    assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
+    assert.equal(window.ADVANCED_GROUP_LABELS.rules, 'Rules');
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
     assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
@@ -331,7 +334,9 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(libPhp, /function scanThemeWorkspaceGithub\(string \$sourceInput\): array/);
     assert.match(libPhp, /function updateThemeWorkspaceTheme\(string \$themeId\): array/);
     assert.match(libPhp, /function fvplusThemeWorkspaceNormalizeColorValue\(\$value\): string/);
-    assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
+    const window = {};
+    vm.runInNewContext(settingsSectionsJs, { window });
+    assert.equal(window.ADVANCED_GROUP_LABELS.appearance, 'Appearance');
     assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
     assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
     assert.match(settingsCss, /\.fv-theme-import-row > button,/);
@@ -405,7 +410,9 @@ test('operations tab uses one source-switched workspace for runtime actions and 
 });
 
 test('Docker start order lives in its own startup advanced tab', () => {
-    assert.match(settingsSectionsJs, /startup:\s*'Start Order'/);
+    const window = {};
+    vm.runInNewContext(settingsSectionsJs, { window });
+    assert.equal(window.ADVANCED_GROUP_LABELS.startup, 'Start Order');
     assert.match(settingsSectionsJs, /'docker-start-order':\s*'startup'/);
     assert.match(settingsPage, /<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order<\/h2>/);
     assert.match(settingsPage, /id="docker-start-order-workspace"/);

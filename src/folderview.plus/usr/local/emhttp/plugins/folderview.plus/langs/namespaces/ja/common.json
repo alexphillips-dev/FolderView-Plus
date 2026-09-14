@@ -11,5 +11,9 @@
     "common.cancel": "キャンセル",
     "common.confirm": "確認",
     "common.confirm-type": "確認のため入力",
-    "common.loading": "読み込み中…"
+    "common.loading": "読み込み中…",
+    "common.state.ready": "準備完了",
+    "common.actions.clear": "クリア",
+    "common.state.all-good": "大丈夫です",
+    "common.health.folder-summary": "フォルダーの状態: $1 が開始されました | $2 一時停止しました | $3 が停止しました"
 }

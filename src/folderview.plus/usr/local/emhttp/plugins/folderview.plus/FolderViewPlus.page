@@ -67,7 +67,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button id="fv-activity-center-toggle" type="button" data-fv-onclick="toggleActivityCenterHistory()" aria-expanded="false">
                 <i class="fa fa-history"></i> History
             </button>
-            <button id="fv-activity-center-clear" type="button" data-fv-onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+            <button id="fv-activity-center-clear" type="button" data-fv-onclick="clearActivityFeed()"><i class="fa fa-times"></i> <span data-i18n="common.actions.clear">Clear</span></button>
         </div>
     </div>
     <div id="fv-activity-center-latest" class="fv-activity-center-latest is-empty">
@@ -118,7 +118,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Managed themes</span>
                             <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
                         </div>
-                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button>
+                        <div class="fv-theme-module-actions"><button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button></div>
                     </div>
                     <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
                         <div class="fv-theme-empty-state">

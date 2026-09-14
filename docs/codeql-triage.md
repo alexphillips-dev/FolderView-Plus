@@ -31,9 +31,9 @@ known vulnerabilities or licenses outside the repository's approved quality-tool
 set. OpenSSF Scorecard publishes a supply-chain posture report to code scanning
 on every `main` push and on its weekly schedule. The weekly OSV job scans the
 generated CycloneDX dependency inventory,
-uploads SARIF, and fails when it reports a known vulnerability. A scheduled-workflow
-watchdog checks that CodeQL, Scorecard, and OSV continue producing timely successful
-runs and maintains one recovery issue if they do not. Code-quality findings remain
+uploads SARIF, and fails when it reports a known vulnerability. Review workflow
+results directly in GitHub Actions; the scheduled-workflow watchdog and its
+recovery-issue automation have been retired. Code-quality findings remain
 part of CI and triage without being mislabeled as security vulnerabilities.
 
 ## Review Procedure

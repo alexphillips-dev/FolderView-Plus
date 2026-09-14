@@ -52,9 +52,8 @@ test('workflow changes allow the generated SBOM as a focused validation companio
     });
 });
 
-test('upstream compatibility monitor scripts and baseline use focused workflow validation', () => {
+test('manual compatibility review scripts and baseline use focused workflow validation', () => {
     const result = classifyPaths([
-        '.github/workflows/unraid-docker-upstream-monitor.yml',
         'scripts/unraid_compatibility_monitor.mjs',
         'scripts/community_applications_guard.mjs',
         'scripts/php_runtime_compatibility.sh',

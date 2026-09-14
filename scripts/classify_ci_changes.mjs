@@ -37,7 +37,6 @@ export const FILTERS = Object.freeze({
         'scripts/docs_metadata_guard.sh',
         'scripts/release_notes_consistency_guard.sh',
         'scripts/workflow_self_check.sh',
-        'scripts/scheduled_workflow_health.mjs',
         'scripts/codeql_alert_guard.mjs',
         'scripts/unraid_docker_upstream_monitor.sh',
         'scripts/unraid_compatibility_monitor.mjs',

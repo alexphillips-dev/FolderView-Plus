@@ -15,7 +15,6 @@ const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-m
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
-const scheduledWorkflowHealthPath = path.join(repoRoot, '.github/workflows/scheduled-workflow-health.yml');
 const dependencyVulnerabilityScanPath = path.join(repoRoot, '.github/workflows/dependency-vulnerability-scan.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
@@ -89,7 +88,6 @@ const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
 const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
-const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'utf8');
 const dependencyVulnerabilityScan = fs.readFileSync(dependencyVulnerabilityScanPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
@@ -421,16 +419,6 @@ test('scheduled validation runs deterministic cross-browser fixtures without liv
     assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_URLS/);
     assert.doesNotMatch(scheduledValidationWorkflow, /live-unraid:/);
     assert.doesNotMatch(scheduledValidationWorkflow, /gh issue/);
-});
-
-test('scheduled workflow watchdog alerts on missing expected successes and closes recovered alerts', () => {
-    assert.match(scheduledWorkflowHealth, /schedule:/);
-    assert.match(scheduledWorkflowHealth, /workflow_dispatch:/);
-    assert.match(scheduledWorkflowHealth, /actions:\s*read/);
-    assert.match(scheduledWorkflowHealth, /issues:\s*write/);
-    assert.match(scheduledWorkflowHealth, /node scripts\/scheduled_workflow_health\.mjs/);
-    assert.match(scheduledWorkflowHealth, /Scheduled workflow health requires attention/);
-    assert.match(scheduledWorkflowHealth, /gh issue close/);
 });
 
 test('scheduled dependency vulnerability scanning covers the generated SBOM', () => {

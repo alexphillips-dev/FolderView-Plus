@@ -12,7 +12,7 @@ bash scripts/unraid_docker_upstream_monitor.sh --json
 
 Review the official Unraid release notes and generated API contract. If the monitor reports `active` or `unknown`, do not force legacy mode. Preserve native-page safe mode, update the reviewed schema baseline only after inspecting the upstream change, and add an isolated fixture that represents the new host or schema outcome.
 
-The scheduled compatibility workflow also runs `scripts/unraid_compatibility_monitor.mjs` against `docs/unraid-compatibility-baseline.json`. Review every reported stable/prerelease OS, PHP, webGUI, plugin-manager, API, and Community Applications signal. Plugin-manager coverage includes the install, update, downgrade, removal, pre/post-check, and change-display paths that can affect FolderView Plus installation and updates. Baseline changes are human-reviewed repository updates; the workflow intentionally cannot approve upstream drift itself.
+For a broader manual review, `scripts/unraid_compatibility_monitor.mjs` compares supplied public upstream inputs against `docs/unraid-compatibility-baseline.json`. Review every reported stable/prerelease OS, PHP, webGUI, plugin-manager, API, and Community Applications signal. Plugin-manager coverage includes the install, update, downgrade, removal, pre/post-check, and change-display paths that can affect FolderView Plus installation and updates. Baseline changes are human-reviewed repository updates. The scheduled compatibility workflow has been retired; these review tools do not create GitHub issues.
 
 ## 2. Maintain the isolated profile matrix
 
@@ -36,7 +36,7 @@ When an upstream change cannot be expressed by an existing profile, add one mini
 
 ## 3. Validate supported PHP runtimes
 
-`scripts/php_runtime_compatibility.sh` syntax-checks every shipped PHP file and executes a standalone request-authority contract. The scheduled workflow runs it in three isolated container profiles matching the oldest supported Unraid release, the current stable release, and the current prerelease recorded in `docs/unraid-compatibility-baseline.json`.
+`scripts/php_runtime_compatibility.sh` syntax-checks every shipped PHP file and executes a standalone request-authority contract. Run it manually in isolated containers for the oldest supported Unraid release, the stable release, and the prerelease being qualified. Use the reviewed versions recorded in `docs/unraid-compatibility-baseline.json` as the starting point; the retired monitor no longer runs this matrix on a schedule.
 
 PHP patch changes in official Unraid release notes are review signals. Update the matrix only after the image exists, the full shipped PHP surface passes, and any new deprecation or behavior difference is understood.
 
@@ -50,7 +50,7 @@ PHP patch changes in official Unraid release notes are review signals. Update th
 - The public Community Applications feed entry.
 - The version currently published through the stable plugin manifest.
 
-The interactive portal's authenticated **Validate** and **Scan** actions remain a manual release/submission check. CI uses only public inputs and never stores a Community Applications login or browser session.
+The interactive portal's authenticated **Validate** and **Scan** actions remain a manual release/submission check. The guard uses only supplied public inputs and never stores a Community Applications login or browser session.
 
 ## 5. Validate legacy API-first reads
 

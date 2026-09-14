@@ -16,7 +16,7 @@ const loadHealthLifecycle = async (page, baseUrl) => {
         window.fixtureHealthErrors = [];
         window.showError = (title, error) => window.fixtureHealthErrors.push(`${title}: ${error?.message || error}`);
         window.fixtureRepairMessages = [];
-        window.swal = (options) => window.fixtureRepairMessages.push(options);
+        window.swal = (options, callback) => { window.fixtureRepairMessages.push(options); if (typeof callback === 'function') callback(false); };
         window.refreshType = async () => {};
         window.refreshBackups = async () => {};
         window.fixtureHealthRequests = [];

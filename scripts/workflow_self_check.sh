@@ -217,8 +217,8 @@ if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/.test(scorecardWorkflow)
 }
 if (!/schedule:/.test(dependencyVulnerabilityScanWorkflow)
     || !/workflow_dispatch:/.test(dependencyVulnerabilityScanWorkflow)
-    || !/google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.5\.0/.test(dependencyVulnerabilityScanWorkflow)
-    || !/google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.5\.0/.test(dependencyVulnerabilityScanWorkflow)
+    || !/google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/.test(dependencyVulnerabilityScanWorkflow)
+    || !/google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/.test(dependencyVulnerabilityScanWorkflow)
     || !/--sbom=docs\/sbom\.cdx\.json/.test(dependencyVulnerabilityScanWorkflow)
     || !/--fail-on-vuln=true/.test(dependencyVulnerabilityScanWorkflow)
     || !/github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/.test(dependencyVulnerabilityScanWorkflow)) {

@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-12T15:03:37.447Z",
-  "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
+  "generatedAt": "2026-09-14T15:43:15.383Z",
+  "notes": "Baseline for perf ratchet guard. September 2026 localized Settings navigation and diagnostic summaries/details were reviewed and remeasured; only those three asset baselines were refreshed. Aggregate budgets and the 8% growth ratchet remain unchanged.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
       "bytes": 1256,
       "gzipBytes": 508
     },
     "scripts/folderviewplus.settings-sections.js": {
-      "bytes": 5280,
-      "gzipBytes": 1295
+      "bytes": 5787,
+      "gzipBytes": 1402
     },
     "scripts/folderviewplus.setup-assistant.js": {
       "bytes": 9244,
@@ -40,12 +40,12 @@
       "gzipBytes": 5810
     },
     "scripts/folderviewplus.diagnostics-view-model.js": {
-      "bytes": 8630,
-      "gzipBytes": 2123
+      "bytes": 19026,
+      "gzipBytes": 4258
     },
     "scripts/folderviewplus.diagnostics-view.js": {
-      "bytes": 13404,
-      "gzipBytes": 3209
+      "bytes": 17008,
+      "gzipBytes": 3845
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
       "bytes": 108862,

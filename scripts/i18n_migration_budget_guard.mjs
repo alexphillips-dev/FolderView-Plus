@@ -17,8 +17,11 @@ const englishRoot = path.join(
     'langs'
 );
 const namespaceRoot = path.join(englishRoot, 'namespaces', 'en');
-const MAX_LEGACY_SURFACE_KEYS = 1583;
-const MIN_EXPLICIT_KEYS = 463;
+// The 2026.09.14 extractor also detects icon-following labels and textContent writes:
+// 1,574 existing phrases under the old extractor, plus 99 newly detected phrases.
+// Freeze that expanded coverage; future additions still require semantic keys.
+const MAX_LEGACY_SURFACE_KEYS = 1673;
+const MIN_EXPLICIT_KEYS = 779;
 
 const readMessages = (file) => Object.keys(JSON.parse(fs.readFileSync(file, 'utf8')))
     .filter((key) => key !== '@metadata');

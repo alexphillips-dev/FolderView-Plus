@@ -49,9 +49,21 @@ test('both orphan cards show localized folder and member findings with a type-sp
     const html = view.buildCard(decorated[0]);
     assert.match(html, /&lt;script&gt;folder&lt;\/script&gt;/);
     assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
-    assert.doesNotMatch(html, /<script>|<img /);
+    assert.doesNotMatch(html, /<(?:script|img)\b/i);
     assert.equal(JSON.stringify(diagnostics), before, 'display decoration must not add names to the source summary');
     assert.equal(summary.recommendedActions[0].label, 'Server repair');
+});
+
+test('orphan details escape mixed-case tags and tag whitespace in saved names', () => {
+    const view = viewModule.createApi({ escapeHtml: ui.escapeHtml, t: translate });
+    for (const name of ['<SCRIPT>folder</SCRIPT>', '<ScRiPt\tdefer>folder</ScRiPt>', '<IMG\nsrc=x onerror=alert(1)>']) {
+        const diagnostics = makeDiagnostics();
+        diagnostics.types.docker.stateSnapshot.folders.d1.folderName = name;
+        diagnostics.types.docker.integrityChecks.orphanedMembers.folders[0].items = [name];
+        const html = view.buildCard(view.decorateCardsWithRecommendedActions(cards, diagnostics, summary)[0]);
+        assert.doesNotMatch(html, /<(?:script|img)\b/i);
+        assert.ok(html.includes('&lt;'), 'saved names must remain escaped visible text');
+    }
 });
 
 test('sanitized snapshots never render member tokens as names, and full reports disclose list truncation', () => {

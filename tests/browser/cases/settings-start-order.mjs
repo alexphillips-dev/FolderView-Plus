@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 export const registerSettingsStartOrderFixtureCases = ({ test, baseUrl }) => {
 test('Docker start order matches the responsive workspace mockup without page overflow', async ({ page }) => {
+    const minimumTextPx = 19.2 - 1 / 64; // Firefox 155 quantizes 19.2px to 19.1875px.
     const readLayout = async () => page.evaluate(() => {
         const fixture = document.getElementById('start-order-fixture');
         const summary = fixture.querySelector('.fv-start-order-summary-card');
@@ -34,10 +35,9 @@ test('Docker start order matches the responsive workspace mockup without page ov
     assert.equal(layout.sequenceRows, 5);
     assert.equal(layout.appIcons, 5);
     assert.equal(layout.enabledSwitches, 5);
-    assert.equal(layout.disabledChips, 2); assert.equal(layout.disabledOpen, false); assert.ok(layout.minimumTextPx >= 19.2, 'all start-order text must be at least 1.2rem');
+    assert.equal(layout.disabledChips, 2); assert.equal(layout.disabledOpen, false); assert.ok(layout.minimumTextPx >= minimumTextPx, 'all start-order text must be at least 1.2rem');
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop start-order workspace must not overflow the page');
-    await page.locator('.fv-docker-start-order-disabled > summary').click(); layout = await readLayout(); assert.equal(layout.disabledOpen, true); assert.ok(layout.minimumTextPx >= 19.2);
-
+    await page.locator('.fv-docker-start-order-disabled > summary').click(); layout = await readLayout(); assert.equal(layout.disabledOpen, true); assert.ok(layout.minimumTextPx >= minimumTextPx);
     await page.setViewportSize({ width: 700, height: 900 });
     layout = await readLayout();
     assert.equal(layout.topColumns, 1);

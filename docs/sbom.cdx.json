@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "version": "b96794f015dfd88f77b49b1c93e0fa7110f94c63",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "purl": "pkg:github/github/codeql-action@b96794f015dfd88f77b49b1c93e0fa7110f94c63",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "ffa0a5f39214d80778c9b494822d94d0d9668458",
+      "version": "8e5cf47b818121e8b405931c82126c2630b0b20d",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@ffa0a5f39214d80778c9b494822d94d0d9668458",
+      "purl": "pkg:github/google/osv-scanner-action@8e5cf47b818121e8b405931c82126c2630b0b20d",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -631,20 +631,6 @@
     },
     {
       "type": "library",
-      "name": "fsevents",
-      "version": "2.3.2",
-      "scope": "optional",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/fsevents@2.3.2"
-    },
-    {
-      "type": "library",
       "name": "get-caller-file",
       "version": "2.0.5",
       "scope": "optional",
@@ -1088,7 +1074,7 @@
     {
       "type": "library",
       "name": "playwright-core",
-      "version": "1.62.1",
+      "version": "1.63.0",
       "scope": "optional",
       "licenses": [
         {
@@ -1097,12 +1083,12 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.62.1"
+      "purl": "pkg:npm/playwright-core@1.63.0"
     },
     {
       "type": "library",
       "name": "playwright",
-      "version": "1.62.1",
+      "version": "1.63.0",
       "scope": "optional",
       "licenses": [
         {
@@ -1111,7 +1097,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.62.1"
+      "purl": "pkg:npm/playwright@1.63.0"
     },
     {
       "type": "library",

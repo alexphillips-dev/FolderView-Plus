@@ -437,8 +437,8 @@ test('scheduled dependency vulnerability scanning covers the generated SBOM', ()
     assert.match(dependencyVulnerabilityScan, /schedule:/);
     assert.match(dependencyVulnerabilityScan, /workflow_dispatch:/);
     assert.match(dependencyVulnerabilityScan, /permissions:\s*\n\s*contents:\s*read/);
-    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.5\.0/);
-    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.5\.0/);
+    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/);
+    assert.match(dependencyVulnerabilityScan, /google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/);
     assert.match(dependencyVulnerabilityScan, /--sbom=docs\/sbom\.cdx\.json/);
     assert.match(dependencyVulnerabilityScan, /github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/);
     assert.match(dependencyVulnerabilityScan, /--fail-on-vuln=true/);

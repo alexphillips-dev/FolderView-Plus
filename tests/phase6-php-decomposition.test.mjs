@@ -40,13 +40,9 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 30);
+    assert.equal(architecture.serverModuleContracts.length, 33);
     for (const contract of architecture.serverModuleContracts) {
-        const loader = contract.loadedBy === 'server/lib.php'
-            ? coreFacade
-            : contract.loadedBy === 'server/lib.diagnostics.php'
-                ? diagnosticsFacade
-                : iconEndpoint;
+        const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
     }
     assert.doesNotMatch(coreFacade, /function (?:readInstalledVersion|writeDurableFileAtomic|getThemeWorkspacePath|createBackupSnapshot|bulkAssignItemsToFolders|syncContainerOrder|updateFolder|fvplusCustomIconDirPath|readInfo)\s*\(/);
@@ -61,16 +57,18 @@ test('decomposition preserves every historical public PHP function name', () => 
         'server/upload_custom_icon.php': { count: 56, sha256: '825b3fbb5288c76f83a4976a55967e8a9a205e5496581f3a0c842789083f530e' }
     };
     for (const [facade, baseline] of Object.entries(expected)) {
-        const graphFiles = [
-            facade,
-            ...architecture.serverModuleContracts
-                .filter((contract) => contract.loadedBy === facade)
-                .map((contract) => contract.file)
-        ];
+        const graphFiles = [facade];
+        for (let index = 0; index < graphFiles.length; index += 1) {
+            for (const contract of architecture.serverModuleContracts.filter(entry => entry.loadedBy === graphFiles[index])) {
+                if (!graphFiles.includes(contract.file)) graphFiles.push(contract.file);
+            }
+        }
+        // New helpers are inventoried separately; retain the original API fingerprint.
+        const additions = new Set(['fvplusFolderView3ResolveOrder', 'fvplusFolderView3GroupStyles']);
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);
-        }).sort();
+        }).filter(name => !additions.has(name)).sort();
         assert.equal(functions.length, baseline.count, `${facade} public function count changed`);
         assert.equal(
             crypto.createHash('sha256').update(functions.join('\n')).digest('hex'),

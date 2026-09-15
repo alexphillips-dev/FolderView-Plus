@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.14.01">
-<!ENTITY md5 "b5ad06c15ff0e7b6b00350630ee15fc3">
-<!ENTITY sha256 "8f4b33f07655ea31ab5055a1bd2f744ef3835ed67ed1f06d83613b224e477e79">
+<!ENTITY version "2026.09.15.01">
+<!ENTITY md5 "23dc7c70169b7c99847f619e9e453f41">
+<!ENTITY sha256 "9a90f0ba38d9a2d5a9cf9a3f2898c5c2a9f41d23f6c8f4260443a104ba2cd9fc">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.15.01
+- Fix: Protected save failures now identify missing page security information, nonce preparation failures, rejected Unraid session checks, and proxy origin mismatches, with localized recovery guidance and a copyable support code.
+- Diagnostics: Keep a bounded, sanitized history of request failures through navigation to Diagnostics in the same browser tab. Support bundles include the failure phase and reason without submitted values, addresses, raw responses, or credentials.
+- Fix: Preserve saved FolderView3 Docker and VM folder order when a valid order snapshot is available. Preview warnings explain invalid snapshots, skipped references, and unassigned items whose native page positions cannot be imported.
+- Compatibility: Preserve custom theme page scopes, including styles targeting multiple pages. Disabled themes become separate inactive appearance profiles; previews explain unsupported source metadata and CSS compatibility limits.
+- UI/UX: Add Basic Settings shortcuts for Docker folders, VM folders, Appearance, and Recovery, plus color preset previews, undo, and Save as new profile. Presets retain other customizations and apply only after an explicit save.
+- Localization: Translate the new guidance and controls across all 27 supported languages, including reviewed color and navigation terminology.
+- Compatibility: Request guards remain enabled, imported themes remain inactive until selected, and existing appearance profiles are preserved when saving a copy. Hard-refresh the Unraid webGUI after updating.
+
 
 ###2026.09.14.01
 - Fix: Docker and VM labels rendered while language catalogs are loading now update when translations become available, preserving existing controls and keyboard focus.

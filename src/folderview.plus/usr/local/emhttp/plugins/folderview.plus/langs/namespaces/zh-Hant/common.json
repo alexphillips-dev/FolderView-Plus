@@ -15,5 +15,12 @@
     "common.state.ready": "準備好",
     "common.actions.clear": "清除",
     "common.state.all-good": "一切都好",
-    "common.health.folder-summary": "資料夾運作狀況：$1 已啟動 | $2 暫停 | $3 已停止"
+    "common.health.folder-summary": "資料夾運作狀況：$1 已啟動 | $2 暫停 | $3 已停止",
+    "request.failure.refresh": "頁面安全資訊遺失或過期。重新整理 Unraid webGUI，然後重試您的更改。",
+    "request.failure.session": "Unraid 拒絕了會話安全性檢查。如果出現提示，請重新整理 webGUI 並重新登入，然後重試更改。",
+    "request.failure.origin": "頁面位址與伺服器請求不符。如果您使用反向代理，請嘗試直接 Unraid 存取並檢查代理標頭。",
+    "request.failure.marker": "請求安全標記未到達外掛。硬重新整理 webGUI；如果這種情況持續存在，請檢查瀏覽器擴充功能或代理程式過濾。",
+    "request.failure.state": "該外掛無法準備安全更改。檢查外掛日誌並匯出經過清理的支援包。",
+    "request.failure.guard": "該外掛拒絕了此更改。重新整理 webGUI 並檢查它是否已套用，然後重試。如果問題仍然存在，請包含此支援程式碼。",
+    "request.failure.support-code": "支援程式碼：$1"
 }

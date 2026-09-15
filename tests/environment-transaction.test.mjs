@@ -13,8 +13,14 @@ const phpString = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'
 const fixture = {
     fv3_export_version: 1,
     plugin_version: '2026.08.01',
-    docker: { media: { name: 'Media', containers: ['plex'], regex: '^arr-' } },
-    vm: { lab: { name: 'Lab', containers: ['test-vm'] } },
+    docker: { media: { name: 'Media', containers: ['plex'], regex: '^arr-' }, second: { name: 'Second' } },
+    vm: { lab: { name: 'Lab', containers: ['test-vm'] }, second: { name: 'Second VM' } },
+    order_docker: { fv3_order_version: 1, entries: ['folder-second', 'folder-media'] },
+    order_vm: { fv3_order_version: 1, entries: ['folder-second', 'folder-lab'] },
+    custom_styles: {
+        'active/example.docker.css': '.fixture-docker { color: red; }',
+        'other.disabled/example.dashboard.css': '.fixture-disabled { color: blue; }'
+    },
     settings: { default_preview: '2' },
     autostart: { mode: 'custom', sequence: ['plex', 'arr-one'] },
     native_autostart: ['plex 15', 'arr-one']
@@ -87,6 +93,12 @@ const runHarness = () => {
         $digest = (string)buildFolderView3MigrationPlan($bundle, 'fixture.json')['source']['digest'];
         $nativeBeforeExcluded = file_get_contents(${phpString(nativePath)});
         $excluded = applyFolderView3Migration($bundle, 'fixture.json', $digest, false);
+        $migrated = exportEnvironmentSnapshotPayload();
+        $changedBundle = $bundle;
+        $changedBundle['order_vm']['entries'] = array_reverse($changedBundle['order_vm']['entries']);
+        $stalePreviewMessage = '';
+        try { applyFolderView3Migration($changedBundle, 'fixture.json', $digest, false); }
+        catch (RuntimeException $error) { $stalePreviewMessage = $error->getMessage(); }
         $nativeAfterExcluded = file_get_contents(${phpString(nativePath)});
         $included = applyFolderView3Migration($bundle, 'fixture.json', $digest, true);
         $nativeAfterIncluded = file_get_contents(${phpString(nativePath)});
@@ -111,6 +123,8 @@ const runHarness = () => {
             'syncNativeRestored' => $syncNativeRestored,
             'excludedUnchanged' => $nativeBeforeExcluded === $nativeAfterExcluded,
             'excludedSelected' => $excluded['nativeAutostartIncluded'],
+            'migrated' => $migrated,
+            'stalePreviewMessage' => $stalePreviewMessage,
             'includedSelected' => $included['nativeAutostartIncluded'],
             'nativeAfterIncluded' => $nativeAfterIncluded,
             'externalFailureMessage' => $externalFailureMessage,
@@ -158,6 +172,16 @@ test('FolderView3 native autostart stays opt-in and rolls back with configuratio
     assert.match(result.externalFailureMessage, /Injected external failure.*restored/i);
     assert.equal(result.externalFailureRestored, true);
     assert.equal(result.externalNativeRestored, true);
+    assert.deepEqual(result.migrated.types.docker.prefs.manualOrder, ['second', 'media']);
+    assert.deepEqual(result.migrated.types.vm.prefs.manualOrder, ['second', 'lab']);
+    const imported = result.migrated.themeWorkspace.profiles.find((profile) => profile.name === 'FolderView3 imported appearance');
+    const disabled = result.migrated.themeWorkspace.profiles.find((profile) => profile.name === 'FolderView3 disabled appearance 1');
+    assert.match(imported.layers.docker.customCss, /fixture-docker/);
+    assert.doesNotMatch(JSON.stringify(imported), /fixture-disabled/);
+    assert.match(disabled.layers.dashboard.customCss, /fixture-disabled/);
+    assert.notEqual(result.migrated.themeWorkspace.activeProfileId, imported.id);
+    assert.notEqual(result.migrated.themeWorkspace.activeProfileId, disabled.id);
+    assert.match(result.stalePreviewMessage, /changed|preview/i);
 });
 
 test('transactional apply uses the configuration lock, readback verification, and exact file rollback', () => {

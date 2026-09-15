@@ -39,7 +39,7 @@ test('theme update transaction snapshots workspace and all generated assets and 
 });
 
 test('profile endpoint exposes preview separately from guarded mutations', () => {
-    assert.match(actionsPhp, /function createThemeWorkspaceProfile/);
+    assert.match(actionsPhp, /lib\.theme-profile-create\.php/);
     assert.match(actionsPhp, /function prepareThemeWorkspaceProfileLayer/);
     assert.match(endpointPhp, /preview_profile/);
     assert.match(endpointPhp, /save_profile/);
@@ -57,4 +57,27 @@ test('managed theme batch updates fetch every replacement before one atomic work
     const actions = endpointManifest.endpoints['theme_workspace.php'].actions;
     assert.equal(actions.preview_theme_updates.access, 'read-only');
     assert.equal(actions.update_themes.requestToken, 'mutation');
+});
+
+test('preset preview and undo remain local and save-as-profile sends the draft through the guarded create action', async () => {
+    const calls = [];
+    const workspace = { activeProfileId: 'default', profiles: [{ id: 'default', name: 'Original', layers: {
+        global: { variables: { '--fvplus-theme-accent': '#123456' }, customCss: '.keep {}' },
+        docker: { variables: { '--fvplus-graph-cpu': '#333333' }, customCss: '.docker {}' }
+    } }] };
+    const api = themeWorkspaceModule.createApi({ apiPostJson: async (_url, payload) => { calls.push(payload); return { workspace }; } });
+    api.setWorkspace(workspace);
+    api.previewPreset('blue');
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#3b82f6');
+    assert.equal(calls.length, 0);
+    api.undoPreset();
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#123456');
+    api.previewPreset('green');
+    await api.saveAsProfile('Green copy');
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].action, 'create_profile');
+    assert.equal(calls[0].sourceProfileId, 'default');
+    assert.equal(calls[0].scope, 'global');
+    assert.equal(calls[0].customCss, '.keep {}');
+    assert.equal(JSON.parse(calls[0].variables)['--fvplus-theme-accent'], '#22c55e');
 });

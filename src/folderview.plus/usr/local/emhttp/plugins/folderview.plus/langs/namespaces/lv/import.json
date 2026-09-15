@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Notiek FolderView3 konfigurācijas pārbaude...",
     "import.folderview3.inspecting-help": "Šis tikai lasāms priekšskatījums var aizņemt kādu brīdi, kad ir pieejami pielāgoti stili.",
     "import.folderview3.confirm-apply": "Vai aizstāt pašreizējās FolderView Plus Docker mapes, VM mapes, saderīgus iestatījumus, sākuma pasūtījuma īpašumtiesības un motīvu darbvietas profila datus? Vispirms tiks izveidots atcelšanas kontrolpunkts un katra veida dublējumkopijas.",
-    "import.folderview3.confirm-native-suffix": "Tiks aizstāta arī vietējā Docker automātiskās palaišanas iespējošana un gaidīšanas laiks."
+    "import.folderview3.confirm-native-suffix": "Tiks aizstāta arī vietējā Docker automātiskās palaišanas iespējošana un gaidīšanas laiks.",
+    "import.folderview3.order-invalid": "FolderView3 pasūtījuma momentuzņēmums nav derīgs; tika izmantota mapju konfigurācijas secība.",
+    "import.folderview3.order-duplicates": "Dublētie FolderView3 pasūtījuma ieraksti tika ignorēti.",
+    "import.folderview3.order-unknown": "Nezināmas mapes atsauces FolderView3 pasūtījuma momentuzņēmumos tika ignorētas.",
+    "import.folderview3.order-unassigned": "Mapju secība tiek saglabāta; nepiešķirto vienumu pozīcijas lapā Unraid netiek importētas.",
+    "import.folderview3.theme-source": "Motīvu avota metadati netika pārvērsti pārvaldītos atjauninājumos. Skenējiet sākotnējo motīvu avotu, lai pārvaldītu turpmākos atjauninājumus.",
+    "import.folderview3.theme-unscoped": "Pielāgotie stili bez atpazīta FolderView3 lapas tvēruma tika izslēgti.",
+    "import.folderview3.theme-disabled": "Atspējotie motīvi tika saglabāti kā atsevišķi neaktīvi izskata profili; tie nav iekļauti galvenajā importētajā profilā.",
+    "import.folderview3.theme-compatibility": "Importētajā CSS var izmantot FolderView3 atlasītājus vai mainīgos, kas atšķiras no FolderView Plus. Pirms aktivizēšanas priekšskatiet katru izskata profilu.",
+    "import.folderview3.order-imported": "Importēts",
+    "import.folderview3.order-fallback": "Konfigurācijas secība",
+    "import.folderview3.order-empty": "Nav saglabāta pasūtījuma",
+    "import.folderview3.order-invalid-status": "Nederīgs momentuzņēmums; konfigurācijas secība",
+    "import.folderview3.appearance-profiles": "Pievienojiet neaktīvus FolderView3 izskatu profilus",
+    "import.folderview3.order-summary": "Saglabātā mapju secība: Docker $1; Virtuālās mašīnas $2.",
+    "import.folderview3.disabled-profile-count": "Atsevišķi profili atspējotajiem motīviem: $1."
 }

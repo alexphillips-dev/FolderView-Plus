@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "FolderView3 konfiguráció vizsgálata...",
     "import.folderview3.inspecting-help": "Ez a csak olvasható előnézet eltarthat egy ideig, ha egyéni stílusok jelennek meg.",
     "import.folderview3.confirm-apply": "Lecseréli a jelenlegi FolderView Plus Docker-mappákat, virtuálisgép-mappákat, kompatibilis beállításokat, kezdeti rendelési tulajdonjogot és Theme Workspace-profiladatokat? Először egy visszaállítási ellenőrzőpont és típusonkénti biztonsági mentések jönnek létre.",
-    "import.folderview3.confirm-native-suffix": "A natív Docker automatikus indítási engedélyezése és a várakozási idő is lecserélődik."
+    "import.folderview3.confirm-native-suffix": "A natív Docker automatikus indítási engedélyezése és a várakozási idő is lecserélődik.",
+    "import.folderview3.order-invalid": "A FolderView3 rendelés pillanatképe érvénytelen; mappa konfigurációs sorrend került felhasználásra.",
+    "import.folderview3.order-duplicates": "A FolderView3 rendelés ismétlődő bejegyzéseit figyelmen kívül hagyta.",
+    "import.folderview3.order-unknown": "A FolderView3 rendelési pillanatképeiben az ismeretlen mappahivatkozásokat figyelmen kívül hagyták.",
+    "import.folderview3.order-unassigned": "A mappák sorrendje megmarad; a hozzá nem rendelt elemek pozíciói az Unraid oldalon nem importálódnak.",
+    "import.folderview3.theme-source": "A témaforrás metaadatait nem alakították át felügyelt frissítésekké. Olvassa be az eredeti témaforrást a jövőbeli frissítések kezeléséhez.",
+    "import.folderview3.theme-unscoped": "A felismert FolderView3 oldal hatóköre nélküli egyéni stílusok kizárásra kerültek.",
+    "import.folderview3.theme-disabled": "A letiltott témákat külön inaktív megjelenési profilként őrizték meg; nem szerepelnek a fő importált profilban.",
+    "import.folderview3.theme-compatibility": "Az importált CSS olyan FolderView3-választókat vagy változókat használhat, amelyek különböznek a FolderView Plus-ban. Az aktiválás előtt tekintse meg az egyes megjelenési profilokat.",
+    "import.folderview3.order-imported": "Importált",
+    "import.folderview3.order-fallback": "Konfigurációs sorrend",
+    "import.folderview3.order-empty": "Nincs mentett rendelés",
+    "import.folderview3.order-invalid-status": "Érvénytelen pillanatkép; konfigurációs sorrend",
+    "import.folderview3.appearance-profiles": "Inaktív FolderView3 megjelenési profilok hozzáadása",
+    "import.folderview3.order-summary": "Mentett mappasorrend: Docker $1; Virtuális gépek $2.",
+    "import.folderview3.disabled-profile-count": "Külön profilok a letiltott témákhoz: $1."
 }

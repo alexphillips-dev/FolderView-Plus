@@ -143,6 +143,12 @@ function collectPhpDeclarationsAndCalls(string $rootDir, array $files): array
                 }
                 if (is_array($nameToken) && $nameToken[0] === T_STRING) {
                     $name = strtolower($nameToken[1]);
+                    $modifierIndex = previousSignificantPhpTokenIndex($tokens, $index);
+                    // PHP invokes constructors through `new`; they are not free helper functions.
+                    if ($name === '__construct' && $modifierIndex !== null
+                        && in_array(tokenId($tokens[$modifierIndex]), [T_PUBLIC, T_PROTECTED, T_PRIVATE], true)) {
+                        continue;
+                    }
                     if (!isset($declarations[$name])) {
                         $declarations[$name] = [
                             'file' => $relativePath,

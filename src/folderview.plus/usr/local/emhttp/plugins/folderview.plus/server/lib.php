@@ -888,12 +888,12 @@
         $provided = trim((string)($_POST['token'] ?? getRequestHeaderValue('X-FV-Token')));
         if ($provided === '') {
             if ($mode === 'strict') {
-                throw new RuntimeException('Invalid request token.');
+                throw new FVPlusSecurityRequestException('Invalid request token.', 403, 'plugin-token-invalid');
             }
             return false;
         }
         if (!hash_equals($expected, $provided)) {
-            throw new RuntimeException('Invalid request token.');
+            throw new FVPlusSecurityRequestException('Invalid request token.', 403, 'plugin-token-invalid');
         }
         return true;
     }
@@ -1020,7 +1020,10 @@
             }
         } catch (Throwable $e) {
             fvplus_log_api_exception($e);
-            fvplus_json_error(fvplus_get_api_error_message($e), fvplus_get_api_error_status($e));
+            $details = $e instanceof FVPlusSecurityRequestException && $e->reasonCode !== ''
+                ? ['requestFailure' => ['source' => 'folderview-plus', 'reasonCode' => $e->reasonCode]]
+                : [];
+            fvplus_json_error(fvplus_get_api_error_message($e), fvplus_get_api_error_status($e), $details);
         }
     }
 

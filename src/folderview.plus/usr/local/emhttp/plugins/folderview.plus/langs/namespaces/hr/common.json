@@ -15,5 +15,12 @@
     "common.state.ready": "spreman",
     "common.actions.clear": "Očisti",
     "common.state.all-good": "sve dobro",
-    "common.health.folder-summary": "Zdravlje mape: $1 pokrenuto | $2 pauzirano | $3 zaustavljen"
+    "common.health.folder-summary": "Zdravlje mape: $1 pokrenuto | $2 pauzirano | $3 zaustavljen",
+    "request.failure.refresh": "Informacije o sigurnosti stranice nedostaju ili su istekle. Osvježite Unraid webGUI, a zatim ponovno pokušajte promijeniti.",
+    "request.failure.session": "Unraid je odbio sigurnosnu provjeru sesije. Osvježite webGUI i ponovno se prijavite ako se to od vas zatraži, a zatim ponovno pokušajte promijeniti.",
+    "request.failure.origin": "Adresa stranice ne odgovara zahtjevu poslužitelja. Ako koristite obrnuti proxy, pokušajte s izravnim Unraid pristupom i provjerite zaglavlja proxyja.",
+    "request.failure.marker": "Sigurnosni marker zahtjeva nije došao do dodatka. Hard-refresh webGUI; ako se ovo nastavi, provjerite proširenja preglednika ili proxy filtriranje.",
+    "request.failure.state": "Dodatak nije mogao pripremiti sigurne promjene. Provjerite zapisnike dodatka i izvezite pročišćeni paket podrške.",
+    "request.failure.guard": "Dodatak je odbio ovu promjenu. Osvježite webGUI i provjerite je li već primijenjen prije ponovnog pokušaja. Uključite ovaj kôd podrške ako se problem nastavi.",
+    "request.failure.support-code": "Kôd podrške: $1"
 }

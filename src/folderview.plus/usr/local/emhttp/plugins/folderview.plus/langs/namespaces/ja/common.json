@@ -15,5 +15,12 @@
     "common.state.ready": "準備完了",
     "common.actions.clear": "クリア",
     "common.state.all-good": "大丈夫です",
-    "common.health.folder-summary": "フォルダーの状態: $1 が開始されました | $2 一時停止しました | $3 が停止しました"
+    "common.health.folder-summary": "フォルダーの状態: $1 が開始されました | $2 一時停止しました | $3 が停止しました",
+    "request.failure.refresh": "ページのセキュリティ情報が欠落しているか、有効期限が切れています。 Unraid WebGUI を更新してから、変更を再試行してください。",
+    "request.failure.session": "Unraid はセッション セキュリティ チェックを拒否しました。 WebGUI を更新し、プロンプトが表示されたら再度サインインし、変更を再試行します。",
+    "request.failure.origin": "ページアドレスがサーバーリクエストと一致しません。リバース プロキシを使用している場合は、Unraid への直接アクセスを試し、プロキシ ヘッダーを確認してください。",
+    "request.failure.marker": "リクエストのセキュリティ マーカーがプラグインに到達しませんでした。 WebGUI をハードリフレッシュします。これが続く場合は、ブラウザ拡張機能またはプロキシ フィルタリングを確認してください。",
+    "request.failure.state": "プラグインは安全な変更を準備できませんでした。プラグインのログを確認し、サニタイズされたサポート バンドルをエクスポートします。",
+    "request.failure.guard": "プラグインはこの変更を拒否しました。 WebGUI を更新し、再試行する前にすでに適用されているかどうかを確認してください。問題が解決しない場合は、このサポート コードを含めてください。",
+    "request.failure.support-code": "サポートコード: $1"
 }

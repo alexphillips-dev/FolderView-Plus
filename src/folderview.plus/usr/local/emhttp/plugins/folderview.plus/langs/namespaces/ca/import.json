@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "S'està inspeccionant la configuració de FolderView3...",
     "import.folderview3.inspecting-help": "Aquesta previsualització només de lectura pot trigar un moment quan hi ha estils personalitzats.",
     "import.folderview3.confirm-apply": "Substituïu les carpetes actuals de FolderView Plus Docker, les carpetes de VM, la configuració compatible, la propietat de la comanda inicial i les dades del perfil de Theme Workspace? Primer es crearà un punt de control de retrocés i còpies de seguretat per tipus.",
-    "import.folderview3.confirm-native-suffix": "També es substituirà l'habilitació d'inici automàtic de Docker i les esperes natives."
+    "import.folderview3.confirm-native-suffix": "També es substituirà l'habilitació d'inici automàtic de Docker i les esperes natives.",
+    "import.folderview3.order-invalid": "Una instantània de la comanda FolderView3 no és vàlida; S'ha utilitzat l'ordre de configuració de la carpeta.",
+    "import.folderview3.order-duplicates": "S'han ignorat les entrades de comanda FolderView3 duplicades.",
+    "import.folderview3.order-unknown": "S'han ignorat les referències de carpetes desconegudes a les instantànies d'ordre de FolderView3.",
+    "import.folderview3.order-unassigned": "Es conserva l'ordre de les carpetes; les posicions dels elements no assignats a la pàgina Unraid no s'importen.",
+    "import.folderview3.theme-source": "Les metadades de la font del tema no s'han convertit en actualitzacions gestionades. Escaneja la font del tema original per gestionar les actualitzacions futures.",
+    "import.folderview3.theme-unscoped": "Es van excloure els estils personalitzats sense un àmbit de pàgina FolderView3 reconegut.",
+    "import.folderview3.theme-disabled": "Els temes desactivats es van conservar com a perfils d'aparença inactius separats; no s'inclouen al perfil principal importat.",
+    "import.folderview3.theme-compatibility": "Els CSS importats poden utilitzar selectors o variables de FolderView3 que difereixen a FolderView Plus. Previsualitza cada perfil d'aparença abans de l'activació.",
+    "import.folderview3.order-imported": "Importat",
+    "import.folderview3.order-fallback": "Ordre de configuració",
+    "import.folderview3.order-empty": "No s'ha guardat cap comanda",
+    "import.folderview3.order-invalid-status": "Instantània no vàlida; ordre de configuració",
+    "import.folderview3.appearance-profiles": "Afegiu perfils d'aparença FolderView3 inactius",
+    "import.folderview3.order-summary": "Ordre de la carpeta desada: Docker $1; VMs $2.",
+    "import.folderview3.disabled-profile-count": "Perfils separats per a temes desactivats: $1."
 }

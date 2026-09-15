@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Sprawdzam konfigurację FolderView3...",
     "import.folderview3.inspecting-help": "Wyświetlanie podglądu tylko do odczytu może zająć chwilę, jeśli dostępne są niestandardowe style.",
     "import.folderview3.confirm-apply": "Zamienić bieżące foldery dokowane FolderView Plus, foldery VM, zgodne ustawienia, własność zamówienia początkowego i dane profilu Theme Workspace? Najpierw zostanie utworzony punkt kontrolny wycofania i kopie zapasowe według typu.",
-    "import.folderview3.confirm-native-suffix": "Natywne włączenie automatycznego uruchamiania platformy Docker i oczekiwanie również zostaną zastąpione."
+    "import.folderview3.confirm-native-suffix": "Natywne włączenie automatycznego uruchamiania platformy Docker i oczekiwanie również zostaną zastąpione.",
+    "import.folderview3.order-invalid": "Migawka zamówienia FolderView3 jest nieprawidłowa; zastosowano kolejność konfiguracji folderów.",
+    "import.folderview3.order-duplicates": "Zduplikowane wpisy zamówień w FolderView3 zostały zignorowane.",
+    "import.folderview3.order-unknown": "Nieznane odniesienia do folderów w migawkach zamówień FolderView3 zostały zignorowane.",
+    "import.folderview3.order-unassigned": "Kolejność folderów zostaje zachowana; Pozycje nieprzypisanych przedmiotów na stronie Unraid nie są importowane.",
+    "import.folderview3.theme-source": "Metadane źródła motywu nie zostały przekonwertowane na aktualizacje zarządzane. Zeskanuj oryginalne źródło motywu, aby zarządzać przyszłymi aktualizacjami.",
+    "import.folderview3.theme-unscoped": "Wykluczono style niestandardowe bez rozpoznanego zakresu strony FolderView3.",
+    "import.folderview3.theme-disabled": "Wyłączone motywy zostały zachowane jako osobne, nieaktywne profile wyglądu; nie są one uwzględnione w głównym importowanym profilu.",
+    "import.folderview3.theme-compatibility": "Zaimportowany CSS może używać selektorów lub zmiennych FolderView3, które różnią się od FolderView Plus. Wyświetl podgląd każdego profilu wyglądu przed aktywacją.",
+    "import.folderview3.order-imported": "Importowane",
+    "import.folderview3.order-fallback": "Kolejność konfiguracji",
+    "import.folderview3.order-empty": "Brak zapisanego zamówienia",
+    "import.folderview3.order-invalid-status": "Nieprawidłowa migawka; kolejność konfiguracji",
+    "import.folderview3.appearance-profiles": "Dodaj nieaktywne profile wyglądu FolderView3",
+    "import.folderview3.order-summary": "Zapisana kolejność folderów: Docker $1; Maszyny wirtualne $2.",
+    "import.folderview3.disabled-profile-count": "Oddzielne profile dla wyłączonych motywów: $1."
 }

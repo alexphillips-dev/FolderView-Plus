@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -86,4 +87,26 @@ test('settings search clear control resists host button inflation', () => {
     assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search\s*\{[\s\S]*width:\s*24px !important[\s\S]*min-width:\s*24px !important/);
     assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search\s*\{[\s\S]*padding:\s*0 !important[\s\S]*border:\s*0 !important[\s\S]*box-shadow:\s*none !important/);
     assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search \.fa\s*\{[\s\S]*font-size:\s*0\.8rem/);
+});
+
+test('Basic shortcuts reveal the chosen workspace, clear filtering and transfer keyboard focus', () => {
+    const source = settingsJs.match(/const openBasicSettingsShortcut = \(key\) => \{[\s\S]*?\n\};/)?.[0];
+    assert.ok(source);
+    const calls = [];
+    const heading = { setAttribute: (...args) => calls.push(['attribute', ...args]), focus: () => calls.push(['focus']) };
+    const state = { sections: [{ key: 'backups', advanced: true, advancedGroup: 'recovery', heading }, { key: 'docker', advanced: false, heading }], expandedAdvancedSections: new Set() };
+    const context = vm.createContext({ settingsUiState: state,
+        persistExpandedAdvancedSections: () => calls.push(['expand']),
+        setAdvancedTab: tab => calls.push(['tab', tab]), setSettingsMode: mode => calls.push(['mode', mode]),
+        clearSettingsSearch: () => calls.push(['clear']), scrollToSectionKey: key => calls.push(['scroll', key])
+    });
+    vm.runInContext(`${source}; openBasicSettingsShortcut('backups');`, context);
+    assert.equal(state.activeSectionKey, 'backups');
+    assert.equal(state.expandedAdvancedSections.has('backups'), true);
+    assert.deepEqual(calls, [['expand'], ['tab', 'recovery'], ['mode', 'advanced'], ['clear'], ['scroll', 'backups'], ['attribute', 'tabindex', '-1'], ['focus']]);
+    calls.length = 0;
+    vm.runInContext("openBasicSettingsShortcut('docker'); openBasicSettingsShortcut('unsupported');", context);
+    assert.deepEqual(calls.map(call => call[0]), ['mode', 'clear', 'scroll', 'attribute', 'focus']);
+    assert.equal(calls[0][1], 'basic');
+    assert.match(chromeJs, /data-fv-settings-shortcut="theme-workspace"/);
 });

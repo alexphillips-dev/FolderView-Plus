@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "FolderView3 構成を検査しています...",
     "import.folderview3.inspecting-help": "カスタム スタイルが存在する場合、この読み取り専用プレビューには少し時間がかかる場合があります。",
     "import.folderview3.confirm-apply": "現在の FolderView Plus Docker フォルダー、VM フォルダー、互換性設定、開始順序の所有権、テーマ ワークスペースのプロファイル データを置き換えますか?ロールバック チェックポイントとタイプごとのバックアップが最初に作成されます。",
-    "import.folderview3.confirm-native-suffix": "ネイティブ Docker 自動起動の有効化と待機も置き換えられます。"
+    "import.folderview3.confirm-native-suffix": "ネイティブ Docker 自動起動の有効化と待機も置き換えられます。",
+    "import.folderview3.order-invalid": "FolderView3 の順序スナップショットは無効です。フォルダー構成の順序が使用されました。",
+    "import.folderview3.order-duplicates": "重複する FolderView3 順序エントリは無視されました。",
+    "import.folderview3.order-unknown": "FolderView3 オーダーのスナップショット内の不明なフォルダー参照は無視されました。",
+    "import.folderview3.order-unassigned": "フォルダーの順序は保持されます。 Unraid ページ内の未割り当てアイテムの位置はインポートされません。",
+    "import.folderview3.theme-source": "テーマのソース メタデータは管理された更新に変換されませんでした。今後の更新を管理するには、元のテーマのソースをスキャンします。",
+    "import.folderview3.theme-unscoped": "認識された FolderView3 ページ スコープのないカスタム スタイルは除外されました。",
+    "import.folderview3.theme-disabled": "無効化されたテーマは、個別の非アクティブな外観プロファイルとして保存されました。これらはメインのインポートされたプロファイルには含まれません。",
+    "import.folderview3.theme-compatibility": "インポートされた CSS は、FolderView Plus とは異なる FolderView3 セレクターまたは変数を使用する場合があります。アクティブ化する前に、各外観プロファイルをプレビューします。",
+    "import.folderview3.order-imported": "輸入品",
+    "import.folderview3.order-fallback": "設定の順序",
+    "import.folderview3.order-empty": "保存された注文はありません",
+    "import.folderview3.order-invalid-status": "無効なスナップショットです。構成の順序",
+    "import.folderview3.appearance-profiles": "非アクティブなFolderView3外観プロファイルを追加する",
+    "import.folderview3.order-summary": "保存されたフォルダーの順序: Docker $1; VM $2。",
+    "import.folderview3.disabled-profile-count": "無効化されたテーマの個別のプロファイル: $1。"
 }

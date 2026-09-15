@@ -22,6 +22,8 @@
         return `fv-${Date.now().toString(36)}-${rand}`;
     };
     const transactionIdForTrace = (traceId) => `tx-${String(traceId || '').replace(/^fv-/, '').slice(0, 80)}`;
+    const failureApi = window.FolderViewPlusFoundationModules.requestDiagnostics.createApi({ window, requestDiagnostics, extractServerErrorMessage: error => extractServerErrorMessage(error) });
+    const { failureDiagnostics, classifyFailure, failureMessage, translate, formatAjaxError } = failureApi;
 
     const sanitizeDiagnosticUrl = (url) => {
         const raw = String(url || '').trim();
@@ -45,16 +47,23 @@
             durationMs: Math.max(0, Number(entry.durationMs) || 0),
             attempts: Math.max(1, Number(entry.attempts) || 1),
             traceId: String(entry.traceId || '').slice(0, 96),
-            transactionId: String(entry.transactionId || '').slice(0, 96)
+            transactionId: String(entry.transactionId || '').slice(0, 96),
+            phase: ['token', 'nonce', 'request'].includes(entry.phase) ? entry.phase : 'request',
+            failureSource: ['folderview-plus', 'unraid', 'transport', 'client'].includes(entry.failureSource) ? entry.failureSource : '',
+            reasonCode: failureApi.isKnownReason(entry.reasonCode) ? entry.reasonCode : ''
         });
         if (requestDiagnostics.length > MAX_DIAGNOSTICS) {
             requestDiagnostics.splice(0, requestDiagnostics.length - MAX_DIAGNOSTICS);
+        }
+        if (entry.reasonCode && entry.reasonCode !== 'aborted') {
+            failureApi.persist();
         }
     };
 
     const getDiagnostics = () => requestDiagnostics.map((entry) => ({ ...entry }));
     const clearDiagnostics = () => {
         requestDiagnostics.splice(0, requestDiagnostics.length);
+        failureApi.clear();
     };
 
     const buildUrl = (url, query = {}) => {
@@ -263,12 +272,11 @@
         return { endpoint, action };
     };
 
-    const requestMutationNonce = async (url, data, token, signal = null) => {
+    const requestMutationNonce = async (url, data, token, signal, traceId, timeoutMs) => {
         const target = resolveMutationTarget(url, data);
         if (!target.endpoint.endsWith('.php')) {
             throw new Error('Mutation nonce target is invalid.');
         }
-        const traceId = newTraceId();
         const noncePayload = addMutationPayloadMarkers('POST', {
             action: 'issue_nonce',
             endpoint: target.endpoint,
@@ -278,14 +286,16 @@
             url: NONCE_ENDPOINT,
             method: 'POST',
             data: noncePayload,
-            timeout: DEFAULT_TIMEOUT_MS,
+            timeout: timeoutMs,
             headers: buildHeaders({}, DEFAULT_TOKEN_STORAGE_KEY, token, traceId),
             dataType: 'json'
         }, signal);
         const payload = response?.data;
         const nonce = String(payload?.nonce || payload?.data?.nonce || '').trim();
         if (!/^[a-f0-9]{64}$/.test(nonce)) {
-            throw new Error('A valid one-time mutation nonce was not returned.');
+            throw Object.assign(new Error('A valid one-time mutation nonce was not returned.'), {
+                reasonCode: 'nonce-response-invalid', jqXHR: response?.jqXHR
+            });
         }
         return nonce;
     };
@@ -336,41 +346,23 @@
         return trimmed.length > 240 ? `${trimmed.slice(0, 237)}...` : trimmed;
     };
 
-    const formatAjaxError = (error, url, traceId = '') => {
-        if (error instanceof Error) {
-            return error;
+
+
+    const reportFailure = (error, { method, url, traceId, transactionId, phase = 'request', startedAt, attempts = 1 }) => {
+        const failure = classifyFailure(error);
+        const formatted = formatAjaxError(error, url, traceId);
+        Object.assign(formatted, failure, { phase, method, attempts, traceId, transactionId, retryable: failure.failureSource === 'transport' && shouldRetryError(error) });
+        const message = failureMessage(failure.reasonCode);
+        if (message) {
+            formatted.message = `${message} ${translate('request.failure.support-code', 'Support code: $1', `FVPLUS/${phase}/${failure.reasonCode}`)}`;
         }
-        const status = Number(error?.jqXHR?.status || 0);
-        const textStatus = String(error?.textStatus || '').trim();
-        const statusText = String(error?.jqXHR?.statusText || '').trim();
-        const errorThrown = String(error?.errorThrown || '').trim();
-        const serverDetail = extractServerErrorMessage(error);
-        const pieces = [
-            `Request failed for ${url}.`
-        ];
-        if (status) {
-            pieces.push(`HTTP ${status}`);
-        }
-        if (statusText) {
-            pieces.push(statusText);
-        }
-        if (textStatus && textStatus !== statusText) {
-            pieces.push(`(${textStatus})`);
-        }
-        if (errorThrown && errorThrown !== statusText) {
-            pieces.push(errorThrown);
-        }
-        if (serverDetail) {
-            pieces.push(`- ${serverDetail}`);
-        }
-        if (traceId) {
-            pieces.push(`(trace: ${traceId})`);
-        }
-        const formatted = new Error(pieces.join(' '));
-        formatted.status = status;
-        formatted.httpStatus = status;
-        formatted.traceId = traceId;
-        formatted.response = error?.jqXHR?.responseJSON || null;
+        formatted.status = Number(error?.jqXHR?.status || formatted.status || 0);
+        formatted.httpStatus = formatted.status;
+        recordDiagnostic({
+            method, url, phase, ...failure, traceId, transactionId, attempts,
+            outcome: failure.reasonCode === 'aborted' ? 'aborted' : 'error',
+            status: formatted.status, durationMs: Date.now() - startedAt
+        });
         return formatted;
     };
 
@@ -407,14 +399,20 @@
         let lastError = null;
         let attempts = 0;
         const token = getOptionalRequestToken(tokenStorageKey);
-        if (normalizedMethod === 'POST' && !token) {
-            throw new Error('A mutation request token is required. Refresh the FolderView Plus page and try again.');
-        }
         const traceId = newTraceId();
         const transactionId = transactionIdForTrace(traceId);
-        const nonce = normalizedMethod === 'POST'
-            ? await requestMutationNonce(url, data, token, signal)
-            : '';
+        let nonce = '';
+        let phase = normalizedMethod === 'POST' ? 'token' : 'request';
+        try {
+            if (signal?.aborted === true) throw { textStatus: 'abort' };
+            if (normalizedMethod === 'POST') {
+                if (!token) throw Object.assign(new Error('A mutation request token is required.'), { reasonCode: 'plugin-token-missing' });
+                phase = 'nonce';
+                nonce = await requestMutationNonce(url, data, token, signal, traceId, safeTimeoutMs);
+            }
+        } catch (error) {
+            throw reportFailure(error, { method: normalizedMethod, url, traceId, transactionId, phase, startedAt });
+        }
         const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId, nonce);
 
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
@@ -451,21 +449,7 @@
                 lastError = error;
                 const shouldRetry = attempt < safeRetries && shouldRetryError(error);
                 if (!shouldRetry) {
-                    const formatted = formatAjaxError(error, url, traceId);
-                    formatted.method = normalizedMethod;
-                    formatted.attempts = attempts;
-                    formatted.retryable = shouldRetryError(error);
-                    recordDiagnostic({
-                        method: normalizedMethod,
-                        url,
-                        outcome: String(error?.textStatus || '').toLowerCase() === 'abort' ? 'aborted' : 'error',
-                        status: error?.jqXHR?.status,
-                        durationMs: Date.now() - startedAt,
-                        attempts,
-                        traceId,
-                        transactionId
-                    });
-                    throw formatted;
+                    throw reportFailure(error, { method: normalizedMethod, url, traceId, transactionId, startedAt, attempts });
                 }
                 await wait((attempt + 1) * retryDelayMs);
             }
@@ -749,6 +733,7 @@
         uploadJson,
         sendKeepalive,
         diagnostics: getDiagnostics,
+        failureDiagnostics,
         clearDiagnostics
     });
 

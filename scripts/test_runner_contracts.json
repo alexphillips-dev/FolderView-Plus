@@ -36,6 +36,7 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-shortcuts.mjs", "limit": 60, "owner": "fixture Basic Settings shortcuts and keyboard access" },
     { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases" },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
@@ -53,6 +54,7 @@
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
+        "tests/browser/cases/settings-shortcuts.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
@@ -68,8 +70,8 @@
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
       "testCount": 52,
-      "assertionCount": 640,
-      "pageEvaluateCount": 134,
+      "assertionCount": 654,
+      "pageEvaluateCount": 141,
       "orderedTitleSha256": "3ff13b65ab37b079bf19a7a1ecc91b6235889bbcf15872326dd0badbce3393d7"
     }
   }

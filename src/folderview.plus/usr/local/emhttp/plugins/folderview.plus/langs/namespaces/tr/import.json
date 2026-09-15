@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "FolderView3 yapılandırması inceleniyor...",
     "import.folderview3.inspecting-help": "Bu salt okunur önizleme, özel stiller mevcut olduğunda biraz zaman alabilir.",
     "import.folderview3.confirm-apply": "Mevcut FolderView Plus Docker klasörleri, VM klasörleri, uyumlu ayarlar, başlangıç sırası sahipliği ve Theme Workspace profil verileri değiştirilsin mi? İlk önce bir geri alma kontrol noktası ve tür başına yedeklemeler oluşturulacaktır.",
-    "import.folderview3.confirm-native-suffix": "Yerel Docker otomatik başlatma etkinleştirmesi ve beklemeler de değiştirilecek."
+    "import.folderview3.confirm-native-suffix": "Yerel Docker otomatik başlatma etkinleştirmesi ve beklemeler de değiştirilecek.",
+    "import.folderview3.order-invalid": "FolderView3 sipariş anlık görüntüsü geçersiz; klasör yapılandırma sırası kullanıldı.",
+    "import.folderview3.order-duplicates": "Yinelenen FolderView3 sipariş girişleri göz ardı edildi.",
+    "import.folderview3.order-unknown": "FolderView3 sipariş anlık görüntülerindeki bilinmeyen klasör referansları göz ardı edildi.",
+    "import.folderview3.order-unassigned": "Klasör sırası korunur; Unraid sayfasındaki atanmamış öğelerin konumları içe aktarılmaz.",
+    "import.folderview3.theme-source": "Tema kaynağı meta verileri yönetilen güncellemelere dönüştürülmedi. Gelecekteki güncellemeleri yönetmek için orijinal tema kaynağını tarayın.",
+    "import.folderview3.theme-unscoped": "Tanınmış bir FolderView3 sayfa kapsamı olmayan özel stiller hariç tutuldu.",
+    "import.folderview3.theme-disabled": "Devre dışı bırakılan temalar ayrı etkin olmayan görünüm profilleri olarak korundu; içe aktarılan ana profile dahil edilmezler.",
+    "import.folderview3.theme-compatibility": "İçe aktarılan CSS, FolderView3 seçicilerini veya FolderView Plus'ta farklılık gösteren değişkenleri kullanabilir. Etkinleştirmeden önce her görünüm profilini önizleyin.",
+    "import.folderview3.order-imported": "İthal",
+    "import.folderview3.order-fallback": "Yapılandırma sırası",
+    "import.folderview3.order-empty": "Kayıtlı sipariş yok",
+    "import.folderview3.order-invalid-status": "Geçersiz anlık görüntü; konfigürasyon sırası",
+    "import.folderview3.appearance-profiles": "Etkin olmayan FolderView3 görünüm profillerini ekleme",
+    "import.folderview3.order-summary": "Kaydedilen klasör sırası: Docker $1; VM'ler $2.",
+    "import.folderview3.disabled-profile-count": "Devre dışı bırakılan temalar için ayrı profiller: $1."
 }

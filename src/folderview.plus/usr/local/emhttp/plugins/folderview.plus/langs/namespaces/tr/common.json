@@ -15,5 +15,12 @@
     "common.state.ready": "Hazır",
     "common.actions.clear": "Temizle",
     "common.state.all-good": "her şey yolunda",
-    "common.health.folder-summary": "Klasör sağlığı: $1 başlatıldı | $2 duraklatıldı | $3 durduruldu"
+    "common.health.folder-summary": "Klasör sağlığı: $1 başlatıldı | $2 duraklatıldı | $3 durduruldu",
+    "request.failure.refresh": "Sayfa güvenlik bilgileri eksik veya süresi dolmuş. Unraid webGUI'sini yenileyin ve ardından değişikliğinizi yeniden deneyin.",
+    "request.failure.session": "Unraid, oturum güvenliği kontrolünü reddetti. WebGUI'yi yenileyin ve istenirse yeniden oturum açın, ardından değişikliğinizi yeniden deneyin.",
+    "request.failure.origin": "Sayfa adresi sunucu isteğiyle eşleşmiyor. Ters proxy kullanıyorsanız doğrudan Unraid erişimini deneyin ve proxy başlıklarını kontrol edin.",
+    "request.failure.marker": "İstek güvenlik işaretçisi eklentiye ulaşmadı. WebGUI'yi tam olarak yenileyin; bu durum devam ederse tarayıcı uzantılarını veya proxy filtrelemeyi kontrol edin.",
+    "request.failure.state": "Eklenti güvenli değişiklikler hazırlayamadı. Eklenti günlüklerini kontrol edin ve arındırılmış bir destek paketini dışa aktarın.",
+    "request.failure.guard": "Eklenti bu değişikliği reddetti. WebGUI'yi yenileyin ve tekrar denemeden önce zaten uygulanmış olup olmadığını kontrol edin. Sorun devam ederse bu destek kodunu ekleyin.",
+    "request.failure.support-code": "Destek kodu: $1"
 }

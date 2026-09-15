@@ -96,7 +96,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="fv-theme-workspace-body">
             <div id="fv-theme-workspace-summary" class="fv-theme-workspace-summary" aria-live="polite"></div>
-            <div id="fv-theme-workspace-status" class="fv-theme-workspace-status">Theme workspace idle.</div>
+            <div id="fv-theme-workspace-status" class="fv-theme-workspace-status" role="status" aria-live="polite">Theme workspace idle.</div>
             <div class="fv-theme-workspace-grid">
                 <section class="fv-theme-module fv-theme-import-module">
                     <div class="fv-theme-module-head">
@@ -135,6 +135,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <p data-i18n="settings.theme.profiles-help">Use named profiles and global or page-specific layers. Changes are previewed before an atomic save.</p>
                     </div>
                 </div><div id="fv-theme-profile-toolbar" class="fv-theme-profile-toolbar"></div>
+                <div id="fv-theme-presets"></div>
                 <div class="fv-theme-customize-grid">
                     <div class="fv-theme-customize-card">
                         <div class="fv-theme-card-head">
@@ -1758,7 +1759,7 @@ $fvplusSettingsFoundationAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.request.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.request-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.request.js',
         '/plugins/folderview.plus/scripts/runtime.performance-telemetry.js',
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js',
         '/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js',
@@ -1790,7 +1791,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js',
         '/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
         '/plugins/folderview.plus/scripts/folderviewplus.row-details.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-report.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',

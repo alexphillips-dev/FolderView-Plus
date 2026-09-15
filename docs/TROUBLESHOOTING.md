@@ -83,6 +83,17 @@ support bundle through the failing proxy URL. The
 authority reason codes without recording the hostname, IP address, or raw
 header values. See [Request security and abuse controls](security/REQUEST_SECURITY.md#reverse-proxies).
 
+### Save fails with a request support code
+
+Protected changes now distinguish page security setup, nonce preparation, and the final save request. When a known security check fails, the dialog gives a recovery step and a code such as `FVPLUS/nonce/origin-mismatch` or `FVPLUS/request/csrf-invalid`.
+
+- For missing or expired page security information, refresh the webGUI and retry the change.
+- For an Unraid session security failure, refresh and sign in again if prompted.
+- For an origin or referer mismatch, compare direct Unraid access with the proxy path and check the headers described above.
+- For unavailable security state, inspect the plugin logs and export a sanitized support bundle.
+
+Do not repeatedly submit an uncertain change: check whether it already applied before retrying. Request guards remain enabled, and failed mutations are not automatically retried. The browser keeps up to 20 sanitized failures for 24 hours in the current tab session, including navigation to Diagnostics. Support bundles include the request phase, endpoint name, HTTP status, source, and reason code in the browser client-storage diagnostics; submitted values, raw responses, addresses, and credentials are excluded. Storage restrictions can prevent history from surviving navigation, but do not block saving.
+
 ### Import Fails Validation
 
 Make sure Docker exports are imported into Docker and VM exports into VMs. Re-export with the latest plugin version if the file came from older tooling.

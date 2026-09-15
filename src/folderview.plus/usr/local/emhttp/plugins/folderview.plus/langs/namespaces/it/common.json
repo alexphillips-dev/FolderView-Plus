@@ -15,5 +15,12 @@
     "common.state.ready": "Pronto",
     "common.actions.clear": "Cancella",
     "common.state.all-good": "tutto bene",
-    "common.health.folder-summary": "Integrità della cartella: $1 avviato | $2 in pausa | $3 interrotto"
+    "common.health.folder-summary": "Integrità della cartella: $1 avviato | $2 in pausa | $3 interrotto",
+    "request.failure.refresh": "Le informazioni sulla sicurezza della pagina mancano o sono scadute. Aggiorna la webGUI di Unraid, quindi riprova a apportare la modifica.",
+    "request.failure.session": "Unraid ha rifiutato il controllo di sicurezza della sessione. Aggiorna la webGUI e accedi di nuovo se richiesto, quindi riprova la modifica.",
+    "request.failure.origin": "L'indirizzo della pagina non corrisponde alla richiesta del server. Se utilizzi un proxy inverso, prova l'accesso diretto Unraid e controlla le intestazioni del proxy.",
+    "request.failure.marker": "Il contrassegno di sicurezza della richiesta non ha raggiunto il plugin. Aggiornare la webGUI; se il problema persiste, controlla le estensioni del browser o il filtro proxy.",
+    "request.failure.state": "Il plugin non è riuscito a preparare modifiche sicure. Controlla i log del plugin ed esporta un pacchetto di supporto ripulito.",
+    "request.failure.guard": "Il plugin ha rifiutato questa modifica. Aggiorna la webGUI e controlla se è già stata applicata prima di riprovare. Includi questo codice di supporto se il problema persiste.",
+    "request.failure.support-code": "Codice supporto: $1"
 }

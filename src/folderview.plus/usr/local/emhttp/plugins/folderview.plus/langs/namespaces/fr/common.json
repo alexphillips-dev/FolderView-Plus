@@ -15,5 +15,12 @@
     "common.state.ready": "Prêt",
     "common.actions.clear": "Effacer",
     "common.state.all-good": "tout va bien",
-    "common.health.folder-summary": "État du dossier : $1 démarré | $2 en pause | $3 arrêté"
+    "common.health.folder-summary": "État du dossier : $1 démarré | $2 en pause | $3 arrêté",
+    "request.failure.refresh": "Les informations de sécurité de la page sont manquantes ou expirées. Actualisez l'interface graphique Web Unraid, puis réessayez votre modification.",
+    "request.failure.session": "Unraid a rejeté le contrôle de sécurité de la session. Actualisez l'interface graphique Web et reconnectez-vous si vous y êtes invité, puis réessayez votre modification.",
+    "request.failure.origin": "L'adresse de la page ne correspond pas à la requête du serveur. Si vous utilisez un proxy inverse, essayez l'accès direct Unraid et vérifiez les en-têtes du proxy.",
+    "request.failure.marker": "Le marqueur de sécurité de la demande n'a pas atteint le plugin. Actualisez matériellement l'interface graphique Web ; si cela continue, vérifiez les extensions du navigateur ou le filtrage proxy.",
+    "request.failure.state": "Le plugin n'a pas pu préparer les modifications sécurisées. Vérifiez les journaux du plugin et exportez un ensemble de support nettoyé.",
+    "request.failure.guard": "Le plugin a rejeté cette modification. Actualisez l'interface graphique Web et vérifiez si elle a déjà été appliquée avant de réessayer. Incluez ce code de support si le problème persiste.",
+    "request.failure.support-code": "Code d'assistance : $1"
 }

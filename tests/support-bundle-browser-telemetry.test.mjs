@@ -131,6 +131,16 @@ test('support bundle browser telemetry includes aggregate preference save health
     assert.equal(JSON.stringify(clientStorage.preferenceSaves).includes('privacyMode'), false);
 });
 
+test('support bundle includes the bounded request failure history across Settings navigation', () => {
+    const failures = [{ at: new Date().toISOString(), endpoint: '/plugins/folderview.plus/server/update.php', phase: 'nonce', failureSource: 'folderview-plus', reasonCode: 'origin-mismatch', status: 403 }];
+    const root = { FolderViewPlusRequest: { failureDiagnostics: () => failures } };
+    const result = loadTelemetryModule(root).createApi().collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized' }, uiTelemetry: {}, healthAndHistory: {}, redactionManifest: {}
+    });
+    assert.equal(result.uiTelemetry.clientStorage.requestFailures[0].phase, 'nonce');
+    assert.equal(result.uiTelemetry.clientStorage.requestFailures[0].reasonCode, 'origin-mismatch');
+});
+
 test('support bundle browser telemetry exports fresh privacy-safe Dashboard visual evidence', () => {
     const capturedAt = new Date(Date.now() - 60_000).toISOString();
     const record = {

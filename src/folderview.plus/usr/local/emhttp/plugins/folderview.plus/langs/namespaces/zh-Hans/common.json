@@ -15,5 +15,12 @@
     "common.state.ready": "准备好",
     "common.actions.clear": "清除",
     "common.state.all-good": "一切都好",
-    "common.health.folder-summary": "文件夹运行状况：$1 已启动 | $2 暂停 | $3 已停止"
+    "common.health.folder-summary": "文件夹运行状况：$1 已启动 | $2 暂停 | $3 已停止",
+    "request.failure.refresh": "页面安全信息丢失或过期。刷新 Unraid webGUI，然后重试您的更改。",
+    "request.failure.session": "Unraid 拒绝了会话安全检查。如果出现提示，请刷新 webGUI 并重新登录，然后重试更改。",
+    "request.failure.origin": "页面地址与服务器请求不匹配。如果您使用反向代理，请尝试直接 Unraid 访问并检查代理标头。",
+    "request.failure.marker": "请求安全标记未到达插件。硬刷新 webGUI；如果这种情况持续存在，请检查浏览器扩展或代理过滤。",
+    "request.failure.state": "该插件无法准备安全更改。检查插件日志并导出经过清理的支持包。",
+    "request.failure.guard": "该插件拒绝了此更改。刷新 webGUI 并检查它是否已应用，然后重试。如果问题仍然存在，请包含此支持代码。",
+    "request.failure.support-code": "支持代码：$1"
 }

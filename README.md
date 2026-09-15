@@ -150,6 +150,8 @@ Recommended first setup:
 
 FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, and diagnostics.
 
+Basic mode also provides shortcuts to Docker folders, VM folders, Appearance presets, and Recovery. A shortcut opens the relevant workspace and clears the Settings search so the destination is visible.
+
 Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use the Activity Center, restore controls, and backups to confirm what changed and recover when needed.
 
 The diagnostics workspace includes health checks, a copyable issue report, and a v2 support bundle export preview. Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default so reports can be shared without exposing unnecessary personal details.
@@ -171,6 +173,8 @@ If the UI shows a diagnostics panel, copy the report text or export a sanitized 
 ## Customization
 
 Customize FolderView Plus from the folder editor and Advanced settings. You can tune folder icons, preview rows, child folder preview depth, borders, border glow, hover animations, status colors, action buttons, sort behavior, templates, rules, backups, and Docker start order.
+
+Appearance includes Inherited, Orange, Blue, Green, and Muted presets for accent and graph colors in the selected scope. Previewing a preset does not save it. Use Undo preset preview to restore the previous layer, Save customization layer to update the current profile, or enter a profile name and choose Save as new profile to activate a copy while retaining the original. Inherited removes preset color overrides so the surrounding theme or parent scope supplies those colors; status colors and other customizations are preserved.
 
 The plugin uses shared theme tokens for modern dark and light surfaces, while still honoring compatibility guidance in the [Support Policy](docs/SUPPORT_POLICY.md) for stable selectors and legacy custom CSS/JS migration.
 

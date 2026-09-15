@@ -528,6 +528,7 @@
             ) ? { ...payload.uiTelemetry } : {};
             existingUiTelemetry.browserCapabilities = collectBrowserCapabilities();
             existingUiTelemetry.clientStorage = collectClientStorageDiagnostics();
+            existingUiTelemetry.clientStorage.requestFailures = root?.FolderViewPlusRequest?.failureDiagnostics?.() || [];
             existingUiTelemetry.currentPage = collectCurrentPageTelemetry(uiRedactor);
             existingUiTelemetry.loadedAssets = collectLoadedAssetTelemetry(uiRedactor, {
                 pluginVersion: payload.bundleMeta?.pluginVersion || ''

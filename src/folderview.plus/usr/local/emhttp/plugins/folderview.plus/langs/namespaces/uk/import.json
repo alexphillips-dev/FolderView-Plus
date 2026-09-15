@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Перевірка конфігурації FolderView3...",
     "import.folderview3.inspecting-help": "Цей попередній перегляд лише для читання може зайняти деякий час, якщо присутні власні стилі.",
     "import.folderview3.confirm-apply": "Замінити поточні папки FolderView Plus Docker, папки віртуальної машини, сумісні налаштування, право власності початкового порядку та дані профілю Theme Workspace? Спочатку буде створено контрольну точку відкату та резервні копії для кожного типу.",
-    "import.folderview3.confirm-native-suffix": "Увімкнення автозапуску та очікування Native Docker також буде замінено."
+    "import.folderview3.confirm-native-suffix": "Увімкнення автозапуску та очікування Native Docker також буде замінено.",
+    "import.folderview3.order-invalid": "Знімок порядку FolderView3 недійсний; використовувався порядок конфігурації папок.",
+    "import.folderview3.order-duplicates": "Повторювані записи порядку FolderView3 були проігноровані.",
+    "import.folderview3.order-unknown": "Посилання на невідомі папки в миттєвих знімках порядку FolderView3 ігнорувалися.",
+    "import.folderview3.order-unassigned": "Порядок папок зберігається; позиції непризначених елементів на сторінці Unraid не імпортуються.",
+    "import.folderview3.theme-source": "Метадані джерела теми не було перетворено в керовані оновлення. Скануйте оригінальне джерело теми, щоб керувати майбутніми оновленнями.",
+    "import.folderview3.theme-unscoped": "Настроювані стилі без розпізнаної області сторінки FolderView3 були виключені.",
+    "import.folderview3.theme-disabled": "Вимкнені теми були збережені як окремі неактивні профілі вигляду; вони не включені в основний імпортований профіль.",
+    "import.folderview3.theme-compatibility": "Імпортований CSS може використовувати селектори FolderView3 або змінні, які відрізняються у FolderView Plus. Перегляньте кожен профіль зовнішнього вигляду перед активацією.",
+    "import.folderview3.order-imported": "Імпортні",
+    "import.folderview3.order-fallback": "Порядок конфігурації",
+    "import.folderview3.order-empty": "Немає збереженого замовлення",
+    "import.folderview3.order-invalid-status": "Недійсний знімок; порядок конфігурації",
+    "import.folderview3.appearance-profiles": "Додайте неактивні профілі вигляду FolderView3",
+    "import.folderview3.order-summary": "Збережений порядок папок: Docker $1; Віртуальні машини $2.",
+    "import.folderview3.disabled-profile-count": "Окремі профілі для вимкнених тем: $1."
 }

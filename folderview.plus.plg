@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.15.02">
-<!ENTITY md5 "2665d205d4a955c6b7d71dd4962db1fc">
-<!ENTITY sha256 "7d49c23cac185876a7d597ac721b4cb8d02282a22b19efc41fc0fbcccb2cda94">
+<!ENTITY version "2026.09.15.03">
+<!ENTITY md5 "8067a97c6b4101c5510b87d5159d22f0">
+<!ENTITY sha256 "31dcb2b4ee60f5f69a3839a176459325ad14d2983cd8305d11e99d2139a5ce70">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.15.03
+- Fix: A folder that fails to display no longer stops other folders from loading on Docker, VMs, or the Dashboard. Native container and VM rows remain accessible, and unfinished folder UI is removed.
+- UX: A localized warning identifies affected folders and provides links to review their settings. Reloading after a successful render clears the warning.
+- Compatibility: Render recovery preserves saved folder configuration and expansion preferences. Healthy Dashboard child folders can appear at the top level when their parent cannot be displayed.
+
 
 ###2026.09.15.02
 - UI/UX: Remove the "Manage folders below" message and its four shortcut buttons from the top of Settings.

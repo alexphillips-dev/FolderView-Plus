@@ -20,7 +20,8 @@
         "../tests/browser/cases/folder-editor.mjs",
         "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
-        "../tests/browser/cases/import.mjs"
+        "../tests/browser/cases/import.mjs",
+        "../tests/browser/cases/folder-render-recovery.mjs"
       ]
     }
   ],
@@ -41,7 +42,8 @@
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
     { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
-    { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" }
+    { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
+    { "file": "tests/browser/cases/folder-render-recovery.mjs", "limit": 40, "owner": "fixture native row rollback and render recovery" }
   ],
   "intent": {
     "fixture": {
@@ -58,7 +60,8 @@
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
-        "tests/browser/cases/import.mjs"
+        "tests/browser/cases/import.mjs",
+        "tests/browser/cases/folder-render-recovery.mjs"
       ],
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
@@ -67,10 +70,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 52,
-      "assertionCount": 651,
-      "pageEvaluateCount": 140,
-      "orderedTitleSha256": "3ff13b65ab37b079bf19a7a1ecc91b6235889bbcf15872326dd0badbce3393d7"
+      "testCount": 53,
+      "assertionCount": 665,
+      "pageEvaluateCount": 146,
+      "orderedTitleSha256": "6a38bd9b942e7a53e5b4e4f1e6b8af3a32d357065b0d6d7b79817743d37c49a0"
     }
   }
 }

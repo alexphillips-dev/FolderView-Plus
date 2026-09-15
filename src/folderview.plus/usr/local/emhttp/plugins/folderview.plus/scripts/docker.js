@@ -3312,7 +3312,8 @@ const dockerExpandedStateController = runtimeStateObserverModule && typeof runti
                 expandedFolderState: normalizeExpandedStateMap(map)
             });
         },
-        readFolders: () => globalFolders || {}
+        readFolders: () => globalFolders || {},
+        readPreservedIds: () => dockerFolderRenderRecovery.failedIds()
     })
     : null;
 const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => dockerExpandedStateController
@@ -4655,6 +4656,10 @@ let createFoldersQueued = false;
 /**
  * Handles the creation of all folders
  */
+const dockerFolderRenderRecovery = window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage('docker', '#docker_list', {
+    grouping: () => dockerFolderGroupingSession, binders: dockerAdvancedPreviewContextBindersByName, deferred: dockerDeferredPreviewController
+});
+
 const createFolders = async () => {
     dockerDeferredPreviewController.flush();
     dockerAdvancedPreviewContextBindersByName.clear();
@@ -4786,6 +4791,7 @@ const createFolders = async () => {
         document.body.removeChild(element);
         URL.revokeObjectURL(url);
     }
+    dockerFolderRenderRecovery.begin();
     let foldersDone = {};
 
 
@@ -4825,7 +4831,7 @@ const createFolders = async () => {
                     folderDepthById[id] || 0
                 );
                 key -= removedCount; // Adjust key by the number of items that were before the folder and moved into it.
-                foldersDone[id] = folders[id];
+                if (!dockerFolderRenderRecovery.hasFailed(id)) foldersDone[id] = folders[id];
                 delete folders[id];
             }
         }
@@ -4850,7 +4856,7 @@ const createFolders = async () => {
             folderDepthById[id] || 0
         );
         // Move the folder to the done object and delete it from the undone one
-        foldersDone[id] = folders[id];
+        if (!dockerFolderRenderRecovery.hasFailed(id)) foldersDone[id] = folders[id];
         delete folders[id];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Remaining folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
     }
@@ -4882,7 +4888,7 @@ const createFolders = async () => {
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');
     const expandedStateById = buildDockerExpandedStateMap(
-        foldersDone,
+        { ...dockerFolderRenderRecovery.failedFolders(), ...foldersDone },
         previousFolders,
         readDockerServerExpandedStateMap()
     );
@@ -4946,6 +4952,7 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Exit');
+    dockerFolderRenderRecovery.finish();
     markDockerFatalBannerStep('Docker folders rendered');
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
@@ -5018,19 +5025,11 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
     }
 };
 
-/**
- * Handles the creation of one folder
- * @param {object} folder the folder
- * @param {string} id if of the folder
- * @param {int} position position to inset the folder
- * @param {Array<string>} order order of containers
- * @param {object} containersInfo info of the containers
- * @param {Array<string>} foldersDone folders that are done
- * @param {object|null} matchCacheEntry precomputed membership candidates
- * @param {number} depthLevel visual nesting depth for parent/child folders
- * @returns {number} the number of element removed before the folder
- */
-const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
+// Render one folder transactionally and return the number of earlier order entries moved.
+// The recovery controller restores native rows if rendering fails.
+const createFolder = (...args) => dockerFolderRenderRecovery.render(args[0], args[1], args[3], () => renderDockerFolder(...args));
+
+const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     id = normalizeFolderId(id);
     if (!id) {
         throw new Error('FolderView Plus refused to render a folder with an invalid identifier.');

@@ -397,6 +397,10 @@
                 updateCharts(charts);
             };
             const graphListener = (event) => pushStats(parseStatsMessage(event, ct, cpus));
+            win?.FolderViewPlusFoundationModules?.folderRenderRecovery?.registerCleanup(() => {
+                if ($trigger.hasClass('tooltipstered')) $trigger.tooltipster('destroy');
+                $trigger.removeData('fvDashboardAdvancedPreviewAttached fvDashboardAdvancedPreviewBuilt');
+            });
             $trigger.data('fvDashboardAdvancedPreviewAttached', true);
             $trigger.removeAttr('onclick');
             $trigger.tooltipster({

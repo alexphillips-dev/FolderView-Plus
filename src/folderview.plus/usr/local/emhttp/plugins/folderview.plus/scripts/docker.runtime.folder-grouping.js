@@ -98,7 +98,7 @@
         const identityIndex = buildIdentityIndex(options.containersInfo);
         const rowRecords = [];
         const rowByCanonicalName = new Map();
-        const claimedNames = new Set();
+        const claimedNames = new Map();
         const folderEntries = new Map();
         let resolvedRowCount = 0;
         let unresolvedRowCount = 0;
@@ -192,12 +192,24 @@
             const row = rowByCanonicalName.get(canonicalName) || null;
             const available = row && !claimedNames.has(canonicalName) && row.isConnected !== false;
             if (available) {
-                claimedNames.add(canonicalName);
+                claimedNames.set(canonicalName, String(folderId));
                 if (entry) entry.claimedRowCount++;
                 return row;
             }
             if (entry) entry.missingRowCount++;
             return null;
+        };
+        const rollbackFolder = (folderId) => {
+            const key = String(folderId);
+            const released = [];
+            for (const [name, owner] of claimedNames) {
+                if (owner !== key) continue;
+                claimedNames.delete(name);
+                released.push(name);
+            }
+            const entry = folderEntries.get(key);
+            if (entry) Object.assign(entry, { renderFailed: true, shellInserted: false, claimedRowCount: 0, renderedMemberCount: 0 });
+            return released;
         };
         const finishFolder = (folderId, details = {}) => {
             const entry = folderEntries.get(String(folderId || ''));
@@ -251,6 +263,7 @@
             insertFolderRow,
             claim,
             finishFolder,
+            rollbackFolder,
             snapshot
         });
     };

@@ -4,6 +4,12 @@ Use this when the root README quick fixes are not enough.
 
 ## Common Issues
 
+### Some Folders Could Not Be Displayed
+
+If an individual folder fails while rendering, FolderView Plus restores its native container or VM rows and continues displaying healthy folders. On the Dashboard, healthy child folders can appear at the top level when their parent cannot be displayed.
+
+Use **Review folder** in the warning to open the affected folder's settings, then reload the page. Saved folder configuration and expansion preferences are retained. If the warning returns, export a sanitized support bundle from **Settings > FolderView Plus > Diagnostics** and describe which page and action triggered it.
+
 ### Settings Page Is Blank
 
 FolderView Plus keeps a small startup shell active until its required Settings modules and saved state are ready. If startup fails, the shell stops and a critical error card identifies the failed phase and provides a stable reference code.

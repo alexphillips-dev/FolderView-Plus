@@ -1320,6 +1320,10 @@ const buildDashboardDebugPayload = async (type, details) => {
 /**
  * Handles the creation of all folders
  */
+const dashboardFolderRenderRecovery = Object.fromEntries(['docker', 'vm'].map((type) => [type,
+    window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage(type, type === 'docker' ? '#docker_view' : '#vm_view')
+]));
+
 const createFolders = async (types = ['docker', 'vm']) => {
     const renderTypes = new Set(
         (Array.isArray(types) ? types : [types])
@@ -1331,6 +1335,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
     // if docker is enabled
     if (renderTypes.has('docker') && $('tbody#docker_view').length > 0) {
+        dashboardFolderRenderRecovery.docker.begin();
         dashboardFolderRenderCompleteByType.docker = false;
         showDashboardRuntimeLoadingRow('docker');
         try {
@@ -1425,11 +1430,11 @@ const createFolders = async (types = ['docker', 'vm']) => {
                     Object.keys(foldersDone),
                     dockerFullMatchCache[childId] || null,
                     {
-                        appendTo: `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
                         preserveWhenEmpty: childHasChildren
                     }
                 );
-                foldersDone[childId] = allDockerFolders[childId];
+                if (!dashboardFolderRenderRecovery.docker.hasFailed(childId)) foldersDone[childId] = allDockerFolders[childId];
                 renderDockerChildren(childId);
             }
         };
@@ -1454,9 +1459,10 @@ const createFolders = async (types = ['docker', 'vm']) => {
                         rootCacheEntry,
                         { preserveWhenEmpty: hasChildren }
                     );
-                    key -= newOnes.length;
-                    // Move the folder to the done object and delete it from the undone one
-                    foldersDone[id] = folders[id];
+                    if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) {
+                        key -= newOnes.length;
+                        foldersDone[id] = folders[id];
+                    }
                     createdRootIds.push(id);
                     delete folders[id];
                 }
@@ -1484,7 +1490,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
-            foldersDone[id] = folders[id];
+            if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) foldersDone[id] = folders[id];
             createdRootIds.push(id);
             delete folders[id];
         }
@@ -1522,6 +1528,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         }
         } finally {
             hideDashboardRuntimeLoadingRow('docker');
+            dashboardFolderRenderRecovery.docker.finish();
         }
     }
 
@@ -1532,6 +1539,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
     // if vm is enabled
     if (renderTypes.has('vm') && $('tbody#vm_view').length > 0) {
+        dashboardFolderRenderRecovery.vm.begin();
         dashboardFolderRenderCompleteByType.vm = false;
         showDashboardRuntimeLoadingRow('vm');
         try {
@@ -1626,11 +1634,11 @@ const createFolders = async (types = ['docker', 'vm']) => {
                     Object.keys(foldersDone),
                     vmFullMatchCache[childId] || null,
                     {
-                        appendTo: `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
                         preserveWhenEmpty: childHasChildren
                     }
                 );
-                foldersDone[childId] = allVmFolders[childId];
+                if (!dashboardFolderRenderRecovery.vm.hasFailed(childId)) foldersDone[childId] = allVmFolders[childId];
                 renderVmChildren(childId);
             }
         };
@@ -1655,9 +1663,10 @@ const createFolders = async (types = ['docker', 'vm']) => {
                         rootCacheEntry,
                         { preserveWhenEmpty: hasChildren }
                     );
-                    key -= newOnes.length;
-                    // Move the folder to the done object and delete it from the undone one
-                    foldersDone[id] = folders[id];
+                    if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) {
+                        key -= newOnes.length;
+                        foldersDone[id] = folders[id];
+                    }
                     createdRootVmIds.push(id);
                     delete folders[id];
                 }
@@ -1685,7 +1694,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
-            foldersDone[id] = folders[id];
+            if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) foldersDone[id] = folders[id];
             createdRootVmIds.push(id);
             delete folders[id];
         }
@@ -1722,6 +1731,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         }
         } finally {
             hideDashboardRuntimeLoadingRow('vm');
+            dashboardFolderRenderRecovery.vm.finish();
         }
     }
 
@@ -1731,19 +1741,11 @@ const createFolders = async (types = ['docker', 'vm']) => {
     scheduleDashboardLayoutApplyForType('vm');
 };
 
-/**
- * Handles the creation of one folder
- * @param {object} folder the folder
- * @param {string} id if of the folder
- * @param {int} position position to inset the folder
- * @param {Array<string>} order order of containers
- * @param {object} containersInfo info of the containers
- * @param {Array<string>} foldersDone folders that are done
- * @param {object|null} matchCacheEntry precomputed membership candidates
- * @param {{appendTo?: string, preserveWhenEmpty?: boolean}} options render options
- * @returns the number of element removed before the folder
- */
-const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null, options = {}) => {
+// Render one folder transactionally and return the number of earlier order entries moved.
+// The recovery controller restores native rows if rendering fails.
+const createFolderDocker = (...args) => dashboardFolderRenderRecovery.docker.render(args[0], args[1], args[3], () => renderFolderDocker(...args));
+
+const renderFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-creation', {detail: {
         folder: folder,
         id: id,
@@ -2021,19 +2023,11 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     return remBefore;
 };
 
-/**
- * Handles the creation of one folder
- * @param {object} folder the folder
- * @param {string} id if of the folder
- * @param {int} position position to inset the folder
- * @param {Array<string>} order order of vms
- * @param {object} vmInfo info of the vms
- * @param {Array<string>} foldersDone folders that are done
- * @param {object|null} matchCacheEntry precomputed membership candidates
- * @param {{appendTo?: string, preserveWhenEmpty?: boolean}} options render options
- * @returns the number of element removed before the folder
- */
-const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, options = {}) => {
+// Render one folder transactionally and return the number of earlier order entries moved.
+// The recovery controller restores native rows if rendering fails.
+const createFolderVM = (...args) => dashboardFolderRenderRecovery.vm.render(args[0], args[1], args[3], () => renderFolderVM(...args));
+
+const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
         folder: folder,
         id: id,

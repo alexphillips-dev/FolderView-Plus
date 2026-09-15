@@ -182,6 +182,21 @@ test('Docker grouping preserves first-folder-wins ownership', () => {
     assert.equal(snapshot.folders.removedByHideEmptyCount, 1);
 });
 
+test('failed grouping releases only its own native row claims', () => {
+    const containersInfo = createRuntime(2);
+    const names = Object.keys(containersInfo);
+    const rows = names.map((name) => createRow({ name, id: `ct-${containersInfo[name].shortId}` }));
+    const session = grouping.createSession({ document: { querySelectorAll: () => rows }, containersInfo });
+    session.beginFolder('healthy', {}, 1);
+    session.beginFolder('broken', {}, 1);
+    assert.equal(session.claim('healthy', names[0]), rows[0]);
+    assert.equal(session.claim('broken', names[1]), rows[1]);
+    assert.deepEqual(session.rollbackFolder('broken'), [names[1]]);
+    assert.equal(session.claim('next', names[0]), null);
+    assert.equal(session.claim('next', names[1]), rows[1]);
+    assert.doesNotMatch(JSON.stringify(session.snapshot()), /app-|sha256:|healthy|broken/);
+});
+
 test('folder shell insertion falls back to a connected previous row and reports missing roots', () => {
     const containersInfo = createRuntime(1);
     const name = Object.keys(containersInfo)[0];

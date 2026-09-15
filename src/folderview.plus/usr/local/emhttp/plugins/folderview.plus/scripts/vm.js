@@ -664,6 +664,7 @@ const vmExpandedStateController = runtimeStateObserverModule && typeof runtimeSt
             });
         },
         readFolders: () => globalFolders || {},
+        readPreservedIds: () => vmFolderRenderRecovery.failedIds(),
         onPersistFromGlobal: (map) => {
             vmRuntimeStateStore.set({
                 expandedFolderIds: Object.entries(map).filter(([, expanded]) => expanded === true).map(([id]) => String(id || ''))
@@ -1539,6 +1540,8 @@ let createFoldersQueued = false;
 /**
  * Handles the creation of all folders
  */
+const vmFolderRenderRecovery = window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage('vm', '#kvm_list', { deferred: vmDeferredPreviewController });
+
 const createFolders = async () => {
     vmDeferredPreviewController.flush();
     const vmRuntimeRoot = document.querySelector('#kvm_list, #vm_view');
@@ -1620,6 +1623,7 @@ const createFolders = async () => {
         vmDebugLog('Order:', [...order]);
     }
 
+    vmFolderRenderRecovery.begin();
     let foldersDone = {};
 
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folders-creation', {detail: {
@@ -1645,9 +1649,10 @@ const createFolders = async () => {
                     folderMatchCache[id] || null,
                     folderDepthById[id] || 0
                 );
-                key -= newOnes.length;
-                // Move the folder to the done object and delete it from the undone one
-                foldersDone[id] = folders[id];
+                if (!vmFolderRenderRecovery.hasFailed(id)) {
+                    key -= newOnes.length;
+                    foldersDone[id] = folders[id];
+                }
                 delete folders[id];
             }
         }
@@ -1670,13 +1675,13 @@ const createFolders = async () => {
             folderDepthById[id] || 0
         );
         // Move the folder to the done object and delete it from the undone one
-        foldersDone[id] = folders[id];
+        if (!vmFolderRenderRecovery.hasFailed(id)) foldersDone[id] = folders[id];
         delete folders[id];
     }
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     const expandedStateById = buildVmExpandedStateMap(
-        foldersDone,
+        { ...vmFolderRenderRecovery.failedFolders(), ...foldersDone },
         previousFolders,
         readVmServerExpandedStateMap()
     );
@@ -1732,6 +1737,7 @@ const createFolders = async () => {
     applyVmZebra();
 
     folderDebugMode  = false;
+    vmFolderRenderRecovery.finish();
     markVmFatalBannerStep('VM folders rendered');
     setVmFatalBannerPhase('ready');
     recordVmFatalBannerAction('VM folders rendered successfully');
@@ -1785,19 +1791,11 @@ const queueCreateFoldersRender = () => {
         });
 };
 
-/**
- * Handles the creation of one folder
- * @param {object} folder the folder
- * @param {string} id if of the folder
- * @param {int} position position to inset the folder
- * @param {Array<string>} order order of vms
- * @param {object} vmInfo info of the vms
- * @param {Array<string>} foldersDone folders that are done
- * @param {object|null} matchCacheEntry precomputed membership candidates
- * @param {number} depthLevel visual nesting depth for parent/child folders
- * @returns the number of element removed before the folder
- */
-const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
+// Render one folder transactionally and return the number of earlier order entries moved.
+// The recovery controller restores native rows if rendering fails.
+const createFolder = (...args) => vmFolderRenderRecovery.render(args[0], args[1], args[3], () => renderVmFolder(...args));
+
+const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
         folder: folder,
         id: id,

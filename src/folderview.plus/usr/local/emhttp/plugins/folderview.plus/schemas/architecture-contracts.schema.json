@@ -1138,6 +1138,19 @@
       ]
     },
     {
+      "file": "scripts/runtime.folder-render-recovery.js",
+      "owner": "shared-folder-render-recovery",
+      "consumers": ["docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderRenderRecovery",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["create", "createForPage", "restoreMutations", "registerCleanup"]
+    },
+    {
       "file": "scripts/runtime.shared-primitives.js",
       "owner": "shared-runtime-primitives",
       "consumers": ["docker", "vm", "dashboard"],

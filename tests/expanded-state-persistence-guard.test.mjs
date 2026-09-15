@@ -46,7 +46,7 @@ test('docker runtime keeps server-backed expanded state sync contract', () => {
     assert.match(runtimeStateObserverJs, /win\.FolderViewPlusRequest/);
     assert.match(runtimeStateObserverJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
     assert.match(runtimeStateObserverJs, /expandedFolderState:\s*payloadMap/);
-    assert.match(dockerJs, /buildDockerExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\)/);
+    assert.match(dockerJs, /buildDockerExpandedStateMap\(\s*\{ \.\.\.dockerFolderRenderRecovery\.failedFolders\(\), \.\.\.foldersDone \},\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\)/);
 });
 
 test('vm runtime keeps server-backed expanded state sync contract', () => {
@@ -57,7 +57,7 @@ test('vm runtime keeps server-backed expanded state sync contract', () => {
     assert.match(runtimeStateObserverJs, /win\.FolderViewPlusRequest/);
     assert.match(runtimeStateObserverJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
     assert.match(runtimeStateObserverJs, /expandedFolderState:\s*payloadMap/);
-    assert.match(vmJs, /buildVmExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readVmServerExpandedStateMap\(\)\s*\)/);
+    assert.match(vmJs, /buildVmExpandedStateMap\(\s*\{ \.\.\.vmFolderRenderRecovery\.failedFolders\(\), \.\.\.foldersDone \},\s*previousFolders,\s*readVmServerExpandedStateMap\(\)\s*\)/);
 });
 
 test('dashboard runtime keeps local expanded-state memory for docker and vm widgets', () => {

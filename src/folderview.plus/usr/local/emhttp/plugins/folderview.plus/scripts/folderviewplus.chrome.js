@@ -38,15 +38,6 @@
                 <button type="button" id="fv-run-wizard" title="Run setup assistant" data-i18n="[title]settings.wizard.title"><i class="fa fa-magic"></i> <span data-i18n="settings.tabs.wizard">Wizard</span></button>
             </div>
         </div>
-        <nav class="fv-basic-shortcuts" aria-label="Basic settings shortcuts" data-i18n="[aria-label]settings.basic.shortcuts-label">
-            <span data-i18n="settings.basic.shortcuts-help">Manage folders below, choose appearance colors, or open recovery and backups.</span>
-            <div>
-                <button type="button" data-fv-settings-shortcut="docker" data-i18n="settings.basic.docker-folders">Docker folders</button>
-                <button type="button" data-fv-settings-shortcut="vms" data-i18n="settings.basic.vm-folders">VM folders</button>
-                <button type="button" data-fv-settings-shortcut="theme-workspace" data-i18n="settings.basic.appearance">Appearance presets</button>
-                <button type="button" data-fv-settings-shortcut="backups" data-i18n="settings.basic.recovery">Recovery and backups</button>
-            </div>
-        </nav>
     `;
 
     window.FolderViewPlusSettingsChrome = Object.freeze({

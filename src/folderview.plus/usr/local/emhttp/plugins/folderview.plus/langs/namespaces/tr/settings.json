@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Görünüm profili kaydedildi.",
     "settings.theme.presets-title": "Renk ön ayarları",
     "settings.theme.presets-help": "Seçilen kapsam için vurgu ve grafik renklerini önizleyin. Diğer özelleştirmeler korunur. Hazır olduğunuzda kaydedin.",
-    "settings.theme.undo-preset": "Ön ayarlı önizlemeyi geri al",
-    "settings.basic.shortcuts-label": "Temel ayar kısayolları",
-    "settings.basic.shortcuts-help": "Aşağıdaki klasörleri yönetin, görünüm renklerini seçin veya kurtarma ve yedeklemeleri açın.",
-    "settings.basic.docker-folders": "Docker klasörleri",
-    "settings.basic.vm-folders": "VM klasörleri",
-    "settings.basic.appearance": "Görünüm ön ayarları",
-    "settings.basic.recovery": "Kurtarma ve yedeklemeler"
+    "settings.theme.undo-preset": "Ön ayarlı önizlemeyi geri al"
 }

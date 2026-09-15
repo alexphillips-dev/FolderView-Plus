@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profil wyglądu został zapisany.",
     "settings.theme.presets-title": "Wstępne ustawienia kolorów",
     "settings.theme.presets-help": "Podgląd kolorów akcentów i wykresów dla wybranego zakresu. Inne dostosowania zostaną zachowane. Zapisz, gdy będziesz gotowy.",
-    "settings.theme.undo-preset": "Cofnij wstępnie ustawiony podgląd",
-    "settings.basic.shortcuts-label": "Skróty do ustawień podstawowych",
-    "settings.basic.shortcuts-help": "Zarządzaj folderami poniżej, wybierz kolory wyglądu lub otwórz odzyskiwanie i kopie zapasowe.",
-    "settings.basic.docker-folders": "Foldery Dockera",
-    "settings.basic.vm-folders": "Foldery maszyn wirtualnych",
-    "settings.basic.appearance": "Wstępne ustawienia wyglądu",
-    "settings.basic.recovery": "Odzyskiwanie i kopie zapasowe"
+    "settings.theme.undo-preset": "Cofnij wstępnie ustawiony podgląd"
 }

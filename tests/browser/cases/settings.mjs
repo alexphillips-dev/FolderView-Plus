@@ -1,9 +1,34 @@
 import assert from 'node:assert/strict';
 import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs';
-import { registerSettingsShortcutFixtureCases } from './settings-shortcuts.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
 registerLocalizationWorkspaceFixtureCases({ test, baseUrl });
-registerSettingsShortcutFixtureCases({ test, baseUrl });
+test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
+    await page.setViewportSize({ width: 1180, height: 720 });
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    const metrics = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const search = rect('.fv-settings-search-wrap');
+        const basic = rect('[data-mode="basic"]');
+        const advanced = rect('[data-mode="advanced"]');
+        const wizard = rect('#fv-run-wizard');
+        return {
+            searchRight: search.right,
+            basicLeft: basic.left,
+            tops: [basic.top, advanced.top, wizard.top],
+            heights: [basic.height, advanced.height, wizard.height],
+            scrollWidth: document.documentElement.scrollWidth,
+            clientWidth: document.documentElement.clientWidth
+        };
+    });
+    assert.ok(metrics.searchRight <= metrics.basicLeft + 1, 'search must not overlap the Basic button');
+    assert.ok(Math.max(...metrics.tops) - Math.min(...metrics.tops) <= 2, 'mode and Wizard buttons must share a row');
+    assert.ok(Math.max(...metrics.heights) - Math.min(...metrics.heights) <= 4, 'mode and Wizard buttons should have compatible heights');
+    assert.ok(metrics.scrollWidth <= metrics.clientWidth + 1, 'Settings chrome must not cause horizontal overflow');
+    assert.equal(await page.locator('#fv-settings-clear-search').isHidden(), true);
+    await page.locator('#fv-settings-clear-search').evaluate((button) => { button.hidden = false; });
+    const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
+    assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
+});
 test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
     const readLayout = async () => page.evaluate(async () => {
         await window.fixtureSettings.viewSettingsReady;

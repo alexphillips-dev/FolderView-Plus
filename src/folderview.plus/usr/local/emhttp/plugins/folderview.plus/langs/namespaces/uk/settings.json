@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Профіль зовнішнього вигляду збережено.",
     "settings.theme.presets-title": "Попередні налаштування кольорів",
     "settings.theme.presets-help": "Попередній перегляд акцентів і кольорів графіка для вибраного діапазону. Інші налаштування збережено. Збережіть, коли будете готові.",
-    "settings.theme.undo-preset": "Скасувати попередній перегляд",
-    "settings.basic.shortcuts-label": "Швидкий перехід до основних налаштувань",
-    "settings.basic.shortcuts-help": "Керуйте папками нижче, вибирайте кольори зовнішнього вигляду або відкривайте відновлення та резервне копіювання.",
-    "settings.basic.docker-folders": "Папки Docker",
-    "settings.basic.vm-folders": "папки VM",
-    "settings.basic.appearance": "Попередні налаштування зовнішнього вигляду",
-    "settings.basic.recovery": "Відновлення та резервне копіювання"
+    "settings.theme.undo-preset": "Скасувати попередній перегляд"
 }

@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Perfil de apariencia guardado.",
     "settings.theme.presets-title": "Ajustes preestablecidos de color",
     "settings.theme.presets-help": "Obtenga una vista previa de los colores de acento y gráficos para el alcance seleccionado. Se conservan otras personalizaciones. Guarde cuando esté listo.",
-    "settings.theme.undo-preset": "Deshacer vista previa preestablecida",
-    "settings.basic.shortcuts-label": "Atajos de configuración básica",
-    "settings.basic.shortcuts-help": "Administre las carpetas a continuación, elija colores de apariencia o abra recuperación y copias de seguridad.",
-    "settings.basic.docker-folders": "Carpetas acoplables",
-    "settings.basic.vm-folders": "Carpetas de máquina virtual",
-    "settings.basic.appearance": "Ajustes preestablecidos de apariencia",
-    "settings.basic.recovery": "Recuperación y copias de seguridad"
+    "settings.theme.undo-preset": "Deshacer vista previa preestablecida"
 }

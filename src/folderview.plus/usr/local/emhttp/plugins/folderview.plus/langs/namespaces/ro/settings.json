@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profilul aspectului a fost salvat.",
     "settings.theme.presets-title": "Presetări de culoare",
     "settings.theme.presets-help": "Previzualizează culorile de accent și grafic pentru domeniul selectat. Alte personalizări sunt păstrate. Salvați când este gata.",
-    "settings.theme.undo-preset": "Anulați previzualizarea presetată",
-    "settings.basic.shortcuts-label": "Comenzi rapide ale setărilor de bază",
-    "settings.basic.shortcuts-help": "Gestionați folderele de mai jos, alegeți culorile aspectului sau deschideți recuperarea și backup-urile.",
-    "settings.basic.docker-folders": "Dosarele Docker",
-    "settings.basic.vm-folders": "folderele VM",
-    "settings.basic.appearance": "Presetări de aspect",
-    "settings.basic.recovery": "Recuperare și backup"
+    "settings.theme.undo-preset": "Anulați previzualizarea presetată"
 }

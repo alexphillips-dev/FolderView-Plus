@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "S'ha desat el perfil d'aparença.",
     "settings.theme.presets-title": "Preajustos de colors",
     "settings.theme.presets-help": "Previsualitza els colors d'accent i gràfic per a l'àmbit seleccionat. Es conserven altres personalitzacions. Desa quan estigui llest.",
-    "settings.theme.undo-preset": "Desfés la previsualització predeterminada",
-    "settings.basic.shortcuts-label": "Dreceres de configuració bàsica",
-    "settings.basic.shortcuts-help": "Gestioneu les carpetes a continuació, trieu els colors d'aparença o obriu la recuperació i les còpies de seguretat.",
-    "settings.basic.docker-folders": "Carpetes Docker",
-    "settings.basic.vm-folders": "Carpetes VM",
-    "settings.basic.appearance": "Presets d'aparença",
-    "settings.basic.recovery": "Recuperació i còpies de seguretat"
+    "settings.theme.undo-preset": "Desfés la previsualització predeterminada"
 }

@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profilo aspetto salvato.",
     "settings.theme.presets-title": "Preimpostazioni di colore",
     "settings.theme.presets-help": "Anteprima dei colori accentati e del grafico per l'ambito selezionato. Le altre personalizzazioni vengono mantenute. Salva quando sei pronto.",
-    "settings.theme.undo-preset": "Annulla l'anteprima preimpostata",
-    "settings.basic.shortcuts-label": "Scorciatoie delle impostazioni di base",
-    "settings.basic.shortcuts-help": "Gestisci le cartelle di seguito, scegli i colori dell'aspetto o apri il ripristino e i backup.",
-    "settings.basic.docker-folders": "Cartelle Docker",
-    "settings.basic.vm-folders": "Cartelle della macchina virtuale",
-    "settings.basic.appearance": "Preimpostazioni di aspetto",
-    "settings.basic.recovery": "Recupero e backup"
+    "settings.theme.undo-preset": "Annulla l'anteprima preimpostata"
 }

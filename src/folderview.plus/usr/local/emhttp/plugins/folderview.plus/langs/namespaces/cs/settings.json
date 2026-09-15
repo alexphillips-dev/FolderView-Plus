@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profil vzhledu byl uložen.",
     "settings.theme.presets-title": "Předvolby barev",
     "settings.theme.presets-help": "Náhled barev zvýraznění a grafu pro vybraný rozsah. Ostatní přizpůsobení jsou zachována. Až budete připraveni, uložte.",
-    "settings.theme.undo-preset": "Vrátit zpět přednastavený náhled",
-    "settings.basic.shortcuts-label": "Zkratky pro základní nastavení",
-    "settings.basic.shortcuts-help": "Spravujte níže uvedené složky, vyberte barvy vzhledu nebo otevřete obnovení a zálohy.",
-    "settings.basic.docker-folders": "Docker složky",
-    "settings.basic.vm-folders": "složky VM",
-    "settings.basic.appearance": "Předvolby vzhledu",
-    "settings.basic.recovery": "Obnova a zálohy"
+    "settings.theme.undo-preset": "Vrátit zpět přednastavený náhled"
 }

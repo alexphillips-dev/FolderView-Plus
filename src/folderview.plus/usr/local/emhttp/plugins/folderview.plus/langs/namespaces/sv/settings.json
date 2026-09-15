@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Utseendeprofilen har sparats.",
     "settings.theme.presets-title": "Förinställningar för färg",
     "settings.theme.presets-help": "Förhandsgranska accent- och graffärger för det valda omfånget. Andra anpassningar är bevarade. Spara när du är klar.",
-    "settings.theme.undo-preset": "Ångra förinställd förhandsgranskning",
-    "settings.basic.shortcuts-label": "Grundläggande inställningar genvägar",
-    "settings.basic.shortcuts-help": "Hantera mappar nedan, välj utseendefärger eller öppna återställning och säkerhetskopior.",
-    "settings.basic.docker-folders": "Docker-mappar",
-    "settings.basic.vm-folders": "VM-mappar",
-    "settings.basic.appearance": "Förinställda utseende",
-    "settings.basic.recovery": "Återställning och säkerhetskopiering"
+    "settings.theme.undo-preset": "Ångra förinställd förhandsgranskning"
 }

@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "外觀設定檔已儲存。",
     "settings.theme.presets-title": "顏色預設",
     "settings.theme.presets-help": "預覽所選範圍的強調色和圖形顏色。保留其他自訂設定。準備好後儲存。",
-    "settings.theme.undo-preset": "撤銷預設預覽",
-    "settings.basic.shortcuts-label": "基本設定快速導覽",
-    "settings.basic.shortcuts-help": "管理下面的資料夾，選擇外觀顏色，或開啟還原和備份。",
-    "settings.basic.docker-folders": "Docker 資料夾",
-    "settings.basic.vm-folders": "虛擬機器資料夾",
-    "settings.basic.appearance": "外觀預設",
-    "settings.basic.recovery": "恢復和備份"
+    "settings.theme.undo-preset": "撤銷預設預覽"
 }

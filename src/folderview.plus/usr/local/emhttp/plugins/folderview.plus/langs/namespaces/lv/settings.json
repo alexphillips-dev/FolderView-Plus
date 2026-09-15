@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Izskata profils saglabāts.",
     "settings.theme.presets-title": "Krāsu sākotnējie iestatījumi",
     "settings.theme.presets-help": "Priekšskatiet akcentu un diagrammas krāsas atlasītajā tvērumā. Citi pielāgojumi tiek saglabāti. Saglabājiet, kad esat gatavs.",
-    "settings.theme.undo-preset": "Atsaukt iepriekš iestatīto priekšskatījumu",
-    "settings.basic.shortcuts-label": "Pamatiestatījumu īsceļi",
-    "settings.basic.shortcuts-help": "Pārvaldiet tālāk esošās mapes, izvēlieties izskata krāsas vai atveriet atkopšanu un dublējumus.",
-    "settings.basic.docker-folders": "Docker mapes",
-    "settings.basic.vm-folders": "VM mapes",
-    "settings.basic.appearance": "Izskata sākotnējie iestatījumi",
-    "settings.basic.recovery": "Atkopšana un dublējumkopijas"
+    "settings.theme.undo-preset": "Atsaukt iepriekš iestatīto priekšskatījumu"
 }

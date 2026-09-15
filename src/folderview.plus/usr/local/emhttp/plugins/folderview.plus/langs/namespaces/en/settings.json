@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Appearance profile saved.",
     "settings.theme.presets-title": "Color presets",
     "settings.theme.presets-help": "Preview accent and graph colors for the selected scope. Other customizations are preserved. Save when ready.",
-    "settings.theme.undo-preset": "Undo preset preview",
-    "settings.basic.shortcuts-label": "Basic settings shortcuts",
-    "settings.basic.shortcuts-help": "Manage folders below, choose appearance colors, or open recovery and backups.",
-    "settings.basic.docker-folders": "Docker folders",
-    "settings.basic.vm-folders": "VM folders",
-    "settings.basic.appearance": "Appearance presets",
-    "settings.basic.recovery": "Recovery and backups"
+    "settings.theme.undo-preset": "Undo preset preview"
 }

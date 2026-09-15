@@ -2052,23 +2052,6 @@ const getServerSettingsMode = () => {
     return null;
 };
 
-const openBasicSettingsShortcut = (key) => {
-    if (!['docker', 'vms', 'theme-workspace', 'backups'].includes(key)) return;
-    const section = settingsUiState.sections.find((entry) => entry.key === key);
-    if (!section) return;
-    settingsUiState.activeSectionKey = key;
-    if (section.advanced) {
-        settingsUiState.expandedAdvancedSections.add(key);
-        persistExpandedAdvancedSections();
-        setAdvancedTab(section.advancedGroup);
-    }
-    setSettingsMode(section.advanced ? 'advanced' : 'basic', { persistServer: true });
-    clearSettingsSearch();
-    scrollToSectionKey(key);
-    section.heading.setAttribute('tabindex', '-1');
-    section.heading.focus({ preventScroll: true });
-};
-
 const isWizardCompletedServerSide = () => (
     prefsByType?.docker?.setupWizardCompleted === true
     || prefsByType?.vm?.setupWizardCompleted === true
@@ -2511,9 +2494,6 @@ const initSettingsControls = () => {
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode, { persistServer: true });
-    });
-    $(document).off('click.fvbasicshortcut', '[data-fv-settings-shortcut]').on('click.fvbasicshortcut', '[data-fv-settings-shortcut]', (event) => {
-        openBasicSettingsShortcut(String(event.currentTarget.getAttribute('data-fv-settings-shortcut') || ''));
     });
     $('#fv-settings-search')
         .off('input.fvui keydown.fvui')

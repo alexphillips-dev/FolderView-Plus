@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "外観プロファイルが保存されました。",
     "settings.theme.presets-title": "カラープリセット",
     "settings.theme.presets-help": "選択したスコープのアクセントとグラフの色をプレビューします。他のカスタマイズは保持されます。準備ができたら保存します。",
-    "settings.theme.undo-preset": "プリセットのプレビューを元に戻す",
-    "settings.basic.shortcuts-label": "基本設定のショートカット",
-    "settings.basic.shortcuts-help": "以下のフォルダーを管理したり、外観の色を選択したり、リカバリやバックアップを開いたりできます。",
-    "settings.basic.docker-folders": "Docker フォルダー",
-    "settings.basic.vm-folders": "VMフォルダ",
-    "settings.basic.appearance": "外観のプリセット",
-    "settings.basic.recovery": "リカバリとバックアップ"
+    "settings.theme.undo-preset": "プリセットのプレビューを元に戻す"
 }

@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Профиль внешнего вида сохранен.",
     "settings.theme.presets-title": "Цветовые пресеты",
     "settings.theme.presets-help": "Предварительный просмотр акцентов и цветов графика для выбранной области. Остальные настройки сохраняются. Сохраните, когда будете готовы.",
-    "settings.theme.undo-preset": "Отменить предварительный просмотр предустановки",
-    "settings.basic.shortcuts-label": "Ярлыки основных настроек",
-    "settings.basic.shortcuts-help": "Управляйте папками ниже, выбирайте цвета оформления или открывайте восстановление и резервные копии.",
-    "settings.basic.docker-folders": "Докер-папки",
-    "settings.basic.vm-folders": "Папки ВМ",
-    "settings.basic.appearance": "Пресеты внешнего вида",
-    "settings.basic.recovery": "Восстановление и резервные копии"
+    "settings.theme.undo-preset": "Отменить предварительный просмотр предустановки"
 }

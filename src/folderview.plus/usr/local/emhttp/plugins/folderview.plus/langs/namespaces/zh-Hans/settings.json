@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "外观配置文件已保存。",
     "settings.theme.presets-title": "颜色预设",
     "settings.theme.presets-help": "预览所选范围的强调色和图形颜色。保留其他自定义设置。准备好后保存。",
-    "settings.theme.undo-preset": "撤消预设预览",
-    "settings.basic.shortcuts-label": "基本设置快速导航",
-    "settings.basic.shortcuts-help": "管理下面的文件夹，选择外观颜色，或打开恢复和备份。",
-    "settings.basic.docker-folders": "Docker 文件夹",
-    "settings.basic.vm-folders": "虚拟机文件夹",
-    "settings.basic.appearance": "外观预设",
-    "settings.basic.recovery": "恢复和备份"
+    "settings.theme.undo-preset": "撤消预设预览"
 }

@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Megjelenési profil mentve.",
     "settings.theme.presets-title": "Előre beállított színek",
     "settings.theme.presets-help": "Tekintse meg a kiválasztott hatókör kiemelési és grafikonszíneinek előnézetét. A többi testreszabás megmarad. Mentse el, ha készen áll.",
-    "settings.theme.undo-preset": "Előre beállított előnézet visszavonása",
-    "settings.basic.shortcuts-label": "Alapbeállítások parancsikonjai",
-    "settings.basic.shortcuts-help": "Kezelje az alábbi mappákat, válassza ki a megjelenés színeit, vagy nyissa meg a helyreállítást és a biztonsági mentéseket.",
-    "settings.basic.docker-folders": "Docker mappák",
-    "settings.basic.vm-folders": "VM mappák",
-    "settings.basic.appearance": "Előre beállított megjelenés",
-    "settings.basic.recovery": "Helyreállítás és biztonsági mentések"
+    "settings.theme.undo-preset": "Előre beállított előnézet visszavonása"
 }

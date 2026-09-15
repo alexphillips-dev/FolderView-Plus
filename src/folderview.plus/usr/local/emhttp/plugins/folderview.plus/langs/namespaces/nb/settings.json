@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Utseendeprofilen er lagret.",
     "settings.theme.presets-title": "Farge forhåndsinnstillinger",
     "settings.theme.presets-help": "Forhåndsvis aksent- og graffarger for det valgte omfanget. Andre tilpasninger beholdes. Lagre når du er klar.",
-    "settings.theme.undo-preset": "Angre forhåndsinnstilt forhåndsvisning",
-    "settings.basic.shortcuts-label": "Snarveier for grunnleggende innstillinger",
-    "settings.basic.shortcuts-help": "Administrer mapper nedenfor, velg utseendefarger eller åpne gjenoppretting og sikkerhetskopier.",
-    "settings.basic.docker-folders": "Docker-mapper",
-    "settings.basic.vm-folders": "VM-mapper",
-    "settings.basic.appearance": "Forhåndsinnstillinger for utseende",
-    "settings.basic.recovery": "Gjenoppretting og sikkerhetskopier"
+    "settings.theme.undo-preset": "Angre forhåndsinnstilt forhåndsvisning"
 }

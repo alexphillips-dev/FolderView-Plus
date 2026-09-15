@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profil d'apparence enregistré.",
     "settings.theme.presets-title": "Préréglages de couleurs",
     "settings.theme.presets-help": "Prévisualisez les couleurs d’accentuation et de graphique pour la portée sélectionnée. Les autres personnalisations sont conservées. Enregistrez lorsque vous êtes prêt.",
-    "settings.theme.undo-preset": "Annuler l'aperçu prédéfini",
-    "settings.basic.shortcuts-label": "Raccourcis des paramètres de base",
-    "settings.basic.shortcuts-help": "Gérez les dossiers ci-dessous, choisissez les couleurs d'apparence ou ouvrez la récupération et les sauvegardes.",
-    "settings.basic.docker-folders": "Dossiers Docker",
-    "settings.basic.vm-folders": "Dossiers de machine virtuelle",
-    "settings.basic.appearance": "Préréglages d'apparence",
-    "settings.basic.recovery": "Récupération et sauvegardes"
+    "settings.theme.undo-preset": "Annuler l'aperçu prédéfini"
 }

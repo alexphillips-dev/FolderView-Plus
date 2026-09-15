@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "تم حفظ ملف تعريف المظهر.",
     "settings.theme.presets-title": "الإعدادات المسبقة للألوان",
     "settings.theme.presets-help": "معاينة ألوان التمييز والرسم البياني للنطاق المحدد. يتم الاحتفاظ بالتخصيصات الأخرى. احفظ عندما تكون جاهزًا.",
-    "settings.theme.undo-preset": "التراجع عن المعاينة المعدة مسبقًا",
-    "settings.basic.shortcuts-label": "اختصارات الإعدادات الأساسية",
-    "settings.basic.shortcuts-help": "قم بإدارة المجلدات أدناه، أو اختر ألوان المظهر، أو افتح الاسترداد والنسخ الاحتياطية.",
-    "settings.basic.docker-folders": "مجلدات عامل الميناء",
-    "settings.basic.vm-folders": "مجلدات VM",
-    "settings.basic.appearance": "إعدادات المظهر المسبقة",
-    "settings.basic.recovery": "الاسترداد والنسخ الاحتياطي"
+    "settings.theme.undo-preset": "التراجع عن المعاينة المعدة مسبقًا"
 }

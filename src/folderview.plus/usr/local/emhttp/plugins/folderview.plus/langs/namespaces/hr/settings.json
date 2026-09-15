@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Profil izgleda spremljen.",
     "settings.theme.presets-title": "Unaprijed postavljene boje",
     "settings.theme.presets-help": "Pregledajte boje naglaska i grafikona za odabrani opseg. Ostale prilagodbe su sačuvane. Spremite kada budete spremni.",
-    "settings.theme.undo-preset": "Poništavanje unaprijed postavljenog pregleda",
-    "settings.basic.shortcuts-label": "Prečaci osnovnih postavki",
-    "settings.basic.shortcuts-help": "Upravljajte mapama ispod, odaberite boje izgleda ili otvorite oporavak i sigurnosne kopije.",
-    "settings.basic.docker-folders": "Docker mape",
-    "settings.basic.vm-folders": "VM mape",
-    "settings.basic.appearance": "Unaprijed postavljene postavke izgleda",
-    "settings.basic.recovery": "Oporavak i sigurnosne kopije"
+    "settings.theme.undo-preset": "Poništavanje unaprijed postavljenog pregleda"
 }

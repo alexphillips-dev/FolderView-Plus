@@ -150,8 +150,6 @@ Recommended first setup:
 
 FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, and diagnostics.
 
-Basic mode also provides shortcuts to Docker folders, VM folders, Appearance presets, and Recovery. A shortcut opens the relevant workspace and clears the Settings search so the destination is visible.
-
 Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use the Activity Center, restore controls, and backups to confirm what changed and recover when needed.
 
 The diagnostics workspace includes health checks, a copyable issue report, and a v2 support bundle export preview. Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default so reports can be shared without exposing unnecessary personal details.

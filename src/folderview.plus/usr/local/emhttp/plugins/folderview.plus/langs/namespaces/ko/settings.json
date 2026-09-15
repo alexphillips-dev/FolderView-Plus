@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "외모 프로필이 저장되었습니다.",
     "settings.theme.presets-title": "색상 사전 설정",
     "settings.theme.presets-help": "선택한 범위에 대한 강조 및 그래프 색상을 미리 봅니다. 다른 사용자 정의는 유지됩니다. 준비되면 저장하세요.",
-    "settings.theme.undo-preset": "사전 설정 미리보기 실행 취소",
-    "settings.basic.shortcuts-label": "기본 설정 바로가기",
-    "settings.basic.shortcuts-help": "아래 폴더를 관리하고, 표시 색상을 선택하거나, 복구 및 백업을 엽니다.",
-    "settings.basic.docker-folders": "도커 폴더",
-    "settings.basic.vm-folders": "VM 폴더",
-    "settings.basic.appearance": "모양 사전 설정",
-    "settings.basic.recovery": "복구 및 백업"
+    "settings.theme.undo-preset": "사전 설정 미리보기 실행 취소"
 }

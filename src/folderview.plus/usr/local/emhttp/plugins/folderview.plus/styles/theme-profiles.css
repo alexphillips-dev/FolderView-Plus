@@ -35,8 +35,7 @@
     grid-column: 1 / -1;
 }
 
-#fv-settings-root .fv-theme-preset-panel,
-#fv-settings-root .fv-basic-shortcuts {
+#fv-settings-root .fv-theme-preset-panel {
     padding: 0.8rem;
     margin-block: 0.6rem 1rem;
     border: 1px solid var(--fvplus-settings-border-faint);
@@ -45,21 +44,15 @@
     color: var(--fvplus-settings-text-muted);
 }
 
-#fv-settings-topbar[data-fv-mode="advanced"] .fv-basic-shortcuts {
-    display: none;
-}
-
 #fv-settings-root .fv-theme-preset-controls,
-#fv-settings-root .fv-theme-preset-actions,
-#fv-settings-root .fv-basic-shortcuts > div {
+#fv-settings-root .fv-theme-preset-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
     margin-block-start: 0.7rem;
 }
 
-#fv-settings-root .fv-theme-preset-panel button,
-#fv-settings-root .fv-basic-shortcuts button {
+#fv-settings-root .fv-theme-preset-panel button {
     min-height: 44px;
     max-width: 100%;
     margin: 0;
@@ -72,8 +65,7 @@
     box-shadow: inset 0 0 0 1px var(--fvplus-settings-accent);
 }
 
-#fv-settings-root .fv-theme-preset-panel button:focus-visible,
-#fv-settings-root .fv-basic-shortcuts button:focus-visible {
+#fv-settings-root .fv-theme-preset-panel button:focus-visible {
     outline: 2px solid var(--fvplus-settings-accent);
     outline-offset: 3px;
 }

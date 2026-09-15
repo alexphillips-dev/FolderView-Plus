@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Uiterlijkprofiel opgeslagen.",
     "settings.theme.presets-title": "Kleurvoorinstellingen",
     "settings.theme.presets-help": "Bekijk een voorbeeld van accent- en grafiekkleuren voor het geselecteerde bereik. Andere aanpassingen blijven behouden. Opslaan als u klaar bent.",
-    "settings.theme.undo-preset": "Vooraf ingesteld voorbeeld ongedaan maken",
-    "settings.basic.shortcuts-label": "Snelkoppelingen naar basisinstellingen",
-    "settings.basic.shortcuts-help": "Beheer de onderstaande mappen, kies de weergavekleuren of open herstel en back-ups.",
-    "settings.basic.docker-folders": "Docker-mappen",
-    "settings.basic.vm-folders": "VM-mappen",
-    "settings.basic.appearance": "Voorinstellingen voor uiterlijk",
-    "settings.basic.recovery": "Herstel en back-ups"
+    "settings.theme.undo-preset": "Vooraf ingesteld voorbeeld ongedaan maken"
 }

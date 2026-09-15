@@ -150,11 +150,5 @@
     "settings.theme.profile-saved": "Udseendeprofil gemt.",
     "settings.theme.presets-title": "Farve forudindstillinger",
     "settings.theme.presets-help": "Se forhåndsvisning af accent- og graffarver for det valgte omfang. Andre tilpasninger er bevaret. Gem når du er klar.",
-    "settings.theme.undo-preset": "Fortryd forudindstillet forhåndsvisning",
-    "settings.basic.shortcuts-label": "Genveje til grundlæggende indstillinger",
-    "settings.basic.shortcuts-help": "Administrer mapper nedenfor, vælg udseendefarver, eller åbn gendannelse og sikkerhedskopier.",
-    "settings.basic.docker-folders": "Docker-mapper",
-    "settings.basic.vm-folders": "VM mapper",
-    "settings.basic.appearance": "Forudindstillinger af udseende",
-    "settings.basic.recovery": "Gendannelse og sikkerhedskopier"
+    "settings.theme.undo-preset": "Fortryd forudindstillet forhåndsvisning"
 }

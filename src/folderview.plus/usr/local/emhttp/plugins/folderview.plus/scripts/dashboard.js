@@ -2310,7 +2310,8 @@ const toggleFolderExpansion = (type, id, options = {}) => {
             $(`${meta.tbodySelector} .folder-showcase-outer[expanded="true"]`).each((_, node) => {
                 const $node = $(node);
                 const nodeId = resolveFolderIdFromCard($node);
-                if (!nodeId || nodeId === safeId) {
+                // Ancestors must stay expanded to keep the target folder visible.
+                if (!nodeId || nodeId === safeId || $.contains(node, card[0])) {
                     return;
                 }
                 const nodeOuter = $node.children(meta.outerSelector).first();

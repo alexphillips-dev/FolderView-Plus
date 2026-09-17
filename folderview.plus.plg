@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.04">
-<!ENTITY md5 "3e4eac5ab1cfc90c73f2074344352683">
-<!ENTITY sha256 "a5acb7de9d077a07ae304d8c6c1de058498717bdabbc30683a28fc2a53e80207">
+<!ENTITY version "2026.09.17.05">
+<!ENTITY md5 "c5a97eeccc77c730604898990459810b">
+<!ENTITY sha256 "1304baedd108f4d8d9ea9f16aea7a3cad6998b34fb9ee49894ef2b93e213e84c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.05
+- Fix: Keep parent and ancestor folders open when expanding nested Docker or VM folders in the Dashboard's Accordion layout. Sibling folders still collapse as expected, and saved expansion states keep nested folders visible after a page refresh.
+
 
 ###2026.09.17.04
 - Maintenance: Synchronize the dev channel with stable 2026.09.17.03, including the complete folder, Dashboard, upload, diagnostics, migration, appearance, and localization improvements.

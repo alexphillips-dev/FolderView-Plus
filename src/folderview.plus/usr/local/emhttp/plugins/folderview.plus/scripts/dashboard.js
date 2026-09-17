@@ -1503,14 +1503,15 @@ const createFolders = async (types = ['docker', 'vm']) => {
         globalFolders.docker = foldersDone;
     
         const dockerExpandedStateMap = readDashboardExpandedStateMap('docker');
-        // Restore dashboard expansion memory (falls back to per-folder expand default).
+        // Restore the complete saved state without Accordion closing earlier restored folders.
+        // Missing entries fall back to the per-folder expand default.
         for (const [id, value] of Object.entries(foldersDone)) {
             const shouldExpand = Object.prototype.hasOwnProperty.call(dockerExpandedStateMap, id)
                 ? dockerExpandedStateMap[id] === true
                 : value.settings.expand_dashboard === true;
             value.status.expanded = shouldExpand === true;
             if (shouldExpand) {
-                expandFolderDocker(id, { persistExpandedState: false });
+                expandFolderDocker(id, { persistExpandedState: false, suppressAccordion: true });
             }
         }
         applyDashboardStartedOnlyFilterForType('docker');
@@ -1707,14 +1708,15 @@ const createFolders = async (types = ['docker', 'vm']) => {
         globalFolders.vms = foldersDone;
 
         const vmExpandedStateMap = readDashboardExpandedStateMap('vm');
-        // Restore dashboard expansion memory (falls back to per-folder expand default).
+        // Restore the complete saved state without Accordion closing earlier restored folders.
+        // Missing entries fall back to the per-folder expand default.
         for (const [id, value] of Object.entries(foldersDone)) {
             const shouldExpand = Object.prototype.hasOwnProperty.call(vmExpandedStateMap, id)
                 ? vmExpandedStateMap[id] === true
                 : value.settings.expand_dashboard === true;
             value.status.expanded = shouldExpand === true;
             if (shouldExpand) {
-                expandFolderVM(id, { persistExpandedState: false });
+                expandFolderVM(id, { persistExpandedState: false, suppressAccordion: true });
             }
         }
         applyDashboardStartedOnlyFilterForType('vm');

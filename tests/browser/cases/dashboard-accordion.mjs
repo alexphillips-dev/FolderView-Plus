@@ -27,6 +27,8 @@ const hydrateFixture = async (page, baseUrl) => {
         extract('const getGlobalFoldersForType =', 'const scheduleDashboardLayoutApplyForType'),
         extract('const toggleFolderExpansion =', '// Global variables')
     ].join('\n');
+    const restoreDocker = extract('const dockerExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('docker');");
+    const restoreVm = extract('const vmExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('vm');");
     await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/dashboard.state-store.js` });
     await page.addScriptTag({ content: `(() => {
@@ -44,12 +46,11 @@ const hydrateFixture = async (page, baseUrl) => {
         const scheduleDashboardLayoutApplyForType = () => {};
         ${handlers}
         const render = (type) => {
-            const saved = dashboardExpandedStateStore.read(type);
             const map = getGlobalFoldersForType(type);
             const outerClass = type === 'vm' ? 'vms folder-vm' : 'apps folder-docker';
             const card = (id, contents) => {
-                const expanded = saved[id] === true;
-                map[id] = { status: { expanded } };
+                const expanded = false;
+                map[id] = { status: { expanded }, settings: {} };
                 return '<div class="folder-showcase-outer folder-showcase-outer-' + id + '" data-fv-folder-id="' + id + '" expanded="' + expanded + '">' +
                     '<span id="' + type + '-' + id + '" class="outer ' + outerClass + '" expanded="' + expanded + '" data-fv-dashboard-folder-toggle data-fv-dashboard-type="' + type + '" role="button" tabindex="0" aria-expanded="' + expanded + '">' + type + ' ' + id +
                     '<div class="folder-storage">' + (expanded ? '' : contents) + '</div></span>' +
@@ -57,6 +58,9 @@ const hydrateFixture = async (page, baseUrl) => {
             };
             const nested = card('child', card('grandchild', '<span data-member="' + type + '">Member</span>'));
             $(dashboardTypeMeta(type).tbodySelector).find('td').html(card('parent', nested + card('sibling', '<span>Sibling member</span>')) + card('other', '<span>Other member</span>'));
+            // Production creates roots first, then descendants, before restoring expansion.
+            const foldersDone = Object.fromEntries(['parent', 'other', 'child', 'grandchild', 'sibling'].map(id => [id, map[id]]));
+            if (type === 'vm') { ${restoreVm} } else { ${restoreDocker} }
         };
         render('docker');
         render('vm');
@@ -133,6 +137,16 @@ export const registerDashboardAccordionFixtureCases = ({ test, baseUrl }) => {
             // Bulk expansion deliberately bypasses Accordion exclusivity.
             await page.evaluate((type) => window.fixtureDashboardAccordion.toggle(type, 'sibling', { forceExpanded: true, suppressAccordion: true }), type);
             expectExpanded(await snapshot(), ['parent', 'child', 'grandchild', 'sibling']);
+            await page.evaluate((type) => window.fixtureDashboardAccordion.toggle(type, 'other', { forceExpanded: true, suppressAccordion: true }), type);
+            await page.reload();
+            await hydrateFixture(page, baseUrl);
+            expectExpanded(await snapshot(), ['parent', 'child', 'grandchild', 'sibling', 'other']);
+            // Normal clicks still apply Accordion exclusivity after batch restoration.
+            await page.locator(`#${type}-sibling`).click();
+            await page.locator(`#${type}-sibling`).click();
+            state = await snapshot();
+            expectExpanded(state, ['parent', 'sibling']);
+            for (const id of ['child', 'grandchild', 'other']) assert.equal(state.folders[id].expanded, false);
             for (const layout of ['classic', 'legacy', 'fullwidth', 'inset', 'compactmatrix', 'embossed']) {
                 await page.evaluate((layout) => window.fixtureDashboardAccordion.reset(layout), layout);
                 for (const id of ['parent', 'child', 'grandchild', 'sibling']) await page.locator(`#${type}-${id}`).click();

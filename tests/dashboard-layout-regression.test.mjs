@@ -385,7 +385,7 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
     assert.match(dashboardQuickRailScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
     assert.match(dashboardQuickRailScript, /return !isDashboardNodeVisible\(updatedNode\);/);
     assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout, trigger = 'layout-apply'\) =>/);
-    assert.match(dashboardQuickRailScript, /const deriveCompactMatrixLayout = \(\{ containerWidth = 0, folderCount = 0 \} = \{\}\) =>/);
+    assert.equal(typeof dashboardQuickRailModule.deriveCompactMatrixLayout, 'function');
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-columns/);
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-member-columns/);
     assert.match(dashboardQuickRailScript, /new win\.ResizeObserver/);
@@ -415,6 +415,9 @@ test('compact matrix derives folder and member columns from the widget width', (
     assert.equal(derive({ containerWidth: 1080, folderCount: 2 }).memberColumns, 2);
     assert.equal(derive({ containerWidth: 930, folderCount: 5 }).memberColumns, 1, 'panel padding must not produce a false two-column prediction');
     assert.equal(derive({ containerWidth: 1000, folderCount: 5 }).memberColumns, 2);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 1, itemCount: 9 }).folderColumns, 3);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 0, itemCount: 8 }).folderColumns, 3);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 1, itemCount: 1 }).folderColumns, 1);
 });
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {

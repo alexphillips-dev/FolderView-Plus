@@ -461,7 +461,9 @@
             const expected = layout === 'compactmatrix'
                 ? deriveCompactMatrixLayout({
                     containerWidth: widgetContentWidth,
-                    folderCount: directFolderCards.length
+                    folderCount: directFolderCards.length,
+                    itemCount: Array.from(host.children || [])
+                        .filter((node) => node.matches?.('.folder-showcase-outer, span.outer') && isVisible(node, win)).length
                 })
                 : null;
             const renderedMemberColumnValues = Array.from(new Set(showcases

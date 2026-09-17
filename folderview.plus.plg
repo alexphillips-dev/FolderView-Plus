@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.07">
-<!ENTITY md5 "539d253117d4f12b318bcaf64ea0c4b1">
-<!ENTITY sha256 "a4dad741df9fc19eefbb7b8382856bec0d7d8a9cfd8a218f8c2a90fc7e6ea8ed">
+<!ENTITY version "2026.09.17.08">
+<!ENTITY md5 "c69fdbdc787c91573c7e0f97f07be6fa">
+<!ENTITY sha256 "1fa64afc1e63dadf1e8d3768ee49eef00e5a968aea106c1f3ce752e63276d41c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.08
+- Fix: Preserve Dashboard Accordion expansion after refresh, including Expand all and nested Docker and VM folders. Normal folder clicks retain Accordion behavior.
+- Fix: Compact Matrix uses available columns for ungrouped containers and VMs, including widgets with only one folder or no folders.
+- Fix: Compact Matrix reclaims space from folders and items hidden by Started Only and adjusts when runtime status changes. Hard-refresh the webGUI after updating.
+
 
 ###2026.09.17.07
 - Fix: Prevent Compact Matrix from stretching Docker and VM Dashboard widgets beyond the screen under Unraid's native table styles. Folder cards wrap into their columns and the view controls remain accessible without horizontal scrolling. Hard-refresh the webGUI after updating.

@@ -2,6 +2,83 @@ import assert from 'node:assert/strict';
 
 export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
     for (const type of ['docker', 'vm']) {
+        test(`${type} Compact Matrix counts visible folders and ungrouped items and responds to filtering`, async ({ page }) => {
+            await page.goto(`${baseUrl}/dashboard-layout`);
+            await page.setViewportSize({ width: 1400, height: 900 });
+            await page.evaluate((type) => {
+                document.body.append(document.querySelector('#vms'));
+                document.querySelector('#vms').hidden = true;
+                document.querySelector('#fixture-vm-widget').remove();
+                const host = document.querySelector('#fixture-dashboard-host');
+                const cards = [...host.querySelectorAll(':scope > .folder-showcase-outer')];
+                const member = cards[0].querySelector('.folder-showcase > .outer').cloneNode(true);
+                cards.slice(1).forEach(card => card.remove());
+                for (let i = 0; i < 8; i += 1) {
+                    const tile = member.cloneNode(true);
+                    tile.id = `ungrouped-${i}`;
+                    tile.dataset.fvRuntimeState = 'stopped';
+                    host.append(tile);
+                }
+                if (type === 'vm') {
+                    document.querySelector('#docker_view').id = 'vm_view';
+                    host.innerHTML = host.innerHTML.replaceAll('folder-docker', 'folder-vm').replaceAll('folder-element-docker', 'folder-element-vm').replaceAll(' apps', ' vms');
+                }
+                window.fixtureDashboardLayout.controller.applyDashboardLayoutStateForType(type);
+            }, type);
+            const columns = () => page.locator('#fixture-dashboard-host').evaluate(node => Number(getComputedStyle(node).columnCount));
+            const waitForColumns = async (count) => {
+                await page.waitForFunction(count => Number(getComputedStyle(document.querySelector('#fixture-dashboard-host')).columnCount) === count, count);
+                assert.equal(await columns(), count);
+                const expectedColumns = await page.evaluate(type => window.fixtureDashboardLayout.visualController.capture(type).layout.folderGrid.expectedColumns, type);
+                assert.equal(expectedColumns, count, 'diagnostics must use the same visible items as the layout');
+            };
+            await waitForColumns(3);
+            const occupiedColumns = await page.locator('[id^="ungrouped-"]').evaluateAll(nodes => new Set(nodes.map(node => Math.round(node.getBoundingClientRect().x))).size);
+            assert.ok(occupiedColumns > 1, 'ungrouped items must actually use multiple columns');
+            const setFilter = (enabled) => page.evaluate(({ type, enabled }) => {
+                const toggle = document.querySelector(type === 'vm' ? '#vms' : '#apps');
+                toggle.checked = enabled;
+                toggle.dispatchEvent(new Event('change', { bubbles: true }));
+            }, { type, enabled });
+            await setFilter(true);
+            await waitForColumns(1);
+            await page.evaluate(type => {
+                // Simulate a runtime status refresh without changing the filter or viewport.
+                for (const tile of document.querySelectorAll('[id^="ungrouped-"]')) tile.dataset.fvRuntimeState = 'running';
+                window.fixtureDashboardLayout.controller.applyDashboardStartedOnlyFilterForType(type);
+            }, type);
+            await waitForColumns(3);
+            await setFilter(false);
+            await page.evaluate(type => {
+                const host = document.querySelector('#fixture-dashboard-host');
+                host.querySelector(':scope > .folder-showcase-outer').remove();
+                window.fixtureDashboardLayout.controller.applyDashboardLayoutStateForType(type);
+            }, type);
+            await waitForColumns(3);
+            await page.evaluate(type => {
+                const host = document.querySelector('#fixture-dashboard-host');
+                const template = document.createElement('div');
+                template.className = 'folder-showcase-outer';
+                template.setAttribute('expanded', 'true');
+                template.innerHTML = `<span class="outer ${type === 'vm' ? 'vms folder-vm' : 'apps folder-docker'}"></span><div class="folder-showcase"></div>`;
+                for (const [index, tile] of [...host.querySelectorAll(':scope > .outer')].entries()) {
+                    const card = template.cloneNode(true);
+                    tile.dataset.fvRuntimeState = index === 0 ? 'running' : 'stopped';
+                    card.querySelector('.folder-showcase').append(tile);
+                    host.append(card);
+                }
+                window.fixtureDashboardLayout.controller.applyDashboardLayoutStateForType(type);
+            }, type);
+            await setFilter(true);
+            await waitForColumns(1);
+            const widths = await page.locator('#fixture-dashboard-host').evaluate(host => ({
+                host: host.clientWidth - parseFloat(getComputedStyle(host).paddingRight || '0'),
+                card: [...host.querySelectorAll(':scope > .folder-showcase-outer')].find(node => node.getClientRects().length).getBoundingClientRect().width
+            }));
+            assert.ok(widths.card >= widths.host - 2, 'the only visible folder must fill the available width');
+            await setFilter(false);
+            await waitForColumns(3);
+        });
         test(`${type} Compact Matrix overrides native non-wrapping table cells without moving controls offscreen`, async ({ page }) => {
             await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
             // Unraid default-base.css sets nowrap on tbody cells; its Dashboard table uses auto layout.

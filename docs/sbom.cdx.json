@@ -572,7 +572,7 @@
     {
       "type": "library",
       "name": "fast-check",
-      "version": "4.9.0",
+      "version": "4.10.0",
       "scope": "optional",
       "licenses": [
         {
@@ -581,7 +581,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fast-check@4.9.0"
+      "purl": "pkg:npm/fast-check@4.10.0"
     },
     {
       "type": "library",

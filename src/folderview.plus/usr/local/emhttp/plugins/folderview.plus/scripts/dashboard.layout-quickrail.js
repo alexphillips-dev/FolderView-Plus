@@ -10,6 +10,7 @@
         maxFolderColumns: 3,
         minFolderWidth: 360,
         minMemberWidth: 220,
+        panelInsets: 22, // Two 10px paddings and two 1px borders.
         gap: 8
     });
 
@@ -32,17 +33,15 @@
             0,
             Math.floor((width - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, folderColumns - 1))) / folderColumns)
         );
+        const panelWidth = Math.max(0, estimatedFolderWidth - COMPACT_MATRIX_LAYOUT.panelInsets);
         const memberColumns = Math.max(
             1,
-            Math.floor(
-                (estimatedFolderWidth + COMPACT_MATRIX_LAYOUT.gap)
-                / (COMPACT_MATRIX_LAYOUT.minMemberWidth + COMPACT_MATRIX_LAYOUT.gap)
-            )
+            Math.floor((panelWidth + COMPACT_MATRIX_LAYOUT.gap) / (COMPACT_MATRIX_LAYOUT.minMemberWidth + COMPACT_MATRIX_LAYOUT.gap))
         );
         const estimatedMemberWidth = Math.max(
             0,
             Math.floor(
-                (estimatedFolderWidth - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, memberColumns - 1)))
+                (panelWidth - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, memberColumns - 1)))
                 / memberColumns
             )
         );

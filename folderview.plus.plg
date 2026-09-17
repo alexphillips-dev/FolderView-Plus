@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.05">
-<!ENTITY md5 "c5a97eeccc77c730604898990459810b">
-<!ENTITY sha256 "1304baedd108f4d8d9ea9f16aea7a3cad6998b34fb9ee49894ef2b93e213e84c">
+<!ENTITY version "2026.09.17.06">
+<!ENTITY md5 "8a185fab5d13500d0b27c80d7c6b22b2">
+<!ENTITY sha256 "6aafd2f25ac1c90b3107d88070b5e2d805c4bb5459e5e0b0416d3c19c322187c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.06
+- Fix: Use the available Docker and VM Dashboard widget width in Classic, Fullwidth, Inset, and Embossed views. Collapsed folders and ungrouped items now wrap across rows, while expanded folders receive a full-width panel with responsive member columns.
+- Fix: Remove the single-column member restriction from Fullwidth and improve member spacing in Accordion and other panel views. Long folder names truncate within their tiles while respecting the folder-label visibility setting, and nested folders retain their own expansion state.
+- Fix: Stack Compact Matrix cards independently in up to three columns so a tall folder no longer creates empty gaps between cards in adjacent columns. Member columns adapt to their own panel width, including nested panels.
+- Diagnostics: Keep Dashboard layout diagnostics aligned with the rendered Compact Matrix columns and panel padding. Hard-refresh the webGUI after updating to load the new layout styles.
+
 
 ###2026.09.17.05
 - Fix: Keep parent and ancestor folders open when expanding nested Docker or VM folders in the Dashboard's Accordion layout. Sibling folders still collapse as expected, and saved expansion states keep nested folders visible after a page refresh.

@@ -353,7 +353,7 @@ test('dashboard widget supports nested child folders and constrains expanded tra
     assert.match(dashboardJs, /const getDashboardCard = \(type, id\) =>/);
     assert.match(dashboardJs, /const card = getDashboardCard\(meta\.type,\s*safeId\);/);
     assert.match(dashboardCss, /\.folder-showcase\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*100%;/);
-    assert.match(dashboardCss, /\.folder-showcase-outer\[expanded="true"\] \.folder-showcase\s*\{[\s\S]*?display:\s*grid;/);
+    assert.match(dashboardCss, /\.folder-showcase-outer\[expanded="true"\] > \.folder-showcase\s*\{[\s\S]*?display:\s*grid;/);
 });
 
 test('docker and vm render paths support precomputed membership caches', () => {

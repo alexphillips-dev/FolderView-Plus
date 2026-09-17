@@ -467,7 +467,9 @@
             const renderedMemberColumnValues = Array.from(new Set(showcases
                 .map((node) => countGridTracks(win?.getComputedStyle?.(node)?.gridTemplateColumns))
                 .filter((value) => value > 0)));
-            const renderedFolderColumns = countGridTracks(hostStyle?.gridTemplateColumns);
+            const renderedFolderColumns = layout === 'compactmatrix'
+                ? parseColumnValue(hostStyle?.columnCount)
+                : countGridTracks(hostStyle?.gridTemplateColumns);
             const renderedMemberColumns = renderedMemberColumnValues[0] || 0;
             const appliedFolderColumns = parseColumnValue(
                 host.getAttribute('data-fv-compactmatrix-folder-columns')

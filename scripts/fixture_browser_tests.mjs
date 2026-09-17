@@ -7,7 +7,7 @@ import { createFixtureBrowserServer } from './lib/fixture-browser-server.mjs';
 import { runFixtureBrowserSuite } from './lib/fixture-browser-runner.mjs';
 import { registerFoundationFixtureCases } from '../tests/browser/cases/foundation.mjs';
 import { registerDockerFixtureCases } from '../tests/browser/cases/docker.mjs';
-import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs'; import { registerStatusTextThemeFixtureCase } from '../tests/browser/cases/status-text-theme.mjs'; import { registerDashboardAccordionFixtureCases } from '../tests/browser/cases/dashboard-accordion.mjs';
+import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs'; import { registerStatusTextThemeFixtureCase } from '../tests/browser/cases/status-text-theme.mjs'; import { registerDashboardAccordionFixtureCases } from '../tests/browser/cases/dashboard-accordion.mjs'; import { registerDashboardDensityFixtureCases } from '../tests/browser/cases/dashboard-density.mjs';
 import { registerRuntimeInteractionsFixtureCases } from '../tests/browser/cases/runtime-interactions.mjs';
 import { registerDockerHiddenFolderFixtureCases } from '../tests/browser/cases/docker-hidden-folders.mjs';
 import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs';
@@ -44,7 +44,7 @@ const test = (name, handler, options = {}) => tests.push({ name, handler, ...opt
 const caseContext = { test, baseUrl, surfaceKeyFor, germanSurfaceCatalog };
 registerFoundationFixtureCases(caseContext);
 registerDockerFixtureCases(caseContext);
-registerDashboardLifecycleFixtureCases(caseContext); registerStatusTextThemeFixtureCase(caseContext); registerDashboardAccordionFixtureCases(caseContext);
+registerDashboardLifecycleFixtureCases(caseContext); registerStatusTextThemeFixtureCase(caseContext); registerDashboardAccordionFixtureCases(caseContext); registerDashboardDensityFixtureCases(caseContext);
 registerRuntimeInteractionsFixtureCases(caseContext);
 registerDockerHiddenFolderFixtureCases(caseContext);
 registerSettingsFixtureCases(caseContext);

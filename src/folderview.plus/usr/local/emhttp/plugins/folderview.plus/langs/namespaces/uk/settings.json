@@ -4,6 +4,7 @@
         "locale": "uk",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Змінити типові налаштування папок",
     "settings.search.placeholder": "Налаштування пошуку",
     "settings.search.label": "Налаштування пошуку",
     "settings.search.clear-label": "Очистити пошук у налаштуваннях",

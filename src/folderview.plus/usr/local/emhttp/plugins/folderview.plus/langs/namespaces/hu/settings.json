@@ -4,6 +4,7 @@
         "locale": "hu",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Mappák alapértelmezett beállításainak szerkesztése",
     "settings.search.placeholder": "Keresési beállítások",
     "settings.search.label": "Keresési beállítások",
     "settings.search.clear-label": "Beállítások keresésének törlése",

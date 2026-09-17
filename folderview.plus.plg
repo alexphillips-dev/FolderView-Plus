@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.01">
-<!ENTITY md5 "57f867d86113b07371304061ccb1da9c">
-<!ENTITY sha256 "eae76f8cac29d68de17a1e7491a779ced71ae99314be88f69aa4fd2a8e3d6901">
+<!ENTITY version "2026.09.17.02">
+<!ENTITY md5 "84c04c5a9a052c49a2ef525cf45a553b">
+<!ENTITY sha256 "096df08b06c5eaa4cee3d0e68fe3ce2327a3c28f95a4bf0dd9da1feaaed03762">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.02
+- Localization: Give the Edit folder defaults links an explicit translation key while preserving the existing wording in all 27 supported locales.
+- Quality: Resolve the stable-release localization guard failure without increasing its legacy-message limit or changing defaults behavior.
+
 
 ###2026.09.17.01
 - UX: Add a direct Edit folder defaults link to Docker and VM settings. Open and change saved defaults, including imported FolderView3 profiles, without creating a source folder or changing existing folders.

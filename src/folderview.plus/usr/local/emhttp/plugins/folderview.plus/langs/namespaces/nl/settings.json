@@ -4,6 +4,7 @@
         "locale": "nl",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Standaardinstellingen voor mappen bewerken",
     "settings.search.placeholder": "Zoekinstellingen",
     "settings.search.label": "Zoekinstellingen",
     "settings.search.clear-label": "Zoekinstellingen wissen",

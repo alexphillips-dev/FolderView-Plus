@@ -4,6 +4,7 @@
         "locale": "pt-BR",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Editar configurações padrão das pastas",
     "settings.search.placeholder": "Configurações de pesquisa",
     "settings.search.label": "Configurações de pesquisa",
     "settings.search.clear-label": "Limpar pesquisa de configurações",

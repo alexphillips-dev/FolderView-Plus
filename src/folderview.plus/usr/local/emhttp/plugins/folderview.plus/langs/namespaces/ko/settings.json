@@ -4,6 +4,7 @@
         "locale": "ko",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "폴더 기본 설정 편집",
     "settings.search.placeholder": "검색 설정",
     "settings.search.label": "검색 설정",
     "settings.search.clear-label": "설정 검색 지우기",

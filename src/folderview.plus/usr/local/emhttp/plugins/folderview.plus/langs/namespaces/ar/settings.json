@@ -4,6 +4,7 @@
         "locale": "ar",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "تعديل الإعدادات الافتراضية للمجلدات",
     "settings.search.placeholder": "إعدادات البحث",
     "settings.search.label": "إعدادات البحث",
     "settings.search.clear-label": "مسح إعدادات البحث",

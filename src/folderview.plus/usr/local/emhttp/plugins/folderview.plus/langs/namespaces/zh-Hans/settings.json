@@ -4,6 +4,7 @@
         "locale": "zh-Hans",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "编辑文件夹默认设置",
     "settings.search.placeholder": "搜索设置",
     "settings.search.label": "搜索设置",
     "settings.search.clear-label": "清除设置搜索",

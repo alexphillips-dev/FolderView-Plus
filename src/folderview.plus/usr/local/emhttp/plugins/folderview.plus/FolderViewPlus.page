@@ -215,7 +215,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
-    <div id="docker-basic-summary" class="fv-basic-summary-grid" aria-label="Docker folder summary"></div><a class="fv-defaults-editor-link" href="/Docker/Folder?type=docker&amp;defaults=1">Edit folder defaults</a>
+    <div id="docker-basic-summary" class="fv-basic-summary-grid" aria-label="Docker folder summary"></div><a class="fv-defaults-editor-link" data-i18n="settings.folder-defaults.edit" href="/Docker/Folder?type=docker&amp;defaults=1">Edit folder defaults</a>
     <details id="docker-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel">
         <summary class="toolbar-sort-toggle">
             <span class="toolbar-sort-toggle-main">
@@ -571,7 +571,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
-    <div id="vm-basic-summary" class="fv-basic-summary-grid" aria-label="VM folder summary"></div><a class="fv-defaults-editor-link" href="/VMs/Folder?type=vm&amp;defaults=1">Edit folder defaults</a>
+    <div id="vm-basic-summary" class="fv-basic-summary-grid" aria-label="VM folder summary"></div><a class="fv-defaults-editor-link" data-i18n="settings.folder-defaults.edit" href="/VMs/Folder?type=vm&amp;defaults=1">Edit folder defaults</a>
     <details id="vm-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel">
         <summary class="toolbar-sort-toggle">
             <span class="toolbar-sort-toggle-main">

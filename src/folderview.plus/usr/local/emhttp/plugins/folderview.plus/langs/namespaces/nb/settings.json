@@ -4,6 +4,7 @@
         "locale": "nb",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Rediger standardinnstillinger for mapper",
     "settings.search.placeholder": "Søkeinnstillinger",
     "settings.search.label": "Søkeinnstillinger",
     "settings.search.clear-label": "Slett innstillingssøk",

@@ -4,6 +4,7 @@
         "locale": "ro",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Editează setările implicite ale dosarelor",
     "settings.search.placeholder": "Setări de căutare",
     "settings.search.label": "Setări de căutare",
     "settings.search.clear-label": "Curăță căutarea setărilor",

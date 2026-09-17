@@ -4,6 +4,7 @@
         "locale": "de",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Standardwerte für Ordner bearbeiten",
     "settings.search.placeholder": "Einstellungen durchsuchen",
     "settings.search.label": "Einstellungen durchsuchen",
     "settings.search.clear-label": "Einstellungssuche löschen",

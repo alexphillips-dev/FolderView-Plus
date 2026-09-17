@@ -4,6 +4,7 @@
         "locale": "hr",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Uredi zadane postavke mapa",
     "settings.search.placeholder": "Postavke pretraživanja",
     "settings.search.label": "Postavke pretraživanja",
     "settings.search.clear-label": "Brisanje pretraživanja postavki",

@@ -4,6 +4,7 @@
         "locale": "ja",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "フォルダーの既定設定を編集",
     "settings.search.placeholder": "検索設定",
     "settings.search.label": "検索設定",
     "settings.search.clear-label": "設定検索をクリア",

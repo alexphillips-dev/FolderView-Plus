@@ -4,6 +4,7 @@
         "locale": "fr",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Modifier les paramètres par défaut des dossiers",
     "settings.search.placeholder": "Paramètres de recherche",
     "settings.search.label": "Paramètres de recherche",
     "settings.search.clear-label": "Effacer la recherche de paramètres",

@@ -4,6 +4,7 @@
         "locale": "tr",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Klasör varsayılanlarını düzenle",
     "settings.search.placeholder": "Arama ayarları",
     "settings.search.label": "Arama ayarları",
     "settings.search.clear-label": "Ayarları aramayı temizle",

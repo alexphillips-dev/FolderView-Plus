@@ -4,6 +4,7 @@
         "locale": "cs",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Upravit výchozí nastavení složek",
     "settings.search.placeholder": "Nastavení vyhledávání",
     "settings.search.label": "Nastavení vyhledávání",
     "settings.search.clear-label": "Vymazat vyhledávání nastavení",

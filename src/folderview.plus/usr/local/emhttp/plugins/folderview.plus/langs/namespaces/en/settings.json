@@ -4,6 +4,7 @@
         "locale": "en",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Edit folder defaults",
     "settings.search.placeholder": "Search settings",
     "settings.search.label": "Search settings",
     "settings.search.clear-label": "Clear settings search",

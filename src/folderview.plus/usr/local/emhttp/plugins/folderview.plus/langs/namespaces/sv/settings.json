@@ -4,6 +4,7 @@
         "locale": "sv",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Redigera standardinställningar för mappar",
     "settings.search.placeholder": "Sökinställningar",
     "settings.search.label": "Sökinställningar",
     "settings.search.clear-label": "Rensa inställningssökning",

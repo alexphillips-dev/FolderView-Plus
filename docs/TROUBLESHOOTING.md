@@ -224,6 +224,15 @@ Share the full export only if you intentionally need raw troubleshooting fields.
 
 Runtime privacy masking and support-bundle sanitization are separate systems. Enabling Privacy does not sanitize a configuration export, and disabling Privacy does not make a sanitized support bundle raw. See [Privacy Guide](PRIVACY.md).
 
+## Defaults, previews, ordering, and icon uploads
+
+- Open **Edit folder defaults** under Docker or VMs in Settings to change the profile inherited by new folders. Existing folders retain their settings unless **Apply to all** is explicitly selected.
+- For an advanced Docker popup on hover, set **Preview Context -> Advanced** and **Activation mode -> Hover**. **Show preview only on hover** is a separate visibility setting. Mouse hover remains available on touchscreen computers with a fine pointer; touch-only devices use click/tap.
+- To gray only stopped Docker member icons, choose **Preview status -> Grayscale stopped icons** and leave **Preview icon grayscale** off. Both **Icon and label** and **Only icon (clean)** previews support status-based grayscale.
+- Mixed Docker folder/container positions should survive refresh. Folder sorting changes folders within their saved slots; new folders initially appear at the top until positioned. FolderView3 migration does not import unassigned native-item positions.
+- Fullwidth, Accordion, Inset, and Embossed Dashboard cards fill the available widget width; Compact Matrix cards fill their grid slots. Classic and Legacy retain native tile presentation. Capture layout diagnostics on the affected page before exporting a sanitized bundle.
+- An empty JSON response during custom-icon upload triggers one attempt through the supported inline upload path. If recovery also fails, record the exact error and HTTP response status for `upload_custom_icon.php`, and export a sanitized bundle. Do not include cookies or authentication headers.
+
 ## Paths
 
 - Config root: `/boot/config/plugins/folderview.plus`

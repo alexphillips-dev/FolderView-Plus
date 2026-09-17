@@ -136,6 +136,37 @@ tbody#vm_view .fv-dashboard-started-only-hidden {
     position: relative;
 }
 
+/* Host app tiles have fixed widths. Folder cards must fill their own grid slot. */
+tbody#docker_view[data-fv-dashboard-layout] > tr.updated > td,
+tbody#vm_view[data-fv-dashboard-layout] > tr.updated > td {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+tbody[data-fv-dashboard-layout]:not(.fv-dashboard-layout-classic):not(.fv-dashboard-layout-legacy) .folder-showcase-outer {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+tbody[data-fv-dashboard-layout]:not(.fv-dashboard-layout-classic):not(.fv-dashboard-layout-legacy) .folder-showcase-outer > span.outer {
+    display: flex;
+    align-items: center;
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+tbody[data-fv-dashboard-layout]:not(.fv-dashboard-layout-classic):not(.fv-dashboard-layout-legacy) .folder-showcase-outer > span.outer > span.inner {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
 body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-img-docker,
 body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view > tr.updated > td > span.outer:not(.folder-docker) img.img,
 body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-showcase > span.outer:not(.folder-docker) img.img,

@@ -127,8 +127,7 @@
         const liveSet = new Set(currentOrder);
         const savedSet = new Set(preferredOrder);
         const newOnes = currentOrder.filter((entry) => !savedSet.has(entry));
-        const reconciledFolderOrder = [];
-        const reconciledMemberOrder = [];
+        const reconciledOrder = [];
         const seen = new Set();
         const appendUnique = (target, entry) => {
             if (!entry || seen.has(entry)) return;
@@ -139,15 +138,16 @@
             if (matchesFolderToken(entry)) {
                 const folderId = entry.startsWith(prefix) ? entry.slice(prefix.length) : entry;
                 if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
-                    appendUnique(reconciledFolderOrder, entry);
+                    appendUnique(reconciledOrder, entry);
                 }
                 return;
             }
-            if (liveSet.has(entry)) appendUnique(reconciledMemberOrder, entry);
+            if (liveSet.has(entry)) appendUnique(reconciledOrder, entry);
         });
-        newOnes.forEach((entry) => appendUnique(reconciledMemberOrder, entry));
+        newOnes.filter((entry) => !matchesFolderToken(entry) || Object.prototype.hasOwnProperty.call(folderMap, entry.slice(prefix.length)))
+            .forEach((entry) => appendUnique(reconciledOrder, entry));
         return {
-            order: [...reconciledFolderOrder, ...reconciledMemberOrder],
+            order: reconciledOrder,
             newOnes
         };
     };

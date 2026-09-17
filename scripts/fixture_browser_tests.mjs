@@ -14,7 +14,7 @@ import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mj
 import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs';
 import { registerFolderWebuiProfileFixtureCases } from '../tests/browser/cases/folder-webui-profiles.mjs'; import { registerFolderWebuiProfileThemeFixtureCase } from '../tests/browser/cases/folder-webui-profile-theme.mjs';
-import { registerImportFixtureCases } from '../tests/browser/cases/import.mjs'; import { registerFolderRenderRecoveryFixtureCases } from '../tests/browser/cases/folder-render-recovery.mjs';
+import { registerImportFixtureCases } from '../tests/browser/cases/import.mjs'; import { registerFolderRenderRecoveryFixtureCases } from '../tests/browser/cases/folder-render-recovery.mjs'; import { registerForumReportFixtureCases } from '../tests/browser/cases/forum-reports.mjs';
 const scriptPath = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(scriptPath), '..');
 const pluginDir = path.join(rootDir, 'src', 'folderview.plus', 'usr', 'local', 'emhttp', 'plugins', 'folderview.plus');
@@ -50,7 +50,7 @@ registerDockerHiddenFolderFixtureCases(caseContext);
 registerSettingsFixtureCases(caseContext);
 registerSettingsStartOrderFixtureCases(caseContext);
 registerFolderEditorFixtureCases(caseContext); registerFolderWebuiProfileFixtureCases(caseContext); registerFolderWebuiProfileThemeFixtureCase(caseContext);
-registerImportFixtureCases(caseContext); registerFolderRenderRecoveryFixtureCases(caseContext);
+registerImportFixtureCases(caseContext); registerFolderRenderRecoveryFixtureCases(caseContext); registerForumReportFixtureCases(caseContext);
 
 await runFixtureBrowserSuite({
     fixtureServer, tests, requestedBrowsers, browserTypes, colorSchemes, viewports,

@@ -2273,23 +2273,25 @@
         if ($type === 'docker') {
             $folders = readRawFolderMap('docker');
             $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
-            $folderIds = array_keys($folders);
             $folderPlaceholders = array_map(function($id) {
                 return 'folder-' . (string)$id;
             }, array_keys($orderedFolders));
-            $order = array_values(array_filter($order, function($entry) use ($folderIds) {
+            $prefs = readTypePrefs('docker');
+            $sortSlots = ($prefs['sortMode'] ?? 'created') !== 'created' || !empty($prefs['pinnedFolderIds']);
+            $slotIndex = 0;
+            $seen = [];
+            $nextOrder = [];
+            foreach ($order as $entry) {
                 $value = trim((string)$entry);
-                if (strpos($value, 'folder-') !== 0) {
-                    return true;
+                if (strpos($value, 'folder-') === 0) {
+                    if (!in_array($value, $folderPlaceholders, true)) continue;
+                    if ($sortSlots) $value = $folderPlaceholders[$slotIndex++] ?? '';
                 }
-                $folderId = substr($value, 7);
-                return !in_array($folderId, $folderIds, true);
-            }));
-            foreach ($folderPlaceholders as $placeholder) {
-                if (!in_array($placeholder, $order, true)) {
-                    $order[] = $placeholder;
-                }
+                fvplus_append_unique_name($nextOrder, $seen, $value);
             }
+            // New folders have no host slot yet. Keep their established top placement.
+            $missing = array_values(array_diff($folderPlaceholders, $nextOrder));
+            $order = array_merge($missing, $nextOrder);
         }
         return json_encode($order);
     }

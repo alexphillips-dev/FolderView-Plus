@@ -34,7 +34,7 @@ test('shared folder ordering preserves hierarchy depth, host-created order, and 
         folders
     );
     assert.deepEqual(reconciled, {
-        order: ['folder-a', 'existing', 'new'],
+        order: ['existing', 'folder-a', 'new'],
         newOnes: ['new']
     });
 });

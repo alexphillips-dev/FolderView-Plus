@@ -106,11 +106,12 @@ const readWindowNameFolderEditorBootstrapSeed = () => {
     }
 };
 const folderEditorQueryParams = new URLSearchParams(location.search);
+const editingFolderDefaults = folderEditorQueryParams.get('defaults') === '1';
 const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
 const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
 const folderEditorWindowNameBootstrap = readWindowNameFolderEditorBootstrapSeed();
 const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed();
-const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap || folderEditorCookieBootstrap;
+const folderEditorBootstrapSeed = editingFolderDefaults ? null : (folderEditorWindowNameBootstrap || folderEditorStorageBootstrap || folderEditorCookieBootstrap);
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -141,7 +142,7 @@ const type = String(
     || ''
 ).trim();
 // id of the folder if present
-const folderId = String(
+const folderId = editingFolderDefaults ? '' : String(
     folderEditorQueryParams.get('id')
     || folderEditorHashParams.get('id')
     || folderEditorQueryParams.get('folderId')
@@ -156,7 +157,7 @@ const folderId = String(
     || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
-const requestedCreateParentId = String(
+const requestedCreateParentId = editingFolderDefaults ? '' : String(
     folderEditorQueryParams.get('parentId')
     || folderEditorHashParams.get('parentId')
     || folderEditorQueryParams.get('parent')
@@ -2264,7 +2265,7 @@ const collectValidationWarnings = () => {
 
 const validateForm = () => {
     const checks = [
-        validateNameField(),
+        editingFolderDefaults || validateNameField(),
         validateParentFolderSelection(),
         validateRegexField(),
         validateFolderWebUiUrl(),
@@ -3298,7 +3299,7 @@ const startFolderEditorRuntime = async () => {
         folderEditorBootstrapSeed?.id,
         folderId
     )[0] || '';
-    const navigationPrefill = readEditorNavigationPrefill(type, preferredNavigationRef);
+    const navigationPrefill = editingFolderDefaults ? null : readEditorNavigationPrefill(type, preferredNavigationRef);
     const requestedFolderRefs = buildFolderEditorRefCandidates(
         folderEditorResolvedId,
         folderEditorBootstrapContext.resolvedId,
@@ -3413,6 +3414,9 @@ const startFolderEditorRuntime = async () => {
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
         const appliedSavedDefaults = applySavedFolderDefaultsToNewFolder(folders);
+        if (editingFolderDefaults) {
+            window.FolderViewPlusFoundationModules.folderDefaults.configure({ $, document, form: getForm(), setValidationBannerState, translate: folderEditorT });
+        }
         const appliedRequestedParent = await applyRequestedCreateParentToNewFolder(folders);
         if (!appliedRequestedParent && !appliedSavedDefaults) {
             refreshParentFolderChooser(folders, '', new Set());
@@ -3642,35 +3646,7 @@ const getSavedFolderDefaultsProfile = () => {
     const normalizedPrefs = typeof utils?.normalizePrefs === 'function'
         ? utils.normalizePrefs(folderEditorTypePrefs || {})
         : (folderEditorTypePrefs && typeof folderEditorTypePrefs === 'object' ? folderEditorTypePrefs : {});
-    const folderDefaults = normalizedPrefs?.folderDefaults && typeof normalizedPrefs.folderDefaults === 'object'
-        ? normalizedPrefs.folderDefaults
-        : {};
-    const profile = folderDefaults.profile && typeof folderDefaults.profile === 'object'
-        ? folderDefaults.profile
-        : {};
-    const icon = String(profile.icon || '').trim();
-    const settings = profile.settings && typeof profile.settings === 'object'
-        ? JSON.parse(JSON.stringify(profile.settings))
-        : {};
-    const actions = Array.isArray(profile.actions)
-        ? JSON.parse(JSON.stringify(profile.actions))
-        : [];
-    if (!icon && Object.keys(settings).length <= 0 && actions.length <= 0) {
-        return null;
-    }
-    return {
-        sourceId: String(folderDefaults.sourceId || '').trim(),
-        sourceName: String(folderDefaults.sourceName || '').trim(),
-        folder: {
-            name: '',
-            parentId: '',
-            icon,
-            regex: '',
-            containers: [],
-            settings,
-            actions
-        }
-    };
+    return window.FolderViewPlusFoundationModules.folderDefaults.readProfile(normalizedPrefs);
 };
 const applySavedFolderDefaultsToNewFolder = (foldersMap = {}) => {
     if (String(activeFolderEditorFolderId || folderId || '').trim()) {
@@ -4390,13 +4366,18 @@ const submitForm = async (e, saveAsCopy = false) => {
     if (saveAsCopy) {
         folder.name = generateCopyName(folder.name, folder.parentId);
     }
-    if (!folder.name) {
+    if (!folder.name && !editingFolderDefaults) {
         setFieldError('name', 'Folder name is required.');
         return false;
     }
     try {
         // send the data to the right endpoint
-        if (folderId && !saveAsCopy) {
+        if (editingFolderDefaults) {
+            await window.FolderViewPlusFoundationModules.folderDefaults.save({ folder, type, prefs: folderEditorTypePrefs, transfer: getFolderSettingsTransferApi(), post: securePost });
+            suppressUnloadPrompt = true;
+            location.href = '/Settings/FolderViewPlus';
+            return false;
+        } else if (folderId && !saveAsCopy) {
             const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
                 type: type,
                 content: JSON.stringify(folder),
@@ -4454,6 +4435,7 @@ const cancelBtn = () => {
         }
     }
     suppressUnloadPrompt = true;
+    if (editingFolderDefaults) { location.href = '/Settings/FolderViewPlus'; return; }
     let loc = location.pathname.split('/');
     loc.pop();
     location.href = loc.join('/');

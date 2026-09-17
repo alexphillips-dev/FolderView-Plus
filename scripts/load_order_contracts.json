@@ -296,6 +296,7 @@
         "scripts/folderviewplus.folder-contract.js",
         "scripts/folder.preview-model.js",
         "scripts/folder.editor.icon-api.js",
+        "scripts/folder.editor.defaults.js",
         "scripts/folder.editor.shared.js",
         "scripts/folder.editor.schema.js",
         "scripts/folder.editor.preview.js",

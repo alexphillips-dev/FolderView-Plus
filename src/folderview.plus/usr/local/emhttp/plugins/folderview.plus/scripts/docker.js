@@ -1407,7 +1407,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
     const shouldHidePreviewStatus = previewStatusMode === 'none';
     const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';
-    const shouldGrayscaleByStatus = previewMode === 2 && previewStatusMode === 'grayscale' && entry?.state !== true;
+    const shouldGrayscaleByStatus = previewStatusMode === 'grayscale' && entry?.state !== true;
     const imageStyle = settings?.preview_grayscale || shouldGrayscaleByStatus ? ' data-fvplus-style="fv-u-1opeemm"' : '';
     const onlyIconStatusMarkup = shouldShowOnlyIconStatus
         ? `<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${stateLabel}</span></span>`
@@ -3328,9 +3328,8 @@ const FOLDER_VIEW_TOUCH_MODE = (() => {
         const hasMatchMedia = typeof window.matchMedia === 'function';
         const noHover = hasMatchMedia ? window.matchMedia('(hover: none)').matches : false;
         const coarsePointer = hasMatchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
-        const touchEventSupport = 'ontouchstart' in window;
-        const maxTouchPoints = Number(navigator?.maxTouchPoints || 0);
-        return noHover || coarsePointer || touchEventSupport || maxTouchPoints > 0;
+        const mouseAvailable = hasMatchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches;
+        return !mouseAvailable && (noHover || coarsePointer);
     } catch (error) {
         return false;
     }
@@ -4745,8 +4744,7 @@ const createFolders = async () => {
     }
 
 
-    // Keep FolderView rows above standalone containers even when Unraid has already
-    // saved a newly installed container at the beginning of userprefs.cfg.
+    // Preserve Unraid's saved folder/container slots; append newly discovered rows.
     const liveOrderBeforeReconciliation = [...order];
     const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
     order = reconciledOrder.order;
@@ -4760,10 +4758,8 @@ const createFolders = async () => {
         folderCount: Object.keys(folders || {}).length,
         missingContainerCount: newOnes.length,
         appendedContainerCount: newOnes.length,
-        appendPosition: newOnes.length > 0 ? 'after-folders' : 'not-needed',
-        orderingInvariantSatisfied: reconciledOrder.order.every((entry, index, entries) => (
-            !folderRegex.test(entry) || entries.slice(0, index).every((previous) => folderRegex.test(previous))
-        )),
+        appendPosition: newOnes.length > 0 ? 'after-saved-order' : 'not-needed',
+        orderingInvariantSatisfied: new Set(reconciledOrder.order).size === reconciledOrder.order.length,
         liveOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(liveOrderBeforeReconciliation),
         savedOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(unraidOrder),
         reconciledOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(reconciledOrder.order)
@@ -5783,11 +5779,8 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 }
             }
 
-            if (folder.settings.preview_grayscale) {
-                let $imgToGrayscale = $previewElementTarget.children('span.hand').children('img.img');
-                if (!$imgToGrayscale.length) {
-                    $imgToGrayscale = $previewElementTarget.children('img.img');
-                }
+            if (folder.settings.preview_grayscale || (previewStatusMode === 'grayscale' && newFolder[container_name_in_folder].state !== true)) {
+                const $imgToGrayscale = $previewElementTarget.find('img.img');
                 if ($imgToGrayscale.length) {
                     $imgToGrayscale.css('filter', 'grayscale(100%)');
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Applied grayscale to preview image.`);

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.15.03">
-<!ENTITY md5 "8067a97c6b4101c5510b87d5159d22f0">
-<!ENTITY sha256 "31dcb2b4ee60f5f69a3839a176459325ad14d2983cd8305d11e99d2139a5ce70">
+<!ENTITY version "2026.09.17.01">
+<!ENTITY md5 "57f867d86113b07371304061ccb1da9c">
+<!ENTITY sha256 "eae76f8cac29d68de17a1e7491a779ced71ae99314be88f69aa4fd2a8e3d6901">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.01
+- UX: Add a direct Edit folder defaults link to Docker and VM settings. Open and change saved defaults, including imported FolderView3 profiles, without creating a source folder or changing existing folders.
+- Fix: Keep mouse-hover previews available on computers that also have a touchscreen, while retaining click activation on touch-only devices.
+- Fix: Apply Grayscale stopped icons to both icon-and-label and icon-only Docker previews, keeping running members in color unless the separate all-icons grayscale option is enabled.
+- Fix: Preserve saved mixed positions of Docker folders and standalone containers after refresh. Folder sorting still orders folders within their available slots; new folders without a saved position initially appear at the top.
+- Fix: Make Dashboard card layouts fill their available widget or grid width when Unraid's native app tiles impose fixed widths, including narrow screens and nested folders.
+- Reliability: Retry a custom icon upload through the supported inline upload path when the server returns an empty JSON response. Ordinary upload errors are not retried, and an unsuccessful retry still reports the error.
+- Localization: Translate the new defaults-editor link across all supported locales and retain localized defaults controls.
+
 
 ###2026.09.15.03
 - Fix: A folder that fails to display no longer stops other folders from loading on Docker, VMs, or the Dashboard. Native container and VM rows remain accessible, and unfinished folder UI is removed.

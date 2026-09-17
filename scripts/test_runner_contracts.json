@@ -21,11 +21,13 @@
         "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
         "../tests/browser/cases/import.mjs",
-        "../tests/browser/cases/folder-render-recovery.mjs"
+        "../tests/browser/cases/folder-render-recovery.mjs",
+        "../tests/browser/cases/forum-reports.mjs"
       ]
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
@@ -61,7 +63,8 @@
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/import.mjs",
-        "tests/browser/cases/folder-render-recovery.mjs"
+        "tests/browser/cases/folder-render-recovery.mjs",
+        "tests/browser/cases/forum-reports.mjs"
       ],
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
@@ -70,10 +73,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 53,
-      "assertionCount": 665,
-      "pageEvaluateCount": 146,
-      "orderedTitleSha256": "6a38bd9b942e7a53e5b4e4f1e6b8af3a32d357065b0d6d7b79817743d37c49a0"
+      "testCount": 55,
+      "assertionCount": 674,
+      "pageEvaluateCount": 148,
+      "orderedTitleSha256": "b8e781cf5afde50742ea9bcb89d744abc98a12d9c6e6f2ad3c45ca09db3e8ee1"
     }
   }
 }

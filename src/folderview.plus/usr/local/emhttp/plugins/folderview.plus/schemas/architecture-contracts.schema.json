@@ -583,6 +583,19 @@
   ],
   "moduleContracts": [
     {
+      "file": "scripts/folder.editor.defaults.js",
+      "owner": "folder-defaults-editor",
+      "consumers": ["folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folder.settings-transfer.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderDefaults",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["configure", "save", "readProfile"]
+    },
+    {
       "file": "scripts/folderviewplus.request-diagnostics.js",
       "owner": "shared-request-diagnostics",
       "consumers": [

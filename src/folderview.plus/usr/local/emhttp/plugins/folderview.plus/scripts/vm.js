@@ -611,9 +611,8 @@ const FV_VM_TOUCH_MODE = (() => {
         const hasMatchMedia = typeof window.matchMedia === 'function';
         const noHover = hasMatchMedia ? window.matchMedia('(hover: none)').matches : false;
         const coarsePointer = hasMatchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
-        const touchEventSupport = 'ontouchstart' in window;
-        const maxTouchPoints = Number(navigator?.maxTouchPoints || 0);
-        return noHover || coarsePointer || touchEventSupport || maxTouchPoints > 0;
+        const mouseAvailable = hasMatchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches;
+        return !mouseAvailable && (noHover || coarsePointer);
     } catch (error) {
         return false;
     }

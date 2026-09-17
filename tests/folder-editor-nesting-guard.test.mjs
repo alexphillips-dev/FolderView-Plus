@@ -170,7 +170,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
     assert.match(folderEditorScript, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderEditorScript, /const preferredNavigationRef = buildFolderEditorRefCandidates\(/);
-    assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*preferredNavigationRef\);/);
+    assert.match(folderEditorScript, /const navigationPrefill = editingFolderDefaults \? null : readEditorNavigationPrefill\(type,\s*preferredNavigationRef\);/);
     assert.match(folderEditorScript, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderEditorScript, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);

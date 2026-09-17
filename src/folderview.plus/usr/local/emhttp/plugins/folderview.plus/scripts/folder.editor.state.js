@@ -7,6 +7,7 @@
     root.FolderViewPlusFolderEditorState = factory();
     root.FolderViewPlusFolderEditorStateModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
@@ -46,13 +47,13 @@
             $('#unsavedIndicator').toggle(dirty);
             $('#fvActionBarDirty')
                 .toggleClass('is-dirty', dirty)
-                .text(dirty ? `${changedCount || 1} unsaved change${changedCount === 1 ? '' : 's'}` : 'All changes saved');
+                .text(dirty ? surfaceT("common.runtime.unsaved-changes-1", "Unsaved changes: $1", changedCount || 1) : surfaceT("common.runtime.all-changes-saved", "All changes saved"));
             $('#fvActionBarHint')
                 .toggleClass('is-dirty', dirty)
                 .text(
                     dirty
-                        ? 'Save or copy this folder when you are ready.'
-                        : 'Changes apply live in the preview while saved values stay in sync below.'
+                        ? surfaceT("common.runtime.save-or-copy-this-folder-when-you-are-ready", "Save or copy this folder when you are ready.")
+                        : surfaceT("common.runtime.changes-apply-live-in-the-preview-while-saved-values-stay-in-sync-below", "Changes apply live in the preview while saved values stay in sync below.")
                 );
             return dirty;
         };
@@ -93,7 +94,7 @@
                     badge
                         .removeClass('is-dirty is-clean')
                         .addClass(changedCount > 0 ? 'is-dirty' : 'is-clean')
-                        .text(changedCount > 0 ? `${changedCount} change${changedCount === 1 ? '' : 's'}` : 'Saved');
+                        .text(changedCount > 0 ? surfaceT("common.runtime.changes-1", "Changes: $1", changedCount) : 'Saved');
                 }
 
                 if (navBadge.length) {
@@ -109,8 +110,8 @@
             }
             const initialSnapshot = String(getInitialSnapshot() || '');
             if (!initialSnapshot) {
-                $('#fvChangeSummaryLabel').removeClass('is-dirty').text('No pending changes');
-                $('#fvChangeSummaryText').text('This folder currently matches the saved values.');
+                $('#fvChangeSummaryLabel').removeClass('is-dirty').text(surfaceT("legacy.surface.069d00767c0d027b", "No pending changes"));
+                $('#fvChangeSummaryText').text(surfaceT("legacy.surface.f459c70b0c55b1e2", "This folder currently matches the saved values."));
                 $('#fvChangeSummaryList').empty();
                 $('#fvChangeSummaryOverflow').text('');
                 return;
@@ -120,11 +121,11 @@
             const dirty = changedItems.length > 0;
             $('#fvChangeSummaryLabel')
                 .toggleClass('is-dirty', dirty)
-                .text(dirty ? `${changedItems.length} unsaved change${changedItems.length === 1 ? '' : 's'}` : 'No pending changes');
+                .text(dirty ? surfaceT("common.runtime.unsaved-changes-1", "Unsaved changes: $1", changedItems.length) : surfaceT("legacy.surface.069d00767c0d027b", "No pending changes"));
             $('#fvChangeSummaryText').text(
                 dirty
-                    ? 'These folder settings are different from the currently saved version.'
-                    : 'This folder currently matches the saved values.'
+                    ? surfaceT("common.runtime.these-folder-settings-are-different-from-the-currently-saved-version", "These folder settings are different from the currently saved version.")
+                    : surfaceT("legacy.surface.f459c70b0c55b1e2", "This folder currently matches the saved values.")
             );
 
             const list = $('#fvChangeSummaryList');
@@ -137,7 +138,7 @@
             });
             $('#fvChangeSummaryOverflow').text(
                 changedItems.length > 6
-                    ? `+${changedItems.length - 6} more change${changedItems.length - 6 === 1 ? '' : 's'}`
+                    ? surfaceT("common.runtime.additional-changes-1", "Additional changes: $1", changedItems.length - 6)
                     : ''
             );
         };
@@ -176,7 +177,7 @@
                 }
                 marker
                     .toggle(isInherited)
-                    .text(isInherited ? 'inherits global default' : '')
+                    .text(isInherited ? surfaceT("common.runtime.inherits-global-default", "inherits global default") : '')
                     .attr('title', isInherited ? hint : '');
                 const button = row.find(`.fv-inherit-btn[data-field="${fieldName}"]`).first();
                 if (button.length) {
@@ -192,8 +193,8 @@
             });
             $('#fvHeroDefaults').text(
                 inheritedCount > 0
-                    ? `${inheritedCount} inherited default${inheritedCount === 1 ? '' : 's'}`
-                    : 'All key fields overridden locally'
+                    ? surfaceT("common.runtime.inherited-defaults-1", "Inherited defaults: $1", inheritedCount)
+                    : surfaceT("common.runtime.all-key-fields-overridden-locally", "All key fields overridden locally")
             );
         };
 

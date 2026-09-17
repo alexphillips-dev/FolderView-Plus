@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Изменить настройки папок по умолчанию",
     "settings.search.placeholder": "Настройки поиска",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Пользовательские пакеты активны.",
     "settings.start-order.batch-copy": "В порядок загрузки Unraid записываются только контейнеры с включенным автозапуском Docker. Задержки применяются к последнему контейнеру автозапуска в каждом пакете.",
     "settings.start-order.counts": "Контейнеры автозапуска: $1; обнаружены контейнеры: $2",
-    "settings.start-order.order-column": "Заказать",
+    "settings.start-order.order-column": "Порядок сортировки",
     "settings.start-order.container-column": "Контейнер",
     "settings.navigation.automation": "Автоматизация",
     "settings.navigation.rules": "Правила",

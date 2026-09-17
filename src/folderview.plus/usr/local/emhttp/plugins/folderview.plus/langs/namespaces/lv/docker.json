@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "FolderView darbības",
     "docker.actions.add-folder": "Pievienot mapi",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Rīki",
     "docker.actions.show-empty": "Rādīt tukšas mapes",
     "docker.actions.hide-empty": "Paslēpt tukšās mapes",
-    "docker.actions.clear-focus": "Notīrīt mapes fokusu",
+    "docker.actions.clear-focus": "Notīrīt mapes fokusa filtru",
     "docker.actions.refresh-state": "Atsvaidzināt mapes stāvokli",
     "docker.actions.bulk-assignment": "Lielapjoma uzdevums",
     "docker.actions.rules-workspace": "Noteikumu darbvieta",

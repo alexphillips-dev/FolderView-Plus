@@ -1214,9 +1214,9 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
-        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
-        <input class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
-        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
+        <input data-i18n="[value]common.runtime.apply-to-folders" class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
+        <input data-i18n="[value]common.runtime.save-as-copy" class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
+        <input data-i18n="[value]common.runtime.reset-unsaved-changes" class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" data-fv-onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" data-fvplus-style="fv-u-xcjvns">Unsaved changes</span>
         <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>

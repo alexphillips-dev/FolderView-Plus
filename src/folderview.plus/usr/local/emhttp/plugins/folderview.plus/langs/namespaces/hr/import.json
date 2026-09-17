@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "import.subtitle": "Odaberite način rukovanja postojećim mapama. Ništa se ne mijenja dok ne odaberete Primijeni uvoz.",
     "import.behavior.question": "Kako treba postupati s postojećim mapama?",

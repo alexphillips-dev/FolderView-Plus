@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "diagnostics"
+        "namespace": "diagnostics",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.workspace.description": "Supervise el estado de los complementos, solucione problemas y comparta datos de soporte.",
@@ -94,13 +95,13 @@
     "diagnostics.capture.open-dashboard": "Abra el panel para capturar",
     "diagnostics.capture.viewport-unavailable": "ventana gráfica no disponible",
     "diagnostics.capture.touch": "táctil",
-    "diagnostics.capture.non-touch": "sin contacto",
+    "diagnostics.capture.non-touch": "Sin pantalla táctil",
     "diagnostics.capture.vm": "Panel de máquina virtual",
     "diagnostics.capture.docker": "Panel acoplable",
     "diagnostics.capture.environment-warning": "El entorno de exportación difiere de al menos un entorno de panel capturado.",
     "diagnostics.capture.title": "Evidencia visual del tablero",
     "diagnostics.capture.help": "Estas capturas conservan la geometría del panel renderizada después de navegar a Configuración.",
-    "diagnostics.capture.review": "Revisión",
+    "diagnostics.capture.review": "Comprobar",
     "diagnostics.capture.ready": "Listo",
     "diagnostics.capture.capture-again": "Capturar de nuevo",
     "diagnostics.bootstrap.reference": "Referencia",

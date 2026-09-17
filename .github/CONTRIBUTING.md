@@ -70,6 +70,20 @@ these findings as current code defects or dismissing them.
 
 ## Coding Standards
 
+### Translation changes
+
+Use explicit semantic translation keys for conditional labels, counters, and text passed
+through rendering helpers. Catalog coverage counts registered messages; it does not prove
+that every visible string is bound or that its wording is correct. Test initial rendering
+and subsequent interactions, including delayed catalog loading and Arabic directionality.
+
+The reviewed runtime, terminology, and workflow tables in `scripts/lib/i18n_reviewed_*.json`
+preserve corrections across all supported locales. Their key/term arrays define the order
+of each locale's values. Update the corresponding values together, preserve every `$1`-style
+parameter, and regenerate all catalogs with `node scripts/build_i18n_surface_catalogs.mjs --translate`.
+Reviewed entries can be regenerated without the translation service. Keep user names,
+filenames, paths, and saved configuration values outside translation bindings.
+
 - Use ASCII unless a file already requires Unicode.
 - Keep naming and structure consistent with existing plugin files.
 - Prefer small, composable functions over large inline blocks.

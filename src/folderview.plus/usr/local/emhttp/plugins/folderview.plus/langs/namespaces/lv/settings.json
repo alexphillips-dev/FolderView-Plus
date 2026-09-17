@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Rediģēt mapju noklusējuma iestatījumus",
     "settings.search.placeholder": "Meklēšanas iestatījumi",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Pielāgotas partijas ir aktīvas.",
     "settings.start-order.batch-copy": "Tikai konteineri ar iespējotu Docker automātisko palaišanu tiek ierakstīti Unraid sāknēšanas secībā. Aizkaves attiecas uz pēdējo automātiskās palaišanas konteineru katrā partijā.",
     "settings.start-order.counts": "Autostart konteineri: $1; konstatēti konteineri: $2",
-    "settings.start-order.order-column": "Pasūtiet",
+    "settings.start-order.order-column": "Kārtošanas secība",
     "settings.start-order.container-column": "Konteiners",
     "settings.navigation.automation": "Automatizācija",
     "settings.navigation.rules": "Noteikumi",

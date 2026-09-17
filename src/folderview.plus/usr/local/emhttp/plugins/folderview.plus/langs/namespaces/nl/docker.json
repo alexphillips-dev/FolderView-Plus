@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "Mapweergave acties",
     "docker.actions.add-folder": "Map toevoegen",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Hulpmiddelen",
     "docker.actions.show-empty": "Lege mappen tonen",
     "docker.actions.hide-empty": "Verberg lege mappen",
-    "docker.actions.clear-focus": "Mapfocus wissen",
+    "docker.actions.clear-focus": "Mapfocusfilter wissen",
     "docker.actions.refresh-state": "Mapstatus vernieuwen",
     "docker.actions.bulk-assignment": "Bulktoewijzing",
     "docker.actions.rules-workspace": "Regelwerkruimte",

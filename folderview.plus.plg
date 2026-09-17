@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.08">
-<!ENTITY md5 "c69fdbdc787c91573c7e0f97f07be6fa">
-<!ENTITY sha256 "1fa64afc1e63dadf1e8d3768ee49eef00e5a968aea106c1f3ce752e63276d41c">
+<!ENTITY version "2026.09.17.09">
+<!ENTITY md5 "69f84126353514bfb6f0fbd10e261c3f">
+<!ENTITY sha256 "6a81910b42b48435e9224ceae28406f8a588d322bd06c20a3a900d65ae81a952">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.09
+- Fix: Complete runtime translations across all 27 supported locales for folder-editor validation, save actions, change counters, inherited defaults, preview summaries, parent-folder guidance, automatic rules, and bulk assignment.
+- Fix: Translate icon-browser filters, selection instructions, quota details, built-in icon names, and VM folder status counts, including text updated after an interaction or delayed language loading.
+- Fix: Correct sorting, manual membership, review actions, icon-package terminology, configuration descriptions, and Docker Compose wording across supported languages. User-entered names, icon filenames, paths, and saved values retain their original contents.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the updated scripts and language catalogs.
+
 
 ###2026.09.17.08
 - Fix: Preserve Dashboard Accordion expansion after refresh, including Expand all and nested Docker and VM folders. Normal folder clicks retain Accordion behavior.

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Editar los valores predeterminados de las carpetas",
     "settings.search.placeholder": "Configuración de búsqueda",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Los lotes personalizados están activos.",
     "settings.start-order.batch-copy": "Solo los contenedores con el inicio automático de Docker habilitado se escriben en el orden de inicio Unraid. Los retrasos se aplican al último contenedor de inicio automático de cada lote.",
     "settings.start-order.counts": "Contenedores de inicio automático: $1; contenedores detectados: $2",
-    "settings.start-order.order-column": "Orden",
+    "settings.start-order.order-column": "Orden de clasificación",
     "settings.start-order.container-column": "Contenedor",
     "settings.navigation.automation": "Automatización",
     "settings.navigation.rules": "Reglas",

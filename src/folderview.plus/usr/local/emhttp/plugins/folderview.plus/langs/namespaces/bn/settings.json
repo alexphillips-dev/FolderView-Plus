@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "ফোল্ডারের ডিফল্ট সেটিংস সম্পাদনা করুন",
     "settings.search.placeholder": "অনুসন্ধান সেটিংস",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "কাস্টম ব্যাচ সক্রিয়.",
     "settings.start-order.batch-copy": "শুধুমাত্র ডকার অটোস্টার্ট সক্ষম কন্টেইনারগুলি Unraid বুট অর্ডারে লেখা হয়। বিলম্ব প্রতিটি ব্যাচের শেষ অটোস্টার্ট কন্টেইনারে প্রযোজ্য।",
     "settings.start-order.counts": "অটোস্টার্ট কন্টেনার: $1; পাত্রে সনাক্ত করা হয়েছে: $2",
-    "settings.start-order.order-column": "অর্ডার",
+    "settings.start-order.order-column": "সাজানোর ক্রম",
     "settings.start-order.container-column": "ধারক",
     "settings.navigation.automation": "অটোমেশন",
     "settings.navigation.rules": "নিয়ম",

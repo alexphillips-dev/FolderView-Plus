@@ -2,6 +2,8 @@
 (function fvplusFolderEditorParentPickerScope(window) {
     'use strict';
 
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
+
     const createApi = (deps = {}) => {
         const rootWindow = deps.window || window;
         const rootDocument = deps.document || rootWindow.document;
@@ -39,10 +41,10 @@
 
         const buildTopLevelEntry = () => ({
             id: '',
-            name: 'No parent (top level)',
-            path: 'Keep this folder at the top level.',
+            name: surfaceT("legacy.surface.d5cd43fc0ced45b4", "No parent (top level)"),
+            path: surfaceT("common.runtime.keep-this-folder-at-the-top-level", "Keep this folder at the top level."),
             depth: 0,
-            scope: 'Top level'
+            scope: surfaceT("common.runtime.top-level", "Top level")
         });
 
         const getSelectedParentId = () => {
@@ -76,7 +78,7 @@
             if (!path) {
                 return '';
             }
-            if (path === 'Keep this folder at the top level.') {
+            if (!normalizeParentFolderId(entry?.id || '')) {
                 return path;
             }
             return path === name ? `/${path}` : `/${path}`;
@@ -87,7 +89,7 @@
             const safeId = normalizeParentFolderId(entry?.id || '');
             const isTopLevel = safeId === '';
             const isSelected = safeId === safeSelected;
-            const scopeLabel = String(entry?.scope || (isTopLevel ? 'Top level' : entry?.depth > 0 ? `Depth ${entry.depth}` : 'Root folder')).trim();
+            const scopeLabel = String(entry?.scope || (isTopLevel ? surfaceT("common.runtime.top-level", "Top level") : entry?.depth > 0 ? surfaceT("common.runtime.depth-1", "Depth: $1", entry.depth) : surfaceT("common.runtime.root-folder", "Root folder"))).trim();
             const optionIcon = isTopLevel ? 'fa-level-up' : 'fa-folder-o';
             const pathLabel = formatEntryPath(entry);
             return `
@@ -99,8 +101,8 @@
                     aria-selected="${isSelected ? 'true' : 'false'}">
                     <span class="fv-parent-picker-option-icon" aria-hidden="true"><i class="fa ${optionIcon}"></i></span>
                     <span class="fv-parent-picker-option-main">
-                        <span class="fv-parent-picker-option-name">${escapeHtml(String(entry?.name || ''))}</span>
-                        ${pathLabel ? `<span class="fv-parent-picker-option-path">${escapeHtml(pathLabel)}</span>` : ''}
+                        <span class="fv-parent-picker-option-name" ${isTopLevel ? '' : 'data-fvplus-user-content'}>${escapeHtml(String(entry?.name || ''))}</span>
+                        ${pathLabel ? `<span class="fv-parent-picker-option-path" ${isTopLevel ? '' : 'data-fvplus-user-content'}>${escapeHtml(pathLabel)}</span>` : ''}
                     </span>
                     <span class="fv-parent-picker-option-meta">
                         ${isSelected ? '<span class="fv-parent-picker-option-check" aria-hidden="true"><i class="fa fa-check"></i></span>' : ''}
@@ -168,13 +170,13 @@
                     </span>
                     <div class="fv-parent-picker-current-copy">
                         <span class="fv-parent-picker-kicker">Current location</span>
-                        <strong>${escapeHtml(selectedEntry.name)}</strong>
-                        <span>${escapeHtml(selectedPathLabel || 'Keep this folder at the top level.')}</span>
+                        <strong ${selectedIsTopLevel ? '' : 'data-fvplus-user-content'}>${escapeHtml(selectedEntry.name)}</strong>
+                        <span>${escapeHtml(selectedPathLabel || surfaceT("common.runtime.keep-this-folder-at-the-top-level", "Keep this folder at the top level."))}</span>
                     </div>
                     <div class="fv-parent-picker-current-stats">
-                        <span class="fv-parent-picker-chip${selectedIsTopLevel ? ' is-accent' : ''}">${selectedIsTopLevel ? 'Top level' : 'Nested'}</span>
-                        <span class="fv-parent-picker-chip">${escapeHtml(String(availableCount))} folder${availableCount === 1 ? '' : 's'}</span>
-                        ${state.search ? `<span class="fv-parent-picker-chip is-accent">${escapeHtml(String(resultCount))} match${resultCount === 1 ? '' : 'es'}</span>` : ''}
+                        <span class="fv-parent-picker-chip${selectedIsTopLevel ? ' is-accent' : ''}">${escapeHtml(selectedIsTopLevel ? surfaceT("common.runtime.top-level", "Top level") : surfaceT("common.runtime.nested", "Nested"))}</span>
+                        <span class="fv-parent-picker-chip">${escapeHtml(surfaceT("common.runtime.folders-1", "Folders: $1", availableCount))}</span>
+                        ${state.search ? `<span class="fv-parent-picker-chip is-accent">${escapeHtml(surfaceT("common.runtime.matches-1", "Matches: $1", resultCount))}</span>` : ''}
                         ${selectedIsTopLevel ? '' : '<button type="button" class="fv-parent-picker-current-action" data-parent-folder-id=""><i class="fa fa-level-up" aria-hidden="true"></i> Move to top level</button>'}
                     </div>
                 </div>
@@ -200,12 +202,12 @@
                 <div class="fv-parent-picker-meta">
                     ${state.search
                         ? `Showing ${escapeHtml(String(resultCount))} of ${escapeHtml(String(availableCount))} folders.`
-                        : `Choose a destination folder or keep this folder at the top level.`}
+                        : escapeHtml(surfaceT("common.runtime.choose-a-destination-folder-or-keep-this-folder-at-the-top-level", "Choose a destination folder or keep this folder at the top level."))}
                 </div>
                 <div class="fv-parent-picker-list" role="listbox" aria-label="Parent folder options">
                     ${filteredEntries.length > 0
                         ? filteredEntries.map((entry) => buildOptionHtml(entry, safeSelected)).join('')
-                        : `<div class="fv-parent-picker-empty">${state.search ? 'No folders match this search.' : 'No available parent folders yet.'}</div>`}
+                        : `<div class="fv-parent-picker-empty">${escapeHtml(state.search ? surfaceT("common.runtime.no-folders-match-this-search", "No folders match this search.") : surfaceT("common.runtime.no-available-parent-folders-yet", "No available parent folders yet."))}</div>`}
                 </div>
             `;
 

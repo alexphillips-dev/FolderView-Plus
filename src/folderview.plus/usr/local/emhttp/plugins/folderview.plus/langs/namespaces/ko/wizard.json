@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "설정 도우미",
     "wizard.welcome.kicker": "FolderView Plus 설정 도우미",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "세부 정보 표시",
     "wizard.navigation.hide-details": "세부 정보 숨기기",
     "wizard.navigation.close": "닫기",
-    "wizard.navigation.review": "검토",
+    "wizard.navigation.review": "확인",
     "wizard.navigation.go-to": "$1로 이동",
     "wizard.progress.step": "$2 중 $1 단계",
     "wizard.impact.live": "이 단계의 실시간 영향"

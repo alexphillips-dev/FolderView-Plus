@@ -10,8 +10,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "source",
-        "translated-messages": 2491,
-        "total-source-messages": 2491
+        "translated-messages": 2570,
+        "total-source-messages": 2570,
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",

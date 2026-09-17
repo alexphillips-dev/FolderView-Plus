@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Edita els valors predeterminats de les carpetes",
     "settings.search.placeholder": "Configuració de cerca",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Els lots personalitzats estan actius.",
     "settings.start-order.batch-copy": "Només els contenidors amb l'inici automàtic de Docker habilitat s'escriuen a l'ordre d'arrencada Unraid. S'apliquen retards al darrer contenidor d'inici automàtic de cada lot.",
     "settings.start-order.counts": "Contenidors d'inici automàtic: $1; contenidors detectats: $2",
-    "settings.start-order.order-column": "Ordre",
+    "settings.start-order.order-column": "Ordre d’ordenació",
     "settings.start-order.container-column": "Contenidor",
     "settings.navigation.automation": "Automatització",
     "settings.navigation.rules": "Normes",

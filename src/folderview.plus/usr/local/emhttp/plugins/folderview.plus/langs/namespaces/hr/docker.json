@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "FolderView radnje",
     "docker.actions.add-folder": "Dodaj mapu",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Alati",
     "docker.actions.show-empty": "Prikaži prazne mape",
     "docker.actions.hide-empty": "Sakrij prazne mape",
-    "docker.actions.clear-focus": "Očisti fokus mape",
+    "docker.actions.clear-focus": "Ukloni fokus na mapu",
     "docker.actions.refresh-state": "Osvježi stanje mape",
     "docker.actions.bulk-assignment": "Skupni zadatak",
     "docker.actions.rules-workspace": "Radni prostor pravila",

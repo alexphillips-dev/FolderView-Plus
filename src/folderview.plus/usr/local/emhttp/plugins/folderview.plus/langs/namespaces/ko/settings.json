@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "폴더 기본 설정 편집",
     "settings.search.placeholder": "검색 설정",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "사용자 정의 배치가 활성화되었습니다.",
     "settings.start-order.batch-copy": "Docker 자동 시작이 활성화된 컨테이너만 Unraid 부팅 순서에 기록됩니다. 각 배치의 마지막 자동 시작 컨테이너에 지연이 적용됩니다.",
     "settings.start-order.counts": "자동 시작 컨테이너: $1; 감지된 컨테이너: $2",
-    "settings.start-order.order-column": "주문",
+    "settings.start-order.order-column": "정렬 순서",
     "settings.start-order.container-column": "컨테이너",
     "settings.navigation.automation": "자동화",
     "settings.navigation.rules": "규칙",

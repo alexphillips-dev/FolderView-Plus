@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Redigera standardinställningar för mappar",
     "settings.search.placeholder": "Sökinställningar",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Anpassade partier är aktiva.",
     "settings.start-order.batch-copy": "Endast behållare med Docker autostart aktiverad skrivs till Unraid-startordning. Förseningar gäller den sista autostartbehållaren i varje batch.",
     "settings.start-order.counts": "Autostart-behållare: $1; behållare upptäckta: $2",
-    "settings.start-order.order-column": "Beställ",
+    "settings.start-order.order-column": "Sorteringsordning",
     "settings.start-order.container-column": "Behållare",
     "settings.navigation.automation": "Automation",
     "settings.navigation.rules": "Regler",

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "ফোল্ডারভিউ অ্যাকশন",
     "docker.actions.add-folder": "ফোল্ডার যোগ করুন",
@@ -14,10 +15,10 @@
     "docker.actions.health-issues": "স্বাস্থ্য সমস্যা",
     "docker.actions.manage-folders": "ফোল্ডার পরিচালনা করুন",
     "docker.actions.view": "দেখুন",
-    "docker.actions.tools": "টুলস",
+    "docker.actions.tools": "সরঞ্জাম",
     "docker.actions.show-empty": "খালি ফোল্ডার দেখান",
     "docker.actions.hide-empty": "খালি ফোল্ডার লুকান",
-    "docker.actions.clear-focus": "ফোল্ডার ফোকাস সাফ করুন",
+    "docker.actions.clear-focus": "ফোল্ডার ফোকাস ফিল্টার সরান",
     "docker.actions.refresh-state": "ফোল্ডারের অবস্থা রিফ্রেশ করুন",
     "docker.actions.bulk-assignment": "বাল্ক অ্যাসাইনমেন্ট",
     "docker.actions.rules-workspace": "নিয়ম কর্মক্ষেত্র",

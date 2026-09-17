@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
-        "namespace": "legacy-surface"
+        "namespace": "legacy-surface",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "legacy.surface.d693881b5ac21882": "--fvplus-folder-status-text",
     "legacy.surface.190b30fb79901790": "', targetHtml, '",
@@ -23,8 +24,6 @@
     "legacy.surface.1b1dc187c5c11ca1": "$1 is already running for $2.",
     "legacy.surface.e085af5c922d4192": "$1 is blocked while a conflicting Folder View plugin is installed. Conflicting plugin(s): $2 Keep FolderView Plus installed, remove only the conflicting plugin, then refresh.",
     "legacy.surface.f6b3de070d468aaf": "$1 is ready.",
-    "legacy.surface.1483e3aa05fbdd07": "$1 item$2 available for assignment.",
-    "legacy.surface.58d6bbde648b9faf": "$1 item$2 available for assignment.$3",
     "legacy.surface.941b127ed12218eb": "$1 manual",
     "legacy.surface.4fac7da851f20f8b": "$1 members · preview deferred",
     "legacy.surface.200e3ceee7b59688": "$1 nested folder structure has no cycle/orphan/depth/empty-branch issues.",
@@ -195,7 +194,6 @@
     "legacy.surface.12a4ebc6a5c53250": "Best stability defaults with low background activity.",
     "legacy.surface.d6a226a96bdc60fe": "Block Pop-ups",
     "legacy.surface.3f81e1c183750916": "Blocked WebUIs (manual open)",
-    "legacy.surface.ef0abf6317e3d657": "Blocked: fix $1 field issue$2 before saving.",
     "legacy.surface.19f891a139db93ee": "Bootstrap diagnostics",
     "legacy.surface.dde3262758eb8650": "Border subtle",
     "legacy.surface.24b6ed119d817ef7": "Bounce",
@@ -1022,7 +1020,6 @@
     "legacy.surface.d50ecd8ae1de4679": "Pack type: all",
     "legacy.surface.dd701313ed1c912d": "Pack type: folders",
     "legacy.surface.e58a503ea2221860": "Pack type: icons",
-    "legacy.surface.f4070cca0bf83649": "Pack: $1 | Scope: $2 | Filters: $3$4",
     "legacy.surface.0c978da21cf56d5c": "Pack: none | Scope: selected pack | Filters: none",
     "legacy.surface.d73006334c7fee4e": "Page $1 / $2",
     "legacy.surface.fdbd929f1d6d0870": "Page 1 / 1",

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "import.subtitle": "既存のフォルダの処理方法を選択してください。［インポートを適用］を選択するまでは、何も変更されません。",
     "import.behavior.question": "既存のフォルダはどのように処理しますか？",

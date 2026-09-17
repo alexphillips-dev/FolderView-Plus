@@ -7,10 +7,10 @@
     root.FolderViewPlusFolderEditorIcons = factory();
     root.FolderViewPlusFolderEditorIconsModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
     const fallbackAsArray = (value) => (Array.isArray(value) ? value : []);
     const fallbackEscapeHtml = (value) => String(value ?? '');
     const THIRD_PARTY_ICON_LABELS = Object.freeze({
@@ -355,8 +355,8 @@
             const maxBytes = Number(stats.maxTotalBytes || 0);
             const inUse = Number(stats.inUseIconCount || 0);
             const warnings = asArray(stats.warnings).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
-            const summary = `${count.toLocaleString()} / ${Math.max(0, maxFiles).toLocaleString()} files | ${formatByteCount(totalBytes)} / ${formatByteCount(maxBytes)} | in use ${inUse.toLocaleString()}`;
-            const healthText = health ? (health.writable === true ? 'Writable' : 'Read-only') : 'Directory status unknown';
+            const summary = surfaceT("common.runtime.files-1-2-3-4-in-use-5", "Files: $1 / $2 | $3 / $4 | In use: $5", count.toLocaleString(), Math.max(0, maxFiles).toLocaleString(), formatByteCount(totalBytes), formatByteCount(maxBytes), inUse.toLocaleString());
+            const healthText = health ? (health.writable === true ? surfaceT("common.runtime.writable", "Writable") : surfaceT("common.runtime.read-only", "Read-only")) : surfaceT("common.runtime.directory-status-unknown", "Directory status unknown");
             const healthHint = (health && health.writable !== true && String(health.repairHint || '').trim() !== '')
                 ? ` | fix: ${String(health.repairHint || '').trim()}`
                 : '';
@@ -509,7 +509,7 @@
                         }
                         const rowsHtml = refs
                             .slice(0, 80)
-                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || 'Unknown'))}</li>`)
+                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || surfaceT("common.runtime.unknown", "Unknown")))}</li>`)
                             .join('');
                         const html = `<div class="fv-custom-icon-ref-list"><ul>${rowsHtml}</ul></div>`;
                         swal({ title: `In use by ${refs.length} folder${refs.length === 1 ? '' : 's'}`, text: html, html: true, confirmButtonText: 'Close' });
@@ -563,7 +563,7 @@
                 }
             });
         };
-
+        const builtInName = (name) => ({ "Default Folder": () => surfaceT("common.icons.default-folder", "Default Folder"), "Networking": () => surfaceT("common.icons.networking", "Networking"), "Home Automation": () => surfaceT("common.icons.home-automation", "Home Automation"), "Tools": () => surfaceT("common.icons.tools", "Tools"), "Development": () => surfaceT("common.icons.development", "Development") })[name]?.() || name;
         const renderBuiltInIconPicker = () => {
             if (!$) {
                 return;
@@ -620,7 +620,7 @@
             const rows = paged.items.map((icon) => {
                 const selected = currentValue === icon.path;
                 const safePath = escapeHtml(icon.path);
-                const safeName = escapeHtml(icon.name);
+                const safeName = escapeHtml(builtInName(icon.name));
                 return `
                     <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
                         <img src="${safePath}" alt="${safeName}" data-fv-onerror="this.src='${iconFallbackPath}';">
@@ -1380,19 +1380,19 @@
                 return;
             }
             const modeLabelMap = {
-                folder: 'selected pack',
-                all: 'all packs',
-                favorites: 'favorites',
-                recent: 'recent',
-                suggested: 'suggested',
-                duplicates: 'duplicates'
+                folder: surfaceT("common.runtime.selected-pack", "selected pack"),
+                all: surfaceT("common.runtime.all-packs", "all packs"),
+                favorites: surfaceT("legacy.surface.7a1f2a83aca9a081", "Favorites"),
+                recent: surfaceT("legacy.surface.690dbe9dc0993c42", "Recent"),
+                suggested: surfaceT("common.runtime.suggested", "Suggested"),
+                duplicates: surfaceT("legacy.surface.93c28c39252a5670", "Duplicates")
             };
-            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'folder').trim()] || 'selected pack';
+            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'folder').trim()] || surfaceT("common.runtime.selected-pack", "selected pack");
             const filterCount = getThirdPartyActiveFilterCount();
-            const filterText = filterCount > 0 ? `${filterCount} active` : 'none';
-            const packText = thirdPartySelectedFolder || 'none';
-            const resultText = Number.isFinite(Number(totalMatches)) ? ` | Results: ${Math.max(0, Number(totalMatches || 0))}` : '';
-            line.text(`Pack: ${packText} | Scope: ${scopeText} | Filters: ${filterText}${resultText}`);
+            const filterText = filterCount > 0 ? surfaceT("common.runtime.active-filters-1", "Active filters: $1", filterCount) : surfaceT("legacy.surface.dc937b59892604f5", "None");
+            const packText = thirdPartySelectedFolder || surfaceT("legacy.surface.dc937b59892604f5", "None");
+            const resultText = Number.isFinite(Number(totalMatches)) ? surfaceT("common.runtime.results-1", " | Results: $1", Math.max(0, Number(totalMatches || 0))) : '';
+            line.text(surfaceT("common.runtime.icon-pack-1-scope-2-filters-3-4", "Icon pack: $1 | Scope: $2 | Filters: $3$4", packText, scopeText, filterText, resultText));
         };
 
         const setThirdPartyFilterSheetOpen = (open) => {
@@ -1423,8 +1423,8 @@
                 return;
             }
             const activeCount = getThirdPartyActiveFilterCount();
-            const filterLabel = activeCount > 0 ? `Filters (${activeCount})` : 'Filters';
-            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${filterLabel}`);
+            const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : 'Filters';
+            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)}`);
             $('#fv-third-party-filter-clear-all').prop('disabled', activeCount === 0);
         };
 
@@ -1496,7 +1496,7 @@
             renderThirdPartyPackMenu();
             $('#fv-third-party-show-hidden')
                 .toggleClass('is-active', thirdPartyShowHiddenFolders)
-                .text(thirdPartyShowHiddenFolders ? 'Hide hidden' : 'Show hidden');
+                .text(thirdPartyShowHiddenFolders ? surfaceT("common.runtime.hide-hidden", "Hide hidden") : surfaceT("legacy.surface.88ee90bc2e344724", "Show hidden"));
             renderThirdPartyFilterUiState();
         };
 
@@ -1525,8 +1525,8 @@
             };
 
             header.text(thirdPartySelectedFolder
-                ? `Step 1 complete: pack "${thirdPartySelectedFolder}" selected. Step 2: choose an icon.`
-                : 'Step 1: pick a pack. Step 2: choose an icon.');
+                ? surfaceT("common.runtime.icon-pack-1-selected-next-choose-an-icon", "Icon pack \"$1\" selected. Next, choose an icon.", thirdPartySelectedFolder)
+                : surfaceT("common.runtime.first-choose-an-icon-pack-then-choose-an-icon", "First choose an icon pack, then choose an icon."));
 
             const filteredIcons = getThirdPartyVisibleIcons();
             const paged = paginateItems(filteredIcons, thirdPartyIconPage, iconPickerPageSize);
@@ -1578,7 +1578,7 @@
                 }
                 const chunk = paged.items.slice(offset, offset + thirdPartyGridChunkSize);
                 if (!chunk.length) {
-                    setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+                    setThirdPartyStatus(surfaceT("common.runtime.showing-icons-1-2-of-3", "Showing icons $1\u2013$2 of $3.", paged.startIndex + 1, paged.endIndex, filteredIcons.length));
                     if (!thirdPartyPreviewIconUrl) {
                         renderThirdPartyPreview(paged.items[0] || null);
                     }
@@ -1663,7 +1663,7 @@
                         setTimeout(appendChunk, 16);
                     }
                 } else {
-                    setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+                    setThirdPartyStatus(surfaceT("common.runtime.showing-icons-1-2-of-3", "Showing icons $1\u2013$2 of $3.", paged.startIndex + 1, paged.endIndex, filteredIcons.length));
                 }
             };
             appendChunk();

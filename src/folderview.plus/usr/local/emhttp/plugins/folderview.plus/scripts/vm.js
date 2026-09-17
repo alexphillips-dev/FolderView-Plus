@@ -3394,7 +3394,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
         .addClass(`fa ${aggregate.icon} ${aggregate.className} ${aggregateColorClass} folder-load-status`)
         .removeAttr('aria-busy');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
-        .text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`)
+        .text(aggregate.key === 'started' ? translateVmText("common.runtime.1-2-started", "$1/$2 started", aggregate.count, total) : aggregate.key === 'paused' ? translateVmText("common.runtime.1-2-paused", "$1/$2 paused", aggregate.count, total) : translateVmText("common.runtime.1-2-stopped", "$1/$2 stopped", aggregate.count, total))
         .addClass(`fv-folder-state-${aggregate.className}`);
     $folderRow.removeClass('no-autostart autostart-off autostart-partial autostart-full');
     if (autostart === 0) $folderRow.addClass('no-autostart');

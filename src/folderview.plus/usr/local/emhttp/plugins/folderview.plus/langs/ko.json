@@ -12,8 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2491,
-        "total-source-messages": 2491
+        "translated-messages": 2570,
+        "total-source-messages": 2570,
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "add-folder": "폴더 추가",
     "up-to-date": "최신 상태",
@@ -93,7 +94,7 @@
     "context-option-2": "고급",
     "context-trigger": "활성화 모드:",
     "context-trigger-tooltip": "고급 미리보기가 표시되는 방식입니다.",
-    "context-trigger-option-0": "클릭",
+    "context-trigger-option-0": "마우스 클릭",
     "context-trigger-option-1": "마우스 오버",
     "context-graph": "그래프 모드:",
     "context-graph-tooltip": "어떤 그래프를 표시할지 선택합니다.",

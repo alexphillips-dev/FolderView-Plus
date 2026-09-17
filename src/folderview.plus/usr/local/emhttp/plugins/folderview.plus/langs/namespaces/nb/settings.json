@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Rediger standardinnstillinger for mapper",
     "settings.search.placeholder": "Søkeinnstillinger",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Egendefinerte batcher er aktive.",
     "settings.start-order.batch-copy": "Bare containere med Docker autostart aktivert skrives til Unraid oppstartsrekkefølge. Forsinkelser gjelder den siste autostartbeholderen i hver batch.",
     "settings.start-order.counts": "Autostart-beholdere: $1; containere oppdaget: $2",
-    "settings.start-order.order-column": "Bestill",
+    "settings.start-order.order-column": "Sorteringsrekkefølge",
     "settings.start-order.container-column": "Beholder",
     "settings.navigation.automation": "Automatisering",
     "settings.navigation.rules": "Regler",

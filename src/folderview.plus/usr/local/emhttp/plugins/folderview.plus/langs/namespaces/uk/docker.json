@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "Дії FolderView",
     "docker.actions.add-folder": "Додати папку",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Інструменти",
     "docker.actions.show-empty": "Показати порожні папки",
     "docker.actions.hide-empty": "Приховати порожні папки",
-    "docker.actions.clear-focus": "Зняти фокус з папки",
+    "docker.actions.clear-focus": "Скинути фільтр вибраної теки",
     "docker.actions.refresh-state": "Оновити стан папки",
     "docker.actions.bulk-assignment": "Масове призначення",
     "docker.actions.rules-workspace": "Робочий простір правил",

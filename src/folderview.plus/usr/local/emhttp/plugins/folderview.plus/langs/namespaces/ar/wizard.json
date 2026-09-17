@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "مساعد الإعداد",
     "wizard.welcome.kicker": "مساعد إعداد FolderView Plus",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "إظهار التفاصيل",
     "wizard.navigation.hide-details": "إخفاء التفاصيل",
     "wizard.navigation.close": "إغلاق",
-    "wizard.navigation.review": "مراجعة",
+    "wizard.navigation.review": "تحقق",
     "wizard.navigation.go-to": "انتقل إلى $1",
     "wizard.progress.step": "الخطوة $1 من $2",
     "wizard.impact.live": "التأثير المباشر لهذه الخطوة"

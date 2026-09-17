@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
-        "namespace": "diagnostics"
+        "namespace": "diagnostics",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",
@@ -94,13 +95,13 @@
     "diagnostics.capture.open-dashboard": "Open Dashboard om vast te leggen",
     "diagnostics.capture.viewport-unavailable": "kijkvenster niet beschikbaar",
     "diagnostics.capture.touch": "geschikt voor aanraking",
-    "diagnostics.capture.non-touch": "niet aanraken",
+    "diagnostics.capture.non-touch": "Geen aanraakscherm",
     "diagnostics.capture.vm": "VM-dashboard",
     "diagnostics.capture.docker": "Docker-dashboard",
     "diagnostics.capture.environment-warning": "De exportomgeving verschilt van ten minste één vastgelegde Dashboard-omgeving.",
     "diagnostics.capture.title": "Visueel bewijs op het dashboard",
     "diagnostics.capture.help": "Deze opnames behouden de weergegeven Dashboard-geometrie na navigatie naar Instellingen.",
-    "diagnostics.capture.review": "Beoordeling",
+    "diagnostics.capture.review": "Controleren",
     "diagnostics.capture.ready": "Klaar",
     "diagnostics.capture.capture-again": "Opnieuw vastleggen",
     "diagnostics.bootstrap.reference": "Referentie",

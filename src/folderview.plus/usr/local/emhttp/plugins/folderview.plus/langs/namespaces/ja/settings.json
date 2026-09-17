@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "フォルダーの既定設定を編集",
     "settings.search.placeholder": "検索設定",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "カスタムバッチが有効です。",
     "settings.start-order.batch-copy": "Docker 自動起動が有効になっているコンテナのみが Unraid ブート順序に書き込まれます。遅延は、各バッチの最後の自動開始コンテナーに適用されます。",
     "settings.start-order.counts": "自動起動コンテナ: $1、検出されたコンテナ: $2",
-    "settings.start-order.order-column": "注文",
+    "settings.start-order.order-column": "並び順",
     "settings.start-order.container-column": "コンテナ",
     "settings.navigation.automation": "自動化",
     "settings.navigation.rules": "ルール",

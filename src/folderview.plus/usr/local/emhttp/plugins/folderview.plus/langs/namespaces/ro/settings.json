@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Editează setările implicite ale dosarelor",
     "settings.search.placeholder": "Setări de căutare",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Loturile personalizate sunt active.",
     "settings.start-order.batch-copy": "Numai containerele cu pornirea automată Docker activată sunt scrise în ordinea de pornire Unraid. Întârzierile se aplică ultimului container cu pornire automată din fiecare lot.",
     "settings.start-order.counts": "Containere cu pornire automată: $1; containere detectate: $2",
-    "settings.start-order.order-column": "Comanda",
+    "settings.start-order.order-column": "Ordine de sortare",
     "settings.start-order.container-column": "Container",
     "settings.navigation.automation": "Automatizare",
     "settings.navigation.rules": "Reguli",

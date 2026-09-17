@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "Acțiuni FolderView",
     "docker.actions.add-folder": "Adaugă Folder",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Instrumente",
     "docker.actions.show-empty": "Afișează folderele goale",
     "docker.actions.hide-empty": "Ascunde folderele goale",
-    "docker.actions.clear-focus": "Șterge focusul folderului",
+    "docker.actions.clear-focus": "Șterge filtrul de focalizare pe dosar",
     "docker.actions.refresh-state": "Reîmprospătează starea folderului",
     "docker.actions.bulk-assignment": "Atribuire în bloc",
     "docker.actions.rules-workspace": "Spațiu de lucru reguli",

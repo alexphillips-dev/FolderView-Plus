@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Standaardinstellingen voor mappen bewerken",
     "settings.search.placeholder": "Zoekinstellingen",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Aangepaste startgroepen zijn actief.",
     "settings.start-order.batch-copy": "Alleen containers waarvoor Docker autostart is ingeschakeld, worden naar de Unraid-opstartvolgorde geschreven. Vertragingen zijn van toepassing op de laatste autostartcontainer in elke batch.",
     "settings.start-order.counts": "Autostart-containers: $1; gedetecteerde containers: $2",
-    "settings.start-order.order-column": "Bestel",
+    "settings.start-order.order-column": "Sorteervolgorde",
     "settings.start-order.container-column": "Houder",
     "settings.navigation.automation": "Automatisering",
     "settings.navigation.rules": "Regels",

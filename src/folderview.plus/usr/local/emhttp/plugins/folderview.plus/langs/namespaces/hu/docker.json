@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "FolderView műveletek",
     "docker.actions.add-folder": "Mappa hozzáadása",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Eszközök",
     "docker.actions.show-empty": "Üres mappák megjelenítése",
     "docker.actions.hide-empty": "Üres mappák elrejtése",
-    "docker.actions.clear-focus": "Tiszta mappafókusz",
+    "docker.actions.clear-focus": "Mappafókusz-szűrő törlése",
     "docker.actions.refresh-state": "Mappa állapotának frissítése",
     "docker.actions.bulk-assignment": "Tömeges hozzárendelés",
     "docker.actions.rules-workspace": "Szabályok munkaterület",

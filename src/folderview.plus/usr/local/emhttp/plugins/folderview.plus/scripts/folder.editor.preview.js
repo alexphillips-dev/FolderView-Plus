@@ -2,6 +2,9 @@
 (function fvplusFolderEditorPreviewScope(window) {
     'use strict';
 
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
+
+    const previewLabelText = (label) => ({ "None": () => surfaceT("legacy.surface.dc937b59892604f5", "None"), "Icon and label": () => surfaceT("common.runtime.icon-and-label", "Icon and label"), "Only icon": () => surfaceT("legacy.surface.00e32ea2ab786253", "Only icon"), "Only label": () => surfaceT("common.runtime.only-label", "Only label"), "List": () => surfaceT("common.runtime.list", "List"), "Default": () => surfaceT("legacy.surface.21b111cbfe6e8fca", "Default"), "Advanced": () => surfaceT("legacy.surface.9f088dbebd6c3c70", "Advanced"), "Unlimited rows": () => surfaceT("common.runtime.unlimited-rows", "Unlimited rows") })[label]?.() || label;
     const createApi = (deps = {}) => {
         const $ = deps.$;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
@@ -117,7 +120,7 @@
                 ? ''
                 : normalizeHexColor(form.status_color_text?.value, deps.defaultFolderStatusColors?.text || '#ffffff');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
-            const name = String(form.name?.value || '').trim() || 'Unnamed folder';
+            const name = String(form.name?.value || '').trim() || surfaceT("common.runtime.unnamed-folder", "Unnamed folder");
             const hideNestedPreviewItems = form.preview_hide_nested_items?.checked === true;
 
             const memberPreviewItems = sampleMembers.map((member, index) => {
@@ -168,9 +171,9 @@
                 ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
                 : (memberPreviewItems.length > 0
                     ? memberPreviewItems.join('')
-                    : `<div class="fv-live-preview-empty">${includedMemberCount > 0
-                        ? 'All included members are hidden from the collapsed preview.'
-                        : 'Select or match at least one member to see how the row preview will render.'}</div>`);
+                    : `<div class="fv-live-preview-empty">${escapeHtml(includedMemberCount > 0
+                        ? surfaceT("common.runtime.all-included-members-are-hidden-from-the-collapsed-preview", "All included members are hidden from the collapsed preview.")
+                        : surfaceT("common.runtime.select-or-match-at-least-one-member-to-see-how-the-row-preview-will-render", "Select or match at least one member to see how the row preview will render."))}</div>`);
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
             const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''}${safeHoverAnimation !== 'none' ? ` fv-hover-animation-${safeHoverAnimation}` : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
@@ -183,7 +186,7 @@
                                 <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" data-fv-onerror="this.src='${deps.defaultFolderIconPath || ''}';">
                                 <div class="fv-live-folder-copy">
                                     <strong>${escapeHtml(name)}</strong>
-                                    <span>${deps.previewModeLabels?.[previewMode] || 'Unknown'} preview</span>
+                                    <span>${escapeHtml(surfaceT("common.runtime.preview-1", "Preview: $1", previewLabelText(deps.previewModeLabels?.[previewMode]) || ''))}</span>
                                 </div>
                             </div>
                             <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
@@ -255,11 +258,11 @@
             const memberNames = getIncludedMemberNames();
             const memberMap = getMemberMapByName();
             const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
-            const folderName = String(form.name?.value || '').trim() || '(unnamed)';
-            const previewLabel = deps.previewModeLabels?.[Number(form.preview?.value)] || 'Unknown';
+            const folderName = String(form.name?.value || '').trim() || surfaceT("common.runtime.unnamed", "(unnamed)");
+            const previewLabel = previewLabelText(deps.previewModeLabels?.[Number(form.preview?.value)]) || surfaceT("common.runtime.unknown", "Unknown");
             const contextLabel = deps.type === 'docker'
-                ? (deps.contextModeLabels?.[Number(form.context?.value)] || 'Unknown')
-                : 'Not used for VMs';
+                ? (previewLabelText(deps.contextModeLabels?.[Number(form.context?.value)]) || surfaceT("common.runtime.unknown", "Unknown"))
+                : surfaceT("common.runtime.not-used-for-vms", "Not used for VMs");
             const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
 
@@ -275,16 +278,16 @@
             $('#fvHeroScope').text(
                 normalizeParentFolderId(form.parent_folder_id?.value || '')
                     ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`
-                    : 'Top-level folder'
+                    : surfaceT("legacy.surface.33c5850b76f401e8", "Top-level folder")
             );
             $('#fvHeroMembers').text(`${memberNames.length}/${getAllMembers().length} included`);
             if ($('#fvHeroDefaults').length) {
-                $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || 'Checking inherited defaults');
+                $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || surfaceT("legacy.surface.e95888005ddaf212", "Checking inherited defaults"));
             }
             $('#fvLivePreviewMeta').text(
                 Number(form.preview?.value) === 0
-                    ? 'Preview disabled'
-                    : `${previewLabel} - ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
+                    ? surfaceT("legacy.surface.97694af2695d39f7", "Preview disabled")
+                    : surfaceT("common.runtime.1-2", "$1 \u2014 $2", previewLabel, normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? previewLabelText('Unlimited rows') : surfaceT("common.runtime.rows-1", "Rows: $1", normalizePreviewRowLimit(form.preview_rows?.value)))
             );
             $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#55b72d'));
             $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused?.value, deps.defaultFolderStatusColors?.paused || '#b8860b'));

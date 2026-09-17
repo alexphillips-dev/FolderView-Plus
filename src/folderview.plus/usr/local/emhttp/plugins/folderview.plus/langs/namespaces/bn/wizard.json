@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "সহকারী সেটআপ করুন",
     "wizard.welcome.kicker": "ফোল্ডার ভিউ প্লাস সেটআপ সহকারী",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "বিস্তারিত দেখান",
     "wizard.navigation.hide-details": "বিস্তারিত লুকান",
     "wizard.navigation.close": "বন্ধ",
-    "wizard.navigation.review": "পর্যালোচনা",
+    "wizard.navigation.review": "যাচাই করুন",
     "wizard.navigation.go-to": "$1 এ যান",
     "wizard.progress.step": "ধাপ $1 এর $2",
     "wizard.impact.live": "এই পদক্ষেপের জন্য লাইভ প্রভাব"

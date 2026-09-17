@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "de",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "FolderView-Aktionen",
     "docker.actions.add-folder": "Ordner hinzufügen",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Werkzeuge",
     "docker.actions.show-empty": "Leere Ordner anzeigen",
     "docker.actions.hide-empty": "Leere Ordner ausblenden",
-    "docker.actions.clear-focus": "Klarer Ordnerfokus",
+    "docker.actions.clear-focus": "Ordnerfokus aufheben",
     "docker.actions.refresh-state": "Ordnerstatus aktualisieren",
     "docker.actions.bulk-assignment": "Massenzuweisung",
     "docker.actions.rules-workspace": "Arbeitsbereich „Regeln“.",

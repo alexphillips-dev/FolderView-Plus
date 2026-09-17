@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "设置助手",
     "wizard.welcome.kicker": "FolderView Plus 设置助手",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "显示详情",
     "wizard.navigation.hide-details": "隐藏详情",
     "wizard.navigation.close": "关闭",
-    "wizard.navigation.review": "审核",
+    "wizard.navigation.review": "检查",
     "wizard.navigation.go-to": "前往 $1",
     "wizard.progress.step": "第 $1 步，共 $2 步",
     "wizard.impact.live": "此步骤的实时影响"

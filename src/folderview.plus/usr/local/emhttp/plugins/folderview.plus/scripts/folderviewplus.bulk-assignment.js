@@ -7,11 +7,11 @@
     root.FolderViewPlusBulkAssignment = factory();
     root.FolderViewPlusBulkAssignmentModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
     const BULK_LIST_RENDER_CHUNK_SIZE = 120;
-
     const createBulkAssignUiState = () => ({
         selected: new Set(),
         allNames: [],
@@ -315,7 +315,7 @@
                 {
                     id: `${type}-bulk-available-summary`,
                     value: String(availableCount),
-                    title: `${availableCount} item${availableCount === 1 ? '' : 's'} available for assignment.`,
+                    title: surfaceT("common.runtime.items-available-for-assignment-1", "Items available for assignment: $1.", availableCount),
                     ready: availableCount > 0
                 },
                 {
@@ -363,28 +363,28 @@
             let disabled = false;
             if (state.applying === true) {
                 icon = 'fa-spinner fa-spin';
-                label = 'Applying changes';
+                label = surfaceT("common.runtime.applying-changes", "Applying changes");
                 disabled = true;
             } else if (folderSelectDisabled) {
                 icon = 'fa-folder-open-o';
-                label = 'Create a folder first';
+                label = surfaceT("common.runtime.create-a-folder-first", "Create a folder first");
                 disabled = true;
             } else if (!plan?.targetFolderId) {
                 icon = 'fa-crosshairs';
-                label = 'Choose target first';
+                label = surfaceT("common.runtime.choose-target-first", "Choose target first");
                 disabled = true;
             } else if (!Array.isArray(plan?.selectedNames) || plan.selectedNames.length <= 0) {
                 icon = 'fa-check-square-o';
-                label = 'Select items first';
+                label = surfaceT("common.runtime.select-items-first", "Select items first");
                 disabled = true;
             } else if (!Array.isArray(plan?.actionableNames) || plan.actionableNames.length <= 0) {
                 icon = 'fa-check';
-                label = 'No changes needed';
+                label = surfaceT("common.runtime.no-changes-needed", "No changes needed");
                 disabled = true;
             } else {
                 const changeCount = plan.actionableNames.length;
                 icon = 'fa-check';
-                label = `Apply ${changeCount} change${changeCount === 1 ? '' : 's'}`;
+                label = surfaceT("common.runtime.apply-changes-1", "Apply changes ($1)", changeCount);
                 disabled = false;
             }
             button.replaceChildren(
@@ -675,7 +675,7 @@
                 return;
             }
             const perfHint = allCount > BULK_LIST_RENDER_CHUNK_SIZE ? ' Rendering is chunked for large inventories.' : '';
-            help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.${perfHint}`);
+            help.text(surfaceT("common.runtime.items-available-for-assignment-1-2", "Items available for assignment: $1.$2", allCount, perfHint));
         };
 
         const renderBulkChecklist = (type, visibleNames) => {

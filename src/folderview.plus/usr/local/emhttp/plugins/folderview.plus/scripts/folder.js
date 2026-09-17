@@ -8,6 +8,7 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 let hiddenPreviewMembers = new Set();
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const folderEditorT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
 );
@@ -1851,7 +1852,7 @@ const validateNameField = () => {
     const value = (form.name.value || '').trim();
 
     if (!value) {
-        setFieldError('name', 'Folder name is required.');
+        setFieldError('name', surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
         return false;
     }
 
@@ -2287,7 +2288,7 @@ const validateForm = () => {
     if (summary.length) {
         summary.removeClass('invalid warning info ready');
         if (!valid) {
-            summary.addClass('invalid').text(`Blocked: fix ${blockedCount} field issue${blockedCount === 1 ? '' : 's'} before saving.`);
+            summary.addClass('invalid').text(surfaceT("common.runtime.cannot-save-fields-to-correct-1", "Cannot save. Fields to correct: $1.", blockedCount));
         } else if (advisoryWarnings.length > 0) {
             summary.addClass('warning').text(`Warning: ${advisoryWarnings.length} recommendation${advisoryWarnings.length === 1 ? '' : 's'} available.`);
         } else if (infoWarnings.length > 0) {
@@ -2301,7 +2302,7 @@ const validateForm = () => {
             details
                 .removeClass('warning info ready')
                 .addClass('invalid')
-                .text('Resolve highlighted field errors, then try saving again.');
+                .text(surfaceT("legacy.surface.6737eda0fa90b3e7", "Resolve highlighted field errors, then try saving again."));
         } else if (advisoryWarnings.length > 0) {
             const rendered = advisoryWarnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
             details
@@ -2348,7 +2349,7 @@ const updateMemberStats = () => {
     const previewShown = rows.find('input.container-switch:checked').filter((_, input) => (
         $(input).closest('tr').find('input.member-preview-switch').prop('checked') === true
     )).length;
-    const text = `${included}/${total} included (${previewShown} in preview)` + (visible !== total ? ` · ${visible} filtered` : '');
+    const text = surfaceT("common.runtime.included-1-2-in-preview-3", "Included: $1/$2 (in preview: $3)", included, total, previewShown) + (visible !== total ? surfaceT("common.runtime.filtered-1", " \u00b7 Filtered: $1", visible) : '');
     $('#fvMemberStats').text(text);
     $('#fvLiveMembers').text(text);
     $('#fvHeroMembers').text(text);
@@ -3353,7 +3354,7 @@ const startFolderEditorRuntime = async () => {
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
             refreshParentFolderChooser(folders, '', new Set());
-            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+            setParentDefaultsNote(surfaceT("common.runtime.select-a-parent-to-inherit-preview-icon-defaults-automatically", "Select a parent to inherit preview/icon defaults automatically."), 'info');
         } else {
         if (!resolvedEditFolder && bootstrapFolderRecord) {
             setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
@@ -3420,7 +3421,7 @@ const startFolderEditorRuntime = async () => {
         const appliedRequestedParent = await applyRequestedCreateParentToNewFolder(folders);
         if (!appliedRequestedParent && !appliedSavedDefaults) {
             refreshParentFolderChooser(folders, '', new Set());
-            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+            setParentDefaultsNote(surfaceT("common.runtime.select-a-parent-to-inherit-preview-icon-defaults-automatically", "Select a parent to inherit preview/icon defaults automatically."), 'info');
         }
     }
     renderMemberBulkMoveTargets();
@@ -3544,7 +3545,7 @@ const startFolderEditorRuntime = async () => {
         }
         if (fieldName === 'name') {
             if (event.type === 'input') {
-                $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
+                $('#fvLiveName').text((form.name?.value || '').trim() || surfaceT("common.runtime.unnamed", "(unnamed)"));
                 markUnsavedIndicatorDirty();
                 return;
             }
@@ -3867,7 +3868,7 @@ const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
         const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
         const parentName = parentId && allFoldersById[parentId]
             ? String(allFoldersById[parentId]?.name || parentId).trim()
-            : 'Top level';
+            : surfaceT("common.runtime.top-level", "Top level");
         return {
             id: String(id || '').trim(),
             name: String(folder?.name || id).trim() || String(id || '').trim(),
@@ -3907,7 +3908,7 @@ function renderMemberBulkMoveTargets() {
     const targets = getMemberBulkMoveTargets();
     const options = ['<option value="">Move to folder...</option>'];
     targets.forEach((target) => {
-        const detail = target.parentName && target.parentName !== 'Top level'
+        const detail = target.parentName && target.parentName !== surfaceT("common.runtime.top-level", "Top level")
             ? `${target.name} (${target.parentName})`
             : target.name;
         options.push(`<option value="${escapeHtml(target.id)}">${escapeHtml(detail)}</option>`);
@@ -4367,7 +4368,7 @@ const submitForm = async (e, saveAsCopy = false) => {
         folder.name = generateCopyName(folder.name, folder.parentId);
     }
     if (!folder.name && !editingFolderDefaults) {
-        setFieldError('name', 'Folder name is required.');
+        setFieldError('name', surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
         return false;
     }
     try {

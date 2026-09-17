@@ -1,3 +1,4 @@
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
@@ -3931,7 +3932,7 @@ const promptStarterFolderName = async (type, suggestedName) => {
             const name = String(value || '').trim();
             if (!name) {
                 if (typeof swal.showInputError === 'function') {
-                    swal.showInputError('Folder name is required.');
+                    swal.showInputError(surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
                 }
                 return false;
             }
@@ -5590,7 +5591,7 @@ const showToastMessage = ({
 
 const formatTimestamp = (isoString) => {
     if (!isoString) {
-        return 'Unknown';
+        return surfaceT("common.runtime.unknown", "Unknown");
     }
     const date = new Date(isoString);
     if (Number.isNaN(date.getTime())) {
@@ -6684,7 +6685,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : '';
         const nestedMetaTitleRaw = folderDepth > 0
             ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
-            : 'Root folder';
+            : surfaceT("common.runtime.root-folder", "Root folder");
         const nestedMetaTextRaw = parentFolderNameRaw
             ? `Nested under ${parentFolderNameRaw}`
             : `Nested level ${folderDepth}`;
@@ -6831,7 +6832,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             }
         }
         const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
-        const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
+        const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : surfaceT("common.runtime.unknown", "Unknown");
         const pinnedText = pinned ? 'Pinned' : 'Not pinned';
         const pinnedClass = pinned ? 'is-pinned' : '';
 
@@ -8087,7 +8088,7 @@ const renderRulesOverview = (type, rules, filteredRules) => {
 
     let statusText = 'No rules yet';
     let headlineText = `No ${type === 'docker' ? 'Docker' : 'VM'} rules yet.`;
-    let detailText = `Create your first ${type === 'docker' ? 'Docker container' : 'VM'} rule to automatically sort new items into the right folder.`;
+    let detailText = type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first Docker container rule to automatically sort new items into the right folder.") : surfaceT("common.runtime.create-your-first-vm-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first VM rule to automatically sort new items into the right folder.");
 
     if (totalCount > 0 && invalidCount > 0) {
         statusText = 'Needs review';
@@ -8206,10 +8207,10 @@ const renderRulesTable = (type) => {
 
     if (!filteredRules.length) {
         const hasFilter = filter.length > 0;
-        const title = hasFilter ? 'No rules match your search.' : 'No rules defined yet.';
+        const title = hasFilter ? surfaceT("common.runtime.no-rules-match-your-search", "No rules match your search.") : surfaceT("common.runtime.no-rules-defined-yet", "No rules defined yet.");
         const help = hasFilter
             ? 'Try a different search term or clear the rule filter.'
-            : `Create your first ${type === 'docker' ? 'Docker container' : 'VM'} rule above.`;
+            : (type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-above", "Create your first Docker container rule above.") : surfaceT("common.runtime.create-your-first-vm-rule-above", "Create your first VM rule above."));
         rulesBody.html(`<div class="fv-rule-list-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(help)}</span></div>`);
         return;
     }
@@ -10392,7 +10393,7 @@ const toggleRuleKindFields = (type) => {
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
     const simpleKinds = ['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals'];
     const placeholderByKind = {
-        name_contains: 'Text in the name (example: arr)',
+        name_contains: surfaceT("common.runtime.text-in-the-name-example-arr", "Text in the name (example: arr)"),
         name_starts_with: 'Text at the start of the name (example: prod-)',
         image_contains: 'Text in the image (example: linuxserver/sonarr)',
         compose_project_equals: 'Compose project name (example: media)',

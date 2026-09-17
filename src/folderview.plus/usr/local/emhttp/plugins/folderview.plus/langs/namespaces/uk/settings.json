@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Змінити типові налаштування папок",
     "settings.search.placeholder": "Налаштування пошуку",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Спеціальні партії активні.",
     "settings.start-order.batch-copy": "Лише контейнери з увімкненим автозапуском Docker записуються в порядок завантаження Unraid. Затримки застосовуються до останнього контейнера автозапуску в кожній партії.",
     "settings.start-order.counts": "Автозапуск контейнерів: $1; виявлені контейнери: $2",
-    "settings.start-order.order-column": "порядок",
+    "settings.start-order.order-column": "Порядок сортування",
     "settings.start-order.container-column": "Контейнер",
     "settings.navigation.automation": "автоматизація",
     "settings.navigation.rules": "правила",

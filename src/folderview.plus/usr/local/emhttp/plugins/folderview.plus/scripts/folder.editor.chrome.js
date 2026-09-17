@@ -1,4 +1,5 @@
 (function folderEditorChromeBootstrap(root) {
+    const surfaceT = (key, fallback, ...params) => (globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token))).replace(/[&<>"']/g, value => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[value]);
     const editorPageMode = 'modern';
     const editorRuntimePerformanceTelemetry = root.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('folder-editor', {
         window: root,
@@ -113,7 +114,6 @@
         });
         return merged;
     };
-
     const setBootstrapSurfaceState = ({
         summary = '',
         details = '',
@@ -683,7 +683,7 @@
                             <div class="fv-section-heading-copy">
                                 <div class="fv-section-heading-kicker">
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
-                                    <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
+                                    <span>${meta.advanced ? surfaceT("common.runtime.advanced-section", "Advanced section") : surfaceT("common.runtime.core-section", "Core section")}</span>
                                 </div>
                                 <h3 data-fvplus-style="fv-u-1g8734m">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>

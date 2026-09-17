@@ -8,7 +8,7 @@
     const MAX_RECENT_MISSING_KEYS = 50;
     const MAX_DYNAMIC_ROOTS_BEFORE_FULL_SCAN = 80;
     const AUTO_KEY_PREFIX = 'legacy.surface.';
-    const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
+    const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title', 'value']);
     const LOCALIZED_HTML_ALLOWED_TAGS = new Set(['A', 'B', 'BR', 'CODE', 'EM', 'I', 'LI', 'P', 'SPAN', 'STRONG', 'UL']);
     const AUTO_IGNORE_SELECTOR = [
         '[data-i18n-ignore]',
@@ -201,6 +201,7 @@
         if (!element || isAutoIgnored(element)) return;
         const explicitBinding = String(element.getAttribute?.('data-i18n') || '');
         AUTO_TRANSLATABLE_ATTRIBUTES.forEach((attribute) => {
+            if (attribute === 'value' && !element.matches?.('input[type="button"], input[type="submit"], input[type="reset"]')) return;
             if (explicitBinding.includes(`[${attribute}]`)) return;
             const source = String(element.getAttribute?.(attribute) || '');
             const phrase = normalizeAutoPhrase(source);

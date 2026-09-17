@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "資料夾檢視操作",
     "docker.actions.add-folder": "新增資料夾",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "工具",
     "docker.actions.show-empty": "顯示空資料夾",
     "docker.actions.hide-empty": "隱藏空資料夾",
-    "docker.actions.clear-focus": "清除資料夾焦點",
+    "docker.actions.clear-focus": "清除資料夾焦點篩選",
     "docker.actions.refresh-state": "重新整理資料夾狀態",
     "docker.actions.bulk-assignment": "批次分配",
     "docker.actions.rules-workspace": "規則工作區",

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "تعديل الإعدادات الافتراضية للمجلدات",
     "settings.search.placeholder": "إعدادات البحث",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "الدفعات المخصصة نشطة.",
     "settings.start-order.batch-copy": "تتم كتابة الحاويات فقط مع تمكين التشغيل التلقائي لـ Docker في ترتيب التمهيد Unraid. تنطبق التأخيرات على حاوية التشغيل التلقائي الأخيرة في كل دفعة.",
     "settings.start-order.counts": "حاويات التشغيل التلقائي: $1; تم اكتشاف حاويات: $2",
-    "settings.start-order.order-column": "النظام",
+    "settings.start-order.order-column": "ترتيب الفرز",
     "settings.start-order.container-column": "حاوية",
     "settings.navigation.automation": "الأتمتة",
     "settings.navigation.rules": "القواعد",

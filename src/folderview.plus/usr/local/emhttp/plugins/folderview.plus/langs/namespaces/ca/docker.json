@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "Accions de FolderView",
     "docker.actions.add-folder": "Afegeix una carpeta",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Eines",
     "docker.actions.show-empty": "Mostra les carpetes buides",
     "docker.actions.hide-empty": "Amaga les carpetes buides",
-    "docker.actions.clear-focus": "Esborra el focus de la carpeta",
+    "docker.actions.clear-focus": "Esborra el filtre de focus de carpeta",
     "docker.actions.refresh-state": "Actualitza l'estat de la carpeta",
     "docker.actions.bulk-assignment": "Encàrrec massiu",
     "docker.actions.rules-workspace": "Espai de treball de regles",

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "Ações do FolderView",
     "docker.actions.add-folder": "Adicionar Pasta",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Ferramentas",
     "docker.actions.show-empty": "Mostrar pastas vazias",
     "docker.actions.hide-empty": "Esconder pastas vazias",
-    "docker.actions.clear-focus": "Limpar foco da pasta",
+    "docker.actions.clear-focus": "Limpar o filtro de foco da pasta",
     "docker.actions.refresh-state": "Atualizar estado da pasta",
     "docker.actions.bulk-assignment": "Atribuição em massa",
     "docker.actions.rules-workspace": "Área de regras",

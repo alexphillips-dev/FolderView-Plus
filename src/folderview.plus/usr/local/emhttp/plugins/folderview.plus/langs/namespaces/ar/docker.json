@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "إجراءات عرض المجلد",
     "docker.actions.add-folder": "إضافة مجلد",
@@ -14,10 +15,10 @@
     "docker.actions.health-issues": "القضايا الصحية",
     "docker.actions.manage-folders": "إدارة المجلدات",
     "docker.actions.view": "عرض",
-    "docker.actions.tools": "أدوات",
+    "docker.actions.tools": "الأدوات",
     "docker.actions.show-empty": "إظهار المجلدات الفارغة",
     "docker.actions.hide-empty": "إخفاء المجلدات الفارغة",
-    "docker.actions.clear-focus": "مسح تركيز المجلد",
+    "docker.actions.clear-focus": "إلغاء تصفية التركيز على المجلد",
     "docker.actions.refresh-state": "تحديث حالة المجلد",
     "docker.actions.bulk-assignment": "مهمة بالجملة",
     "docker.actions.rules-workspace": "مساحة عمل القواعد",

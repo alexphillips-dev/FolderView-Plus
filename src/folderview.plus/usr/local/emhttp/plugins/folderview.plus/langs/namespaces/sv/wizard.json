@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "Installationsassistent",
     "wizard.welcome.kicker": "FolderView Plus Installationsassistent",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "Visa detaljer",
     "wizard.navigation.hide-details": "Dölj detaljer",
     "wizard.navigation.close": "Stäng",
-    "wizard.navigation.review": "Granska",
+    "wizard.navigation.review": "Kontrollera",
     "wizard.navigation.go-to": "Gå till $1",
     "wizard.progress.step": "Steg $1 av $2",
     "wizard.impact.live": "Direkt påverkan för detta steg"

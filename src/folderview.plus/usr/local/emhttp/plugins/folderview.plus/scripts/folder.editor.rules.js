@@ -1,7 +1,7 @@
 // @ts-check
 (function fvplusFolderEditorRulesScope(window) {
     'use strict';
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const RULE_KIND_LABELS = Object.freeze({
         name_regex: 'Name regex',
         image_regex: 'Image regex',
@@ -510,8 +510,8 @@
                 );
             } else if (!activeFolderId) {
                 bodyHtml = buildFolderAutoRulesEmptyStateHtml(
-                    'Save this folder first to create advanced rules.',
-                    'Advanced auto-rules are stored in plugin settings and need a saved folder id before they can target this folder.'
+                    surfaceT("common.runtime.save-this-folder-first-to-create-advanced-rules", "Save this folder first to create advanced rules."),
+                    surfaceT("common.runtime.advanced-auto-rules-are-stored-in-plugin-settings-and-need-a-saved-folder-id-before-they-can-target-this-folder", "Advanced auto-rules are stored in plugin settings and need a saved folder id before they can target this folder.")
                 );
             } else if (folderEditorPrefsLoading && !folderEditorPrefsLoaded) {
                 bodyHtml = buildFolderAutoRulesEmptyStateHtml(

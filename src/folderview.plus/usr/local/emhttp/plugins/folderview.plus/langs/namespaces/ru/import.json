@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "import.subtitle": "Выберите, как обрабатывать существующие папки. Ничего не изменится, пока вы не выберете Применить импорт.",
     "import.behavior.question": "Как следует обрабатывать существующие папки?",

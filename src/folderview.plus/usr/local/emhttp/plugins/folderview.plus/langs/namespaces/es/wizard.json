@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "Asistente de Configuración",
     "wizard.welcome.kicker": "FolderView Plus Asistente de Configuración",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "Mostrar detalles",
     "wizard.navigation.hide-details": "Ocultar detalles",
     "wizard.navigation.close": "Cerrar",
-    "wizard.navigation.review": "Revisión",
+    "wizard.navigation.review": "Comprobar",
     "wizard.navigation.go-to": "Ir a $1",
     "wizard.progress.step": "Paso $1 de $2",
     "wizard.impact.live": "Impacto en vivo para este paso"

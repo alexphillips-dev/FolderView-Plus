@@ -12,8 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2491,
-        "total-source-messages": 2491
+        "translated-messages": 2570,
+        "total-source-messages": 2570,
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "add-folder": "Map Toevoegen",
     "up-to-date": "bijgewerkt",
@@ -93,7 +94,7 @@
     "context-option-2": "Geavanceerd",
     "context-trigger": "Activatiemodus:",
     "context-trigger-tooltip": "Hoe de geavanceerde voorbeeldweergave wordt weergegeven.",
-    "context-trigger-option-0": "Klik",
+    "context-trigger-option-0": "Muisklik",
     "context-trigger-option-1": "Zweven",
     "context-graph": "Grafiekmodus:",
     "context-graph-tooltip": "Welke grafiek weergegeven moet worden.",

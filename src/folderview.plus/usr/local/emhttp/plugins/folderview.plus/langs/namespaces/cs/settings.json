@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Upravit výchozí nastavení složek",
     "settings.search.placeholder": "Nastavení vyhledávání",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Vlastní dávky jsou aktivní.",
     "settings.start-order.batch-copy": "Do pořadí spouštění Unraid se zapisují pouze kontejnery s povoleným automatickým spuštěním Dockeru. Zpoždění platí pro poslední kontejner automatického spuštění v každé dávce.",
     "settings.start-order.counts": "Automatické spouštění kontejnerů: $1; zjištěné kontejnery: $2",
-    "settings.start-order.order-column": "Objednat",
+    "settings.start-order.order-column": "Pořadí",
     "settings.start-order.container-column": "Kontejner",
     "settings.navigation.automation": "automatizace",
     "settings.navigation.rules": "Pravidla",

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Modifier les paramètres par défaut des dossiers",
     "settings.search.placeholder": "Paramètres de recherche",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Les lots personnalisés sont actifs.",
     "settings.start-order.batch-copy": "Seuls les conteneurs avec le démarrage automatique Docker activé sont écrits dans l'ordre de démarrage Unraid. Des délais s'appliquent au dernier conteneur de démarrage automatique de chaque lot.",
     "settings.start-order.counts": "Conteneurs à démarrage automatique : $1 ; conteneurs détectés : $2",
-    "settings.start-order.order-column": "Commande",
+    "settings.start-order.order-column": "Ordre de tri",
     "settings.start-order.container-column": "Conteneur",
     "settings.navigation.automation": "Automatisation",
     "settings.navigation.rules": "Règles",

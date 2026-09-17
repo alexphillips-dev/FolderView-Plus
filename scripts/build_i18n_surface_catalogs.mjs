@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 
 const require = createRequire(import.meta.url);
 const tools = require('./lib/i18n_surface_tools.cjs');
@@ -44,6 +45,40 @@ const scaffoldDefinitions = Object.freeze({
 });
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const translationContext = readJson(path.join(repoRoot, 'scripts/lib/i18n_translation_context.json'));
+const reviewedRuntime = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_runtime.json'));
+const reviewedTerms = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_terms.json'));
+const reviewedWorkflows = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_workflows.json'));
+const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows])).digest('hex');
+const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
+    if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);
+    return [locale, Object.fromEntries(reviewedRuntime.keys.map((key, index) => [key, values[index]]))];
+}));
+for (const [locale, values] of Object.entries(reviewedTerms.locales)) {
+    if (values.length !== reviewedTerms.terms.length) throw new Error(`Incomplete terminology review for ${locale}`);
+    if (reviewedTerms.iconNames[locale]?.length !== reviewedTerms.iconTerms.length || reviewedWorkflows.locales[locale]?.length !== reviewedWorkflows.terms.length) throw new Error(`Incomplete workflow review for ${locale}`);
+    const terms = Object.fromEntries(reviewedTerms.terms.map((term, index) => [term, values[index]]));
+    Object.assign(terms, Object.fromEntries(reviewedTerms.iconTerms.map((term, index) => [term, reviewedTerms.iconNames[locale][index]])));
+    Object.assign(terms, Object.fromEntries(reviewedWorkflows.terms.map((term, index) => [term, reviewedWorkflows.locales[locale][index]])));
+    terms['non-touch'] = terms['Non-touch'];
+    terms['You review before applying'] = terms['Review before applying'];
+    Object.assign(terms, { '$1 manual': `${terms.Manual}: $1`, '0 manual': `${terms.Manual}: 0`, '3. Review and apply': `3. ${terms['Review and apply']}` });
+    translationContext.overrides[locale] = { ...terms, ...translationContext.overrides[locale] };
+}
+const contextualBatch = (batch) => batch.map(([key, english]) => [key, translationContext.sources[english] || english]);
+const applyReviewedValues = (locale, messages, entries) => {
+    for (const [key, english] of entries) {
+        const reviewed = runtimeReviews[locale]?.[key] || translationContext.overrides[locale]?.[english];
+        if (reviewed) {
+            if (placeholderSignature(reviewed) !== placeholderSignature(english)) throw new Error(`Invalid reviewed parameters: ${locale}/${key}`);
+            messages[key] = reviewed;
+        }
+        else if (english.startsWith('Pack type:') && translationContext.overrides[locale]?.['Pack type']) {
+            messages[key] = String(messages[key] || '').replace(/^.*?([:：])/, `${translationContext.overrides[locale]['Pack type']}$1`);
+        }
+    }
+    return messages;
+};
 const writeJson = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 4)}\n`, 'utf8');
 const scaffoldLocale = (locale) => {
     const definition = scaffoldDefinitions[locale];
@@ -178,7 +213,7 @@ const translateBatch = async (batch, target, attempt = 1) => {
 
 const buildLocaleMessages = async (locale) => {
     const file = path.join(namespaceRoot, locale, 'legacy-surface.json');
-    const existing = fs.existsSync(file) ? readJson(file) : {};
+    const existing = applyReviewedValues(locale, fs.existsSync(file) ? readJson(file) : {}, Object.entries(englishMessages));
     const messages = {};
     const missing = [];
     const comparisonLocale = retranslateMatchLocales.get(locale);
@@ -200,9 +235,9 @@ const buildLocaleMessages = async (locale) => {
         throw new Error(`${locale} is missing ${missing.length} surface translations; rerun with --translate.`);
     }
     for (const batch of reviewBatchesFor(missing, locale)) {
-        Object.assign(messages, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
+        Object.assign(messages, normalizeLocaleMessages(locale, await translateBatch(contextualBatch(batch), targetLocales[locale] || locale)));
     }
-    return Object.fromEntries(Object.entries(messages).sort(([left], [right]) => left.localeCompare(right)));
+    return Object.fromEntries(Object.entries(applyReviewedValues(locale, messages, Object.entries(englishMessages))).sort(([left], [right]) => left.localeCompare(right)));
 };
 
 const built = new Map();
@@ -216,7 +251,7 @@ await Promise.all(Array.from({ length: workers }, async () => {
         const dir = path.join(namespaceRoot, locale);
         fs.mkdirSync(dir, { recursive: true });
         writeJson(path.join(dir, 'legacy-surface.json'), {
-            '@metadata': { 'catalog-version': catalogVersion, locale, namespace: 'legacy-surface' },
+            '@metadata': { 'catalog-version': catalogVersion, locale, namespace: 'legacy-surface', 'translation-context-revision': contextRevision },
             ...messages
         });
         console.log(`Completed ${locale}: ${Object.keys(messages).length} surface messages.`);
@@ -229,7 +264,7 @@ const englishRootEntries = Object.entries(englishRootCatalog).filter(([key, valu
 ));
 for (const locale of locales.filter((name) => name !== 'en')) {
     const rootFile = path.join(langDir, `${locale}.json`);
-    const catalog = readJson(rootFile);
+    const catalog = applyReviewedValues(locale, readJson(rootFile), englishRootEntries);
     const comparisonLocale = retranslateMatchLocales.get(locale);
     const comparison = comparisonLocale ? readJson(path.join(langDir, `${comparisonLocale}.json`)) : {};
     const missing = englishRootEntries.filter(([key, english]) => (
@@ -242,8 +277,9 @@ for (const locale of locales.filter((name) => name !== 'en')) {
         throw new Error(`${locale}.json is missing ${missing.length} legacy translations; rerun with --translate.`);
     }
     for (const batch of reviewBatchesFor(missing, locale)) {
-        Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
+        Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(contextualBatch(batch), targetLocales[locale] || locale)));
     }
+    applyReviewedValues(locale, catalog, englishRootEntries);
     writeJson(rootFile, Object.fromEntries([
         ['@metadata', catalog['@metadata']],
         ...englishRootEntries.map(([key]) => [key, catalog[key]])
@@ -261,7 +297,7 @@ for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-sur
     ));
     for (const locale of locales.filter((name) => name !== 'en')) {
         const namespaceFile = path.join(namespaceRoot, locale, namespaceName);
-        const catalog = readJson(namespaceFile);
+        const catalog = applyReviewedValues(locale, readJson(namespaceFile), englishEntries);
         const comparisonLocale = retranslateMatchLocales.get(locale);
         const comparison = comparisonLocale
             ? readJson(path.join(namespaceRoot, comparisonLocale, namespaceName))
@@ -276,8 +312,9 @@ for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-sur
             throw new Error(`${locale}/${namespaceName} is missing ${missing.length} translations; rerun with --translate.`);
         }
         for (const batch of reviewBatchesFor(missing, locale)) {
-            Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
+            Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(contextualBatch(batch), targetLocales[locale] || locale)));
         }
+        applyReviewedValues(locale, catalog, englishEntries);
         const ordered = Object.fromEntries([
             ['@metadata', catalog['@metadata']],
             ...englishEntries.map(([key]) => [key, catalog[key]])
@@ -326,6 +363,7 @@ for (const locale of locales) {
     const rootCatalog = readJson(rootFile);
     rootCatalog['@metadata']['catalog-version'] = catalogVersion;
     rootCatalog['@metadata']['source-revision'] = catalogVersion;
+    rootCatalog['@metadata']['translation-context-revision'] = contextRevision;
     rootCatalog['@metadata']['last-updated'] = catalogDate;
     rootCatalog['@metadata']['last-reviewed'] = catalogDate;
     rootCatalog['@metadata']['translated-messages'] = aggregateCount;
@@ -335,6 +373,7 @@ for (const locale of locales) {
         const namespaceFile = path.join(namespaceRoot, locale, namespaceName);
         const catalog = readJson(namespaceFile);
         catalog['@metadata']['catalog-version'] = catalogVersion;
+        catalog['@metadata']['translation-context-revision'] = contextRevision;
         writeJson(namespaceFile, catalog);
     }
 }

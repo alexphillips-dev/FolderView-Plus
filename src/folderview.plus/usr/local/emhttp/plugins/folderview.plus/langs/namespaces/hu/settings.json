@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
-        "namespace": "settings"
+        "namespace": "settings",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "settings.folder-defaults.edit": "Mappák alapértelmezett beállításainak szerkesztése",
     "settings.search.placeholder": "Keresési beállítások",
@@ -130,7 +131,7 @@
     "settings.start-order.batch-heading": "Az egyéni kötegek aktívak.",
     "settings.start-order.batch-copy": "Csak a Docker automatikus indítása engedélyezett tárolók kerülnek Unraid rendszerindítási sorrendbe. A késések minden köteg utolsó automatikus indítási tárolójára vonatkoznak.",
     "settings.start-order.counts": "Automatikus indítási tárolók: $1; tárolók észlelve: $2",
-    "settings.start-order.order-column": "Rendeljen",
+    "settings.start-order.order-column": "Rendezési sorrend",
     "settings.start-order.container-column": "Konténer",
     "settings.navigation.automation": "Automatizálás",
     "settings.navigation.rules": "Szabályok",

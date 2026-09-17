@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
-        "namespace": "diagnostics"
+        "namespace": "diagnostics",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "diagnostics.title": "诊断",
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",
@@ -94,13 +95,13 @@
     "diagnostics.capture.open-dashboard": "打开仪表板进行捕获",
     "diagnostics.capture.viewport-unavailable": "视口不可用",
     "diagnostics.capture.touch": "触摸功能",
-    "diagnostics.capture.non-touch": "非接触式",
+    "diagnostics.capture.non-touch": "无触摸屏",
     "diagnostics.capture.vm": "虚拟机仪表板",
     "diagnostics.capture.docker": "码头工人仪表板",
     "diagnostics.capture.environment-warning": "导出环境与至少一个捕获的仪表板环境不同。",
     "diagnostics.capture.title": "仪表板视觉证据",
     "diagnostics.capture.help": "这些捕获在导航到“设置”后保留渲染的仪表板几何形状。",
-    "diagnostics.capture.review": "评论",
+    "diagnostics.capture.review": "检查",
     "diagnostics.capture.ready": "准备好",
     "diagnostics.capture.capture-again": "再次捕捉",
     "diagnostics.bootstrap.reference": "参考编号",

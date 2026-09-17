@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
-        "namespace": "diagnostics"
+        "namespace": "diagnostics",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "diagnostics.title": "진단",
     "diagnostics.workspace.description": "플러그인 상태를 모니터링하고, 문제를 해결하고, 지원 데이터를 공유하세요.",
@@ -94,13 +95,13 @@
     "diagnostics.capture.open-dashboard": "대시보드를 열어 캡처하세요",
     "diagnostics.capture.viewport-unavailable": "뷰포트를 사용할 수 없음",
     "diagnostics.capture.touch": "터치 가능",
-    "diagnostics.capture.non-touch": "비터치",
+    "diagnostics.capture.non-touch": "터치스크린 없음",
     "diagnostics.capture.vm": "VM 대시보드",
     "diagnostics.capture.docker": "도커 대시보드",
     "diagnostics.capture.environment-warning": "내보내기 환경은 캡처된 하나 이상의 대시보드 환경과 다릅니다.",
     "diagnostics.capture.title": "대시보드 시각적 증거",
     "diagnostics.capture.help": "이러한 캡처는 설정으로 이동한 후 렌더링된 대시보드 형상을 유지합니다.",
-    "diagnostics.capture.review": "검토",
+    "diagnostics.capture.review": "확인",
     "diagnostics.capture.ready": "준비",
     "diagnostics.capture.capture-again": "다시 캡처",
     "diagnostics.bootstrap.reference": "참조",

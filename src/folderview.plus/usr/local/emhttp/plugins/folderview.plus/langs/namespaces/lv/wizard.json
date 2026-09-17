@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "wizard.title": "Iestatīšanas palīgs",
     "wizard.welcome.kicker": "FolderView Plus iestatīšanas palīgs",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "Rādīt detaļas",
     "wizard.navigation.hide-details": "Slēpt detaļas",
     "wizard.navigation.close": "Aizvērt",
-    "wizard.navigation.review": "Pārskats",
+    "wizard.navigation.review": "Pārbaudīt",
     "wizard.navigation.go-to": "Dodieties uz $1",
     "wizard.progress.step": "$1. darbība no $2",
     "wizard.impact.live": "Reāllaika ietekme šim solim"

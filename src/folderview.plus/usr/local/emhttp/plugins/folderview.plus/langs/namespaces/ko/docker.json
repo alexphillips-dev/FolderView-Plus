@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
     },
     "docker.actions.label": "폴더 보기 작업",
     "docker.actions.add-folder": "폴더 추가",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "도구",
     "docker.actions.show-empty": "빈 폴더 표시",
     "docker.actions.hide-empty": "빈 폴더 숨기기",
-    "docker.actions.clear-focus": "폴더 포커스 지우기",
+    "docker.actions.clear-focus": "폴더 집중 필터 해제",
     "docker.actions.refresh-state": "폴더 상태 새로 고침",
     "docker.actions.bulk-assignment": "일괄 할당",
     "docker.actions.rules-workspace": "규칙 작업 공간",

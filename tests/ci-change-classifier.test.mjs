@@ -3,7 +3,8 @@ import test from 'node:test';
 
 import {
     classifyPaths,
-    matchesPattern
+    matchesPattern,
+    resolveChangedPaths
 } from '../scripts/classify_ci_changes.mjs';
 
 test('path matching supports exact, subtree, and wildcard workflow patterns', () => {
@@ -36,6 +37,23 @@ test('workflow-only changes use focused workflow validation', () => {
         needs_theme: false,
         preview_changed: false
     });
+});
+
+test('dependency updates with a generated SBOM retain tests and browser validation', () => {
+    const result = classifyPaths([
+        'package.json',
+        'package-lock.json',
+        'docs/sbom.cdx.json'
+    ]);
+    assert.equal(result.outputs.docs_only, false);
+    assert.equal(result.outputs.workflow_only, false);
+    assert.equal(result.outputs.needs_browser, true);
+});
+
+test('unclassified tooling changes with documentation retain broad validation', () => {
+    const result = classifyPaths(['scripts/new-tool.mjs', 'docs/architecture.md']);
+    assert.equal(result.outputs.docs_only, false);
+    assert.equal(result.outputs.workflow_only, false);
 });
 
 test('workflow changes allow the generated SBOM as a focused validation companion', () => {
@@ -89,4 +107,15 @@ test('metadata changes are not mistaken for documentation-only changes', () => {
     const result = classifyPaths(['folderview.plus.plg']);
     assert.equal(result.outputs.docs_only, false);
     assert.equal(result.outputs.preview_changed, true);
+});
+
+test('manual validation covers the full revision instead of its last commit', () => {
+    const paths = resolveChangedPaths({ eventName: 'workflow_dispatch', headSha: 'HEAD' });
+    assert.ok(paths.includes('package.json'));
+    assert.ok(paths.includes('pkg_build.sh'));
+    const result = classifyPaths(paths);
+    assert.equal(result.outputs.docs_only, false);
+    assert.equal(result.outputs.workflow_only, false);
+    assert.equal(result.outputs.needs_browser, true);
+    assert.equal(result.outputs.needs_theme, true);
 });

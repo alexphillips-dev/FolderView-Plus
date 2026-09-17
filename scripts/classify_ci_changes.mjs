@@ -111,7 +111,10 @@ export const classifyPaths = (paths) => {
         );
     }
 
-    const docsOnly = matched.docs && !matched.metadata && !matched.workflows && !matched.runtime;
+    const docsOnly = matched.docs && !matched.metadata && !matched.workflows && !matched.runtime &&
+        changedPaths.every((filePath) =>
+            FILTERS.docs.some((pattern) => matchesPattern(filePath, pattern))
+        );
     const workflowOnly = matched.workflows && changedPaths.every((filePath) =>
         FILTERS.workflows.some((pattern) => matchesPattern(filePath, pattern)) ||
         WORKFLOW_COMPANION_PATTERNS.some((pattern) => matchesPattern(filePath, pattern))
@@ -147,6 +150,10 @@ export const resolveChangedPaths = ({
     beforeSha = process.env.FVPLUS_CI_BEFORE_SHA || '',
     headSha = process.env.FVPLUS_CI_HEAD_SHA || 'HEAD'
 } = {}) => {
+    // A manual validation request must cover the whole selected revision.
+    if (eventName === 'workflow_dispatch') {
+        return git('ls-tree', '-r', '--name-only', headSha).split(/\r?\n/).filter(Boolean);
+    }
     if (eventName === 'pull_request') {
         const baseParent = git('rev-parse', `${headSha}^1`);
         return git('diff', '--name-only', baseParent, headSha).split(/\r?\n/).filter(Boolean);

@@ -51,6 +51,23 @@ Do not configure repository validation with a live Unraid URL, session, or secre
 - Update the relevant user guide, troubleshooting page, `docs/current-state.json`, release notes, screenshots, or language catalogs when behavior changes.
 - Keep backwards compatibility unless the change is intentional and documented.
 
+### Automated back-merges
+
+The main-to-dev back-merge workflow requests CI and CodeQL on the generated
+`backmerge/main-to-dev` branch. Before merging, verify that both workflows passed
+for the PR's current head commit. The earlier validation inside the back-merge
+workflow does not replace checks attached to that commit.
+
+If either request fails, use **Run workflow** in the CI and CodeQL Actions pages
+and select `backmerge/main-to-dev`. Manual CI validates the full selected
+revision, including browser and theme fixtures. Do not merge while checks are
+missing, pending, or failing.
+
+OpenSSF Scorecard samples historical merged PRs and commits. Missing checks on
+older back-merges can continue to affect its CI-Tests and SAST findings even
+when the current revision passes. Review the sampled PR heads before treating
+these findings as current code defects or dismissing them.
+
 ## Coding Standards
 
 - Use ASCII unless a file already requires Unicode.

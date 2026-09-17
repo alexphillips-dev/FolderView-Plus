@@ -15,5 +15,16 @@
     "common.state.ready": "Pronto",
     "common.actions.clear": "Limpar",
     "common.state.all-good": "tudo bem",
-    "common.health.folder-summary": "Integridade da pasta: $1 iniciado | $2 pausado | $3 parou"
+    "common.health.folder-summary": "Integridade da pasta: $1 iniciado | $2 pausado | $3 parou",
+    "common.folder-render.title": "Algumas pastas não puderam ser exibidas.",
+    "common.folder-render.help": "Os contentores e as máquinas virtuais continuam acessíveis. Revise as pastas afetadas em Configurações e recarregue esta página.",
+    "common.folder-render.review": "Rever pasta",
+    "common.folder-render.all": "Revise todas as pastas em Configurações",
+    "request.failure.refresh": "As informações de segurança da página estão faltando ou expiraram. Atualize a webGUI do Unraid e tente novamente a alteração.",
+    "request.failure.session": "Unraid rejeitou a verificação de segurança da sessão. Atualize a webGUI e faça login novamente, se solicitado, e tente novamente a alteração.",
+    "request.failure.origin": "O endereço da página não corresponde à solicitação do servidor. Se você usar um proxy reverso, tente o acesso direto ao Unraid e verifique os cabeçalhos do proxy.",
+    "request.failure.marker": "O marcador de segurança da solicitação não alcançou o plugin. Atualize a webGUI; se isso continuar, verifique as extensões do navegador ou a filtragem de proxy.",
+    "request.failure.state": "O plugin não conseguiu preparar alterações seguras. Verifique os logs do plugin e exporte um pacote de suporte limpo.",
+    "request.failure.guard": "O plugin rejeitou esta alteração. Atualize a webGUI e verifique se ela já foi aplicada antes de tentar novamente. Inclua este código de suporte se o problema persistir.",
+    "request.failure.support-code": "Código de suporte: $1"
 }

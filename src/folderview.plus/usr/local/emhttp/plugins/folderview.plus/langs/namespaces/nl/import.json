@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "FolderView3-configuratie inspecteren...",
     "import.folderview3.inspecting-help": "Dit alleen-lezen voorbeeld kan even duren als aangepaste stijlen aanwezig zijn.",
     "import.folderview3.confirm-apply": "Huidige FolderView Plus Docker-mappen, VM-mappen, compatibele instellingen, eigendom van startorder en profielgegevens van Themawerkruimte vervangen? Er worden eerst een rollback-controlepunt en back-ups per type gemaakt.",
-    "import.folderview3.confirm-native-suffix": "De automatische start van Native Docker en wachttijden worden ook vervangen."
+    "import.folderview3.confirm-native-suffix": "De automatische start van Native Docker en wachttijden worden ook vervangen.",
+    "import.folderview3.order-invalid": "Een FolderView3-bestellingsmomentopname is ongeldig; mapconfiguratievolgorde werd gebruikt.",
+    "import.folderview3.order-duplicates": "Dubbele FolderView3-bestellingen werden genegeerd.",
+    "import.folderview3.order-unknown": "Onbekende mapverwijzingen in de momentopnamen van FolderView3-bestellingen werden genegeerd.",
+    "import.folderview3.order-unassigned": "Mapvolgorde blijft behouden; posities van niet-toegewezen items op de Unraid-pagina worden niet geïmporteerd.",
+    "import.folderview3.theme-source": "Metagegevens van de themabron zijn niet omgezet in beheerde updates. Scan de originele themabron om toekomstige updates te beheren.",
+    "import.folderview3.theme-unscoped": "Aangepaste stijlen zonder een herkend FolderView3-paginabereik zijn uitgesloten.",
+    "import.folderview3.theme-disabled": "Uitgeschakelde thema's werden bewaard als afzonderlijke inactieve weergaveprofielen; ze zijn niet opgenomen in het geïmporteerde hoofdprofiel.",
+    "import.folderview3.theme-compatibility": "Geïmporteerde CSS kan FolderView3-selectors of variabelen gebruiken die verschillen in FolderView Plus. Bekijk een voorbeeld van elk uiterlijkprofiel voordat het wordt geactiveerd.",
+    "import.folderview3.order-imported": "Geïmporteerd",
+    "import.folderview3.order-fallback": "Configuratievolgorde",
+    "import.folderview3.order-empty": "Geen opgeslagen bestelling",
+    "import.folderview3.order-invalid-status": "Ongeldige momentopname; configuratievolgorde",
+    "import.folderview3.appearance-profiles": "Voeg inactieve FolderView3-weergaveprofielen toe",
+    "import.folderview3.order-summary": "Volgorde van opgeslagen mappen: Docker $1; VM's $2.",
+    "import.folderview3.disabled-profile-count": "Afzonderlijke profielen voor uitgeschakelde thema's: $1."
 }

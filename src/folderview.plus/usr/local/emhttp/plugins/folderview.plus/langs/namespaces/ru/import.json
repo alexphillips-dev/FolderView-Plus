@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Проверка конфигурации FolderView3...",
     "import.folderview3.inspecting-help": "Этот предварительный просмотр, доступный только для чтения, может занять некоторое время, если присутствуют пользовательские стили.",
     "import.folderview3.confirm-apply": "Заменить текущие папки FolderView Plus Docker, папки виртуальных машин, совместимые настройки, право собственности на порядок запуска и данные профиля Theme Workspace? Сначала будут созданы контрольная точка отката и резервные копии каждого типа.",
-    "import.folderview3.confirm-native-suffix": "Также будут заменены встроенные функции автозапуска и ожидания Docker."
+    "import.folderview3.confirm-native-suffix": "Также будут заменены встроенные функции автозапуска и ожидания Docker.",
+    "import.folderview3.order-invalid": "Снимок заказа FolderView3 недействителен; использовался порядок конфигурации папок.",
+    "import.folderview3.order-duplicates": "Повторяющиеся записи заказа FolderView3 были проигнорированы.",
+    "import.folderview3.order-unknown": "Ссылки на неизвестные папки в снимках порядка FolderView3 игнорировались.",
+    "import.folderview3.order-unassigned": "Порядок папок сохраняется; позиции неназначенных элементов на странице Unraid не импортируются.",
+    "import.folderview3.theme-source": "Метаданные источника темы не были преобразованы в управляемые обновления. Сканируйте исходный источник темы, чтобы управлять будущими обновлениями.",
+    "import.folderview3.theme-unscoped": "Пользовательские стили без распознанной области страницы FolderView3 были исключены.",
+    "import.folderview3.theme-disabled": "Отключенные темы сохранялись как отдельные неактивные профили внешнего вида; они не включены в основной импортируемый профиль.",
+    "import.folderview3.theme-compatibility": "Импортированный CSS может использовать селекторы или переменные FolderView3, которые отличаются от FolderView Plus. Просмотрите каждый профиль внешнего вида перед активацией.",
+    "import.folderview3.order-imported": "Импортировано",
+    "import.folderview3.order-fallback": "Порядок конфигурации",
+    "import.folderview3.order-empty": "Нет сохраненного заказа",
+    "import.folderview3.order-invalid-status": "Неверный снимок; порядок конфигурации",
+    "import.folderview3.appearance-profiles": "Добавить неактивные профили внешнего вида FolderView3",
+    "import.folderview3.order-summary": "Сохраненный порядок папок: Docker $1; ВМ $2.",
+    "import.folderview3.disabled-profile-count": "Отдельные профили для отключенных тем: $1."
 }

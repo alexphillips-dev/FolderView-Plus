@@ -15,5 +15,16 @@
     "common.state.ready": "Gotowy",
     "common.actions.clear": "Wyczyść",
     "common.state.all-good": "wszystko dobrze",
-    "common.health.folder-summary": "Kondycja folderu: $1 uruchomiono | $2 pauza | $3 zatrzymany"
+    "common.health.folder-summary": "Kondycja folderu: $1 uruchomiono | $2 pauza | $3 zatrzymany",
+    "common.folder-render.title": "Nie można wyświetlić niektórych folderów.",
+    "common.folder-render.help": "Kontenery i maszyny wirtualne pozostają dostępne. Przejrzyj foldery, których dotyczy problem, w Ustawieniach, a następnie załaduj ponownie tę stronę.",
+    "common.folder-render.review": "Przejrzyj folder",
+    "common.folder-render.all": "Przejrzyj wszystkie foldery w Ustawieniach",
+    "request.failure.refresh": "Brakuje informacji o zabezpieczeniach strony lub wygasły. Odśwież webGUI Unraid, a następnie spróbuj ponownie wprowadzić zmianę.",
+    "request.failure.session": "Unraid odrzucił kontrolę bezpieczeństwa sesji. Odśwież webGUI i zaloguj się ponownie, jeśli pojawi się monit, a następnie spróbuj ponownie wprowadzić zmianę.",
+    "request.failure.origin": "Adres strony nie jest zgodny z żądaniem serwera. Jeśli używasz odwrotnego proxy, spróbuj bezpośredniego dostępu Unraid i sprawdź nagłówki proxy.",
+    "request.failure.marker": "Znacznik bezpieczeństwa żądania nie dotarł do wtyczki. Odśwież mocno webGUI; jeśli to będzie się powtarzać, sprawdź rozszerzenia przeglądarki lub filtrowanie proxy.",
+    "request.failure.state": "Wtyczka nie mogła przygotować bezpiecznych zmian. Sprawdź dzienniki wtyczek i wyeksportuj oczyszczony pakiet pomocy technicznej.",
+    "request.failure.guard": "Wtyczka odrzuciła tę zmianę. Odśwież webGUI i sprawdź, czy został już zastosowany, zanim spróbujesz ponownie. Jeśli problem będzie się powtarzał, dołącz ten kod pomocniczy.",
+    "request.failure.support-code": "Kod pomocniczy: $1"
 }

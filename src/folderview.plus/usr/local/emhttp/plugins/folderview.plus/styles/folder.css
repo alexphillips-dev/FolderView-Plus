@@ -5627,3 +5627,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 .fv-section-nav > button[aria-current="page"] > span {
     color: inherit !important;
 }
+/* Default profiles contain appearance and script settings, never folder membership. */
+body.fv-editing-defaults .fv-section-nav > button[data-target="members"],
+body.fv-editing-defaults .fv-section-shell[data-section-shell="members"],
+body.fv-editing-defaults .fv-modern-field-row:has([name="name"]),
+body.fv-editing-defaults .fv-modern-field-row:has([name="parent_folder_id"]),
+body.fv-editing-defaults .fv-modern-field-row:has([name="webui_profiles"]),
+body.fv-editing-defaults .fv-editor-panel[data-editor-panel="parent"] {
+    display: none !important;
+}

@@ -172,6 +172,10 @@ If the UI shows a diagnostics panel, copy the report text or export a sanitized 
 
 Customize FolderView Plus from the folder editor and Advanced settings. You can tune folder icons, preview rows, child folder preview depth, borders, border glow, hover animations, status colors, action buttons, sort behavior, templates, rules, backups, and Docker start order.
 
+Use **Edit folder defaults** under Docker or VMs in Settings to edit the starting profile for future folders, including imported FolderView3 defaults. Saving defaults does not change existing folders; **Apply to all** remains a separate explicit operation.
+
+Appearance includes Inherited, Orange, Blue, Green, and Muted presets for accent and graph colors in the selected scope. Previewing a preset does not save it. Use Undo preset preview to restore the previous layer, Save customization layer to update the current profile, or enter a profile name and choose Save as new profile to activate a copy while retaining the original. Inherited removes preset color overrides so the surrounding theme or parent scope supplies those colors; status colors and other customizations are preserved.
+
 The plugin uses shared theme tokens for modern dark and light surfaces, while still honoring compatibility guidance in the [Support Policy](docs/SUPPORT_POLICY.md) for stable selectors and legacy custom CSS/JS migration.
 
 ## Documentation

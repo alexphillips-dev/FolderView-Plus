@@ -4,6 +4,7 @@
         "locale": "ar",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "تعديل الإعدادات الافتراضية للمجلدات",
     "settings.search.placeholder": "إعدادات البحث",
     "settings.search.label": "إعدادات البحث",
     "settings.search.clear-label": "مسح إعدادات البحث",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "ابدأ الطلب",
     "settings.navigation.appearance": "المظهر",
     "settings.recovery.last-scheduled": "آخر تشغيل مجدول: $1",
-    "settings.recovery.never-scheduled": "آخر تشغيل مجدول: أبدًا"
+    "settings.recovery.never-scheduled": "آخر تشغيل مجدول: أبدًا",
+    "settings.theme.preset-inherited": "موروثة",
+    "settings.theme.preset-orange": "برتقالي",
+    "settings.theme.preset-blue": "أزرق",
+    "settings.theme.preset-green": "أخضر",
+    "settings.theme.preset-muted": "ألوان هادئة",
+    "settings.theme.preset-preview-status": "معاينة فقط. احفظ طبقة التخصيص أو احفظها كملف تعريف جديد لتطبيق هذه الألوان.",
+    "settings.theme.profile-name-required": "أدخل اسمًا لملف تعريف المظهر الجديد.",
+    "settings.theme.save-as-profile": "حفظ كملف تعريف جديد",
+    "settings.theme.profile-saved": "تم حفظ ملف تعريف المظهر.",
+    "settings.theme.presets-title": "الإعدادات المسبقة للألوان",
+    "settings.theme.presets-help": "معاينة ألوان التمييز والرسم البياني للنطاق المحدد. يتم الاحتفاظ بالتخصيصات الأخرى. احفظ عندما تكون جاهزًا.",
+    "settings.theme.undo-preset": "التراجع عن المعاينة المعدة مسبقًا"
 }

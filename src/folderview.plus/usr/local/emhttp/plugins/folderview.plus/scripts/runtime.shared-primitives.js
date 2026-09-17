@@ -411,6 +411,12 @@
             else window.setTimeout(() => hydrate(target), 0);
             return true;
         };
+        const discardDisconnected = () => pending.forEach((entry, target) => {
+            if (target.isConnected) return;
+            pending.delete(target);
+            observer?.unobserve(target);
+            removeInteractionListeners(entry);
+        });
         const flush = () => Array.from(pending.keys()).forEach((target) => hydrate(target));
         const start = () => {
             active = true;
@@ -423,16 +429,11 @@
             active = false;
         };
         const snapshot = () => Object.freeze({ active, pending: pending.size, rootMargin });
-        const api = Object.freeze({ start, defer, refresh, flush, destroy, snapshot });
+        const api = Object.freeze({ start, defer, refresh, flush, destroy, snapshot, discardDisconnected });
         return api;
     };
-
     /**
-     * Deduplicates UI-triggered async actions by key to avoid racey double-click behavior.
-     * Reversible controls can apply the latest intent immediately and retain its action
-     * while the current request settles.
-     * @param {{onError?: (error: Error, actionKey: string) => void, onBusy?: (actionKey: string) => void}} options
-     */
+     * @param {{onError?: (error: Error, actionKey: string) => void, onBusy?: (actionKey: string) => void}} options */
     const createSafeUiActionRunner = (options = {}) => {
         const inFlight = new Set();
         const queued = new Map();

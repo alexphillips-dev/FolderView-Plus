@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "正在检查FolderView3配置...",
     "import.folderview3.inspecting-help": "当存在自定义样式时，此只读预览可能需要一些时间。",
     "import.folderview3.confirm-apply": "替换当前的FolderView Plus Docker 文件夹、VM 文件夹、兼容设置、启动顺序所有权和主题工作区配置文件数据？首先将创建回滚检查点和每种类型的备份。",
-    "import.folderview3.confirm-native-suffix": "本机 Docker 自动启动启用和等待也将被替换。"
+    "import.folderview3.confirm-native-suffix": "本机 Docker 自动启动启用和等待也将被替换。",
+    "import.folderview3.order-invalid": "FolderView3订单快照无效；使用了文件夹配置顺序。",
+    "import.folderview3.order-duplicates": "重复的FolderView3订单条目被忽略。",
+    "import.folderview3.order-unknown": "FolderView3 订单快照中的未知文件夹引用被忽略。",
+    "import.folderview3.order-unassigned": "保留文件夹顺序； Unraid页面中未分配项目的位置不会被导入。",
+    "import.folderview3.theme-source": "主题源元数据未转换为托管更新。扫描原始主题源以管理未来的更新。",
+    "import.folderview3.theme-unscoped": "不具有可识别的FolderView3页面范围的自定义样式被排除。",
+    "import.folderview3.theme-disabled": "禁用的主题被保留为单独的非活动外观配置文件；它们不包含在主要导入的配置文件中。",
+    "import.folderview3.theme-compatibility": "导入的CSS可能使用FolderView3选择器或与FolderView Plus不同的变量。激活前预览每个外观配置文件。",
+    "import.folderview3.order-imported": "进口",
+    "import.folderview3.order-fallback": "配置顺序",
+    "import.folderview3.order-empty": "没有保存的订单",
+    "import.folderview3.order-invalid-status": "快照无效；配置顺序",
+    "import.folderview3.appearance-profiles": "添加非活动的FolderView3外观配置文件",
+    "import.folderview3.order-summary": "保存的文件夹顺序：Docker $1； VM $2。",
+    "import.folderview3.disabled-profile-count": "禁用主题的单独配置文件：$1。"
 }

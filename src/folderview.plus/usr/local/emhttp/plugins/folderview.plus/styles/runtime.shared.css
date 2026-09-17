@@ -22,6 +22,28 @@ body[data-fv-theme-class="light"] {
     --fvplus-runtime-menu-muted: rgba(85, 100, 118, 0.86);
 }
 
+.fv-folder-render-warning {
+    box-sizing: border-box;
+    margin: 12px 0;
+    padding: 12px 16px;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--fvplus-runtime-menu-fg);
+    background: var(--fvplus-runtime-menu-bg);
+    border: 1px solid var(--fvplus-runtime-menu-border);
+    border-radius: 8px;
+}
+
+.fv-folder-render-warning p { margin: 8px 0; }
+.fv-folder-render-warning ul { margin: 0; padding-inline-start: 20px; }
+.fv-folder-render-warning a { display: inline-block; box-sizing: border-box; min-height: 44px; padding: 10px 4px; color: inherit; text-decoration: underline; }
+.fv-folder-render-warning a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+body.fvplus-privacy-docker-runtime-mask-names .fv-folder-render-warning[data-folder-type="docker"] .fv-folder-render-warning-name,
+body.fvplus-privacy-docker-dashboard-mask-names .fv-folder-render-warning[data-folder-type="docker"] .fv-folder-render-warning-name,
+body.fvplus-privacy-vm-runtime-mask-names .fv-folder-render-warning[data-folder-type="vm"] .fv-folder-render-warning-name,
+body.fvplus-privacy-vm-dashboard-mask-names .fv-folder-render-warning[data-folder-type="vm"] .fv-folder-render-warning-name { filter: blur(5px); }
+
 body ul.context-menu-list,
 body ul.contextMenuPlugin,
 body ul.context-menu,

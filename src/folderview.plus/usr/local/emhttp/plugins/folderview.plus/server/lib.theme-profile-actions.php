@@ -1,15 +1,5 @@
 <?php
-function createThemeWorkspaceProfile(string $name): array {
-    $workspace = readThemeWorkspace();
-    $safeName = truncateUtf8String(trim($name), 96);
-    if ($safeName === '') {
-        throw new RuntimeException('Appearance profile name is required.');
-    }
-    $id = 'profile-' . generateId(12);
-    $workspace['profiles'][] = fvplusThemeProfileDefault($id, $safeName);
-    $workspace['activeProfileId'] = $id;
-    return writeThemeWorkspace($workspace);
-}
+require_once __DIR__ . '/lib.theme-profile-create.php';
 
 function activateThemeWorkspaceProfile(string $profileId): array {
     $workspace = readThemeWorkspace();

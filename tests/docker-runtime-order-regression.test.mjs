@@ -36,7 +36,7 @@ const reorderFolderSlotsInBaseOrder = (
     isFolderToken: (entry) => folderRegex.test(String(entry || ''))
 });
 
-test('docker runtime places containers missing from saved preferences after every folder', () => {
+test('docker runtime appends new containers without changing saved mixed slots', () => {
     const result = reconcileDockerOrderWithFolderSlots(
         ['new-container', 'existing-one', 'existing-two'],
         ['existing-one', 'existing-two', 'folder-a', 'folder-b'],
@@ -49,15 +49,15 @@ test('docker runtime places containers missing from saved preferences after ever
 
     assert.deepEqual(result.newOnes, ['new-container']);
     assert.deepEqual(result.order, [
-        'folder-a',
-        'folder-b',
         'existing-one',
         'existing-two',
+        'folder-a',
+        'folder-b',
         'new-container'
     ]);
 });
 
-test('docker runtime keeps folders above a new container already saved first by Unraid', () => {
+test('docker runtime preserves a new container already saved first by Unraid', () => {
     const result = reconcileDockerOrderWithFolderSlots(
         ['new-container', 'existing-one', 'existing-two'],
         ['new-container', 'existing-one', 'existing-two', 'folder-a', 'folder-b'],
@@ -70,11 +70,11 @@ test('docker runtime keeps folders above a new container already saved first by 
 
     assert.deepEqual(result.newOnes, []);
     assert.deepEqual(result.order, [
-        'folder-a',
-        'folder-b',
         'new-container',
         'existing-one',
-        'existing-two'
+        'existing-two',
+        'folder-a',
+        'folder-b'
     ]);
 });
 
@@ -86,8 +86,8 @@ test('docker runtime records privacy-safe reconciliation counts and fingerprints
     assert.match(dockerJs, /liveOrderCount: liveOrderBeforeReconciliation\.length/);
     assert.match(dockerJs, /missingContainerCount: newOnes\.length/);
     assert.match(dockerJs, /appendedContainerCount: newOnes\.length/);
-    assert.match(dockerJs, /appendPosition: newOnes\.length > 0 \? 'after-folders' : 'not-needed'/);
-    assert.match(dockerJs, /orderingInvariantSatisfied: reconciledOrder\.order\.every/);
+    assert.match(dockerJs, /appendPosition: newOnes\.length > 0 \? 'after-saved-order' : 'not-needed'/);
+    assert.match(dockerJs, /orderingInvariantSatisfied: new Set\(reconciledOrder\.order\)\.size === reconciledOrder\.order\.length/);
     assert.match(dockerJs, /liveOrderFingerprint: dockerRuntimeDiagnosticsModule\.buildOrderFingerprint\(liveOrderBeforeReconciliation\)/);
     assert.match(dockerJs, /savedOrderFingerprint: dockerRuntimeDiagnosticsModule\.buildOrderFingerprint\(unraidOrder\)/);
     assert.match(dockerJs, /reconciledOrderFingerprint: dockerRuntimeDiagnosticsModule\.buildOrderFingerprint\(reconciledOrder\.order\)/);
@@ -214,16 +214,15 @@ test('docker order sync uses prefs-ordered folders when explicit sort or pinning
     assert.match(libPhp, /foreach \(\$orderedFolders as \$folderId => \$folder\) \{/);
 });
 
-test('docker read order response replaces stale userprefs folder placeholders with prefs order', () => {
+test('docker read order response preserves mixed slots while applying folder sort order', () => {
     const readUserPrefsMatch = libPhp.match(/function readUserPrefs\(string \$type\) : string \{([\s\S]*?)\n    \}\n\n    function normalizeFolderMembers/);
     assert.ok(readUserPrefsMatch, 'readUserPrefs body should be present');
     const body = readUserPrefsMatch[1];
     assert.match(body, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
     assert.match(body, /\$folderPlaceholders = array_map/);
-    assert.match(body, /strpos\(\$value, 'folder-'\) !== 0/);
-    assert.match(body, /return !in_array\(\$folderId, \$folderIds, true\);/);
-    assert.match(body, /foreach \(\$folderPlaceholders as \$placeholder\) \{/);
-    assert.match(body, /\$order\[\] = \$placeholder;/);
+    assert.match(body, /if \(\$sortSlots\) \$value = \$folderPlaceholders\[\$slotIndex\+\+\]/);
+    assert.match(body, /fvplus_append_unique_name\(\$nextOrder, \$seen, \$value\)/);
+    assert.match(body, /\$order = array_merge\(\$missing, \$nextOrder\)/);
 });
 
 test('docker order sync reads but does not write Docker userprefs', () => {

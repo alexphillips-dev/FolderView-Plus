@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Inspecting FolderView3 configuration...",
     "import.folderview3.inspecting-help": "This read-only preview may take a moment when custom styles are present.",
     "import.folderview3.confirm-apply": "Replace current FolderView Plus Docker folders, VM folders, compatible settings, start-order ownership, and Theme Workspace profile data? A rollback checkpoint and per-type backups will be created first.",
-    "import.folderview3.confirm-native-suffix": " Native Docker autostart enablement and waits will also be replaced."
+    "import.folderview3.confirm-native-suffix": " Native Docker autostart enablement and waits will also be replaced.",
+    "import.folderview3.order-invalid": "A FolderView3 order snapshot is invalid; folder configuration order was used.",
+    "import.folderview3.order-duplicates": "Duplicate FolderView3 order entries were ignored.",
+    "import.folderview3.order-unknown": "Unknown folder references in FolderView3 order snapshots were ignored.",
+    "import.folderview3.order-unassigned": "Folder order is preserved; positions of unassigned items in the Unraid page are not imported.",
+    "import.folderview3.theme-source": "Theme source metadata was not converted into managed updates. Scan the original theme source to manage future updates.",
+    "import.folderview3.theme-unscoped": "Custom styles without a recognized FolderView3 page scope were excluded.",
+    "import.folderview3.theme-disabled": "Disabled themes were preserved as separate inactive appearance profiles; they are not included in the main imported profile.",
+    "import.folderview3.theme-compatibility": "Imported CSS may use FolderView3 selectors or variables that differ in FolderView Plus. Preview each appearance profile before activation.",
+    "import.folderview3.order-imported": "Imported",
+    "import.folderview3.order-fallback": "Configuration order",
+    "import.folderview3.order-empty": "No saved order",
+    "import.folderview3.order-invalid-status": "Invalid snapshot; configuration order",
+    "import.folderview3.appearance-profiles": "Add inactive FolderView3 appearance profiles",
+    "import.folderview3.order-summary": "Saved folder order: Docker $1; VMs $2.",
+    "import.folderview3.disabled-profile-count": "Separate profiles for disabled themes: $1."
 }

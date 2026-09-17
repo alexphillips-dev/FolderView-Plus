@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Inspection de la configuration de FolderView3...",
     "import.folderview3.inspecting-help": "Cet aperçu en lecture seule peut prendre un moment lorsque des styles personnalisés sont présents.",
     "import.folderview3.confirm-apply": "Remplacer les dossiers Docker FolderView Plus actuels, les dossiers VM, les paramètres compatibles, la propriété de l'ordre de démarrage et les données de profil Theme Workspace ? Un point de contrôle de restauration et des sauvegardes par type seront créés en premier.",
-    "import.folderview3.confirm-native-suffix": "L’activation et les attentes du démarrage automatique natif de Docker seront également remplacées."
+    "import.folderview3.confirm-native-suffix": "L’activation et les attentes du démarrage automatique natif de Docker seront également remplacées.",
+    "import.folderview3.order-invalid": "Un instantané de commande FolderView3 n'est pas valide ; l'ordre de configuration des dossiers a été utilisé.",
+    "import.folderview3.order-duplicates": "Les entrées de commande FolderView3 en double ont été ignorées.",
+    "import.folderview3.order-unknown": "Les références de dossier inconnues dans les instantanés de l’ordre FolderView3 ont été ignorées.",
+    "import.folderview3.order-unassigned": "L'ordre des dossiers est conservé ; les positions des éléments non attribués dans la page Unraid ne sont pas importées.",
+    "import.folderview3.theme-source": "Les métadonnées de la source du thème n'ont pas été converties en mises à jour gérées. Scannez la source du thème d'origine pour gérer les futures mises à jour.",
+    "import.folderview3.theme-unscoped": "Les styles personnalisés sans étendue de page FolderView3 reconnue ont été exclus.",
+    "import.folderview3.theme-disabled": "Les thèmes désactivés ont été conservés en tant que profils d'apparence inactifs distincts ; ils ne sont pas inclus dans le profil principal importé.",
+    "import.folderview3.theme-compatibility": "Le CSS importé peut utiliser des sélecteurs ou des variables FolderView3 qui diffèrent dans FolderView Plus. Prévisualisez chaque profil d’apparence avant l’activation.",
+    "import.folderview3.order-imported": "Importé",
+    "import.folderview3.order-fallback": "Ordre de configuration",
+    "import.folderview3.order-empty": "Aucune commande enregistrée",
+    "import.folderview3.order-invalid-status": "Instantané invalide ; ordre de configuration",
+    "import.folderview3.appearance-profiles": "Ajouter des profils d'apparence FolderView3 inactifs",
+    "import.folderview3.order-summary": "Ordre des dossiers enregistrés : Docker $1 ; Machines virtuelles $2.",
+    "import.folderview3.disabled-profile-count": "Profils séparés pour les thèmes désactivés : $1."
 }

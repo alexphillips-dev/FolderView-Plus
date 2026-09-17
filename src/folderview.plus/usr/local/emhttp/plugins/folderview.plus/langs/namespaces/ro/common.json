@@ -15,5 +15,16 @@
     "common.state.ready": "Gata",
     "common.actions.clear": "Șterge",
     "common.state.all-good": "toate bune",
-    "common.health.folder-summary": "Sănătatea dosarului: $1 a început | $2 întrerupt | $3 sa oprit"
+    "common.health.folder-summary": "Sănătatea dosarului: $1 a început | $2 întrerupt | $3 sa oprit",
+    "common.folder-render.title": "Unele foldere nu au putut fi afișate.",
+    "common.folder-render.help": "Containerele și mașinile virtuale rămân accesibile. Examinați folderele afectate în Setări, apoi reîncărcați această pagină.",
+    "common.folder-render.review": "Verifică dosarul",
+    "common.folder-render.all": "Examinați toate dosarele din Setări",
+    "request.failure.refresh": "Informațiile de securitate ale paginii lipsesc sau au expirat. Actualizează webGUI Unraid, apoi reîncercați modificarea.",
+    "request.failure.session": "Unraid a respins verificarea de securitate a sesiunii. Actualizați webGUI și conectați-vă din nou dacă vi se solicită, apoi încercați din nou modificarea.",
+    "request.failure.origin": "Adresa paginii nu se potrivește cu solicitarea serverului. Dacă utilizați un proxy invers, încercați acces direct Unraid și verificați anteturile proxy-ului.",
+    "request.failure.marker": "Marcatorul de securitate al cererii nu a ajuns la plugin. Actualizează tare webGUI; dacă acest lucru continuă, verificați extensiile browserului sau filtrarea proxy.",
+    "request.failure.state": "Pluginul nu a putut pregăti modificări securizate. Verificați jurnalele de plugin și exportați un pachet de asistență igienizat.",
+    "request.failure.guard": "Pluginul a respins această modificare. Actualizați webGUI și verificați dacă a fost deja aplicat înainte de a încerca din nou. Includeți acest cod de asistență dacă problema continuă.",
+    "request.failure.support-code": "Cod de asistență: $1"
 }

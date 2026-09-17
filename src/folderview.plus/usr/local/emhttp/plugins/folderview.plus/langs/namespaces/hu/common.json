@@ -15,5 +15,16 @@
     "common.state.ready": "Kész",
     "common.actions.clear": "Törlés",
     "common.state.all-good": "minden jó",
-    "common.health.folder-summary": "Mappa állapota: $1 elindítva | $2 szünetel | $3 leállt"
+    "common.health.folder-summary": "Mappa állapota: $1 elindítva | $2 szünetel | $3 leállt",
+    "common.folder-render.title": "Néhány mappát nem lehetett megjeleníteni.",
+    "common.folder-render.help": "A konténerek és a virtuális gépek elérhetők maradnak. Tekintse át az érintett mappákat a Beállításokban, majd töltse be újra ezt az oldalt.",
+    "common.folder-render.review": "Mappa áttekintése",
+    "common.folder-render.all": "Tekintse át az összes mappát a Beállításokban",
+    "request.failure.refresh": "Az oldal biztonsági információi hiányoznak vagy lejártak. Frissítse az Unraid webGUI-t, majd próbálkozzon újra a módosítással.",
+    "request.failure.session": "Az Unraid elutasította a munkamenet biztonsági ellenőrzését. Frissítse a webGUI-t, és jelentkezzen be újra, ha a rendszer kéri, majd próbálkozzon újra a módosítással.",
+    "request.failure.origin": "Az oldal címe nem egyezik a szerver kéréssel. Ha fordított proxyt használ, próbálja meg a közvetlen Unraid hozzáférést, és ellenőrizze a proxy fejléceit.",
+    "request.failure.marker": "A kérés biztonsági jelzője nem érte el a beépülő modult. A webGUI kemény frissítése; ha ez továbbra is fennáll, ellenőrizze a böngészőbővítményeket vagy a proxyszűrést.",
+    "request.failure.state": "A beépülő modul nem tudott biztonságos változtatásokat előkészíteni. Ellenőrizze a beépülő modulok naplóit, és exportáljon egy megtisztított támogatási csomagot.",
+    "request.failure.guard": "A bővítmény elutasította ezt a változtatást. Frissítse a webGUI-t, és ellenőrizze, hogy alkalmazta-e már, mielőtt újra próbálkozna. Ha a probléma továbbra is fennáll, adja meg ezt a támogatási kódot.",
+    "request.failure.support-code": "Támogatási kód: $1"
 }

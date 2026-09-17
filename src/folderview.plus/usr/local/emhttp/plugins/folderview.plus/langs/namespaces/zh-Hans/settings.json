@@ -4,6 +4,7 @@
         "locale": "zh-Hans",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "编辑文件夹默认设置",
     "settings.search.placeholder": "搜索设置",
     "settings.search.label": "搜索设置",
     "settings.search.clear-label": "清除设置搜索",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "开始订购",
     "settings.navigation.appearance": "外观",
     "settings.recovery.last-scheduled": "上次计划运行：$1",
-    "settings.recovery.never-scheduled": "上次计划运行：从不"
+    "settings.recovery.never-scheduled": "上次计划运行：从不",
+    "settings.theme.preset-inherited": "继承的",
+    "settings.theme.preset-orange": "橙色",
+    "settings.theme.preset-blue": "蓝色",
+    "settings.theme.preset-green": "绿色",
+    "settings.theme.preset-muted": "柔和色调",
+    "settings.theme.preset-preview-status": "仅预览。保存自定义图层或另存为新配置文件以应用这些颜色。",
+    "settings.theme.profile-name-required": "输入新外观配置文件的名称。",
+    "settings.theme.save-as-profile": "另存为新配置文件",
+    "settings.theme.profile-saved": "外观配置文件已保存。",
+    "settings.theme.presets-title": "颜色预设",
+    "settings.theme.presets-help": "预览所选范围的强调色和图形颜色。保留其他自定义设置。准备好后保存。",
+    "settings.theme.undo-preset": "撤消预设预览"
 }

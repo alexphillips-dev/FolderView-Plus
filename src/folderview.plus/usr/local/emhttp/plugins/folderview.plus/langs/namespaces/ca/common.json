@@ -15,5 +15,16 @@
     "common.state.ready": "A punt",
     "common.actions.clear": "Esborra",
     "common.state.all-good": "tot bo",
-    "common.health.folder-summary": "Estat de la carpeta: $1 començat | $2 en pausa | $3 s'ha aturat"
+    "common.health.folder-summary": "Estat de la carpeta: $1 començat | $2 en pausa | $3 s'ha aturat",
+    "common.folder-render.title": "Algunes carpetes no s'han pogut mostrar.",
+    "common.folder-render.help": "Els contenidors i les màquines virtuals continuen accessibles. Reviseu les carpetes afectades a Configuració i torneu a carregar aquesta pàgina.",
+    "common.folder-render.review": "Reviseu la carpeta",
+    "common.folder-render.all": "Reviseu totes les carpetes a Configuració",
+    "request.failure.refresh": "Falta la informació de seguretat de la pàgina o ha caducat. Actualitzeu la GUI web Unraid i, a continuació, torneu a provar el canvi.",
+    "request.failure.session": "Unraid ha rebutjat la comprovació de seguretat de la sessió. Actualitzeu la webGUI i torneu a iniciar la sessió si se us demana i, a continuació, torneu a provar el canvi.",
+    "request.failure.origin": "L'adreça de la pàgina no coincideix amb la sol·licitud del servidor. Si utilitzeu un servidor intermediari invers, proveu l'accés directe sense incursió i comproveu les capçaleres del servidor intermediari.",
+    "request.failure.marker": "El marcador de seguretat de la sol·licitud no ha arribat al connector. Actualitzeu la webGUI; si això continua, comproveu les extensions del navegador o el filtratge del servidor intermediari.",
+    "request.failure.state": "El connector no ha pogut preparar canvis segurs. Comproveu els registres dels connectors i exporteu un paquet d'assistència sanejat.",
+    "request.failure.guard": "El connector va rebutjar aquest canvi. Actualitzeu la webGUI i comproveu si ja s'ha aplicat abans de tornar-ho a provar. Incloeu aquest codi d'assistència si el problema continua.",
+    "request.failure.support-code": "Codi de suport: $1"
 }

@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Die FolderView3-Konfiguration wird überprüft...",
     "import.folderview3.inspecting-help": "Diese schreibgeschützte Vorschau kann einen Moment dauern, wenn benutzerdefinierte Stile vorhanden sind.",
     "import.folderview3.confirm-apply": "Aktuelle FolderView Plus Docker-Ordner, VM-Ordner, kompatible Einstellungen, Startreihenfolge-Besitz und Theme Workspace-Profildaten ersetzen? Zuerst werden ein Rollback-Kontrollpunkt und Backups pro Typ erstellt.",
-    "import.folderview3.confirm-native-suffix": "Die native Docker-Autostart-Aktivierung und -Wartezeiten werden ebenfalls ersetzt."
+    "import.folderview3.confirm-native-suffix": "Die native Docker-Autostart-Aktivierung und -Wartezeiten werden ebenfalls ersetzt.",
+    "import.folderview3.order-invalid": "Ein FolderView3-Bestell-Snapshot ist ungültig; Die Ordnerkonfigurationsreihenfolge wurde verwendet.",
+    "import.folderview3.order-duplicates": "Doppelte FolderView3-Bestelleinträge wurden ignoriert.",
+    "import.folderview3.order-unknown": "Unbekannte Ordnerverweise in Order-Snapshots von FolderView3 wurden ignoriert.",
+    "import.folderview3.order-unassigned": "Die Ordnerreihenfolge bleibt erhalten; Positionen nicht zugewiesener Gegenstände auf der Unraid-Seite werden nicht importiert.",
+    "import.folderview3.theme-source": "Die Metadaten der Theme-Quelle wurden nicht in verwaltete Updates umgewandelt. Scannen Sie die ursprüngliche Theme-Quelle, um zukünftige Updates zu verwalten.",
+    "import.folderview3.theme-unscoped": "Benutzerdefinierte Stile ohne erkannten FolderView3-Seitenbereich wurden ausgeschlossen.",
+    "import.folderview3.theme-disabled": "Deaktivierte Themen wurden als separate inaktive Darstellungsprofile beibehalten; Sie sind nicht im importierten Hauptprofil enthalten.",
+    "import.folderview3.theme-compatibility": "Importiertes CSS verwendet möglicherweise FolderView3-Selektoren oder -Variablen, die sich in FolderView Plus unterscheiden. Sehen Sie sich jedes Erscheinungsprofil vor der Aktivierung in der Vorschau an.",
+    "import.folderview3.order-imported": "Importiert",
+    "import.folderview3.order-fallback": "Konfigurationsreihenfolge",
+    "import.folderview3.order-empty": "Keine gespeicherte Bestellung",
+    "import.folderview3.order-invalid-status": "Ungültiger Snapshot; Konfigurationsreihenfolge",
+    "import.folderview3.appearance-profiles": "Fügen Sie inaktive FolderView3-Darstellungsprofile hinzu",
+    "import.folderview3.order-summary": "Reihenfolge der gespeicherten Ordner: Docker $1; VMs $2.",
+    "import.folderview3.disabled-profile-count": "Separate Profile für deaktivierte Themes: $1."
 }

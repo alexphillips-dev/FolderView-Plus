@@ -20,11 +20,14 @@
         "../tests/browser/cases/folder-editor.mjs",
         "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
-        "../tests/browser/cases/import.mjs"
+        "../tests/browser/cases/import.mjs",
+        "../tests/browser/cases/folder-render-recovery.mjs",
+        "../tests/browser/cases/forum-reports.mjs"
       ]
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
@@ -41,7 +44,8 @@
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
     { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
-    { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" }
+    { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
+    { "file": "tests/browser/cases/folder-render-recovery.mjs", "limit": 40, "owner": "fixture native row rollback and render recovery" }
   ],
   "intent": {
     "fixture": {
@@ -58,7 +62,9 @@
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
-        "tests/browser/cases/import.mjs"
+        "tests/browser/cases/import.mjs",
+        "tests/browser/cases/folder-render-recovery.mjs",
+        "tests/browser/cases/forum-reports.mjs"
       ],
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
@@ -67,10 +73,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 52,
-      "assertionCount": 640,
-      "pageEvaluateCount": 134,
-      "orderedTitleSha256": "3ff13b65ab37b079bf19a7a1ecc91b6235889bbcf15872326dd0badbce3393d7"
+      "testCount": 55,
+      "assertionCount": 674,
+      "pageEvaluateCount": 148,
+      "orderedTitleSha256": "b8e781cf5afde50742ea9bcb89d744abc98a12d9c6e6f2ad3c45ca09db3e8ee1"
     }
   }
 }

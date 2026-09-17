@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d587343b-db90-8299-ae4c-f2dcd277b209",
+  "serialNumber": "urn:uuid:e7c0a6e4-2d4d-8f34-b7a8-be6b2c81b7d0",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.09.14.01",
+      "version": "2026.09.17.05",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -572,7 +572,7 @@
     {
       "type": "library",
       "name": "fast-check",
-      "version": "4.9.0",
+      "version": "4.10.0",
       "scope": "optional",
       "licenses": [
         {
@@ -581,7 +581,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fast-check@4.9.0"
+      "purl": "pkg:npm/fast-check@4.10.0"
     },
     {
       "type": "library",

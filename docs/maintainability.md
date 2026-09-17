@@ -41,12 +41,13 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 
 ## Operational review
 
-- The daily Unraid compatibility monitor opens or updates one deduplicated GitHub issue when a reviewed stable/prerelease OS version, PHP runtime, Docker API/schema, native-page gate, relevant Docker/VM/Dashboard webGUI file, plugin-manager install/update/downgrade contract, Community Applications starter contract, canonical template, or public catalog entry changes.
-- `docs/unraid-compatibility-baseline.json` records human-reviewed upstream versions and Git blob signatures. Automation reports drift but never modifies or approves the baseline.
-- Isolated PHP 8.3/8.4 profiles represent the oldest supported, current stable, and current prerelease Unraid runtimes. The compatibility lane syntax-checks every shipped PHP file and runs a request-authority smoke contract without connecting to a server.
+- The Unraid compatibility monitor and scheduled workflow health watchdog are retired. Their GitHub workflows are disabled and removed from `dev`; they no longer create or update issues. The workflow self-check rejects restoration of either workflow file.
+- Compatibility review is manual. `scripts/unraid_docker_upstream_monitor.sh`, `scripts/unraid_compatibility_monitor.mjs`, and `scripts/community_applications_guard.mjs` remain available for explicit review of public upstream inputs without issue automation.
+- `docs/unraid-compatibility-baseline.json` records human-reviewed upstream versions and Git blob signatures. Review tools report drift but never modify or approve the baseline.
+- Run `scripts/php_runtime_compatibility.sh` manually in isolated PHP profiles for the supported Unraid releases. It syntax-checks every shipped PHP file and runs a request-authority smoke contract without connecting to a server. The retired monitor no longer schedules the PHP profile matrix.
 - Community Applications validation uses the official public portal guidance, starter repository, catalog feed, and canonical template. The authenticated portal Validate/Scan session is never stored in GitHub Actions.
 - The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. It does not connect to live Unraid targets or require live-system repository secrets.
-- The scheduled workflow watchdog checks the most recent successful CodeQL, OpenSSF Scorecard, OSV dependency scan, compatibility, browser-fixture, and clone-traffic jobs. It maintains one deduplicated recovery issue if an expected success is missing, failed, or stale.
+- Review scheduled workflow results directly in GitHub Actions when needed; there is no separate freshness monitor or recovery-issue automation.
 - Follow [Unraid Docker prerelease qualification](unraid-docker-prerelease-qualification.md) before changing native-page safe mode.
 - Audit current and reachable package history with `bash scripts/artifact_history_audit.sh` and `bash scripts/artifact_history_audit.sh --history`.
 - Follow [artifact retention](artifact-retention.md) before any coordinated Git LFS or history migration. History rewriting is intentionally never automated.

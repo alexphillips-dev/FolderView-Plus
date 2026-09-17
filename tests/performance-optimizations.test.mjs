@@ -349,7 +349,7 @@ test('dashboard widget supports nested child folders and constrains expanded tra
     assert.match(dashboardFolderMatchCacheJs, /const sortFolderIdsByPrefs = \(ids,\s*folders,\s*prefs\) =>/);
     assert.match(dashboardJs, /const renderDockerChildren = \(parentId\) =>/);
     assert.match(dashboardJs, /const renderVmChildren = \(parentId\) =>/);
-    assert.match(dashboardJs, /appendTo: `\.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
+    assert.match(dashboardJs, /appendTo: dashboardFolderRenderRecovery\.(?:docker|vm)\.hasFailed\(parentKey\) \? undefined : `\.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
     assert.match(dashboardJs, /const getDashboardCard = \(type, id\) =>/);
     assert.match(dashboardJs, /const card = getDashboardCard\(meta\.type,\s*safeId\);/);
     assert.match(dashboardCss, /\.folder-showcase\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*100%;/);

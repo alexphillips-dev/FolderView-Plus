@@ -4,6 +4,7 @@
         "locale": "pt-BR",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Editar configurações padrão das pastas",
     "settings.search.placeholder": "Configurações de pesquisa",
     "settings.search.label": "Configurações de pesquisa",
     "settings.search.clear-label": "Limpar pesquisa de configurações",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Iniciar pedido",
     "settings.navigation.appearance": "Aparência",
     "settings.recovery.last-scheduled": "Última execução agendada: $1",
-    "settings.recovery.never-scheduled": "Última execução agendada: nunca"
+    "settings.recovery.never-scheduled": "Última execução agendada: nunca",
+    "settings.theme.preset-inherited": "Herdado",
+    "settings.theme.preset-orange": "Laranja",
+    "settings.theme.preset-blue": "Azul",
+    "settings.theme.preset-green": "Verde",
+    "settings.theme.preset-muted": "Tons suaves",
+    "settings.theme.preset-preview-status": "Apenas visualização. Salve a camada de personalização ou salve como um novo perfil para aplicar essas cores.",
+    "settings.theme.profile-name-required": "Insira um nome para o novo perfil de aparência.",
+    "settings.theme.save-as-profile": "Salvar como novo perfil",
+    "settings.theme.profile-saved": "Perfil de aparência salvo.",
+    "settings.theme.presets-title": "Predefinições de cores",
+    "settings.theme.presets-help": "Visualize as cores de destaque e do gráfico para o escopo selecionado. Outras personalizações são preservadas. Salve quando estiver pronto.",
+    "settings.theme.undo-preset": "Desfazer visualização predefinida"
 }

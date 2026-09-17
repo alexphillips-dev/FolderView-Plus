@@ -3,6 +3,29 @@
 if (!class_exists('FVPlusSecurityRequestException')) {
     final class FVPlusSecurityRequestException extends RuntimeException
     {
+        public string $reasonCode;
+
+        public function __construct(string $message, int $statusCode = 403, string $reasonCode = '')
+        {
+            parent::__construct($message, $statusCode);
+            $this->reasonCode = $reasonCode;
+        }
+    }
+}
+
+function fvplus_require_trusted_request_context(): void
+{
+    if (!hasExplicitMutationRequestHeader()) {
+        throw new FVPlusSecurityRequestException('Blocked by request guard.', 403, 'marker-missing');
+    }
+    if (!validateOptionalRequestToken()) {
+        throw new FVPlusSecurityRequestException('Invalid request token.', 403, 'plugin-token-invalid');
+    }
+    if (!isTrustedMutationContext()) {
+        $context = getMutationRequestSecurityDiagnostics();
+        $reason = !in_array($context['originStatus'], ['direct', 'forwarded', 'not-provided'], true)
+            ? 'origin-mismatch' : 'referer-mismatch';
+        throw new FVPlusSecurityRequestException('Blocked by request guard.', 403, $reason);
     }
 }
 
@@ -18,11 +41,9 @@ function requireMutationRequestGuard(): void
     $hasMutationMarker = hasExplicitMutationRequestHeader();
     if ($tokenMode === 'strict') {
         if (getConfiguredRequestToken() === '') {
-            throw new RuntimeException('Request token is unavailable.');
+            throw new FVPlusSecurityRequestException('Request token is unavailable.', 503, 'plugin-token-unavailable');
         }
-        if (!$hasMutationMarker || !validateOptionalRequestToken() || !isTrustedMutationContext()) {
-            throw new RuntimeException('Blocked by request guard.');
-        }
+        fvplus_require_trusted_request_context();
         acquireConfigMutationLock();
         fvplus_enforce_mutation_security_controls();
         $GLOBALS['fvplusMutationGuardComplete'] = true;
@@ -33,7 +54,7 @@ function requireMutationRequestGuard(): void
     $tokenValidated = validateOptionalRequestToken();
     $headerValidated = $hasMutationMarker && ($tokenValidated || !$tokenRequiredForBypass);
     if (!isTrustedMutationContext() && !$headerValidated) {
-        throw new RuntimeException('Blocked by request guard.');
+        throw new FVPlusSecurityRequestException('Blocked by request guard.', 403, 'origin-mismatch');
     }
     acquireConfigMutationLock();
     fvplus_enforce_mutation_security_controls();
@@ -68,7 +89,7 @@ function fvplus_security_with_state_lock(callable $callback)
     $lockPath = fvplus_security_state_lock_path();
     $parent = dirname($path);
     if (!is_dir($parent) && !@mkdir($parent, 0700, true) && !is_dir($parent)) {
-        throw new FVPlusSecurityRequestException('Security request state is unavailable.', 503);
+        throw new FVPlusSecurityRequestException('Security request state is unavailable.', 503, 'security-state-unavailable');
     }
     @chmod($parent, 0700);
     $lock = @fopen($lockPath, 'c+');
@@ -76,7 +97,7 @@ function fvplus_security_with_state_lock(callable $callback)
         if (is_resource($lock)) {
             @fclose($lock);
         }
-        throw new FVPlusSecurityRequestException('Security request state is busy.', 503);
+        throw new FVPlusSecurityRequestException('Security request state is busy.', 503, 'security-state-unavailable');
     }
     @chmod($lockPath, 0600);
 
@@ -95,17 +116,17 @@ function fvplus_security_with_state_lock(callable $callback)
         }
         $encoded = json_encode($state, JSON_UNESCAPED_SLASHES);
         if (!is_string($encoded)) {
-            throw new FVPlusSecurityRequestException('Security request state could not be encoded.', 500);
+            throw new FVPlusSecurityRequestException('Security request state could not be encoded.', 500, 'security-state-unavailable');
         }
         $tmpPath = $path . '.tmp.' . bin2hex(random_bytes(6));
         if (@file_put_contents($tmpPath, $encoded, LOCK_EX) === false) {
             @unlink($tmpPath);
-            throw new FVPlusSecurityRequestException('Security request state could not be written.', 503);
+            throw new FVPlusSecurityRequestException('Security request state could not be written.', 503, 'security-state-unavailable');
         }
         @chmod($tmpPath, 0600);
         if (!@rename($tmpPath, $path)) {
             @unlink($tmpPath);
-            throw new FVPlusSecurityRequestException('Security request state could not be committed.', 503);
+            throw new FVPlusSecurityRequestException('Security request state could not be committed.', 503, 'security-state-unavailable');
         }
         @chmod($path, 0600);
         if ($callbackError instanceof Throwable) {
@@ -206,7 +227,7 @@ function fvplus_security_request_nonce(): string
 function fvplus_security_consume_nonce(array &$state, string $nonce, string $endpoint, string $action, int $now): void
 {
     if (!preg_match('/^[a-f0-9]{64}$/', $nonce)) {
-        throw new FVPlusSecurityRequestException('A valid one-time mutation nonce is required.', 409);
+        throw new FVPlusSecurityRequestException('A valid one-time mutation nonce is required.', 409, 'nonce-invalid');
     }
     $nonceHash = hash('sha256', $nonce);
     $matched = null;
@@ -223,11 +244,11 @@ function fvplus_security_consume_nonce(array &$state, string $nonce, string $end
     }
     $state['nonces'] = $remaining;
     if (!is_array($matched)) {
-        throw new FVPlusSecurityRequestException('Mutation nonce is expired, invalid, or already used.', 409);
+        throw new FVPlusSecurityRequestException('Mutation nonce is expired, invalid, or already used.', 409, 'nonce-stale');
     }
     if (!hash_equals((string)($matched['endpoint'] ?? ''), $endpoint)
         || !hash_equals((string)($matched['action'] ?? ''), $action)) {
-        throw new FVPlusSecurityRequestException('Mutation nonce does not match this operation.', 409);
+        throw new FVPlusSecurityRequestException('Mutation nonce does not match this operation.', 409, 'nonce-target-mismatch');
     }
 }
 
@@ -235,7 +256,7 @@ function fvplus_security_consume_transaction(array &$state, string $transactionI
 {
     $transactionId = normalizeRequestTransactionId($transactionId);
     if ($transactionId === '' || $transactionId === 'tx-fallback') {
-        throw new FVPlusSecurityRequestException('A valid mutation transaction ID is required.', 409);
+        throw new FVPlusSecurityRequestException('A valid mutation transaction ID is required.', 409, 'transaction-invalid');
     }
     $retained = [];
     foreach ($state['transactions'] as $row) {
@@ -243,7 +264,7 @@ function fvplus_security_consume_transaction(array &$state, string $transactionI
             continue;
         }
         if (hash_equals((string)($row['transactionId'] ?? ''), $transactionId)) {
-            throw new FVPlusSecurityRequestException('Duplicate mutation transaction rejected.', 409);
+            throw new FVPlusSecurityRequestException('Duplicate mutation transaction rejected.', 409, 'transaction-replayed');
         }
         $retained[] = $row;
     }
@@ -273,7 +294,7 @@ function fvplus_security_enforce_rate_limit(array &$state, array $contract, int 
             $retryAfter = max(1, ((int)$timestamps[0] + $windowSeconds) - $now);
             header('Retry-After: ' . $retryAfter);
         }
-        throw new FVPlusSecurityRequestException('This operation is temporarily rate limited. Try again shortly.', 429);
+        throw new FVPlusSecurityRequestException('This operation is temporarily rate limited. Try again shortly.', 429, 'rate-limited');
     }
     $timestamps[] = $now;
     $state['rateBuckets'][$bucketKey] = $timestamps;
@@ -343,9 +364,7 @@ function fvplus_require_nonce_bootstrap_guard(): void
     if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
         throw new FVPlusSecurityRequestException('Unsupported method.', 405);
     }
-    if (!hasExplicitMutationRequestHeader() || !validateOptionalRequestToken() || !isTrustedMutationContext()) {
-        throw new FVPlusSecurityRequestException('Blocked by request guard.', 403);
-    }
+    fvplus_require_trusted_request_context();
     $contract = fvplus_security_current_contract();
     $now = time();
     fvplus_security_with_state_lock(static function (array &$state) use ($contract, $now): void {

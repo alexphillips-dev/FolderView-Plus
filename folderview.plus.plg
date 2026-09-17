@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.14.01">
-<!ENTITY md5 "b5ad06c15ff0e7b6b00350630ee15fc3">
-<!ENTITY sha256 "8f4b33f07655ea31ab5055a1bd2f744ef3835ed67ed1f06d83613b224e477e79">
+<!ENTITY version "2026.09.17.05">
+<!ENTITY md5 "c5a97eeccc77c730604898990459810b">
+<!ENTITY sha256 "1304baedd108f4d8d9ea9f16aea7a3cad6998b34fb9ee49894ef2b93e213e84c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,76 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.05
+- Fix: Keep parent and ancestor folders open when expanding nested Docker or VM folders in the Dashboard's Accordion layout. Sibling folders still collapse as expected, and saved expansion states keep nested folders visible after a page refresh.
+
+
+###2026.09.17.04
+- Maintenance: Synchronize the dev channel with stable 2026.09.17.03, including the complete folder, Dashboard, upload, diagnostics, migration, appearance, and localization improvements.
+- Reliability: Rebuild the dev archive with deterministic compression so Windows and Linux produce identical package bytes. Saved settings and runtime behavior are unchanged from the stable release.
+
+
+###2026.09.17.03
+- UX: Add Edit folder defaults links for Docker and VMs. Edit saved defaults, including imported FolderView3 profiles, without creating a source folder; future folders inherit the profile while existing folders remain unchanged unless Apply to all is explicitly used.
+- Fix: Preserve mixed positions of Docker folders and standalone containers after refresh. Manual and automatic folder sorting operate within saved folder slots; new folders without a saved position initially appear at the top.
+- Fix: Keep mouse-hover previews available on computers that also have a touchscreen, while preserving tap/click access on touch-only devices.
+- Fix: Apply Grayscale stopped icons to both icon-and-label and icon-only Docker previews. Running members retain color unless the separate all-icons grayscale option is enabled.
+- Fix: Let Dashboard card layouts fill their available widget or grid width despite native fixed-width tile styling, including narrow screens and nested folders.
+- Reliability: Recover custom icon uploads through the supported inline upload path when the multipart request returns an empty JSON response. Ordinary upload errors are not retried, and a failed recovery still reports an error.
+- Reliability: Isolate individual folder rendering failures on Docker, VMs, and Dashboard so other folders continue loading and native container/VM controls remain accessible. A localized warning links to affected folder settings without changing saved configuration or expansion preferences; healthy Dashboard children can appear at the top level when their parent cannot render.
+- Diagnostics: Show affected folder names and missing Docker/VM member references in System Health automatically and after a health check. Delayed history refreshes no longer replace newer findings or repair results. Technical details list up to 30 missing members per folder and report additional references.
+- Fix: Repair missing Docker and VM references independently. Each repair affects only the selected type, backs up changed configuration, and reports the removed-reference count without deleting containers or VMs. Requests without a valid type are rejected.
+- UI/UX: Prevent health-card titles, badges, timestamps, details, and repair buttons from overlapping or clipping at narrow widths and with longer translated text.
+- Diagnostics: Explain protected-save failures with localized recovery guidance and copyable support codes for missing page security information, nonce preparation, rejected Unraid session checks, and proxy origin mismatches. Request protections remain enabled.
+- Privacy: Retain a bounded, sanitized request-failure history across navigation in the same browser tab, including failure phase and reason without submitted values, raw responses, addresses, or credentials. On-screen diagnostic findings can show names while support previews and exports remain sanitized by default.
+- Fix: Preserve FolderView3 Docker and VM folder order when valid saved order snapshots are available. Migration previews explain invalid snapshots, skipped references, and unassigned native items whose positions cannot be imported; absent or invalid snapshots fall back to configuration order.
+- Compatibility: Preserve imported theme page scopes, including CSS targeting multiple pages. Disabled themes become separate inactive appearance profiles. Imported profiles remain inactive until selected, and previews explain excluded CSS and source metadata that does not enable managed updates automatically.
+- UX: Add Inherited, Orange, Blue, Green, and Muted appearance preset previews, Undo preset preview, and Save as new profile. Presets retain unrelated customizations and apply only after an explicit save; saving a copy preserves the original profile. Remove the redundant Manage folders below shortcut row from Basic Settings.
+- Localization: Complete the reported activity, navigation, privacy, health, Recovery, Operations, Start Order, Appearance, support-preview, migration, defaults, and repair wording across all 27 languages. Correct German action labels and ambiguous History/Clear translations; late-loading Docker/VM translations update without replacing controls or losing focus.
+- Accessibility: Allow support-preview badges and Appearance action groups to wrap in narrow Settings panels and on smartphones. Saved folder/profile names, backup identifiers, and configuration values remain unchanged by translation updates.
+- Maintenance: Retire the scheduled Unraid compatibility monitor and workflow-health watchdog that created recurring GitHub issues. Explicit manual compatibility tools remain available; weekly isolated browser validation and security scans continue.
+- Quality: Refresh dependency/security validation tooling and expand isolated regression coverage for migration, request security, diagnostics, localization, folder rendering, defaults, ordering, Dashboard geometry, and upload recovery.
+- Reliability: Make release archive compression deterministic across Windows and Linux build environments so published packages pass the same reproducibility checks.
+- Docs: Update the Wiki and troubleshooting guidance for the complete stable release, including defaults editing, scoped repairs, migration limits, appearance presets, upload recovery, and manual compatibility review.
+- Compatibility: This release includes changes since stable 2026.09.03.02. Normal updates preserve saved configuration. Hard-refresh Settings, Docker, VMs, Dashboard, and the folder editor after updating to load the new scripts, styles, and language catalogs.
+
+
+###2026.09.17.02
+- Localization: Give the Edit folder defaults links an explicit translation key while preserving the existing wording in all 27 supported locales.
+- Quality: Resolve the stable-release localization guard failure without increasing its legacy-message limit or changing defaults behavior.
+
+
+###2026.09.17.01
+- UX: Add a direct Edit folder defaults link to Docker and VM settings. Open and change saved defaults, including imported FolderView3 profiles, without creating a source folder or changing existing folders.
+- Fix: Keep mouse-hover previews available on computers that also have a touchscreen, while retaining click activation on touch-only devices.
+- Fix: Apply Grayscale stopped icons to both icon-and-label and icon-only Docker previews, keeping running members in color unless the separate all-icons grayscale option is enabled.
+- Fix: Preserve saved mixed positions of Docker folders and standalone containers after refresh. Folder sorting still orders folders within their available slots; new folders without a saved position initially appear at the top.
+- Fix: Make Dashboard card layouts fill their available widget or grid width when Unraid's native app tiles impose fixed widths, including narrow screens and nested folders.
+- Reliability: Retry a custom icon upload through the supported inline upload path when the server returns an empty JSON response. Ordinary upload errors are not retried, and an unsuccessful retry still reports the error.
+- Localization: Translate the new defaults-editor link across all supported locales and retain localized defaults controls.
+
+
+###2026.09.15.03
+- Fix: A folder that fails to display no longer stops other folders from loading on Docker, VMs, or the Dashboard. Native container and VM rows remain accessible, and unfinished folder UI is removed.
+- UX: A localized warning identifies affected folders and provides links to review their settings. Reloading after a successful render clears the warning.
+- Compatibility: Render recovery preserves saved folder configuration and expansion preferences. Healthy Dashboard child folders can appear at the top level when their parent cannot be displayed.
+
+
+###2026.09.15.02
+- UI/UX: Remove the "Manage folders below" message and its four shortcut buttons from the top of Settings.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings header.
+
+
+###2026.09.15.01
+- Fix: Protected save failures now identify missing page security information, nonce preparation failures, rejected Unraid session checks, and proxy origin mismatches, with localized recovery guidance and a copyable support code.
+- Diagnostics: Keep a bounded, sanitized history of request failures through navigation to Diagnostics in the same browser tab. Support bundles include the failure phase and reason without submitted values, addresses, raw responses, or credentials.
+- Fix: Preserve saved FolderView3 Docker and VM folder order when a valid order snapshot is available. Preview warnings explain invalid snapshots, skipped references, and unassigned items whose native page positions cannot be imported.
+- Compatibility: Preserve custom theme page scopes, including styles targeting multiple pages. Disabled themes become separate inactive appearance profiles; previews explain unsupported source metadata and CSS compatibility limits.
+- UI/UX: Add Basic Settings shortcuts for Docker folders, VM folders, Appearance, and Recovery, plus color preset previews, undo, and Save as new profile. Presets retain other customizations and apply only after an explicit save.
+- Localization: Translate the new guidance and controls across all 27 supported languages, including reviewed color and navigation terminology.
+- Compatibility: Request guards remain enabled, imported themes remain inactive until selected, and existing appearance profiles are preserved when saving a copy. Hard-refresh the Unraid webGUI after updating.
+
 
 ###2026.09.14.01
 - Fix: Docker and VM labels rendered while language catalogs are loading now update when translations become available, preserving existing controls and keyboard focus.

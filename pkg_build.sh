@@ -660,7 +660,8 @@ if ! tar --sort=name \
     --group=0 \
     --numeric-owner \
     --mode=0755 \
-    -cJf "$filename" ./*; then
+    --use-compress-program='xz --threads=1' \
+    -cf "$filename" ./*; then
     tar_status=$?
 fi
 

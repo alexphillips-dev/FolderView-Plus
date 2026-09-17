@@ -4,6 +4,7 @@
         "locale": "ro",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Editează setările implicite ale dosarelor",
     "settings.search.placeholder": "Setări de căutare",
     "settings.search.label": "Setări de căutare",
     "settings.search.clear-label": "Curăță căutarea setărilor",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Începe comanda",
     "settings.navigation.appearance": "Aspectul",
     "settings.recovery.last-scheduled": "Ultima rulare programată: $1",
-    "settings.recovery.never-scheduled": "Ultima rulare programată: niciodată"
+    "settings.recovery.never-scheduled": "Ultima rulare programată: niciodată",
+    "settings.theme.preset-inherited": "Moștenit",
+    "settings.theme.preset-orange": "Portocaliu",
+    "settings.theme.preset-blue": "Albastru",
+    "settings.theme.preset-green": "verde",
+    "settings.theme.preset-muted": "Culori discrete",
+    "settings.theme.preset-preview-status": "Doar previzualizare. Salvați stratul de personalizare sau salvați ca profil nou pentru a aplica aceste culori.",
+    "settings.theme.profile-name-required": "Introduceți un nume pentru noul profil de aspect.",
+    "settings.theme.save-as-profile": "Salvați ca profil nou",
+    "settings.theme.profile-saved": "Profilul aspectului a fost salvat.",
+    "settings.theme.presets-title": "Presetări de culoare",
+    "settings.theme.presets-help": "Previzualizează culorile de accent și grafic pentru domeniul selectat. Alte personalizări sunt păstrate. Salvați când este gata.",
+    "settings.theme.undo-preset": "Anulați previzualizarea presetată"
 }

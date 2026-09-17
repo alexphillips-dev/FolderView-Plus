@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "正在檢查FolderView3設定...",
     "import.folderview3.inspecting-help": "當存在自訂樣式時，此唯讀預覽可能需要一些時間。",
     "import.folderview3.confirm-apply": "替換目前的FolderView Plus Docker 資料夾、VM 資料夾、相容設定、啟動順序所有權和主題工作區設定檔資料？首先將建立回滾檢查點和每種型別的備份。",
-    "import.folderview3.confirm-native-suffix": "本機 Docker 自動啟動啟用和等待也將被取代。"
+    "import.folderview3.confirm-native-suffix": "本機 Docker 自動啟動啟用和等待也將被取代。",
+    "import.folderview3.order-invalid": "FolderView3訂單快照無效；使用了資料夾配置順序。",
+    "import.folderview3.order-duplicates": "重複的FolderView3訂單條目被忽略。",
+    "import.folderview3.order-unknown": "FolderView3 訂單快照中的未知資料夾參考被忽略。",
+    "import.folderview3.order-unassigned": "保留資料夾順序； Unraid頁面中未分配專案的位置不會被匯入。",
+    "import.folderview3.theme-source": "主題源元資料未轉換為託管更新。掃描原始主題來源以管理未來的更新。",
+    "import.folderview3.theme-unscoped": "不具有可識別的FolderView3頁面範圍的自訂樣式被排除。",
+    "import.folderview3.theme-disabled": "停用的主題被保留為單獨的非活動外觀設定檔；它們不包含在主要匯入的設定檔中。",
+    "import.folderview3.theme-compatibility": "匯入的CSS可能使用FolderView3選擇器或與FolderView Plus不同的變數。啟動前預覽每個外觀設定檔。",
+    "import.folderview3.order-imported": "進口",
+    "import.folderview3.order-fallback": "配置順序",
+    "import.folderview3.order-empty": "沒有儲存的訂單",
+    "import.folderview3.order-invalid-status": "快照無效；配置順序",
+    "import.folderview3.appearance-profiles": "新增非活動的FolderView3外觀設定檔案",
+    "import.folderview3.order-summary": "已儲存的資料夾順序：Docker $1； VM $2。",
+    "import.folderview3.disabled-profile-count": "停用主題的單獨設定檔：$1。"
 }

@@ -15,5 +15,16 @@
     "common.state.ready": "Klar",
     "common.actions.clear": "Tøm",
     "common.state.all-good": "alt bra",
-    "common.health.folder-summary": "Mappehelse: $1 startet | $2 satt på pause | $3 stoppet"
+    "common.health.folder-summary": "Mappehelse: $1 startet | $2 satt på pause | $3 stoppet",
+    "common.folder-render.title": "Noen mapper kunne ikke vises.",
+    "common.folder-render.help": "Containere og virtuelle maskiner er fortsatt tilgjengelige. Se gjennom de berørte mappene i Innstillinger, og last deretter inn denne siden på nytt.",
+    "common.folder-render.review": "Se gjennom mappen",
+    "common.folder-render.all": "Gå gjennom alle mappene i Innstillinger",
+    "request.failure.refresh": "Sidens sikkerhetsinformasjon mangler eller er utløpt. Oppdater Unraid webGUI, og prøv deretter endringen på nytt.",
+    "request.failure.session": "Unraid avviste øktens sikkerhetssjekk. Oppdater webGUI og logg på igjen hvis du blir bedt om det, og prøv deretter endringen på nytt.",
+    "request.failure.origin": "Sideadressen samsvarer ikke med serverforespørselen. Hvis du bruker en omvendt proxy, prøv direkte Unraid-tilgang og sjekk proxy-overskriftene.",
+    "request.failure.marker": "Forespørselssikkerhetsmarkøren nådde ikke programtillegget. Hard-refresh webGUI; Hvis dette fortsetter, sjekk nettleserutvidelser eller proxy-filtrering.",
+    "request.failure.state": "Programtillegget kunne ikke forberede sikre endringer. Sjekk plugin-loggene og eksporter en desinfisert støttepakke.",
+    "request.failure.guard": "Programtillegget avviste denne endringen. Oppdater webGUI og sjekk om det allerede er brukt før du prøver igjen. Inkluder denne støttekoden hvis problemet vedvarer.",
+    "request.failure.support-code": "Støttekode: $1"
 }

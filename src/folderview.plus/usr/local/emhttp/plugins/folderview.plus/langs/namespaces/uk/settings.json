@@ -4,6 +4,7 @@
         "locale": "uk",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Змінити типові налаштування папок",
     "settings.search.placeholder": "Налаштування пошуку",
     "settings.search.label": "Налаштування пошуку",
     "settings.search.clear-label": "Очистити пошук у налаштуваннях",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Почати замовлення",
     "settings.navigation.appearance": "Зовнішній вигляд",
     "settings.recovery.last-scheduled": "Останній запланований запуск: $1",
-    "settings.recovery.never-scheduled": "Останній запланований запуск: ніколи"
+    "settings.recovery.never-scheduled": "Останній запланований запуск: ніколи",
+    "settings.theme.preset-inherited": "У спадок",
+    "settings.theme.preset-orange": "Помаранчевий",
+    "settings.theme.preset-blue": "Синій",
+    "settings.theme.preset-green": "Зелений",
+    "settings.theme.preset-muted": "Приглушені кольори",
+    "settings.theme.preset-preview-status": "Тільки попередній перегляд. Збережіть шар налаштування або збережіть як новий профіль, щоб застосувати ці кольори.",
+    "settings.theme.profile-name-required": "Введіть назву для нового профілю зовнішнього вигляду.",
+    "settings.theme.save-as-profile": "Зберегти як новий профіль",
+    "settings.theme.profile-saved": "Профіль зовнішнього вигляду збережено.",
+    "settings.theme.presets-title": "Попередні налаштування кольорів",
+    "settings.theme.presets-help": "Попередній перегляд акцентів і кольорів графіка для вибраного діапазону. Інші налаштування збережено. Збережіть, коли будете готові.",
+    "settings.theme.undo-preset": "Скасувати попередній перегляд"
 }

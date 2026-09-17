@@ -4,6 +4,7 @@
         "locale": "tr",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Klasör varsayılanlarını düzenle",
     "settings.search.placeholder": "Arama ayarları",
     "settings.search.label": "Arama ayarları",
     "settings.search.clear-label": "Ayarları aramayı temizle",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Siparişi Başlat",
     "settings.navigation.appearance": "Görünüm",
     "settings.recovery.last-scheduled": "Son planlanan çalıştırma: $1",
-    "settings.recovery.never-scheduled": "Son planlanan çalıştırma: asla"
+    "settings.recovery.never-scheduled": "Son planlanan çalıştırma: asla",
+    "settings.theme.preset-inherited": "Devralınan",
+    "settings.theme.preset-orange": "Turuncu",
+    "settings.theme.preset-blue": "Mavi",
+    "settings.theme.preset-green": "Yeşil",
+    "settings.theme.preset-muted": "Yumuşak renkler",
+    "settings.theme.preset-preview-status": "Yalnızca önizleme. Bu renkleri uygulamak için özelleştirme katmanını kaydedin veya yeni bir profil olarak kaydedin.",
+    "settings.theme.profile-name-required": "Yeni görünüm profili için bir ad girin.",
+    "settings.theme.save-as-profile": "Yeni profil olarak kaydet",
+    "settings.theme.profile-saved": "Görünüm profili kaydedildi.",
+    "settings.theme.presets-title": "Renk ön ayarları",
+    "settings.theme.presets-help": "Seçilen kapsam için vurgu ve grafik renklerini önizleyin. Diğer özelleştirmeler korunur. Hazır olduğunuzda kaydedin.",
+    "settings.theme.undo-preset": "Ön ayarlı önizlemeyi geri al"
 }

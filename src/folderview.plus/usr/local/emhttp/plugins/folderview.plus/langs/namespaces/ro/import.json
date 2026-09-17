@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Se inspectează configurația FolderView3...",
     "import.folderview3.inspecting-help": "Această previzualizare numai în citire poate dura un moment când sunt prezente stiluri personalizate.",
     "import.folderview3.confirm-apply": "Înlocuiți folderele actuale FolderView Plus Docker, folderele VM, setările compatibile, proprietatea la începutul comenzii și datele profilului Theme Workspace? Mai întâi vor fi create un punct de control pentru derulare înapoi și copii de rezervă pentru fiecare tip.",
-    "import.folderview3.confirm-native-suffix": "Activarea pornirii automate Native Docker și așteptările vor fi, de asemenea, înlocuite."
+    "import.folderview3.confirm-native-suffix": "Activarea pornirii automate Native Docker și așteptările vor fi, de asemenea, înlocuite.",
+    "import.folderview3.order-invalid": "Un instantaneu al comenzii FolderView3 este nevalid; a fost folosită ordinea de configurare a folderului.",
+    "import.folderview3.order-duplicates": "Intrările de comandă FolderView3 duplicate au fost ignorate.",
+    "import.folderview3.order-unknown": "Referințele necunoscute ale folderelor din instantaneele comenzii FolderView3 au fost ignorate.",
+    "import.folderview3.order-unassigned": "Ordinea folderelor este păstrată; pozițiile articolelor nealocate din pagina Unraid nu sunt importate.",
+    "import.folderview3.theme-source": "Metadatele sursei temei nu au fost convertite în actualizări gestionate. Scanați sursa temei originale pentru a gestiona actualizările viitoare.",
+    "import.folderview3.theme-unscoped": "Stilurile personalizate fără un domeniu de pagină FolderView3 recunoscut au fost excluse.",
+    "import.folderview3.theme-disabled": "Temele dezactivate au fost păstrate ca profiluri separate de aspect inactiv; nu sunt incluse în profilul principal importat.",
+    "import.folderview3.theme-compatibility": "CSS importat poate folosi selectori FolderView3 sau variabile care diferă în FolderView Plus. Previzualizează fiecare profil de apariție înainte de activare.",
+    "import.folderview3.order-imported": "Importat",
+    "import.folderview3.order-fallback": "Ordinea de configurare",
+    "import.folderview3.order-empty": "Nicio comandă salvată",
+    "import.folderview3.order-invalid-status": "Instantaneu nevalid; ordinea de configurare",
+    "import.folderview3.appearance-profiles": "Adăugați profiluri de aspect FolderView3 inactive",
+    "import.folderview3.order-summary": "Ordinea folderului salvat: Docker $1; VM-uri $2.",
+    "import.folderview3.disabled-profile-count": "Profiluri separate pentru temele dezactivate: $1."
 }

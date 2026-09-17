@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Inspecionando a configuração do FolderView3...",
     "import.folderview3.inspecting-help": "Esta visualização somente leitura pode demorar um pouco quando estilos personalizados estiverem presentes.",
     "import.folderview3.confirm-apply": "Substituir as pastas atuais do FolderView Plus Docker, pastas VM, configurações compatíveis, propriedade da ordem de início e dados de perfil do Theme Workspace? Um ponto de verificação de reversão e backups por tipo serão criados primeiro.",
-    "import.folderview3.confirm-native-suffix": "A ativação e espera de inicialização automática nativa do Docker também serão substituídas."
+    "import.folderview3.confirm-native-suffix": "A ativação e espera de inicialização automática nativa do Docker também serão substituídas.",
+    "import.folderview3.order-invalid": "Um instantâneo do pedido FolderView3 é inválido; a ordem de configuração da pasta foi usada.",
+    "import.folderview3.order-duplicates": "Entradas duplicadas de pedidos do FolderView3 foram ignoradas.",
+    "import.folderview3.order-unknown": "As referências de pasta desconhecidas nos instantâneos do pedido FolderView3 foram ignoradas.",
+    "import.folderview3.order-unassigned": "A ordem das pastas é preservada; posições de itens não atribuídos na página Unraid não são importadas.",
+    "import.folderview3.theme-source": "Os metadados de origem do tema não foram convertidos em atualizações gerenciadas. Digitalize a fonte original do tema para gerenciar atualizações futuras.",
+    "import.folderview3.theme-unscoped": "Os estilos personalizados sem um escopo de página FolderView3 reconhecido foram excluídos.",
+    "import.folderview3.theme-disabled": "Os temas desativados foram preservados como perfis de aparência inativos separados; eles não estão incluídos no perfil principal importado.",
+    "import.folderview3.theme-compatibility": "CSS importado pode usar seletores ou variáveis FolderView3 que diferem no FolderView Plus. Visualize cada perfil de aparência antes da ativação.",
+    "import.folderview3.order-imported": "Importado",
+    "import.folderview3.order-fallback": "Ordem de configuração",
+    "import.folderview3.order-empty": "Nenhum pedido salvo",
+    "import.folderview3.order-invalid-status": "Instantâneo inválido; ordem de configuração",
+    "import.folderview3.appearance-profiles": "Adicionar perfis de aparência FolderView3 inativos",
+    "import.folderview3.order-summary": "Ordem das pastas salvas: Docker $1; VMs $2.",
+    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1."
 }

@@ -182,6 +182,7 @@
                 return false;
             }
             return message.includes('empty response')
+                || /json response .* was empty/.test(message)
                 || message.includes('invalid json')
                 || message.includes('unexpected');
         };

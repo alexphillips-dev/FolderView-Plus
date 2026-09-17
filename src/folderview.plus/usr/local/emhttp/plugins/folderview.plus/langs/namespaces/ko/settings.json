@@ -4,6 +4,7 @@
         "locale": "ko",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "폴더 기본 설정 편집",
     "settings.search.placeholder": "검색 설정",
     "settings.search.label": "검색 설정",
     "settings.search.clear-label": "설정 검색 지우기",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "시작 주문",
     "settings.navigation.appearance": "외관",
     "settings.recovery.last-scheduled": "마지막 예약 실행: $1",
-    "settings.recovery.never-scheduled": "마지막 예약 실행: 없음"
+    "settings.recovery.never-scheduled": "마지막 예약 실행: 없음",
+    "settings.theme.preset-inherited": "상속됨",
+    "settings.theme.preset-orange": "오렌지",
+    "settings.theme.preset-blue": "블루",
+    "settings.theme.preset-green": "녹색",
+    "settings.theme.preset-muted": "차분한 색상",
+    "settings.theme.preset-preview-status": "미리보기만 가능합니다. 이러한 색상을 적용하려면 사용자 정의 레이어를 저장하거나 새 프로필로 저장하세요.",
+    "settings.theme.profile-name-required": "새 모양새 프로파일의 이름을 입력합니다.",
+    "settings.theme.save-as-profile": "새 프로필로 저장",
+    "settings.theme.profile-saved": "외모 프로필이 저장되었습니다.",
+    "settings.theme.presets-title": "색상 사전 설정",
+    "settings.theme.presets-help": "선택한 범위에 대한 강조 및 그래프 색상을 미리 봅니다. 다른 사용자 정의는 유지됩니다. 준비되면 저장하세요.",
+    "settings.theme.undo-preset": "사전 설정 미리보기 실행 취소"
 }

@@ -4,6 +4,7 @@
         "locale": "da",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Rediger standardindstillinger for mapper",
     "settings.search.placeholder": "Søgeindstillinger",
     "settings.search.label": "Søgeindstillinger",
     "settings.search.clear-label": "Ryd indstillingssøgning",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Start ordre",
     "settings.navigation.appearance": "Udseende",
     "settings.recovery.last-scheduled": "Sidste planlagte kørsel: $1",
-    "settings.recovery.never-scheduled": "Sidste planlagte løb: aldrig"
+    "settings.recovery.never-scheduled": "Sidste planlagte løb: aldrig",
+    "settings.theme.preset-inherited": "Nedarvet",
+    "settings.theme.preset-orange": "Orange",
+    "settings.theme.preset-blue": "Blå",
+    "settings.theme.preset-green": "Grøn",
+    "settings.theme.preset-muted": "Dæmpede farver",
+    "settings.theme.preset-preview-status": "Kun forhåndsvisning. Gem tilpasningslaget eller gem som en ny profil for at anvende disse farver.",
+    "settings.theme.profile-name-required": "Indtast et navn til den nye udseendeprofil.",
+    "settings.theme.save-as-profile": "Gem som ny profil",
+    "settings.theme.profile-saved": "Udseendeprofil gemt.",
+    "settings.theme.presets-title": "Farve forudindstillinger",
+    "settings.theme.presets-help": "Se forhåndsvisning af accent- og graffarver for det valgte omfang. Andre tilpasninger er bevaret. Gem når du er klar.",
+    "settings.theme.undo-preset": "Fortryd forudindstillet forhåndsvisning"
 }

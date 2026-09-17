@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "FolderView3 কনফিগারেশন পরিদর্শন করা হচ্ছে...",
     "import.folderview3.inspecting-help": "কাস্টম শৈলী উপস্থিত হলে এই শুধুমাত্র-পঠন পূর্বরূপ কিছু সময় নিতে পারে।",
     "import.folderview3.confirm-apply": "বর্তমান ফোল্ডার ভিউ প্লাস ডকার ফোল্ডার, ভিএম ফোল্ডার, সামঞ্জস্যপূর্ণ সেটিংস, স্টার্ট-অর্ডার মালিকানা এবং থিম ওয়ার্কস্পেস প্রোফাইল ডেটা প্রতিস্থাপন করবেন? একটি রোলব্যাক চেকপয়েন্ট এবং প্রতি-টাইপ ব্যাকআপগুলি প্রথমে তৈরি করা হবে৷",
-    "import.folderview3.confirm-native-suffix": "নেটিভ ডকার অটোস্টার্ট সক্ষমতা এবং অপেক্ষাও প্রতিস্থাপন করা হবে।"
+    "import.folderview3.confirm-native-suffix": "নেটিভ ডকার অটোস্টার্ট সক্ষমতা এবং অপেক্ষাও প্রতিস্থাপন করা হবে।",
+    "import.folderview3.order-invalid": "একটি FolderView3 অর্ডার স্ন্যাপশট অবৈধ; ফোল্ডার কনফিগারেশন অর্ডার ব্যবহার করা হয়েছিল।",
+    "import.folderview3.order-duplicates": "ডুপ্লিকেট FolderView3 অর্ডার এন্ট্রি উপেক্ষা করা হয়েছে.",
+    "import.folderview3.order-unknown": "FolderView3 অর্ডার স্ন্যাপশটে অজানা ফোল্ডার রেফারেন্স উপেক্ষা করা হয়েছে।",
+    "import.folderview3.order-unassigned": "ফোল্ডার অর্ডার সংরক্ষিত হয়; Unraid পৃষ্ঠায় আনঅ্যাসাইন করা আইটেমগুলির অবস্থান আমদানি করা হয় না।",
+    "import.folderview3.theme-source": "থিম সোর্স মেটাডেটা পরিচালিত আপডেটে রূপান্তরিত হয়নি। ভবিষ্যতের আপডেটগুলি পরিচালনা করতে মূল থিম উত্সটি স্ক্যান করুন৷",
+    "import.folderview3.theme-unscoped": "একটি স্বীকৃত FolderView3 পৃষ্ঠার সুযোগ ছাড়া কাস্টম শৈলী বাদ দেওয়া হয়েছে।",
+    "import.folderview3.theme-disabled": "অক্ষম থিম পৃথক নিষ্ক্রিয় চেহারা প্রোফাইল হিসাবে সংরক্ষিত ছিল; তারা প্রধান আমদানি করা প্রোফাইলে অন্তর্ভুক্ত নয়।",
+    "import.folderview3.theme-compatibility": "আমদানি করা CSS FolderView3 নির্বাচক বা ভেরিয়েবল ব্যবহার করতে পারে যা FolderView Plus-এ আলাদা। সক্রিয়করণের আগে প্রতিটি উপস্থিতি প্রোফাইলের পূর্বরূপ দেখুন।",
+    "import.folderview3.order-imported": "আমদানিকৃত",
+    "import.folderview3.order-fallback": "কনফিগারেশন অর্ডার",
+    "import.folderview3.order-empty": "কোন সংরক্ষিত আদেশ",
+    "import.folderview3.order-invalid-status": "অবৈধ স্ন্যাপশট; কনফিগারেশন অর্ডার",
+    "import.folderview3.appearance-profiles": "নিষ্ক্রিয় FolderView3 উপস্থিতি প্রোফাইল যোগ করুন",
+    "import.folderview3.order-summary": "সংরক্ষিত ফোল্ডার অর্ডার: ডকার $1; VMs $2।",
+    "import.folderview3.disabled-profile-count": "অক্ষম থিমগুলির জন্য পৃথক প্রোফাইলগুলি: $1৷"
 }

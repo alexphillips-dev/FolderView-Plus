@@ -2008,7 +2008,7 @@ const scrollToSectionKey = (key) => {
     }
     settingsUiState.activeSectionKey = key;
     syncSectionJumpOptions();
-    section.heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    section.heading.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth', block: 'start' });
 };
 
 const setSettingsMode = (mode, { persistServer = false } = {}) => {

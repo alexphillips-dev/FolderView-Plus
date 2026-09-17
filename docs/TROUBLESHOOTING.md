@@ -4,6 +4,12 @@ Use this when the root README quick fixes are not enough.
 
 ## Common Issues
 
+### Some Folders Could Not Be Displayed
+
+If an individual folder fails while rendering, FolderView Plus restores its native container or VM rows and continues displaying healthy folders. On the Dashboard, healthy child folders can appear at the top level when their parent cannot be displayed.
+
+Use **Review folder** in the warning to open the affected folder's settings, then reload the page. Saved folder configuration and expansion preferences are retained. If the warning returns, export a sanitized support bundle from **Settings > FolderView Plus > Diagnostics** and describe which page and action triggered it.
+
 ### Settings Page Is Blank
 
 FolderView Plus keeps a small startup shell active until its required Settings modules and saved state are ready. If startup fails, the shell stops and a critical error card identifies the failed phase and provides a stable reference code.
@@ -82,6 +88,17 @@ support bundle through the failing proxy URL. The
 `system.requestSecurity` section reports privacy-safe origin and forwarded
 authority reason codes without recording the hostname, IP address, or raw
 header values. See [Request security and abuse controls](security/REQUEST_SECURITY.md#reverse-proxies).
+
+### Save fails with a request support code
+
+Protected changes now distinguish page security setup, nonce preparation, and the final save request. When a known security check fails, the dialog gives a recovery step and a code such as `FVPLUS/nonce/origin-mismatch` or `FVPLUS/request/csrf-invalid`.
+
+- For missing or expired page security information, refresh the webGUI and retry the change.
+- For an Unraid session security failure, refresh and sign in again if prompted.
+- For an origin or referer mismatch, compare direct Unraid access with the proxy path and check the headers described above.
+- For unavailable security state, inspect the plugin logs and export a sanitized support bundle.
+
+Do not repeatedly submit an uncertain change: check whether it already applied before retrying. Request guards remain enabled, and failed mutations are not automatically retried. The browser keeps up to 20 sanitized failures for 24 hours in the current tab session, including navigation to Diagnostics. Support bundles include the request phase, endpoint name, HTTP status, source, and reason code in the browser client-storage diagnostics; submitted values, raw responses, addresses, and credentials are excluded. Storage restrictions can prevent history from surviving navigation, but do not block saving.
 
 ### Import Fails Validation
 
@@ -206,6 +223,15 @@ It also includes bounded Dashboard visual-layout snapshots. Its troubleshooting-
 Share the full export only if you intentionally need raw troubleshooting fields.
 
 Runtime privacy masking and support-bundle sanitization are separate systems. Enabling Privacy does not sanitize a configuration export, and disabling Privacy does not make a sanitized support bundle raw. See [Privacy Guide](PRIVACY.md).
+
+## Defaults, previews, ordering, and icon uploads
+
+- Open **Edit folder defaults** under Docker or VMs in Settings to change the profile inherited by new folders. Existing folders retain their settings unless **Apply to all** is explicitly selected.
+- For an advanced Docker popup on hover, set **Preview Context -> Advanced** and **Activation mode -> Hover**. **Show preview only on hover** is a separate visibility setting. Mouse hover remains available on touchscreen computers with a fine pointer; touch-only devices use click/tap.
+- To gray only stopped Docker member icons, choose **Preview status -> Grayscale stopped icons** and leave **Preview icon grayscale** off. Both **Icon and label** and **Only icon (clean)** previews support status-based grayscale.
+- Mixed Docker folder/container positions should survive refresh. Folder sorting changes folders within their saved slots; new folders initially appear at the top until positioned. FolderView3 migration does not import unassigned native-item positions.
+- Fullwidth, Accordion, Inset, and Embossed Dashboard cards fill the available widget width; Compact Matrix cards fill their grid slots. Classic and Legacy retain native tile presentation. Capture layout diagnostics on the affected page before exporting a sanitized bundle.
+- An empty JSON response during custom-icon upload triggers one attempt through the supported inline upload path. If recovery also fails, record the exact error and HTTP response status for `upload_custom_icon.php`, and export a sanitized bundle. Do not include cookies or authentication headers.
 
 ## Paths
 

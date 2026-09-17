@@ -35,6 +35,57 @@
     grid-column: 1 / -1;
 }
 
+#fv-settings-root .fv-theme-preset-panel {
+    padding: 0.8rem;
+    margin-block: 0.6rem 1rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-muted);
+    color: var(--fvplus-settings-text-muted);
+}
+
+#fv-settings-root .fv-theme-preset-controls,
+#fv-settings-root .fv-theme-preset-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-block-start: 0.7rem;
+}
+
+#fv-settings-root .fv-theme-preset-panel button {
+    min-height: 44px;
+    max-width: 100%;
+    margin: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#fv-settings-root [data-fv-theme-preset][aria-pressed="true"] {
+    border-color: var(--fvplus-settings-accent);
+    box-shadow: inset 0 0 0 1px var(--fvplus-settings-accent);
+}
+
+#fv-settings-root .fv-theme-preset-panel button:focus-visible {
+    outline: 2px solid var(--fvplus-settings-accent);
+    outline-offset: 3px;
+}
+
+#fv-settings-root .fv-theme-preset-swatch {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-inline-end: 0.5em;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    vertical-align: middle;
+    background: var(--fvplus-settings-accent);
+}
+
+#fv-settings-root [data-fv-theme-preset="orange"] .fv-theme-preset-swatch { background: #f97316; }
+#fv-settings-root [data-fv-theme-preset="blue"] .fv-theme-preset-swatch { background: #3b82f6; }
+#fv-settings-root [data-fv-theme-preset="green"] .fv-theme-preset-swatch { background: #22c55e; }
+#fv-settings-root [data-fv-theme-preset="muted"] .fv-theme-preset-swatch { background: #9ca3af; }
+
 @media (max-width: 980px) {
     .fv-theme-profile-toolbar {
         grid-template-columns: 1fr 1fr;

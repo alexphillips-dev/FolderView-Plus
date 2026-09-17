@@ -27,7 +27,7 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
     assert.match(folderJs, /const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed\(\);/);
-    assert.match(folderJs, /const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap;/);
+    assert.match(folderJs, /const folderEditorBootstrapSeed = editingFolderDefaults \? null : \(folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap\);/);
     assert.match(folderJs, /routeTargetRecovered: details\.routeTargetRecovered === true,/);
     assert.match(folderJs, /routeTargetMismatch: details\.routeTargetMismatch === true/);
     assert.match(folderJs, /const folderEditorHashParams = new URLSearchParams/);
@@ -112,7 +112,7 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
 });
 
 test('docker folder context can create a new child folder with parent preselected', () => {
-    assert.match(folderJs, /const requestedCreateParentId = String\(/);
+    assert.match(folderJs, /const requestedCreateParentId = editingFolderDefaults \? '' : String\(/);
     assert.match(folderJs, /folderEditorQueryParams\.get\('parentId'\)/);
     assert.match(folderJs, /folderEditorHashParams\.get\('parentId'\)/);
     assert.match(folderJs, /const applyRequestedCreateParentToNewFolder = async \(foldersMap = \{\}\) => \{/);

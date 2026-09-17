@@ -7,6 +7,11 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "server/lib.folderview3-order.php": { "limit": 42, "target": 42, "history": [42] },
+      "server/lib.folderview3-appearance.php": { "limit": 102, "target": 102, "history": [102] },
+      "server/lib.theme-profile-create.php": { "limit": 27, "target": 27, "history": [27] },
+      "scripts/folderviewplus.request-diagnostics.js": { "limit": 132, "target": 132, "history": [132] },
+      "scripts/folderviewplus.folderview3-report.js": { "limit": 87, "target": 87, "history": [87] },
       "scripts/folderviewplus.js": { "limit": 11793, "target": 1200, "history": [12092, 11793] },
       "scripts/docker.js": { "limit": 7986, "target": 1000, "history": [8839, 8045, 8028, 7986] },
       "server/lib.php": { "limit": 2649, "target": 400, "history": [7556, 2649] },
@@ -225,6 +230,57 @@
   ],
   "serverModuleContracts": [
     {
+      "file": "server/lib.folderview3-order.php",
+      "owner": "server-folderview3-order",
+      "consumers": [
+        "server-endpoints"
+      ],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.folderview3-migration.php",
+      "functionInventory": {
+        "count": 1,
+        "sha256": "b49ec1b6c924fb5a6f9dae2efcbe48a0d0eca3dd19d2663a5c19756bf6a9c507"
+      }
+    },
+    {
+      "file": "server/lib.folderview3-appearance.php",
+      "owner": "server-folderview3-appearance",
+      "consumers": [
+        "server-endpoints"
+      ],
+      "stateModel": "request-scoped",
+      "dependsOn": [
+        "server/lib.theme-profiles.php",
+        "server/lib.theme-workspace.php"
+      ],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.folderview3-migration.php",
+      "functionInventory": {
+        "count": 3,
+        "sha256": "e5f44f633cd0fc74344bb7b1554dd99d0ad4fbc368150c91fd403de16cc4379f"
+      }
+    },
+    {
+      "file": "server/lib.theme-profile-create.php",
+      "owner": "server-theme-profile-create",
+      "consumers": [
+        "server-endpoints"
+      ],
+      "stateModel": "request-scoped",
+      "dependsOn": [
+        "server/lib.theme-profiles.php",
+        "server/lib.theme-workspace.php"
+      ],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.theme-profile-actions.php",
+      "functionInventory": {
+        "count": 1,
+        "sha256": "b255376579e50774bde572da8501bfb9e780b2d6e29478ccd3cd8158a0ac1d66"
+      }
+    },
+    {
       "file": "server/lib.request-authority.php",
       "owner": "server-request-authority",
       "consumers": ["plugin-pages", "server-endpoints"],
@@ -322,7 +378,7 @@
       "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.theme-workspace.php", "server/lib.prefs.php", "server/lib.storage.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 14, "sha256": "f9b1d241386991a429805a895e24f67ae2075d720ecd61f82afebe2089260993" }
+      "functionInventory": { "count": 12, "sha256": "fac205e4ef1baabd5e875b4742cdf53cdc71468456705b2e079fc5f9421429ba" }
     },
     {
       "file": "server/lib.environment-transaction.php",
@@ -362,7 +418,7 @@
       "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-github.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 5, "sha256": "058de61f31262783e913c1645cec18280253e87b05946fa101e4a4106165d085" }
+      "functionInventory": { "count": 4, "sha256": "a5d208f87e65d3f9c41799122bf6651b457e5fc87740262e7e0295af55dffef3" }
     },
     {
       "file": "server/lib.theme-bulk-update.php",
@@ -526,6 +582,69 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/folder.editor.defaults.js",
+      "owner": "folder-defaults-editor",
+      "consumers": ["folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folder.settings-transfer.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderDefaults",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["configure", "save", "readProfile"]
+    },
+    {
+      "file": "scripts/folderviewplus.request-diagnostics.js",
+      "owner": "shared-request-diagnostics",
+      "consumers": [
+        "settings",
+        "docker",
+        "vm",
+        "dashboard",
+        "folder-editor"
+      ],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": [
+        "FolderViewPlusFoundationModules"
+      ],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "requestDiagnostics",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": [
+        "createApi"
+      ],
+      "apiFactory": "createApi",
+      "apiExports": [
+        "failureDiagnostics",
+        "classifyFailure",
+        "failureMessage",
+        "persist",
+        "clear"
+      ]
+    },
+    {
+      "file": "scripts/folderviewplus.folderview3-report.js",
+      "owner": "settings-folderview3-report",
+      "consumers": [
+        "settings"
+      ],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [
+        "FolderViewPlusFoundationModules"
+      ],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderView3Report",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": [
+        "buildReportHtml"
+      ]
+    },
     {
       "file": "scripts/folderviewplus.utils-foundation.js",
       "owner": "shared-utility-foundation",
@@ -1030,6 +1149,19 @@
       "lifecycleFactories": [
         { "name": "createController", "exports": ["refresh", "getModel", "getSnapshot", "dispose"] }
       ]
+    },
+    {
+      "file": "scripts/runtime.folder-render-recovery.js",
+      "owner": "shared-folder-render-recovery",
+      "consumers": ["docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderRenderRecovery",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["create", "createForPage", "restoreMutations", "registerCleanup"]
     },
     {
       "file": "scripts/runtime.shared-primitives.js",

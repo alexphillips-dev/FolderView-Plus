@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Inspicerer FolderView3-konfiguration...",
     "import.folderview3.inspecting-help": "Denne skrivebeskyttede forhåndsvisning kan tage et øjeblik, når brugerdefinerede stilarter er til stede.",
     "import.folderview3.confirm-apply": "Vil du erstatte nuværende FolderView Plus Docker-mapper, VM-mapper, kompatible indstillinger, ejerskab af startordre og profildata for temaarbejdsområde? Et rollback checkpoint og per-type sikkerhedskopier vil blive oprettet først.",
-    "import.folderview3.confirm-native-suffix": "Native Docker autostart aktivering og ventetider vil også blive erstattet."
+    "import.folderview3.confirm-native-suffix": "Native Docker autostart aktivering og ventetider vil også blive erstattet.",
+    "import.folderview3.order-invalid": "Et FolderView3-øjebliksbillede er ugyldigt; mappekonfigurationsrækkefølge blev brugt.",
+    "import.folderview3.order-duplicates": "Duplikerede FolderView3-ordreposter blev ignoreret.",
+    "import.folderview3.order-unknown": "Ukendte mappereferencer i FolderView3-rækkefølgesnapshots blev ignoreret.",
+    "import.folderview3.order-unassigned": "Mapperækkefølgen er bevaret; positioner af ikke-tildelte elementer på Unraid-siden importeres ikke.",
+    "import.folderview3.theme-source": "Temakildemetadata blev ikke konverteret til administrerede opdateringer. Scan den originale temakilde for at administrere fremtidige opdateringer.",
+    "import.folderview3.theme-unscoped": "Brugerdefinerede stilarter uden et anerkendt FolderView3-sideomfang blev udelukket.",
+    "import.folderview3.theme-disabled": "Deaktiverede temaer blev bevaret som separate inaktive udseendeprofiler; de er ikke inkluderet i den importerede hovedprofil.",
+    "import.folderview3.theme-compatibility": "Importeret CSS kan bruge FolderView3-vælgere eller variabler, der er forskellige i FolderView Plus. Se forhåndsvisning af hver udseendeprofil før aktivering.",
+    "import.folderview3.order-imported": "Importeret",
+    "import.folderview3.order-fallback": "Konfigurationsrækkefølge",
+    "import.folderview3.order-empty": "Ingen gemt ordre",
+    "import.folderview3.order-invalid-status": "Ugyldigt øjebliksbillede; konfigurationsrækkefølge",
+    "import.folderview3.appearance-profiles": "Tilføj inaktive FolderView3-udseendeprofiler",
+    "import.folderview3.order-summary": "Gemt mapperækkefølge: Docker $1; VM'er $2.",
+    "import.folderview3.disabled-profile-count": "Separate profiler for deaktiverede temaer: $1."
 }

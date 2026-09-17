@@ -4,6 +4,7 @@
         "locale": "ca",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Edita els valors predeterminats de les carpetes",
     "settings.search.placeholder": "Configuració de cerca",
     "settings.search.label": "Configuració de cerca",
     "settings.search.clear-label": "Esborra la cerca de configuració",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Començar l'ordre",
     "settings.navigation.appearance": "Aparença",
     "settings.recovery.last-scheduled": "Darrera execució programada: $1",
-    "settings.recovery.never-scheduled": "Darrera cursa programada: mai"
+    "settings.recovery.never-scheduled": "Darrera cursa programada: mai",
+    "settings.theme.preset-inherited": "Heretat",
+    "settings.theme.preset-orange": "Taronja",
+    "settings.theme.preset-blue": "Blau",
+    "settings.theme.preset-green": "Verd",
+    "settings.theme.preset-muted": "Colors suaus",
+    "settings.theme.preset-preview-status": "Només previsualització. Desa la capa de personalització o desa com a perfil nou per aplicar aquests colors.",
+    "settings.theme.profile-name-required": "Introduïu un nom per al nou perfil d'aparença.",
+    "settings.theme.save-as-profile": "Desa com a perfil nou",
+    "settings.theme.profile-saved": "S'ha desat el perfil d'aparença.",
+    "settings.theme.presets-title": "Preajustos de colors",
+    "settings.theme.presets-help": "Previsualitza els colors d'accent i gràfic per a l'àmbit seleccionat. Es conserven altres personalitzacions. Desa quan estigui llest.",
+    "settings.theme.undo-preset": "Desfés la previsualització predeterminada"
 }

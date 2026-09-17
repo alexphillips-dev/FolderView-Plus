@@ -170,7 +170,11 @@
         };
 
         const persistStateFromGlobal = (syncServer = true) => {
+            const previous = readServerExpandedStateMap();
             const map = {};
+            for (const id of deps.readPreservedIds?.() || []) {
+                if (Object.prototype.hasOwnProperty.call(previous, id)) map[id] = previous[id];
+            }
             for (const [id, folder] of Object.entries(readFolders() || {})) {
                 map[id] = folder?.status?.expanded === true;
             }

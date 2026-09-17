@@ -15,5 +15,16 @@
     "common.state.ready": "Klaar",
     "common.actions.clear": "Wissen",
     "common.state.all-good": "allemaal goed",
-    "common.health.folder-summary": "Mapstatus: $1 gestart | $2 gepauzeerd | $3 gestopt"
+    "common.health.folder-summary": "Mapstatus: $1 gestart | $2 gepauzeerd | $3 gestopt",
+    "common.folder-render.title": "Sommige mappen konden niet worden weergegeven.",
+    "common.folder-render.help": "Containers en virtuele machines blijven toegankelijk. Bekijk de betreffende mappen in Instellingen en laad deze pagina opnieuw.",
+    "common.folder-render.review": "Map bekijken",
+    "common.folder-render.all": "Bekijk alle mappen in Instellingen",
+    "request.failure.refresh": "De paginabeveiligingsinformatie ontbreekt of is verlopen. Vernieuw de Unraid-webGUI en probeer de wijziging opnieuw.",
+    "request.failure.session": "Unraid heeft de beveiligingscontrole van de sessie afgewezen. Vernieuw de webGUI en meld u opnieuw aan als daarom wordt gevraagd. Probeer vervolgens de wijziging opnieuw uit te voeren.",
+    "request.failure.origin": "Het paginaadres komt niet overeen met het serververzoek. Als u een reverse proxy gebruikt, probeer dan directe Unraid-toegang en controleer de proxy-headers.",
+    "request.failure.marker": "De verzoekbeveiligingsmarkering heeft de plug-in niet bereikt. Ververs de webGUI hard; Als dit aanhoudt, controleer dan de browserextensies of proxyfiltering.",
+    "request.failure.state": "De plug-in kon geen veilige wijzigingen voorbereiden. Controleer de plug-inlogboeken en exporteer een opgeschoonde ondersteuningsbundel.",
+    "request.failure.guard": "De plug-in heeft deze wijziging afgewezen. Vernieuw de webGUI en controleer of deze al is toegepast voordat u het opnieuw probeert. Voeg deze ondersteuningscode toe als het probleem zich blijft voordoen.",
+    "request.failure.support-code": "Ondersteuningscode: $1"
 }

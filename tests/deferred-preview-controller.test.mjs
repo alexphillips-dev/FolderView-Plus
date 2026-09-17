@@ -103,6 +103,23 @@ test('deferred preview controller hydrates on interaction and removes owned list
     assert.equal(target.listeners.get('pointerenter').size, 0);
 });
 
+test('render rollback discards detached previews without hydrating healthy previews', () => {
+    const controller = loadSharedRuntime().createDeferredPreviewController();
+    const detached = new FakeElement();
+    const healthy = new FakeElement();
+    Object.defineProperty(healthy, 'isConnected', { value: true });
+    for (const target of [detached, healthy]) {
+        target.appendChild(new FakeElement('img'));
+        controller.defer(target);
+    }
+    controller.discardDisconnected();
+    assert.equal(controller.snapshot().pending, 1);
+    assert.equal(detached.listeners.get('pointerenter').size, 0);
+    assert.equal(FakeIntersectionObserver.latest.observed.has(detached), false);
+    healthy.dispatch('pointerenter');
+    assert.equal(controller.snapshot().pending, 0);
+});
+
 test('deferred preview destroy restores content, disconnects observation, and disables deferral', () => {
     const shared = loadSharedRuntime();
     const controller = shared.createDeferredPreviewController();

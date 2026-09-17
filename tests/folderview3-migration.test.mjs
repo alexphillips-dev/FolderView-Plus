@@ -51,7 +51,7 @@ const fixture = {
         docker: { 'fv3-preview-icon-size': '40px' },
         custom_css_dashboard: '.folder { border-radius: 4px; }'
     },
-    custom_styles: { 'custom.css': '.folder { opacity: .99; }' },
+    custom_styles: { 'custom.docker.css': '.folder { opacity: .99; }' },
     organizer_registry: { folders: ['Native Apps'] },
     native_autostart: ['plex 15', 'arr-one']
 };
@@ -134,8 +134,79 @@ test('FolderView3 conversion rejects unsupported exports and severe custom CSS',
     const importedProfile = plan.target.themeWorkspace.profiles.find((entry) => entry.id === report.summary.appearanceProfileId);
     assert.ok(importedProfile);
     assert.doesNotMatch(importedProfile.layers.global.customCss, /@import|example\.invalid/);
-    assert.match(importedProfile.layers.global.customCss, /FolderView3 custom style: custom\.css/);
+    assert.match(importedProfile.layers.docker.customCss, /FolderView3 custom style: custom\.docker\.css/);
     assert.ok(report.warnings.some((warning) => warning.includes('Unsafe FolderView3 global custom CSS')));
+});
+
+test('FolderView3 migration preserves Docker and VM snapshots and includes order in source identity', () => {
+    const bundle = {
+        ...fixture,
+        docker: { first: { name: 'First' }, second: { name: 'Second' }, added: { name: 'Added' } },
+        vm: { first: { name: 'First VM' }, second: { name: 'Second VM' } },
+        order_docker: { fv3_order_version: 1, entries: ['folder-second', 'outside', 'folder-first', 'folder-second', 'folder-missing'] },
+        order_vm: { fv3_order_version: 1, entries: ['folder-second', 'folder-first'] }
+    };
+    const { plan, report } = runPhpPlan(bundle);
+    assert.deepEqual(plan.target.types.docker.prefs.manualOrder, ['second', 'first', 'added']);
+    assert.deepEqual(Object.keys(plan.target.types.docker.folders), ['second', 'first', 'added']);
+    assert.deepEqual(plan.target.types.vm.prefs.manualOrder, ['second', 'first']);
+    assert.equal(report.summary.dockerOrderStatus, 'imported');
+    assert.ok(report.warnings.some((message) => message.includes('unassigned items')));
+    assert.ok(report.warnings.some((message) => message.includes('Duplicate')));
+    assert.ok(report.warnings.some((message) => message.includes('Unknown folder references')));
+    assert.doesNotMatch(JSON.stringify(report.warnings), /outside|folder-missing/);
+    const changed = runPhpPlan({ ...bundle, order_vm: { fv3_order_version: 1, entries: ['folder-first', 'folder-second'] } });
+    assert.notEqual(changed.report.source.digest, report.source.digest);
+});
+
+test('FolderView3 missing, empty, and malformed snapshots preserve safe fallback order', () => {
+    const invalid = [
+        { fv3_order_version: 2, entries: ['folder-dockerFolder'] },
+        { fv3_order_version: 1, entries: [] },
+        { fv3_order_version: 1, entries: ['folder-dockerFolder', 'bad\nentry'] },
+        { fv3_order_version: 1, entries: { 1: 'folder-dockerFolder' } },
+        { fv3_order_version: 1, entries: Array(4097).fill('folder-dockerFolder') },
+        'invalid'
+    ];
+    for (const snapshot of invalid) {
+        const { plan, report } = runPhpPlan({ ...fixture, order_docker: snapshot });
+        assert.deepEqual(plan.target.types.docker.prefs.manualOrder, ['dockerFolder']);
+        assert.equal(report.summary.dockerOrderStatus, 'invalid');
+        assert.ok(report.warnings.some((message) => message.includes('order snapshot is invalid')));
+    }
+    assert.equal(runPhpPlan(fixture).report.summary.dockerOrderStatus, 'missing');
+    assert.equal(runPhpPlan({ ...fixture, order_docker: [] }).report.summary.dockerOrderStatus, 'empty');
+});
+
+test('FolderView3 CSS retains page scopes and separates disabled themes without exposing source metadata', () => {
+    const { plan, report } = runPhpPlan({
+        ...fixture,
+        css_config: {},
+        custom_styles: {
+            'active/theme.docker.css': '.docker-only { color: red; }',
+            'active/shared.docker.vm.css': '.shared { color: green; }',
+            'asleep.Disabled/theme.dashboard.css': '.disabled-only { color: blue; }',
+            'unscoped.css': '.unscoped { color: pink; }',
+            '_fv3-generated.docker.css': '.generated { color: orange; }',
+            'active/.fv3-source': '{"repo":"https://example.invalid/private-theme"}'
+        }
+    });
+    const imported = plan.target.themeWorkspace.profiles.find((profile) => profile.id === report.summary.appearanceProfileId);
+    const disabled = plan.target.themeWorkspace.profiles.find((profile) => profile.name === 'FolderView3 disabled appearance 1');
+    assert.match(imported.layers.docker.customCss, /docker-only|shared/);
+    assert.match(imported.layers.vm.customCss, /shared/);
+    assert.doesNotMatch(imported.layers.vm.customCss, /docker-only/);
+    assert.equal(imported.layers.global.customCss, '');
+    assert.equal(imported.layers.dashboard.customCss, '');
+    assert.match(disabled.layers.dashboard.customCss, /disabled-only/);
+    assert.doesNotMatch(JSON.stringify(imported), /disabled-only|unscoped|generated|private-theme/);
+    assert.notEqual(plan.target.themeWorkspace.activeProfileId, disabled.id);
+    assert.equal(report.summary.appearanceProfileActive, false);
+    assert.equal(report.summary.appearanceProfileCount, 2);
+    assert.equal(report.summary.disabledAppearanceProfileCount, 1);
+    assert.ok(report.warnings.some((message) => message.includes('recognized FolderView3 page scope')));
+    assert.ok(report.warnings.some((message) => message.includes('source metadata')));
+    assert.doesNotMatch(JSON.stringify(report), /private-theme|docker-only|disabled-only/);
 });
 
 test('installed FolderView3 discovery uses the bounded test configuration root', () => {
@@ -147,9 +218,11 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
     fs.writeFileSync(path.join(fv3Dir, 'version'), '2026.08.01');
     fs.writeFileSync(path.join(fv3Dir, 'docker.json'), JSON.stringify(fixture.docker));
     fs.writeFileSync(path.join(fv3Dir, 'vm.json'), JSON.stringify(fixture.vm));
-    const code = `require_once ${phpString(path.join(serverRoot, 'lib.php'))}; echo json_encode(detectFolderView3Installation());`;
+    fs.writeFileSync(path.join(fv3Dir, 'order-docker.json'), JSON.stringify({ fv3_order_version: 1, entries: ['folder-dockerFolder'] }));
+    fs.writeFileSync(path.join(fv3Dir, 'order-vm.json'), JSON.stringify({ fv3_order_version: 1, entries: ['folder-vmFolder'] }));
+    const code = `require_once ${phpString(path.join(serverRoot, 'lib.php'))}; echo json_encode(['detection' => detectFolderView3Installation(), 'plan' => previewFolderView3Migration(fvplusFolderView3ReadInstalledBundle())]);`;
     try {
-        const result = JSON.parse(execFileSync('php', ['-r', code], {
+        const response = JSON.parse(execFileSync('php', ['-r', code], {
             cwd: repoRoot,
             encoding: 'utf8',
             env: {
@@ -160,11 +233,16 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
                 FVPLUS_TEST_FOLDER_VIEW3_CONFIG_DIR: fv3Dir
             }
         }));
+        const result = response.detection;
         assert.equal(result.available, true);
         assert.equal(result.canPreview, true);
         assert.equal(result.dockerFolderCount, 1);
         assert.equal(result.vmFolderCount, 1);
         assert.equal(result.pluginVersion, '2026.08.01');
+        assert.ok(result.components.includes('order-docker.json'));
+        assert.ok(result.components.includes('order-vm.json'));
+        assert.equal(response.plan.summary.dockerOrderStatus, 'imported');
+        assert.equal(response.plan.summary.vmOrderStatus, 'imported');
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }

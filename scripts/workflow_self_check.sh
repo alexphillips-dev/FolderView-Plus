@@ -35,8 +35,6 @@ for (const relativePath of [
   '.github/workflows/scorecard.yml',
   '.github/workflows/clone-traffic-badge.yml',
   '.github/workflows/scheduled-validation.yml',
-  '.github/workflows/scheduled-workflow-health.yml',
-  '.github/workflows/unraid-docker-upstream-monitor.yml',
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
   'scripts/actionlint_guard.sh',
@@ -49,7 +47,6 @@ for (const relativePath of [
   'scripts/runtime_performance_benchmarks.mjs',
   'scripts/runtime_perf_budgets.json',
   'scripts/runtime_perf_baseline.json',
-  'scripts/scheduled_workflow_health.mjs',
   'scripts/codeql_alert_guard.mjs',
   'scripts/community_applications_guard.mjs',
   'scripts/php_runtime_compatibility.sh',
@@ -73,8 +70,14 @@ const dependencyVulnerabilityScanWorkflow = read('.github/workflows/dependency-v
 const scorecardWorkflow = read('.github/workflows/scorecard.yml');
 const cloneTrafficBadgeWorkflow = read('.github/workflows/clone-traffic-badge.yml');
 const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
-const scheduledWorkflowHealthWorkflow = read('.github/workflows/scheduled-workflow-health.yml');
-const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
+for (const retiredWorkflow of [
+  '.github/workflows/scheduled-workflow-health.yml',
+  '.github/workflows/unraid-docker-upstream-monitor.yml'
+]) {
+  if (fs.existsSync(path.join(root, retiredWorkflow))) {
+    fail(`Retired issue monitor must not be restored: ${retiredWorkflow}`);
+  }
+}
 const jobBlock = (workflow, jobName) => {
   const match = workflow.match(new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'));
   if (!match) {
@@ -298,45 +301,6 @@ if (!/Back-merge follow-up required/.test(backmergeWorkflow) ||
 if (/git push origin dev/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must not push directly to protected dev.');
 }
-if (!/name:\s*Unraid Compatibility Monitor/.test(upstreamMonitorWorkflow)
-    || !/cron:\s*'43 9 \* \* \*'/.test(upstreamMonitorWorkflow)
-    || !/workflow_dispatch:/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must run daily and support manual checks.');
-}
-if (!/scripts\/unraid_docker_upstream_monitor\.sh/.test(upstreamMonitorWorkflow)
-    || !/scripts\/unraid_compatibility_monitor\.mjs/.test(upstreamMonitorWorkflow)
-    || !/scripts\/community_applications_guard\.mjs/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must evaluate Docker/API, OS/webGUI, and Community Applications contracts.');
-}
-if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must keep repository contents read-only.');
-}
-if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must be able to open a deduplicated compatibility alert.');
-}
-if (!/Close resolved compatibility review issues/.test(upstreamMonitorWorkflow) || !/gh issue close/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must close its compatibility alert after a reviewed recovery.');
-}
-if (!/Run isolated compatibility fixtures on upstream drift/.test(upstreamMonitorWorkflow)
-    || !/--lane tests --lane fixture-browser/.test(upstreamMonitorWorkflow)
-    || !/npx playwright install --with-deps chromium/.test(upstreamMonitorWorkflow)) {
-  fail('Upstream drift must run isolated contract and browser fixtures before review.');
-}
-if (!/php-runtime-compatibility:/.test(upstreamMonitorWorkflow)
-    || !/php:8\.3\.8-cli-alpine/.test(upstreamMonitorWorkflow)
-    || !/php:8\.4\.23-cli-alpine/.test(upstreamMonitorWorkflow)
-    || !/php:8\.4\.24-cli-alpine/.test(upstreamMonitorWorkflow)
-    || !/scripts\/php_runtime_compatibility\.sh/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitor must test the oldest, stable, and prerelease PHP runtime profiles in isolation.');
-}
-if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|secrets\.[A-Za-z0-9_]*UNRAID/i.test(upstreamMonitorWorkflow)) {
-  fail('Unraid compatibility monitoring must not accept live-Unraid targets or secrets.');
-}
-if (!/ca\.unraid\.net\/submit\/help\/repository-xml/.test(upstreamMonitorWorkflow)
-    || !/ca\.unraid\.net\/assets\/feed\/applicationFeed\.json/.test(upstreamMonitorWorkflow)
-    || !/unraid-community-apps-starter/.test(upstreamMonitorWorkflow)) {
-  fail('Community Applications validation must use the official portal guidance, public feed, and starter contract.');
-}
 if (!/permissions:\s*\n\s*contents:\s*read/.test(scheduledValidationWorkflow)
     || /issues:\s*write/.test(scheduledValidationWorkflow)) {
   fail('Scheduled cross-browser validation must keep repository contents read-only.');
@@ -363,20 +327,6 @@ if (!/schedule:/.test(cloneTrafficBadgeWorkflow)
     || !/Total clones \\u00b7 14d/.test(cloneTrafficBadgeWorkflow)) {
   fail('Clone traffic badge workflow must isolate authenticated collection from the write-scoped metrics publisher.');
 }
-if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
-    || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
-    || !/actions:\s*read/.test(scheduledWorkflowHealthWorkflow)
-    || !/issues:\s*write/.test(scheduledWorkflowHealthWorkflow)
-    || !/scripts\/scheduled_workflow_health\.mjs/.test(scheduledWorkflowHealthWorkflow)
-    || !/Scheduled workflow health requires attention/.test(scheduledWorkflowHealthWorkflow)) {
-  fail('Scheduled workflow health must check run freshness and maintain a deduplicated recovery alert.');
-}
-const scheduledWorkflowHealthScript = read('scripts/scheduled_workflow_health.mjs');
-for (const workflowFile of ['codeql.yml', 'scorecard.yml', 'dependency-vulnerability-scan.yml']) {
-  if (!scheduledWorkflowHealthScript.includes(`workflowFile: '${workflowFile}'`)) {
-    fail(`Scheduled workflow health must monitor ${workflowFile}.`);
-  }
-}
 for (const [workflowName, workflow, jobNames] of [
   ['release-on-main', releaseOnMainWorkflow, ['release']],
   ['backmerge-main-to-dev', backmergeWorkflow, ['backmerge']],
@@ -385,9 +335,7 @@ for (const [workflowName, workflow, jobNames] of [
   ['dependency-vulnerability-scan', dependencyVulnerabilityScanWorkflow, ['scan']],
   ['scorecard', scorecardWorkflow, ['analysis']],
   ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['collect', 'publish']],
-  ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']],
-  ['scheduled-workflow-health', scheduledWorkflowHealthWorkflow, ['watchdog']],
-  ['unraid-compatibility-monitor', upstreamMonitorWorkflow, ['monitor', 'php-runtime-compatibility']]
+  ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']]
 ]) {
   for (const jobName of jobNames) {
     if (!/timeout-minutes:\s*[1-9][0-9]*/.test(jobBlock(workflow, jobName))) {
@@ -415,9 +363,7 @@ for (const workflowPath of [
   '.github/workflows/release-on-main.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
   '.github/workflows/clone-traffic-badge.yml',
-  '.github/workflows/dependency-vulnerability-scan.yml',
-  '.github/workflows/scheduled-workflow-health.yml',
-  '.github/workflows/unraid-docker-upstream-monitor.yml'
+  '.github/workflows/dependency-vulnerability-scan.yml'
 ]) {
   const content = read(workflowPath);
   const scriptRefs = [...content.matchAll(/bash (scripts\/[A-Za-z0-9._/-]+\.sh)/g)].map((match) => match[1]);

@@ -91,7 +91,14 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
             const t = (...args) => window.FolderViewPlusI18n.t(...args);
-            window.germanTheme = window.FolderViewPlusThemeWorkspace.createApi({ document, $: window.jQuery, escapeHtml });
+            window.themeSaves = [];
+            window.germanTheme = window.FolderViewPlusThemeWorkspace.createApi({ document, $: window.jQuery, escapeHtml,
+                apiPostJson: async (_url, payload) => {
+                    window.themeSaves.push(payload);
+                    return { workspace: window.germanTheme.getWorkspace() };
+                }
+            });
+            window.germanTheme.bindEvents();
             window.germanTheme.setWorkspace({ variables: {
                 '--fvplus-status-paused': '#f0c04a', '--fvplus-status-stopped': '#ff7373'
             } });
@@ -154,5 +161,28 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
         });
         assert.equal(await page.locator('#fv-theme-profile-select option:checked').textContent(), 'History');
         assert.match(await page.locator('#fv-theme-workspace-summary').textContent(), /History \/ Global/);
+        await page.locator('#fv-theme-profile-scope').selectOption('docker');
+        await page.locator('[data-fv-theme-preset="blue"]').focus();
+        await page.evaluate(() => { window.presetButton = document.activeElement; });
+        await page.keyboard.press('Enter');
+        assert.equal(await page.evaluate(() => document.activeElement === window.presetButton && window.presetButton.isConnected), true);
+        assert.equal(await page.locator('[data-fv-theme-preset="blue"]').getAttribute('aria-pressed'), 'true');
+        assert.equal(await page.evaluate(() => window.themeSaves.length), 0);
+        await page.locator('#fv-theme-custom-css').fill('.fixture-custom { opacity: .95; }');
+        await page.locator('[data-fv-theme-preset="green"]').click();
+        assert.equal(await page.locator('#fv-theme-custom-css').inputValue(), '.fixture-custom { opacity: .95; }');
+        await page.locator('#fv-theme-preset-undo').click();
+        assert.equal(await page.evaluate(() => window.germanTheme.getWorkspace().profiles[0].layers.docker.variables['--fvplus-theme-accent']), undefined);
+        await page.locator('[data-fv-theme-preset="green"]').click();
+        await page.locator('#fv-theme-profile-name').fill('Green copy');
+        await page.locator('#fv-theme-save-as-profile').click();
+        await page.waitForFunction(() => window.themeSaves.length === 1 && !document.getElementById('fv-theme-save-as-profile').disabled);
+        const saved = await page.evaluate(() => window.themeSaves[0]);
+        assert.equal(saved.action, 'create_profile');
+        assert.equal(saved.sourceProfileId, 'personal');
+        assert.equal(saved.scope, 'docker');
+        assert.equal(saved.name, 'Green copy');
+        assert.equal(JSON.parse(saved.variables)['--fvplus-theme-accent'], '#22c55e');
+        assert.equal(await page.evaluate(() => window.FolderViewPlusI18n.snapshot().missingKeyCount), 0);
     });
 };

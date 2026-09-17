@@ -4,6 +4,7 @@
         "locale": "ja",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "フォルダーの既定設定を編集",
     "settings.search.placeholder": "検索設定",
     "settings.search.label": "検索設定",
     "settings.search.clear-label": "設定検索をクリア",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "開始順序",
     "settings.navigation.appearance": "外観",
     "settings.recovery.last-scheduled": "前回のスケジュール実行: $1",
-    "settings.recovery.never-scheduled": "スケジュール実行はまだありません"
+    "settings.recovery.never-scheduled": "スケジュール実行はまだありません",
+    "settings.theme.preset-inherited": "継承された",
+    "settings.theme.preset-orange": "オレンジ",
+    "settings.theme.preset-blue": "ブルー",
+    "settings.theme.preset-green": "緑",
+    "settings.theme.preset-muted": "落ち着いた色",
+    "settings.theme.preset-preview-status": "プレビューのみ。これらの色を適用するには、カスタマイズ レイヤーを保存するか、新しいプロファイルとして保存します。",
+    "settings.theme.profile-name-required": "新しい外観プロファイルの名前を入力します。",
+    "settings.theme.save-as-profile": "新しいプロファイルとして保存",
+    "settings.theme.profile-saved": "外観プロファイルが保存されました。",
+    "settings.theme.presets-title": "カラープリセット",
+    "settings.theme.presets-help": "選択したスコープのアクセントとグラフの色をプレビューします。他のカスタマイズは保持されます。準備ができたら保存します。",
+    "settings.theme.undo-preset": "プリセットのプレビューを元に戻す"
 }

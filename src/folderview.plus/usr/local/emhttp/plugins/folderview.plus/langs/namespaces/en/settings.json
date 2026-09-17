@@ -4,6 +4,7 @@
         "locale": "en",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Edit folder defaults",
     "settings.search.placeholder": "Search settings",
     "settings.search.label": "Search settings",
     "settings.search.clear-label": "Clear settings search",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Start Order",
     "settings.navigation.appearance": "Appearance",
     "settings.recovery.last-scheduled": "Last scheduled run: $1",
-    "settings.recovery.never-scheduled": "Last scheduled run: never"
+    "settings.recovery.never-scheduled": "Last scheduled run: never",
+    "settings.theme.preset-inherited": "Inherited",
+    "settings.theme.preset-orange": "Orange",
+    "settings.theme.preset-blue": "Blue",
+    "settings.theme.preset-green": "Green",
+    "settings.theme.preset-muted": "Muted",
+    "settings.theme.preset-preview-status": "Preview only. Save the customization layer or save as a new profile to apply these colors.",
+    "settings.theme.profile-name-required": "Enter a name for the new appearance profile.",
+    "settings.theme.save-as-profile": "Save as new profile",
+    "settings.theme.profile-saved": "Appearance profile saved.",
+    "settings.theme.presets-title": "Color presets",
+    "settings.theme.presets-help": "Preview accent and graph colors for the selected scope. Other customizations are preserved. Save when ready.",
+    "settings.theme.undo-preset": "Undo preset preview"
 }

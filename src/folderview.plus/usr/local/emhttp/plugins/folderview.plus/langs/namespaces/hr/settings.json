@@ -4,6 +4,7 @@
         "locale": "hr",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Uredi zadane postavke mapa",
     "settings.search.placeholder": "Postavke pretraživanja",
     "settings.search.label": "Postavke pretraživanja",
     "settings.search.clear-label": "Brisanje pretraživanja postavki",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Početak narudžbe",
     "settings.navigation.appearance": "Izgled",
     "settings.recovery.last-scheduled": "Zadnje planirano izvođenje: $1",
-    "settings.recovery.never-scheduled": "Zadnja planirana vožnja: nikada"
+    "settings.recovery.never-scheduled": "Zadnja planirana vožnja: nikada",
+    "settings.theme.preset-inherited": "Naslijeđeno",
+    "settings.theme.preset-orange": "Narančasto",
+    "settings.theme.preset-blue": "Plava",
+    "settings.theme.preset-green": "zelena",
+    "settings.theme.preset-muted": "Prigušene boje",
+    "settings.theme.preset-preview-status": "Samo pregled. Spremite sloj za prilagodbu ili ga spremite kao novi profil da biste primijenili ove boje.",
+    "settings.theme.profile-name-required": "Unesite naziv za novi profil izgleda.",
+    "settings.theme.save-as-profile": "Spremi kao novi profil",
+    "settings.theme.profile-saved": "Profil izgleda spremljen.",
+    "settings.theme.presets-title": "Unaprijed postavljene boje",
+    "settings.theme.presets-help": "Pregledajte boje naglaska i grafikona za odabrani opseg. Ostale prilagodbe su sačuvane. Spremite kada budete spremni.",
+    "settings.theme.undo-preset": "Poništavanje unaprijed postavljenog pregleda"
 }

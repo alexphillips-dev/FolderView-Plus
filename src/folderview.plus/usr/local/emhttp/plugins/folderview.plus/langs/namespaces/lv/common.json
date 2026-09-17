@@ -15,5 +15,16 @@
     "common.state.ready": "Gatavs",
     "common.actions.clear": "Notīrīt",
     "common.state.all-good": "viss labi",
-    "common.health.folder-summary": "Mapes stāvoklis: $1 sākts | $2 apturēts | $3 apturēta"
+    "common.health.folder-summary": "Mapes stāvoklis: $1 sākts | $2 apturēts | $3 apturēta",
+    "common.folder-render.title": "Dažas mapes nevarēja parādīt.",
+    "common.folder-render.help": "Konteineri un virtuālās mašīnas joprojām ir pieejami. Pārskatiet ietekmētās mapes sadaļā Iestatījumi, pēc tam atkārtoti ielādējiet šo lapu.",
+    "common.folder-render.review": "Pārskatīt mapi",
+    "common.folder-render.all": "Pārskatiet visas mapes sadaļā Iestatījumi",
+    "request.failure.refresh": "Trūkst lapas drošības informācijas, vai tai ir beidzies derīguma termiņš. Atsvaidziniet Unraid webGUI un pēc tam vēlreiz mēģiniet veikt izmaiņas.",
+    "request.failure.session": "Unraid noraidīja sesijas drošības pārbaudi. Atsvaidziniet tīmekļa GUI un pierakstieties vēlreiz, ja tiek prasīts, pēc tam vēlreiz mēģiniet veikt izmaiņas.",
+    "request.failure.origin": "Lapas adrese neatbilst servera pieprasījumam. Ja izmantojat apgriezto starpniekserveri, mēģiniet tiešu Unraid piekļuvi un pārbaudiet starpniekservera galvenes.",
+    "request.failure.marker": "Pieprasījuma drošības marķieris nesasniedza spraudni. Cieši atsvaidziniet tīmekļa GUI; ja tā turpinās, pārbaudiet pārlūkprogrammas paplašinājumus vai starpniekservera filtrēšanu.",
+    "request.failure.state": "Spraudnis nevarēja sagatavot drošas izmaiņas. Pārbaudiet spraudņa žurnālus un eksportējiet sanitizētu atbalsta komplektu.",
+    "request.failure.guard": "Spraudnis noraidīja šīs izmaiņas. Atsvaidziniet tīmekļa GUI un pārbaudiet, vai tas jau ir lietots, pirms mēģināt vēlreiz. Ja problēma turpinās, iekļaujiet šo atbalsta kodu.",
+    "request.failure.support-code": "Atbalsta kods: $1"
 }

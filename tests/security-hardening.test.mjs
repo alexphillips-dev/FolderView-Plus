@@ -218,10 +218,13 @@ test('strict request guard requires the mutation marker, token, and same-origin 
     assert.match(libPhp, /\$_POST\['_fv_request'\] \?\? \$_GET\['_fv_request'\] \?\? ''/);
     assert.match(libSecurityPhp, /if \(\$tokenMode === 'strict'\)/);
     assert.match(libSecurityPhp, /if \(getConfiguredRequestToken\(\) === ''\)/);
-    assert.match(libSecurityPhp, /!\$hasMutationMarker \|\| !validateOptionalRequestToken\(\) \|\| !isTrustedMutationContext\(\)/);
+    assert.match(libSecurityPhp, /fvplus_require_trusted_request_context\(\);/);
+    assert.match(libSecurityPhp, /if \(!hasExplicitMutationRequestHeader\(\)\)/);
+    assert.match(libSecurityPhp, /if \(!validateOptionalRequestToken\(\)\)/);
+    assert.match(libSecurityPhp, /if \(!isTrustedMutationContext\(\)\)/);
     assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = '', nonce = ''\) =>/);
     assert.match(requestClientJs, /payload\._fv_request = '1';/);
-    assert.match(requestClientJs, /normalizedMethod === 'POST' && !token/);
+    assert.match(requestClientJs, /if \(!token\) throw .*reasonCode: 'plugin-token-missing'/);
     assert.match(requestClientJs, /outcome: 'blocked-missing-token'/);
     assert.doesNotMatch(requestClientJs, /localStorage\.getItem\(tokenStorageKey\)/);
     assert.match(folderViewPlusJs, /requestClient\.postBlob\('\/plugins\/folderview\.plus\/server\/backup\.php'/);

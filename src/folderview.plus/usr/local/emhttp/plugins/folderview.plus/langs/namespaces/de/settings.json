@@ -4,6 +4,7 @@
         "locale": "de",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Standardwerte für Ordner bearbeiten",
     "settings.search.placeholder": "Einstellungen durchsuchen",
     "settings.search.label": "Einstellungen durchsuchen",
     "settings.search.clear-label": "Einstellungssuche löschen",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Startreihenfolge",
     "settings.navigation.appearance": "Aussehen",
     "settings.recovery.last-scheduled": "Letzte geplante Ausführung: $1",
-    "settings.recovery.never-scheduled": "Noch keine geplante Ausführung"
+    "settings.recovery.never-scheduled": "Noch keine geplante Ausführung",
+    "settings.theme.preset-inherited": "Geerbt",
+    "settings.theme.preset-orange": "Orange",
+    "settings.theme.preset-blue": "Blau",
+    "settings.theme.preset-green": "Grün",
+    "settings.theme.preset-muted": "Dezent",
+    "settings.theme.preset-preview-status": "Nur Vorschau. Speichern Sie die Anpassungsebene oder speichern Sie sie als neues Profil, um diese Farben anzuwenden.",
+    "settings.theme.profile-name-required": "Geben Sie einen Namen für das neue Darstellungsprofil ein.",
+    "settings.theme.save-as-profile": "Als neues Profil speichern",
+    "settings.theme.profile-saved": "Erscheinungsprofil gespeichert.",
+    "settings.theme.presets-title": "Farbvoreinstellungen",
+    "settings.theme.presets-help": "Vorschau der Akzent- und Diagrammfarben für den ausgewählten Bereich. Andere Anpassungen bleiben erhalten. Speichern Sie, wenn Sie fertig sind.",
+    "settings.theme.undo-preset": "Voreingestellte Vorschau rückgängig machen"
 }

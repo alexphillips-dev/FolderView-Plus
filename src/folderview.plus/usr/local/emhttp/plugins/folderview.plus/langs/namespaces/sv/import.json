@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Inspekterar FolderView3-konfigurationen...",
     "import.folderview3.inspecting-help": "Den här skrivskyddade förhandsgranskningen kan ta en stund när anpassade stilar finns.",
     "import.folderview3.confirm-apply": "Vill du byta ut aktuella FolderView Plus Docker-mappar, VM-mappar, kompatibla inställningar, ägande av startorder och profildata för Theme Workspace? En återställningskontrollpunkt och säkerhetskopior per typ skapas först.",
-    "import.folderview3.confirm-native-suffix": "Native Docker autostart aktivering och väntar kommer också att ersättas."
+    "import.folderview3.confirm-native-suffix": "Native Docker autostart aktivering och väntar kommer också att ersättas.",
+    "import.folderview3.order-invalid": "En ögonblicksbild för FolderView3-beställning är ogiltig; mappkonfigurationsordning användes.",
+    "import.folderview3.order-duplicates": "Dubbletter av FolderView3-orderposter ignorerades.",
+    "import.folderview3.order-unknown": "Okända mappreferenser i FolderView3-beställningsögonblicksbilder ignorerades.",
+    "import.folderview3.order-unassigned": "Mappordning bevaras; positioner för otilldelade objekt på Unraid-sidan importeras inte.",
+    "import.folderview3.theme-source": "Temakällmetadata konverterades inte till hanterade uppdateringar. Skanna den ursprungliga temakällan för att hantera framtida uppdateringar.",
+    "import.folderview3.theme-unscoped": "Anpassade stilar utan ett erkänt FolderView3-sidomfång exkluderades.",
+    "import.folderview3.theme-disabled": "Funktionshindrade teman bevarades som separata inaktiva utseendeprofiler; de ingår inte i den importerade huvudprofilen.",
+    "import.folderview3.theme-compatibility": "Importerad CSS kan använda FolderView3-väljare eller variabler som skiljer sig i FolderView Plus. Förhandsgranska varje utseendeprofil innan aktivering.",
+    "import.folderview3.order-imported": "Importerad",
+    "import.folderview3.order-fallback": "Konfigurationsordning",
+    "import.folderview3.order-empty": "Ingen sparad beställning",
+    "import.folderview3.order-invalid-status": "Ogiltig ögonblicksbild; konfigurationsordning",
+    "import.folderview3.appearance-profiles": "Lägg till inaktiva FolderView3-utseendeprofiler",
+    "import.folderview3.order-summary": "Sparad mappordning: Docker $1; virtuella datorer $2.",
+    "import.folderview3.disabled-profile-count": "Separata profiler för funktionshindrade teman: $1."
 }

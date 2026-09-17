@@ -4,6 +4,7 @@
         "locale": "cs",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Upravit výchozí nastavení složek",
     "settings.search.placeholder": "Nastavení vyhledávání",
     "settings.search.label": "Nastavení vyhledávání",
     "settings.search.clear-label": "Vymazat vyhledávání nastavení",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Zahájit objednávku",
     "settings.navigation.appearance": "Vzhled",
     "settings.recovery.last-scheduled": "Poslední plánované spuštění: $1",
-    "settings.recovery.never-scheduled": "Poslední plánované spuštění: nikdy"
+    "settings.recovery.never-scheduled": "Poslední plánované spuštění: nikdy",
+    "settings.theme.preset-inherited": "Zděděno",
+    "settings.theme.preset-orange": "Oranžová",
+    "settings.theme.preset-blue": "Modrá",
+    "settings.theme.preset-green": "Zelená",
+    "settings.theme.preset-muted": "Tlumené barvy",
+    "settings.theme.preset-preview-status": "Pouze náhled. Chcete-li použít tyto barvy, uložte vrstvu přizpůsobení nebo uložte jako nový profil.",
+    "settings.theme.profile-name-required": "Zadejte název nového profilu vzhledu.",
+    "settings.theme.save-as-profile": "Uložit jako nový profil",
+    "settings.theme.profile-saved": "Profil vzhledu byl uložen.",
+    "settings.theme.presets-title": "Předvolby barev",
+    "settings.theme.presets-help": "Náhled barev zvýraznění a grafu pro vybraný rozsah. Ostatní přizpůsobení jsou zachována. Až budete připraveni, uložte.",
+    "settings.theme.undo-preset": "Vrátit zpět přednastavený náhled"
 }

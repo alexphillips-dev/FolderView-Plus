@@ -4,6 +4,7 @@
         "locale": "lv",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Rediģēt mapju noklusējuma iestatījumus",
     "settings.search.placeholder": "Meklēšanas iestatījumi",
     "settings.search.label": "Meklēšanas iestatījumi",
     "settings.search.clear-label": "Notīrīt iestatījumu meklēšanu",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Sākt pasūtījumu",
     "settings.navigation.appearance": "Izskats",
     "settings.recovery.last-scheduled": "Pēdējais ieplānotais brauciens: $1",
-    "settings.recovery.never-scheduled": "Pēdējais ieplānotais skrējiens: nekad"
+    "settings.recovery.never-scheduled": "Pēdējais ieplānotais skrējiens: nekad",
+    "settings.theme.preset-inherited": "Iedzimts",
+    "settings.theme.preset-orange": "Oranžs",
+    "settings.theme.preset-blue": "Zils",
+    "settings.theme.preset-green": "Zaļš",
+    "settings.theme.preset-muted": "Pieklusinātas krāsas",
+    "settings.theme.preset-preview-status": "Tikai priekšskatījums. Saglabājiet pielāgošanas slāni vai saglabājiet to kā jaunu profilu, lai lietotu šīs krāsas.",
+    "settings.theme.profile-name-required": "Ievadiet jaunā izskata profila nosaukumu.",
+    "settings.theme.save-as-profile": "Saglabāt kā jaunu profilu",
+    "settings.theme.profile-saved": "Izskata profils saglabāts.",
+    "settings.theme.presets-title": "Krāsu sākotnējie iestatījumi",
+    "settings.theme.presets-help": "Priekšskatiet akcentu un diagrammas krāsas atlasītajā tvērumā. Citi pielāgojumi tiek saglabāti. Saglabājiet, kad esat gatavs.",
+    "settings.theme.undo-preset": "Atsaukt iepriekš iestatīto priekšskatījumu"
 }

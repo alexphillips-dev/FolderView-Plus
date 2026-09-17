@@ -9,21 +9,22 @@ const requestScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js'
 );
-const requestScript = fs.readFileSync(requestScriptPath, 'utf8');
+const requestScript = fs.readFileSync(requestScriptPath.replace('request.js', 'request-diagnostics.js'), 'utf8') + '\n' + fs.readFileSync(requestScriptPath, 'utf8');
 
-const createJQueryMock = (plan = []) => {
+const createJQueryMock = (plan = [], noncePlan = []) => {
     const ajaxSetupCalls = [];
     const ajaxPrefilters = [];
     const ajaxCalls = [];
     let callCount = 0;
     let plannedCallCount = 0;
+    let nonceCallCount = 0;
 
     const ajax = (options) => {
         callCount += 1;
         ajaxCalls.push(options);
         const isNonceRequest = options?.url === '/plugins/folderview.plus/server/security.php';
         const step = isNonceRequest
-            ? { type: 'success', data: { ok: true, nonce: 'a'.repeat(64) } }
+            ? (noncePlan[nonceCallCount++] || { type: 'success', data: { ok: true, nonce: 'a'.repeat(64) } })
             : (plan[plannedCallCount++] || { type: 'success', data: '{}' });
         let doneHandler = null;
         let failHandler = null;
@@ -81,8 +82,8 @@ const createJQueryMock = (plan = []) => {
     };
 };
 
-const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
-    const { $, getCallCount, getAjaxSetupCalls, getAjaxPrefilters, getAjaxCalls } = createJQueryMock(plan);
+const loadRequestClient = ({ token = '', plan = [], noncePlan = [], metaToken = '', sessionStorage = null, translate = null } = {}) => {
+    const { $, getCallCount, getAjaxSetupCalls, getAjaxPrefilters, getAjaxCalls } = createJQueryMock(plan, noncePlan);
     const storage = new Map();
     const effectiveMetaToken = metaToken || token;
     const context = {
@@ -111,6 +112,8 @@ const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
         URLSearchParams
     };
     context.window.$ = $;
+    context.window.sessionStorage = sessionStorage;
+    context.window.FolderViewPlusI18n = translate ? { t: translate } : null;
     context.window.document = context.document;
     context.window.localStorage = context.localStorage;
     context.$ = $;
@@ -308,4 +311,98 @@ test('request client builds encoded URLs and exposes bounded sanitized diagnosti
     assert.doesNotMatch(JSON.stringify(diagnostics), /do-not-export/);
     api.clearDiagnostics();
     assert.equal(api.diagnostics().length, 0);
+});
+
+test('nonce guard failures expose safe reason and phase, survive navigation, and never send the mutation', async () => {
+    const storage = new Map();
+    const sessionStorage = {
+        getItem: (key) => storage.get(key) || null,
+        setItem: (key, value) => storage.set(key, value),
+        removeItem: (key) => storage.delete(key)
+    };
+    const { api, getAjaxCalls } = loadRequestClient({
+        token: 'secret-plugin-token', sessionStorage,
+        noncePlan: [{ type: 'error', jqXHR: { status: 403, responseJSON: {
+            error: 'Blocked by request guard.',
+            requestFailure: { source: 'folderview-plus', reasonCode: 'origin-mismatch', origin: 'https://private.example.test' }
+        } } }]
+    });
+    await assert.rejects(api.postJson('/plugins/folderview.plus/server/update.php?name=PrivateFolder', { name: 'PrivateFolder' }), (error) => {
+        assert.equal(error.phase, 'nonce');
+        assert.equal(error.reasonCode, 'origin-mismatch');
+        assert.equal(error.status, 403);
+        assert.match(error.message, /reverse proxy/);
+        assert.match(error.message, /FVPLUS\/nonce\/origin-mismatch/);
+        return true;
+    });
+    assert.equal(getAjaxCalls().length, 1);
+    assert.equal(getAjaxCalls()[0].url, '/plugins/folderview.plus/server/security.php');
+    assert.equal(api.diagnostics()[0].phase, 'nonce');
+    assert.equal(api.diagnostics()[0].traceId, getAjaxCalls()[0].headers['X-FV-Trace']);
+    const navigated = loadRequestClient({ sessionStorage }).api;
+    assert.equal(navigated.failureDiagnostics()[0].reasonCode, 'origin-mismatch');
+    assert.doesNotMatch(JSON.stringify([...storage, api.diagnostics(), navigated.failureDiagnostics()]), /secret-plugin-token|PrivateFolder|private\.example/);
+    navigated.clearDiagnostics();
+    assert.equal(navigated.failureDiagnostics().length, 0);
+});
+
+test('missing page token is reported before network access and an updated page can save', async () => {
+    const missing = loadRequestClient();
+    await assert.rejects(missing.api.postJson('/plugins/folderview.plus/server/update.php', {}), (error) => error.phase === 'token' && error.reasonCode === 'plugin-token-missing');
+    assert.equal(missing.getCallCount(), 0);
+    assert.equal(missing.api.failureDiagnostics()[0].reasonCode, 'plugin-token-missing');
+    const refreshed = loadRequestClient({ token: 'fresh-page-token', plan: [{ type: 'success', data: { ok: true } }] });
+    assert.equal((await refreshed.api.postJson('/plugins/folderview.plus/server/update.php', {})).ok, true);
+});
+
+test('native Unraid CSRF rejection is distinguished from the plugin guard and translated', async () => {
+    for (const [message, reason] of [['missing csrf_token', 'csrf-missing'], ['wrong csrf_token', 'csrf-invalid'], ['uninitialized csrf_token', 'csrf-uninitialized']]) {
+        const { api, getCallCount } = loadRequestClient({
+            token: 'plugin-token',
+            translate: (key, fallback) => key === 'request.failure.session' ? 'Atualize a sessao do Unraid.' : fallback,
+            noncePlan: [{ type: 'error', jqXHR: { status: 403, responseText: JSON.stringify({ error: message }) } }]
+        });
+        await assert.rejects(api.postJson('/plugins/folderview.plus/server/update.php', {}), (error) => {
+            assert.equal(error.failureSource, 'unraid');
+            assert.equal(error.reasonCode, reason);
+            assert.match(error.message, /Atualize a sessao/);
+            return true;
+        });
+        assert.equal(getCallCount(), 1);
+    }
+});
+
+test('nonce malformed responses and timeouts are diagnosed without retries or mutation replay', async () => {
+    for (const [step, reason] of [
+        [{ type: 'success', data: { ok: true, nonce: 'invalid-private-value' } }, 'nonce-response-invalid'],
+        [{ type: 'error', textStatus: 'timeout' }, 'timeout'],
+        [{ type: 'error', status: 401 }, 'authentication-required']
+    ]) {
+        const { api, getCallCount } = loadRequestClient({ token: 'plugin-token', noncePlan: [step] });
+        await assert.rejects(api.postJson('/plugins/folderview.plus/server/update.php', {}, { retries: 2 }), (error) => error.phase === 'nonce' && error.reasonCode === reason);
+        assert.equal(getCallCount(), 1);
+        assert.doesNotMatch(JSON.stringify(api.failureDiagnostics()), /invalid-private-value|plugin-token/);
+    }
+});
+
+test('mutation-time guard rejection retains the mutation phase and correct support code', async () => {
+    const { api, getCallCount } = loadRequestClient({ token: 'token', plan: [{ type: 'error', jqXHR: { status: 409, responseJSON: {
+        error: 'Mutation nonce is expired, invalid, or already used.', requestFailure: { source: 'folderview-plus', reasonCode: 'nonce-stale' }
+    } } }] });
+    await assert.rejects(api.postJson('/plugins/folderview.plus/server/update.php', {}), (error) => error.phase === 'request' && error.reasonCode === 'nonce-stale');
+    assert.equal(getCallCount(), 2);
+    assert.equal(api.failureDiagnostics()[0].phase, 'request');
+});
+
+test('failure history rejects injected fields, unknown codes, private paths and expired entries', () => {
+    const valid = { at: new Date().toISOString(), endpoint: '/plugins/folderview.plus/server/update.php', reasonCode: 'origin-mismatch', phase: 'nonce', failureSource: 'folderview-plus', status: 403 };
+    const entries = [
+        { ...valid, token: 'private-token', body: 'private-body' },
+        { ...valid, reasonCode: 'private-reason' },
+        { ...valid, endpoint: '/private/path' },
+        { ...valid, at: '2020-01-01T00:00:00Z' }
+    ];
+    const { api } = loadRequestClient({ sessionStorage: { getItem: () => JSON.stringify(entries) } });
+    assert.equal(api.failureDiagnostics().length, 1);
+    assert.doesNotMatch(JSON.stringify(api.failureDiagnostics()), /private/);
 });

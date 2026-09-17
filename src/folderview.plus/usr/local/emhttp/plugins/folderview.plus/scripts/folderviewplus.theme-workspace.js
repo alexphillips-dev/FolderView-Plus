@@ -9,6 +9,24 @@
     if (!themeProfiles || typeof themeProfiles.normalizeState !== 'function') {
         throw new Error('FolderView Plus theme profiles are unavailable.');
     }
+    const PRESET_TOKENS = Object.freeze(['--fvplus-theme-accent', '--fvplus-graph-cpu', '--fvplus-graph-mem']);
+    const PRESETS = Object.freeze({
+        inherited: Object.freeze([]),
+        orange: Object.freeze(['#f97316', '#f97316', '#eab308']),
+        blue: Object.freeze(['#3b82f6', '#60a5fa', '#8b5cf6']),
+        green: Object.freeze(['#22c55e', '#4ade80', '#06b6d4']),
+        muted: Object.freeze(['#9ca3af', '#6b7280', '#9ca3af'])
+    });
+    const applyPresetToLayer = (layer, presetId) => {
+        if (!Object.prototype.hasOwnProperty.call(PRESETS, presetId)) throw new Error('Unknown appearance preset.');
+        const normalized = themeProfiles.normalizeLayer(layer);
+        const variables = { ...normalized.variables };
+        PRESET_TOKENS.forEach((token, index) => {
+            if (PRESETS[presetId][index]) variables[token] = PRESETS[presetId][index];
+            else delete variables[token];
+        });
+        return { ...normalized, variables };
+    };
     const TOKEN_DEFINITIONS = Object.freeze([
         Object.freeze({ token: '--fvplus-theme-accent', label: 'Accent', fallback: '#f0a030' }),
         Object.freeze({ token: '--fvplus-theme-surface-panel', label: 'Surface panel', fallback: '#1b1d20' }),
@@ -62,6 +80,8 @@
         let workspace = normalizeWorkspace({});
         let pendingScan = null;
         let activeScope = 'global';
+        let presetBeforeLayer = null;
+        let selectedPreset = '';
 
         const getActiveProfile = () => themeProfiles.getActiveProfile(workspace);
         const getEditingLayer = () => themeProfiles.normalizeLayer(getActiveProfile().layers?.[activeScope]);
@@ -106,7 +126,7 @@
                 const value = String(
                     Object.prototype.hasOwnProperty.call(resolvedLayer.variables || {}, token)
                         ? resolvedLayer.variables[token]
-                        : (definition.fallback || '')
+                        : ''
                 ).trim();
                 if (value) {
                     node.style.setProperty(token, value);
@@ -187,6 +207,40 @@
                     <strong ${userContent ? 'data-fvplus-user-content' : ''} title="${escapeHtml(value)}">${escapeHtml(value)}</strong>
                 </div>
             `).join('');
+        };
+
+        const renderPresetControls = () => {
+            const panel = documentRef?.getElementById('fv-theme-presets');
+            if (panel && !panel.firstElementChild) panel.innerHTML = `
+                <div class="fv-theme-preset-panel">
+                <strong data-i18n="settings.theme.presets-title">Color presets</strong>
+                <p data-i18n="settings.theme.presets-help">Preview accent and graph colors for the selected scope. Other customizations are preserved. Save when ready.</p>
+                <div id="fv-theme-preset-controls" class="fv-theme-preset-controls" role="group" aria-label="Color presets" data-i18n="[aria-label]settings.theme.presets-title"></div>
+                <div class="fv-theme-preset-actions">
+                <button type="button" id="fv-theme-preset-undo" disabled data-i18n="settings.theme.undo-preset">Undo preset preview</button>
+                <button type="button" id="fv-theme-save-as-profile" data-i18n="settings.theme.save-as-profile">Save as new profile</button>
+                </div>
+                </div>
+            `;
+            const host = documentRef?.getElementById('fv-theme-preset-controls');
+            if (!host) return;
+            globalThis?.FolderViewPlusI18n?.translate?.(panel);
+            // Keep buttons connected while previewing, including keyboard focus.
+            if (!host.querySelector('[data-fv-theme-preset]')) {
+                const labels = {
+                    inherited: translate('settings.theme.preset-inherited', 'Inherited'),
+                    orange: translate('settings.theme.preset-orange', 'Orange'),
+                    blue: translate('settings.theme.preset-blue', 'Blue'),
+                    green: translate('settings.theme.preset-green', 'Green'),
+                    muted: translate('settings.theme.preset-muted', 'Muted')
+                };
+                host.innerHTML = Object.keys(PRESETS).map((id) => `<button type="button" data-fv-theme-preset="${id}" aria-pressed="false"><span aria-hidden="true" class="fv-theme-preset-swatch"></span>${escapeHtml(labels[id])}</button>`).join('');
+            }
+            host.querySelectorAll('[data-fv-theme-preset]').forEach((button) => {
+                button.setAttribute('aria-pressed', String(button.getAttribute('data-fv-theme-preset') === selectedPreset));
+            });
+            const undo = documentRef.getElementById('fv-theme-preset-undo');
+            if (undo) undo.disabled = presetBeforeLayer === null;
         };
 
         const renderScanResult = (scanResult = null) => {
@@ -319,6 +373,7 @@
         const renderWorkspace = () => {
             syncEditingAliases();
             renderProfileControls();
+            renderPresetControls();
             renderSummary();
             renderThemeList();
             renderVariableGrid();
@@ -332,6 +387,8 @@
 
         const setWorkspace = (nextWorkspace) => {
             workspace = normalizeWorkspace(nextWorkspace);
+            presetBeforeLayer = null;
+            selectedPreset = '';
             renderWorkspace();
             return workspace;
         };
@@ -395,7 +452,7 @@
         };
 
         const saveCustomize = async () => {
-            const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value || '');
+            const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
             const payload = {
                 profileId: workspace.activeProfileId,
                 scope: activeScope,
@@ -418,6 +475,42 @@
         const activateProfile = async (profileId) => {
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'activate_profile', profileId });
             return setWorkspace(response.workspace || {});
+        };
+
+        const saveAsProfile = async (name) => {
+            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
+                action: 'create_profile', name, sourceProfileId: workspace.activeProfileId, scope: activeScope,
+                variables: JSON.stringify(collectVariablesFromUi()),
+                customCss: String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss)
+            });
+            return setWorkspace(response.workspace || {});
+        };
+
+        const previewPreset = (presetId) => {
+            const before = getEditingLayer();
+            const layer = applyPresetToLayer(before, presetId);
+            presetBeforeLayer = presetBeforeLayer || before;
+            selectedPreset = presetId;
+            updateEditingLayer(layer);
+            renderWorkspace();
+            setStatus(translate('settings.theme.preset-preview-status', 'Preview only. Save the customization layer or save as a new profile to apply these colors.'));
+            return workspace;
+        };
+
+        const undoPreset = () => {
+            if (presetBeforeLayer) {
+                const current = getEditingLayer();
+                const variables = { ...current.variables };
+                PRESET_TOKENS.forEach(token => {
+                    if (Object.prototype.hasOwnProperty.call(presetBeforeLayer.variables, token)) variables[token] = presetBeforeLayer.variables[token];
+                    else delete variables[token];
+                });
+                updateEditingLayer({ ...current, variables });
+            }
+            presetBeforeLayer = null;
+            selectedPreset = '';
+            renderWorkspace();
+            return workspace;
         };
 
         const deleteProfile = async (profileId) => {
@@ -468,6 +561,8 @@
                     return;
                 }
                 updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } });
+                selectedPreset = '';
+                renderPresetControls();
                 renderVariableGrid();
                 applyPreviewCss();
                 renderSummary();
@@ -493,7 +588,26 @@
             $(documentRef).off('change.fvthemescope', '#fv-theme-profile-scope').on('change.fvthemescope', '#fv-theme-profile-scope', (event) => {
                 const scope = String(event?.target?.value || 'global');
                 activeScope = themeProfiles.SCOPES.includes(scope) ? scope : 'global';
+                presetBeforeLayer = null;
+                selectedPreset = '';
                 renderWorkspace();
+            });
+            $(documentRef).off('click.fvthemepreset', '[data-fv-theme-preset]').on('click.fvthemepreset', '[data-fv-theme-preset]', (event) => {
+                previewPreset(String(event.currentTarget.getAttribute('data-fv-theme-preset') || ''));
+            });
+            $(documentRef).off('click.fvthemepresetundo', '#fv-theme-preset-undo').on('click.fvthemepresetundo', '#fv-theme-preset-undo', undoPreset);
+            $(documentRef).off('click.fvthemesaveas', '#fv-theme-save-as-profile').on('click.fvthemesaveas', '#fv-theme-save-as-profile', () => {
+                const input = documentRef.getElementById('fv-theme-profile-name');
+                if (!String(input?.value || '').trim()) {
+                    input?.focus();
+                    setStatus(translate('settings.theme.profile-name-required', 'Enter a name for the new appearance profile.'));
+                    return;
+                }
+                const button = documentRef.getElementById('fv-theme-save-as-profile');
+                if (button?.disabled) return;
+                if (button) button.disabled = true;
+                safeAction(translate('settings.theme.save-as-profile', 'Save as new profile'), () => saveAsProfile(String(input.value).trim()), translate('settings.theme.profile-saved', 'Appearance profile saved.'))
+                    .catch(() => {}).finally(() => { if (button) button.disabled = false; });
             });
             $(documentRef).off('click.fvthemeprofilecreate', '#fv-theme-profile-create').on('click.fvthemeprofilecreate', '#fv-theme-profile-create', () => {
                 const input = documentRef.getElementById('fv-theme-profile-name');
@@ -539,12 +653,15 @@
             saveCustomize: () => safeAction('Theme customization save', saveCustomize, 'Customization layer saved.'),
             checkUpdates: () => safeAction('Theme update check', checkUpdates, 'Theme update check complete.'),
             resetTokens,
+            previewPreset,
+            undoPreset,
+            saveAsProfile,
             getPendingScan: () => pendingScan
         });
     };
 
     return Object.freeze({
         createApi,
-        TOKEN_DEFINITIONS
+        TOKEN_DEFINITIONS, PRESETS, applyPresetToLayer
     });
 }));

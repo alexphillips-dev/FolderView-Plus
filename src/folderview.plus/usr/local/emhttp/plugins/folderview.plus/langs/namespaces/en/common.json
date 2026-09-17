@@ -15,5 +15,16 @@
     "common.state.ready": "Ready",
     "common.actions.clear": "Clear",
     "common.state.all-good": "all good",
-    "common.health.folder-summary": "Folder health: $1 started | $2 paused | $3 stopped"
+    "common.health.folder-summary": "Folder health: $1 started | $2 paused | $3 stopped",
+    "common.folder-render.title": "Some folders could not be displayed.",
+    "common.folder-render.help": "Containers and VMs remain accessible. Review the affected folders in Settings, then reload this page.",
+    "common.folder-render.review": "Review folder",
+    "common.folder-render.all": "Review all folders in Settings",
+    "request.failure.refresh": "The page security information is missing or expired. Refresh the Unraid webGUI, then retry your change.",
+    "request.failure.session": "Unraid rejected the session security check. Refresh the webGUI and sign in again if prompted, then retry your change.",
+    "request.failure.origin": "The page address does not match the server request. If you use a reverse proxy, try direct Unraid access and check the proxy headers.",
+    "request.failure.marker": "The request security marker did not reach the plugin. Hard-refresh the webGUI; if this continues, check browser extensions or proxy filtering.",
+    "request.failure.state": "The plugin could not prepare secure changes. Check the plugin logs and export a sanitized support bundle.",
+    "request.failure.guard": "The plugin rejected this change. Refresh the webGUI and check whether it was already applied before trying again. Include this support code if the problem continues.",
+    "request.failure.support-code": "Support code: $1"
 }

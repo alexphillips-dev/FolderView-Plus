@@ -15,5 +15,16 @@
     "common.state.ready": "Bereit",
     "common.actions.clear": "Leeren",
     "common.state.all-good": "alles in Ordnung",
-    "common.health.folder-summary": "Ordnerstatus: $1 gestartet | $2 pausiert | $3 gestoppt"
+    "common.health.folder-summary": "Ordnerstatus: $1 gestartet | $2 pausiert | $3 gestoppt",
+    "common.folder-render.title": "Einige Ordner konnten nicht angezeigt werden.",
+    "common.folder-render.help": "Container und VMs bleiben erreichbar. Überprüfen Sie die betroffenen Ordner in den Einstellungen und laden Sie dann diese Seite neu.",
+    "common.folder-render.review": "Ordner überprüfen",
+    "common.folder-render.all": "Überprüfen Sie alle Ordner in den Einstellungen",
+    "request.failure.refresh": "Die Sicherheitsinformationen der Seite fehlen oder sind abgelaufen. Aktualisieren Sie die Unraid-WebGUI und wiederholen Sie dann Ihre Änderung.",
+    "request.failure.session": "Unraid hat die Sitzungssicherheitsprüfung abgelehnt. Aktualisieren Sie die WebGUI und melden Sie sich erneut an, wenn Sie dazu aufgefordert werden. Versuchen Sie dann erneut, die Änderung vorzunehmen.",
+    "request.failure.origin": "Die Seitenadresse stimmt nicht mit der Serveranfrage überein. Wenn Sie einen Reverse-Proxy verwenden, versuchen Sie es mit dem direkten Unraid-Zugriff und überprüfen Sie die Proxy-Header.",
+    "request.failure.marker": "Der Anforderungssicherheitsmarker hat das Plugin nicht erreicht. Aktualisieren Sie die WebGUI hart. Wenn dies weiterhin der Fall ist, überprüfen Sie die Browsererweiterungen oder die Proxy-Filterung.",
+    "request.failure.state": "Das Plugin konnte keine sicheren Änderungen vorbereiten. Überprüfen Sie die Plugin-Protokolle und exportieren Sie ein bereinigtes Support-Paket.",
+    "request.failure.guard": "Das Plugin hat diese Änderung abgelehnt. Aktualisieren Sie die WebGUI und prüfen Sie, ob sie bereits angewendet wurde, bevor Sie es erneut versuchen. Geben Sie diesen Supportcode an, wenn das Problem weiterhin besteht.",
+    "request.failure.support-code": "Support-Code: $1"
 }

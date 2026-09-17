@@ -4,6 +4,7 @@
         "locale": "zh-Hant",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "編輯資料夾預設設定",
     "settings.search.placeholder": "搜尋設定",
     "settings.search.label": "搜尋設定",
     "settings.search.clear-label": "清除設定搜尋",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "開始訂購",
     "settings.navigation.appearance": "外觀",
     "settings.recovery.last-scheduled": "上次計劃執行：$1",
-    "settings.recovery.never-scheduled": "上次計劃執行：從不"
+    "settings.recovery.never-scheduled": "上次計劃執行：從不",
+    "settings.theme.preset-inherited": "繼承的",
+    "settings.theme.preset-orange": "橘色",
+    "settings.theme.preset-blue": "藍色",
+    "settings.theme.preset-green": "綠色",
+    "settings.theme.preset-muted": "柔和色調",
+    "settings.theme.preset-preview-status": "僅預覽。儲存自訂圖層或另存為新設定檔以套用這些顏色。",
+    "settings.theme.profile-name-required": "輸入新外觀設定檔的名稱。",
+    "settings.theme.save-as-profile": "另存為新設定檔",
+    "settings.theme.profile-saved": "外觀設定檔已儲存。",
+    "settings.theme.presets-title": "顏色預設",
+    "settings.theme.presets-help": "預覽所選範圍的強調色和圖形顏色。保留其他自訂設定。準備好後儲存。",
+    "settings.theme.undo-preset": "撤銷預設預覽"
 }

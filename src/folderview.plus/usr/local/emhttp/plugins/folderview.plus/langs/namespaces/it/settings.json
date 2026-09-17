@@ -4,6 +4,7 @@
         "locale": "it",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Modifica le impostazioni predefinite delle cartelle",
     "settings.search.placeholder": "Impostazioni di ricerca",
     "settings.search.label": "Impostazioni di ricerca",
     "settings.search.clear-label": "Cancella ricerca impostazioni",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Inizia l'ordine",
     "settings.navigation.appearance": "Aspetto",
     "settings.recovery.last-scheduled": "Ultima corsa pianificata: $1",
-    "settings.recovery.never-scheduled": "Ultima corsa programmata: mai"
+    "settings.recovery.never-scheduled": "Ultima corsa programmata: mai",
+    "settings.theme.preset-inherited": "Ereditato",
+    "settings.theme.preset-orange": "Arancione",
+    "settings.theme.preset-blue": "Blu",
+    "settings.theme.preset-green": "Verde",
+    "settings.theme.preset-muted": "Toni tenui",
+    "settings.theme.preset-preview-status": "Solo anteprima. Salva il livello di personalizzazione o salva come nuovo profilo per applicare questi colori.",
+    "settings.theme.profile-name-required": "Immettere un nome per il nuovo profilo aspetto.",
+    "settings.theme.save-as-profile": "Salva come nuovo profilo",
+    "settings.theme.profile-saved": "Profilo aspetto salvato.",
+    "settings.theme.presets-title": "Preimpostazioni di colore",
+    "settings.theme.presets-help": "Anteprima dei colori accentati e del grafico per l'ambito selezionato. Le altre personalizzazioni vengono mantenute. Salva quando sei pronto.",
+    "settings.theme.undo-preset": "Annulla l'anteprima preimpostata"
 }

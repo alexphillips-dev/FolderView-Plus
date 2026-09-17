@@ -57,7 +57,15 @@ fvplus_json_try(function (): array {
     }
 
     if ($action === 'create_profile') {
-        return ['workspace' => createThemeWorkspaceProfile((string)($_POST['name'] ?? ''))];
+        $variablesRaw = $_POST['variables'] ?? '{}';
+        $variables = is_string($variablesRaw) ? json_decode($variablesRaw, true) : $variablesRaw;
+        if (!is_array($variables)) {
+            throw new RuntimeException('Invalid theme variable payload.');
+        }
+        return ['workspace' => createThemeWorkspaceProfile(
+            (string)($_POST['name'] ?? ''), (string)($_POST['sourceProfileId'] ?? ''),
+            (string)($_POST['scope'] ?? 'global'), $variables, (string)($_POST['customCss'] ?? '')
+        )];
     }
 
     if ($action === 'activate_profile') {

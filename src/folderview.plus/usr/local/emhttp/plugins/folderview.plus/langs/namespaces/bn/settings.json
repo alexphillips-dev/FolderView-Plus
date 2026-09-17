@@ -4,6 +4,7 @@
         "locale": "bn",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "ফোল্ডারের ডিফল্ট সেটিংস সম্পাদনা করুন",
     "settings.search.placeholder": "অনুসন্ধান সেটিংস",
     "settings.search.label": "অনুসন্ধান সেটিংস",
     "settings.search.clear-label": "সেটিংস অনুসন্ধান সাফ করুন",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "অর্ডার শুরু করুন",
     "settings.navigation.appearance": "চেহারা",
     "settings.recovery.last-scheduled": "শেষ নির্ধারিত রান: $1",
-    "settings.recovery.never-scheduled": "শেষ নির্ধারিত রান: কখনই নয়"
+    "settings.recovery.never-scheduled": "শেষ নির্ধারিত রান: কখনই নয়",
+    "settings.theme.preset-inherited": "উত্তরাধিকারসূত্রে প্রাপ্ত",
+    "settings.theme.preset-orange": "কমলা",
+    "settings.theme.preset-blue": "নীল",
+    "settings.theme.preset-green": "সবুজ",
+    "settings.theme.preset-muted": "মৃদু রং",
+    "settings.theme.preset-preview-status": "শুধুমাত্র পূর্বরূপ. এই রঙগুলি প্রয়োগ করতে কাস্টমাইজেশন স্তরটি সংরক্ষণ করুন বা একটি নতুন প্রোফাইল হিসাবে সংরক্ষণ করুন৷",
+    "settings.theme.profile-name-required": "নতুন চেহারা প্রোফাইলের জন্য একটি নাম লিখুন।",
+    "settings.theme.save-as-profile": "নতুন প্রোফাইল হিসাবে সংরক্ষণ করুন",
+    "settings.theme.profile-saved": "চেহারা প্রোফাইল সংরক্ষিত.",
+    "settings.theme.presets-title": "রঙের প্রিসেট",
+    "settings.theme.presets-help": "নির্বাচিত সুযোগের জন্য অ্যাকসেন্ট এবং গ্রাফ রংগুলির পূর্বরূপ দেখুন। অন্যান্য কাস্টমাইজেশন সংরক্ষিত হয়. প্রস্তুত হলে সংরক্ষণ করুন।",
+    "settings.theme.undo-preset": "পূর্বনির্ধারিত পূর্বরূপ পূর্বাবস্থায় ফেরান"
 }

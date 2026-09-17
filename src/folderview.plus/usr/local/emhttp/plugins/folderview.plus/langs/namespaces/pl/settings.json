@@ -4,6 +4,7 @@
         "locale": "pl",
         "namespace": "settings"
     },
+    "settings.folder-defaults.edit": "Edytuj domyślne ustawienia folderów",
     "settings.search.placeholder": "Ustawienia wyszukiwania",
     "settings.search.label": "Ustawienia wyszukiwania",
     "settings.search.clear-label": "Wyczyść wyszukiwanie ustawień",
@@ -138,5 +139,17 @@
     "settings.navigation.startup": "Rozpocznij zamówienie",
     "settings.navigation.appearance": "Wygląd",
     "settings.recovery.last-scheduled": "Ostatnie zaplanowane uruchomienie: $1",
-    "settings.recovery.never-scheduled": "Ostatni zaplanowany bieg: nigdy"
+    "settings.recovery.never-scheduled": "Ostatni zaplanowany bieg: nigdy",
+    "settings.theme.preset-inherited": "Odziedziczone",
+    "settings.theme.preset-orange": "Pomarańczowy",
+    "settings.theme.preset-blue": "Niebieski",
+    "settings.theme.preset-green": "Zielony",
+    "settings.theme.preset-muted": "Stonowane kolory",
+    "settings.theme.preset-preview-status": "Tylko podgląd. Zapisz warstwę dostosowywania lub zapisz jako nowy profil, aby zastosować te kolory.",
+    "settings.theme.profile-name-required": "Wprowadź nazwę nowego profilu wyglądu.",
+    "settings.theme.save-as-profile": "Zapisz jako nowy profil",
+    "settings.theme.profile-saved": "Profil wyglądu został zapisany.",
+    "settings.theme.presets-title": "Wstępne ustawienia kolorów",
+    "settings.theme.presets-help": "Podgląd kolorów akcentów i wykresów dla wybranego zakresu. Inne dostosowania zostaną zachowane. Zapisz, gdy będziesz gotowy.",
+    "settings.theme.undo-preset": "Cofnij wstępnie ustawiony podgląd"
 }

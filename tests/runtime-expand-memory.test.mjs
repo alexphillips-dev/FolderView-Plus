@@ -21,7 +21,7 @@ test('docker runtime persists expanded/collapsed folder state and restores it du
     assert.match(dockerJs, /createExpandedStateController\(/);
     assert.match(dockerJs, /syncDelayMs:\s*DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,/);
     assert.match(runtimeStateObserverJs, /win\.addEventListener\('pagehide', persistStateFromDom,\s*\{\s*passive:\s*true\s*\}\)/);
-    assert.match(dockerJs, /const expandedStateById = buildDockerExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\);/);
+    assert.match(dockerJs, /const expandedStateById = buildDockerExpandedStateMap\(\s*\{ \.\.\.dockerFolderRenderRecovery\.failedFolders\(\), \.\.\.foldersDone \},\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\);/);
     assert.match(dockerJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);
     assert.match(dockerJs, /dropDownButton\(id, false\);/);
     assert.match(dockerJs, /const dropDownButton = \(id, persistState = true\) =>/);
@@ -41,7 +41,7 @@ test('vm runtime persists expanded/collapsed folder state and restores it during
     assert.match(vmJs, /const ensureVmExpandedStateLifecycleHooks = \(\) =>/);
     assert.match(vmJs, /createExpandedStateController\(/);
     assert.match(runtimeStateObserverJs, /win\.addEventListener\('pagehide', persistStateFromDom,\s*\{\s*passive:\s*true\s*\}\)/);
-    assert.match(vmJs, /const expandedStateById = buildVmExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readVmServerExpandedStateMap\(\)\s*\);/);
+    assert.match(vmJs, /const expandedStateById = buildVmExpandedStateMap\(\s*\{ \.\.\.vmFolderRenderRecovery\.failedFolders\(\), \.\.\.foldersDone \},\s*previousFolders,\s*readVmServerExpandedStateMap\(\)\s*\);/);
     assert.match(vmJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);
     assert.match(vmJs, /dropDownButton\(id, false\);/);
     assert.match(vmJs, /const dropDownButton = \(id, persistState = true\) =>/);

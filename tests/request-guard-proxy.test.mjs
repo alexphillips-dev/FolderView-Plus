@@ -13,16 +13,20 @@ const libPath = path.join(
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-const evaluateRequest = (server) => {
+const evaluateRequest = (server, guardPost = null) => {
     const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-request-guard-'));
     const configDir = path.join(sandboxRoot, 'config');
     const sourceDir = path.join(sandboxRoot, 'source');
     fs.mkdirSync(configDir, { recursive: true });
     fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(path.join(configDir, 'request.token'), 'fixture-request-token-123456');
     const encodedServer = Buffer.from(JSON.stringify(server), 'utf8').toString('base64');
+    const encodedPost = Buffer.from(JSON.stringify(guardPost || {}), 'utf8').toString('base64');
     const php = `
 $_SERVER = json_decode(base64_decode(${phpSingleQuote(encodedServer)}), true);
+$_POST = json_decode(base64_decode(${phpSingleQuote(encodedPost)}), true);
 require_once ${phpSingleQuote(libPath)};
+${guardPost ? "fvplus_json_try(static fn(): array => ['guardPassed' => true]); exit;" : ''}
 echo json_encode([
     'trusted' => isTrustedMutationContext(),
     'diagnostics' => getMutationRequestSecurityDiagnostics()
@@ -35,7 +39,8 @@ echo json_encode([
             env: {
                 ...process.env,
                 FVPLUS_TEST_CONFIG_DIR: configDir,
-                FVPLUS_TEST_SOURCE_DIR: sourceDir
+                FVPLUS_TEST_SOURCE_DIR: sourceDir,
+                FVPLUS_TEST_SECURITY_STATE_PATH: path.join(sandboxRoot, 'security-state.json')
             }
         });
         return JSON.parse(output);
@@ -75,6 +80,31 @@ test('direct HTTP and HTTPS request authorities remain trusted', () => {
     });
     assert.equal(httpsResult.trusted, true);
     assert.equal(httpsResult.diagnostics.originStatus, 'direct');
+});
+
+test('nonce endpoint reports exact guard failures and accepts valid direct or forwarded requests', () => {
+    const server = {
+        REQUEST_METHOD: 'POST', SCRIPT_FILENAME: '/plugins/folderview.plus/server/security.php',
+        HTTP_HOST: 'tower.local', HTTPS: 'off', SERVER_PORT: '80',
+        HTTP_ORIGIN: 'http://tower.local', HTTP_REFERER: 'http://tower.local/Settings/FolderViewPlus'
+    };
+    const post = { action: 'issue_nonce', endpoint: 'update.php', _fv_request: '1', token: 'fixture-request-token-123456' };
+    for (const [headers, payload, reason] of [
+        [server, { ...post, _fv_request: '' }, 'marker-missing'],
+        [server, { ...post, token: '' }, 'plugin-token-invalid'],
+        [server, { ...post, token: 'expired-fixture-token' }, 'plugin-token-invalid'],
+        [{ ...server, HTTP_ORIGIN: 'https://other.example.test' }, post, 'origin-mismatch'],
+        [{ ...server, HTTP_REFERER: 'https://other.example.test/private-path' }, post, 'referer-mismatch']
+    ]) {
+        const result = evaluateRequest(headers, payload);
+        assert.equal(result.ok, false);
+        assert.equal(result.requestFailure.source, 'folderview-plus');
+        assert.equal(result.requestFailure.reasonCode, reason);
+        assert.doesNotMatch(JSON.stringify(result), /fixture-request-token|expired-fixture|other\.example|private-path/);
+    }
+    assert.equal(evaluateRequest(server, post).guardPassed, true);
+    assert.equal(evaluateRequest({ ...server, ...standardProxyHeaders }, post).guardPassed, true);
+    assert.equal(evaluateRequest({ ...server, HTTP_X_FV_REQUEST: '1' }, { ...post, _fv_request: '' }).guardPassed, true);
 });
 
 test('a coherent standard reverse-proxy authority is trusted', () => {

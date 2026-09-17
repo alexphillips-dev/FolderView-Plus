@@ -25,6 +25,14 @@ Compatibility does not mean every older visual customization will match the curr
 
 If FolderView Plus starts with empty or missing current configuration, its compatibility layer can discover eligible FolderView2 or FolderView3 data and migrate folder maps and default preferences. Use the explicit import flow when you want a visible preview and control over each operation.
 
+## FolderView3 environment preview
+
+In Advanced Settings, open Recovery and use the FolderView3 migration preview to inspect an installed configuration or a full environment export. The preview reports Docker and VM folder order separately. Saved `order-docker.json` and `order-vm.json` snapshots take priority over the order of folder records; missing or invalid snapshots fall back to configuration order. Duplicate and unknown references are skipped with warnings. Positions of unassigned containers or VMs among folders on the native Unraid page are not imported.
+
+Appearance imports preserve the Docker, VM, and Dashboard scopes named in custom CSS filenames, including files targeting multiple pages. Styles under `.disabled` directories become separate inactive appearance profiles, so they cannot be activated with the main imported profile by accident. Unscoped CSS and generated theme files are excluded. Theme source metadata is reported but does not enable managed updates automatically; scan the original source in Appearance to manage future updates.
+
+All imported appearance profiles start inactive. Preview each before activation because FolderView3 selectors and variables can differ from FolderView Plus. The apply step checks that the source still matches the preview, creates safety backups, and verifies the resulting configuration. Native Docker autostart replacement remains a separate opt-in choice.
+
 ## Setup Assistant migration route
 
 The Setup Assistant can include Docker and VM imports in a guided plan. Import is optional for a fresh setup. A migration route only requires an enabled import when the selected route is specifically intended to migrate existing data.

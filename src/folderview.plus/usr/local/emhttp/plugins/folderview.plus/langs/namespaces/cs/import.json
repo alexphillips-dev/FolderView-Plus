@@ -62,5 +62,20 @@
     "import.folderview3.inspecting": "Kontrola konfigurace FolderView3...",
     "import.folderview3.inspecting-help": "Tento náhled pouze pro čtení může chvíli trvat, pokud jsou k dispozici vlastní styly.",
     "import.folderview3.confirm-apply": "Nahradit aktuální složky FolderView Plus Docker, složky VM, kompatibilní nastavení, vlastnictví počáteční objednávky a data profilu Theme Workspace? Nejprve se vytvoří kontrolní bod vrácení a zálohy podle typu.",
-    "import.folderview3.confirm-native-suffix": "Povolení automatického spuštění a čekání nativního Dockeru bude také nahrazeno."
+    "import.folderview3.confirm-native-suffix": "Povolení automatického spuštění a čekání nativního Dockeru bude také nahrazeno.",
+    "import.folderview3.order-invalid": "Snímek objednávky FolderView3 je neplatný; bylo použito pořadí konfigurace složky.",
+    "import.folderview3.order-duplicates": "Duplicitní položky objednávky FolderView3 byly ignorovány.",
+    "import.folderview3.order-unknown": "Neznámé odkazy na složky ve snímcích pořadí FolderView3 byly ignorovány.",
+    "import.folderview3.order-unassigned": "Pořadí složek je zachováno; pozice nepřiřazených položek na stránce Unraid se neimportují.",
+    "import.folderview3.theme-source": "Metadata zdroje motivu nebyla převedena na spravované aktualizace. Naskenujte původní zdroj motivu, abyste mohli spravovat budoucí aktualizace.",
+    "import.folderview3.theme-unscoped": "Vlastní styly bez rozpoznaného rozsahu stránky FolderView3 byly vyloučeny.",
+    "import.folderview3.theme-disabled": "Zakázaná témata byla zachována jako samostatné profily neaktivního vzhledu; nejsou zahrnuty v hlavním importovaném profilu.",
+    "import.folderview3.theme-compatibility": "Importované CSS mohou používat selektory nebo proměnné FolderView3, které se liší ve FolderView Plus. Před aktivací si prohlédněte každý profil vzhledu.",
+    "import.folderview3.order-imported": "Importováno",
+    "import.folderview3.order-fallback": "Pořadí konfigurace",
+    "import.folderview3.order-empty": "Žádná uložená objednávka",
+    "import.folderview3.order-invalid-status": "Neplatný snímek; konfigurační pořadí",
+    "import.folderview3.appearance-profiles": "Přidejte neaktivní profily vzhledu FolderView3",
+    "import.folderview3.order-summary": "Pořadí uložených složek: Docker $1; VM $2.",
+    "import.folderview3.disabled-profile-count": "Samostatné profily pro zakázané motivy: $1."
 }

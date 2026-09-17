@@ -150,3 +150,23 @@ test('pkg_build tolerates non-zero tar exit when the archive remains readable', 
     assert.match(pkgBuild, /WARN: tar exited with status \$tar_status but produced a readable archive; continuing\./);
     assert.match(pkgBuild, /ERROR: tar failed to create a readable archive \(status: \$tar_status\)\./);
 });
+
+test('package compression is identical with single and multi-threaded XZ defaults', (t) => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-compression-'));
+    t.after(() => cleanupTempDir(tempRoot));
+    const pkgBuild = fs.readFileSync(path.join(repoRoot, 'pkg_build.sh'), 'utf8');
+    const command = pkgBuild.match(/if ! (tar --sort=name[\s\S]*?); then/)?.[1];
+    assert.ok(command, 'exercise the actual package archive command');
+    writeFile(path.join(tempRoot, 'input', 'payload.txt'), 'FolderView Plus reproducibility fixture\n'.repeat(4096));
+    const archives = [];
+    for (const threads of ['1', '2']) {
+        const archive = path.join(tempRoot, `threads-${threads}.txz`);
+        writeFile(path.join(tempRoot, 'compress.sh'), `filename="../threads-${threads}.txz"\n${command}\n`);
+        runBash(['../compress.sh'], path.join(tempRoot, 'input'), {
+            XZ_DEFAULTS: `--threads=${threads}`,
+            XZ_OPT: `--threads=${threads}`
+        });
+        archives.push(fs.readFileSync(archive));
+    }
+    assert.deepEqual(archives[0], archives[1], 'archive bytes must not depend on XZ threading defaults');
+});

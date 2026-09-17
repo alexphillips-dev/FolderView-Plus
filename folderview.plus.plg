@@ -5,18 +5,23 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.09.17.03">
-<!ENTITY md5 "23ed1cc7fc073ca2bced7e5c8be34a5a">
-<!ENTITY sha256 "ac9c1219f4907a75413662b68d862a540e56fda7c169d46d991b125fc65e0243">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.09.17.04">
+<!ENTITY md5 "3e4eac5ab1cfc90c73f2074344352683">
+<!ENTITY sha256 "a5acb7de9d077a07ae304d8c6c1de058498717bdabbc30683a28fc2a53e80207">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.04
+- Maintenance: Synchronize the dev channel with stable 2026.09.17.03, including the complete folder, Dashboard, upload, diagnostics, migration, appearance, and localization improvements.
+- Reliability: Rebuild the dev archive with deterministic compression so Windows and Linux produce identical package bytes. Saved settings and runtime behavior are unchanged from the stable release.
+
 
 ###2026.09.17.03
 - UX: Add Edit folder defaults links for Docker and VMs. Edit saved defaults, including imported FolderView3 profiles, without creating a source folder; future folders inherit the profile while existing folders remain unchanged unless Apply to all is explicitly used.
@@ -8867,7 +8872,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

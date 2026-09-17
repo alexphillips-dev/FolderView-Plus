@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.06">
-<!ENTITY md5 "8a185fab5d13500d0b27c80d7c6b22b2">
-<!ENTITY sha256 "6aafd2f25ac1c90b3107d88070b5e2d805c4bb5459e5e0b0416d3c19c322187c">
+<!ENTITY version "2026.09.17.07">
+<!ENTITY md5 "539d253117d4f12b318bcaf64ea0c4b1">
+<!ENTITY sha256 "a4dad741df9fc19eefbb7b8382856bec0d7d8a9cfd8a218f8c2a90fc7e6ea8ed">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.07
+- Fix: Prevent Compact Matrix from stretching Docker and VM Dashboard widgets beyond the screen under Unraid's native table styles. Folder cards wrap into their columns and the view controls remain accessible without horizontal scrolling. Hard-refresh the webGUI after updating.
+
 
 ###2026.09.17.06
 - Fix: Use the available Docker and VM Dashboard widget width in Classic, Fullwidth, Inset, and Embossed views. Collapsed folders and ungrouped items now wrap across rows, while expanded folders receive a full-width panel with responsive member columns.

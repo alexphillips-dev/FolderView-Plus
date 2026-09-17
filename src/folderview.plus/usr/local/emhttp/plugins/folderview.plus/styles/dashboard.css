@@ -617,6 +617,8 @@ tbody.fv-dashboard-layout-inset .folder-showcase-outer {
 
 tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
     display: block;
+    /* Native Unraid table cells inherit nowrap, which prevents inline cards from stacking. */
+    white-space: normal;
     column-count: var(--fv-dashboard-compactmatrix-columns, 1);
     column-gap: 8px;
 }

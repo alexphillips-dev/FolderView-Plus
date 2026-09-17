@@ -2,6 +2,51 @@ import assert from 'node:assert/strict';
 
 export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
     for (const type of ['docker', 'vm']) {
+        test(`${type} Compact Matrix overrides native non-wrapping table cells without moving controls offscreen`, async ({ page }) => {
+            await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
+            // Unraid default-base.css sets nowrap on tbody cells; its Dashboard table uses auto layout.
+            await page.addStyleTag({ content: '#fixture-widget table { table-layout: auto; } table tbody td { white-space: nowrap; }' });
+            await page.evaluate((type) => {
+                document.body.append(document.querySelector('#vms'));
+                document.querySelector('#vms').hidden = true;
+                document.querySelector('#fixture-vm-widget').remove();
+                if (type === 'vm') document.querySelector('#docker_view').id = 'vm_view';
+                const host = document.querySelector('#fixture-dashboard-host');
+                if (type === 'vm') host.querySelector('.fv-dashboard-layout-inline-host')?.remove();
+                const first = host.querySelector('.folder-showcase-outer');
+                for (let i = 0; i < 12; i += 1) host.append(first.cloneNode(true));
+                host.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
+                if (type === 'vm') host.innerHTML = host.innerHTML.replaceAll('folder-docker', 'folder-vm').replaceAll(' apps', ' vms');
+            }, type);
+            for (const width of [1180, 900, 390]) {
+                await page.setViewportSize({ width: width === 390 ? 414 : 1400, height: 900 });
+                for (const layout of ['compactmatrix', 'fullwidth', 'compactmatrix']) {
+                    await page.evaluate(({ type, width, layout }) => {
+                        const fixture = window.fixtureDashboardLayout;
+                        fixture.resize(width);
+                        fixture.state.layout = layout;
+                        fixture.controller.applyDashboardLayoutStateForType(type);
+                    }, { type, width, layout });
+                    // Let ResizeObserver reconciliation settle so feedback-driven growth is detected.
+                    await page.waitForTimeout(150);
+                    const geometry = await page.evaluate(() => {
+                        const host = document.querySelector('#fixture-dashboard-host');
+                        const widget = document.querySelector('#fixture-widget').getBoundingClientRect();
+                        const rects = [...host.querySelectorAll(':scope > .folder-showcase-outer, .fv-dashboard-quick-action')]
+                            .filter((node) => node.getClientRects().length).map((node) => node.getBoundingClientRect());
+                        return { overflow: document.documentElement.scrollWidth > innerWidth,
+                            withinWidget: rects.every((r) => r.left >= widget.left - 1 && r.right <= widget.right + 1),
+                            wraps: Math.max(...rects.map((r) => r.bottom)) > widget.top + 200 };
+                    });
+                    assert.equal(geometry.overflow, false, `${type} ${layout} ${width}: page overflow`);
+                    assert.equal(geometry.withinWidget, true, 'cards and layout controls must remain inside the widget');
+                    assert.equal(geometry.wraps, true, 'additional cards must continue vertically');
+                }
+            }
+            await page.locator(`[data-fv-dashboard-type="${type}"] [data-fv-quick-action="view-options"]`).click();
+            await page.locator('.fv-dashboard-view-popover-shell').waitFor();
+            assert.equal(await page.locator('[data-fv-layout-select]').isVisible(), true);
+        });
         test(`${type} Dashboard packs folders and members using the available widget width`, async ({ page }) => {
             await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
             await page.emulateMedia({ reducedMotion: 'reduce' });

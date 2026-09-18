@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.10">
-<!ENTITY md5 "e2134ef2f2ec6c42c4229988fec30252">
-<!ENTITY sha256 "ad9e0d5701be50def71cd50d3763241d2db20365a3f69db970f43fcbb99adbc8">
+<!ENTITY version "2026.09.17.11">
+<!ENTITY md5 "3ddaa4e7898beb7cee65929872a4d1cb">
+<!ENTITY sha256 "6a5fe652698297aa2ae153b8f434de6c81cadf5da93ff23f60f9d1a23948e478">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.11
+- Fix: Extend translations across all 27 supported locales for conditional messages, folder editing, icons, themes, setup, imports, recovery, rules, runtime actions, and diagnostics. Correct remaining English text and context-sensitive action wording.
+- Fix: Localize native confirmations and clone prompts, CSS empty states, accessibility labels, and FolderView3 migration reports. Preserve cancellation behavior, user-entered names, and confirmation tokens.
+- Fix: Replace English plural suffix construction with complete count messages and prevent adjacent or overlapping message parameters from corrupting displayed names and counts. Preserve the distinction between manual sorting and manual membership.
+- Fix: Translate additional server errors and repair guidance while retaining the original diagnostic text, status, and appended technical details. Dates and selected numeric displays now follow the configured language.
+- Fix: Keep development-channel descriptions and quick-start guidance localized in installed packages, and retain their translation bootstrap during packaging.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so the new scripts and language catalogs load together.
+
 
 ###2026.09.17.10
 - Fix: Translate destructive backup and folder-branch confirmations across all supported languages. Count messages now use complete translated text without inserting English plural suffixes, including singular and zero-count states. Existing confirmation and cancellation safeguards are preserved.

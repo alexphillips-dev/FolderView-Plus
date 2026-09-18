@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "editor",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",
     "editor.actions.standard": "স্ট্যান্ডার্ড",
@@ -41,7 +41,7 @@
     "editor.webui-profiles.delete": "মুছুন",
     "editor.webui-profiles.search": "ফোল্ডার সদস্যদের অনুসন্ধান করুন",
     "editor.webui-profiles.select-webui": "WebUI দিয়ে সব নির্বাচন করুন",
-    "editor.webui-profiles.clear": "নির্বাচন পরিষ্কার করুন",
+    "editor.webui-profiles.clear": "নির্বাচন সরান",
     "editor.webui-profiles.webui-ready": "WebUI কনফিগার করা হয়েছে",
     "editor.webui-profiles.webui-runtime": "WebUI লঞ্চের সময় পরীক্ষা করা হয়েছে",
     "editor.webui-profiles.unavailable": "এই ফোল্ডারে অনুপলব্ধ",

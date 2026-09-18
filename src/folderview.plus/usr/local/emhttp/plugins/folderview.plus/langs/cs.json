@@ -12,16 +12,16 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Přidat složku",
     "up-to-date": "aktuální",
     "update-ready": "aktualizace připravena",
     "force-update": "vynutit aktualizaci",
     "apply-update": "použít aktualizaci",
-    "compose": "Compose",
+    "compose": "Skládat",
     "third-party": "3. strana",
     "are-you-sure": "jsi si jistý?",
     "remove-folder": "Odebrat složku",
@@ -117,7 +117,7 @@
     "expand-tab-tooltip": "Zahájí rozbalení složky na záložce Docker/VMs.",
     "expand-dashboard": "Rozbaleno na kartě Panel:",
     "expand-dashboard-tooltip": "Zahájí rozbalení složky na hlavním panelu.",
-    "regex": "Regex:",
+    "regex": "regulární výraz:",
     "regex-tooltip": "Regex shodující se automaticky přidá shodující se kontejnery nebo VMs do této složky.<br>Jakýkoli kontejner nebo VM jméno regex shody bude přidáno do složky.<br>Příklad pro shodu vejce Pterodactyla ID:<b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.<br><a href=\"https://regex101.com/\">Použijte regex101 pro testování výrazu</a>.<br>Úprava regex vymaže všechny ruční výběry členů pro tuto složku.",
     "submit": "Odeslat",
     "cancel": "Zrušit",
@@ -131,7 +131,7 @@
     "el-name": "Jméno",
     "el-actions": "Akce",
     "docker": "Docker",
-    "vms": "VMs",
+    "vms": "VM",
     "custom-actions": "Vlastní akce",
     "custom-actions-folder": "Vlastní akce:",
     "custom-actions-folder-tooltip": "<b>Název:</b>Pouze název akce.<br><b>Typ:</b>Typ akce.<br><ul><li><b>Standardní</b>- normální akce na docker kontejnerech (spustit, zastavit, ...).</li><li><b>Vlastní</b>- provede User Scripts (vyžaduje User Scripts plugin).</li></ul><b>Akce:</b>Akce, která má být provedena.<br><ul><li><b>Cyklus</b>- cykluje mezi dvěma stavy.</li><li><b>Nastavit</b>- nastaví stav.</li><li><b>Restartovat</b>- základní restart.</li></ul><b>Kontajnery:</b>Seznam kontejnerů oddělený čárkou (,).<br><b>Skript:</b>Pouze název skriptu (<b>Názvy jsou citlivé na velikost písmen a vyžadují mezery</b>).<br><b>Argumenty:</b>Argumenty předané skriptu.<br><b>Synchronizace:</b>Zda spustit skript na pozadí nebo ne.<br><b>Ikona:</b>Ikona akce, ponechte prázdné pro výchozí hodnotu.",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "Při změně motivů nebo stylů hostitele ponechte vybrané stavové barvy této složky směrodatné.",
     "dashboard-layout-embossed": "Reliéfní",
     "table-show-in-preview": "Zobrazit v náhledu",
-    "member-preview-visible": "Viditelné"
+    "member-preview-visible": "Viditelné",
+    "folderviewplus-dev-desc": "Vývojová sestavení FolderView Plus slouží k testování. Před stabilním vydáním očekávejte chyby, regrese a nedokončené změny.",
+    "folderviewplus-dev-quickstart": "Vývojová větev: otestujte změny před stabilním vydáním. Aktualizujte pečlivě a počítejte s občasným rozbitím.",
+    "folderviewplus-quickstart": "Rychlý start: otevřete Nastavení → FolderView Plus. Použijte Basic pro každodenní správu složek a Advanced pro hromadné přidělování, pravidla, obnovu, operace a diagnostiku. Změny se automaticky uloží."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Pārraugiet spraudņa stāvokli, novērsiet problēmas un kopīgojiet atbalsta datus.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 min vecs",
     "diagnostics.capture.age-hours": "$1 h vecs",
     "diagnostics.capture.guide-title": "Uzņemiet informācijas paneļa pierādījumus 3 vienkāršās darbībās",
-    "diagnostics.capture.missing": "Trūkst",
+    "diagnostics.capture.missing": "Nav pieejams",
     "diagnostics.capture.step-open": "Atveriet informācijas paneli",
     "diagnostics.capture.step-open-detail": "Dodieties uz ietekmēto ierīci un izvērsiet problēmu mapi.",
     "diagnostics.capture.step-reproduce": "Uztveriet problēmu",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Sekojiet līdzi",
     "diagnostics.overall.warning": "Spraudņa pamatfunkciju stāvoklim nepieciešama turpmāka pārskatīšana.",
     "diagnostics.overall.warning-detail": "Spraudnis darbojas, taču jāpārskata viena vai vairākas pamatpārbaudes.",
-    "diagnostics.status.advisories": "Veselīgs ar ieteikumiem",
+    "diagnostics.status.advisories": "Darbojas ar piezīmēm",
     "diagnostics.overall.advisories": "Spraudņa pamatfunkcijas ir kārtībā.",
     "diagnostics.overall.advisories-detail": "Paziņojumam nepieciešama turpmāka pārskatīšana, taču pamatfunkcijas ir kārtībā.",
     "diagnostics.status.healthy": "Veselīgs",

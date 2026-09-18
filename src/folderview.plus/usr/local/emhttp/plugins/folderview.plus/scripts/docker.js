@@ -7241,7 +7241,7 @@ pluginRequestClient.getText('/plugins/folderview.plus/server/cpu.php').then((dat
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dockerload SSE (folder ${id}): Calculated totals - loadCpu: ${loadCpu.toFixed(2)}%, loadMemB: ${loadMemB}, totalMemB: ${totalMemB}`);
 
             $(`span.mem-folder-${id}`).text(`${bToMem(loadMemB)} / ${bToMem(totalMemB)}`);
-            $(`span.cpu-folder-${id}`).text(`${loadCpu.toFixed(2)}%`);
+            $(`span.cpu-folder-${id}`).text((globalThis.FolderViewPlusI18n?.formatNumber?.((loadCpu) / 100, { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }) || `${(loadCpu).toFixed(2)}%`));
             $(`span#cpu-folder-${id}`).css('width', `${Math.min(100, loadCpu).toFixed(2)}%`); // Cap at 100% for display
         }
     });
@@ -7309,7 +7309,7 @@ const bToMem = (b) => {
         value /= 1024;
         i++;
     }
-    const result = `${value.toFixed(2)} ${units[i]}`;
+    const result = `${(globalThis.FolderViewPlusI18n?.formatNumber?.(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || value.toFixed(2))} ${units[i]}`;
     return result;
 };
 

@@ -240,7 +240,7 @@ const formatBytesShort = (bytes) => {
         index += 1;
     }
     const rounded = size >= 100 || index === 0 ? Math.round(size) : Number(size.toFixed(1));
-    return `${rounded} ${units[index]}`;
+    return `${globalThis.FolderViewPlusI18n?.formatNumber?.(rounded, { maximumFractionDigits: 1 }) || rounded} ${units[index]}`;
 };
 
 const getSetupAssistantImportFormatLabel = (parsed) => {
@@ -1061,7 +1061,7 @@ const previewSetupAssistantRuleMatches = (type, pattern) => {
     const samples = matches.slice(0, 4);
     const extra = matches.length > samples.length ? ` (+${matches.length - samples.length} more)` : '';
     const text = matches.length > 0
-        ? `Matches ${matches.length}: ${samples.join(', ')}${extra}`
+        ? setupAssistantT('common.repair.matches-summary', 'Matches: $1. $2', matches.length, samples.join(', ') + extra)
         : 'No current matches in existing items.';
     return {
         valid: true,
@@ -1750,10 +1750,10 @@ const renderSetupAssistantWelcomeStep = () => {
         vmTemplates: 0
     };
     const detectedCounts = [
-        Number(context.dockerFolders) > 0 ? `${context.dockerFolders} Docker folder${Number(context.dockerFolders) === 1 ? '' : 's'}` : '',
-        Number(context.vmFolders) > 0 ? `${context.vmFolders} VM folder${Number(context.vmFolders) === 1 ? '' : 's'}` : '',
-        (Number(context.dockerRules) + Number(context.vmRules)) > 0 ? `${Number(context.dockerRules) + Number(context.vmRules)} rule${(Number(context.dockerRules) + Number(context.vmRules)) === 1 ? '' : 's'}` : '',
-        (Number(context.dockerBackups) + Number(context.vmBackups)) > 0 ? `${Number(context.dockerBackups) + Number(context.vmBackups)} backup${(Number(context.dockerBackups) + Number(context.vmBackups)) === 1 ? '' : 's'}` : ''
+        Number(context.dockerFolders) > 0 ? setupAssistantT("common.repair.docker-folders-1-41f18c", "Docker folders: $1", context.dockerFolders) : '',
+        Number(context.vmFolders) > 0 ? setupAssistantT("common.repair.vm-folders-1-e73ec2", "VM folders: $1", context.vmFolders) : '',
+        (Number(context.dockerRules) + Number(context.vmRules)) > 0 ? setupAssistantT("common.repair.rules-1-d0ed4a", "Rules: $1", Number(context.dockerRules) + Number(context.vmRules)) : '',
+        (Number(context.dockerBackups) + Number(context.vmBackups)) > 0 ? setupAssistantT("common.repair.backups-1-69d513", "Backups: $1", Number(context.dockerBackups) + Number(context.vmBackups)) : ''
     ].filter(Boolean);
     const draftHtml = setupAssistantState.draftRestored
         ? `
@@ -2001,7 +2001,7 @@ const renderSetupAssistantImportTypeCard = (type) => {
     const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
     const statusTone = plan.error ? 'error' : warnings.length ? 'warning' : hasFile ? 'ready' : 'empty';
     const operationText = hasFile
-        ? `${operationCount} planned operation${operationCount === 1 ? '' : 's'}`
+        ? setupAssistantT("common.repair.planned-operations-1-a6783c", "Planned operations: $1", operationCount)
         : 'Waiting for export file';
     const importKindText = hasFile
         ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder export' : 'Full export')
@@ -2722,7 +2722,7 @@ const copySetupAssistantSummaryToClipboard = async () => {
             durationMs: 2800
         });
     } catch (error) {
-        showError('Copy summary failed', error);
+        showError(setupAssistantT("common.repair.copy-summary-failed-131999", "Copy summary failed"), error);
     }
 };
 
@@ -2887,11 +2887,11 @@ const renderSetupAssistantSwalSummaryHtml = ({
 };
 
 const formatSetupAssistantTemplateSummaryValue = (label, entry = {}) => (
-    `${label ? `${label} ` : ''}${Number(entry.created ?? entry.creatable) || 0} created, `
-    + `${Number(entry.skippedExisting) || 0} skipped, `
-    + `${Number(entry.assignment?.matched ?? entry.autoAssignMatched) || 0} auto-assigned, `
-    + `${Number(entry.assignment?.reviewNeededCount ?? entry.autoAssignReviewNeeded) || 0} review needed, `
-    + `${Number(entry.assignment?.unmatched ?? entry.autoAssignUnmatched) || 0} unmatched`
+    setupAssistantT('common.repair.template-summary', '$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6.', label,
+        Number(entry.created ?? entry.creatable) || 0, Number(entry.skippedExisting) || 0,
+        Number(entry.assignment?.matched ?? entry.autoAssignMatched) || 0,
+        Number(entry.assignment?.reviewNeededCount ?? entry.autoAssignReviewNeeded) || 0,
+        Number(entry.assignment?.unmatched ?? entry.autoAssignUnmatched) || 0)
 );
 
 const buildSetupAssistantTemplateReviewLines = (entries = {}) => {
@@ -3349,13 +3349,13 @@ const applySetupAssistantPlan = async () => {
     const impactSummary = buildSetupAssistantImpactSummary();
     const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
     if (safetyMode === 'strict' && reviewValidation.warnings.length > 0 && setupAssistantState.dryRunOnly !== true) {
-        showError('Strict mode blocked apply', new Error('Resolve all review warnings or switch safety mode to Auto/Fast.'));
+        showError(setupAssistantT("common.repair.strict-mode-blocked-apply-e5bb1f", "Strict mode blocked apply"), new Error(setupAssistantT("common.repair.resolve-all-review-warnings-or-switch-safety-mode-to-auto-fast-7103dd", "Resolve all review warnings or switch safety mode to Auto/Fast.")));
         setupAssistantState.step = getSetupAssistantStepSequence().length - 1;
         renderSetupAssistant();
         return;
     }
     if (safetyMode === 'strict' && impactSummary.totalPlannedChanges <= 0 && setupAssistantState.dryRunOnly !== true) {
-        showError('Strict mode blocked apply', new Error('No planned changes detected in strict mode.'));
+        showError(setupAssistantT("common.repair.strict-mode-blocked-apply-e5bb1f", "Strict mode blocked apply"), new Error(setupAssistantT("common.repair.no-planned-changes-detected-in-strict-mode-33d1aa", "No planned changes detected in strict mode.")));
         return;
     }
 
@@ -3367,7 +3367,7 @@ const applySetupAssistantPlan = async () => {
     setupAssistantState.applying = true;
     setupAssistantState.busy = true;
     const applyStartedAt = Date.now();
-    setSetupAssistantProgress(setupAssistantState.dryRunOnly ? 'Running dry run checks...' : 'Preparing apply...', 5);
+    setSetupAssistantProgress(setupAssistantState.dryRunOnly ? setupAssistantT("common.repair.running-dry-run-checks-b7d617", "Running dry run checks...") : setupAssistantT("common.repair.preparing-apply-5504c5", "Preparing apply..."), 5);
     renderSetupAssistant();
 
     let rollbackCreated = false;
@@ -3409,7 +3409,7 @@ const applySetupAssistantPlan = async () => {
     try {
         if (setupAssistantState.dryRunOnly === true) {
             await new Promise((resolve) => setTimeout(resolve, 140));
-            setSetupAssistantProgress('Dry run complete.', 100);
+            setSetupAssistantProgress(setupAssistantT("common.repair.dry-run-complete-1040ab", "Dry run complete."), 100);
             renderSetupAssistant();
             const dryRunLines = [
                 `Route: ${setupAssistantState.route}`,
@@ -3432,7 +3432,7 @@ const applySetupAssistantPlan = async () => {
         }
 
         if (safetyMode !== 'fast') {
-            setSetupAssistantProgress('Creating rollback checkpoint...', 10);
+            setSetupAssistantProgress(setupAssistantT("common.repair.creating-rollback-checkpoint-25ab79", "Creating rollback checkpoint..."), 10);
             renderSetupAssistant();
             const rollback = await createGlobalRollbackCheckpointApi('setup_assistant_apply');
             rollbackCreated = true;
@@ -3441,7 +3441,7 @@ const applySetupAssistantPlan = async () => {
             setupAssistantState.rollbackCheckpointName = '';
         }
 
-        setSetupAssistantProgress('Applying settings profile...', 20);
+        setSetupAssistantProgress(setupAssistantT("common.repair.applying-settings-profile-628ca5", "Applying settings profile..."), 20);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
             const currentPrefs = utils.normalizePrefs(prefsByType[type] || {});
@@ -3460,7 +3460,7 @@ const applySetupAssistantPlan = async () => {
         settingsUiState.mode = setupAssistantState.mode;
         setSettingsMode(setupAssistantState.mode);
 
-        setSetupAssistantProgress('Applying imports...', 36);
+        setSetupAssistantProgress(setupAssistantT("common.repair.applying-imports-357422", "Applying imports..."), 36);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
             const plan = setupAssistantState.importPlans[type];
@@ -3494,7 +3494,7 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        setSetupAssistantProgress('Creating starter folders...', 72);
+        setSetupAssistantProgress(setupAssistantT("common.repair.creating-starter-folders-9eb022", "Creating starter folders..."), 72);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
             try {
@@ -3512,7 +3512,7 @@ const applySetupAssistantPlan = async () => {
         }
         refreshSetupAssistantRuleSuggestions();
 
-        setSetupAssistantProgress('Applying starter rules...', 88);
+        setSetupAssistantProgress(setupAssistantT("common.repair.applying-starter-rules-ef0b27", "Applying starter rules..."), 88);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
             try {
@@ -3529,13 +3529,13 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        setSetupAssistantProgress('Refreshing settings...', 95);
+        setSetupAssistantProgress(setupAssistantT("common.repair.refreshing-settings-207d2f", "Refreshing settings..."), 95);
         renderSetupAssistant();
         await refreshAll();
         refreshSettingsUx();
         captureSettingsBaseline();
 
-        setSetupAssistantProgress('Running validation checks...', 97);
+        setSetupAssistantProgress(setupAssistantT("common.repair.running-validation-checks-6abf7d", "Running validation checks..."), 97);
         renderSetupAssistant();
         const validationWarnings = [];
         for (const type of ['docker', 'vm']) {
@@ -3560,7 +3560,7 @@ const applySetupAssistantPlan = async () => {
             completed: true
         });
 
-        setSetupAssistantProgress('Setup complete.', 100);
+        setSetupAssistantProgress(setupAssistantT("common.repair.setup-complete-c820bd", "Setup complete."), 100);
         renderSetupAssistant();
         await new Promise((resolve) => setTimeout(resolve, 220));
         closeSetupAssistant();
@@ -3570,7 +3570,7 @@ const applySetupAssistantPlan = async () => {
             ? `Rollback checkpoint: ${setupAssistantState.rollbackCheckpointName || 'created'}`
             : 'Rollback checkpoint skipped (Fast mode).';
         const durationMs = Math.max(0, Date.now() - applyStartedAt);
-        const durationSeconds = (durationMs / 1000).toFixed(1);
+        const durationSeconds = (globalThis.FolderViewPlusI18n?.formatNumber?.(durationMs / 1000, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || (durationMs / 1000).toFixed(1));
         if (typeof recordPerformanceDiagnosticsSample === 'function') {
             recordPerformanceDiagnosticsSample('wizard', 'apply', durationMs, {
                 mode: setupAssistantState.mode,
@@ -3724,7 +3724,7 @@ const applySetupAssistantPlan = async () => {
                 type: 'success'
             });
         } catch (error) {
-            showError('Setup undo failed', error);
+            showError(setupAssistantT("common.repair.setup-undo-failed-402fe6", "Setup undo failed"), error);
         }
     } catch (error) {
         if (typeof recordPerformanceDiagnosticsSample === 'function') {
@@ -3745,7 +3745,7 @@ const applySetupAssistantPlan = async () => {
                 rollbackMessage = `\nAutomatic rollback failed: ${rollbackError?.message || rollbackError}`;
             }
         }
-        showError('Setup assistant failed', new Error(`${error?.message || error}${rollbackMessage}`));
+        showError(setupAssistantT("common.repair.setup-assistant-failed-a4a89a", "Setup assistant failed"), new Error(`${error?.message || error}${rollbackMessage}`));
     } finally {
         setupAssistantState.applying = false;
         setupAssistantState.busy = false;
@@ -3917,7 +3917,7 @@ const bindSetupAssistantEvents = () => {
     root.find('#fv-setup-preset-save').off('click.fvsetup').on('click.fvsetup', () => {
         const result = saveCurrentSetupAssistantPreset(setupAssistantState.presetDraftName);
         if (!result.ok) {
-            showError('Save preset failed', new Error(result.error || 'Unable to save preset.'));
+            showError(setupAssistantT("common.repair.save-preset-failed-51b8d6", "Save preset failed"), new Error(result.error || setupAssistantT("common.repair.unable-to-save-preset-218e3f", "Unable to save preset.")));
             return;
         }
         setupAssistantState.selectedPresetId = result.id;
@@ -3935,7 +3935,7 @@ const bindSetupAssistantEvents = () => {
             return;
         }
         if (!loadSetupAssistantPresetById(selectedId)) {
-            showError('Load preset failed', new Error('Preset could not be loaded.'));
+            showError(setupAssistantT("common.repair.load-preset-failed-b25ebf", "Load preset failed"), new Error(setupAssistantT("common.repair.preset-could-not-be-loaded-c1dd50", "Preset could not be loaded.")));
             return;
         }
         const selected = readSetupAssistantPresetStore().find((entry) => String(entry.id || '') === selectedId);
@@ -3955,7 +3955,7 @@ const bindSetupAssistantEvents = () => {
         }
         const selected = readSetupAssistantPresetStore().find((entry) => String(entry.id || '') === selectedId);
         if (!deleteSetupAssistantPresetById(selectedId)) {
-            showError('Delete preset failed', new Error('Preset could not be removed.'));
+            showError(setupAssistantT("common.repair.delete-preset-failed-353848", "Delete preset failed"), new Error(setupAssistantT("common.repair.preset-could-not-be-removed-54b3b9", "Preset could not be removed.")));
             return;
         }
         setupAssistantState.selectedPresetId = '';
@@ -4020,7 +4020,7 @@ const bindSetupAssistantEvents = () => {
             refreshSetupAssistantRuleSuggestions();
         } catch (error) {
             setupAssistantState.importPlans[type].error = String(error?.message || error);
-            showError('Import file validation failed', error);
+            showError(setupAssistantT("common.repair.import-file-validation-failed-327507", "Import file validation failed"), error);
         } finally {
             setupAssistantState.busy = false;
             clearSetupAssistantProgress();

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "診斷",
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 分鐘舊",
     "diagnostics.capture.age-hours": "$1 小時舊",
     "diagnostics.capture.guide-title": "只需 3 個簡單步驟即可擷取儀錶板證據",
-    "diagnostics.capture.missing": "失蹤",
+    "diagnostics.capture.missing": "無法使用",
     "diagnostics.capture.step-open": "開啟儀錶板",
     "diagnostics.capture.step-open-detail": "轉到受影響的裝置並展開問題資料夾。",
     "diagnostics.capture.step-reproduce": "捕獲問題",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "跟進",
     "diagnostics.overall.warning": "外掛程式核心功能的狀態需要追蹤。",
     "diagnostics.overall.warning-detail": "外掛程式正在執行，但有一項或多項核心檢查需要複查。",
-    "diagnostics.status.advisories": "健康有建議",
+    "diagnostics.status.advisories": "正常，有提示",
     "diagnostics.overall.advisories": "外掛程式核心功能狀態良好。",
     "diagnostics.overall.advisories-detail": "有一則提示需要追蹤，但核心功能狀態正常。",
     "diagnostics.status.healthy": "健康",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Velg hvordan eksisterende mapper skal håndteres. Ingenting endres før du velger Bruk import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",
@@ -32,12 +32,12 @@
     "import.acknowledge.title": "Jeg vurderte denne importen",
     "import.acknowledge.description": "Atferden og valgte endringer er korrekte.",
     "import.progress.preparing": "Forbereder operasjon",
-    "import.progress.running": "Løper",
+    "import.progress.running": "Kjører",
     "import.summary.folder-change": "{{PLURAL:$1|mappeendring|mappeendringer}}",
     "import.summary.planned-change": "{{PLURAL:$1|planlagt endring|planlagte endringer}} i forhåndsvisning",
     "import.summary.new": "$1 ny",
     "import.summary.update": "{{PLURAL:$1|én oppdatering|$1 oppdateringer}}",
-    "import.summary.delete": "{{PLURAL:$1|én sletting|$1 sletter}}",
+    "import.summary.delete": "{{PLURAL:$1|én sletting|$1 slettinger}}",
     "import.kind.docker-folder": "Docker-mappe",
     "import.kind.vm-folder": "VM-mappen",
     "import.dialog.docker-title": "Importer Docker-mapper",

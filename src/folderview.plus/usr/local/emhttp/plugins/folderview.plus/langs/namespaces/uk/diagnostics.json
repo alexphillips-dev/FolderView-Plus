@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Діагностика",
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 хв",
     "diagnostics.capture.age-hours": "$1 год",
     "diagnostics.capture.guide-title": "Зберіть докази Dashboard у 3 простих кроки",
-    "diagnostics.capture.missing": "Відсутня",
+    "diagnostics.capture.missing": "Недоступно",
     "diagnostics.capture.step-open": "Відкрийте інформаційну панель",
     "diagnostics.capture.step-open-detail": "Перейдіть до проблемного пристрою та розгорніть проблемну папку.",
     "diagnostics.capture.step-reproduce": "Зафіксуйте проблему",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Подальші дії",
     "diagnostics.overall.warning": "Стан основних функцій плагіна потребує подальшої перевірки.",
     "diagnostics.overall.warning-detail": "Плагін працює, але потрібно переглянути результати однієї або кількох основних перевірок.",
-    "diagnostics.status.advisories": "Здоровий з порадами",
+    "diagnostics.status.advisories": "Справно, є зауваження",
     "diagnostics.overall.advisories": "Основні функції плагіна в порядку.",
     "diagnostics.overall.advisories-detail": "Повідомлення потребує розгляду, але основні функції в порядку.",
     "diagnostics.status.healthy": "Здоровий",

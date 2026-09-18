@@ -2744,7 +2744,7 @@ const buildVmFolderSettingsSummaryHtml = (entry) => {
     };
     const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(translateVmText("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,

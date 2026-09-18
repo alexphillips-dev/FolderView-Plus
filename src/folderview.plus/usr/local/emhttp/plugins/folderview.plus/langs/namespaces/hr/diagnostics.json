@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Dijagnostika",
     "diagnostics.workspace.description": "Pratite stanje dodataka, rješavajte probleme i dijelite podatke podrške.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 min star",
     "diagnostics.capture.age-hours": "$1 hr star",
     "diagnostics.capture.guide-title": "Snimite dokaze nadzorne ploče u 3 jednostavna koraka",
-    "diagnostics.capture.missing": "Nedostaje",
+    "diagnostics.capture.missing": "Nije dostupno",
     "diagnostics.capture.step-open": "Otvori nadzornu ploču",
     "diagnostics.capture.step-open-detail": "Idite na zahvaćeni uređaj i proširite mapu problema.",
     "diagnostics.capture.step-reproduce": "Snimite problem",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Pratiti",
     "diagnostics.overall.warning": "Stanje osnovnih funkcija dodatka zahtijeva daljnji pregled.",
     "diagnostics.overall.warning-detail": "Dodatak radi, ali jednu ili više osnovnih provjera treba pregledati.",
-    "diagnostics.status.advisories": "Zdravo sa savjetima",
+    "diagnostics.status.advisories": "Ispravno uz napomene",
     "diagnostics.overall.advisories": "Osnovne funkcije dodatka su ispravne.",
     "diagnostics.overall.advisories-detail": "Obavijest zahtijeva daljnji pregled, ali osnovne funkcije su ispravne.",
     "diagnostics.status.healthy": "Zdrava",

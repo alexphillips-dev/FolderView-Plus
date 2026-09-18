@@ -181,7 +181,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
     assert.match(script, /const patch = key === 'performanceProfile'[\s\S]*\? \{ performanceProfile: next\.performanceProfile, performanceMode: next\.performanceMode \}[\s\S]*: \{ \[key\]: next\[key\] \};/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{/);
-    assert.match(script, /showError\('Runtime preference sync pending', error\);/);
+    assert.match(script, /showError\(surfaceT\("common\.repair\.runtime-preference-sync-pending-fa357c", "Runtime preference sync pending"\), error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
     assert.doesNotMatch(script, /requestRevision !== runtimeSaveState\.revision/);
@@ -353,7 +353,7 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /const clearType = \(type, id\) =>/);
     assert.match(script, /const restoreLatestBackup = \(type\) =>/);
     assert.match(script, /openImportApplyProgressDialog\(resolvedType, progressTotal\);/);
-    assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
+    assert.match(script, /setProgress\(0, surfaceT\("common\.repair\.creating-safety-backup-99eaaf", "Creating safety backup\.\.\."\)\);/);
 });
 
 test('basic folder pin toggle persists quickly and broadcasts runtime refresh', () => {
@@ -388,7 +388,7 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
     assert.match(script, /if \(!visibleKeys\.size && settingsUiState\.mode === 'basic' && !settingsUiState\.query\) \{/);
     assert.match(script, /for \(const section of getBasicWorkspaceSections\(\)\) \{/);
     assert.match(script, /visibleKeys\.add\(section\.key\);/);
-    assert.match(script, /showError\('Initial data load failed', error\);/);
+    assert.match(script, /showError\(surfaceT\("common\.repair\.initial-data-load-failed-dbf943", "Initial data load failed"\), error\);/);
 });
 
 test('settings blank watchdog reports silent startup failures with diagnostics', () => {

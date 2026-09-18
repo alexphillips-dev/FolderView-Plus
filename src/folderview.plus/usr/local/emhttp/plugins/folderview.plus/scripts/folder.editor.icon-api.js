@@ -9,9 +9,9 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const surfaceT = (key, fallback, ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : ((value) => Array.isArray(value) ? value : []);
         const uploadApiPath = String(deps.iconUploadApiPath || '').trim();
         const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 4194304;
@@ -65,7 +65,7 @@
             const status = Number(error?.jqXHR?.status || error?.status || 0);
             if (status > 0) {
                 const statusText = String(error?.jqXHR?.statusText || error?.statusText || '').trim();
-                return statusText ? `Request failed. HTTP ${status} ${statusText}.` : `Request failed. HTTP ${status}.`;
+                return statusText ? surfaceT("legacy.surface.504281998c4409ad", "Request failed. HTTP $1 $2.", status, statusText) : `Request failed. HTTP ${status}.`;
             }
 
             const textStatus = String(error?.textStatus || '').trim();
@@ -137,7 +137,7 @@
                 idx += 1;
             }
             const precision = current >= 100 || idx === 0 ? 0 : (current >= 10 ? 1 : 2);
-            return `${current.toFixed(precision)} ${units[idx]}`;
+            return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(current, { minimumFractionDigits: precision, maximumFractionDigits: precision }) || current.toFixed(precision))} ${units[idx]}`;
         };
 
         const validateCustomIconFileBeforeUpload = (file) => {

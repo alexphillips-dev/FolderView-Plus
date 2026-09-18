@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até selecionar Aplicar importação.",
     "import.behavior.question": "Como devem ser tratadas as pastas existentes?",
@@ -32,7 +32,7 @@
     "import.acknowledge.title": "Revisei esta importação",
     "import.acknowledge.description": "O comportamento e as alterações selecionadas estão corretos.",
     "import.progress.preparing": "A preparar operação",
-    "import.progress.running": "A correr",
+    "import.progress.running": "Em execução",
     "import.summary.folder-change": "{{PLURAL:$1|alteração de pasta|alterações de pasta}}",
     "import.summary.planned-change": "{{PLURAL:$1|alteração planeada|alterações planeadas}} em pré-visualização",
     "import.summary.new": "$1 novo",

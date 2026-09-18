@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Vyberte, jak zacházet se stávajícími složkami. Nic se nezmění, dokud nevyberete možnost Použít import.",
     "import.behavior.question": "Jak by se mělo zacházet se stávajícími složkami?",
@@ -32,7 +32,7 @@
     "import.acknowledge.title": "Zkontroloval jsem tento import",
     "import.acknowledge.description": "Chování a vybrané změny jsou správné.",
     "import.progress.preparing": "Příprava provozu",
-    "import.progress.running": "Běh",
+    "import.progress.running": "Spuštěno",
     "import.summary.folder-change": "{{PLURAL:$1|změna složky|změny složek|změn složek}}",
     "import.summary.planned-change": "{{PLURAL:$1|plánovaná změna|plánované změny|plánovaných změn}} v náhledu",
     "import.summary.new": "$1 nové",

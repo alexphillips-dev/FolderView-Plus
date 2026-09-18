@@ -188,7 +188,7 @@
                     button.prop('disabled', false);
                     button.removeClass('is-inherited');
                     button.text('Use global');
-                    button.attr('title', 'Clear this override and use the global default again.');
+                    button.attr('title', surfaceT("common.repair.clear-this-override-and-use-the-global-default-again-485a0d", "Clear this override and use the global default again."));
                 }
             });
             $('#fvHeroDefaults').text(

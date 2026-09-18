@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "docker",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "docker.actions.label": "Действия FolderView",
     "docker.actions.add-folder": "Добавить папку",
@@ -29,7 +29,7 @@
     "docker.preview.view-logs": "Просмотр журналов",
     "docker.provider.hybrid-label": "Устаревший веб-интерфейс Unraid с данными GraphQL",
     "docker.health.api-summary": "Docker API: обновления: $1, готовы к пересборке: $2, потерянный: $3, конфликты портов: $4",
-    "docker.views.folderview": "FolderView",
+    "docker.views.folderview": "Просмотр папки",
     "docker.views.host": "Список хостов",
     "docker.views.command": "Команда",
     "docker.privacy.label": "Конфиденциальность",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "editor",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "editor.actions.add-custom": "Legg til en egendefinert handling",
     "editor.actions.standard": "Standard",
@@ -41,7 +41,7 @@
     "editor.webui-profiles.delete": "Slett",
     "editor.webui-profiles.search": "Søk i mappemedlemmer",
     "editor.webui-profiles.select-webui": "Velg alle med WebUI",
-    "editor.webui-profiles.clear": "Fjern valg",
+    "editor.webui-profiles.clear": "Fjern merking",
     "editor.webui-profiles.webui-ready": "WebUI konfigurert",
     "editor.webui-profiles.webui-runtime": "WebUI sjekket ved lansering",
     "editor.webui-profiles.unavailable": "Ikke tilgjengelig i denne mappen",

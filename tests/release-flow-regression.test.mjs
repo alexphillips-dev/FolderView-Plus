@@ -26,7 +26,7 @@ function cleanupTempDir(targetPath) {
             fs.chmodSync(entryPath, 0o644);
         } catch {}
     }
-    fs.rmSync(targetPath, { recursive: true, force: true });
+    fs.rmSync(targetPath, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
 
 function copyFileIntoTemp(tempRoot, relativePath) {

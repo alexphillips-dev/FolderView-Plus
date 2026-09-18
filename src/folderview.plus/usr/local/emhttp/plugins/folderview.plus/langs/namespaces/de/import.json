@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Wählen Sie aus, wie mit vorhandenen Ordnern umgegangen werden soll. Es ändert sich nichts, bis Sie „Import anwenden“ auswählen.",
     "import.behavior.question": "Wie soll mit vorhandenen Ordnern umgegangen werden?",
@@ -32,8 +32,8 @@
     "import.acknowledge.title": "Ich habe diesen Import überprüft",
     "import.acknowledge.description": "Das Verhalten und die ausgewählten Änderungen sind korrekt.",
     "import.progress.preparing": "Betrieb vorbereiten",
-    "import.progress.running": "Laufen",
-    "import.summary.folder-change": "{{PLURAL:$1|Ordnerwechsel|Ordneränderungen}}",
+    "import.progress.running": "Läuft",
+    "import.summary.folder-change": "{{PLURAL:$1|Ordneränderung|Ordneränderungen}}",
     "import.summary.planned-change": "{{PLURAL:$1|geplante Änderung|geplante Änderungen}} in der Vorschau",
     "import.summary.new": "$1 neu",
     "import.summary.update": "{{PLURAL:$1|ein Update|$1 Updates}}",

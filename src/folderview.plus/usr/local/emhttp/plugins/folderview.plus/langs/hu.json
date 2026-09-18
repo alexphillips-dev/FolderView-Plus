@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Mappa hozzáadása",
     "up-to-date": "naprakész",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "A mappa kiválasztott állapotszínei maradjanak mérvadóak, amikor a témák vagy a gazdagépstílusok megváltoznak.",
     "dashboard-layout-embossed": "Dombornyomott",
     "table-show-in-preview": "Megjelenítés előnézetben",
-    "member-preview-visible": "Látható"
+    "member-preview-visible": "Látható",
+    "folderviewplus-dev-desc": "A FolderView Plus fejlesztői buildek tesztelésre szolgálnak. A stabil kiadás előtt hibákra, regressziókra és befejezetlen változtatásokra kell számítani.",
+    "folderviewplus-dev-quickstart": "Fejlesztési ág: tesztelje a változtatásokat a stabil kiadás előtt. Óvatosan frissítse, és számítson időnkénti törésekre.",
+    "folderviewplus-quickstart": "Gyors használat: nyissa meg a Beállítások → FolderView Plus lehetőséget. Használja az Alapszintet a mindennapi mappakezeléshez, az Advanced pedig a tömeges hozzárendelésekhez, a szabályokhoz, a helyreállításhoz, a műveletekhez és a diagnosztikához. A változtatások automatikusan mentésre kerülnek."
 }

@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "ফোল্ডার যোগ করুন",
     "up-to-date": "আপ টু ডেট",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "থিম বা হোস্ট শৈলী পরিবর্তন হলে এই ফোল্ডারের নির্বাচিত স্থিতির রঙগুলিকে প্রামাণিক রাখুন৷",
     "dashboard-layout-embossed": "এমবসড",
     "table-show-in-preview": "পূর্বরূপ দেখান",
-    "member-preview-visible": "দৃশ্যমান"
+    "member-preview-visible": "দৃশ্যমান",
+    "folderviewplus-dev-desc": "ফোল্ডারভিউ প্লাস ডেভেলপমেন্ট বিল্ডগুলি পরীক্ষার জন্য। স্থিতিশীল প্রকাশের আগে বাগ, রিগ্রেশন এবং অসমাপ্ত পরিবর্তন আশা করুন।",
+    "folderviewplus-dev-quickstart": "উন্নয়ন শাখা: স্থিতিশীল প্রকাশের আগে পরীক্ষা পরিবর্তন। সাবধানে আপডেট করুন এবং মাঝে মাঝে ভাঙ্গন আশা করুন।",
+    "folderviewplus-quickstart": "দ্রুত শুরু: সেটিংস খুলুন → ফোল্ডার ভিউ প্লাস। দৈনন্দিন ফোল্ডার পরিচালনার জন্য বেসিক এবং বাল্ক অ্যাসাইনমেন্ট, নিয়ম, পুনরুদ্ধার, অপারেশন এবং ডায়াগনস্টিকসের জন্য উন্নত ব্যবহার করুন। পরিবর্তন স্বয়ংক্রিয়ভাবে সংরক্ষণ করা হয়."
 }

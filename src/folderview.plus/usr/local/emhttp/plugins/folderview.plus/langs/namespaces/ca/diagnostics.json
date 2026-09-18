@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnòstics",
     "diagnostics.workspace.description": "Superviseu l'estat dels connectors, solucioneu problemes i compartiu dades d'assistència.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 min d'antiguitat",
     "diagnostics.capture.age-hours": "$1 h d'antiguitat",
     "diagnostics.capture.guide-title": "Captureu proves del tauler de control en 3 senzills passos",
-    "diagnostics.capture.missing": "Falta",
+    "diagnostics.capture.missing": "No disponible",
     "diagnostics.capture.step-open": "Obriu el tauler",
     "diagnostics.capture.step-open-detail": "Aneu al dispositiu afectat i amplieu la carpeta del problema.",
     "diagnostics.capture.step-reproduce": "Captura el problema",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Seguiment",
     "diagnostics.overall.warning": "L'estat de les funcions principals del connector requereix seguiment.",
     "diagnostics.overall.warning-detail": "El connector funciona, però cal revisar una o més comprovacions principals.",
-    "diagnostics.status.advisories": "Sana amb consells",
+    "diagnostics.status.advisories": "Correcte amb avisos",
     "diagnostics.overall.advisories": "Les funcions principals del connector estan en bon estat.",
     "diagnostics.overall.advisories-detail": "Un avís requereix seguiment, però les funcions principals estan en bon estat.",
     "diagnostics.status.healthy": "Sana",

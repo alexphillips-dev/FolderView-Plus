@@ -274,7 +274,7 @@
             $('#fvHeroIcon').attr('src', selectedIconPath);
             $('#fvIconPanelPreview')
                 .attr('src', selectedIconPath)
-                .attr('title', selectedIconPath ? `Selected icon: ${selectedIconPath}` : 'Selected icon preview');
+                .attr('title', selectedIconPath ? surfaceT("common.repair.selected-icon-1-946ad0", "Selected icon: $1", selectedIconPath) : surfaceT("common.repair.selected-icon-preview-076922", "Selected icon preview"));
             $('#fvHeroScope').text(
                 normalizeParentFolderId(form.parent_folder_id?.value || '')
                     ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`

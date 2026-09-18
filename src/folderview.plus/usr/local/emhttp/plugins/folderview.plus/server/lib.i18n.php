@@ -12,10 +12,6 @@ function fvplus_localize_response_keys(array $payload): array {
             }
         }
     }
-    foreach (['error', 'message'] as $field) {
-        if (isset($payload[$field]) && is_string($payload[$field]) && isset($messageKeys[$payload[$field]])) {
-            $payload[$field . 'Key'] = $messageKeys[$payload[$field]];
-        }
-    }
-    return $payload;
+    require_once __DIR__ . '/lib.i18n-response.php';
+    return fvplus_attach_response_translations($payload, $messageKeys);
 }

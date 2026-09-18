@@ -3,11 +3,11 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "dashboard",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "dashboard.folder.toggle-members": "Переключить участников папки",
-    "dashboard.widget.docker": "Docker",
-    "dashboard.widget.vm": "VM",
+    "dashboard.widget.docker": "Докер",
+    "dashboard.widget.vm": "ВМ",
     "dashboard.quick.view-options-title": "$1 параметры просмотра",
     "dashboard.quick.view-options-help": "Настройте этот виджет информационной панели.",
     "dashboard.quick.layout": "Макет",

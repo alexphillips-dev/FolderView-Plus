@@ -22,6 +22,7 @@
     const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f]/;
 
     const createModernSchema = (deps = {}) => {
+    const repairTc4209cae = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const sectionMeta = Object.freeze({
             general: Object.freeze({ title: 'General', description: 'Name, hierarchy, icon, and the folder identity shown across the plugin.', icon: 'fa-folder-open-o', advanced: false, supportsDefaults: false, supportsRevert: true }),
             members: Object.freeze({ title: 'Members', description: 'Search, assign, and order containers or VMs in this folder.', icon: 'fa-th-large', advanced: false, supportsDefaults: false, supportsRevert: false }),
@@ -155,7 +156,7 @@
 
         const inheritedFieldHints = Object.freeze({
             folder_webui_url: 'Using the folder default WebUI behavior until you set a custom URL here.',
-            preview_text_width: 'Using automatic text width until you set a folder override here.',
+            preview_text_width: repairTc4209cae("common.repair.using-automatic-text-width-until-you-set-a-folder-override-here-b28373", "Using automatic text width until you set a folder override here."),
             health_warn_stopped_percent: 'Using the global health warning threshold.',
             health_critical_stopped_percent: 'Using the global or profile-based critical threshold.',
             health_profile: 'Using the global health profile.',

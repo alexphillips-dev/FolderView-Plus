@@ -309,7 +309,7 @@
                 {
                     id: `${type}-bulk-target-summary`,
                     value: plan?.targetFolderName || 'Choose a folder',
-                    title: plan?.targetFolderName || 'Pick a target folder before selecting items.',
+                    title: plan?.targetFolderName || surfaceT("common.repair.pick-a-target-folder-before-selecting-items-220e60", "Pick a target folder before selecting items."),
                     ready: Boolean(plan?.targetFolderId)
                 },
                 {
@@ -322,15 +322,15 @@
                     id: `${type}-bulk-selected-summary`,
                     value: String((plan?.selectedNames || []).length),
                     title: hiddenSelectedCount > 0
-                        ? `${hiddenSelectedCount} selected item${hiddenSelectedCount === 1 ? '' : 's'} hidden by the current filter.`
-                        : `${(plan?.selectedNames || []).length} item${(plan?.selectedNames || []).length === 1 ? '' : 's'} selected.`,
+                        ? surfaceT("common.repair.selected-items-hidden-by-the-current-filter-1-987859", "Selected items hidden by the current filter: $1.", hiddenSelectedCount)
+                        : surfaceT("common.repair.selected-items-1-6266f4", "Selected items: $1.", (plan?.selectedNames || []).length),
                     ready: (plan?.selectedNames || []).length > 0
                 },
                 {
                     id: `${type}-bulk-action-summary`,
                     value: String((plan?.actionableNames || []).length),
                     title: plan?.targetFolderId
-                        ? `${(plan?.actionableNames || []).length} item${(plan?.actionableNames || []).length === 1 ? '' : 's'} will change folders.`
+                        ? surfaceT("common.repair.items-that-will-change-folders-1-bf3a47", "Items that will change folders: $1.", (plan?.actionableNames || []).length)
                         : 'Select a target folder to see how many items will change.',
                     ready: (plan?.actionableNames || []).length > 0
                 }
@@ -613,10 +613,10 @@
             previewLines.push(`<div class="bulk-preview-line"><strong>Move</strong><span>${movePreview ? escapeHtml(movePreview) : '<span class="bulk-preview-none">none</span>'}${plan.moves.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.moves.length - listLimit} more)</span>` : ''}</span></div>`);
             previewLines.push(`<div class="bulk-preview-line"><strong>Unchanged</strong><span>${unchangedPreview ? escapeHtml(unchangedPreview) : '<span class="bulk-preview-none">none</span>'}${plan.unchanged.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.unchanged.length - listLimit} more)</span>` : ''}</span></div>`);
             if (plan.duplicateNames.length) {
-                previewLines.push(`<div class="bulk-preview-line"><strong>Duplicates</strong><span>${escapeHtml(`${plan.duplicateNames.length} duplicate selection${plan.duplicateNames.length === 1 ? '' : 's'} dropped automatically.`)}</span></div>`);
+                previewLines.push(`<div class="bulk-preview-line"><strong>Duplicates</strong><span>${escapeHtml(surfaceT("common.repair.duplicate-selections-removed-automatically-1-d519a8", "Duplicate selections removed automatically: $1.", plan.duplicateNames.length))}</span></div>`);
             }
             if (plan.conflicts.length) {
-                previewLines.push(`<div class="bulk-preview-line"><strong>Conflicts</strong><span>${escapeHtml(`${plan.conflicts.length} selected item${plan.conflicts.length === 1 ? '' : 's'} already match multiple folders.`)}</span></div>`);
+                previewLines.push(`<div class="bulk-preview-line"><strong>Conflicts</strong><span>${escapeHtml(surfaceT("common.repair.selected-items-already-matching-multiple-folders-1-f7f34f", "Selected items already matching multiple folders: $1.", plan.conflicts.length))}</span></div>`);
             }
             panel.html(`
         <div class="bulk-preview-summary">${escapeHtml(`Target folder: ${plan.targetFolderName || plan.targetFolderId}`)}</div>
@@ -939,7 +939,7 @@
             updateBulkResultActions(resolvedType);
             renderBulkResultPanel(resolvedType, {
                 level: 'progress',
-                summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in one atomic request...`,
+                summary: surfaceT("common.repair.applying-items-in-one-atomic-request-items-1-a8179d", "Applying items in one atomic request. Items: $1�", plan.actionableNames.length),
                 lines: []
             });
             try {
@@ -950,7 +950,7 @@
                         onProgress: ({ chunkSize: currentBatchSize, resultLines: nextLines }) => {
                             renderBulkResultPanel(resolvedType, {
                                 level: 'progress',
-                                summary: `Applying one atomic request (${currentBatchSize} item${currentBatchSize === 1 ? '' : 's'})...`,
+                                summary: surfaceT("common.repair.applying-one-atomic-request-items-1-31551b", "Applying one atomic request. Items: $1�", currentBatchSize),
                                 lines: nextLines
                             });
                         }
@@ -992,7 +992,7 @@
                     lines: resultLines
                 };
                 renderBulkResultPanel(resolvedType, state.lastResult);
-                showError('Bulk assignment failed', error);
+                showError(surfaceT("common.repair.bulk-assignment-failed-7a1e5b", "Bulk assignment failed"), error);
             } finally {
                 state.applying = false;
                 syncBulkWorkflowUi(resolvedType);

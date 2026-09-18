@@ -1119,7 +1119,7 @@ const extractAjaxErrorMessage = (error, context = 'request') => {
     if (responseText) {
         try {
             const payload = parseJsonPayload(responseText, context);
-            const serverMessage = String(payload?.error || '').trim();
+            const serverMessage = String(window.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || '').trim();
             if (serverMessage) {
                 return serverMessage;
             }
@@ -1131,7 +1131,7 @@ const extractAjaxErrorMessage = (error, context = 'request') => {
     const status = Number(error?.jqXHR?.status || error?.status || 0);
     if (status > 0) {
         const statusText = String(error?.jqXHR?.statusText || error?.statusText || '').trim();
-        return statusText ? `Request failed. HTTP ${status} ${statusText}.` : `Request failed. HTTP ${status}.`;
+        return statusText ? surfaceT("legacy.surface.504281998c4409ad", "Request failed. HTTP $1 $2.", status, statusText) : `Request failed. HTTP ${status}.`;
     }
 
     const textStatus = String(error?.textStatus || '').trim();
@@ -3064,7 +3064,7 @@ const initEditorChrome = () => {
         resetUnsavedChanges();
     });
     $('#fvApplyPluginDefaults').off('click').on('click', () => {
-        const confirmed = confirm('Apply plugin defaults to this folder editor? This will reset preview, chevron, status, rules, and advanced overrides but will keep the folder name, icon, members, and custom actions.');
+        const confirmed = confirm(surfaceT("common.repair.apply-plugin-defaults-to-this-folder-editor-this-will-reset-previ-6d0675", "Apply plugin defaults to this folder editor? This will reset preview, chevron, status, rules, and advanced overrides but will keep the folder name, icon, members, and custom actions."));
         if (!confirmed) {
             return;
         }
@@ -3853,7 +3853,7 @@ const buildFolderSettingsSummaryHtml = (entry) => {
         `<span data-fvplus-style="fv-u-1i4smo6">${escapeHtml(label)}</span>`
     )).join('');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(surfaceT("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
@@ -4108,7 +4108,7 @@ async function applyEditorMemberBulkMove() {
         `Move: ${plan.moves.length}`,
         `Unchanged: ${plan.unchanged.length}`,
         `Invalid: ${plan.invalidNames.length}`,
-        `Duplicates dropped: ${plan.duplicateNames.length}${regexSkipText}`
+        surfaceT('common.repair.duplicates-dropped', 'Duplicates dropped: $1', plan.duplicateNames.length) + regexSkipText
     ].join('\n');
 
     swal({
@@ -4154,7 +4154,7 @@ async function applyEditorMemberBulkMove() {
             }
             swal.close();
             applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
-            const successMessage = executionResult?.summary || `Moved ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'}.`;
+            const successMessage = executionResult?.summary || surfaceT("common.repair.items-moved-1-3c0fec", "Items moved: $1.", plan.actionableNames.length);
             setMemberBulkMoveUndoState(executionResult?.backup || null, successMessage);
             updateMemberBulkMoveUi();
         } catch (error) {
@@ -4237,7 +4237,7 @@ const buildFolderSettingsApplyDialogHtml = (entry, targets) => {
         '<div class="fv-folder-settings-apply-dialog" data-fvplus-style="fv-u-18w5s3q">',
         `<div data-fvplus-style="fv-u-tczc3j">${summaryHtml}</div>`,
         '<div data-fvplus-style="fv-u-k1hi7u">',
-        `<strong>Apply to ${targets.length} folder${targets.length === 1 ? '' : 's'}</strong>`,
+        `<strong>${escapeHtml(surfaceT("common.repair.apply-to-folders-count-1-245d70", "Apply to folders (count: $1)", targets.length))}</strong>`,
         '<span>',
         '<button type="button" class="btn btn-small" id="fv-folder-settings-select-all" data-fvplus-style="fv-u-1of1hjl">Select all</button>',
         '<button type="button" class="btn btn-small" id="fv-folder-settings-clear-all">Clear</button>',
@@ -4324,7 +4324,7 @@ const applyFolderSettingsToFolders = async () => {
         const selectedIds = $('.fv-folder-settings-target:checked').map((_, node) => String($(node).val() || '').trim()).get().filter(Boolean);
         if (!selectedIds.length) {
             if (typeof swal.showInputError === 'function') {
-                swal.showInputError('Select at least one target folder.');
+                swal.showInputError(surfaceT("common.repair.select-at-least-one-target-folder-73c1c6", "Select at least one target folder."));
             }
             return false;
         }
@@ -4411,7 +4411,7 @@ const submitForm = async (e, saveAsCopy = false) => {
                 type: 'error'
             });
         } else {
-            alert(message);
+        alert(window.FolderViewPlusI18n?.message?.(message) || message);
         }
         return false;
     }
@@ -4430,7 +4430,7 @@ const submitForm = async (e, saveAsCopy = false) => {
  */
 const cancelBtn = () => {
     if (updateUnsavedIndicator()) {
-        const confirmLeave = confirm('You have unsaved changes. Leave without saving?');
+        const confirmLeave = confirm(surfaceT("common.repair.you-have-unsaved-changes-leave-without-saving-a419d8", "You have unsaved changes. Leave without saving?"));
         if (!confirmLeave) {
             return;
         }
@@ -4446,7 +4446,7 @@ const resetUnsavedChanges = () => {
     if (!updateUnsavedIndicator()) {
         return;
     }
-    const confirmed = confirm('Discard all unsaved changes and reload this editor?');
+    const confirmed = confirm(surfaceT("common.repair.discard-all-unsaved-changes-and-reload-this-editor-2736c7", "Discard all unsaved changes and reload this editor?"));
     if (!confirmed) {
         return;
     }

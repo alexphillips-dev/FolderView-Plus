@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Monitorizați starea pluginului, remediați problemele și partajați date de asistență.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 min",
     "diagnostics.capture.age-hours": "$1 oră",
     "diagnostics.capture.guide-title": "Capturați dovezile din tabloul de bord în 3 pași simpli",
-    "diagnostics.capture.missing": "Lipsă",
+    "diagnostics.capture.missing": "Indisponibil",
     "diagnostics.capture.step-open": "Deschideți tabloul de bord",
     "diagnostics.capture.step-open-detail": "Accesați dispozitivul afectat și extindeți folderul cu probleme.",
     "diagnostics.capture.step-reproduce": "Surprindeți problema",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Urmăriți",
     "diagnostics.overall.warning": "Starea funcțiilor de bază ale pluginului necesită urmărire.",
     "diagnostics.overall.warning-detail": "Pluginul rulează, dar una sau mai multe verificări de bază trebuie revizuite.",
-    "diagnostics.status.advisories": "Sănătos cu sfaturi",
+    "diagnostics.status.advisories": "Funcțional, cu atenționări",
     "diagnostics.overall.advisories": "Funcțiile de bază ale pluginului sunt în regulă.",
     "diagnostics.overall.advisories-detail": "O notificare necesită urmărire, dar funcțiile de bază sunt în regulă.",
     "diagnostics.status.healthy": "Sănătos",

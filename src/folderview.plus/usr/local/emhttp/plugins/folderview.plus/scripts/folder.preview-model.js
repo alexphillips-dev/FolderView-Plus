@@ -33,7 +33,7 @@
 
     const formatMemberCountLabel = (memberCount, unit = 'item') => {
         const count = normalizeCount(memberCount);
-        return `${count} ${unit}${count === 1 ? '' : 's'}`;
+        return unit === 'item' ? (globalThis.FolderViewPlusI18n?.t?.("common.repair.items-1-e8a685", "Items: $1", count) || `Items: ${count}`) : `${unit}: ${count}`;
     };
 
     const formatRuntimeCountLabel = (startedCount, memberCount) => {

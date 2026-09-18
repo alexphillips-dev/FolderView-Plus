@@ -43,7 +43,7 @@ const updateImportApplyProgressDialog = ({
     const safeLabel = String(label || '').trim() || 'Applying changes...';
     const safeCurrent = String(current || '').trim() || safeLabel;
     const safeNote = String(note || '').trim() || (normalizedState === 'success'
-        ? 'Operation complete. The settings view will refresh shortly.'
+        ? importT("common.repair.operation-complete-the-settings-view-will-refresh-shortly-d20b02", "Operation complete. The settings view will refresh shortly.")
         : 'Do not close this page until the operation completes.');
     const dialog = $('#import-apply-progress-dialog');
     dialog
@@ -855,7 +855,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             activePresetId = saved.id;
             refreshPresetControls();
         } catch (error) {
-            showError('Failed to save preset', error);
+            showError(importT("common.repair.failed-to-save-preset-0dfcd3", "Failed to save preset"), error);
         }
     });
     utils.bindEventOnce(presetDefaultButton, 'click.fvimportpreset', async () => {
@@ -868,7 +868,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             activePresetId = selectedId;
             refreshPresetControls();
         } catch (error) {
-            showError('Failed to set default preset', error);
+            showError(importT("common.repair.failed-to-set-default-preset-a3471a", "Failed to set default preset"), error);
         }
     });
     utils.bindEventOnce(presetDeleteButton, 'click.fvimportpreset', () => {
@@ -895,7 +895,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
                     renderPreview();
                 }
             } catch (error) {
-                showError('Failed to delete preset', error);
+                showError(importT("common.repair.failed-to-delete-preset-a3d492", "Failed to delete preset"), error);
             }
         });
     });
@@ -998,9 +998,9 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         return { completed: 0, total: 0 };
     }
 
-    emit(0, `Applying ${totalSteps} folder change${totalSteps === 1 ? '' : 's'} in one transaction...`);
+    emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1�", totalSteps));
     const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates });
-    emit(totalSteps, `Applied ${totalSteps} folder change${totalSteps === 1 ? '' : 's'}`);
+    emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
         deletes: deletes.length,
@@ -1204,7 +1204,7 @@ const serializePrefsDiffValue = (value) => {
     if (Array.isArray(value)) {
         const preview = value.slice(0, 5).map((item) => String(item));
         const suffix = value.length > 5 ? ` (+${value.length - 5} more)` : '';
-        return `${value.length} item(s): ${preview.join(', ')}${suffix}`;
+        return importT('common.repair.items-summary', 'Items: $1. $2', value.length, preview.join(', ') + suffix);
     }
     if (value && typeof value === 'object') {
         const json = JSON.stringify(value);
@@ -1434,7 +1434,7 @@ const compareBackupSnapshots = async (type) => {
     try {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
-        showError('Compare failed', error);
+        showError(importT("common.repair.compare-failed-fd89d7", "Compare failed"), error);
         return;
     }
 
@@ -1478,7 +1478,7 @@ const compareBackupSnapshots = async (type) => {
             prefsAvailable
         });
     } catch (error) {
-        showError('Compare failed', error);
+        showError(importT("common.repair.compare-failed-fd89d7", "Compare failed"), error);
     }
 };
 

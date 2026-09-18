@@ -100,7 +100,7 @@
                 ...current,
                 pinnedFolderIds: Array.from(pinnedSet)
             };
-            const branchLabel = `${branchIds.length} folder${branchIds.length === 1 ? '' : 's'}`;
+            const branchLabel = surfaceT("common.runtime.folders-1", "Folders: $1", branchIds.length);
             let backup = null;
             try {
                 backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
@@ -116,7 +116,7 @@
                     durationMs: 3200
                 });
             } catch (error) {
-                showError('Branch pin update failed', error);
+                showError(surfaceT("common.repair.branch-pin-update-failed-a2d9f2", "Branch pin update failed"), error);
             }
         };
 
@@ -273,7 +273,7 @@
                     durationMs: 4200
                 });
             } catch (error) {
-                showError('Branch import failed', error);
+                showError(surfaceT("common.repair.branch-import-failed-a0d261", "Branch import failed"), error);
             }
         };
 
@@ -360,7 +360,7 @@
                         type: (result.failed || 0) > 0 ? 'warning' : 'success'
                     });
                 } catch (error) {
-                    showError('Folder runtime action failed', error);
+                    showError(surfaceT("common.repair.folder-runtime-action-failed-8cc3b7", "Folder runtime action failed"), error);
                 }
             });
         };

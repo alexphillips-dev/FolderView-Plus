@@ -434,7 +434,7 @@
                         const next = parseGraphqlStats(payload, ct, cpus);
                         if (!next) return;
                         pushStats(next);
-                        const cpuText = `${Math.max(0, next.cpu).toFixed(1)}%`;
+                        const cpuText = (globalThis.FolderViewPlusI18n?.formatNumber?.((Math.max(0, next.cpu)) / 100, { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }) || `${(Math.max(0, next.cpu)).toFixed(1)}%`);
                         tooltipDom.find(`.cpu-${ct.shortId}`).text(cpuText);
                         tooltipDom.find(`span#cpu-${ct.shortId}`).css(
                             'width',

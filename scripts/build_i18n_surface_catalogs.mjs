@@ -49,12 +49,31 @@ const translationContext = readJson(path.join(repoRoot, 'scripts/lib/i18n_transl
 const reviewedRuntime = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_runtime.json'));
 const reviewedTerms = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_terms.json'));
 const reviewedWorkflows = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_workflows.json'));
+const reviewedWording = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_wording.json'));
+const repairMessages = readJson(path.join(repoRoot, 'scripts/lib/i18n_repair_messages.json'));
+const reviewedRepair = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_repair.json'));
+const reviewedPlurals = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_plurals.json'));
+for (const [locale, values] of Object.entries(reviewedPlurals.locales)) {
+    if (values.length !== reviewedPlurals.en.length) throw new Error(`Incomplete plural review: ${locale}`);
+    translationContext.overrides[locale] = translationContext.overrides[locale] || {};
+    reviewedPlurals.en.forEach((english, index) => { translationContext.overrides[locale][english] = values[index]; });
+}
 const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
-const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces])).digest('hex');
+const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces, reviewedWording, repairMessages, reviewedRepair])).digest('hex');
 const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
     if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);
     return [locale, Object.fromEntries(reviewedRuntime.keys.map((key, index) => [key, values[index]]))];
 }));
+for (const locale of Object.keys(targetLocales)) {
+    const values = reviewedRepair.locales[locale];
+    if (values?.length !== reviewedRepair.keys.length) throw new Error(`Incomplete repair review: ${locale}`);
+    translationContext.overrides[locale] = translationContext.overrides[locale] || {};
+    reviewedRepair.keys.forEach((key, index) => {
+        if (!repairMessages[key]) throw new Error(`Unknown reviewed repair key: ${key}`);
+        runtimeReviews[locale][key] = values[index];
+        translationContext.overrides[locale][repairMessages[key]] = values[index];
+    });
+}
 for (const [namespace, review] of Object.entries(reviewedSurfaces)) {
     if (review.en.length !== review.keys.length) throw new Error(`Incomplete English review: ${namespace}`);
     for (const locale of Object.keys(targetLocales)) {
@@ -78,7 +97,8 @@ for (const [locale, values] of Object.entries(reviewedTerms.locales)) {
 const contextualBatch = (batch) => batch.map(([key, english]) => [key, translationContext.sources[english] || english]);
 const applyReviewedValues = (locale, messages, entries) => {
     for (const [key, english] of entries) {
-        const reviewed = runtimeReviews[locale]?.[key] || translationContext.overrides[locale]?.[english];
+        const concept = ({ Running: 'running', running: 'running', 'Clear selection': 'clear-selection', 'Apply assignments': 'apply-assignments', Imported: 'imported', 'Healthy with advisories': 'healthy-advisories', 'Move up': 'move-up', 'Move down': 'move-down' })[english] || (key === 'diagnostics.capture.missing' ? 'capture-missing' : '');
+        const reviewed = reviewedWording.locales[locale]?.[reviewedWording.concepts.indexOf(concept)] || runtimeReviews[locale]?.[key] || translationContext.overrides[locale]?.[english];
         if (reviewed) {
             if (placeholderSignature(reviewed) !== placeholderSignature(english)) throw new Error(`Invalid reviewed parameters: ${locale}/${key}`);
             messages[key] = reviewed;
@@ -94,11 +114,12 @@ const commonEnglishFile = path.join(namespaceRoot, 'en/common.json');
 const commonEnglish = readJson(commonEnglishFile);
 // These semantic families are generated exclusively from the reviewed tables.
 for (const key of Object.keys(commonEnglish)) {
-    if (Object.keys(reviewedSurfaces).some(namespace => key.startsWith(`common.${namespace}.`))) delete commonEnglish[key];
+    if (key.startsWith('common.repair.') || Object.keys(reviewedSurfaces).some(namespace => key.startsWith(`common.${namespace}.`))) delete commonEnglish[key];
 }
 for (const [namespace, review] of Object.entries(reviewedSurfaces)) {
     review.keys.forEach((key, index) => { commonEnglish[`common.${namespace}.${key}`] = review.en[index]; });
 }
+Object.assign(commonEnglish, repairMessages);
 writeJson(commonEnglishFile, commonEnglish);
 const scaffoldLocale = (locale) => {
     const definition = scaffoldDefinitions[locale];
@@ -143,9 +164,10 @@ const locales = fs.readdirSync(langDir)
     .map((name) => name.replace(/\.json$/, ''))
     .sort((left, right) => left === 'en' ? -1 : (right === 'en' ? 1 : left.localeCompare(right)));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const placeholderSignature = (value) => (
-    [...new Set(String(value || '').match(/\$\d+/g) || [])].sort().join('|')
-);
+const placeholderSignature = (value) => {
+    const tokens = String(value || '').match(/\$\d+/g) || [];
+    return (String(value).includes('{{PLURAL:') ? [...new Set(tokens)] : tokens).sort().join('|');
+};
 const protectPlaceholders = (value) => String(value || '').replace(/\$(\d+)/g, '__FVPLUS_PARAM_$1__');
 const restorePlaceholders = (value) => String(value || '').replace(/__FVPLUS_PARAM_(\d+)__/gi, '$$$1');
 const normalizeLocaleMessages = (locale, messages) => locale === 'zh-Hant'
@@ -194,26 +216,34 @@ const translateBatch = async (batch, target, attempt = 1) => {
     url.searchParams.set('dt', 't');
     url.searchParams.set('q', payload);
     try {
-        const response = await fetch(url, {
+        let response = await fetch(url, {
             headers: { 'User-Agent': 'FolderView-Plus-localization-builder/1.0' },
             signal: AbortSignal.timeout(15000)
         });
+        if (response.status === 429) {
+            const fallbackUrl = new URL(url);
+            fallbackUrl.pathname = '/translate_a/t';
+            fallbackUrl.searchParams.set('client', 'dict-chrome-ex');
+            fallbackUrl.searchParams.delete('dt');
+            response = await fetch(fallbackUrl, { signal: AbortSignal.timeout(15000) });
+        }
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        const translated = Array.isArray(data?.[0]) ? data[0].map((segment) => String(segment?.[0] || '')).join('') : '';
+        const translated = Array.isArray(data?.[0]) ? data[0].map((segment) => String(segment?.[0] || '')).join('') : (typeof data?.[0] === 'string' ? data[0] : '');
         const parts = sentinels.length === 0
             ? [restorePlaceholders(translated.trim())]
             : translated.split(new RegExp(`\\s*(?:${sentinels.join('|')})\\s*`, 'g')).map((value) => restorePlaceholders(value.trim()));
-        if (parts.length === batch.length && parts.some((value) => !value) && batch.length > 1) {
+        const validPart = (value, index) => value && placeholderSignature(value) === placeholderSignature(batch[index][1]);
+        if (parts.length === batch.length && parts.some((value, index) => !validPart(value, index)) && batch.length > 1) {
             const output = {};
             for (let index = 0; index < batch.length; index += 1) {
                 const [key] = batch[index];
-                if (parts[index]) output[key] = parts[index];
+                if (validPart(parts[index], index)) output[key] = parts[index];
                 else Object.assign(output, await translateBatch([batch[index]], target));
             }
             return output;
         }
-        if (parts.length !== batch.length || parts.some((value) => !value)) {
+        if (parts.length !== batch.length || parts.some((value, index) => !validPart(value, index))) {
             if (batch.length > 1) {
                 const midpoint = Math.ceil(batch.length / 2);
                 return {

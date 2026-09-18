@@ -152,6 +152,18 @@ const collectSurfaceCandidates = (pluginDir) => {
             byPhrase.get(row.value).push(row);
         }
     }
+    // Reviewed conditional UI/error surfaces supplement markup extraction. Each
+    // entry remains anchored to shipped source, so deleting a call site cannot
+    // silently leave an apparently complete catalog behind.
+    const reviewed = JSON.parse(fs.readFileSync(path.join(__dirname, 'i18n_additional_surfaces.json'), 'utf8'));
+    for (const entry of reviewed) {
+        for (const location of entry.locations) {
+            const source = fs.readFileSync(path.join(pluginDir, location.file), 'utf8');
+            if (!source.includes(location.anchor)) throw new Error(`Stale reviewed UI surface: ${location.file}: ${entry.phrase}`);
+            if (!byPhrase.has(entry.phrase)) byPhrase.set(entry.phrase, []);
+            byPhrase.get(entry.phrase).push({ value: entry.phrase, kind: 'reviewed-ui', file: location.file, line: lineNumberAt(source, source.indexOf(location.anchor)) });
+        }
+    }
     return { byPhrase, fileCounts };
 };
 

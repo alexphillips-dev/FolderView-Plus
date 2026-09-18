@@ -168,10 +168,10 @@
             }
             const safeBytes = Math.max(0, Number(bytes || 0));
             if (safeBytes >= 1024 * 1024) {
-                return `${(safeBytes / (1024 * 1024)).toFixed(1)} MiB`;
+                return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(safeBytes / (1024 * 1024), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || (safeBytes / (1024 * 1024)).toFixed(1))} MiB`;
             }
             if (safeBytes >= 1024) {
-                return `${(safeBytes / 1024).toFixed(1)} KiB`;
+                return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(safeBytes / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || (safeBytes / 1024).toFixed(1))} KiB`;
             }
             return `${Math.round(safeBytes)} B`;
         };
@@ -296,7 +296,7 @@
             if (Number.isNaN(date.getTime())) {
                 return '';
             }
-            return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) || date.toLocaleString('en'));
         };
 
         const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
@@ -355,7 +355,7 @@
             const maxBytes = Number(stats.maxTotalBytes || 0);
             const inUse = Number(stats.inUseIconCount || 0);
             const warnings = asArray(stats.warnings).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
-            const summary = surfaceT("common.runtime.files-1-2-3-4-in-use-5", "Files: $1 / $2 | $3 / $4 | In use: $5", count.toLocaleString(), Math.max(0, maxFiles).toLocaleString(), formatByteCount(totalBytes), formatByteCount(maxBytes), inUse.toLocaleString());
+            const summary = surfaceT("common.runtime.files-1-2-3-4-in-use-5", "Files: $1 / $2 | $3 / $4 | In use: $5", (globalThis.FolderViewPlusI18n?.formatNumber?.(count) || count.toLocaleString('en')), (globalThis.FolderViewPlusI18n?.formatNumber?.(Math.max(0, maxFiles)) || Math.max(0, maxFiles).toLocaleString('en')), formatByteCount(totalBytes), formatByteCount(maxBytes), (globalThis.FolderViewPlusI18n?.formatNumber?.(inUse) || inUse.toLocaleString('en')));
             const healthText = health ? (health.writable === true ? surfaceT("common.runtime.writable", "Writable") : surfaceT("common.runtime.read-only", "Read-only")) : surfaceT("common.runtime.directory-status-unknown", "Directory status unknown");
             const healthHint = (health && health.writable !== true && String(health.repairHint || '').trim() !== '')
                 ? ` | fix: ${String(health.repairHint || '').trim()}`
@@ -538,7 +538,7 @@
                 if (action === 'delete') {
                     const usageCount = Math.max(0, Number(icon?.usageCount || 0));
                     if (usageCount > 0) {
-                        setCustomIconStatus(`"${name}" is in use by ${usageCount} folder${usageCount === 1 ? '' : 's'}. Remove references before deleting.`, true);
+                        setCustomIconStatus(surfaceT("common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767", "Folders using \"$1\": $2. Remove references before deleting this icon.", name, usageCount), true);
                         return;
                     }
                     swal({

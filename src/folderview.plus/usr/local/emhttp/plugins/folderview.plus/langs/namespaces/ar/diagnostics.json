@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "التشخيص",
     "diagnostics.workspace.description": "مراقبة صحة المكونات الإضافية واستكشاف المشكلات وإصلاحها ومشاركة بيانات الدعم.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 دقيقة",
     "diagnostics.capture.age-hours": "$1 عمرها ساعة",
     "diagnostics.capture.guide-title": "التقط أدلة لوحة المعلومات في 3 خطوات سهلة",
-    "diagnostics.capture.missing": "مفقود",
+    "diagnostics.capture.missing": "غير متوفر",
     "diagnostics.capture.step-open": "افتح لوحة المعلومات",
     "diagnostics.capture.step-open-detail": "انتقل إلى الجهاز المتأثر وقم بتوسيع مجلد المشكلة.",
     "diagnostics.capture.step-reproduce": "التقط المشكلة",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "متابعة",
     "diagnostics.overall.warning": "حالة الوظائف الأساسية للإضافة تحتاج إلى متابعة.",
     "diagnostics.overall.warning-detail": "الإضافة تعمل، لكن يلزم مراجعة فحص أساسي واحد أو أكثر.",
-    "diagnostics.status.advisories": "صحي مع النصائح",
+    "diagnostics.status.advisories": "سليم مع ملاحظات",
     "diagnostics.overall.advisories": "الوظائف الأساسية للإضافة سليمة.",
     "diagnostics.overall.advisories-detail": "هناك تنبيه يحتاج إلى متابعة، لكن الوظائف الأساسية سليمة.",
     "diagnostics.status.healthy": "صحي",

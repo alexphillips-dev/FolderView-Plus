@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnose",
     "diagnostics.workspace.description": "Überwachen Sie den Plugin-Zustand, beheben Sie Probleme und teilen Sie Supportdaten.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 Min. alt",
     "diagnostics.capture.age-hours": "$1 Stunden alt",
     "diagnostics.capture.guide-title": "Erfassen Sie Dashboard-Beweise in 3 einfachen Schritten",
-    "diagnostics.capture.missing": "Fehlt",
+    "diagnostics.capture.missing": "Nicht verfügbar",
     "diagnostics.capture.step-open": "Öffnen Sie das Dashboard",
     "diagnostics.capture.step-open-detail": "Gehen Sie zum betroffenen Gerät und erweitern Sie den Problemordner.",
     "diagnostics.capture.step-reproduce": "Erfassen Sie das Problem",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Follow-up",
     "diagnostics.overall.warning": "Der grundlegende Plugin-Zustand erfordert eine Nachkontrolle.",
     "diagnostics.overall.warning-detail": "Das Plugin läuft, aber mindestens eine grundlegende Prüfung erfordert eine Überprüfung.",
-    "diagnostics.status.advisories": "Gesund mit Beratung",
+    "diagnostics.status.advisories": "In Ordnung mit Hinweisen",
     "diagnostics.overall.advisories": "Der grundlegende Plugin-Zustand ist gut.",
     "diagnostics.overall.advisories-detail": "Ein Hinweis erfordert eine Nachkontrolle, die grundlegenden Funktionen sind jedoch in Ordnung.",
     "diagnostics.status.healthy": "Gesund",

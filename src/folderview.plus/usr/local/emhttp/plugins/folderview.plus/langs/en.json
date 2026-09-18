@@ -10,9 +10,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "source",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",
@@ -198,5 +198,8 @@
     "status-color-lock-tooltip": "Keep this folder's selected status colors authoritative when themes or host styles change.",
     "dashboard-layout-embossed": "Embossed",
     "table-show-in-preview": "Show in preview",
-    "member-preview-visible": "Visible"
+    "member-preview-visible": "Visible",
+    "folderviewplus-dev-desc": "FolderView Plus development builds are for testing. Expect bugs, regressions, and unfinished changes before stable release.",
+    "folderviewplus-dev-quickstart": "Development branch: test changes before stable release. Update carefully and expect occasional breakage.",
+    "folderviewplus-quickstart": "Quick start: open Settings → FolderView Plus. Use Basic for everyday folder management and Advanced for bulk assignment, rules, recovery, operations, and diagnostics. Changes save automatically."
 }

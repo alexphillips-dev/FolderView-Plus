@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Afegeix una carpeta",
     "up-to-date": "al dia",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "Manteniu els colors d'estat seleccionats d'aquesta carpeta amb autoritat quan canvien els temes o els estils d'amfitrió.",
     "dashboard-layout-embossed": "En relleu",
     "table-show-in-preview": "Mostra en vista prèvia",
-    "member-preview-visible": "Visible"
+    "member-preview-visible": "Visible",
+    "folderviewplus-dev-desc": "Les compilacions de desenvolupament de FolderView Plus són per provar. Espereu errors, regressió i canvis inacabats abans del llançament estable.",
+    "folderviewplus-dev-quickstart": "Branca de desenvolupament: prova els canvis abans del llançament estable. Actualitzeu amb cura i espereu trencaments ocasionals.",
+    "folderviewplus-quickstart": "Inici ràpid: obriu Configuració → FolderView Plus. Utilitzeu Basic per a la gestió diària de carpetes i Advanced per a assignació massiva, regles, recuperació, operacions i diagnòstics. Els canvis es guarden automàticament."
 }

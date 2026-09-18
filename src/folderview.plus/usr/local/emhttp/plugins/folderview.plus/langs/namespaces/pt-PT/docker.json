@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "docker",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "docker.actions.label": "Ações do FolderView",
     "docker.actions.add-folder": "Adicionar Pasta",
@@ -29,7 +29,7 @@
     "docker.preview.view-logs": "Ver registros",
     "docker.provider.hybrid-label": "WebGUI Unraid legado com dados GraphQL",
     "docker.health.api-summary": "API Docker: atualizações: $1, pronto para reconstruir: $2, órfão: $3, conflitos de porta: $4",
-    "docker.views.folderview": "FolderView",
+    "docker.views.folderview": "Visualização de pasta",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",
     "docker.privacy.label": "Privacidade",

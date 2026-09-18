@@ -1849,7 +1849,7 @@ const renderAdvancedNav = () => {
         .map((entry) => {
             const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
             const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
-            const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
+            const countTitle = surfaceT("common.repair.sections-in-2-1-8cd9f7", "Sections in $2: $1", entry.count, label);
             const icons = {
                 automation: 'fa-magic',
                 rules: 'fa-balance-scale',
@@ -3126,7 +3126,7 @@ const buildFolderDefaultsSummary = (type) => {
     }
     const actionCount = Array.isArray(defaults.profile.actions) ? defaults.profile.actions.length : 0;
     if (actionCount > 0) {
-        parts.push(`${actionCount} script action${actionCount === 1 ? '' : 's'}`);
+        parts.push(surfaceT("common.repair.script-actions-1-379e3d", "Script actions: $1", actionCount));
     }
     const sourceLabel = defaults.sourceName || defaults.sourceId || 'saved profile';
     return `Saved from "${sourceLabel}". Applies ${parts.join(', ')}.`;
@@ -3205,7 +3205,7 @@ const saveFolderDefaultsFromSelection = async (type) => {
         });
         return true;
     } catch (error) {
-        showError('Folder defaults save failed', error);
+        showError(surfaceT("common.repair.folder-defaults-save-failed-3f6e03", "Folder defaults save failed"), error);
         return false;
     }
 };
@@ -3227,7 +3227,7 @@ const clearFolderDefaults = async (type) => {
         });
         return true;
     } catch (error) {
-        showError('Folder defaults reset failed', error);
+        showError(surfaceT("common.repair.folder-defaults-reset-failed-a1e07f", "Folder defaults reset failed"), error);
         return false;
     }
 };
@@ -3272,7 +3272,7 @@ const applySavedFolderDefaultsToAll = async (type) => {
         });
         return true;
     } catch (error) {
-        showError('Apply defaults to all failed', error);
+        showError(surfaceT("common.repair.apply-defaults-to-all-failed-742c8f", "Apply defaults to all failed"), error);
         return false;
     }
 };
@@ -4364,7 +4364,7 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
         renderColumnVisibilityControls(resolvedType);
         applyColumnVisibility(resolvedType);
         applyColumnWidths(resolvedType);
-        showError('Settings table preferences save failed', error);
+        showError(surfaceT("common.repair.settings-table-preferences-save-failed-5207c3", "Settings table preferences save failed"), error);
     }
 };
 
@@ -4767,14 +4767,14 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
     if (paused > 0) {
         reasons.push(makeHealthReason(
             'PAUSED_MEMBERS',
-            `${paused} member${paused === 1 ? '' : 's'} paused.`,
+            surfaceT("common.repair.paused-members-1-9c89f8", "Paused members: $1.", paused),
             'warning'
         ));
     }
     if (hasUpdates && policy.updatesMode !== 'ignore') {
         reasons.push(makeHealthReason(
             updateCount >= 10 ? 'UPDATE_SURGE' : 'UPDATES_PENDING',
-            `${updateCount} update${updateCount === 1 ? '' : 's'} available.`,
+            surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount),
             updateMaintenance ? 'maintenance' : (updateCritical ? 'critical' : 'warning')
         ));
     }
@@ -4817,7 +4817,7 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
     const details = [
         `Score: ${score}/100.`,
         `${started} started, ${paused} paused, ${stopped} stopped (${stoppedPercent}% stopped).`,
-        hasUpdates ? `${updateCount} update${updateCount === 1 ? '' : 's'} available.` : 'No updates available.',
+        hasUpdates ? surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount) : 'No updates available.',
         `Policy: ${policy.profile} | updates ${policy.updatesMode} | all-stopped ${policy.allStoppedMode}.`,
         `Thresholds: warn ${warnThreshold}% (${policy.warnSource}), critical ${criticalThreshold}% (${policy.criticalSource}).`,
         ...reasons.map((reason) => `${reason.label}: ${reason.message}`)
@@ -5597,7 +5597,7 @@ const formatTimestamp = (isoString) => {
     if (Number.isNaN(date.getTime())) {
         return String(isoString);
     }
-    return date.toLocaleString();
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { dateStyle: 'short', timeStyle: 'medium' }) || date.toLocaleString('en'));
 };
 
 const buildModuleEmptyTableRow = (title, help, colspan = 1) => (
@@ -6174,7 +6174,7 @@ const applyTreeMoveRedo = async (type) => {
         });
     } catch (error) {
         state.redoStack.push(entry);
-        showError('Redo failed', error);
+        showError(surfaceT("common.repair.redo-failed-37647f", "Redo failed"), error);
     } finally {
         const latestUndo = state.undoStack[state.undoStack.length - 1];
         if (latestUndo?.beforeBackupName) {
@@ -6684,11 +6684,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? String(folders[parentFolderId]?.name || parentFolderId)
             : '';
         const nestedMetaTitleRaw = folderDepth > 0
-            ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
+            ? (parentFolderNameRaw ? surfaceT('common.repair.nested-under', 'Nested level $1 under $2', folderDepth, parentFolderNameRaw) : surfaceT('common.repair.nested-level', 'Nested level $1', folderDepth))
             : surfaceT("common.runtime.root-folder", "Root folder");
         const nestedMetaTextRaw = parentFolderNameRaw
             ? `Nested under ${parentFolderNameRaw}`
-            : `Nested level ${folderDepth}`;
+            : surfaceT('common.repair.nested-level', 'Nested level $1', folderDepth);
         const nestedMetaHtml = folderDepth > 0
             ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
             : '';
@@ -6798,7 +6798,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusBreakdownHtml = !runtimeReady || statusDisplayMode === 'simple'
             ? ''
             : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
-                const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
+                const title = surfaceT("common.repair.1-items-2-818040", "$1 � items: $2", entry.label, entry.count);
                 return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span></span>`;
             }).join('')}</span>`;
         const statusDisplayClass = `is-${statusDisplayMode}`;
@@ -6860,7 +6860,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const updatePreview = updateNames.slice(0, 5).join(', ');
             const updateExtra = updateNames.length > 5 ? ` (+${updateNames.length - 5} more)` : '';
             const updateTitle = updateNames.length
-                ? `Containers with updates: ${updatePreview}${updateExtra}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`
+                ? (dockerUpdatesOnlyFilter ? surfaceT('common.repair.updates-show-all', 'Containers with updates: $1. Click to show all folders.', updatePreview + updateExtra) : surfaceT('common.repair.updates-show-matching', 'Containers with updates: $1. Click to show folders with updates only.', updatePreview + updateExtra))
                 : `${members.length > 0 ? 'No updates in this folder' : 'Folder has no members'}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`;
             const healthStatus = evaluateDockerFolderHealth(
                 folder,
@@ -6912,7 +6912,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : [
                     `Autostart enabled: ${autostartCount}/${membersCount}`,
                     autostartMembers.length > 0
-                        ? `Autostart VMs: ${autostartMembersPreview}${autostartMembersExtra}`
+                        ? surfaceT('common.repair.autostart-vms', 'Autostart VMs: $1', autostartMembersPreview + autostartMembersExtra)
                         : 'Autostart VMs: none'
                 ].join('\n');
             const vmHealthPrefs = normalizeHealthPrefs('vm');
@@ -6924,7 +6924,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const avgVcpus = membersCount > 0 ? (vcpusTotal / membersCount) : 0;
             const avgMemoryKiB = membersCount > 0 ? Math.round(memoryKiBTotal / membersCount) : 0;
             const avgStorageBytes = membersCount > 0 ? Math.round(storageBytesTotal / membersCount) : 0;
-            const avgVcpusText = Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1);
+            const avgVcpusText = (globalThis.FolderViewPlusI18n?.formatNumber?.(avgVcpus, { maximumFractionDigits: 1 }) || (Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1)));
             const avgMemoryText = formatGiBFromKiB(avgMemoryKiB);
             const avgStorageText = formatBytesShort(avgStorageBytes) || '0 B';
             const resourcesTitle = membersCount <= 0
@@ -6944,7 +6944,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const membersCellHtml = totalMemberCount > directMemberCount
             ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
-        const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
+        const memberLabelText = surfaceT("common.repair.items-1-e8a685", "Items: $1", totalMemberCount);
         const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
@@ -7684,38 +7684,38 @@ const buildRuleSummaryCopy = (type, rule, folderName) => {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         const qualifier = rule?.labelValue ? `equals "${rule.labelValue}"` : 'exists';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} ${qualifier}`,
+            summary: surfaceT("legacy.surface.f576d04517525a87", "$1 $2 when label $3 $4", effect, targetLabel, labelKey, qualifier),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'label_contains') {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} contains "${String(rule?.labelValue || '').trim()}"`,
+            summary: surfaceT("legacy.surface.1d1c4838aa8f4657", "$1 $2 when label $3 contains \"$4\"", effect, targetLabel, labelKey, String(rule?.labelValue || '').trim()),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'label_starts_with') {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} starts with "${String(rule?.labelValue || '').trim()}"`,
+            summary: surfaceT("legacy.surface.3f5ddc07a8175c9e", "$1 $2 when label $3 starts with \"$4\"", effect, targetLabel, labelKey, String(rule?.labelValue || '').trim()),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'image_regex') {
         return {
-            summary: `${effect} ${targetLabel} when image matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+            summary: surfaceT("legacy.surface.aed5ef27f201c1d1", "$1 $2 when image matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'compose_project_regex') {
         return {
-            summary: `${effect} ${targetLabel} when compose project matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+            summary: surfaceT("legacy.surface.7c6eb147454e21bf", "$1 $2 when compose project matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
             detail: `Target folder: ${folderName}`
         };
     }
     return {
-        summary: `${effect} ${targetLabel} when name matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+        summary: surfaceT("legacy.surface.fcd15b6a2b5624e5", "$1 $2 when name matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
         detail: `Target folder: ${folderName}`
     };
 };
@@ -7938,7 +7938,7 @@ const renderSmartRuleSuggestions = (type, suggestions = null) => {
                 <span>${escapeHtml(suggestion.detail)}</span>
                 <small>${escapeHtml(suggestion.source)} | ${escapeHtml(suggestion.matches.slice(0, 5).join(', '))}${suggestion.matches.length > 5 ? escapeHtml(` + ${suggestion.matches.length - 5} more`) : ''}</small>
             </span>
-            <span class="fv-rule-suggestion-count">${escapeHtml(String(suggestion.matches.length))} match${suggestion.matches.length === 1 ? '' : 'es'}</span>
+            <span class="fv-rule-suggestion-count">${escapeHtml(surfaceT("common.runtime.matches-1", "Matches: $1", suggestion.matches.length))}</span>
         </label>
     `).join(''));
 };
@@ -7948,7 +7948,7 @@ const scanSmartRuleSuggestions = (type) => {
     const suggestions = generateSmartRuleSuggestions(resolvedType);
     smartRuleSuggestionCacheByType[resolvedType] = suggestions;
     renderSmartRuleSuggestions(resolvedType, suggestions);
-    addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule scan found ${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'}.`, suggestions.length ? 'info' : 'warning');
+    addActivityEntry(surfaceT("common.repair.1-smart-rule-scan-suggestions-found-2-f5de01", "$1 smart rule scan � suggestions found: $2.", resolvedType === "docker" ? "Docker" : "VM", suggestions.length), suggestions.length ? 'info' : 'warning');
 };
 
 const saveSelectedSmartRuleSuggestions = async (type) => {
@@ -7980,9 +7980,9 @@ const saveSelectedSmartRuleSuggestions = async (type) => {
         smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
         renderSmartRuleSuggestions(resolvedType);
         renderRulesTable(resolvedType);
-        addActivityEntry(`Saved ${nextRules.length} ${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule suggestion${nextRules.length === 1 ? '' : 's'}.`, 'success');
+        addActivityEntry(surfaceT("common.repair.2-smart-rule-suggestions-saved-1-24da17", "$2 smart rule suggestions saved: $1.", nextRules.length, resolvedType === "docker" ? "Docker" : "VM"), 'success');
     } catch (error) {
-        showError('Smart suggestion save failed', error);
+        showError(surfaceT("common.repair.smart-suggestion-save-failed-dcdef2", "Smart suggestion save failed"), error);
     }
 };
 
@@ -8116,7 +8116,7 @@ const renderRulesOverview = (type, rules, filteredRules) => {
     if (detailEl instanceof HTMLElement) {
         const filteredCount = Array.isArray(filteredRules) ? filteredRules.length : 0;
         detailEl.textContent = filteredCount !== totalCount && totalCount > 0
-            ? `${detailText} Showing ${filteredCount} of ${totalCount} rule${totalCount === 1 ? '' : 's'} from the current filter.`
+            ? surfaceT("common.repair.1-rules-matching-the-current-filter-2-of-3-061470", "$1 Rules matching the current filter: $2 of $3.", detailText, filteredCount, totalCount)
             : detailText;
     }
 
@@ -8199,7 +8199,7 @@ const renderRulesTable = (type) => {
         } else if (selectedShownCount > 0) {
             selectionSummary.textContent = `${selectedShownCount} selected of ${filteredRules.length} shown. Use the bulk actions above to update them together.`;
         } else if (filter) {
-            selectionSummary.textContent = `Showing ${filteredRules.length} matching rule${filteredRules.length === 1 ? '' : 's'}.`;
+            selectionSummary.textContent = surfaceT("common.repair.matching-rules-shown-1-0b0157", "Matching rules shown: $1.", filteredRules.length);
         } else {
             selectionSummary.textContent = `Review the priority order below. The first matching rule wins.`;
         }
@@ -8390,7 +8390,7 @@ const persistQueuedDockerStartOrderPrefs = () => {
             }
         })
         .catch((error) => {
-            showError('Docker start order save failed', error);
+            showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
         });
     return dockerStartOrderSaveChain;
 };
@@ -8450,7 +8450,7 @@ const updateDockerStartOrderMode = async (mode) => {
     try {
         await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start order save failed', error);
+        showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
     }
 };
 
@@ -8459,7 +8459,7 @@ const updateDockerStartOrderRemaining = async (value) => {
     try {
         await saveDockerStartOrderPlan({ remaining: normalized }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start order save failed', error);
+        showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
     }
 };
 
@@ -8480,7 +8480,7 @@ const addDockerStartOrderBatch = async () => {
     try {
         await saveDockerStartOrderPlan({ mode: 'custom-batches', batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch add failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-add-failed-29b120", "Docker start batch add failed"), error);
     }
 };
 
@@ -8508,7 +8508,7 @@ const updateDockerStartOrderBatch = async (batchId, key, value) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch save failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-save-failed-9c32df", "Docker start batch save failed"), error);
     }
 };
 
@@ -8524,7 +8524,7 @@ const moveDockerStartOrderBatch = async (batchId, direction) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch move failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-move-failed-647a75", "Docker start batch move failed"), error);
     }
 };
 
@@ -8534,7 +8534,7 @@ const removeDockerStartOrderBatch = async (batchId) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch remove failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-remove-failed-110848", "Docker start batch remove failed"), error);
     }
 };
 
@@ -8569,7 +8569,7 @@ const addDockerStartOrderItem = async (batchId, itemType) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item add failed', error);
+        showError(surfaceT("common.repair.docker-start-item-add-failed-6dbbd5", "Docker start item add failed"), error);
     }
 };
 
@@ -8591,7 +8591,7 @@ const moveDockerStartOrderItem = async (batchId, itemIndex, direction) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item move failed', error);
+        showError(surfaceT("common.repair.docker-start-item-move-failed-fea5a2", "Docker start item move failed"), error);
     }
 };
 
@@ -8608,7 +8608,7 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item remove failed', error);
+        showError(surfaceT("common.repair.docker-start-item-remove-failed-8277f0", "Docker start item remove failed"), error);
     }
 };
 
@@ -8676,9 +8676,9 @@ const syncDockerStartOrderNow = async () => {
             action: 'sync'
         });
         renderDockerStartOrderPreview(response?.preview || {});
-        setUpdateStatus('Docker start order synced.');
+        setUpdateStatus(surfaceT("common.repair.docker-start-order-synced-f11013", "Docker start order synced."));
     } catch (error) {
-        showError('Docker start order sync failed', error);
+        showError(surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed"), error);
     }
 };
 
@@ -8874,7 +8874,7 @@ const renderTable = (type) => {
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {
-    const prefix = `${String(type || '').toUpperCase()} ${String(area || '').trim()} failed to load`;
+    const prefix = surfaceT("legacy.surface.a68d30b6fd7a95b3", "$1 $2 failed to load", String(type || '').toUpperCase(), String(area || '').trim());
     const message = trimFatalBannerDiagnosticString(error?.message || error);
     return message ? `${prefix}: ${message}` : prefix;
 };
@@ -9344,7 +9344,7 @@ const downloadType = async (type, id) => {
                 folderCount: 1,
                 schemaVersion: utils.EXPORT_SCHEMA_VERSION
             });
-            setProgress(progressTotal, 'Export download requested.');
+            setProgress(progressTotal, surfaceT("common.repair.export-download-requested-0c4d2a", "Export download requested."));
             await trackDiagnosticsEvent({
                 eventType: 'export',
                 type: resolvedType,
@@ -9377,7 +9377,7 @@ const downloadType = async (type, id) => {
             folderCount: Object.keys(folders).length,
             schemaVersion: utils.EXPORT_SCHEMA_VERSION
         });
-        setProgress(progressTotal, 'Export download requested.');
+        setProgress(progressTotal, surfaceT("common.repair.export-download-requested-0c4d2a", "Export download requested."));
         await trackDiagnosticsEvent({
             eventType: 'export',
             type: resolvedType,
@@ -9503,19 +9503,19 @@ const importType = async (type) => {
     try {
         openImportApplyProgressDialog(resolvedType, progressTotal);
         progressOpen = true;
-        setProgress(0, 'Creating safety backup...');
+        setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
         transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
         setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
 
         await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
             const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
-            setProgress(batchComplete ? 2 : 1, label || 'Applying import transaction...');
+            setProgress(batchComplete ? 2 : 1, label || surfaceT("common.repair.applying-import-transaction-464c56", "Applying import transaction..."));
         });
 
         setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        setProgress(progressTotal, 'Import complete.');
+        setProgress(progressTotal, surfaceT("common.repair.import-complete-80e3a5", "Import complete."));
         closeImportApplyProgressDialog();
         progressOpen = false;
 
@@ -9531,9 +9531,9 @@ const importType = async (type) => {
         });
         const affectedFolderIds = resolveAffectedFolderIdsFromOperations(resolvedType, operations);
         const summaryBits = [
-            `${operations.creates.length} create${operations.creates.length === 1 ? '' : 's'}`,
-            `${operations.upserts.length} update${operations.upserts.length === 1 ? '' : 's'}`,
-            `${operations.deletes.length} delete${operations.deletes.length === 1 ? '' : 's'}`
+            surfaceT("common.repair.creates-1-353b67", "Creates: $1", operations.creates.length),
+            surfaceT("common.repair.updates-1-27085d", "Updates: $1", operations.upserts.length),
+            surfaceT("common.repair.deletes-1-a0fb91", "Deletes: $1", operations.deletes.length)
         ];
         showActionSummaryToast({
             title: `${resolvedType === 'docker' ? 'Docker' : 'VM'} import applied`,
@@ -9627,16 +9627,16 @@ const clearType = (type, id) => {
                     : 'Do not close this page until all folders are cleared.'
             });
             progressOpen = true;
-            setProgress(0, 'Creating safety backup...', {
-                current: 'Creating a rollback point before deleting anything.',
+            setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."), {
+                current: surfaceT("common.repair.creating-a-rollback-point-before-deleting-anything-affbe8", "Creating a rollback point before deleting anything."),
                 deletedCount: 0
             });
 
             const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
             const backupSkipped = backup?.skipped === true;
-            setProgress(1, backupSkipped ? 'Safety backup skipped: no folders to protect.' : `Safety backup created: ${backup?.name || 'ready'}`, {
+            setProgress(1, backupSkipped ? surfaceT("common.repair.safety-backup-skipped-no-folders-to-protect-044e05", "Safety backup skipped: no folders to protect.") : `Safety backup created: ${backup?.name || 'ready'}`, {
                 current: backupSkipped
-                    ? 'No backup file was created because the folder map is empty.'
+                    ? surfaceT("common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a", "No backup file was created because the folder map is empty.")
                     : `Backup ready: ${backup?.name || 'rollback point created'}`,
                 deletedCount: 0
             });
@@ -9668,17 +9668,17 @@ const clearType = (type, id) => {
             }
 
             setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
-                current: 'Refreshing settings table and backups.',
+                current: surfaceT("common.repair.refreshing-settings-table-and-backups-e72473", "Refreshing settings table and backups."),
                 deletedCount
             });
             await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.', {
-                current: id ? 'Cleanup complete.' : `${deletedCount} folders removed. Settings table refreshed.`,
+            setProgress(progressTotal, id ? surfaceT("common.repair.folder-deleted-048562", "Folder deleted.") : surfaceT("common.repair.all-folders-cleared-a7b85c", "All folders cleared."), {
+                current: id ? surfaceT("common.repair.cleanup-complete-922445", "Cleanup complete.") : `${deletedCount} folders removed. Settings table refreshed.`,
                 state: 'success',
                 deletedCount,
                 completedLabel: deletedCount,
                 remainingLabel: 0,
-                note: 'Cleanup complete. The settings view has been refreshed.'
+                note: surfaceT("common.repair.cleanup-complete-the-settings-view-has-been-refreshed-be91cd", "Cleanup complete. The settings view has been refreshed.")
             });
             closeImportApplyProgressDialog();
             progressOpen = false;
@@ -9695,7 +9695,7 @@ const clearType = (type, id) => {
                 title: id ? 'Folder deleted' : 'Folders cleared',
                 message: id
                     ? `Deleted ${folderName || id}.`
-                    : `Deleted ${deleteIds.length} folder${deleteIds.length === 1 ? '' : 's'}.`,
+                    : surfaceT("common.repair.folders-deleted-1-846e55", "Folders deleted: $1.", deleteIds.length),
                 level: 'success'
             });
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
@@ -9795,7 +9795,7 @@ const changeSortMode = async (type, mode) => {
             render: () => renderTable(resolvedType)
         });
     } catch (error) {
-        showError('Sort mode save failed', error);
+        showError(surfaceT("common.repair.sort-mode-save-failed-048126", "Sort mode save failed"), error);
     }
 };
 
@@ -9813,7 +9813,7 @@ const saveCurrentFolderOrderAsManual = async (type) => {
         await persistManualOrder(resolvedType, order);
         addActivityEntry(`Saved current ${resolvedType === 'vm' ? 'VM' : 'Docker'} folder order as Manual.`, 'success');
     } catch (error) {
-        showError('Manual order save failed', error);
+        showError(surfaceT("common.repair.manual-order-save-failed-dbf01d", "Manual order save failed"), error);
     }
 };
 
@@ -9837,7 +9837,7 @@ const changeBadgePref = async (type, badgeKey, checked) => {
             render: () => renderBadgeToggles(resolvedType)
         });
     } catch (error) {
-        showError('Badge preferences save failed', error);
+        showError(surfaceT("common.repair.badge-preferences-save-failed-a772c1", "Badge preferences save failed"), error);
     }
 };
 
@@ -9865,7 +9865,7 @@ const changeVisibilityPref = async (type, key, value) => {
         });
     } catch (error) {
         renderVisibilityControls(resolvedType);
-        showError('Visibility preference save failed', error);
+        showError(surfaceT("common.repair.visibility-preference-save-failed-5393c7", "Visibility preference save failed"), error);
     }
 };
 
@@ -9904,7 +9904,7 @@ const changeStatusPref = async (type, key, value) => {
         });
     } catch (error) {
         renderStatusControls(resolvedType);
-        showError('Status preferences save failed', error);
+        showError(surfaceT("common.repair.status-preferences-save-failed-ca7385", "Status preferences save failed"), error);
     }
 };
 
@@ -10046,7 +10046,7 @@ const changeHealthPref = async (type, key, value) => {
         });
     } catch (error) {
         renderHealthControls(resolvedType);
-        showError('Health preferences save failed', error);
+        showError(surfaceT("common.repair.health-preferences-save-failed-675fe9", "Health preferences save failed"), error);
     }
 };
 
@@ -10081,7 +10081,7 @@ const toggleFolderPin = async (type, folderId) => {
             await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
         }
     } catch (error) {
-        showError('Pin update failed', error);
+        showError(surfaceT("common.repair.pin-update-failed-cd5726", "Pin update failed"), error);
     }
 };
 
@@ -10132,7 +10132,7 @@ const changeRuntimePref = async (type, key, value) => {
             }
         });
     } catch (error) {
-        showError('Runtime preference sync pending', error);
+        showError(surfaceT("common.repair.runtime-preference-sync-pending-fa357c", "Runtime preference sync pending"), error);
     }
 };
 
@@ -10215,7 +10215,7 @@ const changeDashboardPref = async (type, key, value) => {
             });
         }
         renderDashboardControls(resolvedType);
-        showError('Dashboard preference save failed', error);
+        showError(surfaceT("common.repair.dashboard-preference-save-failed-1749a1", "Dashboard preference save failed"), error);
     }
 };
 
@@ -10247,7 +10247,7 @@ const changeBackupSchedulePref = async (type, key, value) => {
             renderRecoveryWorkspace(type);
         }
     } catch (error) {
-        showError('Backup schedule save failed', error);
+        showError(surfaceT("common.repair.backup-schedule-save-failed-c985ba", "Backup schedule save failed"), error);
     }
 };
 
@@ -10319,7 +10319,7 @@ const addAutoRule = async (type) => {
         $(`#${type}-rule-effect`).val('include');
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule save failed', error);
+        showError(surfaceT("common.repair.rule-save-failed-a631c5", "Rule save failed"), error);
     }
 };
 
@@ -10342,7 +10342,7 @@ const toggleAutoRule = async (type, ruleId) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule update failed', error);
+        showError(surfaceT("common.repair.rule-update-failed-787ca0", "Rule update failed"), error);
     }
 };
 
@@ -10355,7 +10355,7 @@ const deleteAutoRule = async (type, ruleId) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule delete failed', error);
+        showError(surfaceT("common.repair.rule-delete-failed-c92311", "Rule delete failed"), error);
     }
 };
 
@@ -10382,7 +10382,7 @@ const moveAutoRule = async (type, ruleId, direction) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule reorder failed', error);
+        showError(surfaceT("common.repair.rule-reorder-failed-a25aec", "Rule reorder failed"), error);
     }
 };
 
@@ -10620,7 +10620,7 @@ const createManualBackup = async (type) => {
     try {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
-        showError('Backup failed', error);
+        showError(surfaceT("common.repair.backup-failed-0e7112", "Backup failed"), error);
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
@@ -10644,7 +10644,7 @@ const createManualBackup = async (type) => {
                 type: 'success'
             });
         } catch (error) {
-            showError('Backup failed', error);
+            showError(surfaceT("common.repair.backup-failed-0e7112", "Backup failed"), error);
         }
     });
 };
@@ -10721,7 +10721,7 @@ const restoreLatestBackup = (type) => {
             try {
                 openImportApplyProgressDialog(resolvedType, progressTotal);
                 progressOpen = true;
-                setProgress(0, 'Creating safety backup...');
+                setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
                 const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
                 setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
@@ -10731,7 +10731,7 @@ const restoreLatestBackup = (type) => {
 
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
                 setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
-                setProgress(progressTotal, 'Restore complete.');
+                setProgress(progressTotal, surfaceT("common.repair.restore-complete-8f83d9", "Restore complete."));
                 await new Promise((resolve) => setTimeout(resolve, 180));
                 closeImportApplyProgressDialog();
                 progressOpen = false;
@@ -10757,12 +10757,12 @@ const downloadBackupEntry = async (type, name) => {
     }
     const resolvedName = String(name || '').trim();
     if (!resolvedName) {
-        showError('Download failed', new Error('Backup name is required.'));
+        showError('Download failed', new Error(surfaceT("common.repair.backup-name-is-required-eefae5", "Backup name is required.")));
         return;
     }
 
     if (!requestClient || typeof requestClient.postBlob !== 'function') {
-        showError('Download failed', new Error('The secured download client is unavailable. Refresh the page and try again.'));
+        showError('Download failed', new Error(surfaceT("common.repair.the-secured-download-client-is-unavailable-refresh-the-page-and-t-e1ff23", "The secured download client is unavailable. Refresh the page and try again.")));
         return;
     }
     try {
@@ -10826,13 +10826,13 @@ const deleteAllBackupEntries = (type) => {
     try {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
-        showError('Delete all backups failed', error);
+        showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), error);
         return;
     }
     const label = resolvedType === 'docker' ? 'Docker' : 'VM';
     const count = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].length : 0;
     if (count < 1) {
-        showError('Delete all backups failed', new Error(surfaceT("common.server.no-backups", "No backups available.")));
+        showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), new Error(surfaceT("common.server.no-backups", "No backups available.")));
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Delete all ${label} backups`)) {
@@ -10870,7 +10870,7 @@ const deleteAllBackupEntries = (type) => {
                     addActivityEntry(surfaceT("common.counts.backups-deleted", "Backup deletion ($1): deleted $2; failed $3.", label, deletedCount, failedCount), failedCount > 0 ? 'warning' : 'success');
                     renderBackupRows(resolvedType);
                 } catch (error) {
-                    showError('Delete all backups failed', error);
+                    showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), error);
                 }
             });
         });
@@ -10926,7 +10926,7 @@ const createTemplateFromFolder = async (type) => {
             swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
         } catch (error) {
             markAdvancedModuleLoadError(`${type}_templates`, error);
-            showError('Template create failed', error);
+            showError(surfaceT("common.repair.template-create-failed-408a7a", "Template create failed"), error);
         }
     });
 };
@@ -10967,7 +10967,7 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
                 });
                 await offerUndoAction(type, backup, 'Template apply');
             } catch (error) {
-                showError('Template apply failed', error);
+                showError(surfaceT("common.repair.template-apply-failed-e0f788", "Template apply failed"), error);
             }
         });
     });
@@ -10998,7 +10998,7 @@ const deleteTemplateEntry = (type, templateId) => {
                 renderOperationsWorkspace();
             } catch (error) {
                 markAdvancedModuleLoadError(`${type}_templates`, error);
-                showError('Template delete failed', error);
+                showError(surfaceT("common.repair.template-delete-failed-06bfa7", "Template delete failed"), error);
             }
         });
     });
@@ -11078,7 +11078,7 @@ const bulkRuleAction = async (type, action) => {
                 selectedRuleIdsByType[type] = new Set();
                 renderRulesTable(type);
             } catch (error) {
-                showError('Rule delete failed', error);
+                showError(surfaceT("common.repair.rule-delete-failed-c92311", "Rule delete failed"), error);
             }
         });
         return;
@@ -11097,7 +11097,7 @@ const bulkRuleAction = async (type, action) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule bulk update failed', error);
+        showError(surfaceT("common.repair.rule-bulk-update-failed-7a7db9", "Rule bulk update failed"), error);
     }
 };
 
@@ -11206,7 +11206,7 @@ const applyRuleSimulatorAssignments = (type) => {
                     level: failedCount > 0 ? 'warning' : 'success',
                     type: resolvedType
                 });
-                addActivityEntry(`Applied ${assignedCount} ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignment${assignedCount === 1 ? '' : 's'}.`, failedCount > 0 ? 'warning' : 'success');
+                addActivityEntry(surfaceT("common.repair.2-rule-preview-assignments-applied-1-91085b", "$2 rule preview assignments applied: $1.", assignedCount, resolvedType === "docker" ? "Docker" : "VM"), failedCount > 0 ? 'warning' : 'success');
                 await trackDiagnosticsEvent({
                     eventType: 'rule_preview_apply',
                     type: resolvedType,
@@ -11220,7 +11220,7 @@ const applyRuleSimulatorAssignments = (type) => {
                 });
                 await offerUndoAction(resolvedType, backup, 'Rule preview assignment');
             } catch (error) {
-                showError('Rule preview assignment failed', error);
+                showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"), error);
             }
         });
     });
@@ -11302,7 +11302,7 @@ const bulkTemplateAction = (type, action) => {
                 renderTemplateRows(type);
             } catch (error) {
                 markAdvancedModuleLoadError(`${type}_templates`, error);
-                showError('Template bulk delete failed', error);
+                showError(surfaceT("common.repair.template-bulk-delete-failed-23b335", "Template bulk delete failed"), error);
             }
         });
     });
@@ -11627,7 +11627,7 @@ if (window.FolderViewPlusUI?.registerAction) {
                 lastAction: 'Initial Settings data load failed',
                 lastStep: 'Settings page kept visible after data load failure'
             });
-            showError('Initial data load failed', error);
+            showError(surfaceT("common.repair.initial-data-load-failed-dbf943", "Initial data load failed"), error);
         }
         await withFatalBannerPhase({
             phase: 'finalize',
@@ -11733,6 +11733,6 @@ if (window.FolderViewPlusUI?.registerAction) {
                 category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
             });
         }
-        showError('Initialization failed', error);
+        showError(surfaceT("common.repair.initialization-failed-8dc5f7", "Initialization failed"), error);
     }
 })();

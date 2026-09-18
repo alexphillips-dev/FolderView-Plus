@@ -3,11 +3,11 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "dashboard",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "dashboard.folder.toggle-members": "Basculer les membres du dossier",
     "dashboard.widget.docker": "Docker",
-    "dashboard.widget.vm": "VM",
+    "dashboard.widget.vm": "Machine virtuelle",
     "dashboard.quick.view-options-title": "$1 options d'affichage",
     "dashboard.quick.view-options-help": "Personnalisez ce widget de tableau de bord.",
     "dashboard.quick.layout": "Disposition",

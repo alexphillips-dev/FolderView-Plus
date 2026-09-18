@@ -74,7 +74,7 @@ test('folder editor validates duplicate names within the selected parent path', 
 test('folder editor supports parent smart-default inheritance on new child folders', () => {
     assert.match(folderEditorScript, /const SMART_DEFAULT_FIELD_NAMES = new Set\(\[/);
     assert.match(folderHierarchyScript, /const applySmartDefaultsFromParent = \(parentId, config = \{\}\) =>/);
-    assert.match(folderHierarchyScript, /Inherited \$\{applied\} default/);
+    assert.match(folderHierarchyScript, /"common\.repair\.defaults-inherited-from-parent-2-1-55c01c", "Defaults inherited from parent \\"\$2\\": \$1\.", applied, parentName/);
     assert.match(folderEditorScript, /getParentDefaults: \(parentFolder\) => buildParentSmartDefaults\(parentFolder\)/);
     assert.match(folderEditorScript, /fieldName === 'parent_folder_id' && event\.type === 'change'/);
 });

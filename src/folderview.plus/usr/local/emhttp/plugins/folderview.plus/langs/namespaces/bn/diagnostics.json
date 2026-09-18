@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "ডায়াগনস্টিকস",
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 মিনিট পুরানো",
     "diagnostics.capture.age-hours": "$1 ঘন্টা পুরানো",
     "diagnostics.capture.guide-title": "3টি সহজ ধাপে ড্যাশবোর্ড প্রমাণ ক্যাপচার করুন",
-    "diagnostics.capture.missing": "অনুপস্থিত",
+    "diagnostics.capture.missing": "উপলব্ধ নয়",
     "diagnostics.capture.step-open": "ড্যাশবোর্ড খুলুন",
     "diagnostics.capture.step-open-detail": "প্রভাবিত ডিভাইসে যান এবং সমস্যা ফোল্ডারটি প্রসারিত করুন।",
     "diagnostics.capture.step-reproduce": "সমস্যা ক্যাপচার",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "অনুসরণ করুন",
     "diagnostics.overall.warning": "প্লাগইনের মূল কার্যক্রমের অবস্থার পরবর্তী পর্যালোচনা প্রয়োজন।",
     "diagnostics.overall.warning-detail": "প্লাগইন চলছে, তবে এক বা একাধিক মূল পরীক্ষার পর্যালোচনা প্রয়োজন।",
-    "diagnostics.status.advisories": "পরামর্শের সাথে স্বাস্থ্যকর",
+    "diagnostics.status.advisories": "সচল, কিছু পরামর্শ আছে",
     "diagnostics.overall.advisories": "প্লাগইনের মূল কার্যক্রম স্বাভাবিক আছে।",
     "diagnostics.overall.advisories-detail": "একটি বিজ্ঞপ্তির পরবর্তী পর্যালোচনা প্রয়োজন, তবে মূল কার্যক্রম স্বাভাবিক আছে।",
     "diagnostics.status.healthy": "স্বাস্থ্যকর",

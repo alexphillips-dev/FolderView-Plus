@@ -7,7 +7,6 @@
     modules.ruleTemplates = factory();
 }(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function() {
     'use strict';
-
     const TEMPLATE_DEFINITIONS = Object.freeze({
         'name-prefix': Object.freeze({
             labelKey: 'editor.rules.templates.name-prefix', labelFallback: 'Name starts with',
@@ -58,10 +57,11 @@
     };
 
     const parseLabelValue = (value) => {
+    const repairTfdbd15e2 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const source = String(value || '').trim();
         const separator = source.indexOf('=');
         if (separator < 1) {
-            throw new Error('Enter the label as key=value.');
+            throw new Error(repairTfdbd15e2("common.repair.enter-the-label-as-key-value-82f004", "Enter the label as key=value."));
         }
         const labelKey = source.slice(0, separator).trim();
         const labelValue = source.slice(separator + 1).trim();

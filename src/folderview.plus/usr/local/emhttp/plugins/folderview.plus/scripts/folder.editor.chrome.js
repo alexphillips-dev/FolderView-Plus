@@ -147,7 +147,6 @@
             }
         }
     };
-
     root.FolderViewPlusReportFolderEditorBootstrap = ({
         summary = '',
         details = '',
@@ -562,6 +561,7 @@
     const syncActionLaunchPlacement = (form) => {
         const actionsRow = form.querySelector('.basic.custom-action-wrapper-parent');
         const actionsList = actionsRow?.querySelector('.custom-action-wrapper');
+        actionsList?.setAttribute('data-empty-message', globalThis.FolderViewPlusI18n?.t?.("common.repair.no-custom-actions-added-yet-257d51", 'No custom actions added yet.') || 'No custom actions added yet.');
         const actionsValueCell = actionsRow?.querySelector('dl > dd');
         const launchRow = findActionLaunchRow(form);
         const launchButton = launchRow?.querySelector('button.custom-action')

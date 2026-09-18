@@ -7,6 +7,7 @@
     root.FolderViewPlusSettingsWorkspacesModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const createApi = (deps = {}) => {
+    const repairT710d5dec = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const windowRef = deps.window || (typeof window !== 'undefined' ? window : null);
         const documentRef = deps.document || windowRef?.document || null;
         const $ = deps.$ || windowRef?.jQuery || windowRef?.$ || null;
@@ -70,7 +71,6 @@
         const updateImportApplyProgressDialog = typeof deps.updateImportApplyProgressDialog === 'function' ? deps.updateImportApplyProgressDialog : (() => {});
         const closeImportApplyProgressDialog = typeof deps.closeImportApplyProgressDialog === 'function' ? deps.closeImportApplyProgressDialog : (() => {});
         const ensureRuntimeConflictActionAllowed = typeof deps.ensureRuntimeConflictActionAllowed === 'function' ? deps.ensureRuntimeConflictActionAllowed : (() => true);
-
         let recoveryEnvironmentSummary = null;
         let recoveryEnvironmentMode = 'idle';
 
@@ -154,9 +154,9 @@
                     <div class="fv-recovery-history-meta">
                         <span>${escapeHtml(`Exported ${exportedAt}`)}</span>
                         <span>${escapeHtml(`Snapshot plugin ${summary.pluginVersion || 'unknown'}`)}</span>
-                        <span>${escapeHtml(`Docker ${summary.docker.folderCount} folder${summary.docker.folderCount === 1 ? '' : 's'}`)}</span>
-                        <span>${escapeHtml(`VM ${summary.vm.folderCount} folder${summary.vm.folderCount === 1 ? '' : 's'}`)}</span>
-                        <span>${escapeHtml(`${summary.themeWorkspace.managedThemeCount} managed theme${summary.themeWorkspace.managedThemeCount === 1 ? '' : 's'}`)}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.docker-folders-1-41f18c", "Docker folders: $1", summary.docker.folderCount))}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.vm-folders-1-e73ec2", "VM folders: $1", summary.vm.folderCount))}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.managed-themes-1-91e84d", "Managed themes: $1", summary.themeWorkspace.managedThemeCount))}</span>
                     </div>
                     <div class="fv-recovery-environment-meta">
                         <span>${escapeHtml(`Docker sort: ${summary.docker.sortMode || 'created'}`)}</span>
@@ -247,13 +247,13 @@
                 setProgress(2, translate("common.audit.folders-refreshed", "Refreshed Docker folders and preferences."));
 
                 await refreshType('vm');
-                setProgress(3, 'Refreshed VM folders and preferences.');
+                setProgress(3, repairT710d5dec("common.repair.refreshed-vm-folders-and-preferences-6f71bb", "Refreshed VM folders and preferences."));
 
                 await refreshBackups('docker', { quiet: true });
-                setProgress(4, 'Refreshed Docker safety backups.');
+                setProgress(4, repairT710d5dec("common.repair.refreshed-docker-safety-backups-18b9f0", "Refreshed Docker safety backups."));
 
                 await refreshBackups('vm', { quiet: true });
-                setProgress(5, 'Refreshed VM safety backups.');
+                setProgress(5, repairT710d5dec("common.repair.refreshed-vm-safety-backups-a21bd9", "Refreshed VM safety backups."));
 
                 let themeRefreshMessage = 'Refreshed Theme Workspace.';
                 try {
@@ -292,7 +292,7 @@
                 if (progressOpen) {
                     closeImportApplyProgressDialog();
                 }
-                showError('Environment import failed', error);
+                showError(repairT710d5dec("common.repair.environment-import-failed-9e80d3", "Environment import failed"), error);
                 throw error;
             }
         });
@@ -312,7 +312,7 @@
                 });
                 return summary;
             } catch (error) {
-                showError('Environment export failed', error);
+                showError(repairT710d5dec("common.repair.environment-export-failed-d84f08", "Environment export failed"), error);
                 throw error;
             }
         };
@@ -326,7 +326,7 @@
             try {
                 selected = await selectJsonFile();
             } catch (error) {
-                showError('Environment snapshot selection failed', error);
+                showError(repairT710d5dec("common.repair.environment-snapshot-selection-failed-d3345b", "Environment snapshot selection failed"), error);
                 return;
             }
             if (!selected) {
@@ -366,7 +366,7 @@
                     await applyEnvironmentSnapshotSelection(selected, summary);
                 });
             } catch (error) {
-                showError('Environment snapshot preview failed', error);
+                showError(repairT710d5dec("common.repair.environment-snapshot-preview-failed-c3759a", "Environment snapshot preview failed"), error);
             }
         };
 
@@ -704,7 +704,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Restore failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
+                showError(repairT710d5dec("common.repair.restore-failed-b8476c", "Restore failed"), new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             restoreBackupEntry(resolvedType, selectedName);
@@ -722,7 +722,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Delete failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
+                showError(repairT710d5dec("common.repair.delete-failed-8727e2", "Delete failed"), new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             deleteBackupEntry(resolvedType, selectedName);
@@ -1036,7 +1036,7 @@
                     <div class="fv-operations-template-head">
                         <div>
                             <div class="fv-operations-template-title" data-fvplus-user-content>${escapeHtml(templateName)}</div>
-                            <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
+                            <div class="fv-operations-template-copy">${escapeHtml(repairT710d5dec("common.repair.updated-1-ready-to-apply-to-folders-count-2-e1356a", "Updated: $1. Ready to apply to folders (count: $2).", templateUpdated, folderCount))}</div>
                         </div>
                         <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
                     </div>

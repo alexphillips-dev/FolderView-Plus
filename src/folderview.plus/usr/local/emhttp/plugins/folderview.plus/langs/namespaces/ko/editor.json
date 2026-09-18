@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "editor",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "editor.actions.add-custom": "사용자 정의 동작 추가",
     "editor.actions.standard": "표준",
@@ -41,7 +41,7 @@
     "editor.webui-profiles.delete": "삭제",
     "editor.webui-profiles.search": "폴더 구성원 검색",
     "editor.webui-profiles.select-webui": "WebUI로 모두 선택",
-    "editor.webui-profiles.clear": "선택 취소",
+    "editor.webui-profiles.clear": "선택 해제",
     "editor.webui-profiles.webui-ready": "WebUI 구성됨",
     "editor.webui-profiles.webui-runtime": "실행 시 WebUI 확인",
     "editor.webui-profiles.unavailable": "이 폴더에서는 사용할 수 없습니다.",

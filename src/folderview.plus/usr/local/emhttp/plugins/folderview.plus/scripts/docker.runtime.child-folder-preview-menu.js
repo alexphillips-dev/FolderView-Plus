@@ -13,6 +13,7 @@
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const surfaceT = (key, fallback, ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const jq = deps.$ || win?.jQuery || win?.$;
         const expandFolderPathToChild = typeof deps.expandFolderPathToChild === 'function'
             ? deps.expandFolderPathToChild
@@ -101,7 +102,7 @@
                 scrollFolderRowIntoView(childId);
                 openFolderActions(childId);
             });
-            $menu.attr('aria-label', `${safeChildName} folder actions`);
+            $menu.attr('aria-label', surfaceT("common.repair.folder-actions-for-1-133218", "Folder actions for $1", safeChildName));
             jq(doc.body).append($menu);
             const viewportWidth = Number(win?.innerWidth || doc.documentElement?.clientWidth || 0);
             const viewportHeight = Number(win?.innerHeight || doc.documentElement?.clientHeight || 0);

@@ -132,8 +132,8 @@ test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerRuntimeActionsScript, /const generateDockerFolderCloneId = typeof deps\.generateDockerFolderCloneId === 'function'/);
     assert.match(dockerRuntimeActionsScript, /const rollbackClonedDockerFoldersFallback = async \(createdIds = \[\]\) =>/);
     assert.match(dockerRuntimeActionsScript, /const rollbackClonedDockerFolders = typeof deps\.rollbackClonedDockerFolders === 'function'/);
-    assert.match(dockerRuntimeActionsScript, /promptFn\('Clone folder name'/);
-    assert.match(dockerRuntimeActionsScript, /promptFn\('Clone branch root name'/);
+    assert.match(dockerRuntimeActionsScript, /promptFn\(surfaceT\("common\.repair\.clone-folder-name-[a-f0-9]+", "Clone folder name"\), defaultName\)/);
+    assert.match(dockerRuntimeActionsScript, /promptFn\(surfaceT\("common\.repair\.clone-branch-root-name-[a-f0-9]+", "Clone branch root name"\), defaultName\)/);
     assert.match(dockerRuntimeActionsScript, /\/server\/create\.php/);
     assert.match(dockerRuntimeActionsScript, /\/server\/update\.php/);
     assert.match(dockerRuntimeActionsScript, /\/server\/apply_folder_settings\.php/);

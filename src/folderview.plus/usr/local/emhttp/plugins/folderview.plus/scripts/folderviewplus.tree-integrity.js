@@ -294,7 +294,7 @@
                     type: verifiedCounts.repairableIssueCount > 0 ? 'warning' : 'success'
                 });
             } catch (error) {
-                showError(repair ? 'Tree integrity repair failed' : 'Tree integrity scan failed', error);
+                showError(repair ? surfaceT("common.repair.tree-integrity-repair-failed-b65553", "Tree integrity repair failed") : surfaceT("common.repair.tree-integrity-scan-failed-72e06b", "Tree integrity scan failed"), error);
             } finally {
                 busyByType[resolvedType] = false;
                 setTreeIntegrityBusy(resolvedType, false, repair ? 'repair' : 'scan');

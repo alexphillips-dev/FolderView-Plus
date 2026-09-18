@@ -22,6 +22,7 @@
     }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const createApi = (deps = {}) => {
+    const repairT9b1afc29 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const windowRef = deps.window || (typeof window !== 'undefined' ? window : null);
         const documentRef = deps.document || windowRef?.document || null;
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? '')
@@ -59,14 +60,14 @@
         const showError = typeof deps.showError === 'function' ? deps.showError : ((title, error) => {
             const text = String(error?.message || error || 'Unknown error');
             if (typeof windowRef?.alert === 'function') {
-                windowRef.alert(`${title}: ${text}`);
+            windowRef.alert([title, text].map(value => windowRef.FolderViewPlusI18n?.message?.(value) || value).join(': '));
             }
         });
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
         const translate = deps.translate || ((key, fallback, ...params) => windowRef?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key);
         const formatTimestamp = typeof deps.formatTimestamp === 'function' ? deps.formatTimestamp : ((value) => {
             const parsed = Date.parse(String(value || ''));
-            return Number.isFinite(parsed) ? new Date(parsed).toLocaleString() : String(value || '');
+            return Number.isFinite(parsed) ? (globalThis.FolderViewPlusI18n?.formatDate?.(parsed, { dateStyle: 'short', timeStyle: 'medium' }) || new Date(parsed).toLocaleString('en')) : String(value || '');
         });
         let controller = null;
         let mode = 'idle';
@@ -161,7 +162,7 @@
                     <div class="fv-recovery-history-head">
                         <div>
                             <div class="fv-recovery-history-title">${escapeHtml(translate('import.folderview3.detected', 'FolderView3 detected'))}</div>
-                            <div class="fv-recovery-history-copy">Version ${escapeHtml(detection.pluginVersion || 'unknown')} with ${escapeHtml(String(detection.componentCount))} readable component${detection.componentCount === 1 ? '' : 's'}.</div>
+                            <div class="fv-recovery-history-copy">${escapeHtml(repairT9b1afc29("common.repair.version-1-readable-components-2-14aacc", "Version: $1. Readable components: $2.", detection.pluginVersion || "unknown", detection.componentCount))}</div>
                         </div>
                         <span class="fv-recovery-history-badge">${escapeHtml(translate('import.folderview3.read-only-badge', 'Read only'))}</span>
                     </div>
@@ -206,7 +207,7 @@
             } catch (error) {
                 mode = 'idle';
                 render();
-                showError('FolderView3 detection failed', error);
+                showError(repairT9b1afc29("common.repair.folderview3-detection-failed-327513", "FolderView3 detection failed"), error);
                 throw error;
             }
         };
@@ -237,7 +238,7 @@
             } catch (error) {
                 mode = 'idle';
                 render();
-                showError('FolderView3 migration preview failed', error);
+                showError(repairT9b1afc29("common.repair.folderview3-migration-preview-failed-cb2fa9", "FolderView3 migration preview failed"), error);
                 throw error;
             }
         };
@@ -253,7 +254,7 @@
             try {
                 selected = await selectJsonFile();
             } catch (error) {
-                showError('FolderView3 export selection failed', error);
+                showError(repairT9b1afc29("common.repair.folderview3-export-selection-failed-ad42da", "FolderView3 export selection failed"), error);
                 return null;
             }
             if (!selected) {
@@ -291,7 +292,7 @@
             } catch (error) {
                 mode = 'preview';
                 render();
-                showError('FolderView3 migration failed', error);
+                showError(repairT9b1afc29("common.repair.folderview3-migration-failed-3a876a", "FolderView3 migration failed"), error);
                 throw error;
             }
         };

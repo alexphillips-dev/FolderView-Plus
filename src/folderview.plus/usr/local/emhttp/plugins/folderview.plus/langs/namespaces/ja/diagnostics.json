@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "診断",
     "diagnostics.workspace.description": "プラグインの状態を監視し、問題のトラブルシューティングを行い、サポート データを共有します。",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 分前",
     "diagnostics.capture.age-hours": "$1 時間前",
     "diagnostics.capture.guide-title": "3 つの簡単なステップでダッシュボードの証拠を取得",
-    "diagnostics.capture.missing": "行方不明",
+    "diagnostics.capture.missing": "利用できません",
     "diagnostics.capture.step-open": "ダッシュボードを開く",
     "diagnostics.capture.step-open-detail": "影響を受けるデバイスに移動し、問題のあるフォルダーを展開します。",
     "diagnostics.capture.step-reproduce": "問題を捉える",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "フォローアップ",
     "diagnostics.overall.warning": "プラグインの基本機能の状態について追加確認が必要です。",
     "diagnostics.overall.warning-detail": "プラグインは動作していますが、1 つ以上の基本チェック結果の確認が必要です。",
-    "diagnostics.status.advisories": "アドバイザリーで健全に",
+    "diagnostics.status.advisories": "正常（注意事項あり）",
     "diagnostics.overall.advisories": "プラグインの基本機能は正常です。",
     "diagnostics.overall.advisories-detail": "確認が必要な通知がありますが、基本機能は正常です。",
     "diagnostics.status.healthy": "健康",

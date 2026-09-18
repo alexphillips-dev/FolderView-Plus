@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Dodaj mapu",
     "up-to-date": "ažuran",
@@ -31,7 +31,7 @@
     "expand": "Proširi",
     "compress": "Komprimirati",
     "webui": "WebUI",
-    "tailscale-webui": "Tailscale WebUI",
+    "tailscale-webui": "WebUI na repnoj skali",
     "console": "Konzola",
     "update": "Ažuriranje",
     "update-force": "Prisilno ažuriranje",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "Održavajte odabrane statusne boje ove mape mjerodavnima kada se mijenjaju teme ili stilovi hosta.",
     "dashboard-layout-embossed": "Reljefno",
     "table-show-in-preview": "Prikaži u pregledu",
-    "member-preview-visible": "Vidljivo"
+    "member-preview-visible": "Vidljivo",
+    "folderviewplus-dev-desc": "FolderView Plus razvojne verzije su za testiranje. Očekujte pogreške, regresije i nedovršene promjene prije stabilnog izdanja.",
+    "folderviewplus-dev-quickstart": "Razvojna grana: testirajte promjene prije stabilnog izdanja. Pažljivo ažurirajte i očekujte povremeni kvar.",
+    "folderviewplus-quickstart": "Brzi početak: otvorite Postavke → FolderView Plus. Koristite Basic za svakodnevno upravljanje mapama i Advanced za skupno dodjeljivanje, pravila, oporavak, operacije i dijagnostiku. Promjene se spremaju automatski."
 }

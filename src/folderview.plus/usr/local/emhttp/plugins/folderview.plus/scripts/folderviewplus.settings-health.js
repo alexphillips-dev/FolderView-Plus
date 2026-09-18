@@ -159,7 +159,7 @@
                 return '0 GiB';
             }
             const gib = kib / (1024 * 1024);
-            const fixed = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
+            const fixed = (globalThis.FolderViewPlusI18n?.formatNumber?.(gib, { minimumFractionDigits: gib >= 100 ? 0 : 1, maximumFractionDigits: gib >= 100 ? 0 : 1 }) || (gib >= 100 ? gib.toFixed(0) : gib.toFixed(1)));
             return `${fixed} GiB`;
         };
 
@@ -169,8 +169,8 @@
                 return '0 GB';
             }
             const gib = kib / (1024 * 1024);
-            const rounded = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
-            const compact = rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded;
+            const rounded = (globalThis.FolderViewPlusI18n?.formatNumber?.(gib, { minimumFractionDigits: gib >= 100 ? 0 : 1, maximumFractionDigits: gib >= 100 ? 0 : 1 }) || (gib >= 100 ? gib.toFixed(0) : gib.toFixed(1)));
+            const compact = globalThis.FolderViewPlusI18n?.formatNumber?.(gib, { maximumFractionDigits: gib >= 100 ? 0 : 1 }) || (rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded);
             return `${compact} GB`;
         };
 

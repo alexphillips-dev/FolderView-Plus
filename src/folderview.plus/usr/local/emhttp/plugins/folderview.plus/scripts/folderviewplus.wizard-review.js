@@ -244,7 +244,7 @@
             if (step === 'review') {
                 const impact = buildImpactSummary();
                 if (impact.totalPlannedChanges <= 0 && state.dryRunOnly !== true) {
-                    warnings.push('No changes are currently planned. Enable imports/rules or adjust behavior before apply.');
+                    warnings.push(surfaceT("common.repair.no-changes-are-currently-planned-enable-imports-rules-or-adjust-b-1b96c4", "No changes are currently planned. Enable imports/rules or adjust behavior before apply."));
                 }
                 if (state.dryRunOnly === true) {
                     warnings.push(surfaceT("common.audit.dry-run", "Dry run mode is ON. Apply will preview only and will not persist changes."));

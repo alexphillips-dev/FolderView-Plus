@@ -1,0 +1,31 @@
+{
+  "concepts": ["running", "clear-selection", "apply-assignments", "capture-missing", "imported", "healthy-advisories", "move-up", "move-down"],
+  "locales": {
+    "ar": ["قيد التشغيل", "إلغاء التحديد", "تطبيق تعيينات المجلدات", "غير متوفر", "تم الاستيراد", "سليم مع ملاحظات", "نقل لأعلى", "نقل لأسفل"],
+    "bn": ["চালু আছে", "নির্বাচন সরান", "ফোল্ডার বরাদ্দ প্রয়োগ করুন", "উপলব্ধ নয়", "আমদানি করা হয়েছে", "সচল, কিছু পরামর্শ আছে", "উপরে সরান", "নিচে সরান"],
+    "ca": ["En execució", "Esborra la selecció", "Aplica les assignacions de carpetes", "No disponible", "Importat", "Correcte amb avisos", "Mou amunt", "Mou avall"],
+    "cs": ["Spuštěno", "Zrušit výběr", "Použít přiřazení ke složkám", "Není k dispozici", "Importováno", "V pořádku s upozorněními", "Přesunout nahoru", "Přesunout dolů"],
+    "da": ["Kører", "Ryd markering", "Anvend mappetildelinger", "Ikke tilgængelig", "Importeret", "Fungerer med bemærkninger", "Flyt op", "Flyt ned"],
+    "de": ["Läuft", "Auswahl aufheben", "Ordnerzuweisungen anwenden", "Nicht verfügbar", "Importiert", "In Ordnung mit Hinweisen", "Nach oben verschieben", "Nach unten verschieben"],
+    "es": ["En ejecución", "Borrar selección", "Aplicar asignaciones a carpetas", "No disponible", "Importado", "Correcto con avisos", "Mover arriba", "Mover abajo"],
+    "fr": ["En cours d’exécution", "Effacer la sélection", "Appliquer les affectations aux dossiers", "Indisponible", "Importé", "Fonctionnel avec des avertissements", "Déplacer vers le haut", "Déplacer vers le bas"],
+    "hr": ["Pokrenuto", "Poništi odabir", "Primijeni dodjele mapama", "Nije dostupno", "Uvezeno", "Ispravno uz napomene", "Pomakni gore", "Pomakni dolje"],
+    "hu": ["Fut", "Kijelölés törlése", "Mappahozzárendelések alkalmazása", "Nem érhető el", "Importálva", "Rendben, megjegyzésekkel", "Mozgatás felfelé", "Mozgatás lefelé"],
+    "it": ["In esecuzione", "Cancella selezione", "Applica assegnazioni alle cartelle", "Non disponibile", "Importato", "Funzionante con avvisi", "Sposta su", "Sposta giù"],
+    "ja": ["実行中", "選択を解除", "フォルダーへの割り当てを適用", "利用できません", "インポート済み", "正常（注意事項あり）", "上へ移動", "下へ移動"],
+    "ko": ["실행 중", "선택 해제", "폴더 할당 적용", "사용할 수 없음", "가져오기 완료", "정상 (참고 사항 있음)", "위로 이동", "아래로 이동"],
+    "lv": ["Darbojas", "Notīrīt atlasi", "Lietot piešķīrumus mapēm", "Nav pieejams", "Importēts", "Darbojas ar piezīmēm", "Pārvietot augšup", "Pārvietot lejup"],
+    "nb": ["Kjører", "Fjern merking", "Bruk mappetildelinger", "Ikke tilgjengelig", "Importert", "Fungerer med merknader", "Flytt opp", "Flytt ned"],
+    "nl": ["Actief", "Selectie wissen", "Maptoewijzingen toepassen", "Niet beschikbaar", "Geïmporteerd", "In orde met aandachtspunten", "Omhoog verplaatsen", "Omlaag verplaatsen"],
+    "pl": ["Uruchomione", "Wyczyść zaznaczenie", "Zastosuj przypisania do folderów", "Niedostępne", "Zaimportowano", "Sprawny, z uwagami", "Przenieś w górę", "Przenieś w dół"],
+    "pt-BR": ["Em execução", "Limpar seleção", "Aplicar atribuições às pastas", "Indisponível", "Importado", "Funcionando com avisos", "Mover para cima", "Mover para baixo"],
+    "pt-PT": ["Em execução", "Limpar seleção", "Aplicar atribuições às pastas", "Indisponível", "Importado", "A funcionar com avisos", "Mover para cima", "Mover para baixo"],
+    "ro": ["În execuție", "Golește selecția", "Aplică atribuirile la dosare", "Indisponibil", "Importat", "Funcțional, cu atenționări", "Mută în sus", "Mută în jos"],
+    "ru": ["Работает", "Снять выделение", "Применить назначения папок", "Недоступно", "Импортировано", "Исправно, есть замечания", "Переместить вверх", "Переместить вниз"],
+    "sv": ["Körs", "Rensa markering", "Tillämpa mapptilldelningar", "Inte tillgänglig", "Importerad", "Fungerar med anmärkningar", "Flytta upp", "Flytta ned"],
+    "tr": ["Çalışıyor", "Seçimi temizle", "Klasör atamalarını uygula", "Kullanılamıyor", "İçe aktarıldı", "Çalışıyor, bilgilendirme notları var", "Yukarı taşı", "Aşağı taşı"],
+    "uk": ["Працює", "Зняти виділення", "Застосувати призначення папок", "Недоступно", "Імпортовано", "Справно, є зауваження", "Перемістити вгору", "Перемістити вниз"],
+    "zh-Hans": ["运行中", "清除选择", "应用文件夹分配", "不可用", "已导入", "正常，有提示", "上移", "下移"],
+    "zh-Hant": ["執行中", "清除選取", "套用資料夾指派", "無法使用", "已匯入", "正常，有提示", "上移", "下移"]
+  }
+}

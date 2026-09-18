@@ -12,16 +12,16 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Ordner hinzufügen",
     "up-to-date": "aktuell",
     "update-ready": "Update bereit",
     "force-update": "Aktualisierung erzwingen",
     "apply-update": "Update anwenden",
-    "compose": "Compose",
+    "compose": "Komponieren",
     "third-party": "Dritter",
     "are-you-sure": "Bist du sicher?",
     "remove-folder": "Ordner entfernen",
@@ -170,7 +170,7 @@
     "custom-actions-arguments": "Argumente:",
     "folder-webui": "Ordner WebUI:",
     "folder-webui-tooltip": "Standardordner WebUI URL.",
-    "folder-webui-url": "WebUI URL:",
+    "folder-webui-url": "WebUI-URL:",
     "folder-webui-url-tooltip": "Das URL wird geöffnet, wenn Sie im Kontextmenü des Ordners auf die Schaltfläche WebUI klicken.",
     "folderviewplus-desc": "FolderView Plus fügt ordnerbasierte Organisation zu Unraid Docker, VM und Dashboard-Ansichten mit verschachtelten Ordnern, dem Setup-Assistenten, intelligenten Regeln, Massenzuweisung, wiederverwendbaren Vorlagen, Wiederherstellungstools und kopierbaren Diagnosen hinzu.",
     "preview-rows": "Vorschauzeilen:",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "Behalten Sie die ausgewählten Statusfarben dieses Ordners bei, wenn sich Themen oder Hoststile ändern.",
     "dashboard-layout-embossed": "Geprägt",
     "table-show-in-preview": "In der Vorschau anzeigen",
-    "member-preview-visible": "Sichtbar"
+    "member-preview-visible": "Sichtbar",
+    "folderviewplus-dev-desc": "FolderView Plus-Entwicklungs-Builds dienen zum Testen. Erwarten Sie Fehler, Regressionen und unvollendete Änderungen vor der stabilen Veröffentlichung.",
+    "folderviewplus-dev-quickstart": "Entwicklungszweig: Testen Sie Änderungen vor der stabilen Veröffentlichung. Aktualisieren Sie das Gerät sorgfältig und rechnen Sie mit gelegentlichen Ausfällen.",
+    "folderviewplus-quickstart": "Schnellstart: Öffnen Sie Einstellungen → FolderView Plus. Verwenden Sie „Basic“ für die alltägliche Ordnerverwaltung und „Advanced“ für Massenzuweisungen, Regeln, Wiederherstellung, Vorgänge und Diagnosen. Änderungen werden automatisch gespeichert."
 }

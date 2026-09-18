@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "진단",
     "diagnostics.workspace.description": "플러그인 상태를 모니터링하고, 문제를 해결하고, 지원 데이터를 공유하세요.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1분 전",
     "diagnostics.capture.age-hours": "$1시간 전",
     "diagnostics.capture.guide-title": "간단한 3단계로 대시보드 증거 캡처",
-    "diagnostics.capture.missing": "누락",
+    "diagnostics.capture.missing": "사용할 수 없음",
     "diagnostics.capture.step-open": "대시보드 열기",
     "diagnostics.capture.step-open-detail": "영향을 받는 장치로 이동하여 문제 폴더를 확장합니다.",
     "diagnostics.capture.step-reproduce": "문제 포착",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "후속 조치",
     "diagnostics.overall.warning": "플러그인 핵심 기능의 상태에 후속 확인이 필요합니다.",
     "diagnostics.overall.warning-detail": "플러그인이 실행 중이지만 하나 이상의 핵심 검사 결과를 검토해야 합니다.",
-    "diagnostics.status.advisories": "권고 사항을 통해 건강하게",
+    "diagnostics.status.advisories": "정상 (참고 사항 있음)",
     "diagnostics.overall.advisories": "플러그인의 핵심 기능이 정상입니다.",
     "diagnostics.overall.advisories-detail": "후속 확인이 필요한 알림이 있지만 핵심 기능은 정상입니다.",
     "diagnostics.status.healthy": "건강하다",

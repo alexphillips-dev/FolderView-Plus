@@ -153,7 +153,7 @@
             if (Number.isNaN(date.getTime())) {
                 return raw;
             }
-            return date.toLocaleString(undefined, {
+            return date.toLocaleString(globalThis.FolderViewPlusI18n?.snapshot?.().resolvedLocale || 'en', {
                 month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
@@ -267,7 +267,7 @@
                     <span>${escapeHtml(theme.name || theme.id || 'Scanned theme')}</span>
                     <span class="fv-rules-status-chip ${scanResult.exists ? 'is-warning' : 'is-healthy'}">${escapeHtml(scanResult.exists ? 'Will replace existing' : 'Ready to import')}</span>
                 </div>
-                <div class="fv-theme-scan-meta">${escapeHtml(`${files.length} compatible CSS file${files.length === 1 ? '' : 's'} found`)}</div>
+                <div class="fv-theme-scan-meta">${escapeHtml(surfaceT("common.repair.compatible-css-files-found-1-46fe06", "Compatible CSS files found: $1", files.length))}</div>
                 ${warnings.map((warning) => `<div class="fv-theme-workspace-entry-warning">${escapeHtml(warning)}</div>`).join('')}
                 <ul class="fv-theme-file-list">
                     ${files.map((file) => {
@@ -326,7 +326,7 @@
             }
             host.innerHTML = workspace.themes.map((theme) => {
                 const isActive = theme.id === workspace.activeThemeId;
-                const filesSummary = `${theme.files.length} file${theme.files.length === 1 ? '' : 's'}`;
+                const filesSummary = surfaceT("common.repair.files-1-1b815e", "Files: $1", theme.files.length);
                 const sourceSummary = String(theme.source?.owner || '').trim() && String(theme.source?.repo || '').trim()
                     ? `${theme.source.owner}/${theme.source.repo}${theme.source.branch ? ` @ ${theme.source.branch}` : ''}`
                     : (theme.source?.input || 'Imported theme');

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnosztika",
     "diagnostics.workspace.description": "Figyelemmel kísérheti a beépülő modulok állapotát, elháríthatja a problémákat, és megoszthatja a támogatási adatokat.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 perc régi",
     "diagnostics.capture.age-hours": "$1 órás",
     "diagnostics.capture.guide-title": "Rögzítse a műszerfali bizonyítékokat 3 egyszerű lépésben",
-    "diagnostics.capture.missing": "Hiányzik",
+    "diagnostics.capture.missing": "Nem érhető el",
     "diagnostics.capture.step-open": "Nyissa meg az Irányítópultot",
     "diagnostics.capture.step-open-detail": "Nyissa meg az érintett eszközt, és bontsa ki a probléma mappát.",
     "diagnostics.capture.step-reproduce": "Ragadja meg a problémát",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Kövesse nyomon",
     "diagnostics.overall.warning": "A bővítmény alapfunkcióinak állapota további vizsgálatot igényel.",
     "diagnostics.overall.warning-detail": "A bővítmény fut, de legalább egy alapellenőrzést felül kell vizsgálni.",
-    "diagnostics.status.advisories": "Egészséges tanácsokkal",
+    "diagnostics.status.advisories": "Rendben, megjegyzésekkel",
     "diagnostics.overall.advisories": "A bővítmény alapfunkciói rendben vannak.",
     "diagnostics.overall.advisories-detail": "Egy figyelmeztetés további vizsgálatot igényel, de az alapfunkciók rendben vannak.",
     "diagnostics.status.healthy": "Egészséges",

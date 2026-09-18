@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Välj hur befintliga mappar ska hanteras. Inget ändras förrän du väljer Använd import.",
     "import.behavior.question": "Hur ska befintliga mappar hanteras?",
@@ -32,7 +32,7 @@
     "import.acknowledge.title": "Jag har granskat denna import",
     "import.acknowledge.description": "Beteendet och de valda ändringarna är korrekta.",
     "import.progress.preparing": "Förbereder operation",
-    "import.progress.running": "Kör",
+    "import.progress.running": "Körs",
     "import.summary.folder-change": "{{PLURAL:$1|mappändring|mappändringar}}",
     "import.summary.planned-change": "{{PLURAL:$1|planerad ändring|planerade ändringar}} i förhandsgranskning",
     "import.summary.new": "$1 ny",

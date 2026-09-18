@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 2624,
-        "total-source-messages": 2624,
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translated-messages": 4521,
+        "total-source-messages": 4521,
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "add-folder": "Legg til mappe",
     "up-to-date": "oppdatert",
@@ -200,5 +200,8 @@
     "status-color-lock-tooltip": "Hold de valgte statusfargene i denne mappen autoritative når temaer eller vertsstiler endres.",
     "dashboard-layout-embossed": "Preget",
     "table-show-in-preview": "Vis i forhåndsvisning",
-    "member-preview-visible": "Synlig"
+    "member-preview-visible": "Synlig",
+    "folderviewplus-dev-desc": "FolderView Plus-utviklingsbygg er for testing. Forvent feil, regresjoner og uferdige endringer før stabil utgivelse.",
+    "folderviewplus-dev-quickstart": "Utviklingsgren: test endringer før stabil utgivelse. Oppdater nøye og forvent sporadisk brudd.",
+    "folderviewplus-quickstart": "Rask start: åpne Innstillinger → FolderView Plus. Bruk Basic for daglig mappeadministrasjon og Advanced for massetildeling, regler, gjenoppretting, operasjoner og diagnostikk. Endringer lagres automatisk."
 }

@@ -24,7 +24,7 @@ const diagnosticsSwal = typeof window.swal === 'function'
         const title = String(options?.title || 'FolderView Plus').trim();
         const text = String(options?.text || '').trim();
         if (typeof window.alert === 'function') {
-            window.alert(text ? `${title}\n\n${text}` : title);
+        window.alert(window.FolderViewPlusI18n?.message?.(text ? `${title}\n\n${text}` : title) || (text ? `${title}\n\n${text}` : title));
         }
     });
 const diagnosticsShowToastMessage = (options = {}) => {
@@ -560,7 +560,7 @@ const renderPerformanceDiagnostics = () => {
     ].join('');
     const runtimeSnapshot = getRuntimePerfTelemetrySnapshot();
     const updatedAt = performanceDiagnosticsState.updatedAt > 0
-        ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
+        ? (globalThis.FolderViewPlusI18n?.formatDate?.(performanceDiagnosticsState.updatedAt, { dateStyle: 'short', timeStyle: 'medium' }) || new Date(performanceDiagnosticsState.updatedAt).toLocaleString('en'))
         : 'Not yet sampled';
     host.html(`
         <div class="fv-perf-summary-note">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.note', 'Rolling UI timings are retained for 24 hours across refreshes; health evaluation uses the most recent 30 minutes. Cold loads are observed but do not trigger a warning by themselves.'))}</div>
@@ -1010,7 +1010,7 @@ const formatActivityTimestamp = (at) => {
     if (Number.isNaN(date.getTime())) {
         return '';
     }
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { hour: '2-digit', minute: '2-digit' }) || date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }));
 };
 
 const normalizeActivityLevel = (level) => {
@@ -1444,7 +1444,7 @@ const formatCheckedAtLabel = (value) => {
     if (Number.isNaN(date.getTime())) {
         return diagnosticsT('diagnostics.value.just-now', 'just now');
     }
-    return date.toLocaleString();
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { dateStyle: 'short', timeStyle: 'medium' }) || date.toLocaleString('en'));
 };
 
 const buildThemeDiagnosticsSummaryCard = () => {
@@ -1497,7 +1497,7 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         const budgetLabel = Number.isFinite(Number(summary.budgetMs)) ? `${Number(summary.budgetMs).toFixed(0)}ms target` : 'no target';
         const recentLabel = summary.recentSampleCount > 0
             ? `${summary.recentOverBudgetCount}/${summary.recentSampleCount} recent warm samples over target`
-            : `${summary.coldLoadCount || 0} cold-load sample${summary.coldLoadCount === 1 ? '' : 's'}`;
+            : surfaceT("common.repair.cold-load-samples-1-983e40", "Cold-load samples: $1", summary.coldLoadCount || 0);
         return `${entry.label}: ${Number(summary.lastMs).toFixed(0)}ms latest, ${averageLabel}, ${budgetLabel}, ${recentLabel}.`;
     });
     const hasWarning = advisoryGroups.size > 0;

@@ -211,6 +211,7 @@
         };
 
         const applySmartDefaultsFromParent = (parentId, config = {}) => {
+    const repairT686fd006 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
             if (getFolderId()) {
                 return 0;
             }
@@ -264,9 +265,9 @@
 
             if (applied > 0) {
                 const parentName = String(parentFolder?.name || safeParentId).trim() || safeParentId;
-                setParentDefaultsNote(`Inherited ${applied} default${applied === 1 ? '' : 's'} from parent "${parentName}".`, 'success');
+                setParentDefaultsNote(repairT686fd006("common.repair.defaults-inherited-from-parent-2-1-55c01c", "Defaults inherited from parent \"$2\": $1.", applied, parentName), 'success');
             } else {
-                setParentDefaultsNote('Parent selected. Existing custom values were kept.', 'info');
+                setParentDefaultsNote(repairT686fd006("common.repair.parent-selected-existing-custom-values-were-kept-39dcb9", "Parent selected. Existing custom values were kept."), 'info');
             }
 
             updateForm();

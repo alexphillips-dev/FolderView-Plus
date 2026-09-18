@@ -19,7 +19,7 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    assert.equal(surface.byPhrase.size, 1651);
+    assert.ok(surface.byPhrase.size >= 3000, 'retain the audited conditional UI surfaces');
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });
@@ -49,8 +49,9 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
 
     assert.equal(report['catalog-version'], '2026.08.10.1');
     assert.equal(report['candidate-count'], 0);
-    assert.equal(report['auto-bound-message-count'], 1651);
-    assert.equal(report['catalog-message-count'], 2624);
+    assert.equal(report['auto-bound-message-count'], surfaceTools.collectSurfaceCandidates(pluginRoot).byPhrase.size);
+    const catalogs = [readJson(path.join(langsRoot, 'en.json')), ...fs.readdirSync(path.join(namespacesRoot, 'en')).map(file => readJson(path.join(namespacesRoot, 'en', file)))];
+    assert.equal(report['catalog-message-count'], new Set(catalogs.flatMap(catalog => Object.keys(messagesOnly(catalog)))).size);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);

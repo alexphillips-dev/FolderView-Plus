@@ -21,7 +21,6 @@ const folderReorderQueueByType = {
     docker: createFolderReorderQueueState(),
     vm: createFolderReorderQueueState()
 };
-
 const normalizeTreeMovePlacement = (value) => (
     TREE_MOVE_PLACEMENTS.has(String(value || '').trim().toLowerCase())
         ? String(value || '').trim().toLowerCase()
@@ -391,6 +390,7 @@ const summarizeFolderReorderActivity = (session) => {
 };
 
 const flushQueuedFolderReorderPersist = async (type) => {
+    const repairTae1bd5f9 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const resolvedType = normalizeManagedType(type);
     const session = folderReorderQueueByType[resolvedType];
     if (!session?.active || session.inFlight || session.revision <= session.flushedRevision) {
@@ -452,7 +452,7 @@ const flushQueuedFolderReorderPersist = async (type) => {
         resetFolderReorderQueueState(resolvedType);
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, errorFolderId, error?.message || 'Order save failed.');
-        showError('Order save failed', error);
+        showError(repairTae1bd5f9("common.repair.order-save-failed-81785f", "Order save failed"), error);
     }
 };
 

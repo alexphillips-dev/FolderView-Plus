@@ -25,13 +25,53 @@
         "Inherited": "Inherited from existing settings"
     },
     "overrides": {
+        "cs": {
+            "Live impact for this step": "Průběžný dopad tohoto kroku",
+            "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Počáteční složky: $1 (vybrané: $2; přeskočené existující: $3; automaticky přiřazené shody: $4; vyžadující kontrolu: $5; bez shody: $6)",
+            "Import ops": "Operace importu",
+            "runtime snapshot": "snímek běhového prostředí"
+        },
+        "hu": {
+            "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Kezdő mappák: $1 (kijelölve: $2; meglévők kihagyva: $3; automatikusan hozzárendelt egyezések: $4; ellenőrzésre vár: $5; nincs egyezés: $6)",
+            "$1 refs": "Hivatkozások: $1",
+            "FolderView Plus Export": "FolderView Plus-export"
+        },
+        "lv": {
+            "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Sākuma mapes: $1 (atlasītas: $2; izlaistas esošās: $3; automātiski piešķirtas atbilstības: $4; jāpārskata: $5; bez atbilstības: $6)"
+        },
+        "ro": {
+            "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Dosare inițiale: $1 (selectate: $2; existente omise: $3; potriviri atribuite automat: $4; necesită verificare: $5; fără potrivire: $6)",
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Diagnosticarea pornirii editorului de dosare FolderView Plus",
+            "Export folder...": "Exportă dosarul...",
+            "Folder WebUI": "Interfața web a dosarului",
+            "FolderView Plus Export": "Export FolderView Plus",
+            "Import config": "Importă configurația",
+            "Manual $1": "Atribuire manuală: $1"
+        },
+        "ja": {
+            "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
+        },
+        "ca": {
+            "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Carpetes inicials: $1 (seleccionades: $2; existents que s'ometen: $3; coincidències assignades automàticament: $4; pendents de revisió: $5; sense coincidències: $6)",
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Diagnòstic d'inici de l'editor de carpetes de FolderView Plus",
+            "$1 refs": "Referències: $1",
+            "Manual $1": "Assignació manual: $1"
+        },
         "sv": {
+            "FolderView3 export": "FolderView3-export",
             "Open WebUI profile": "Öppna webbgränssnittsprofil",
             "Manage WebUI profiles": "Hantera webbgränssnittsprofiler",
             "No WebUIs ready": "Inga webbgränssnitt är redo",
             "Custom WebUI Profiles": "Anpassade webbgränssnittsprofiler",
             "WebUI Profiles": "Webbgränssnittsprofiler",
-            "Live actions": "Direktåtgärder"
+            "Live actions": "Direktåtgärder",
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Startdiagnostik för mappredigeraren i FolderView Plus",
+            "FolderView Plus Export": "FolderView Plus-export",
+            "Dominant status: $1": "Dominerande status: $1",
+            "Hover animation": "Animering när pekaren förs över",
+            "runtime info": "information om körmiljön",
+            "Snapshot plugin $1": "Ögonblicksbild av insticksprogram $1",
+            "$1 refs": "Referenser: $1"
         },
         "zh-Hans": {
             "Move batch up": "上移批次",
@@ -39,14 +79,30 @@
             "Remove batch": "移除批次",
             "Container": "容器"
         },
-        "zh-Hant": { "Container": "容器" },
-        "cs": { "Live impact for this step": "Průběžný dopad tohoto kroku" },
+        "zh-Hant": {
+            "Container": "容器"
+        },
         "da": {
             "Browser Quick Guide": "Hurtig vejledning til browseren",
             "Parallel batch note": "Bemærkning om parallelle grupper",
-            "FolderView Plus Setup Assistant": "Opsætningsassistent til FolderView Plus"
+            "FolderView Plus Setup Assistant": "Opsætningsassistent til FolderView Plus",
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Startdiagnostik for mappeditoren i FolderView Plus",
+            "FolderView Plus Environment snapshot": "FolderView Plus – øjebliksbillede af miljøet",
+            "Docker autostart $1 for $2.": "Automatisk start af Docker: $1 for $2.",
+            "Docker container": "Docker-container",
+            "Hover animation": "Animation ved pegefølsom markering",
+            "Import ops": "Importhandlinger",
+            "Plugin version: $1": "Pluginversion: $1",
+            "runtime info": "oplysninger om kørselsmiljøet",
+            "runtime snapshot": "øjebliksbillede af kørselsmiljøet",
+            "Snapshot plugin $1": "Øjebliksbillede af plugin $1",
+            "Start batch": "Start gruppe",
+            "Start batch $1": "Start gruppe $1",
+            "$1 refs": "Referencer: $1"
         },
-        "pl": { "Clear": "Wyczyść" },
+        "pl": {
+            "Clear": "Wyczyść"
+        },
         "de": {
             "Dashboard": "Dashboard",
             "Order": "Reihenfolge",
@@ -71,7 +127,37 @@
             "Non-touch": "Ohne Touchscreen",
             "Click": "Mausklick",
             "Restore latest uses": "Wiederherstellung verwendet",
-            "Inherited": "Geerbt"
+            "Inherited": "Geerbt",
+            "Toggle $1": "$1 umschalten"
+        },
+        "es": {
+            "Manual $1": "Asignación manual: $1"
+        },
+        "hr": {
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Dijagnostika pokretanja uređivača mapa FolderView Plus"
+        },
+        "nb": {
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Oppstartsdiagnostikk for mapperedigering i FolderView Plus",
+            "Docker autostart $1 for $2.": "Automatisk Docker-start: $1 for $2.",
+            "Docker container": "Docker-container",
+            "Dominant status: $1": "Dominerende status: $1",
+            "runtime info": "informasjon om kjøremiljøet",
+            "Start batch": "Start gruppe",
+            "Start batch $1": "Start gruppe $1",
+            "Status trend $1": "Statusutvikling $1",
+            "$1 refs": "Referanser: $1"
+        },
+        "nl": {
+            "type mismatch": "typen komen niet overeen"
+        },
+        "pt-BR": {
+            "Manual $1": "Atribuição manual: $1"
+        },
+        "pt-PT": {
+            "Manual $1": "Atribuição manual: $1"
+        },
+        "uk": {
+            "FolderView Plus Folder Editor Bootstrap Diagnostics": "Діагностика запуску редактора папок FolderView Plus"
         }
     }
 }

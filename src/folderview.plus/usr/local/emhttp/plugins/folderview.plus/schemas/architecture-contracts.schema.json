@@ -8,6 +8,7 @@
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
       "server/lib.i18n.php": { "limit": 22, "target": 22, "history": [22] },
+      "server/lib.i18n-response.php": { "limit": 24, "target": 24, "history": [24] },
       "server/lib.folderview3-order.php": { "limit": 42, "target": 42, "history": [42] },
       "server/lib.folderview3-appearance.php": { "limit": 102, "target": 102, "history": [102] },
       "server/lib.theme-profile-create.php": { "limit": 27, "target": 27, "history": [27] },
@@ -231,11 +232,21 @@
   ],
   "serverModuleContracts": [
     {
+      "file": "server/lib.i18n-response.php",
+      "owner": "server-response-localization",
+      "consumers": ["server-endpoints"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.i18n.php",
+      "functionInventory": { "count": 1, "sha256": "f47e3e2e4c1ca7a8dc340437e61c60eba29472e27975d06720e33d63e2aced75" }
+    },
+    {
       "file": "server/lib.i18n.php",
       "owner": "server-response-localization",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": [],
+      "dependsOn": ["server/lib.i18n-response.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 1, "sha256": "ec6b8725525a7571c0f20913ce29cab43b8d64c27b3781cc51dea0ba3f6bee34" }

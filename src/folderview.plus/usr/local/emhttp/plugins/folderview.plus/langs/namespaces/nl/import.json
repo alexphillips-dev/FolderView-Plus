@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "import",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "import.subtitle": "Kies hoe bestaande mappen moeten worden behandeld. Er verandert niets totdat u Toepassen import selecteert.",
     "import.behavior.question": "Hoe moeten bestaande mappen worden behandeld?",
@@ -32,8 +32,8 @@
     "import.acknowledge.title": "Ik heb deze import beoordeeld",
     "import.acknowledge.description": "Het gedrag en de geselecteerde wijzigingen zijn correct.",
     "import.progress.preparing": "Voorbereiden van operatie",
-    "import.progress.running": "Wordt uitgevoerd",
-    "import.summary.folder-change": "{{PLURAL:$1|map wijziging|map wijzigingen}}",
+    "import.progress.running": "Actief",
+    "import.summary.folder-change": "{{PLURAL:$1|mapwijziging|mapwijzigingen}}",
     "import.summary.planned-change": "{{PLURAL:$1|geplande wijziging|geplande wijzigingen}} in een voorbeeldweergave",
     "import.summary.new": "$1 nieuw",
     "import.summary.update": "{{PLURAL:$1|één update|$1 updates}}",

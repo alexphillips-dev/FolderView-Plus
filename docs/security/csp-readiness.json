@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 246,
+    "scannedFiles": 247,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -152,7 +152,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js",
-      "line": 470,
+      "line": 469,
       "sink": "insertAdjacentHTML(",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -162,7 +162,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js",
-      "line": 484,
+      "line": 483,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -322,7 +322,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
-      "line": 188,
+      "line": 189,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

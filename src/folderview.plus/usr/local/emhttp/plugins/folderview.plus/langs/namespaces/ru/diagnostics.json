@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Диагностика",
     "diagnostics.workspace.description": "Отслеживайте состояние плагина, устраняйте неполадки и делитесь данными поддержки.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 мин. назад",
     "diagnostics.capture.age-hours": "$1 час назад",
     "diagnostics.capture.guide-title": "Соберите данные Dashboard за 3 простых шага",
-    "diagnostics.capture.missing": "Отсутствует",
+    "diagnostics.capture.missing": "Недоступно",
     "diagnostics.capture.step-open": "Откройте панель управления",
     "diagnostics.capture.step-open-detail": "Перейдите на проблемное устройство и разверните проблемную папку.",
     "diagnostics.capture.step-reproduce": "Зафиксируйте проблему",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Последующие действия",
     "diagnostics.overall.warning": "Состояние основных функций плагина требует дальнейшей проверки.",
     "diagnostics.overall.warning-detail": "Плагин работает, но необходимо рассмотреть результаты одной или нескольких основных проверок.",
-    "diagnostics.status.advisories": "Здоровья с рекомендациями",
+    "diagnostics.status.advisories": "Исправно, есть замечания",
     "diagnostics.overall.advisories": "Основные функции плагина в порядке.",
     "diagnostics.overall.advisories-detail": "Уведомление требует рассмотрения, но основные функции в порядке.",
     "diagnostics.status.healthy": "Здоровый",

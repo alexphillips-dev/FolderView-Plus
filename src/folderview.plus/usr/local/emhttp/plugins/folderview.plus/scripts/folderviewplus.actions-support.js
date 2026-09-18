@@ -9,10 +9,10 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
     const normalizeType = (type) => type === 'vm' ? 'vm' : 'docker';
 
     const createSupportActions = (deps = {}) => {
+    const repairT88902831 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const utils = deps.utils || {};
         const swalFn = typeof deps.swal === 'function' ? deps.swal : null;
         const ui = deps.ui || fallbackWindow?.FolderViewPlusUI || null;
@@ -71,7 +71,7 @@
                         type: 'success'
                     });
                 } catch (error) {
-                    showError('Scheduler run failed', error);
+                    showError(repairT88902831("common.repair.scheduler-run-failed-d6ac97", "Scheduler run failed"), error);
                 }
             });
         };
@@ -97,7 +97,7 @@
                 ''
             ];
             if (!conflicts.length && !blocked.length) {
-                lines.push('No conflicts or blocked items were detected.');
+                lines.push(repairT88902831("common.repair.no-conflicts-or-blocked-items-were-detected-8aedf4", "No conflicts or blocked items were detected."));
             } else {
                 conflicts.forEach((row) => {
                     const folderList = Array.isArray(row.matchedFolders)
@@ -137,7 +137,7 @@
                     swalFn
                 });
             }
-            setUpdateStatus('Update helper module unavailable.');
+            setUpdateStatus(repairT88902831("common.repair.update-helper-module-unavailable-0385e4", "Update helper module unavailable."));
             notify({
                 title: 'Update helper unavailable',
                 text: 'Reload the page to load update helper scripts.',
@@ -156,7 +156,7 @@
                     swalFn
                 });
             }
-            setUpdateStatus('Force-refresh helper unavailable.');
+            setUpdateStatus(repairT88902831("common.repair.force-refresh-helper-unavailable-ddce25", "Force-refresh helper unavailable."));
             notify({
                 title: 'Force-refresh helper unavailable',
                 text: 'Reload the page to load helper scripts.',
@@ -177,7 +177,7 @@
                 });
             } catch (error) {
                 setRollbackStatus('Rollback checkpoint failed.');
-                showError('Rollback checkpoint failed', error);
+                showError(repairT88902831("common.repair.rollback-checkpoint-failed-3f552f", "Rollback checkpoint failed"), error);
             }
         };
 
@@ -200,7 +200,7 @@
                 notify({ title: 'Rollback complete', text: `${status}${undo}`, type: 'success' });
             } catch (error) {
                 setRollbackStatus('Rollback failed.');
-                showError('Rollback failed', error);
+                showError(repairT88902831("common.repair.rollback-failed-69b0b6", "Rollback failed"), error);
             }
         };
 

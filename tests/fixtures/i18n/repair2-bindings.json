@@ -1,0 +1,1802 @@
+[
+  {
+    "file": "scripts/folder.editor.rule-template-workspace.js",
+    "key": "common.repair.template-preview-refreshed-no-settings-were-changed-e4aa7a",
+    "english": "Template preview refreshed. No settings were changed.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rule-template-workspace.js",
+    "key": "common.repair.saving-generated-rule-d5fd20",
+    "english": "Saving generated rule...",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rule-template-workspace.js",
+    "key": "common.repair.an-explicit-catch-all-already-exists-reorder-or-remove-it-in-the--221f3f",
+    "english": "An explicit catch-all already exists. Reorder or remove it in the full Rules workspace.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.converting-legacy-regex-5158f4",
+    "english": "Converting legacy regex...",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.legacy-regex-converted-reloading-the-editor-b32128",
+    "english": "Legacy regex converted. Reloading the editor...",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.updating-advanced-rule-1ecd11",
+    "english": "Updating advanced rule...",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.deleting-advanced-rule-6b3aa3",
+    "english": "Deleting advanced rule...",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.advanced-rule-deleted-ce5ec9",
+    "english": "Advanced rule deleted.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.select-at-least-one-target-folder-73c1c6",
+    "english": "Select at least one target folder.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.scheduler-run-failed-d6ac97",
+    "english": "Scheduler run failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.update-helper-module-unavailable-0385e4",
+    "english": "Update helper module unavailable.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.force-refresh-helper-unavailable-ddce25",
+    "english": "Force-refresh helper unavailable.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.rollback-checkpoint-failed-3f552f",
+    "english": "Rollback checkpoint failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.rollback-failed-69b0b6",
+    "english": "Rollback failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.bulk-assignment-failed-7a1e5b",
+    "english": "Bulk assignment failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.action-failed-6e1704",
+    "english": "Action failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.tree-move-failed-6ad607",
+    "english": "Tree move failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.move-to-root-failed-755799",
+    "english": "Move to root failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-migration.js",
+    "key": "common.repair.folderview3-detection-failed-327513",
+    "english": "FolderView3 detection failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-migration.js",
+    "key": "common.repair.folderview3-migration-preview-failed-cb2fa9",
+    "english": "FolderView3 migration preview failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-migration.js",
+    "key": "common.repair.folderview3-export-selection-failed-ad42da",
+    "english": "FolderView3 export selection failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-migration.js",
+    "key": "common.repair.folderview3-migration-failed-3a876a",
+    "english": "FolderView3 migration failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.failed-to-save-preset-0dfcd3",
+    "english": "Failed to save preset",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.failed-to-set-default-preset-a3471a",
+    "english": "Failed to set default preset",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.failed-to-delete-preset-a3d492",
+    "english": "Failed to delete preset",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.compare-failed-fd89d7",
+    "english": "Compare failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.compare-failed-fd89d7",
+    "english": "Compare failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.setup-assistant-failed-a4a89a",
+    "english": "Setup assistant failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folder-defaults-save-failed-3f6e03",
+    "english": "Folder defaults save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folder-defaults-reset-failed-a1e07f",
+    "english": "Folder defaults reset failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.apply-defaults-to-all-failed-742c8f",
+    "english": "Apply defaults to all failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.settings-table-preferences-save-failed-5207c3",
+    "english": "Settings table preferences save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.redo-failed-37647f",
+    "english": "Redo failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.smart-suggestion-save-failed-dcdef2",
+    "english": "Smart suggestion save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-order-save-failed-76cf07",
+    "english": "Docker start order save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-order-save-failed-76cf07",
+    "english": "Docker start order save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-order-save-failed-76cf07",
+    "english": "Docker start order save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-batch-add-failed-29b120",
+    "english": "Docker start batch add failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-batch-save-failed-9c32df",
+    "english": "Docker start batch save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-batch-move-failed-647a75",
+    "english": "Docker start batch move failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-batch-remove-failed-110848",
+    "english": "Docker start batch remove failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-item-add-failed-6dbbd5",
+    "english": "Docker start item add failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-item-move-failed-fea5a2",
+    "english": "Docker start item move failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-item-remove-failed-8277f0",
+    "english": "Docker start item remove failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-order-synced-f11013",
+    "english": "Docker start order synced.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.docker-start-order-sync-failed-5c0ab5",
+    "english": "Docker start order sync failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.export-download-requested-0c4d2a",
+    "english": "Export download requested.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.export-download-requested-0c4d2a",
+    "english": "Export download requested.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.creating-safety-backup-99eaaf",
+    "english": "Creating safety backup...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.creating-safety-backup-99eaaf",
+    "english": "Creating safety backup...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.creating-safety-backup-99eaaf",
+    "english": "Creating safety backup...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.applying-import-transaction-464c56",
+    "english": "Applying import transaction...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.import-complete-80e3a5",
+    "english": "Import complete.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.delete-failed-8727e2",
+    "english": "Delete failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8",
+    "english": "Creating a rollback point before deleting anything.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.safety-backup-skipped-no-folders-to-protect-044e05",
+    "english": "Safety backup skipped: no folders to protect.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a",
+    "english": "No backup file was created because the folder map is empty.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.refreshing-settings-table-and-backups-e72473",
+    "english": "Refreshing settings table and backups.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folder-deleted-048562",
+    "english": "Folder deleted.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.all-folders-cleared-a7b85c",
+    "english": "All folders cleared.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.cleanup-complete-922445",
+    "english": "Cleanup complete.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.cleanup-complete-the-settings-view-has-been-refreshed-be91cd",
+    "english": "Cleanup complete. The settings view has been refreshed.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.sort-mode-save-failed-048126",
+    "english": "Sort mode save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.manual-order-save-failed-dbf01d",
+    "english": "Manual order save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.badge-preferences-save-failed-a772c1",
+    "english": "Badge preferences save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.visibility-preference-save-failed-5393c7",
+    "english": "Visibility preference save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.status-preferences-save-failed-ca7385",
+    "english": "Status preferences save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.health-preferences-save-failed-675fe9",
+    "english": "Health preferences save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.pin-update-failed-cd5726",
+    "english": "Pin update failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.runtime-preference-sync-pending-fa357c",
+    "english": "Runtime preference sync pending",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.dashboard-preference-save-failed-1749a1",
+    "english": "Dashboard preference save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.backup-schedule-save-failed-c985ba",
+    "english": "Backup schedule save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-save-failed-a631c5",
+    "english": "Rule save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-update-failed-787ca0",
+    "english": "Rule update failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-delete-failed-c92311",
+    "english": "Rule delete failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-delete-failed-c92311",
+    "english": "Rule delete failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-reorder-failed-a25aec",
+    "english": "Rule reorder failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.backup-failed-0e7112",
+    "english": "Backup failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.backup-failed-0e7112",
+    "english": "Backup failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.restore-failed-b8476c",
+    "english": "Restore failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.restore-complete-8f83d9",
+    "english": "Restore complete.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.backup-name-is-required-eefae5",
+    "english": "Backup name is required.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.the-secured-download-client-is-unavailable-refresh-the-page-and-t-e1ff23",
+    "english": "The secured download client is unavailable. Refresh the page and try again.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.delete-all-backups-failed-0c0f29",
+    "english": "Delete all backups failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.delete-all-backups-failed-0c0f29",
+    "english": "Delete all backups failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.delete-all-backups-failed-0c0f29",
+    "english": "Delete all backups failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.template-create-failed-408a7a",
+    "english": "Template create failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.template-apply-failed-e0f788",
+    "english": "Template apply failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.template-delete-failed-06bfa7",
+    "english": "Template delete failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-bulk-update-failed-7a7db9",
+    "english": "Rule bulk update failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.rule-preview-assignment-failed-7eb267",
+    "english": "Rule preview assignment failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.template-bulk-delete-failed-23b335",
+    "english": "Template bulk delete failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.initial-data-load-failed-dbf943",
+    "english": "Initial data load failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.initialization-failed-8dc5f7",
+    "english": "Initialization failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.runtime-actions.js",
+    "key": "common.repair.branch-pin-update-failed-a2d9f2",
+    "english": "Branch pin update failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.runtime-actions.js",
+    "key": "common.repair.branch-import-failed-a0d261",
+    "english": "Branch import failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.runtime-actions.js",
+    "key": "common.repair.folder-runtime-action-failed-8cc3b7",
+    "english": "Folder runtime action failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-tree.js",
+    "key": "common.repair.order-save-failed-81785f",
+    "english": "Order save failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.refreshed-vm-folders-and-preferences-6f71bb",
+    "english": "Refreshed VM folders and preferences.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.refreshed-docker-safety-backups-18b9f0",
+    "english": "Refreshed Docker safety backups.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.refreshed-vm-safety-backups-a21bd9",
+    "english": "Refreshed VM safety backups.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.environment-import-failed-9e80d3",
+    "english": "Environment import failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.environment-export-failed-d84f08",
+    "english": "Environment export failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.environment-snapshot-selection-failed-d3345b",
+    "english": "Environment snapshot selection failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.environment-snapshot-preview-failed-c3759a",
+    "english": "Environment snapshot preview failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.starter-templates.js",
+    "key": "common.repair.create-folder-failed-8d5cb2",
+    "english": "Create folder failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.starter-templates.js",
+    "key": "common.repair.create-starter-templates-failed-d13731",
+    "english": "Create starter templates failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.support-bundle-preview.js",
+    "key": "common.repair.support-bundle-preview-failed-17d6f8",
+    "english": "Support bundle preview failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.tree-integrity.js",
+    "key": "common.repair.tree-integrity-repair-failed-b65553",
+    "english": "Tree integrity repair failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.tree-integrity.js",
+    "key": "common.repair.tree-integrity-scan-failed-72e06b",
+    "english": "Tree integrity scan failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.updates.js",
+    "key": "common.repair.preparing-force-refresh-helper-d4997a",
+    "english": "Preparing force-refresh helper...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.updates.js",
+    "key": "common.repair.force-refresh-helper-ready-copy-from-dialog-15af4f",
+    "english": "Force-refresh helper ready (copy from dialog).",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.updates.js",
+    "key": "common.repair.force-refresh-helper-failed-2bb06e",
+    "english": "Force-refresh helper failed.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.updates.js",
+    "key": "common.repair.force-refresh-helper-failed-86dd15",
+    "english": "Force-refresh helper failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.copy-summary-failed-131999",
+    "english": "Copy summary failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.strict-mode-blocked-apply-e5bb1f",
+    "english": "Strict mode blocked apply",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.strict-mode-blocked-apply-e5bb1f",
+    "english": "Strict mode blocked apply",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.resolve-all-review-warnings-or-switch-safety-mode-to-auto-fast-7103dd",
+    "english": "Resolve all review warnings or switch safety mode to Auto/Fast.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.no-planned-changes-detected-in-strict-mode-33d1aa",
+    "english": "No planned changes detected in strict mode.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.running-dry-run-checks-b7d617",
+    "english": "Running dry run checks...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.preparing-apply-5504c5",
+    "english": "Preparing apply...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.dry-run-complete-1040ab",
+    "english": "Dry run complete.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.creating-rollback-checkpoint-25ab79",
+    "english": "Creating rollback checkpoint...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.applying-settings-profile-628ca5",
+    "english": "Applying settings profile...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.applying-imports-357422",
+    "english": "Applying imports...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.creating-starter-folders-9eb022",
+    "english": "Creating starter folders...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.applying-starter-rules-ef0b27",
+    "english": "Applying starter rules...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.refreshing-settings-207d2f",
+    "english": "Refreshing settings...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.running-validation-checks-6abf7d",
+    "english": "Running validation checks...",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.setup-complete-c820bd",
+    "english": "Setup complete.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.setup-undo-failed-402fe6",
+    "english": "Setup undo failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.save-preset-failed-51b8d6",
+    "english": "Save preset failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.unable-to-save-preset-218e3f",
+    "english": "Unable to save preset.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.load-preset-failed-b25ebf",
+    "english": "Load preset failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.preset-could-not-be-loaded-c1dd50",
+    "english": "Preset could not be loaded.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.delete-preset-failed-353848",
+    "english": "Delete preset failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.preset-could-not-be-removed-54b3b9",
+    "english": "Preset could not be removed.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.import-file-validation-failed-327507",
+    "english": "Import file validation failed",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.hierarchy.js",
+    "key": "common.repair.parent-selected-existing-custom-values-were-kept-39dcb9",
+    "english": "Parent selected. Existing custom values were kept.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.schema.js",
+    "key": "common.repair.using-automatic-text-width-until-you-set-a-folder-override-here-b28373",
+    "english": "Using automatic text width until you set a folder override here.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.editor.state.js",
+    "key": "common.repair.clear-this-override-and-use-the-global-default-again-485a0d",
+    "english": "Clear this override and use the global default again.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.pick-a-target-folder-before-selecting-items-220e60",
+    "english": "Pick a target folder before selecting items.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.download-this-folder-configuration-4c9266",
+    "english": "Download this folder configuration.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.actions-support.js",
+    "key": "common.repair.no-conflicts-or-blocked-items-were-detected-8aedf4",
+    "english": "No conflicts or blocked items were detected.",
+    "params": []
+  },
+  {
+    "file": "scripts/runtime.page-diagnostics.js",
+    "key": "common.repair.the-sanitized-snapshot-is-ready-for-the-next-support-bundle-4912e0",
+    "english": "The sanitized snapshot is ready for the next support bundle.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.wizard-review.js",
+    "key": "common.repair.no-changes-are-currently-planned-enable-imports-rules-or-adjust-b-1b96c4",
+    "english": "No changes are currently planned. Enable imports/rules or adjust behavior before apply.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.operation-complete-the-settings-view-will-refresh-shortly-d20b02",
+    "english": "Operation complete. The settings view will refresh shortly.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.utils-rules.js",
+    "key": "common.repair.item-is-paused-resume-instead-09b805",
+    "english": "Item is paused, resume instead.",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.rule-templates.js",
+    "key": "common.repair.enter-the-label-as-key-value-82f004",
+    "english": "Enter the label as key=value.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.apply-plugin-defaults-to-this-folder-editor-this-will-reset-previ-6d0675",
+    "english": "Apply plugin defaults to this folder editor? This will reset preview, chevron, status, rules, and advanced overrides but will keep the folder name, icon, members, and custom actions.",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.you-have-unsaved-changes-leave-without-saving-a419d8",
+    "english": "You have unsaved changes. Leave without saving?",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.discard-all-unsaved-changes-and-reload-this-editor-2736c7",
+    "english": "Discard all unsaved changes and reload this editor?",
+    "params": []
+  },
+  {
+    "file": "scripts/docker.runtime.actions.js",
+    "key": "common.repair.clone-folder-name-b9cbd2",
+    "english": "Clone folder name",
+    "params": []
+  },
+  {
+    "file": "scripts/docker.runtime.actions.js",
+    "key": "common.repair.clone-branch-root-name-f56266",
+    "english": "Clone branch root name",
+    "params": []
+  },
+  {
+    "file": "scripts/docker.runtime.actions.js",
+    "key": "common.repair.direct-child-folders-1-total-nested-folders-in-this-branch-2-c4f8b2",
+    "english": "Direct child folders: $1. Total nested folders in this branch: $2.",
+    "params": [
+      "directChildCount",
+      "descendantCount"
+    ]
+  },
+  {
+    "file": "scripts/docker.runtime.actions.js",
+    "key": "common.repair.additional-blocked-links-not-shown-1-c7f3a6",
+    "english": "Additional blocked links not shown: $1.",
+    "params": [
+      "overflowCount"
+    ]
+  },
+  {
+    "file": "scripts/docker.runtime.actions.js",
+    "key": "common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd",
+    "english": "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.",
+    "params": [
+      "summary.droppedMemberBoundActionCount"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.hierarchy.js",
+    "key": "common.repair.defaults-inherited-from-parent-2-1-55c01c",
+    "english": "Defaults inherited from parent \"$2\": $1.",
+    "params": [
+      "applied",
+      "parentName"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.icons.js",
+    "key": "common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767",
+    "english": "Folders using \"$1\": $2. Remove references before deleting this icon.",
+    "params": [
+      "name",
+      "usageCount"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.member-list.js",
+    "key": "common.runtime.folders-1",
+    "english": "Folders: $1",
+    "params": [
+      "entries.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.member-list.js",
+    "key": "common.repair.items-1-e8a685",
+    "english": "Items: $1",
+    "params": [
+      "entry.memberCount"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.current-matches-1-611f8b",
+    "english": "Current matches: $1",
+    "params": [
+      "preview.matches.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.advanced-conflicts-1-f44446",
+    "english": "Advanced conflicts: $1",
+    "params": [
+      "preview.advancedConflicts.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.legacy-overlaps-1-eca247",
+    "english": "Legacy overlaps: $1",
+    "params": [
+      "preview.overlappingLegacyFolders.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.rules-for-this-folder-1-9530ce",
+    "english": "Rules for this folder: $1",
+    "params": [
+      "rules.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.rules.js",
+    "key": "common.repair.total-plugin-rules-1-3098d6",
+    "english": "Total plugin rules: $1",
+    "params": [
+      "totalRules"
+    ]
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd",
+    "english": "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.",
+    "params": [
+      "summary.droppedMemberBoundActionCount"
+    ]
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.items-moved-1-3c0fec",
+    "english": "Items moved: $1.",
+    "params": [
+      "plan.actionableNames.length"
+    ]
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.apply-to-folders-count-1-245d70",
+    "english": "Apply to folders (count: $1)",
+    "params": [
+      "targets.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.activity-diagnostics.js",
+    "key": "common.repair.cold-load-samples-1-983e40",
+    "english": "Cold-load samples: $1",
+    "params": [
+      "summary.coldLoadCount || 0"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.selected-items-hidden-by-the-current-filter-1-987859",
+    "english": "Selected items hidden by the current filter: $1.",
+    "params": [
+      "hiddenSelectedCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.selected-items-1-6266f4",
+    "english": "Selected items: $1.",
+    "params": [
+      "(plan?.selectedNames || []).length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.items-that-will-change-folders-1-bf3a47",
+    "english": "Items that will change folders: $1.",
+    "params": [
+      "(plan?.actionableNames || []).length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.duplicate-selections-removed-automatically-1-d519a8",
+    "english": "Duplicate selections removed automatically: $1.",
+    "params": [
+      "plan.duplicateNames.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.selected-items-already-matching-multiple-folders-1-f7f34f",
+    "english": "Selected items already matching multiple folders: $1.",
+    "params": [
+      "plan.conflicts.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.applying-items-in-one-atomic-request-items-1-a8179d",
+    "english": "Applying items in one atomic request. Items: $1�",
+    "params": [
+      "plan.actionableNames.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.bulk-assignment.js",
+    "key": "common.repair.applying-one-atomic-request-items-1-31551b",
+    "english": "Applying one atomic request. Items: $1�",
+    "params": [
+      "currentBatchSize"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.download-this-folder-and-its-nested-folders-nested-count-1-a2922e",
+    "english": "Download this folder and its nested folders (nested count: $1).",
+    "params": [
+      "branchSize - 1"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folder-editor.js",
+    "key": "common.repair.members-1-85e5cc",
+    "english": "Members: $1",
+    "params": [
+      "summary.membersCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-migration.js",
+    "key": "common.repair.version-1-readable-components-2-14aacc",
+    "english": "Version: $1. Readable components: $2.",
+    "params": [
+      "detection.pluginVersion || \"unknown\"",
+      "detection.componentCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c",
+    "english": "Applying folder changes in one transaction. Changes: $1�",
+    "params": [
+      "totalSteps"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.folder-changes-applied-1-75d681",
+    "english": "Folder changes applied: $1.",
+    "params": [
+      "totalSteps"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.sections-in-2-1-8cd9f7",
+    "english": "Sections in $2: $1",
+    "params": [
+      "entry.count",
+      "label"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.script-actions-1-379e3d",
+    "english": "Script actions: $1",
+    "params": [
+      "actionCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.paused-members-1-9c89f8",
+    "english": "Paused members: $1.",
+    "params": [
+      "paused"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.available-updates-1-1251a9",
+    "english": "Available updates: $1.",
+    "params": [
+      "updateCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.available-updates-1-1251a9",
+    "english": "Available updates: $1.",
+    "params": [
+      "updateCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.available-updates-1-1251a9",
+    "english": "Available updates: $1.",
+    "params": [
+      "updateCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.available-updates-1-1251a9",
+    "english": "Available updates: $1.",
+    "params": [
+      "updateCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.1-items-2-818040",
+    "english": "$1 � items: $2",
+    "params": [
+      "entry.label",
+      "entry.count"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.items-1-e8a685",
+    "english": "Items: $1",
+    "params": [
+      "totalMemberCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.runtime.matches-1",
+    "english": "Matches: $1",
+    "params": [
+      "suggestion.matches.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.1-smart-rule-scan-suggestions-found-2-f5de01",
+    "english": "$1 smart rule scan � suggestions found: $2.",
+    "params": [
+      "resolvedType === \"docker\" ? \"Docker\" : \"VM\"",
+      "suggestions.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.2-smart-rule-suggestions-saved-1-24da17",
+    "english": "$2 smart rule suggestions saved: $1.",
+    "params": [
+      "nextRules.length",
+      "resolvedType === \"docker\" ? \"Docker\" : \"VM\""
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.1-rules-matching-the-current-filter-2-of-3-061470",
+    "english": "$1 Rules matching the current filter: $2 of $3.",
+    "params": [
+      "detailText",
+      "filteredCount",
+      "totalCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.matching-rules-shown-1-0b0157",
+    "english": "Matching rules shown: $1.",
+    "params": [
+      "filteredRules.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.creates-1-353b67",
+    "english": "Creates: $1",
+    "params": [
+      "operations.creates.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.updates-1-27085d",
+    "english": "Updates: $1",
+    "params": [
+      "operations.upserts.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.deletes-1-a0fb91",
+    "english": "Deletes: $1",
+    "params": [
+      "operations.deletes.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folders-deleted-1-846e55",
+    "english": "Folders deleted: $1.",
+    "params": [
+      "deleteIds.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.2-rule-preview-assignments-applied-1-91085b",
+    "english": "$2 rule preview assignments applied: $1.",
+    "params": [
+      "assignedCount",
+      "resolvedType === \"docker\" ? \"Docker\" : \"VM\""
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.runtime-actions.js",
+    "key": "common.runtime.folders-1",
+    "english": "Folders: $1",
+    "params": [
+      "branchIds.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.docker-folders-1-41f18c",
+    "english": "Docker folders: $1",
+    "params": [
+      "summary.docker.folderCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.vm-folders-1-e73ec2",
+    "english": "VM folders: $1",
+    "params": [
+      "summary.vm.folderCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.managed-themes-1-91e84d",
+    "english": "Managed themes: $1",
+    "params": [
+      "summary.themeWorkspace.managedThemeCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "key": "common.repair.updated-1-ready-to-apply-to-folders-count-2-e1356a",
+    "english": "Updated: $1. Ready to apply to folders (count: $2).",
+    "params": [
+      "templateUpdated",
+      "folderCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.starter-templates.js",
+    "key": "common.repair.starter-folders-created-1-templates-selected-2-0c000f",
+    "english": "Starter folders created: $1. Templates selected: $2.",
+    "params": [
+      "createdCount",
+      "selectedBlueprints.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.theme-workspace.js",
+    "key": "common.repair.compatible-css-files-found-1-46fe06",
+    "english": "Compatible CSS files found: $1",
+    "params": [
+      "files.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.theme-workspace.js",
+    "key": "common.repair.files-1-1b815e",
+    "english": "Files: $1",
+    "params": [
+      "theme.files.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.docker-folders-1-41f18c",
+    "english": "Docker folders: $1",
+    "params": [
+      "context.dockerFolders"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.vm-folders-1-e73ec2",
+    "english": "VM folders: $1",
+    "params": [
+      "context.vmFolders"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.rules-1-d0ed4a",
+    "english": "Rules: $1",
+    "params": [
+      "Number(context.dockerRules) + Number(context.vmRules)"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.backups-1-69d513",
+    "english": "Backups: $1",
+    "params": [
+      "Number(context.dockerBackups) + Number(context.vmBackups)"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.planned-operations-1-a6783c",
+    "english": "Planned operations: $1",
+    "params": [
+      "operationCount"
+    ]
+  },
+  {
+    "file": "scripts/vm.js",
+    "key": "common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd",
+    "english": "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.",
+    "params": [
+      "summary.droppedMemberBoundActionCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.f576d04517525a87",
+    "english": "$1 $2 when label $3 $4",
+    "params": [
+      "effect",
+      "targetLabel",
+      "labelKey",
+      "qualifier"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.1d1c4838aa8f4657",
+    "english": "$1 $2 when label $3 contains \"$4\"",
+    "params": [
+      "effect",
+      "targetLabel",
+      "labelKey",
+      "String(rule?.labelValue || '').trim()"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.3f5ddc07a8175c9e",
+    "english": "$1 $2 when label $3 starts with \"$4\"",
+    "params": [
+      "effect",
+      "targetLabel",
+      "labelKey",
+      "String(rule?.labelValue || '').trim()"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.aed5ef27f201c1d1",
+    "english": "$1 $2 when image matches $3",
+    "params": [
+      "effect",
+      "targetLabel",
+      "String(rule?.pattern || '(empty)').trim() || '(empty)'"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.7c6eb147454e21bf",
+    "english": "$1 $2 when compose project matches $3",
+    "params": [
+      "effect",
+      "targetLabel",
+      "String(rule?.pattern || '(empty)').trim() || '(empty)'"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.fcd15b6a2b5624e5",
+    "english": "$1 $2 when name matches $3",
+    "params": [
+      "effect",
+      "targetLabel",
+      "String(rule?.pattern || '(empty)').trim() || '(empty)'"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "legacy.surface.a68d30b6fd7a95b3",
+    "english": "$1 $2 failed to load",
+    "params": [
+      "String(type || '').toUpperCase()",
+      "String(area || '').trim()"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.icon-api.js",
+    "key": "legacy.surface.504281998c4409ad",
+    "english": "Request failed. HTTP $1 $2.",
+    "params": [
+      "status",
+      "statusText"
+    ]
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "legacy.surface.504281998c4409ad",
+    "english": "Request failed. HTTP $1 $2.",
+    "params": [
+      "status",
+      "statusText"
+    ]
+  },
+  {
+    "file": "scripts/docker.runtime.child-folder-preview-menu.js",
+    "key": "common.repair.folder-actions-for-1-133218",
+    "english": "Folder actions for $1",
+    "params": [
+      "safeChildName"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.preview.js",
+    "key": "common.repair.selected-icon-1-946ad0",
+    "english": "Selected icon: $1",
+    "params": [
+      "selectedIconPath"
+    ]
+  },
+  {
+    "file": "scripts/folder.editor.preview.js",
+    "key": "common.repair.selected-icon-preview-076922",
+    "english": "Selected icon preview",
+    "params": []
+  },
+  {
+    "file": "scripts/folder.js",
+    "key": "common.repair.duplicates-dropped",
+    "english": "Duplicates dropped: $1",
+    "params": [
+      "plan.duplicateNames.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.replace-docker-folders-1cef1f",
+    "english": "Replace Docker folders",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.replace-vm-folders-0d78f8",
+    "english": "Replace VM folders",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.convert-docker-regex-rules-47b9f6",
+    "english": "Convert Docker regex rules",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.convert-vm-regex-rules-9af627",
+    "english": "Convert VM regex rules",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.convert-compatible-settings-and-defaults-594f8b",
+    "english": "Convert compatible settings and defaults",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.convert-folderview3-start-order-ownership-770099",
+    "english": "Convert FolderView3 start-order ownership",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc",
+    "english": "Reapply native Docker autostart enablement and waits",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.folderview3-native-organizer-registry-24f28d",
+    "english": "FolderView3 native organizer registry",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.docker-page-order-8a2b8b",
+    "english": "Docker page order",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.not-selected-df12ae",
+    "english": "Not selected",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.apply-verified-migration-eacb3d",
+    "english": "Apply verified migration",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.installed-folderview3-configuration-61ef4d",
+    "english": "Installed FolderView3 configuration",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.folderview3-export-1ed0bb",
+    "english": "FolderView3 export",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.applied-and-verified-277eae",
+    "english": "Applied and verified",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.no-changes-made-3e54c2",
+    "english": "No changes made",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.docker-folders-1-rules-2-38e1e6",
+    "english": "Docker — folders: $1; rules: $2.",
+    "params": [
+      "summary.dockerFolderCount",
+      "summary.dockerRuleCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.vms-folders-1-rules-2-c07c56",
+    "english": "VMs — folders: $1; rules: $2.",
+    "params": [
+      "summary.vmFolderCount",
+      "summary.vmRuleCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.start-order-1-b1954e",
+    "english": "Start order: $1",
+    "params": [
+      "startOrderLabels[summary.startOrderMode] || summary.startOrderMode"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.appearance-profile-1-2f7650",
+    "english": "Appearance profile: $1",
+    "params": [
+      "summary.appearanceProfileActive ? translate(\"legacy.surface.92340695899bd2d8\", \"Active\") : translate(\"common.repair.inactive-ac7c94\", \"Inactive\")"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.inactive-ac7c94",
+    "english": "Inactive",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.operations-included-1-excluded-2-caf034",
+    "english": "Operations included: $1; excluded: $2.",
+    "params": [
+      "selected.length",
+      "unselected.length"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.source-plugin-version-1-20e8d3",
+    "english": "Source plugin version: $1",
+    "params": [
+      "report.source.pluginVersion || translate(\"common.runtime.unknown\", \"Unknown\")"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.exported-1-202a0e",
+    "english": "Exported: $1",
+    "params": [
+      "formatTimestamp(report.source.exportedAt)"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.export-time-unavailable-f3434a",
+    "english": "Export time unavailable",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.optional-native-autostart-entries-1-d67df3",
+    "english": "Optional native autostart entries: $1",
+    "params": [
+      "summary.nativeAutostartCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.unmapped-organizer-entries-1-70f846",
+    "english": "Unmapped organizer entries: $1",
+    "params": [
+      "summary.organizerRegistryCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.folderview3-report.js",
+    "key": "common.repair.download-migration-report-3593a0",
+    "english": "Download migration report",
+    "params": []
+  },
+  {
+    "file": "scripts/folderviewplus.import.js",
+    "key": "common.repair.items-summary",
+    "english": "Items: $1. $2",
+    "params": [
+      "value.length",
+      "preview.join(', ') + suffix"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.nested-under",
+    "english": "Nested level $1 under $2",
+    "params": [
+      "folderDepth",
+      "parentFolderNameRaw"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.nested-level",
+    "english": "Nested level $1",
+    "params": [
+      "folderDepth"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.updates-show-all",
+    "english": "Containers with updates: $1. Click to show all folders.",
+    "params": [
+      "updatePreview + updateExtra"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.updates-show-matching",
+    "english": "Containers with updates: $1. Click to show folders with updates only.",
+    "params": [
+      "updatePreview + updateExtra"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.autostart-vms",
+    "english": "Autostart VMs: $1",
+    "params": [
+      "autostartMembersPreview + autostartMembersExtra"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.matches-summary",
+    "english": "Matches: $1. $2",
+    "params": [
+      "matches.length",
+      "samples.join(', ') + extra"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.wizard.js",
+    "key": "common.repair.template-summary",
+    "english": "$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6.",
+    "params": [
+      "label",
+      "Number(entry.created ?? entry.creatable) || 0",
+      "Number(entry.skippedExisting) || 0",
+      "Number(entry.assignment?.matched ?? entry.autoAssignMatched) || 0",
+      "Number(entry.assignment?.reviewNeededCount ?? entry.autoAssignReviewNeeded) || 0",
+      "Number(entry.assignment?.unmatched ?? entry.autoAssignUnmatched) || 0"
+    ]
+  }
+]

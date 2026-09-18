@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "diagnostics",
-        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
+        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Sledujte stav pluginu, řešte problémy a sdílejte data podpory.",
@@ -85,7 +85,7 @@
     "diagnostics.capture.age-minutes": "$1 min staré",
     "diagnostics.capture.age-hours": "$1 h staré",
     "diagnostics.capture.guide-title": "Zachyťte důkazy Dashboard ve 3 snadných krocích",
-    "diagnostics.capture.missing": "Chybí",
+    "diagnostics.capture.missing": "Není k dispozici",
     "diagnostics.capture.step-open": "Otevřete řídicí panel",
     "diagnostics.capture.step-open-detail": "Přejděte na postižené zařízení a rozbalte složku problémů.",
     "diagnostics.capture.step-reproduce": "Zachyťte problém",
@@ -168,7 +168,7 @@
     "diagnostics.status.follow-up": "Sledujte",
     "diagnostics.overall.warning": "Stav základních funkcí pluginu vyžaduje další kontrolu.",
     "diagnostics.overall.warning-detail": "Plugin běží, ale je třeba přezkoumat jednu nebo více základních kontrol.",
-    "diagnostics.status.advisories": "Zdravý s radami",
+    "diagnostics.status.advisories": "V pořádku s upozorněními",
     "diagnostics.overall.advisories": "Základní funkce pluginu jsou v pořádku.",
     "diagnostics.overall.advisories-detail": "Upozornění vyžaduje další kontrolu, ale základní funkce jsou v pořádku.",
     "diagnostics.status.healthy": "Zdravý",

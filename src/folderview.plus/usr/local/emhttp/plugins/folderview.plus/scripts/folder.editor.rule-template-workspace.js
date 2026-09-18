@@ -7,8 +7,8 @@
     modules.ruleTemplateWorkspace = factory();
 }(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function() {
     'use strict';
-
     const createApi = (deps = {}) => {
+    const repairTc004d64a = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const model = deps.model;
         const type = deps.type === 'vm' ? 'vm' : 'docker';
         const escapeHtml = deps.escapeHtml || ((value) => String(value ?? ''));
@@ -87,7 +87,7 @@
                     rule: buildCandidate(), rules: getPrefs()?.autoRules || [], items: context.items,
                     folders: context.folders, type, utils
                 });
-                setMessage('Template preview refreshed. No settings were changed.', 'info');
+                setMessage(repairTc004d64a("common.repair.template-preview-refreshed-no-settings-were-changed-e4aa7a", "Template preview refreshed. No settings were changed."), 'info');
             } catch (error) {
                 preview = null;
                 setMessage(String(error?.message || error), 'error');
@@ -97,7 +97,7 @@
 
         const saveGenerated = async (rule, message) => {
             setBusy(true);
-            setMessage('Saving generated rule...', 'info');
+            setMessage(repairTc004d64a("common.repair.saving-generated-rule-d5fd20", "Saving generated rule..."), 'info');
             requestRender();
             try {
                 const prefs = getPrefs() || {};
@@ -135,7 +135,7 @@
             if (action === 'add-catch-all') {
                 const rules = getPrefs()?.autoRules || [];
                 if (rules.some(model.isExplicitCatchAll)) {
-                    setMessage('An explicit catch-all already exists. Reorder or remove it in the full Rules workspace.', 'warning');
+                    setMessage(repairTc004d64a("common.repair.an-explicit-catch-all-already-exists-reorder-or-remove-it-in-the--221f3f", "An explicit catch-all already exists. Reorder or remove it in the full Rules workspace."), 'warning');
                     requestRender();
                     return true;
                 }

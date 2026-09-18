@@ -1,4 +1,5 @@
-/* Folder row editor and tree-move helpers extracted from folderviewplus.js. */
+
+    const repairTaa339208 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));/* Folder row editor and tree-move helpers extracted from folderviewplus.js. */
 const buildFolderQuickActionSummary = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
     const folderMap = getFolderMap(resolvedType);
@@ -6,7 +7,6 @@ const buildFolderQuickActionSummary = (type, folderId) => {
     if (!folder) {
         return null;
     }
-
     const memberSnapshot = getEffectiveMemberSnapshot(resolvedType, folderMap);
     const members = Array.isArray(memberSnapshot[folderId]?.members) ? memberSnapshot[folderId].members : [];
     const infoByName = infoByType[resolvedType] || {};
@@ -143,8 +143,8 @@ const buildFolderActionRegistry = ({
                     id: 'export',
                     label: isBranch ? 'Export branch...' : 'Export folder...',
                     description: isBranch
-                        ? `Download this folder and its ${branchSize - 1} nested folder${branchSize === 2 ? '' : 's'}.`
-                        : 'Download this folder configuration.',
+                        ? repairTaa339208("common.repair.download-this-folder-and-its-nested-folders-nested-count-1-a2922e", "Download this folder and its nested folders (nested count: $1).", branchSize - 1)
+                        : repairTaa339208("common.repair.download-this-folder-configuration-4c9266", "Download this folder configuration."),
                     icon: 'fa-download',
                     run: () => (
                         isBranch
@@ -326,7 +326,7 @@ const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
                     <button type="button" class="fv-folder-action-sheet-close fv-ui-button fv-ui-icon-button" data-close-folder-actions aria-label="Close folder actions"><i class="fa fa-times" aria-hidden="true"></i></button>
                 </header>
                 <div class="fv-folder-action-sheet-status" aria-label="Folder status">
-                    <span>${summary.membersCount} member${summary.membersCount === 1 ? '' : 's'}</span>
+                    <span>${escapeHtml(repairTaa339208("common.repair.members-1-85e5cc", "Members: $1", summary.membersCount))}</span>
                     <span class="is-started"><i class="fa fa-play" aria-hidden="true"></i>${status.started}</span>
                     ${status.paused > 0 ? `<span class="is-paused"><i class="fa fa-pause" aria-hidden="true"></i>${status.paused}</span>` : ''}
                     <span class="is-stopped"><i class="fa fa-stop" aria-hidden="true"></i>${status.stopped}</span>
@@ -413,7 +413,7 @@ const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
             try {
                 await Promise.resolve(action.run());
             } catch (error) {
-                showError('Action failed', error);
+                showError(repairTaa339208("common.repair.action-failed-6e1704", "Action failed"), error);
             }
         });
     });
@@ -729,7 +729,7 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
     } catch (error) {
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
-        showError('Tree move failed', error);
+        showError(repairTaa339208("common.repair.tree-move-failed-6ad607", "Tree move failed"), error);
     }
 };
 
@@ -854,7 +854,7 @@ const moveFolderToRootQuick = async (type, folderId) => {
     } catch (error) {
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Move to root failed.');
-        showError('Move to root failed', error);
+        showError(repairTaa339208("common.repair.move-to-root-failed-755799", "Move to root failed"), error);
     }
 };
 

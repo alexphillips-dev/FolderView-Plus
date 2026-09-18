@@ -114,11 +114,6 @@ validate_manifest_branch_matrix() {
 apply_branch_channel_messaging() {
     local package_root="${1:-}"
     local target_branch="${2:-}"
-    local readme_file=""
-    local langs_dir=""
-    local channel_desc=""
-    local channel_quickstart=""
-    local lang_file=""
     if [ -z "$package_root" ] || [ -z "$target_branch" ]; then
         echo "ERROR: apply_branch_channel_messaging requires package root and branch." >&2
         exit 1
@@ -126,20 +121,7 @@ apply_branch_channel_messaging() {
     if [[ "$target_branch" != "dev" ]]; then
         return
     fi
-    readme_file="$package_root/usr/local/emhttp/plugins/folderview.plus/README.md"
-    langs_dir="$package_root/usr/local/emhttp/plugins/folderview.plus/langs"
-    channel_desc="FolderView Plus dev branch includes preview builds for testing. Expect bugs, regressions, and in-progress changes before they reach main."
-    channel_quickstart="Dev branch: Test changes here before stable release. Update carefully and expect occasional breakage."
-    if [ -f "$readme_file" ]; then
-        perl -0pi -e 's{<span id="folderviewplus-desc">.*?</span>}{<span id="folderviewplus-desc">'"$channel_desc"'</span>}s' "$readme_file"
-        perl -0pi -e 's{Quick start:.*}{'"$channel_quickstart"'}s' "$readme_file"
-    fi
-    if [ -d "$langs_dir" ]; then
-        for lang_file in "$langs_dir"/*.json; do
-            [ -f "$lang_file" ] || continue
-            perl -0pi -e 's/"folderviewplus-desc"\s*:\s*"(?:[^"\\\\]|\\\\.)*"/"folderviewplus-desc": "'"$channel_desc"'"/g' "$lang_file"
-        done
-    fi
+    "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "$CWD/scripts/package_channel_messages.mjs")" "$(fvplus::path_for_command "${NODE_BIN}" "$package_root/usr/local/emhttp/plugins/folderview.plus")" "$target_branch"
 }
 
 print_usage() {

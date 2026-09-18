@@ -3942,7 +3942,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-modern-field-row.is-actions-list-row .custom-action-wrapper:empty::before {
-    content: 'No custom actions added yet.';
+    content: attr(data-empty-message);
     color: var(--fv-editor-muted);
     font-weight: 600;
     letter-spacing: 0.02em;

@@ -805,7 +805,7 @@ const quickCreateStarterFolder = async (type) => {
             focusFolderId: createdFolderId
         });
     } catch (error) {
-        showError('Create folder failed', error);
+        showError(starterTemplateT("common.repair.create-folder-failed-8d5cb2", "Create folder failed"), error);
     }
 };
 
@@ -857,7 +857,7 @@ const quickCreateStarterTemplates = async (type) => {
 
         const createdCount = createdNames.length;
         const createdFolderId = createdCount > 0 ? (resolveFolderIdsByNames(resolvedType, createdNames)[0] || '') : '';
-        const messageParts = [`Created ${createdCount} starter folder${createdCount === 1 ? '' : 's'} from ${selectedBlueprints.length} selected template${selectedBlueprints.length === 1 ? '' : 's'}.`];
+        const messageParts = [starterTemplateT("common.repair.starter-folders-created-1-templates-selected-2-0c000f", "Starter folders created: $1. Templates selected: $2.", createdCount, selectedBlueprints.length)];
         if (skippedCount > 0) {
             messageParts.push(`Skipped ${skippedCount} existing.`);
         }
@@ -872,7 +872,7 @@ const quickCreateStarterTemplates = async (type) => {
             focusFolderId: createdFolderId
         });
     } catch (error) {
-        showError('Create starter templates failed', error);
+        showError(starterTemplateT("common.repair.create-starter-templates-failed-d13731", "Create starter templates failed"), error);
     }
 };
 

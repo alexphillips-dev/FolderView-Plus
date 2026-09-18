@@ -33,7 +33,7 @@ test('reviewed runtime messages cover every supported locale and preserve all in
         });
         const englishSurface = read(path.join(plugin, 'langs/namespaces/en/legacy-surface.json'));
         const surface = read(path.join(plugin, `langs/namespaces/${locale}/legacy-surface.json`));
-        for (const phrase of ['Order', 'Manual', 'All states', 'Pack', 'Include shown', 'Exclude shown']) {
+        for (const phrase of ['Order', 'All states', 'Pack', 'Include shown', 'Exclude shown']) {
             const key = Object.keys(englishSurface).find(key => englishSurface[key] === phrase);
             assert.equal(surface[key], terms.locales[locale][terms.terms.indexOf(phrase)], `${locale}/${phrase}`);
         }
@@ -53,7 +53,7 @@ test('every explicit surface binding resolves to its English source without losi
     const english = Object.assign({}, read(path.join(plugin, 'langs/en.json')), ...fs.readdirSync(path.join(plugin, 'langs/namespaces/en')).map(file => read(path.join(plugin, 'langs/namespaces/en', file))));
     for (const file of tools.collectSourceFiles(plugin)) {
         const source = fs.readFileSync(file, 'utf8');
-        for (const match of source.matchAll(/\b(?:surfaceT|translateVmText)\("((?:common\.(?:runtime|icons)|legacy\.surface)\.[^"]+)", ("(?:\\.|[^"\\])*")/g)) {
+        for (const match of source.matchAll(/\b(?:surfaceT|translateVmText)\("((?:common\.[a-z-]+|legacy\.surface)\.[^"]+)", ("(?:\\.|[^"\\])*")/g)) {
             assert.equal(tools.normalizePhrase(english[match[1]]), tools.normalizePhrase(JSON.parse(match[2])), `${file}/${match[1]}`);
         }
     }

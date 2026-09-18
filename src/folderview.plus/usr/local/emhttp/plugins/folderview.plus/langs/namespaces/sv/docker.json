@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "docker",
-        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
+        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
     },
     "docker.actions.label": "Åtgärder i mappvy",
     "docker.actions.add-folder": "Lägg till mapp",
@@ -61,9 +61,9 @@
     "docker.visibility.all-hidden-title": "Alla mapprader är dolda.",
     "docker.visibility.all-hidden-help": "Visa dem tillfälligt eller återställ alla dolda mappar.",
     "docker.visibility.show-hidden": "Visa dolda mappar",
-    "docker.webui-profiles.open": "Open WebUI profile",
+    "docker.webui-profiles.open": "Öppna webbgränssnittsprofil",
     "docker.webui-profiles.ready": "$1 ($2 av $3 redo)",
-    "docker.webui-profiles.manage": "Manage WebUI profiles",
-    "docker.webui-profiles.none-title": "No WebUIs ready",
+    "docker.webui-profiles.manage": "Hantera webbgränssnittsprofiler",
+    "docker.webui-profiles.none-title": "Inga webbgränssnitt är redo",
     "docker.webui-profiles.none-body": "Ingen av de valda behållarna körs med ett tillgängligt WebUI."
 }

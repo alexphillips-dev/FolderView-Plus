@@ -165,7 +165,7 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const applicationWrapperRegex = /\b(?:surfaceT|setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translateVmText|translateSettingsText|translate)\(\s*['"]([^'"]+)['"]/g;
+  const applicationWrapperRegex = /\b(?:surfaceT|starterTemplateT|setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translateVmText|translateSettingsText|translate)\(\s*['"]([^'"]+)['"]/g;
   while ((match = applicationWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;
@@ -207,6 +207,18 @@ for (const fullPath of sourceFiles.sort()) {
   }
 }
 
+// lib.i18n.php attaches stable keys to exact, reviewed server messages. Verify
+// their server-side use as well as the dynamic client translation boundary.
+const serverRoot = path.join(pluginDir, 'server');
+const serverSources = fs.readdirSync(serverRoot).filter(name => name.endsWith('.php'))
+  .map(name => fs.readFileSync(path.join(serverRoot, name), 'utf8')).join('\n');
+for (const [key, phrase] of Object.entries(en).filter(([key]) => key.startsWith('common.server.'))) {
+  if (!serverSources.includes(`'${phrase.replace(/'/g, "\\'")}'`)) {
+    console.error(`ERROR: Server message has no producer: ${key}`);
+    process.exit(1);
+  }
+  referencedKeys.set(key, ['server/lib.i18n.php -> FolderViewPlusI18n.serverMessage']);
+}
 const missing = [...referencedKeys.keys()].filter((key) => !localeKeys.has(key)).sort();
 if (missing.length > 0) {
   console.error(`ERROR: ${missing.length} i18n key(s) are referenced but missing from en.json.`);

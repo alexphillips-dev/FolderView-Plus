@@ -84,6 +84,16 @@ parameter, and regenerate all catalogs with `node scripts/build_i18n_surface_cat
 Reviewed entries can be regenerated without the translation service. Keep user names,
 filenames, paths, and saved configuration values outside translation bindings.
 
+The counts, actions, UI, dialogs, and server review tables also generate their semantic
+keys in `common.json`. Use complete count messages or count labels, never an English
+plural suffix as a parameter. Keep manual sort order separate from manual membership.
+Translate native browser prompts before opening them; their text is outside the DOM.
+For reviewed static server messages, `lib.i18n.php` adds an `errorKey` or `messageKey`
+while retaining the original message and diagnostic fields. Localize these responses
+at the UI boundary with `FolderViewPlusI18n.serverMessage`; unknown details stay intact.
+The audit regression tests exercise confirmation cancellation, numeric edge cases,
+native prompts, and server messages independently of catalog completeness.
+
 - Use ASCII unless a file already requires Unicode.
 - Keep naming and structure consistent with existing plugin files.
 - Prefer small, composable functions over large inline blocks.

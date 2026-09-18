@@ -37,7 +37,7 @@
         Object.freeze({ token: '--fvplus-graph-cpu', label: 'Graph CPU', fallback: '#5aa4ff' }),
         Object.freeze({ token: '--fvplus-graph-mem', label: 'Graph memory', fallback: '#6bd676' })
     ]);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const normalizeWorkspace = (value) => {
         const source = value && typeof value === 'object' ? value : {};
         const rawThemes = Array.isArray(source.themes) ? source.themes : [];
@@ -420,7 +420,7 @@
                 ...(response || {})
             };
             renderScanResult(pendingScan);
-            setStatus('Theme scan complete. Review the detected files, then import when ready.');
+            setStatus(surfaceT("common.audit.theme-scan", "Theme scan complete. Review the detected files, then import when ready."));
             return pendingScan;
         };
 
@@ -461,7 +461,7 @@
             };
             const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
             const planNode = documentRef?.getElementById('fv-theme-profile-plan');
-            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : 'No generated output changes.';
+            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : surfaceT("common.audit.no-output-changes", "No generated output changes.");
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
             return setWorkspace(response.workspace || {});
         };
@@ -546,7 +546,7 @@
         const resetTokens = () => {
             updateEditingLayer({ variables: {} });
             renderWorkspace();
-            setStatus('Token overrides reset. Save the customization layer to apply this change.');
+            setStatus(surfaceT("common.audit.tokens-reset", "Token overrides reset. Save the customization layer to apply this change."));
             return workspace;
         };
 
@@ -612,7 +612,7 @@
             $(documentRef).off('click.fvthemeprofilecreate', '#fv-theme-profile-create').on('click.fvthemeprofilecreate', '#fv-theme-profile-create', () => {
                 const input = documentRef.getElementById('fv-theme-profile-name');
                 const name = String(input?.value || '').trim();
-                safeAction('Profile creation', () => createProfile(name), 'Appearance profile created.').then(() => { if (input) input.value = ''; }).catch(() => {});
+                safeAction('Profile creation', () => createProfile(name), surfaceT("common.audit.profile-created", "Appearance profile created.")).then(() => { if (input) input.value = ''; }).catch(() => {});
             });
             $(documentRef).off('click.fvthemeprofiledelete', '#fv-theme-profile-delete').on('click.fvthemeprofiledelete', '#fv-theme-profile-delete', () => {
                 safeAction('Profile deletion', () => deleteProfile(workspace.activeProfileId), 'Appearance profile deleted.').catch(() => {});
@@ -646,7 +646,7 @@
             readWorkspace: () => safeAction('Theme workspace load', readWorkspace, ''),
             scanGithub: (source) => safeAction('Theme scan', () => scanGithub(source), ''),
             importGithub: (source) => safeAction('Theme import', () => importGithub(source), 'Theme imported.'),
-            activateTheme: (themeId) => safeAction('Theme activation', () => activateTheme(themeId), 'Managed theme activated.'),
+            activateTheme: (themeId) => safeAction('Theme activation', () => activateTheme(themeId), surfaceT("common.audit.theme-activated", "Managed theme activated.")),
             deactivateTheme: () => safeAction('Theme deactivation', deactivateTheme, 'Managed theme disabled.'),
             deleteTheme: (themeId) => safeAction('Theme deletion', () => deleteTheme(themeId), 'Managed theme deleted.'),
             updateTheme: (themeId) => safeAction('Theme update', () => updateTheme(themeId), 'Managed theme updated.'),

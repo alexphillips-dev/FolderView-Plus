@@ -356,18 +356,18 @@
                 return;
             }
             const warningLines = [
-                `${preview.matches.length} current ${ruleSubjectLabel}${preview.matches.length === 1 ? '' : 's'} match this pattern.`,
-                'The converted include rule will be appended after existing advanced rules so current advanced policy keeps priority.'
+                surfaceT("common.dialogs.rule-matches", "Current matching items: $1.", preview.matches.length),
+                surfaceT("legacy.surface.0e8aa429d3002da9", "Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored.")
             ];
             if (preview.advancedConflicts.length > 0) {
-                warningLines.push(`${preview.advancedConflicts.length} match${preview.advancedConflicts.length === 1 ? '' : 'es'} are already controlled or blocked by an advanced rule.`);
+                warningLines.push(surfaceT("common.dialogs.rule-conflicts", "Matches already controlled or blocked by advanced rules: $1.", preview.advancedConflicts.length));
             }
             if (preview.overlappingLegacyFolders.length > 0) {
-                warningLines.push(`Overlapping legacy folders: ${preview.overlappingLegacyFolders.join(', ')}.`);
+                warningLines.push(surfaceT("common.dialogs.rule-overlaps", "Overlapping legacy folders: $1.", preview.overlappingLegacyFolders.join(', ')));
             }
             const confirmed = await new Promise((resolve) => {
                 if (typeof swal !== 'function') {
-                    resolve(rootWindow.confirm?.(`${warningLines.join('\n')}\n\nConvert this legacy rule?`) === true);
+                    resolve(rootWindow.confirm?.(`${warningLines.join('\n')}\n\n${surfaceT("legacy.surface.54605873ed16aac6", "Convert legacy regex?")}`) === true);
                     return;
                 }
                 swal({
@@ -515,8 +515,8 @@
                 );
             } else if (folderEditorPrefsLoading && !folderEditorPrefsLoaded) {
                 bodyHtml = buildFolderAutoRulesEmptyStateHtml(
-                    'Loading advanced rules for this folder.',
-                    'Reading the existing plugin-wide rule set now.'
+                    surfaceT("common.audit.loading-folder-rules", "Loading advanced rules for this folder."),
+                    surfaceT("common.audit.reading-rules", "Reading the existing plugin-wide rule set now.")
                 );
             } else {
                 const listHtml = rules.length > 0
@@ -525,7 +525,7 @@
                         return buildFolderAutoRuleCardHtml(rule, globalIndex > -1 ? globalIndex : 0, Math.max(totalRules, 1));
                     }).join('')
                     : buildFolderAutoRulesEmptyStateHtml(
-                        'No advanced rules target this folder yet.',
+                        surfaceT("common.audit.no-folder-rules", "No advanced rules target this folder yet."),
                         'Add a regex rule below, or open the full Rules workspace for label-based rules and global reordering.'
                     );
                 bodyHtml = `
@@ -671,7 +671,7 @@
             }
 
             folderEditorRulesBusy = true;
-            setFolderEditorRulesMessage('Saving advanced rule...', 'info');
+            setFolderEditorRulesMessage(surfaceT("common.audit.saving-rule", "Saving advanced rule..."), 'info');
             render();
             try {
                 const nextRule = {
@@ -692,7 +692,7 @@
                 });
                 await saveFolderEditorPrefs(nextPrefs);
                 folderEditorRuleDraft.pattern = '';
-                setFolderEditorRulesMessage('Advanced rule saved for this folder.', 'success');
+                setFolderEditorRulesMessage(surfaceT("common.audit.rule-saved", "Advanced rule saved for this folder."), 'success');
             } catch (error) {
                 setFolderEditorRulesMessage(extractAjaxErrorMessage(error, 'folder advanced rule save'), 'error');
             } finally {

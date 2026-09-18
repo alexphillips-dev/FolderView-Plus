@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
+        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
     },
     "settings.folder-defaults.edit": "編輯資料夾預設設定",
     "settings.search.placeholder": "搜尋設定",
@@ -132,7 +132,7 @@
     "settings.start-order.batch-copy": "只有啟用了 Docker 自動啟動的容器才會寫入 Unraid 啟動順序。延遲適用於每批中的最後一個自動啟動容器。",
     "settings.start-order.counts": "自動啟動容器：$1；偵測到的容器：$2",
     "settings.start-order.order-column": "排序順序",
-    "settings.start-order.container-column": "貨櫃",
+    "settings.start-order.container-column": "容器",
     "settings.navigation.automation": "自動化",
     "settings.navigation.rules": "規則",
     "settings.navigation.recovery": "恢復",

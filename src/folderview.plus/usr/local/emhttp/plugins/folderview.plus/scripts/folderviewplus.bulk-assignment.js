@@ -567,7 +567,7 @@
                 text: summary,
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Apply',
+                confirmButtonText: surfaceT("common.actions.apply", "Apply"),
                 cancelButtonText: 'Cancel',
                 closeOnConfirm: true
             }, (confirmed) => {
@@ -671,7 +671,7 @@
                     help.text(`No items match "${filter}". Try a broader filter.`);
                     return;
                 }
-                help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'} (${BULK_LIST_RENDER_CHUNK_SIZE}/frame render chunks).`);
+                help.text(surfaceT("common.counts.items-shown", "Items shown: $1/$2 (render batch size: $3).", visibleCount, allCount, BULK_LIST_RENDER_CHUNK_SIZE));
                 return;
             }
             const perfHint = allCount > BULK_LIST_RENDER_CHUNK_SIZE ? ' Rendering is chunked for large inventories.' : '';

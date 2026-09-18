@@ -2368,7 +2368,7 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                         <option value="created_newest" ${behavior.sortMode === 'created_newest' ? 'selected' : ''}>Created newest first</option>
                         <option value="created_oldest" ${behavior.sortMode === 'created_oldest' ? 'selected' : ''}>Created oldest first</option>
                         <option value="updated_newest" ${behavior.sortMode === 'updated_newest' ? 'selected' : ''}>Last updated newest first</option>
-                        <option value="manual" ${behavior.sortMode === 'manual' ? 'selected' : ''}>Manual</option>
+                        <option value="manual" ${behavior.sortMode === 'manual' ? 'selected' : ''} data-i18n="common.actions.manual-sort">Manual order</option>
                         <option value="alpha" ${behavior.sortMode === 'alpha' ? 'selected' : ''}>Name (A-Z)</option>
                         <option value="name_desc" ${behavior.sortMode === 'name_desc' ? 'selected' : ''}>Name (Z-A)</option>
                     </select>

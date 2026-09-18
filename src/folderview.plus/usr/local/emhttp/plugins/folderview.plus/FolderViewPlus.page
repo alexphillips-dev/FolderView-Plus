@@ -201,7 +201,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="created_newest">Created newest first</option>
                     <option value="created_oldest">Created oldest first</option>
                     <option value="updated_newest">Last updated newest first</option>
-                    <option value="manual">Manual</option>
+                    <option value="manual" data-i18n="common.actions.manual-sort">Manual order</option>
                     <option value="alpha">Name (A-Z)</option>
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
@@ -557,7 +557,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="created_newest">Created newest first</option>
                     <option value="created_oldest">Created oldest first</option>
                     <option value="updated_newest">Last updated newest first</option>
-                    <option value="manual">Manual</option>
+                    <option value="manual" data-i18n="common.actions.manual-sort">Manual order</option>
                     <option value="alpha">Name (A-Z)</option>
                     <option value="name_desc">Name (Z-A)</option>
                 </select>

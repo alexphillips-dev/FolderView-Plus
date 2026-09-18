@@ -154,7 +154,7 @@ test('docker branch actions support deleting whole folder branches without repar
     assert.match(dockerRuntimeActionsScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action'\) =>/);
     assert.match(dockerRuntimeActionsScript, /const deleteDockerFolderBranch = async \(id\) =>/);
     assert.match(dockerRuntimeActionsScript, /const rmFolderBranch = \(id\) =>/);
-    assert.match(dockerRuntimeActionsScript, /Nested child folders will be deleted with the root folder and will <strong>not<\/strong> be re-parented\./);
+    assert.match(dockerRuntimeActionsScript, /common\.actions\.delete-children/);
     assert.match(dockerScript, /text:\s*'Delete branch folders'/);
     assert.match(dockerScript, /rmFolderBranch\(id\);/);
 });

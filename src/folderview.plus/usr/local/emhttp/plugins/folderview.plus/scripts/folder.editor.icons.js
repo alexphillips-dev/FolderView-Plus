@@ -512,7 +512,7 @@
                             .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || surfaceT("common.runtime.unknown", "Unknown")))}</li>`)
                             .join('');
                         const html = `<div class="fv-custom-icon-ref-list"><ul>${rowsHtml}</ul></div>`;
-                        swal({ title: `In use by ${refs.length} folder${refs.length === 1 ? '' : 's'}`, text: html, html: true, confirmButtonText: 'Close' });
+                        swal({ title: surfaceT("common.counts.icon-references", "Folders using this icon: $1.", refs.length), text: html, html: true, confirmButtonText: 'Close' });
                     } catch (error) {
                         setCustomIconStatus(String(error?.message || 'Failed to load references.'), true);
                     }
@@ -520,7 +520,7 @@
                 }
 
                 if (action === 'rename') {
-                    const proposal = win && typeof win.prompt === 'function' ? win.prompt('Rename custom icon', String(name || '')) : '';
+                    const proposal = win && typeof win.prompt === 'function' ? win.prompt(surfaceT("legacy.surface.8679e3348696181e", "Rename icon"), String(name || '')) : '';
                     const nextName = String(proposal || '').trim();
                     if (!nextName || nextName === name) {
                         return;
@@ -1475,7 +1475,7 @@
             const folders = getThirdPartyVisibleFolders();
             if (!folders.length) {
                 packSelect.html('<option value="">No packs available</option>').prop('disabled', true);
-                setThirdPartyStatus('No packs available. Try clearing filters or enabling hidden packs in Pack actions.');
+                setThirdPartyStatus(surfaceT("common.audit.no-icon-packs", "No packs available. Try clearing filters or enabling hidden packs in Pack actions."));
                 renderThirdPartyPackMenu();
                 renderThirdPartyContextLine(0);
                 return;
@@ -1554,7 +1554,7 @@
             if (!filteredIcons.length) {
                 thirdPartyRenderedIconMap = new Map();
                 grid.html('<div class="fv-icon-picker-empty">No icons matched. Try "Clear all filters", switch Scope, or pick a different pack.</div>');
-                setThirdPartyStatus('No matching icons. Try clearing filters or switching scope.');
+                setThirdPartyStatus(surfaceT("common.audit.no-icons", "No matching icons. Try clearing filters or switching scope."));
                 renderThirdPartyPreview();
                 renderThirdPartyContextLine(0);
                 return;
@@ -1736,7 +1736,7 @@
 
         const refreshThirdPartyIconPicker = async () => {
             ensureThirdPartyPreferencesLoaded();
-            setThirdPartyStatus('Refreshing third-party icon folders...');
+            setThirdPartyStatus(surfaceT("common.audit.refreshing-icons", "Refreshing third-party icon folders..."));
             try {
                 await loadThirdPartyFolders();
                 try {

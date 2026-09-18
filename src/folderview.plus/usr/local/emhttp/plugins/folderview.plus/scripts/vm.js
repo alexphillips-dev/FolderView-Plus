@@ -2704,7 +2704,7 @@ const cloneVmFolderFromMenu = async (id) => {
             return;
         }
         const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
-        const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
+        const nextName = String(window.prompt(translateVmText("legacy.surface.ed8d02ead698dc52", "Clone folder"), defaultName) || '').trim();
         if (!nextName) {
             return;
         }

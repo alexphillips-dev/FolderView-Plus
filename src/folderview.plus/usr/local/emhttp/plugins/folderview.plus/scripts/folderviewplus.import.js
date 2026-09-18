@@ -173,7 +173,7 @@ const renderDownloadAttemptStatus = (attempt, options = {}) => {
     const failed = attempt?.lifecycle === 'synchronous-failure';
     const retryRequested = options.retry === true;
     const title = failed
-        ? 'Download request failed'
+        ? importT("common.audit.download-failed", "Download request failed")
         : (reportedMissing ? 'Download was not received' : (retryRequested ? 'Download retry requested' : 'Download requested'));
     const message = failed
         ? 'FolderView Plus could not hand the export to this browser. The failure is included in the support bundle.'
@@ -592,7 +592,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         if (deletes > 0) {
             return {
                 level: 'destructive',
-                label: `Deletes ${deletes} folder${deletes === 1 ? '' : 's'}`,
+                label: importT("common.counts.folders-to-delete", "Folders to delete: $1.", deletes),
                 requiresReview: true
             };
         }
@@ -649,16 +649,16 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         let statusMessage = '';
         let statusLevel = 'normal';
         if (selectedCount === 0) {
-            statusMessage = 'Select at least one change to continue.';
+            statusMessage = importT("common.audit.select-change", "Select at least one change to continue.");
             statusLevel = 'warning';
         } else if (currentDryRunOnly) {
-            statusMessage = 'Preview only is enabled. No changes will be saved.';
+            statusMessage = importT("common.audit.preview-only", "Preview only is enabled. No changes will be saved.");
             statusLevel = 'info';
         } else if (selectedDeletes > 0) {
-            statusMessage = `${selectedDeletes} folder${selectedDeletes === 1 ? '' : 's'} will be deleted. Review and confirm below.`;
+            statusMessage = importT("common.counts.folders-to-delete", "Folders to delete: $1.", selectedDeletes);
             statusLevel = 'warning';
         } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
-            statusMessage = 'This export could not be fully validated. Review and confirm below.';
+            statusMessage = importT("common.audit.unvalidated-export", "This export could not be fully validated. Review and confirm below.");
             statusLevel = 'warning';
         }
 
@@ -841,7 +841,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
     utils.bindEventOnce(presetSaveButton, 'click.fvimportpreset', async () => {
         const suggestedName = String((findImportPresetById(type, activePresetId)?.name || 'My import preset')).trim();
-        const name = window.prompt('Preset name:', suggestedName);
+        const name = window.prompt(importT("common.dialogs.preset-name", "Preset name:"), suggestedName);
         const trimmedName = String(name || '').trim();
         if (!trimmedName) {
             return;

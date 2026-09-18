@@ -7,6 +7,7 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "server/lib.i18n.php": { "limit": 22, "target": 22, "history": [22] },
       "server/lib.folderview3-order.php": { "limit": 42, "target": 42, "history": [42] },
       "server/lib.folderview3-appearance.php": { "limit": 102, "target": 102, "history": [102] },
       "server/lib.theme-profile-create.php": { "limit": 27, "target": 27, "history": [27] },
@@ -203,7 +204,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.i18n.php", "server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -229,6 +230,16 @@
     }
   ],
   "serverModuleContracts": [
+    {
+      "file": "server/lib.i18n.php",
+      "owner": "server-response-localization",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 1, "sha256": "ec6b8725525a7571c0f20913ce29cab43b8d64c27b3781cc51dea0ba3f6bee34" }
+    },
     {
       "file": "server/lib.folderview3-order.php",
       "owner": "server-folderview3-order",

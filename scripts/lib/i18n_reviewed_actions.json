@@ -1,0 +1,228 @@
+{
+  "keys": [
+    "apply",
+    "manual-sort",
+    "move-shown",
+    "run-again",
+    "delete-children",
+    "clear"
+  ],
+  "en": [
+    "Apply",
+    "Manual order",
+    "Move shown",
+    "Run $1 again.",
+    "Child folders will also be deleted. They will not be moved to another parent.",
+    "Clear"
+  ],
+  "locales": {
+    "ar": [
+      "تطبيق",
+      "ترتيب يدوي",
+      "نقل العناصر المعروضة",
+      "شغّل $1 مرة أخرى.",
+      "ستُحذف المجلدات الفرعية أيضًا. ولن تُنقل إلى مجلد أب آخر.",
+      "مسح"
+    ],
+    "bn": [
+      "প্রয়োগ করুন",
+      "হাতে সাজানো ক্রম",
+      "প্রদর্শিত সদস্য সরান",
+      "$1 আবার চালান।",
+      "অধীনস্থ ফোল্ডারও মুছে ফেলা হবে। সেগুলো অন্য মূল ফোল্ডারে সরানো হবে না।",
+      "মুছে ফেলুন"
+    ],
+    "ca": [
+      "Aplica",
+      "Ordre manual",
+      "Mou els membres mostrats",
+      "Torneu a executar $1.",
+      "També se suprimiran les subcarpetes. No es mouran a una altra carpeta superior.",
+      "Esborra"
+    ],
+    "cs": [
+      "Použít",
+      "Ruční pořadí",
+      "Přesunout zobrazené položky",
+      "Spusťte znovu $1.",
+      "Budou odstraněny i podřízené složky. Nebudou přesunuty pod jinou nadřazenou složku.",
+      "Vymazat"
+    ],
+    "da": [
+      "Anvend",
+      "Manuel rækkefølge",
+      "Flyt viste medlemmer",
+      "Kør $1 igen.",
+      "Undermapper slettes også. De flyttes ikke til en anden overordnet mappe.",
+      "Ryd"
+    ],
+    "de": [
+      "Anwenden",
+      "Manuelle Reihenfolge",
+      "Angezeigte Mitglieder verschieben",
+      "Führen Sie $1 erneut aus.",
+      "Untergeordnete Ordner werden ebenfalls gelöscht. Sie werden keinem anderen übergeordneten Ordner zugeordnet.",
+      "Leeren"
+    ],
+    "es": [
+      "Aplicar",
+      "Orden manual",
+      "Mover los miembros mostrados",
+      "Ejecute $1 de nuevo.",
+      "También se eliminarán las subcarpetas. No se moverán a otra carpeta superior.",
+      "Borrar"
+    ],
+    "fr": [
+      "Appliquer",
+      "Ordre manuel",
+      "Déplacer les membres affichés",
+      "Exécutez à nouveau $1.",
+      "Les sous-dossiers seront également supprimés. Ils ne seront pas déplacés vers un autre dossier parent.",
+      "Effacer"
+    ],
+    "hr": [
+      "Primijeni",
+      "Ručni redoslijed",
+      "Premjesti prikazane članove",
+      "Ponovno pokrenite $1.",
+      "Podređene mape također će biti izbrisane. Neće biti premještene pod drugu nadređenu mapu.",
+      "Očisti"
+    ],
+    "hu": [
+      "Alkalmaz",
+      "Kézi sorrend",
+      "Megjelenített tagok áthelyezése",
+      "Futtassa újra: $1.",
+      "Az almappák is törlődnek. Nem kerülnek másik szülőmappába.",
+      "Törlés"
+    ],
+    "it": [
+      "Applica",
+      "Ordine manuale",
+      "Sposta i membri visualizzati",
+      "Eseguire di nuovo $1.",
+      "Verranno eliminate anche le sottocartelle. Non verranno spostate in un’altra cartella superiore.",
+      "Cancella"
+    ],
+    "ja": [
+      "適用",
+      "手動の並び順",
+      "表示中のメンバーを移動",
+      "$1をもう一度実行してください。",
+      "子フォルダーも削除されます。別の親フォルダーには移動しません。",
+      "クリア"
+    ],
+    "ko": [
+      "적용",
+      "수동 정렬 순서",
+      "표시된 구성원 이동",
+      "$1을(를) 다시 실행하세요.",
+      "하위 폴더도 삭제됩니다. 다른 상위 폴더로 이동하지 않습니다.",
+      "지우기"
+    ],
+    "lv": [
+      "Lietot",
+      "Manuāla secība",
+      "Pārvietot parādītos dalībniekus",
+      "Izpildiet $1 vēlreiz.",
+      "Tiks dzēstas arī apakšmapes. Tās netiks pārvietotas uz citu vecākmapi.",
+      "Notīrīt"
+    ],
+    "nb": [
+      "Bruk",
+      "Manuell rekkefølge",
+      "Flytt viste medlemmer",
+      "Kjør $1 på nytt.",
+      "Undermapper slettes også. De flyttes ikke til en annen overordnet mappe.",
+      "Tøm"
+    ],
+    "nl": [
+      "Toepassen",
+      "Handmatige volgorde",
+      "Getoonde leden verplaatsen",
+      "Voer $1 opnieuw uit.",
+      "Onderliggende mappen worden ook verwijderd. Ze worden niet naar een andere bovenliggende map verplaatst.",
+      "Wissen"
+    ],
+    "pl": [
+      "Zastosuj",
+      "Kolejność ręczna",
+      "Przenieś wyświetlane elementy",
+      "Uruchom ponownie $1.",
+      "Podfoldery również zostaną usunięte. Nie zostaną przeniesione do innego folderu nadrzędnego.",
+      "Wyczyść"
+    ],
+    "pt-BR": [
+      "Aplicar",
+      "Ordem manual",
+      "Mover membros exibidos",
+      "Execute $1 novamente.",
+      "As subpastas também serão excluídas. Elas não serão movidas para outra pasta superior.",
+      "Limpar"
+    ],
+    "pt-PT": [
+      "Aplicar",
+      "Ordem manual",
+      "Mover membros apresentados",
+      "Execute $1 novamente.",
+      "As subpastas também serão eliminadas. Não serão movidas para outra pasta superior.",
+      "Limpar"
+    ],
+    "ro": [
+      "Aplică",
+      "Ordine manuală",
+      "Mută membrii afișați",
+      "Executați din nou $1.",
+      "Subdosarele vor fi și ele șterse. Nu vor fi mutate într-un alt dosar părinte.",
+      "Șterge"
+    ],
+    "ru": [
+      "Применить",
+      "Ручной порядок",
+      "Переместить показанные элементы",
+      "Выполните $1 ещё раз.",
+      "Дочерние папки также будут удалены. Они не будут перемещены в другую родительскую папку.",
+      "Очистить"
+    ],
+    "sv": [
+      "Tillämpa",
+      "Manuell ordning",
+      "Flytta visade medlemmar",
+      "Kör $1 igen.",
+      "Undermappar tas också bort. De flyttas inte till en annan överordnad mapp.",
+      "Rensa"
+    ],
+    "tr": [
+      "Uygula",
+      "Elle sıralama",
+      "Gösterilen üyeleri taşı",
+      "$1 işlemini yeniden çalıştırın.",
+      "Alt klasörler de silinecek. Başka bir üst klasöre taşınmayacaklar.",
+      "Temizle"
+    ],
+    "uk": [
+      "Застосувати",
+      "Ручний порядок",
+      "Перемістити показані елементи",
+      "Виконайте $1 ще раз.",
+      "Дочірні теки також буде видалено. Їх не буде переміщено до іншої батьківської теки.",
+      "Очистити"
+    ],
+    "zh-Hans": [
+      "应用",
+      "手动排序",
+      "移动显示的成员",
+      "再次运行 $1。",
+      "子文件夹也将被删除，不会移动到其他父文件夹。",
+      "清除"
+    ],
+    "zh-Hant": [
+      "套用",
+      "手動排序",
+      "移動顯示的成員",
+      "再次執行 $1。",
+      "子資料夾也將被刪除，不會移動到其他父資料夾。",
+      "清除"
+    ]
+  }
+}

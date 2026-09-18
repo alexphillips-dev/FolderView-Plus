@@ -9,7 +9,7 @@
     root.FolderViewPlusFoundationModules = modules;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     'use strict';
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const createApi = (deps = {}) => {
         const getState = typeof deps.getState === 'function' ? deps.getState : (() => ({}));
         const getPrefs = typeof deps.getPrefs === 'function' ? deps.getPrefs : (() => ({}));
@@ -199,10 +199,10 @@
             const warnings = [];
             if (step === 'profile') {
                 if (state.applyProfileDefaults === true && !Object.prototype.hasOwnProperty.call(profilePresets, state.profile)) {
-                    blockers.push('Choose a valid profile preset.');
+                    blockers.push(surfaceT("common.audit.valid-profile", "Choose a valid profile preset."));
                 }
                 if (state.applyEnvironmentDefaults === true && !Object.prototype.hasOwnProperty.call(environmentPresets, state.environmentPreset)) {
-                    blockers.push('Choose a valid environment preset.');
+                    blockers.push(surfaceT("common.audit.valid-environment", "Choose a valid environment preset."));
                 }
             }
             if (step === 'import' || step === 'review') {
@@ -247,7 +247,7 @@
                     warnings.push('No changes are currently planned. Enable imports/rules or adjust behavior before apply.');
                 }
                 if (state.dryRunOnly === true) {
-                    warnings.push('Dry run mode is ON. Apply will preview only and will not persist changes.');
+                    warnings.push(surfaceT("common.audit.dry-run", "Dry run mode is ON. Apply will preview only and will not persist changes."));
                 }
             }
             return { blockers, warnings };

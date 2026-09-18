@@ -37,7 +37,7 @@
             ? Number(deps.TREE_INTEGRITY_DEPTH_WARN_LEVEL)
             : 6;
         const busyByType = { docker: false, vm: false };
-
+        const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const buildRawParentMap = (foldersInput = null) => {
             const folders = utils.normalizeFolderMap(foldersInput || {});
             const parentMap = {};
@@ -216,7 +216,7 @@
                     const depthPreview = report.depthWarnings.slice(0, 4).map((row) => `${row.name} (depth ${row.depth})`).join('\n');
                     const emptyBranchPreview = report.emptyBranches.slice(0, 4).map((row) => `${row.name} (depth ${row.depth})`).join('\n');
                     const details = [
-                        'Repairable link errors',
+                        surfaceT("common.audit.repairable-links", "Repairable link errors"),
                         `Self-parent links: ${counts.selfParentCount}`,
                         `Orphans: ${counts.orphanCount}`,
                         `Cycles: ${counts.cycleCount}`,
@@ -281,7 +281,7 @@
                 } catch (verificationError) {
                     showToastMessage({
                         title: 'Repair saved; verification unavailable',
-                        message: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}, but the saved tree could not be reloaded for verification. ${verificationError?.message || verificationError}`,
+                        message: surfaceT("common.counts.repair-unverified", "Folder links repaired: $1. Verification failed: $2", toRepair.length, verificationError?.message || verificationError),
                         level: 'warning',
                         durationMs: 7000
                     });
@@ -290,7 +290,7 @@
                 const verifiedCounts = getCounts(scan(resolvedType));
                 swal({
                     title: verifiedCounts.repairableIssueCount > 0 ? 'Repair incomplete' : 'Repair complete',
-                    text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}. Verified remaining link errors: ${verifiedCounts.repairableIssueCount}. Remaining advisory warnings: ${verifiedCounts.advisoryIssueCount}.`,
+                    text: surfaceT("common.counts.repair-result", "Folder links repaired: $1. Remaining link errors: $2. Advisory warnings: $3.", toRepair.length, verifiedCounts.repairableIssueCount, verifiedCounts.advisoryIssueCount),
                     type: verifiedCounts.repairableIssueCount > 0 ? 'warning' : 'success'
                 });
             } catch (error) {

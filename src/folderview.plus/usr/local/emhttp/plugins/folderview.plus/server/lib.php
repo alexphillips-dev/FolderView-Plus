@@ -920,7 +920,7 @@
         if (!array_key_exists('transactionId', $payload)) {
             $payload['transactionId'] = getRequestTransactionId();
         }
-        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        require_once __DIR__ . '/lib.i18n.php'; $encoded = json_encode(fvplus_localize_response_keys($payload), JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
             http_response_code(500);
             echo '{"ok":false,"error":"JSON encoding failed."}';

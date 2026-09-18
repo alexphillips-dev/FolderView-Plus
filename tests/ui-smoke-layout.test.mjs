@@ -501,10 +501,10 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /health_updates_mode/);
     assert.match(folderJs, /health_all_stopped_mode/);
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
-    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder\.';/);
+    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = surfaceT\("common\.audit\.no-members"/);
     assert.doesNotMatch(folderJs, /Regex is empty, so only manual assignment will be used for this folder\./);
     assert.match(folderJs, /summary\.removeClass\('invalid warning info ready'\)/);
-    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
+    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(surfaceT\("common\.counts\.notes", "Informational notes: \$1\.", infoWarnings\.length\)/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
@@ -702,7 +702,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/migrate_legacy_regex\.php'/);
-    assert.match(folderRulesJs, /The converted include rule will be appended after existing advanced rules so current advanced policy keeps priority\./);
+    assert.match(folderRulesJs, /Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored\./);
     assert.match(folderRulesJs, /panel\.hidden = pattern === '';/);
     assert.match(folderRulesJs, /Convert to Auto-Rule/);
     assert.match(folderRuntimeBootstrapJs, /folder\.editor\.rules\.js/);

@@ -1,6 +1,6 @@
 /* Starter template blueprints and picker helpers extracted from folderviewplus.js. */
 const DEFAULT_STARTER_FOLDER_ICON = '/plugins/folderview.plus/images/folder-icon.png';
-
+const starterTemplateT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const STARTER_TEMPLATE_CATEGORY_META = Object.freeze({
     smart: Object.freeze({ label: 'Smart' }),
     homelab: Object.freeze({ label: 'Homelab' }),
@@ -636,10 +636,10 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
     if (typeof window.swal !== 'function') {
         const categoryChoices = categoryIds
-            .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)} (${getCategoryCount(categoryId)})`)
+            .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)} (${categoryId}; ${getCategoryCount(categoryId)})`)
             .join('\n');
         const categoryRaw = window.prompt(
-            `Choose ${typeLabel} template category:\n\n${categoryChoices}\n\nEnter number or category name. Leave blank for ${getCategoryLabel(defaultCategoryId)}.`,
+            starterTemplateT("common.dialogs.category", "Choose a $1 template category:\n\n$2\n\nEnter its number or identifier. Leave blank for $3.", typeLabel, categoryChoices, getCategoryLabel(defaultCategoryId)),
             ''
         );
         if (categoryRaw === null) {
@@ -662,7 +662,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         }
         const numbered = categoryTemplates.map((entry, index) => `${index + 1}. ${String(entry.name || '').trim()}`).join('\n');
         const raw = window.prompt(
-            `Select ${typeLabel} ${getCategoryLabel(activeCategoryId)} templates by number (comma-separated).\nLeave blank for all shown:\n\n${numbered}`,
+            starterTemplateT("common.dialogs.templates", "Select $1 templates ($2) by number, separated by commas. Leave blank for all shown:\n\n$3", typeLabel, getCategoryLabel(activeCategoryId), numbered),
             ''
         );
         if (raw === null) {
@@ -753,7 +753,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
             if (!selectedIndexes.length) {
                 if (typeof swal.showInputError === 'function') {
-                    swal.showInputError('Select at least one template.');
+                    swal.showInputError(starterTemplateT("common.audit.select-template", "Select at least one template."));
                 }
                 return false;
             }
@@ -864,7 +864,7 @@ const quickCreateStarterTemplates = async (type) => {
         const message = messageParts.join(' ');
         addActivityEntry(`${typeLabel} starter templates applied. ${message}`, createdCount > 0 ? 'success' : 'info');
         showActionSummaryToast({
-            title: createdCount > 0 ? 'Starter templates created' : 'No starter templates created',
+            title: createdCount > 0 ? starterTemplateT("common.audit.templates-created", "Starter templates created") : 'No starter templates created',
             message,
             level: createdCount > 0 ? 'success' : 'info',
             durationMs: 5000,

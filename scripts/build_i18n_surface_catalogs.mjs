@@ -49,11 +49,21 @@ const translationContext = readJson(path.join(repoRoot, 'scripts/lib/i18n_transl
 const reviewedRuntime = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_runtime.json'));
 const reviewedTerms = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_terms.json'));
 const reviewedWorkflows = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_workflows.json'));
-const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows])).digest('hex');
+const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
+const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces])).digest('hex');
 const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
     if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);
     return [locale, Object.fromEntries(reviewedRuntime.keys.map((key, index) => [key, values[index]]))];
 }));
+for (const [namespace, review] of Object.entries(reviewedSurfaces)) {
+    if (review.en.length !== review.keys.length) throw new Error(`Incomplete English review: ${namespace}`);
+    for (const locale of Object.keys(targetLocales)) {
+        const values = review.locales[locale];
+        if (values?.length !== review.keys.length) throw new Error(`Incomplete review: ${namespace}/${locale}`);
+        review.keys.forEach((key, index) => { runtimeReviews[locale][`common.${namespace}.${key}`] = values[index]; });
+        translationContext.overrides[locale] = { ...translationContext.overrides[locale], ...Object.fromEntries(review.en.map((phrase, index) => [phrase, values[index]])) };
+    }
+}
 for (const [locale, values] of Object.entries(reviewedTerms.locales)) {
     if (values.length !== reviewedTerms.terms.length) throw new Error(`Incomplete terminology review for ${locale}`);
     if (reviewedTerms.iconNames[locale]?.length !== reviewedTerms.iconTerms.length || reviewedWorkflows.locales[locale]?.length !== reviewedWorkflows.terms.length) throw new Error(`Incomplete workflow review for ${locale}`);
@@ -80,6 +90,16 @@ const applyReviewedValues = (locale, messages, entries) => {
     return messages;
 };
 const writeJson = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 4)}\n`, 'utf8');
+const commonEnglishFile = path.join(namespaceRoot, 'en/common.json');
+const commonEnglish = readJson(commonEnglishFile);
+// These semantic families are generated exclusively from the reviewed tables.
+for (const key of Object.keys(commonEnglish)) {
+    if (Object.keys(reviewedSurfaces).some(namespace => key.startsWith(`common.${namespace}.`))) delete commonEnglish[key];
+}
+for (const [namespace, review] of Object.entries(reviewedSurfaces)) {
+    review.keys.forEach((key, index) => { commonEnglish[`common.${namespace}.${key}`] = review.en[index]; });
+}
+writeJson(commonEnglishFile, commonEnglish);
 const scaffoldLocale = (locale) => {
     const definition = scaffoldDefinitions[locale];
     if (!definition) throw new Error(`No scaffold definition is registered for ${locale}.`);

@@ -3,10 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "wizard",
-        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
+        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
     },
     "wizard.title": "Opsætningsassistent",
-    "wizard.welcome.kicker": "FolderView Plus Setup Assistant",
+    "wizard.welcome.kicker": "Opsætningsassistent til FolderView Plus",
     "wizard.welcome.title": "Organiser dine Docker-containere og VM'er i mapper.",
     "wizard.welcome.description": "FolderView Plus hjælper med at gruppere relaterede apps, forhåndsvise ændringer, før de anvendes, og eventuelt holde fremtidige apps organiseret automatisk.",
     "wizard.welcome.begin": "Begynd opsætning",

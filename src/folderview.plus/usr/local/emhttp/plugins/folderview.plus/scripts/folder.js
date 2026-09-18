@@ -297,7 +297,7 @@ const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || O
 const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
     ? folderContract.isFolderAccentEnabled
     : ((settings) => settings?.folder_accent_enabled === true);
-const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
+const NO_MEMBERS_SELECTED_INFO = surfaceT("common.audit.no-members", "No members are currently selected in this folder.");
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = folderEditorSchema?.PREVIEW_MODE_LABELS || Object.freeze({
@@ -366,7 +366,7 @@ const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1'
 const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const MEMBER_BULK_SCOPE_OPTIONS = Object.freeze([
-    { value: 'shown', label: 'Move shown' },
+    { value: 'shown', label: surfaceT("common.actions.move-shown", "Move shown") },
     { value: 'included_shown', label: 'Move included shown' },
     { value: 'excluded_shown', label: 'Move excluded shown' },
     { value: 'all_included', label: 'Move all included' }
@@ -2290,9 +2290,9 @@ const validateForm = () => {
         if (!valid) {
             summary.addClass('invalid').text(surfaceT("common.runtime.cannot-save-fields-to-correct-1", "Cannot save. Fields to correct: $1.", blockedCount));
         } else if (advisoryWarnings.length > 0) {
-            summary.addClass('warning').text(`Warning: ${advisoryWarnings.length} recommendation${advisoryWarnings.length === 1 ? '' : 's'} available.`);
+            summary.addClass('warning').text(surfaceT("common.counts.recommendations", "Recommendations: $1.", advisoryWarnings.length));
         } else if (infoWarnings.length > 0) {
-            summary.addClass('info').text(`Info: ${infoWarnings.length} note${infoWarnings.length === 1 ? '' : 's'} available.`);
+            summary.addClass('info').text(surfaceT("common.counts.notes", "Informational notes: $1.", infoWarnings.length));
         } else {
             summary.addClass('ready').text('Ready: all checks passed.');
         }
@@ -3884,7 +3884,7 @@ function getMemberBulkMoveTargets() {
 function describeMemberBulkMoveScope(scope) {
     const normalized = String(scope || '').trim().toLowerCase();
     const match = MEMBER_BULK_SCOPE_OPTIONS.find((entry) => entry.value === normalized);
-    return match ? match.label : 'Move shown';
+    return match ? match.label : surfaceT("common.actions.move-shown", "Move shown");
 }
 
 function getCurrentMemberBulkMoveScope() {
@@ -4143,7 +4143,7 @@ async function applyEditorMemberBulkMove() {
                 offerUndo: false,
                 trackDiagnostics: false,
                 onProgress: ({ chunkNumber, chunkCount, chunkSize }) => {
-                    $('#fvMemberBulkSummary').text(`Applying chunk ${chunkNumber}/${chunkCount} (${chunkSize} item${chunkSize === 1 ? '' : 's'})...`);
+                    $('#fvMemberBulkSummary').text(surfaceT("common.counts.applying-batch", "Applying batch $1/$2. Items: $3.", chunkNumber, chunkCount, chunkSize));
                     updateMemberBulkMoveUi();
                 }
             });
@@ -4312,7 +4312,7 @@ const applyFolderSettingsToFolders = async () => {
         type: 'warning',
         html: true,
         showCancelButton: true,
-        confirmButtonText: 'Apply',
+        confirmButtonText: surfaceT("common.actions.apply", "Apply"),
         cancelButtonText: 'Cancel',
         closeOnConfirm: false,
         showLoaderOnConfirm: true
@@ -4338,7 +4338,7 @@ const applyFolderSettingsToFolders = async () => {
             swal.close();
             swal({
                 title: 'Folder settings applied',
-                text: `Applied to ${selectedIds.length} folder${selectedIds.length === 1 ? '' : 's'}. A backup snapshot was created before the update.`,
+                text: surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", selectedIds.length),
                 type: 'success'
             });
         } catch (error) {

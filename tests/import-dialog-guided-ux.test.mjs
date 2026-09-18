@@ -99,8 +99,8 @@ test('import modal is compact, bounded, and responsive', () => {
 test('change summary is concise and only surfaces warnings when action is needed', () => {
     assert.match(runtime, /class="import-summary-total"/);
     assert.match(runtime, /class="import-summary-breakdown"/);
-    assert.match(runtime, /statusMessage = 'Preview only is enabled\. No changes will be saved\.'/);
-    assert.match(runtime, /statusMessage = `\$\{selectedDeletes\} folder/);
+    assert.match(runtime, /statusMessage = importT\("common\.audit\.preview-only"/);
+    assert.match(runtime, /statusMessage = importT\("common\.counts\.folders-to-delete", "Folders to delete: \$1\.", selectedDeletes\)/);
     assert.match(runtime, /\.toggle\(statusMessage !== ''\)/);
     assert.doesNotMatch(runtime, /What happens when you continue/);
     assert.doesNotMatch(runtime, /import-impact-card/);

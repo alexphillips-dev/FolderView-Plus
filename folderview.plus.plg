@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.17.09">
-<!ENTITY md5 "69f84126353514bfb6f0fbd10e261c3f">
-<!ENTITY sha256 "6a81910b42b48435e9224ceae28406f8a588d322bd06c20a3a900d65ae81a952">
+<!ENTITY version "2026.09.17.10">
+<!ENTITY md5 "e2134ef2f2ec6c42c4229988fec30252">
+<!ENTITY sha256 "ad9e0d5701be50def71cd50d3763241d2db20365a3f69db970f43fcbb99adbc8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.17.10
+- Fix: Translate destructive backup and folder-branch confirmations across all supported languages. Count messages now use complete translated text without inserting English plural suffixes, including singular and zero-count states. Existing confirmation and cancellation safeguards are preserved.
+- Fix: Correct Apply, Run, Move shown, and Clear terminology, and distinguish manual sorting from manually assigned folder membership in Docker, VM, and setup views.
+- Fix: Translate missing appearance, icon-browser, advanced-rule, import, recovery, setup, update, and diagnostics messages, including native browser prompts and common server error and repair responses. User-entered names and technical diagnostic details retain their original contents.
+- Fix: Correct remaining reviewed wording in Swedish WebUI controls, Chinese batch controls and container labels, Czech setup guidance, and Danish help text. All 27 supported locale catalogs are regenerated together.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the updated scripts and translations.
+
 
 ###2026.09.17.09
 - Fix: Complete runtime translations across all 27 supported locales for folder-editor validation, save actions, change counters, inherited defaults, preview summaries, parent-folder guidance, automatic rules, and bulk assignment.

@@ -2801,7 +2801,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         if (currentParentId === parentId) {
             swal({
                 title: 'Folder already there',
-                text: parentId ? 'This folder is already under the selected folder.' : 'This folder is already at the top level.',
+                text: parentId ? dockerT("common.audit.already-parent", "This folder is already under the selected folder.") : 'This folder is already at the top level.',
                 type: 'info',
                 confirmButtonText: 'OK'
             });
@@ -2945,7 +2945,7 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
             swal({
                 title: 'Folder order unchanged',
                 text: moveDirection < 0
-                    ? 'This folder is already first in this level.'
+                    ? dockerT("common.audit.already-first", "This folder is already first in this level.")
                     : 'This folder is already last in this level.',
                 type: 'info',
                 confirmButtonText: 'OK'

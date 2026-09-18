@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
 import { registerLocalizedEditorStateCases } from './localization-editor-state.mjs';
+import { registerLocalizationAuditCases } from './localization-audit.mjs';
 
 const loadI18n = async (page, baseUrl) => {
     await page.addScriptTag({ url: baseUrl + '/vendor/jquery.js' });
@@ -28,6 +29,7 @@ const configureGerman = (wait = true) => {
 
 export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => {
     registerLocalizedEditorStateCases({ test, baseUrl, loadI18n });
+    registerLocalizationAuditCases({ test, baseUrl, loadI18n });
     registerDiagnosticsOrphanFixtureCases({ test, baseUrl });
     test('delayed German catalogs translate Docker controls in place across navigation', async ({ page }) => {
         for (let visit = 0; visit < 2; visit += 1) {

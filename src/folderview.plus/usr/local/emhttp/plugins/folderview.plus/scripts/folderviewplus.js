@@ -2219,7 +2219,7 @@ const applyRegexPreset = (type, preset) => {
     if (!input.length) {
         return;
     }
-    const plainText = window.prompt('Enter plain text for this preset:');
+    const plainText = window.prompt(surfaceT("common.dialogs.plain-text", "Enter plain text for this preset:"));
     if (plainText === null) {
         return;
     }
@@ -3267,7 +3267,7 @@ const applySavedFolderDefaultsToAll = async (type) => {
         ]);
         showToastMessage({
             title: 'Defaults applied',
-            message: `Applied the saved profile to ${Number(result.updatedCount) || targetIds.length} folder${targetIds.length === 1 ? '' : 's'}.`,
+            message: surfaceT("common.counts.profile-applied", "Saved profile applied. Folders updated: $1.", Number(result.updatedCount) || targetIds.length),
             level: 'success'
         });
         return true;
@@ -3911,7 +3911,7 @@ const promptStarterFolderName = async (type, suggestedName) => {
     const folderTypeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
     const initialValue = String(suggestedName || '').trim() || `New ${folderTypeLabel} Folder`;
     if (typeof window.swal !== 'function') {
-        const fallback = window.prompt(`Create ${folderTypeLabel} folder`, initialValue);
+        const fallback = window.prompt(surfaceT("legacy.surface.cb9eb0da18927732", "Create $1 folder", folderTypeLabel), initialValue);
         return String(fallback || '').trim();
     }
     return new Promise((resolve) => {
@@ -5818,7 +5818,7 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
 };
 
 const showError = (title, error) => {
-    const message = error?.message || String(error);
+    const message = window.FolderViewPlusI18n?.serverMessage?.(error?.response || error?.message || String(error), error?.message || String(error)) || error?.message || String(error);
     const safeTitle = String(title || 'Error');
     recordFatalBannerAction(`Error: ${safeTitle}`);
     annotateFatalBannerError(error, {
@@ -7385,7 +7385,7 @@ const VIEW_ORGANIZATION_SORT_DETAILS = Object.freeze({
         description: 'Folders with the newest saved changes move toward the top.'
     },
     manual: {
-        label: 'Manual',
+        label: surfaceT("common.actions.manual-sort", "Manual order"),
         title: 'Manual order is active',
         description: 'Use the up, down, and tree-move controls in the Order column to place folders exactly where you want them.'
     },
@@ -10832,15 +10832,15 @@ const deleteAllBackupEntries = (type) => {
     const label = resolvedType === 'docker' ? 'Docker' : 'VM';
     const count = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].length : 0;
     if (count < 1) {
-        showError('Delete all backups failed', new Error(`No ${label} backups are available to delete.`));
+        showError('Delete all backups failed', new Error(surfaceT("common.server.no-backups", "No backups available.")));
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Delete all ${label} backups`)) {
         return;
     }
     swal({
-        title: `Delete all ${label} backups?`,
-        text: `This will permanently delete ${count} ${label} backup snapshot${count === 1 ? '' : 's'}. This cannot be undone.`,
+        title: surfaceT("legacy.surface.8c3bcd3c9e28bb6f", "Delete all $1 backups?", label),
+        text: surfaceT("common.counts.delete-backups", "Permanently delete $1 backup snapshots (count: $2)? This cannot be undone.", label, count),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Continue',
@@ -10851,7 +10851,7 @@ const deleteAllBackupEntries = (type) => {
         }
         swal({
             title: 'Confirm delete all',
-            text: `Are you sure you want to delete every ${label} backup snapshot?`,
+            text: surfaceT("legacy.surface.1e98433fc8e58ec2", "Are you sure you want to delete every $1 backup snapshot?", label),
             type: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete all',
@@ -10867,7 +10867,7 @@ const deleteAllBackupEntries = (type) => {
                     backupsByType[resolvedType] = response.backups;
                     const deletedCount = Number(response.result?.deletedCount || 0);
                     const failedCount = Number(response.result?.failedCount || 0);
-                    addActivityEntry(`Deleted ${deletedCount} ${label} backup snapshot${deletedCount === 1 ? '' : 's'}${failedCount > 0 ? `; ${failedCount} failed` : ''}.`, failedCount > 0 ? 'warning' : 'success');
+                    addActivityEntry(surfaceT("common.counts.backups-deleted", "Backup deletion ($1): deleted $2; failed $3.", label, deletedCount, failedCount), failedCount > 0 ? 'warning' : 'success');
                     renderBackupRows(resolvedType);
                 } catch (error) {
                     showError('Delete all backups failed', error);
@@ -10945,7 +10945,7 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
         text: 'This overwrites icon/settings/actions/regex on the target folder.',
         type: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Apply',
+        confirmButtonText: surfaceT("common.actions.apply", "Apply"),
         cancelButtonText: 'Cancel',
         showLoaderOnConfirm: true
     }, async (confirmed) => {
@@ -11151,7 +11151,7 @@ const applyRuleSimulatorAssignments = (type) => {
 
     swal({
         title: 'Apply previewed assignments?',
-        text: `This will assign ${targetRows.length} ${resolvedType === 'docker' ? 'container' : 'VM'}${targetRows.length === 1 ? '' : 's'} across ${byFolder.size} folder${byFolder.size === 1 ? '' : 's'}. A backup will be created first.`,
+        text: surfaceT("common.counts.assign-folders", "Items to assign: $1. Destination folders: $2. A backup will be created first.", targetRows.length, byFolder.size),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Apply assignments',

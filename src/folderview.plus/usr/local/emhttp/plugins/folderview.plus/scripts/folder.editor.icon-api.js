@@ -53,7 +53,7 @@
             if (responseText) {
                 try {
                     const payload = parseJsonPayload(responseText, context);
-                    const serverMessage = String(payload?.error || '').trim();
+                    const serverMessage = String(win?.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || '').trim();
                     if (serverMessage) {
                         return serverMessage;
                     }
@@ -251,7 +251,7 @@
             }
 
             if (!payload || payload.ok !== true) {
-                throw new Error(String(payload?.error || 'Upload failed.'));
+                throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || 'Upload failed.'));
             }
             const url = String(payload.url || '').trim();
             if (!url) {
@@ -277,7 +277,7 @@
             if (normalizedMethod === 'GET') {
                 const parsed = await requestClient.getJson(uploadApiPath, { data });
                 if (!parsed || parsed.ok !== true) {
-                    throw new Error(String(parsed?.error || 'Request failed.'));
+                    throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(parsed) || parsed?.error || 'Request failed.'));
                 }
                 return parsed;
             }
@@ -286,7 +286,7 @@
                 timeoutMs: 15000
             });
             if (!parsed || parsed.ok !== true) {
-                throw new Error(String(parsed?.error || 'Request failed.'));
+                throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(parsed) || parsed?.error || 'Request failed.'));
             }
             return parsed;
         };

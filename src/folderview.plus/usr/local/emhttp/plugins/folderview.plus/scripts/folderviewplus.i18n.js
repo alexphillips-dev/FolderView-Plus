@@ -127,12 +127,26 @@
 
     const normalizeAutoPhrase = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
+    // Only declared, static server messages are translated. Arbitrary error details
+    // and user data remain untouched, including when a server sends an unknown key.
+    const serverMessage = (value, fallback = '') => {
+        const text = typeof value === 'string' ? value : String(value?.error || value?.message || fallback);
+        const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
+        const declared = value && typeof value === 'object' ? (value.errorKey || value.messageKey) : '';
+        if (declared) {
+            return String(declared).startsWith('common.server.') && english[declared] === text
+                ? translate(declared, text) : text;
+        }
+        const key = Object.keys(english).find(candidate => candidate.startsWith('common.server.') && english[candidate] === text);
+        return key ? translate(key, text) : text;
+    };
+
     const rebuildAutoPhraseIndex = () => {
         const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
         autoPhraseIndex = new Map();
         autoTemplateIndex = [];
         Object.entries(english).forEach(([key, value]) => {
-            if (!String(key).startsWith(AUTO_KEY_PREFIX) || typeof value !== 'string') return;
+            if (!(String(key).startsWith(AUTO_KEY_PREFIX) || String(key).startsWith('common.server.')) || typeof value !== 'string') return;
             const phrase = normalizeAutoPhrase(value);
             if (!phrase) return;
             if (!/\$\d+/.test(phrase)) {
@@ -604,6 +618,7 @@
         ready,
         configure,
         t: translate,
+        serverMessage,
         translate: translateDom,
         formatNumber,
         formatDate,

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "translation-context-revision": "8599bd1acecb0817073321f05b0e21d7525dc51223bd5805b98699ea4d4f1b69"
+        "translation-context-revision": "770d45ddefce804b292e560d72a39c2ded3b1e71c694533209a7224ce0ddb3cf"
     },
     "settings.folder-defaults.edit": "编辑文件夹默认设置",
     "settings.search.placeholder": "搜索设置",
@@ -132,7 +132,7 @@
     "settings.start-order.batch-copy": "只有启用了 Docker 自动启动的容器才会写入 Unraid 启动顺序。延迟适用于每批中的最后一个自动启动容器。",
     "settings.start-order.counts": "自动启动容器：$1；检测到的容器：$2",
     "settings.start-order.order-column": "排序顺序",
-    "settings.start-order.container-column": "集装箱",
+    "settings.start-order.container-column": "容器",
     "settings.navigation.automation": "自动化",
     "settings.navigation.rules": "规则",
     "settings.navigation.recovery": "恢复",

@@ -25,6 +25,28 @@
         "Inherited": "Inherited from existing settings"
     },
     "overrides": {
+        "sv": {
+            "Open WebUI profile": "Öppna webbgränssnittsprofil",
+            "Manage WebUI profiles": "Hantera webbgränssnittsprofiler",
+            "No WebUIs ready": "Inga webbgränssnitt är redo",
+            "Custom WebUI Profiles": "Anpassade webbgränssnittsprofiler",
+            "WebUI Profiles": "Webbgränssnittsprofiler",
+            "Live actions": "Direktåtgärder"
+        },
+        "zh-Hans": {
+            "Move batch up": "上移批次",
+            "Move batch down": "下移批次",
+            "Remove batch": "移除批次",
+            "Container": "容器"
+        },
+        "zh-Hant": { "Container": "容器" },
+        "cs": { "Live impact for this step": "Průběžný dopad tohoto kroku" },
+        "da": {
+            "Browser Quick Guide": "Hurtig vejledning til browseren",
+            "Parallel batch note": "Bemærkning om parallelle grupper",
+            "FolderView Plus Setup Assistant": "Opsætningsassistent til FolderView Plus"
+        },
+        "pl": { "Clear": "Wyczyść" },
         "de": {
             "Dashboard": "Dashboard",
             "Order": "Reihenfolge",

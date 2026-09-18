@@ -10,7 +10,7 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const $ = deps.$ || win?.jQuery || win?.$ || null;
@@ -268,7 +268,7 @@
                 await offerUndoAction(resolvedType, backup, 'Branch import');
                 showToastMessage({
                     title: 'Branch imported',
-                    message: `Imported ${upserts.length} folder${upserts.length === 1 ? '' : 's'} under ${folders[targetId]?.name || targetId}.`,
+                    message: surfaceT("common.counts.folders-imported", "Folders imported: $1. Parent: $2.", upserts.length, folders[targetId]?.name || targetId),
                     level: 'success',
                     durationMs: 4200
                 });
@@ -331,7 +331,7 @@
                 text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Apply',
+                confirmButtonText: surfaceT("common.actions.apply", "Apply"),
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true
             }, async (confirmed) => {

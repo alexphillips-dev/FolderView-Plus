@@ -10,7 +10,7 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
     const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
     const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
@@ -401,8 +401,8 @@
             const hiddenCount = Math.max(0, branchIds.length - Math.min(5, branchIds.length));
             const impactLines = [
                 `Delete branch folders: ${folderName}`,
-                `This will permanently delete <strong>${branchIds.length}</strong> folder${branchIds.length === 1 ? '' : 's'} in this branch.`,
-                'Nested child folders will be deleted with the root folder and will <strong>not</strong> be re-parented.'
+                escapeHtml(surfaceT("common.counts.delete-branch", "Permanently delete folders in this branch (count: $1)? This cannot be undone.", branchIds.length)),
+                escapeHtml(surfaceT("common.actions.delete-children", "Child folders will also be deleted. They will not be moved to another parent."))
             ];
             if (previewNames) {
                 impactLines.push(`<strong>Branch:</strong> ${previewNames}${hiddenCount > 0 ? ` (+${hiddenCount} more)` : ''}`);
@@ -643,7 +643,7 @@
                 `<ol data-fvplus-style="fv-u-wbhnsm">`,
                 `<li>Click the popup-blocked icon in your browser address bar.</li>`,
                 `<li>Choose to always allow popups/redirects for this Unraid host.</li>`,
-                `<li>Run <strong>${escapeHtml(retryLabel)}</strong> again.</li>`,
+                `<li>${escapeHtml(surfaceT("common.actions.run-again", "Run $1 again.", retryLabel))}</li>`,
                 `</ol>`,
                 `</div>`,
                 `<div class="fv-popup-panel">`,

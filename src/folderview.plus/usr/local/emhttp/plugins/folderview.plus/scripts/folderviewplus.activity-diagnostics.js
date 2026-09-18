@@ -149,7 +149,7 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
         return null;
     }
 };
-
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const getPerformanceDiagnosticsSeries = () => ([
     performanceDiagnosticsState.refresh.docker,
     performanceDiagnosticsState.refresh.vm,
@@ -1104,7 +1104,7 @@ const renderActivityFeed = () => {
     const firstLevel = normalizeActivityLevel(first?.level);
     const firstMeta = getActivityLevelMeta(firstLevel);
     const firstFresh = firstLevel !== 'error' && isActivityEntryFresh(first);
-    status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? 'Review recent action' : 'Recent activity');
+    status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? surfaceT("common.audit.review-action", "Review recent action") : 'Recent activity');
     summary.text(summarizeActivityFeed());
     latest
         .removeClass('is-empty is-error is-warning is-success is-info is-fresh')
@@ -1738,7 +1738,7 @@ const repairDiagnostics = async (action, type = '') => {
                 ? (type === 'docker'
                     ? diagnosticsT('diagnostics.repair.done-docker', 'Removed $1 missing Docker references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0)
                     : diagnosticsT('diagnostics.repair.done-vm', 'Removed $1 missing VM references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0))
-                : diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.'),
+                : (window.FolderViewPlusI18n?.serverMessage?.(response) || diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.')),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);

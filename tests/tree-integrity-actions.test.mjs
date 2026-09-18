@@ -205,7 +205,7 @@ test('tree repair submits the refreshed revision, creates undo, and verifies sav
     assert.equal(harness.getFolders().cycleA.parentId, '');
     assert.equal(harness.undo.length, 1);
     assert.equal(harness.modals.at(-1)?.title, 'Repair complete');
-    assert.match(harness.modals.at(-1)?.text || '', /Verified remaining link errors: 0/);
+    assert.match(harness.modals.at(-1)?.text || '', /Remaining link errors: 0/);
 });
 
 test('tree repair stops safely when backup or mutation fails', async () => {

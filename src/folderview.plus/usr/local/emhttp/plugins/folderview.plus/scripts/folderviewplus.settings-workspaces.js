@@ -241,10 +241,10 @@
                 });
                 const importResult = response.import || {};
                 const importedSummary = setRecoveryEnvironmentSummary(importResult.summary || previewSummary || {}, 'import');
-                setProgress(1, 'Environment snapshot applied.');
+                setProgress(1, translate("common.audit.environment-applied", "Environment snapshot applied."));
 
                 await refreshType('docker');
-                setProgress(2, 'Refreshed Docker folders and preferences.');
+                setProgress(2, translate("common.audit.folders-refreshed", "Refreshed Docker folders and preferences."));
 
                 await refreshType('vm');
                 setProgress(3, 'Refreshed VM folders and preferences.');
@@ -263,7 +263,7 @@
                 }
                 setProgress(6, themeRefreshMessage);
 
-                setProgress(progressTotal, 'Environment import complete.');
+                setProgress(progressTotal, translate("common.audit.environment-complete", "Environment import complete."));
                 await new Promise((resolve) => {
                     const timer = windowRef?.setTimeout || setTimeout;
                     timer(resolve, 180);
@@ -275,7 +275,7 @@
                 const title = 'Environment imported';
                 const text = rollbackName
                     ? `Environment snapshot applied. Rollback checkpoint: ${rollbackName}.`
-                    : 'Environment snapshot applied.';
+                    : translate("common.audit.environment-applied", "Environment snapshot applied.");
                 if (swal) {
                     swal({ title, text, type: 'success' });
                 }
@@ -343,7 +343,7 @@
                 const previewHtml = buildRecoveryEnvironmentConfirmHtml(summary);
 
                 if (!swal) {
-                    const confirmed = windowRef?.confirm('Import this environment snapshot?');
+                    const confirmed = windowRef?.confirm(translate("legacy.surface.ffc450f2a4795269", "Import environment snapshot?"));
                     if (confirmed) {
                         await applyEnvironmentSnapshotSelection(selected, summary);
                     }
@@ -704,7 +704,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Restore failed', new Error('Select a backup first.'));
+                showError('Restore failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             restoreBackupEntry(resolvedType, selectedName);
@@ -713,7 +713,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Download failed', new Error('Select a backup first.'));
+                showError('Download failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             downloadBackupEntry(resolvedType, selectedName);
@@ -722,7 +722,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Delete failed', new Error('Select a backup first.'));
+                showError('Delete failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             deleteBackupEntry(resolvedType, selectedName);

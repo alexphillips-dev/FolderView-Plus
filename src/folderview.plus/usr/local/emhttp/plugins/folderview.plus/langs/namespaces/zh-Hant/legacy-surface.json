@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "無法大量移動",
     "legacy.surface.0020e8cd415b07b6": "Docker 資料夾尚未設定",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "網路虛擬機器",
     "legacy.surface.7a1f2a83aca9a081": "收藏夾",
     "legacy.surface.7a721db5e3b1d59c": "排除規則",
-    "legacy.surface.7a73f8f30dae4554": "下載未開始",
     "legacy.surface.7a75f86cfc877a4c": "預覽匯入並將其資料夾放在該資料夾下。",
     "legacy.surface.7a7c104369e28f5c": "解析失敗",
     "legacy.surface.7ab52733c917451a": "應用程式使用預設值",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "套用變更前檢查",
     "legacy.surface.e524d562eb99c876": "意外的 $1 型別。",
     "legacy.surface.e52e4e0deb92e4a0": "來源資料夾",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus 準備匯出並要求瀏覽器儲存它。瀏覽器不提供儲存完成訊號。",
     "legacy.surface.e554fb255bf22b65": "首先建立您的第一個資料夾、匯入 JSON 匯出或執行設定精靈。",
     "legacy.surface.e56ac99ff636418f": "Docker Compose 專案規則運算式",
     "legacy.surface.e56ae3f22352e3c8": "試運轉：$1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "選擇匯出文件",
     "legacy.surface.f3c92ac0b583707a": "最終結果：被排除規則#$1阻止。 $2。",
     "legacy.surface.f3cd892e06874da6": "適用範圍：所有包",
-    "legacy.surface.f3dcd470ded0fdc2": "已請求下載",
     "legacy.surface.f3e4352a5df650e5": "剩餘",
     "legacy.surface.f3f2d59b23eb5bcc": "即時重新整理間隔（以秒為單位）",
     "legacy.surface.f3f67377a59f5d5a": "恢復最近使用",

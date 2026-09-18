@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "S’han reparat els camins del connector.",
     "common.server.icons-repaired": "S’han reparat les referències a icones personalitzades que falten.",
     "common.server.orphans-removed": "S’han eliminat les referències a membres inexistents.",
+    "common.download.sent": "L’exportació s’ha enviat al navegador",
+    "common.download.check": "Comproveu la carpeta de baixades.",
+    "common.download.help": "No trobeu el fitxer? Obteniu ajuda",
     "common.server.custom-icon-directory-unwritable": "El directori d'icones personalitzades no es pot escriure. Executar: $1",
     "common.server.custom-icon-lock-unavailable": "No es pot obrir el fitxer de bloqueig de la icona personalitzada. Executar: $1",
     "common.server.custom-icon-directory-missing": "El directori d'icones personalitzats no existeix. Executar: $1",

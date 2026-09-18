@@ -605,6 +605,19 @@
   ],
   "moduleContracts": [
     {
+      "file": "scripts/folderviewplus.download-status.js",
+      "owner": "settings-download-status",
+      "consumers": ["settings"],
+      "stateModel": "entrypoint-owned",
+      "dependsOn": ["scripts/folderviewplus.import.js", "scripts/folderviewplus.download-diagnostics.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "downloadStatus",
+      "loader": "window",
+      "typeChecked": false,
+      "exports": ["render"]
+    },
+    {
       "file": "scripts/folder.editor.defaults.js",
       "owner": "folder-defaults-editor",
       "consumers": ["folder-editor"],

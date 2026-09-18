@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Spostamento collettivo non disponibile",
     "legacy.surface.0020e8cd415b07b6": "Le cartelle Docker non sono ancora state configurate",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "VM di rete",
     "legacy.surface.7a1f2a83aca9a081": "Preferiti",
     "legacy.surface.7a721db5e3b1d59c": "Regola di esclusione",
-    "legacy.surface.7a73f8f30dae4554": "Il download non è iniziato",
     "legacy.surface.7a75f86cfc877a4c": "Visualizza l'anteprima di un'importazione e posiziona le sue cartelle sotto questa.",
     "legacy.surface.7a7c104369e28f5c": "analisi non riuscita",
     "legacy.surface.7ab52733c917451a": "Applicare le impostazioni predefinite di utilizzo",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Verifica prima di applicare le modifiche",
     "legacy.surface.e524d562eb99c876": "Tipo $1 imprevisto.",
     "legacy.surface.e52e4e0deb92e4a0": "Cartella di origine",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus ha preparato l'esportazione e ha chiesto al browser di salvarla. I browser non forniscono un segnale di completamento del salvataggio.",
     "legacy.surface.e554fb255bf22b65": "Inizia creando la tua prima cartella, importando un'esportazione JSON o eseguendo la configurazione guidata.",
     "legacy.surface.e56ac99ff636418f": "Espressione regolare del progetto Docker Compose",
     "legacy.surface.e56ae3f22352e3c8": "Prova: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Seleziona un file di esportazione",
     "legacy.surface.f3c92ac0b583707a": "Risultato finale: bloccato dalla regola di esclusione #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Campo di applicazione: tutti i pacchetti",
-    "legacy.surface.f3dcd470ded0fdc2": "Download richiesto",
     "legacy.surface.f3e4352a5df650e5": "Rimanente",
     "legacy.surface.f3f2d59b23eb5bcc": "Intervallo di aggiornamento in tempo reale in secondi",
     "legacy.surface.f3f67377a59f5d5a": "Ripristina gli ultimi utilizzi",

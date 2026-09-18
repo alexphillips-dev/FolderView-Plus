@@ -44,10 +44,10 @@ test('Export download diagnostics report a missing file and retry from a direct 
     await page.evaluate(() => window.fixtureImport.requestDownload());
     const status = page.locator('#docker-download-status');
     assert.equal(await status.isVisible(), true);
-    assert.equal(await status.locator('strong').textContent(), 'Download requested');
+    assert.equal(await status.locator('strong').textContent(), 'Export sent to your browser');
     assert.match(
         String(await status.locator('small').textContent()),
-        /Browsers do not provide a save-completion signal/
+        /Check your Downloads folder\./
     );
 
     await status.locator('.fv-download-status-report').click();

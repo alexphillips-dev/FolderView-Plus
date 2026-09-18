@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Déplacement groupé indisponible",
     "legacy.surface.0020e8cd415b07b6": "Dossiers Docker pas encore configurés",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "Machines virtuelles réseau",
     "legacy.surface.7a1f2a83aca9a081": "Favoris",
     "legacy.surface.7a721db5e3b1d59c": "Exclure la règle",
-    "legacy.surface.7a73f8f30dae4554": "Le téléchargement n'a pas démarré",
     "legacy.surface.7a75f86cfc877a4c": "Prévisualisez une importation et placez ses dossiers sous celle-ci.",
     "legacy.surface.7a7c104369e28f5c": "l'analyse a échoué",
     "legacy.surface.7ab52733c917451a": "Appliquer les paramètres d'utilisation par défaut",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Vérifier avant d’appliquer les modifications",
     "legacy.surface.e524d562eb99c876": "Type $1 inattendu.",
     "legacy.surface.e52e4e0deb92e4a0": "Dossier source",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus a préparé l'exportation et a demandé au navigateur de l'enregistrer. Les navigateurs ne fournissent pas de signal de fin de sauvegarde.",
     "legacy.surface.e554fb255bf22b65": "Commencez par créer votre premier dossier, importez une exportation JSON ou exécutez l'assistant de configuration.",
     "legacy.surface.e56ac99ff636418f": "Expression régulière du projet Docker Compose",
     "legacy.surface.e56ae3f22352e3c8": "Essai à sec : $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Sélectionnez un fichier d'exportation",
     "legacy.surface.f3c92ac0b583707a": "Résultat final : bloqué par la règle d'exclusion #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Portée : tous les packs",
-    "legacy.surface.f3dcd470ded0fdc2": "Téléchargement demandé",
     "legacy.surface.f3e4352a5df650e5": "Restant",
     "legacy.surface.f3f2d59b23eb5bcc": "Intervalle d'actualisation en direct en secondes",
     "legacy.surface.f3f67377a59f5d5a": "Restaurer les dernières utilisations",

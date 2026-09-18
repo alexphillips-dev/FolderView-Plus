@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Eklenti yolları onarıldı.",
     "common.server.icons-repaired": "Eksik özel simge başvuruları onarıldı.",
     "common.server.orphans-removed": "Artık var olmayan üye başvuruları kaldırıldı.",
+    "common.download.sent": "Dışa aktarılan dosya tarayıcınıza gönderildi",
+    "common.download.check": "İndirilenler klasörünüzü kontrol edin.",
+    "common.download.help": "Dosyayı bulamadınız mı? Yardım alın",
     "common.server.custom-icon-directory-unwritable": "Özel simge dizini yazılabilir değildir. Çalıştır: $1",
     "common.server.custom-icon-lock-unavailable": "Özel simge kilit dosyası açılamıyor. Çalıştır: $1",
     "common.server.custom-icon-directory-missing": "Özel simge dizini mevcut değil. Çalıştır: $1",

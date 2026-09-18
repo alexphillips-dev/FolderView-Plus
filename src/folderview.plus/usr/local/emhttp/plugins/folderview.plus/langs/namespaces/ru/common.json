@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Пути плагина исправлены.",
     "common.server.icons-repaired": "Ссылки на отсутствующие пользовательские значки исправлены.",
     "common.server.orphans-removed": "Ссылки на несуществующих участников удалены.",
+    "common.download.sent": "Файл экспорта передан браузеру",
+    "common.download.check": "Проверьте папку «Загрузки».",
+    "common.download.help": "Файл не найден? Получить помощь",
     "common.server.custom-icon-directory-unwritable": "Каталог пользовательских значков недоступен для записи. Запустите: $1",
     "common.server.custom-icon-lock-unavailable": "Невозможно открыть файл блокировки пользовательских значков. Запустите: $1",
     "common.server.custom-icon-directory-missing": "Каталог пользовательских значков не существует. Запустите: $1",

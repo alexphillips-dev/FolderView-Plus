@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Căile pluginului au fost reparate.",
     "common.server.icons-repaired": "Referințele la pictograme personalizate lipsă au fost reparate.",
     "common.server.orphans-removed": "Referințele la membri inexistenți au fost eliminate.",
+    "common.download.sent": "Exportul a fost trimis către browser",
+    "common.download.check": "Verificați dosarul Descărcări.",
+    "common.download.help": "Fișierul lipsește? Obțineți ajutor",
     "common.server.custom-icon-directory-unwritable": "Directorul cu pictograme personalizate nu poate fi scris. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Nu se poate deschide fișierul de blocare a pictogramei personalizate. Run: $1",
     "common.server.custom-icon-directory-missing": "Directorul cu pictograme personalizate nu există. Run: $1",

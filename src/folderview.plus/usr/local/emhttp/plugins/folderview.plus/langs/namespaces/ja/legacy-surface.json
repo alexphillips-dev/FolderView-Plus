@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "一括移動は利用できません",
     "legacy.surface.0020e8cd415b07b6": "Docker フォルダーがまだセットアップされていません",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "ネットワークVM",
     "legacy.surface.7a1f2a83aca9a081": "お気に入り",
     "legacy.surface.7a721db5e3b1d59c": "除外ルール",
-    "legacy.surface.7a73f8f30dae4554": "ダウンロードが開始されませんでした",
     "legacy.surface.7a75f86cfc877a4c": "インポートをプレビューし、そのフォルダーをこのフォルダーの下に配置します。",
     "legacy.surface.7a7c104369e28f5c": "解析に失敗しました",
     "legacy.surface.7ab52733c917451a": "使用法のデフォルトを適用する",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "変更を適用する前に確認",
     "legacy.surface.e524d562eb99c876": "予期しない $1 タイプです。",
     "legacy.surface.e52e4e0deb92e4a0": "ソースフォルダー",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus はエクスポートを準備し、ブラウザーにそれを保存するように要求しました。ブラウザは保存完了信号を提供しません。",
     "legacy.surface.e554fb255bf22b65": "まず、最初のフォルダーを作成するか、JSON エクスポートをインポートするか、セットアップ ウィザードを実行します。",
     "legacy.surface.e56ac99ff636418f": "Docker Composeプロジェクトの正規表現",
     "legacy.surface.e56ae3f22352e3c8": "ドライラン: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "エクスポートファイルを選択してください",
     "legacy.surface.f3c92ac0b583707a": "最終結果: 除外ルール #$1 によってブロックされました。 $2。",
     "legacy.surface.f3cd892e06874da6": "範囲: すべてのパック",
-    "legacy.surface.f3dcd470ded0fdc2": "ダウンロードが要求されました",
     "legacy.surface.f3e4352a5df650e5": "残り",
     "legacy.surface.f3f2d59b23eb5bcc": "ライブ更新間隔 (秒)",
     "legacy.surface.f3f67377a59f5d5a": "最新の使用状況を復元する",

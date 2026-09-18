@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Pluginets sökvägar har reparerats.",
     "common.server.icons-repaired": "Referenser till saknade anpassade ikoner har reparerats.",
     "common.server.orphans-removed": "Referenser till medlemmar som inte finns har tagits bort.",
+    "common.download.sent": "Exporten har skickats till webbläsaren",
+    "common.download.check": "Kontrollera mappen Hämtade filer.",
+    "common.download.help": "Saknas filen? Få hjälp",
     "common.server.custom-icon-directory-unwritable": "Anpassad ikonkatalog är inte skrivbar. Kör: $1",
     "common.server.custom-icon-lock-unavailable": "Det gick inte att öppna en anpassad ikonlåsfil. Kör: $1",
     "common.server.custom-icon-directory-missing": "Anpassad ikonkatalog finns inte. Kör: $1",

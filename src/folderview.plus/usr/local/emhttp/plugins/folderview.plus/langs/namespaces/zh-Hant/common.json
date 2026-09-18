@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "外掛程式路徑已修復。",
     "common.server.icons-repaired": "遺失的自訂圖示參照已修復。",
     "common.server.orphans-removed": "已刪除不存在的成員參照。",
+    "common.download.sent": "已將匯出檔案傳送至瀏覽器",
+    "common.download.check": "請檢查「下載項目」資料夾。",
+    "common.download.help": "找不到檔案？取得協助",
     "common.server.custom-icon-directory-unwritable": "自訂圖示目錄不可寫入。運作：$1",
     "common.server.custom-icon-lock-unavailable": "無法開啟自訂圖示鎖定檔案。運作：$1",
     "common.server.custom-icon-directory-missing": "自訂圖示目錄不存在。運作：$1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Pluginpaden hersteld.",
     "common.server.icons-repaired": "Verwijzingen naar ontbrekende aangepaste pictogrammen hersteld.",
     "common.server.orphans-removed": "Verwijzingen naar niet-bestaande leden verwijderd.",
+    "common.download.sent": "Export naar uw browser verzonden",
+    "common.download.check": "Controleer uw map Downloads.",
+    "common.download.help": "Bestand niet gevonden? Hulp krijgen",
     "common.server.custom-icon-directory-unwritable": "Aangepaste pictogrammap is niet beschrijfbaar. Uitvoeren: $1",
     "common.server.custom-icon-lock-unavailable": "Kan het aangepaste pictogramvergrendelingsbestand niet openen. Uitvoeren: $1",
     "common.server.custom-icon-directory-missing": "Aangepaste pictogrammap bestaat niet. Uitvoeren: $1",

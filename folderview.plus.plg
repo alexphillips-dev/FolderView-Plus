@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.18.01">
-<!ENTITY md5 "cf4e5627fd7eb8f967e00d255521baa2">
-<!ENTITY sha256 "42769039c51096e0371bbc2eb0114e0b7c069e77d00a163f72df5e6fd07521d5">
+<!ENTITY version "2026.09.18.02">
+<!ENTITY md5 "7f8010528c4ca86f8ae9b63533f635c6">
+<!ENTITY sha256 "21e19140f34c236555a18a65e9c6379552e897a20393c1aa838f13ccc59cab82">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.18.02
+- Fix: Show a calm, dismissible notice after requesting a configuration export. Replace the alarming download-failure button with a secondary "File missing? Get help" action, while preserving missing-file reporting, retry, and genuine error messages.
+- Fix: Keep dismissed notices closed when delayed diagnostic responses arrive, and prevent older responses from replacing a newer export notice. Dismissing a notice does not mark a download as successful or failed.
+- Localization: Translate the new download notice into all 27 supported languages and keep its controls readable on phones, in light and dark themes, and with right-to-left text.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. The notice confirms that the export was sent to the browser; it does not claim that the browser finished saving the file.
+
 
 ###2026.09.18.01
 - Fix: Download Docker and VM backup snapshots as files without the HTTP 200 `[object Blob]` parsing error on desktop and mobile browsers. Preserve server error details and allow the browser time to begin saving before releasing the download URL.

@@ -75,6 +75,7 @@
         "scripts/folderviewplus.wizard-review.js",
         "scripts/folderviewplus.wizard-smart-detect.js",
         "scripts/folderviewplus.wizard.js",
+        "scripts/folderviewplus.download-status.js",
         "scripts/folderviewplus.import.js",
         "scripts/folderviewplus.updates.js",
         "scripts/folderviewplus.actions-support.js",

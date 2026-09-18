@@ -466,6 +466,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.download-status.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css"

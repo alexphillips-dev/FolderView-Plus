@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "대량이동 불가",
     "legacy.surface.0020e8cd415b07b6": "Docker 폴더가 아직 설정되지 않았습니다.",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "네트워크 VM",
     "legacy.surface.7a1f2a83aca9a081": "즐겨찾기",
     "legacy.surface.7a721db5e3b1d59c": "제외 규칙",
-    "legacy.surface.7a73f8f30dae4554": "다운로드가 시작되지 않았습니다",
     "legacy.surface.7a75f86cfc877a4c": "가져오기를 미리 보고 폴더를 이 폴더 아래에 배치하세요.",
     "legacy.surface.7a7c104369e28f5c": "구문 분석 실패",
     "legacy.surface.7ab52733c917451a": "사용 기본값 적용",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "변경 사항 적용 전 확인",
     "legacy.surface.e524d562eb99c876": "예상치 못한 $1 유형입니다.",
     "legacy.surface.e52e4e0deb92e4a0": "소스 폴더",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus는 내보내기를 준비하고 브라우저에 저장을 요청했습니다. 브라우저는 저장 완료 신호를 제공하지 않습니다.",
     "legacy.surface.e554fb255bf22b65": "첫 번째 폴더를 생성하거나, JSON 내보내기를 가져오거나, 설정 마법사를 실행하여 시작하세요.",
     "legacy.surface.e56ac99ff636418f": "Docker Compose 프로젝트 정규식",
     "legacy.surface.e56ae3f22352e3c8": "시험 실행: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "내보내기 파일 선택",
     "legacy.surface.f3c92ac0b583707a": "최종 결과: 제외 규칙 #$1에 의해 차단되었습니다. $2.",
     "legacy.surface.f3cd892e06874da6": "범위: 모든 팩",
-    "legacy.surface.f3dcd470ded0fdc2": "다운로드가 요청됨",
     "legacy.surface.f3e4352a5df650e5": "남은",
     "legacy.surface.f3f2d59b23eb5bcc": "실시간 새로 고침 간격(초)",
     "legacy.surface.f3f67377a59f5d5a": "최근 사용 복원",

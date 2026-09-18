@@ -22,11 +22,13 @@
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
         "../tests/browser/cases/import.mjs",
         "../tests/browser/cases/folder-render-recovery.mjs",
-        "../tests/browser/cases/forum-reports.mjs"
+        "../tests/browser/cases/forum-reports.mjs",
+        "../tests/browser/cases/download-notice.mjs"
       ]
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
     { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
@@ -64,7 +66,8 @@
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/import.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
-        "tests/browser/cases/forum-reports.mjs"
+        "tests/browser/cases/forum-reports.mjs",
+        "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
@@ -73,10 +76,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 55,
-      "assertionCount": 674,
-      "pageEvaluateCount": 148,
-      "orderedTitleSha256": "b8e781cf5afde50742ea9bcb89d744abc98a12d9c6e6f2ad3c45ca09db3e8ee1"
+      "testCount": 59,
+      "assertionCount": 700,
+      "pageEvaluateCount": 161,
+      "orderedTitleSha256": "cdd6622f0dd37d9449542e8dcfc4c7965a469b72df585b942c53b092ba654e8b"
     }
   }
 }

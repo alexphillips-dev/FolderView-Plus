@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Toplu taşıma kullanılamıyor",
     "legacy.surface.0020e8cd415b07b6": "Docker klasörleri henüz kurulmadı",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "Ağ VM'leri",
     "legacy.surface.7a1f2a83aca9a081": "Favoriler",
     "legacy.surface.7a721db5e3b1d59c": "Kuralı hariç tut",
-    "legacy.surface.7a73f8f30dae4554": "İndirme başlamadı",
     "legacy.surface.7a75f86cfc877a4c": "Bir içe aktarma işlemini önizleyin ve klasörlerini bunun altına yerleştirin.",
     "legacy.surface.7a7c104369e28f5c": "ayrıştırma başarısız oldu",
     "legacy.surface.7ab52733c917451a": "Kullanım varsayılanlarını uygula",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Değişiklikleri uygulamadan önce kontrol et",
     "legacy.surface.e524d562eb99c876": "Beklenmeyen $1 türü.",
     "legacy.surface.e52e4e0deb92e4a0": "Kaynak klasörü",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus dışa aktarmayı hazırladı ve tarayıcıdan bunu kaydetmesini istedi. Tarayıcılar kaydetme tamamlama sinyali sağlamaz.",
     "legacy.surface.e554fb255bf22b65": "İlk klasörünüzü oluşturarak, bir JSON dışa aktarımını içe aktararak veya kurulum sihirbazını çalıştırarak başlayın.",
     "legacy.surface.e56ac99ff636418f": "Docker Compose projesi düzenli ifadesi",
     "legacy.surface.e56ae3f22352e3c8": "Deneme çalışması: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Bir dışa aktarma dosyası seçin",
     "legacy.surface.f3c92ac0b583707a": "Nihai sonuç: #$1 hariç tutma kuralı tarafından engellendi. $2.",
     "legacy.surface.f3cd892e06874da6": "Kapsam: tüm paketler",
-    "legacy.surface.f3dcd470ded0fdc2": "İndirme istendi",
     "legacy.surface.f3e4352a5df650e5": "Kalan",
     "legacy.surface.f3f2d59b23eb5bcc": "Saniye cinsinden canlı yenileme aralığı",
     "legacy.surface.f3f67377a59f5d5a": "Son kullanımları geri yükle",

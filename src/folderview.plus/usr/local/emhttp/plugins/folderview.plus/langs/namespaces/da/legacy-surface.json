@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Masseflytning er ikke tilgængelig",
     "legacy.surface.0020e8cd415b07b6": "Docker-mapper er ikke konfigureret endnu",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "Netværk VM'er",
     "legacy.surface.7a1f2a83aca9a081": "Favoritter",
     "legacy.surface.7a721db5e3b1d59c": "Udelad regel",
-    "legacy.surface.7a73f8f30dae4554": "Download startede ikke",
     "legacy.surface.7a75f86cfc877a4c": "Se forhåndsvisning af en import og placer dens mapper under denne.",
     "legacy.surface.7a7c104369e28f5c": "parse mislykkedes",
     "legacy.surface.7ab52733c917451a": "Anvend standardindstillinger",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Kontrollér før ændringer anvendes",
     "legacy.surface.e524d562eb99c876": "Uventet $1 type.",
     "legacy.surface.e52e4e0deb92e4a0": "Kilde mappe",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus forberedte eksporten og bad browseren om at gemme den. Browsere giver ikke et signal om at gemme fuldførelsen.",
     "legacy.surface.e554fb255bf22b65": "Start med at oprette din første mappe, importere en JSON-eksport eller køre installationsguiden.",
     "legacy.surface.e56ac99ff636418f": "Regulært udtryk for Docker Compose-projekt",
     "legacy.surface.e56ae3f22352e3c8": "Tørløb: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Vælg en eksportfil",
     "legacy.surface.f3c92ac0b583707a": "Slutresultat: blokeret af ekskluderingsreglen #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Omfang: alle pakker",
-    "legacy.surface.f3dcd470ded0fdc2": "Download anmodet",
     "legacy.surface.f3e4352a5df650e5": "Tilbage",
     "legacy.surface.f3f2d59b23eb5bcc": "Live opdateringsinterval i sekunder",
     "legacy.surface.f3f67377a59f5d5a": "Gendan Seneste anvendelser",

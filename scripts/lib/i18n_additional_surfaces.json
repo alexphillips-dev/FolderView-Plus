@@ -4304,19 +4304,10 @@
     ]
   },
   {
-    "phrase": "Download requested",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.import.js",
-        "anchor": "'Download requested'"
-      }
-    ]
-  },
-  {
     "phrase": "Download retry requested",
     "locations": [
       {
-        "file": "scripts/folderviewplus.import.js",
+        "file": "scripts/folderviewplus.download-status.js",
         "anchor": "'Download retry requested'"
       }
     ]
@@ -4325,7 +4316,7 @@
     "phrase": "Download was not received",
     "locations": [
       {
-        "file": "scripts/folderviewplus.import.js",
+        "file": "scripts/folderviewplus.download-status.js",
         "anchor": "'Download was not received'"
       }
     ]
@@ -5722,7 +5713,7 @@
     "phrase": "FolderView Plus could not hand the export to this browser. The failure is included in the support bundle.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.import.js",
+        "file": "scripts/folderviewplus.download-status.js",
         "anchor": "'FolderView Plus could not hand the export to this browser. The failure is included in the support bundle.'"
       }
     ]
@@ -5940,15 +5931,6 @@
       {
         "file": "scripts/vm.js",
         "anchor": "'FolderView Plus kept the VMs page open, but part of the folder runtime did not load.'"
-      }
-    ]
-  },
-  {
-    "phrase": "FolderView Plus prepared the export and asked the browser to save it. Browsers do not provide a save-completion signal.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.import.js",
-        "anchor": "'FolderView Plus prepared the export and asked the browser to save it. Browsers do not provide a save-completion signal.'"
       }
     ]
   },
@@ -11572,7 +11554,7 @@
     "phrase": "The missing file has been recorded in diagnostics. Retry from this button to provide a fresh browser user gesture.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.import.js",
+        "file": "scripts/folderviewplus.download-status.js",
         "anchor": "'The missing file has been recorded in diagnostics. Retry from this button to provide a fresh browser user gesture.'"
       }
     ]

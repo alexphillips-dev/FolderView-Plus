@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "বাল্ক সরানো অনুপলব্ধ",
     "legacy.surface.0020e8cd415b07b6": "ডকার ফোল্ডার এখনও সেট আপ করা হয়নি",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "নেটওয়ার্ক ভিএম",
     "legacy.surface.7a1f2a83aca9a081": "প্রিয়",
     "legacy.surface.7a721db5e3b1d59c": "নিয়ম বাদ দিন",
-    "legacy.surface.7a73f8f30dae4554": "ডাউনলোড শুরু হয়নি",
     "legacy.surface.7a75f86cfc877a4c": "একটি আমদানির পূর্বরূপ দেখুন এবং এর ফোল্ডারগুলিকে এটির অধীনে রাখুন।",
     "legacy.surface.7a7c104369e28f5c": "পার্স ব্যর্থ হয়েছে",
     "legacy.surface.7ab52733c917451a": "ব্যবহারের ডিফল্ট প্রয়োগ করুন",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "পরিবর্তন প্রয়োগের আগে যাচাই করুন",
     "legacy.surface.e524d562eb99c876": "অপ্রত্যাশিত $1 প্রকার।",
     "legacy.surface.e52e4e0deb92e4a0": "উৎস ফোল্ডার",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus রপ্তানি প্রস্তুত করেছে এবং ব্রাউজারকে এটি সংরক্ষণ করতে বলেছে। ব্রাউজারগুলি একটি সংরক্ষণ-সম্পূর্ণতা সংকেত প্রদান করে না।",
     "legacy.surface.e554fb255bf22b65": "আপনার প্রথম ফোল্ডার তৈরি করে, একটি JSON রপ্তানি আমদানি করে বা সেটআপ উইজার্ড চালানোর মাধ্যমে শুরু করুন।",
     "legacy.surface.e56ac99ff636418f": "Docker Compose প্রকল্পের রেগুলার এক্সপ্রেশন",
     "legacy.surface.e56ae3f22352e3c8": "ড্রাই রান: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "একটি এক্সপোর্ট ফাইল নির্বাচন করুন",
     "legacy.surface.f3c92ac0b583707a": "চূড়ান্ত ফলাফল: বাদ দেওয়া নিয়ম #$1 দ্বারা অবরুদ্ধ। $2",
     "legacy.surface.f3cd892e06874da6": "সুযোগ: সমস্ত প্যাক",
-    "legacy.surface.f3dcd470ded0fdc2": "ডাউনলোড অনুরোধ করা হয়েছে",
     "legacy.surface.f3e4352a5df650e5": "অবশিষ্ট",
     "legacy.surface.f3f2d59b23eb5bcc": "সেকেন্ডে লাইভ রিফ্রেশ ব্যবধান",
     "legacy.surface.f3f67377a59f5d5a": "সর্বশেষ ব্যবহার পুনরুদ্ধার করুন",

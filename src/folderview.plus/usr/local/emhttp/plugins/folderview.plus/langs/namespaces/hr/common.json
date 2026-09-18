@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Putanje dodatka su popravljene.",
     "common.server.icons-repaired": "Reference na prilagođene ikone koje nedostaju su popravljene.",
     "common.server.orphans-removed": "Reference na nepostojeće članove su uklonjene.",
+    "common.download.sent": "Izvoz je poslan vašem pregledniku",
+    "common.download.check": "Provjerite mapu Preuzimanja.",
+    "common.download.help": "Datoteka nedostaje? Potražite pomoć",
     "common.server.custom-icon-directory-unwritable": "Prilagođeni direktorij ikona ne može se pisati. Pokreni: $1",
     "common.server.custom-icon-lock-unavailable": "Nije moguće otvoriti datoteku zaključavanja prilagođene ikone. Pokreni: $1",
     "common.server.custom-icon-directory-missing": "Prilagođeni direktorij ikona ne postoji. Pokreni: $1",

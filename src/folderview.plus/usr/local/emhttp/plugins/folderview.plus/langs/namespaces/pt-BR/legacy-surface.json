@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimentação em massa indisponível",
     "legacy.surface.0020e8cd415b07b6": "Pastas Docker ainda não configuradas",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "VMs de rede",
     "legacy.surface.7a1f2a83aca9a081": "Favoritos",
     "legacy.surface.7a721db5e3b1d59c": "Excluir regra",
-    "legacy.surface.7a73f8f30dae4554": "O download não começou",
     "legacy.surface.7a75f86cfc877a4c": "Visualize uma importação e coloque suas pastas abaixo desta.",
     "legacy.surface.7a7c104369e28f5c": "análise falhou",
     "legacy.surface.7ab52733c917451a": "Aplicar padrões de uso",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Verificar antes de aplicar alterações",
     "legacy.surface.e524d562eb99c876": "Tipo $1 inesperado.",
     "legacy.surface.e52e4e0deb92e4a0": "Pasta de origem",
-    "legacy.surface.e54434ef15f043e4": "O FolderView Plus preparou a exportação e pediu ao navegador para salvá-la. Os navegadores não fornecem um sinal de conclusão do salvamento.",
     "legacy.surface.e554fb255bf22b65": "Comece criando sua primeira pasta, importando uma exportação JSON ou executando o assistente de configuração.",
     "legacy.surface.e56ac99ff636418f": "Expressão regular do projeto Docker Compose",
     "legacy.surface.e56ae3f22352e3c8": "Teste: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Selecione um arquivo de exportação",
     "legacy.surface.f3c92ac0b583707a": "Resultado final: bloqueado pela regra de exclusão #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Escopo: todos os pacotes",
-    "legacy.surface.f3dcd470ded0fdc2": "Download solicitado",
     "legacy.surface.f3e4352a5df650e5": "Restante",
     "legacy.surface.f3f2d59b23eb5bcc": "Intervalo de atualização ao vivo em segundos",
     "legacy.surface.f3f67377a59f5d5a": "Restaurar usos mais recentes",

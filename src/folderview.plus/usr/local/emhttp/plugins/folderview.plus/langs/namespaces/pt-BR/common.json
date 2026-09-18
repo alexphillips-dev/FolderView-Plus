@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Caminhos do plugin reparados.",
     "common.server.icons-repaired": "Referências a ícones personalizados ausentes reparadas.",
     "common.server.orphans-removed": "Referências a membros inexistentes removidas.",
+    "common.download.sent": "Exportação enviada ao navegador",
+    "common.download.check": "Verifique a pasta Downloads.",
+    "common.download.help": "Não encontrou o arquivo? Obter ajuda",
     "common.server.custom-icon-directory-unwritable": "O diretório de ícones personalizados não é gravável. Execute: $1",
     "common.server.custom-icon-lock-unavailable": "Não é possível abrir o arquivo de bloqueio de ícone personalizado. Execute: $1",
     "common.server.custom-icon-directory-missing": "O diretório de ícones personalizados não existe. Execute: $1",

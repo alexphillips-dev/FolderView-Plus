@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -946,8 +946,6 @@
     "legacy.surface.d7ecaa1c9fd5d182": "Dominant status: $1",
     "legacy.surface.11a6767d5674c7e4": "Done",
     "legacy.surface.d6eafe8235910042": "Download",
-    "legacy.surface.7a73f8f30dae4554": "Download didn’t start",
-    "legacy.surface.f3dcd470ded0fdc2": "Download requested",
     "legacy.surface.d4e8d6696a16e5eb": "Download retry requested",
     "legacy.surface.bf78733717254c51": "Download was not received",
     "legacy.surface.a75ee6a28c39f865": "Drag child folders to control the order shown in previews and expanded rows.",
@@ -1266,7 +1264,6 @@
     "legacy.surface.c3b1756abf78160d": "FolderView Plus kept the Settings page open, but some data or advanced modules failed to load.",
     "legacy.surface.f94d2a11e3dbc918": "FolderView Plus kept the Settings page visible, but the setup assistant failed to render.",
     "legacy.surface.7fe65d6c31f3b843": "FolderView Plus kept the VMs page open, but part of the folder runtime did not load.",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus prepared the export and asked the browser to save it. Browsers do not provide a save-completion signal.",
     "legacy.surface.c81500595ab28fa2": "FolderView Plus reads the file and builds a preview.",
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus refused to render a folder with an invalid identifier.",
     "legacy.surface.5c7c93ecaeb2dea8": "FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.",

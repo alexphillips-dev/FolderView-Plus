@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "dashboard",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "dashboard.folder.toggle-members": "Comută membrii folderului",
     "dashboard.widget.docker": "Docker",

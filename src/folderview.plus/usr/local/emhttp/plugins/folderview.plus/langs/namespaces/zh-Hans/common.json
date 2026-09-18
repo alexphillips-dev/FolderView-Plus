@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "插件路径已修复。",
     "common.server.icons-repaired": "缺失的自定义图标引用已修复。",
     "common.server.orphans-removed": "已删除不存在的成员引用。",
+    "common.download.sent": "已将导出文件发送到浏览器",
+    "common.download.check": "请检查“下载”文件夹。",
+    "common.download.help": "找不到文件？获取帮助",
     "common.server.custom-icon-directory-unwritable": "自定义图标目录不可写。运行：$1",
     "common.server.custom-icon-lock-unavailable": "无法打开自定义图标锁定文件。运行：$1",
     "common.server.custom-icon-directory-missing": "自定义图标目录不存在。运行：$1",

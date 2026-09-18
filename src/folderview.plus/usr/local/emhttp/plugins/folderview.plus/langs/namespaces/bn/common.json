@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "প্লাগইনের পথ মেরামত করা হয়েছে।",
     "common.server.icons-repaired": "অনুপস্থিত কাস্টম আইকনের উল্লেখ মেরামত করা হয়েছে।",
     "common.server.orphans-removed": "অনুপস্থিত সদস্যের উল্লেখ সরানো হয়েছে।",
+    "common.download.sent": "রপ্তানি করা ফাইলটি আপনার ব্রাউজারে পাঠানো হয়েছে",
+    "common.download.check": "আপনার ডাউনলোড ফোল্ডার দেখুন।",
+    "common.download.help": "ফাইলটি খুঁজে পাচ্ছেন না? সহায়তা নিন",
     "common.server.custom-icon-directory-unwritable": "কাস্টম আইকন ডিরেক্টরি লেখার যোগ্য নয়। রান: $1",
     "common.server.custom-icon-lock-unavailable": "কাস্টম আইকন লক ফাইল খুলতে অক্ষম। রান: $1",
     "common.server.custom-icon-directory-missing": "কাস্টম আইকন ডিরেক্টরি বিদ্যমান নেই৷ রান: $1",

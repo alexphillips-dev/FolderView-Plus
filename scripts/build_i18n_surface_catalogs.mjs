@@ -58,7 +58,7 @@ for (const [locale, values] of Object.entries(reviewedPlurals.locales)) {
     translationContext.overrides[locale] = translationContext.overrides[locale] || {};
     reviewedPlurals.en.forEach((english, index) => { translationContext.overrides[locale][english] = values[index]; });
 }
-const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
+const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server', 'download'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
 const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces, reviewedWording, repairMessages, reviewedRepair])).digest('hex');
 const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
     if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Plugin paths repaired.",
     "common.server.icons-repaired": "Missing custom icon references repaired.",
     "common.server.orphans-removed": "Orphaned member references removed.",
+    "common.download.sent": "Export sent to your browser",
+    "common.download.check": "Check your Downloads folder.",
+    "common.download.help": "File missing? Get help",
     "common.server.custom-icon-directory-unwritable": "Custom icon directory is not writable. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Unable to open custom icon lock file. Run: $1",
     "common.server.custom-icon-directory-missing": "Custom icon directory does not exist. Run: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Przenoszenie zbiorcze niedostępne",
     "legacy.surface.0020e8cd415b07b6": "Foldery Dockera nie zostały jeszcze skonfigurowane",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "Sieciowe maszyny wirtualne",
     "legacy.surface.7a1f2a83aca9a081": "Ulubione",
     "legacy.surface.7a721db5e3b1d59c": "Wyklucz regułę",
-    "legacy.surface.7a73f8f30dae4554": "Pobieranie nie rozpoczęło się",
     "legacy.surface.7a75f86cfc877a4c": "Wyświetl podgląd importu i umieść jego foldery pod tym.",
     "legacy.surface.7a7c104369e28f5c": "analiza nie powiodła się",
     "legacy.surface.7ab52733c917451a": "Zastosuj domyślne ustawienia użytkowania",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Sprawdź przed zastosowaniem zmian",
     "legacy.surface.e524d562eb99c876": "Nieoczekiwany typ $1.",
     "legacy.surface.e52e4e0deb92e4a0": "Folder źródłowy",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus przygotował eksport i poprosił przeglądarkę o jego zapisanie. Przeglądarki nie dostarczają sygnału zakończenia zapisywania.",
     "legacy.surface.e554fb255bf22b65": "Zacznij od utworzenia pierwszego folderu, zaimportowania eksportu JSON lub uruchomienia kreatora instalacji.",
     "legacy.surface.e56ac99ff636418f": "Wyrażenie regularne projektu Docker Compose",
     "legacy.surface.e56ae3f22352e3c8": "Praca próbna: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Wybierz plik eksportu",
     "legacy.surface.f3c92ac0b583707a": "Wynik końcowy: zablokowany przez regułę wykluczenia #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Zakres: wszystkie pakiety",
-    "legacy.surface.f3dcd470ded0fdc2": "Poproszono o pobranie",
     "legacy.surface.f3e4352a5df650e5": "Pozostało",
     "legacy.surface.f3f2d59b23eb5bcc": "Interwał odświeżania na żywo w sekundach",
     "legacy.surface.f3f67377a59f5d5a": "Przywróć najnowsze zastosowania",

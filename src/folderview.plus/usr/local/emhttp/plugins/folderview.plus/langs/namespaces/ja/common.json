@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "プラグインのパスを修復しました。",
     "common.server.icons-repaired": "見つからないカスタムアイコンへの参照を修復しました。",
     "common.server.orphans-removed": "存在しないメンバーへの参照を削除しました。",
+    "common.download.sent": "エクスポートファイルをブラウザーに送信しました",
+    "common.download.check": "ダウンロードフォルダーを確認してください。",
+    "common.download.help": "ファイルが見つかりませんか？ ヘルプを表示",
     "common.server.custom-icon-directory-unwritable": "カスタム アイコン ディレクトリは書き込み可能ではありません。実行: $1",
     "common.server.custom-icon-lock-unavailable": "カスタム アイコン ロック ファイルを開けません。実行: $1",
     "common.server.custom-icon-directory-missing": "カスタムアイコンディレクトリが存在しません。実行: $1",

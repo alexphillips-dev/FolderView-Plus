@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "Шляхи плагіна виправлено.",
     "common.server.icons-repaired": "Посилання на відсутні власні піктограми виправлено.",
     "common.server.orphans-removed": "Посилання на неіснуючих учасників видалено.",
+    "common.download.sent": "Файл експорту передано браузеру",
+    "common.download.check": "Перевірте теку «Завантаження».",
+    "common.download.help": "Файл не знайдено? Отримати допомогу",
     "common.server.custom-icon-directory-unwritable": "Користувацький каталог значків не доступний для запису. Запустити: $1",
     "common.server.custom-icon-lock-unavailable": "Не вдалося відкрити спеціальний файл блокування значка. Запустити: $1",
     "common.server.custom-icon-directory-missing": "Спеціальний каталог значків не існує. Запустити: $1",

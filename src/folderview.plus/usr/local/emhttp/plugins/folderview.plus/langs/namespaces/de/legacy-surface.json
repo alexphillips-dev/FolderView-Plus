@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Massenverschiebung nicht verfügbar",
     "legacy.surface.0020e8cd415b07b6": "Docker-Ordner sind noch nicht eingerichtet",
@@ -1442,7 +1442,6 @@
     "legacy.surface.7a180c7b9499895b": "Netzwerk-VMs",
     "legacy.surface.7a1f2a83aca9a081": "Favoriten",
     "legacy.surface.7a721db5e3b1d59c": "Ausschlussregel",
-    "legacy.surface.7a73f8f30dae4554": "Der Download wurde nicht gestartet",
     "legacy.surface.7a75f86cfc877a4c": "Sehen Sie sich einen Import in der Vorschau an und platzieren Sie seine Ordner darunter.",
     "legacy.surface.7a7c104369e28f5c": "Analyse fehlgeschlagen",
     "legacy.surface.7ab52733c917451a": "Nutzungsstandards anwenden",
@@ -2760,7 +2759,6 @@
     "legacy.surface.e51820bcf69a6b52": "Vor dem Anwenden prüfen",
     "legacy.surface.e524d562eb99c876": "Unerwarteter Typ $1.",
     "legacy.surface.e52e4e0deb92e4a0": "Quellordner",
-    "legacy.surface.e54434ef15f043e4": "FolderView Plus hat den Export vorbereitet und den Browser aufgefordert, ihn zu speichern. Browser stellen kein Signal zum Abschluss des Speicherns bereit.",
     "legacy.surface.e554fb255bf22b65": "Erstellen Sie zunächst Ihren ersten Ordner, importieren Sie einen JSON-Export oder führen Sie den Einrichtungsassistenten aus.",
     "legacy.surface.e56ac99ff636418f": "Regulärer Ausdruck für Docker-Compose-Projekte",
     "legacy.surface.e56ae3f22352e3c8": "Probelauf: $1",
@@ -2949,7 +2947,6 @@
     "legacy.surface.f3c32c45a29e1aeb": "Wählen Sie eine Exportdatei aus",
     "legacy.surface.f3c92ac0b583707a": "Endergebnis: blockiert durch Ausschlussregel #$1. $2.",
     "legacy.surface.f3cd892e06874da6": "Geltungsbereich: alle Packungen",
-    "legacy.surface.f3dcd470ded0fdc2": "Download angefordert",
     "legacy.surface.f3e4352a5df650e5": "Übrig",
     "legacy.surface.f3f2d59b23eb5bcc": "Live-Aktualisierungsintervall in Sekunden",
     "legacy.surface.f3f67377a59f5d5a": "Letzte Verwendung wiederherstellen",

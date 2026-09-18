@@ -9401,7 +9401,7 @@ const downloadType = async (type, id) => {
                 status: 'error',
                 details: buildDownloadDiagnosticsEventDetails(error.fvplusDownloadAttempt)
             });
-            renderDownloadAttemptStatus(error.fvplusDownloadAttempt);
+            window.FolderViewPlusFoundationModules.downloadStatus.render(error.fvplusDownloadAttempt);
         }
         showError('Export failed', error);
     } finally {

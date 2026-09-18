@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "0b576b5d19c085999519cf0da6a3ef76fa56db922a6bb6e511fbfc98283593ec"
+        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -183,6 +183,9 @@
     "common.server.paths-repaired": "플러그인 경로를 복구했습니다.",
     "common.server.icons-repaired": "누락된 사용자 지정 아이콘 참조를 복구했습니다.",
     "common.server.orphans-removed": "존재하지 않는 구성원 참조를 제거했습니다.",
+    "common.download.sent": "내보낸 파일을 브라우저로 전송했습니다",
+    "common.download.check": "다운로드 폴더를 확인하세요.",
+    "common.download.help": "파일이 없나요? 도움말 보기",
     "common.server.custom-icon-directory-unwritable": "사용자 정의 아이콘 디렉토리는 쓸 수 없습니다. 실행: $1",
     "common.server.custom-icon-lock-unavailable": "사용자 정의 아이콘 잠금 파일을 열 수 없습니다. 실행: $1",
     "common.server.custom-icon-directory-missing": "사용자 정의 아이콘 디렉토리가 존재하지 않습니다. 실행: $1",

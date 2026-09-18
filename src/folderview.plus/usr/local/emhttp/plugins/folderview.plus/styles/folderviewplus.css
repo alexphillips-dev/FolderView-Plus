@@ -7963,10 +7963,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         width: 100%;
     }
 
-    .fv-diagnostics-toolbar .fv-ui-button {
+    #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button {
         justify-content: center;
         min-width: 0;
         white-space: normal;
+    }
+
+    #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button > span {
+        min-width: 0;
+        overflow-wrap: anywhere;
     }
 
     .fv-diagnostics-overall,
@@ -8039,6 +8044,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 @media (max-width: 560px) {
+    #fv-settings-root .fv-diagnostics-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     #fv-settings-root .fv-support-bundle-redaction-card .fv-support-bundle-privacy-header {
         grid-template-columns: minmax(0, 1fr);
     }

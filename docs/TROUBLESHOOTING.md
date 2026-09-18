@@ -4,6 +4,20 @@ Use this when the root README quick fixes are not enough.
 
 ## Common Issues
 
+### Persistent Installation Warnings
+
+Record the exact warning text and whether it appears in **Apps**, **Plugins**, **Fix Common Problems**, or **FolderView Plus**. Include the installed version and update channel. A green FolderView Plus health summary only covers the plugin checks shown there; it does not prove that an external application's warning is resolved.
+
+For a warning about an unknown plugin or an installation source, compare the installed manifest URL in `bundleMeta.buildIdentity.manifestUrl` with the [CA template](https://raw.githubusercontent.com/alexphillips-dev/unraid-ca-templates/main/folderview.plus.xml). The CA listing uses `main`; directed test installations use `dev`. A channel difference is evidence to investigate, not proof that every warning is harmless.
+
+If you want to return to the CA-listed stable channel, follow [Move from a manual or dev install to Community Applications](INSTALLATION_AND_UPGRADES.md#move-from-a-manual-or-dev-install-to-community-applications). Do not uninstall or modify installed version files just to clear a warning. After the verified change, refresh Apps and rerun the original warning check. If the warning persists, share its exact text, location, and a new sanitized support bundle; do not assume that refreshing plugin health has dismissed it.
+
+### Backup Download Fails with HTTP 200 and `[object Blob]`
+
+This error occurs when the browser treats the JSON backup attachment as a JSON API response instead of a downloadable file. It can affect desktop and mobile browsers. The repair first ships in dev `2026.09.18.01`; update to that or a later build containing the repair, then hard-refresh before retrying **Recovery > Download** for a Docker or VM snapshot.
+
+Verify that a file was actually saved and contains the expected backup JSON. A successful server response or a dispatched browser download alone cannot confirm that the file reached your device. If downloading still fails, include the error text, browser, and a sanitized support bundle; do not restore or delete the snapshot as a download workaround.
+
 ### Some Folders Could Not Be Displayed
 
 If an individual folder fails while rendering, FolderView Plus restores its native container or VM rows and continues displaying healthy folders. On the Dashboard, healthy child folders can appear at the top level when their parent cannot be displayed.

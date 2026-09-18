@@ -10781,7 +10781,7 @@ const downloadBackupEntry = async (type, name) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(objectUrl);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch (error) {
         showError('Download failed', error);
     }

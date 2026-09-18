@@ -245,8 +245,13 @@
                 cleanup();
                 resolve({ data, textStatus, jqXHR });
             })
-            .fail((jqXHR, textStatus, errorThrown) => {
+            .fail(async (jqXHR, textStatus, errorThrown) => {
                 cleanup();
+                // Decode bounded JSON errors from binary requests before classification.
+                const body = jqXHR.response;
+                if (body?.size <= 65536 && typeof body.text === 'function' && /json/i.test(body.type)) {
+                    try { jqXHR.responseJSON = JSON.parse(await body.text()); } catch (_error) { /* Keep the HTTP failure. */ }
+                }
                 reject({ jqXHR, textStatus, errorThrown });
             });
     });
@@ -431,6 +436,7 @@
                 if (dataType !== undefined) ajaxOptions.dataType = dataType;
                 if (typeof xhr === 'function') ajaxOptions.xhr = xhr;
                 if (xhrFields && typeof xhrFields === 'object') ajaxOptions.xhrFields = { ...xhrFields };
+                if (xhrFields?.responseType === 'blob') ajaxOptions.responseFields = { binary: 'response' };
                 const response = await toAjaxPromise(ajaxOptions, signal, onRequest);
                 response.traceId = traceId;
                 response.transactionId = transactionId;
@@ -609,6 +615,7 @@
             headers,
             tokenStorageKey,
             signal,
+            dataType: 'binary',
             xhrFields: { responseType: 'blob' }
         });
         if (typeof Blob === 'undefined' || !(response?.data instanceof Blob)) {

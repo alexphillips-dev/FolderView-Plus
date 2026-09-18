@@ -35,6 +35,30 @@ plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plu
 
 The installed manifest retains the branch-specific update URL. Install the stable manifest again when testing is complete and you want to return to stable tracking.
 
+## Move from a manual or dev install to Community Applications
+
+Community Applications (CA) lists the stable `main` channel of FolderView Plus. A manual installation using that same stable manifest is the same plugin; there is no separate CA configuration format to migrate. A manual `dev` installation follows a different update URL and remains on dev until a successful installation of the stable manifest.
+
+1. Record the installed version and channel in **Plugins** and the support bundle's `bundleMeta.buildIdentity` section. Compare the manifest URL with the [CA template](https://raw.githubusercontent.com/alexphillips-dev/unraid-ca-templates/main/folderview.plus.xml).
+2. Export Docker and VM configuration and retain an external copy of `/boot/config/plugins/folderview.plus`. Do not rely solely on plugin-local backups. If a browser download fails, verify your external copy before continuing.
+3. Compare the stable manifest's version and release notes with the installed version. If stable is older than dev, returning to it is a downgrade: review [Downgrades](#downgrades), or stay on dev until a suitable stable release is available. Fixes under dev testing may not yet exist in stable.
+4. To select stable tracking, use **Plugins > Install Plugin** with this URL, or run the terminal command below. Paste only the URL into the webGUI field.
+
+   ```text
+   https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
+   ```
+
+   ```bash
+   plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
+   ```
+
+5. Read the installation result. A refusal to reinstall the same version does not confirm a channel change; do not edit version files or uninstall to bypass it. Follow the [same-version guidance](#not-reinstalling-same-version) and verify the installed manifest URL before claiming success.
+6. After a successful installation, refresh **Apps** and **Plugins**, hard-refresh the webGUI, and verify the version, the `main` manifest URL, Docker/VM folders, settings, and backups. Normal updates then follow stable.
+
+**Do not uninstall as a channel-switching step.** FolderView Plus's uninstall action removes its configuration and local backups. A normal installation/update preserves the persistent configuration directory.
+
+If CA or Fix Common Problems still reports a warning, capture its exact text and rerun the check in the application that produced it. A healthy FolderView Plus Diagnostics report does not clear an external warning. See [Persistent installation warnings](TROUBLESHOOTING.md#persistent-installation-warnings).
+
 ## Normal updates
 
 Use `Plugins -> Check for Updates`, then install the available FolderView Plus update. A normal update:

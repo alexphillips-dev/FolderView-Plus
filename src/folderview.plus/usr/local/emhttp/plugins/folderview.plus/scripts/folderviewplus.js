@@ -8924,6 +8924,7 @@ const fetchSettingsCombinedConfigSnapshots = async () => {
 
 const refreshType = async (type, options = {}) => {
     const startedAt = perfNowMs();
+    const coldLoad = settingsUiState.initialized !== true;
     const render = options?.render !== false;
     const configOnly = options?.configOnly === true;
     recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
@@ -9019,7 +9020,8 @@ const refreshType = async (type, options = {}) => {
         recordPerformanceDiagnosticsSample('runtimeHydration', type, perfNowMs() - startedAt, {
             folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
             infoCount: Object.keys(info || {}).length,
-            coldLoad: settingsUiState.initialized !== true,
+            coldLoad,
+            classificationVersion: 2,
             dataSource,
             requestCount
         });

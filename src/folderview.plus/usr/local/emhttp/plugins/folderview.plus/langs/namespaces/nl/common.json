@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -186,6 +186,10 @@
     "common.download.sent": "Export naar uw browser verzonden",
     "common.download.check": "Controleer uw map Downloads.",
     "common.download.help": "Bestand niet gevonden? Hulp krijgen",
+    "common.startup.performance-followup": "Herhaalde prestatiewaarschuwingen die controle vereisen: $1.",
+    "common.startup.preparing": "Opgeslagen mappen en voorkeuren worden voorbereid…",
+    "common.startup.timeout": "Time-out bij het laden van instellingen",
+    "common.startup.timeout-detail": "FolderView Plus kon de instellingen niet volledig laden. Laad de pagina opnieuw om het nogmaals te proberen.",
     "common.server.custom-icon-directory-unwritable": "Aangepaste pictogrammap is niet beschrijfbaar. Uitvoeren: $1",
     "common.server.custom-icon-lock-unavailable": "Kan het aangepaste pictogramvergrendelingsbestand niet openen. Uitvoeren: $1",
     "common.server.custom-icon-directory-missing": "Aangepaste pictogrammap bestaat niet. Uitvoeren: $1",

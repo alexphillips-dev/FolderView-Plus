@@ -67,27 +67,29 @@
         const root = doc.getElementById('fv-settings-root');
         if (!root) return;
         const loadingShell = doc.getElementById('fv-settings-bootstrap-shell');
-        if (String(reason || '') === 'watchdog-early' && isVisible(loadingShell)) return;
+        const loading = isVisible(loadingShell);
+        if (loading && reason !== 'watchdog-deadline') return;
         if (hasVisibleSettingsContent(root)) return;
         state.failed = true;
         state.lastPhase = state.lastPhase || 'blank-watchdog';
-        state.lastAction = 'Settings blank watchdog fired';
+        state.lastAction = loading ? 'Settings loading watchdog fired' : 'Settings blank watchdog fired';
         state.lastStep = String(reason || 'watchdog');
         win.FolderViewPlusFatalBanner?.reportFatalError?.(
-            new Error('Settings page rendered no visible FolderView Plus content before bootstrap completed.'),
+            new Error(loading ? 'Settings loading timed out' : 'Settings page rendered no visible FolderView Plus content before bootstrap completed.'),
             {
                 context: 'Settings',
                 hostSelector: '#fv-settings-root',
-                title: 'Settings page is blank',
-                message: 'FolderView Plus detected that the Settings page became blank before initialization completed.',
-                code: 'FVPLUS-SET-BLANK-001',
+                title: loading ? (win.FolderViewPlusEarlyI18n?.messages?.['common.startup.timeout'] || 'Settings loading timed out') : 'Settings page is blank',
+                message: loading ? (win.FolderViewPlusEarlyI18n?.messages?.['common.startup.timeout-detail'] || 'FolderView Plus could not finish loading Settings. Reload the page to try again.') : 'FolderView Plus detected that the Settings page became blank before initialization completed.',
+                code: loading ? 'FVPLUS-SET-LOAD-001' : 'FVPLUS-SET-BLANK-001',
                 phase: state.lastPhase || 'blank-watchdog',
-                category: 'blank-page',
-                detailLabel: 'Blank page diagnostics',
+                category: loading ? 'timeout' : 'blank-page',
+                detailLabel: loading ? (win.FolderViewPlusEarlyI18n?.messages?.['common.startup.timeout'] || 'Settings loading timed out') : 'Blank page diagnostics',
                 details: collectBlankDetails(root)
             }
         );
     };
     win.setTimeout(() => runCheck('watchdog-early'), 3500);
     win.setTimeout(() => runCheck('watchdog-late'), 8500);
+    win.setTimeout(() => runCheck('watchdog-deadline'), 60000);
 }(typeof window !== 'undefined' ? window : globalThis, typeof document !== 'undefined' ? document : null));

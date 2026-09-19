@@ -88,6 +88,10 @@
         ? $earlyEnglishCatalog
         : fvplus_i18n_read_catalog_file(__DIR__ . "/namespaces/$resolvedLocale/diagnostics.json");
     $earlyMessages = [];
+    $earlyCommonCatalog = fvplus_i18n_read_catalog_file(__DIR__ . "/namespaces/$resolvedLocale/common.json");
+    foreach (['common.startup.timeout', 'common.startup.timeout-detail'] as $earlyCommonKey) {
+        if (isset($earlyCommonCatalog[$earlyCommonKey])) $earlyMessages[$earlyCommonKey] = $earlyCommonCatalog[$earlyCommonKey];
+    }
     foreach ($earlyMessageKeys as $earlyMessageKey) {
         $earlyValue = $earlyResolvedCatalog[$earlyMessageKey] ?? $earlyEnglishCatalog[$earlyMessageKey] ?? '';
         if (is_string($earlyValue) && $earlyValue !== '') {

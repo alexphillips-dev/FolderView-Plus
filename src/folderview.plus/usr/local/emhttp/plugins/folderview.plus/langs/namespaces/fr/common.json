@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -186,6 +186,10 @@
     "common.download.sent": "Export envoyé à votre navigateur",
     "common.download.check": "Vérifiez votre dossier Téléchargements.",
     "common.download.help": "Fichier introuvable ? Obtenir de l’aide",
+    "common.startup.performance-followup": "Avertissements de performances récurrents nécessitant un suivi : $1.",
+    "common.startup.preparing": "Préparation des dossiers et des préférences enregistrés…",
+    "common.startup.timeout": "Le délai de chargement des paramètres a expiré",
+    "common.startup.timeout-detail": "FolderView Plus n’a pas pu terminer le chargement des paramètres. Rechargez la page pour réessayer.",
     "common.server.custom-icon-directory-unwritable": "Le répertoire d'icônes personnalisées n'est pas accessible en écriture. Exécuter : $1",
     "common.server.custom-icon-lock-unavailable": "Impossible d'ouvrir le fichier de verrouillage d'icône personnalisé. Exécuter : $1",
     "common.server.custom-icon-directory-missing": "Le répertoire d'icônes personnalisées n'existe pas. Exécuter : $1",

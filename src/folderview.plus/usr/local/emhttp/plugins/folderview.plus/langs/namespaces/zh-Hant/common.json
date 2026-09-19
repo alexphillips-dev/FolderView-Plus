@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -186,6 +186,10 @@
     "common.download.sent": "已將匯出檔案傳送至瀏覽器",
     "common.download.check": "請檢查「下載項目」資料夾。",
     "common.download.help": "找不到檔案？取得協助",
+    "common.startup.performance-followup": "需要檢查的重複效能警告：$1 則。",
+    "common.startup.preparing": "正在準備已儲存的資料夾和偏好設定…",
+    "common.startup.timeout": "設定載入逾時",
+    "common.startup.timeout-detail": "FolderView Plus 未能完成設定載入。請重新載入頁面以重試。",
     "common.server.custom-icon-directory-unwritable": "自訂圖示目錄不可寫入。運作：$1",
     "common.server.custom-icon-lock-unavailable": "無法開啟自訂圖示鎖定檔案。運作：$1",
     "common.server.custom-icon-directory-missing": "自訂圖示目錄不存在。運作：$1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -186,6 +186,10 @@
     "common.download.sent": "Файл экспорта передан браузеру",
     "common.download.check": "Проверьте папку «Загрузки».",
     "common.download.help": "Файл не найден? Получить помощь",
+    "common.startup.performance-followup": "Повторяющиеся предупреждения о производительности, требующие проверки: $1.",
+    "common.startup.preparing": "Подготовка сохранённых папок и настроек…",
+    "common.startup.timeout": "Истекло время ожидания загрузки настроек",
+    "common.startup.timeout-detail": "FolderView Plus не удалось завершить загрузку настроек. Обновите страницу, чтобы повторить попытку.",
     "common.server.custom-icon-directory-unwritable": "Каталог пользовательских значков недоступен для записи. Запустите: $1",
     "common.server.custom-icon-lock-unavailable": "Невозможно открыть файл блокировки пользовательских значков. Запустите: $1",
     "common.server.custom-icon-directory-missing": "Каталог пользовательских значков не существует. Запустите: $1",

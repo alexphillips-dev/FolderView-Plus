@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -186,6 +186,10 @@
     "common.download.sent": "Exportul a fost trimis către browser",
     "common.download.check": "Verificați dosarul Descărcări.",
     "common.download.help": "Fișierul lipsește? Obțineți ajutor",
+    "common.startup.performance-followup": "Avertismente repetate privind performanța care necesită verificare: $1.",
+    "common.startup.preparing": "Se pregătesc dosarele și preferințele salvate…",
+    "common.startup.timeout": "Timpul de încărcare a setărilor a expirat",
+    "common.startup.timeout-detail": "FolderView Plus nu a putut termina încărcarea setărilor. Reîncărcați pagina pentru a încerca din nou.",
     "common.server.custom-icon-directory-unwritable": "Directorul cu pictograme personalizate nu poate fi scris. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Nu se poate deschide fișierul de blocare a pictogramei personalizate. Run: $1",
     "common.server.custom-icon-directory-missing": "Directorul cu pictograme personalizate nu există. Run: $1",

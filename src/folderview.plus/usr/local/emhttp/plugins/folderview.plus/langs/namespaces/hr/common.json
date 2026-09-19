@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -186,6 +186,10 @@
     "common.download.sent": "Izvoz je poslan vašem pregledniku",
     "common.download.check": "Provjerite mapu Preuzimanja.",
     "common.download.help": "Datoteka nedostaje? Potražite pomoć",
+    "common.startup.performance-followup": "Ponavljajuća upozorenja o performansama koja zahtijevaju provjeru: $1.",
+    "common.startup.preparing": "Priprema spremljenih mapa i postavki…",
+    "common.startup.timeout": "Isteklo je vrijeme za učitavanje postavki",
+    "common.startup.timeout-detail": "FolderView Plus nije mogao dovršiti učitavanje postavki. Ponovno učitajte stranicu i pokušajte opet.",
     "common.server.custom-icon-directory-unwritable": "Prilagođeni direktorij ikona ne može se pisati. Pokreni: $1",
     "common.server.custom-icon-lock-unavailable": "Nije moguće otvoriti datoteku zaključavanja prilagođene ikone. Pokreni: $1",
     "common.server.custom-icon-directory-missing": "Prilagođeni direktorij ikona ne postoji. Pokreni: $1",

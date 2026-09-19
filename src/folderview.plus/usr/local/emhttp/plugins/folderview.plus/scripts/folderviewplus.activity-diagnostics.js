@@ -190,17 +190,18 @@ const restorePerformanceDiagnosticsHistory = () => {
         return;
     }
     const now = Date.now();
-    const copySeries = (target, source) => {
+    const copySeries = (target, source, classificationVersion = 0) => {
         const restored = (Array.isArray(source) ? source : [])
             .map((sample) => sanitizePersistedPerformanceSample(sample, now))
             .filter(Boolean)
+            .filter((sample) => !classificationVersion || sample.details.classificationVersion === classificationVersion)
             .slice(-PERF_DIAGNOSTICS_SAMPLE_LIMIT);
         target.splice(0, target.length, ...restored);
     };
     copySeries(performanceDiagnosticsState.refresh.docker, stored.state.refresh?.docker);
     copySeries(performanceDiagnosticsState.refresh.vm, stored.state.refresh?.vm);
-    copySeries(performanceDiagnosticsState.runtimeHydration.docker, stored.state.runtimeHydration?.docker);
-    copySeries(performanceDiagnosticsState.runtimeHydration.vm, stored.state.runtimeHydration?.vm);
+    copySeries(performanceDiagnosticsState.runtimeHydration.docker, stored.state.runtimeHydration?.docker, 2);
+    copySeries(performanceDiagnosticsState.runtimeHydration.vm, stored.state.runtimeHydration?.vm, 2);
     copySeries(performanceDiagnosticsState.import.docker, stored.state.import?.docker);
     copySeries(performanceDiagnosticsState.import.vm, stored.state.import?.vm);
     copySeries(performanceDiagnosticsState.wizard.apply, stored.state.wizard?.apply);
@@ -1510,7 +1511,7 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         status: hasWarning ? 'warning' : (hasObservation ? 'info' : 'healthy'),
         badgeLabel: hasObservation && !hasWarning ? 'Observed' : '',
         headline: hasWarning
-            ? `${advisoryGroups.size} repeated performance ${advisoryGroups.size === 1 ? 'advisory needs' : 'advisories need'} follow-up.`
+            ? surfaceT('common.startup.performance-followup', 'Repeated performance warnings requiring follow-up: $1.', advisoryGroups.size)
             : (hasObservation
                 ? 'A cold or isolated slow sample was observed.'
                 : 'Recent UI timings are within budget.'),

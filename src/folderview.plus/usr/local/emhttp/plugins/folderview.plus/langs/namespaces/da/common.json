@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
@@ -186,6 +186,10 @@
     "common.download.sent": "Eksporten er sendt til din browser",
     "common.download.check": "Se i mappen Overførsler.",
     "common.download.help": "Mangler filen? Få hjælp",
+    "common.startup.performance-followup": "Gentagne advarsler om ydeevne, der kræver opfølgning: $1.",
+    "common.startup.preparing": "Forbereder gemte mapper og indstillinger…",
+    "common.startup.timeout": "Tidsgrænsen for indlæsning af indstillinger blev overskredet",
+    "common.startup.timeout-detail": "FolderView Plus kunne ikke færdiggøre indlæsningen af indstillinger. Genindlæs siden for at prøve igen.",
     "common.server.custom-icon-directory-unwritable": "Brugerdefineret ikonbibliotek kan ikke skrives. Kør: $1",
     "common.server.custom-icon-lock-unavailable": "Kan ikke åbne brugerdefineret ikonlåsefil. Kør: $1",
     "common.server.custom-icon-directory-missing": "Brugerdefineret ikonbibliotek findes ikke. Kør: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -186,6 +186,10 @@
     "common.download.sent": "Exportação enviada ao navegador",
     "common.download.check": "Verifique a pasta Downloads.",
     "common.download.help": "Não encontrou o arquivo? Obter ajuda",
+    "common.startup.performance-followup": "Avisos de desempenho recorrentes que precisam de análise: $1.",
+    "common.startup.preparing": "Preparando pastas e preferências salvas…",
+    "common.startup.timeout": "O tempo limite para carregar as configurações foi excedido",
+    "common.startup.timeout-detail": "O FolderView Plus não conseguiu concluir o carregamento das configurações. Recarregue a página para tentar novamente.",
     "common.server.custom-icon-directory-unwritable": "O diretório de ícones personalizados não é gravável. Execute: $1",
     "common.server.custom-icon-lock-unavailable": "Não é possível abrir o arquivo de bloqueio de ícone personalizado. Execute: $1",
     "common.server.custom-icon-directory-missing": "O diretório de ícones personalizados não existe. Execute: $1",

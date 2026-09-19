@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -186,6 +186,10 @@
     "common.download.sent": "Exporten har skickats till webbläsaren",
     "common.download.check": "Kontrollera mappen Hämtade filer.",
     "common.download.help": "Saknas filen? Få hjälp",
+    "common.startup.performance-followup": "Återkommande prestandavarningar som kräver uppföljning: $1.",
+    "common.startup.preparing": "Förbereder sparade mappar och inställningar…",
+    "common.startup.timeout": "Tidsgränsen för att läsa in inställningarna överskreds",
+    "common.startup.timeout-detail": "FolderView Plus kunde inte slutföra inläsningen av inställningarna. Läs in sidan igen för att försöka på nytt.",
     "common.server.custom-icon-directory-unwritable": "Anpassad ikonkatalog är inte skrivbar. Kör: $1",
     "common.server.custom-icon-lock-unavailable": "Det gick inte att öppna en anpassad ikonlåsfil. Kör: $1",
     "common.server.custom-icon-directory-missing": "Anpassad ikonkatalog finns inte. Kör: $1",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.18.02">
-<!ENTITY md5 "7f8010528c4ca86f8ae9b63533f635c6">
-<!ENTITY sha256 "21e19140f34c236555a18a65e9c6379552e897a20393c1aa838f13ccc59cab82">
+<!ENTITY version "2026.09.19.01">
+<!ENTITY md5 "827eaaacc509040176bd959cb2e7a643">
+<!ENTITY sha256 "f9cdaa1a402390ba76c1a94f1c02891e5f04e2c4ad21832b153a50aab75e4f63">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.19.01
+- Fix: Classify initial Docker and VM runtime loading as cold even when it finishes after the Settings interface becomes ready. Older runtime-loading samples with ambiguous classifications are discarded when restoring browser performance history; other timing history is retained. Repeated slow warm loads still produce warnings.
+- Localization: Replace fragmented performance-warning text with a complete translated message in all 27 supported languages. Translate the Settings loading subtitle from the first server-rendered frame and retain its explicit translation binding after startup.
+- Fix: Stop reporting a visible Settings loading screen as a blank page. Truly blank pages retain their early checks, while a loading screen that remains unfinished for 60 seconds receives a distinct, translated loading-timeout message.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised browser scripts and language catalogs.
+
 
 ###2026.09.18.02
 - Fix: Show a calm, dismissible notice after requesting a configuration export. Replace the alarming download-failure button with a secondary "File missing? Get help" action, while preserving missing-file reporting, retry, and genuine error messages.

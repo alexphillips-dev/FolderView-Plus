@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -151,7 +151,6 @@
     "legacy.surface.aff16a1bf0e8aa04": "$1 ready to move$2",
     "legacy.surface.07f8ba56695f3a3b": "$1 refs",
     "legacy.surface.92ec9d61393d7064": "$1 regex",
-    "legacy.surface.2f51a0f431d3684e": "$1 repeated performance $2 follow-up.",
     "legacy.surface.76fe5bd62f0e4a95": "$1 request failed for $2",
     "legacy.surface.f20be1f8dc4e7cd8": "$1 request fell back to defaults.",
     "legacy.surface.a8c8a6b5a5d70981": "$1 requires review before apply.",
@@ -328,8 +327,6 @@
     "legacy.surface.31ada7969ba21bc1": "Advanced rule controls are unavailable.",
     "legacy.surface.62f3df1d6a24d9f0": "Advanced status tuning",
     "legacy.surface.bc05ae3f52f41d09": "Advanced: saved CSS applies to Docker, VMs, and Dashboard generated assets.",
-    "legacy.surface.a07bc7c1aecee0ac": "advisories need",
-    "legacy.surface.d90c5f766824c952": "advisory needs",
     "legacy.surface.ce045902ab9eba87": "Advisory warnings",
     "legacy.surface.7fe254f044b2a9e8": "Affected areas",
     "legacy.surface.0fc3ad7c1c9b4c3a": "Affected module: $1",
@@ -1995,7 +1992,6 @@
     "legacy.surface.6ba77f7ba67e93fe": "Preparing cleanup...",
     "legacy.surface.33fcf5507b8aea8a": "Preparing import...",
     "legacy.surface.e0e4ea94d9e8857f": "Preparing operation...",
-    "legacy.surface.352e18fa2ee83446": "Preparing saved folders and preferences&hellip;",
     "legacy.surface.04a49eed560a4493": "Preparing the editor shell and loading the selected folder.",
     "legacy.surface.32b959f99e7ccc73": "Preparing upload...",
     "legacy.surface.26f0360c9dddc4d1": "Preset deleted",

@@ -1114,15 +1114,6 @@
     ]
   },
   {
-    "phrase": "$1 repeated performance $2 follow-up.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "repeated performance"
-      }
-    ]
-  },
-  {
     "phrase": "$1 request failed for $2",
     "locations": [
       {
@@ -2031,24 +2022,6 @@
       {
         "file": "scripts/folder.editor.rules.js",
         "anchor": "'Advanced rule controls are unavailable.'"
-      }
-    ]
-  },
-  {
-    "phrase": "advisories need",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'advisories need'"
-      }
-    ]
-  },
-  {
-    "phrase": "advisory needs",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'advisory needs'"
       }
     ]
   },
@@ -5769,6 +5742,15 @@
       {
         "file": "scripts/runtime.preflight-bootstrap.js",
         "anchor": "'FolderView Plus detected a fatal environment issue before the runtime could start.'"
+      }
+    ]
+  },
+  {
+    "phrase": "FolderView Plus detected that the Settings page became blank before initialization completed.",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.settings-watchdog.js",
+        "anchor": "'FolderView Plus detected that the Settings page became blank before initialization completed.'"
       }
     ]
   },

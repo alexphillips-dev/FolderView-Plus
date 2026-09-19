@@ -184,6 +184,7 @@ for (const fullPath of sourceFiles.sort()) {
   }
 
   const declaredApplicationKeyRegexes = [
+    /\bFolderViewPlusEarlyI18n(?:\?\.|\.)messages(?:\?\.)?\[\s*['"]([^'"]+)['"]\s*\]/g,
     /\bi18nKey\s*:\s*['"]([^'"]+)['"]/g,
     /\b(?:labelKey|placeholderKey)\s*:\s*['"](editor\.rules\.templates\.[^'"]+)['"]/g
   ];

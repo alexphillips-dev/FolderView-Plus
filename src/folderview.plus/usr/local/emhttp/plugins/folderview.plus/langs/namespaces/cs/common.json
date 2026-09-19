@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -186,6 +186,10 @@
     "common.download.sent": "Export byl odeslán do prohlížeče",
     "common.download.check": "Zkontrolujte složku Stažené soubory.",
     "common.download.help": "Soubor chybí? Získat pomoc",
+    "common.startup.performance-followup": "Opakovaná upozornění na výkon vyžadující kontrolu: $1.",
+    "common.startup.preparing": "Připravují se uložené složky a předvolby…",
+    "common.startup.timeout": "Časový limit načítání nastavení vypršel",
+    "common.startup.timeout-detail": "FolderView Plus nedokázal dokončit načítání nastavení. Načtěte stránku znovu a zkuste to ještě jednou.",
     "common.server.custom-icon-directory-unwritable": "Adresář vlastních ikon není zapisovatelný. Spustit: $1",
     "common.server.custom-icon-lock-unavailable": "Nelze otevřít soubor zámku vlastní ikony. Spustit: $1",
     "common.server.custom-icon-directory-missing": "Adresář vlastních ikon neexistuje. Spustit: $1",

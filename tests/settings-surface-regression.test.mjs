@@ -48,7 +48,7 @@ test('settings first paint is cloaked until config-only folder data is ready', (
 
 test('settings loading shell avoids false blank alarms and bootstrap request storms', () => {
     assert.match(settingsPage, /folderviewplus\.settings-watchdog\.js/);
-    assert.match(settingsWatchdogJs, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
+    assert.match(settingsWatchdogJs, /loading && reason !== 'watchdog-deadline'/);
     assert.match(settingsJs, /configureThemeResolverRuntimeApi\(\{\s*getMode: getEffectiveThemeCompatibilityMode,[\s\S]*trackEvent: null/);
     assert.doesNotMatch(settingsJs, /eventType: 'theme_reflow'/);
     const initializeBlock = diagnosticsJs.match(/const initializeClientDiagnosticsPanels = \(\) => \{[\s\S]*?\n\};/)?.[0] || '';

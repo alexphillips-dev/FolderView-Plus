@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -186,6 +186,10 @@
     "common.download.sent": "تم إرسال ملف التصدير إلى متصفحك",
     "common.download.check": "تحقق من مجلد التنزيلات.",
     "common.download.help": "لم تجد الملف؟ احصل على المساعدة",
+    "common.startup.performance-followup": "تحذيرات الأداء المتكررة التي تتطلب متابعة: $1.",
+    "common.startup.preparing": "جارٍ تجهيز المجلدات والتفضيلات المحفوظة…",
+    "common.startup.timeout": "انتهت مهلة تحميل الإعدادات",
+    "common.startup.timeout-detail": "تعذّر على FolderView Plus إكمال تحميل الإعدادات. أعد تحميل الصفحة للمحاولة مرة أخرى.",
     "common.server.custom-icon-directory-unwritable": "دليل الأيقونة المخصصة غير قابل للكتابة. تشغيل: $1",
     "common.server.custom-icon-lock-unavailable": "غير قادر على فتح ملف قفل الرمز المخصص. تشغيل: $1",
     "common.server.custom-icon-directory-missing": "دليل الأيقونة المخصصة غير موجود. تشغيل: $1",

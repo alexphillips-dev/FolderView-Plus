@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -186,6 +186,10 @@
     "common.download.sent": "Export an Ihren Browser gesendet",
     "common.download.check": "Prüfen Sie Ihren Download-Ordner.",
     "common.download.help": "Datei fehlt? Hilfe erhalten",
+    "common.startup.performance-followup": "Wiederholte Leistungswarnungen, die überprüft werden müssen: $1.",
+    "common.startup.preparing": "Gespeicherte Ordner und Einstellungen werden vorbereitet…",
+    "common.startup.timeout": "Zeitüberschreitung beim Laden der Einstellungen",
+    "common.startup.timeout-detail": "FolderView Plus konnte die Einstellungen nicht vollständig laden. Laden Sie die Seite neu, um es erneut zu versuchen.",
     "common.server.custom-icon-directory-unwritable": "Das benutzerdefinierte Symbolverzeichnis ist nicht beschreibbar. Ausführen: $1",
     "common.server.custom-icon-lock-unavailable": "Die benutzerdefinierte Symbolsperrdatei kann nicht geöffnet werden. Ausführen: $1",
     "common.server.custom-icon-directory-missing": "Das benutzerdefinierte Symbolverzeichnis ist nicht vorhanden. Ausführen: $1",

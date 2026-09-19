@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -186,6 +186,10 @@
     "common.download.sent": "Esportazione inviata al browser",
     "common.download.check": "Controlla la cartella Download.",
     "common.download.help": "File non trovato? Ricevi assistenza",
+    "common.startup.performance-followup": "Avvisi di prestazioni ricorrenti che richiedono una verifica: $1.",
+    "common.startup.preparing": "Preparazione delle cartelle e delle preferenze salvate…",
+    "common.startup.timeout": "Tempo scaduto per il caricamento delle impostazioni",
+    "common.startup.timeout-detail": "FolderView Plus non ha potuto completare il caricamento delle impostazioni. Ricarica la pagina per riprovare.",
     "common.server.custom-icon-directory-unwritable": "La directory delle icone personalizzate non è scrivibile. Esegui: $1",
     "common.server.custom-icon-lock-unavailable": "Impossibile aprire il file di blocco dell'icona personalizzata. Esegui: $1",
     "common.server.custom-icon-directory-missing": "La directory delle icone personalizzate non esiste. Esegui: $1",

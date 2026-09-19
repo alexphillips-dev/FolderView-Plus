@@ -5,8 +5,8 @@
         ],
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
-        "last-reviewed": "2026-09-18",
-        "last-updated": "2026-09-18",
+        "last-reviewed": "2026-09-19",
+        "last-updated": "2026-09-19",
         "locale": "ko",
         "native-name": "한국어",
         "reviewed": true,
@@ -14,7 +14,7 @@
         "status": "complete",
         "translated-messages": 4521,
         "total-source-messages": 4521,
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "add-folder": "폴더 추가",
     "up-to-date": "최신 상태",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -186,6 +186,10 @@
     "common.download.sent": "Export sent to your browser",
     "common.download.check": "Check your Downloads folder.",
     "common.download.help": "File missing? Get help",
+    "common.startup.performance-followup": "Repeated performance warnings requiring follow-up: $1.",
+    "common.startup.preparing": "Preparing saved folders and preferences…",
+    "common.startup.timeout": "Settings loading timed out",
+    "common.startup.timeout-detail": "FolderView Plus could not finish loading Settings. Reload the page to try again.",
     "common.server.custom-icon-directory-unwritable": "Custom icon directory is not writable. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Unable to open custom icon lock file. Run: $1",
     "common.server.custom-icon-directory-missing": "Custom icon directory does not exist. Run: $1",

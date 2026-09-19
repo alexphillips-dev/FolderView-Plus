@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "d4341edc3c15423116fbb9b7b0c9b95ad2fb8774cc010554860712627a4d236b"
+        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -186,6 +186,10 @@
     "common.download.sent": "Eksporten er sendt til nettleseren",
     "common.download.check": "Se i mappen Nedlastinger.",
     "common.download.help": "Mangler filen? Få hjelp",
+    "common.startup.performance-followup": "Gjentatte ytelsesvarsler som krever oppfølging: $1.",
+    "common.startup.preparing": "Klargjør lagrede mapper og innstillinger…",
+    "common.startup.timeout": "Tidsavbrudd ved innlasting av innstillinger",
+    "common.startup.timeout-detail": "FolderView Plus kunne ikke fullføre innlastingen av innstillinger. Last inn siden på nytt for å prøve igjen.",
     "common.server.custom-icon-directory-unwritable": "Egendefinert ikonkatalog er ikke skrivbar. Kjør: $1",
     "common.server.custom-icon-lock-unavailable": "Kan ikke åpne egendefinert ikonlåsfil. Kjør: $1",
     "common.server.custom-icon-directory-missing": "Egendefinert ikonkatalog finnes ikke. Kjør: $1",

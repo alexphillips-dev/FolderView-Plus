@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "b96794f015dfd88f77b49b1c93e0fa7110f94c63",
+      "version": "1c5b675653bb5c22dbe9b12b556ec555138e09fd",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@b96794f015dfd88f77b49b1c93e0fa7110f94c63",
+      "purl": "pkg:github/github/codeql-action@1c5b675653bb5c22dbe9b12b556ec555138e09fd",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "8e5cf47b818121e8b405931c82126c2630b0b20d",
+      "version": "8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@8e5cf47b818121e8b405931c82126c2630b0b20d",
+      "purl": "pkg:github/google/osv-scanner-action@8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
       "properties": [
         {
           "name": "folderview-plus:usage",

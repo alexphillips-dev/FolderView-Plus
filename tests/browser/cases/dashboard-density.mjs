@@ -203,7 +203,12 @@ export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
                         const right = Math.max(...geometry.members.map((r) => r.x + r.width));
                         assert.ok(geometry.panel.x + geometry.panel.width - right <= 12, `${label}: members fill panel`);
                     } else if (width >= 900) {
-                        const byColumn = Map.groupBy(geometry.expanded, (r) => Math.round(r.x));
+                        const byColumn = new Map();
+                        for (const card of geometry.expanded) {
+                            const column = Math.round(card.x);
+                            if (!byColumn.has(column)) byColumn.set(column, []);
+                            byColumn.get(column).push(card);
+                        }
                         for (const cards of byColumn.values()) {
                             for (let i = 1; i < cards.length; i += 1) {
                                 // The ungrouped tile can occur between cards in the first column.

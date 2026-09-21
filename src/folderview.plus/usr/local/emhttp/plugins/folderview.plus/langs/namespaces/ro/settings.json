@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Editează setările implicite ale dosarelor",
     "settings.search.placeholder": "Setări de căutare",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profilul aspectului a fost salvat.",
     "settings.theme.presets-title": "Presetări de culoare",
     "settings.theme.presets-help": "Previzualizează culorile de accent și grafic pentru domeniul selectat. Alte personalizări sunt păstrate. Salvați când este gata.",
-    "settings.theme.undo-preset": "Anulați previzualizarea presetată"
+    "settings.theme.undo-preset": "Anulați previzualizarea presetată",
+    "settings.environment.badge": "Mediu",
+    "settings.performance.adaptive": "Adaptiv",
+    "settings.performance.measured": "Costul de randare măsurat: $1 ms",
+    "settings.performance.fixed": "Limite maxime fixe",
+    "settings.performance.large": "Profil mare de bibliotecă",
+    "settings.performance.refresh": "Actualizare efectivă: $1 s",
+    "settings.performance.restore": "Restaurați până la $1 dosare extinse",
+    "settings.performance.defer": "Amânați previzualizările cu $1 sau mai mulți membri",
+    "settings.performance.immediate": "Previzualizările sunt redate imediat",
+    "settings.activity.backup-created": "$1 backup creat.",
+    "settings.activity.backup-download": "$1 descărcarea de rezervă a început. Verificați descărcările din browser pentru fișierul salvat.",
+    "settings.environment.client-unavailable": "Clientul de solicitare de mediu este indisponibil. Actualizați pagina și încercați din nou.",
+    "settings.environment.invalid-export": "Serverul a returnat un instantaneu incomplet al mediului. Nu a fost creată nicio descărcare.",
+    "settings.environment.download-started": "Descărcarea mediului a început. Verificați descărcările din browser pentru fișierul salvat.",
+    "settings.theme.no-updates": "Nu sunt disponibile actualizări ale temei gestionate.",
+    "settings.theme.updating-count": "Se actualizează temele gestionate: $1…",
+    "settings.theme.batch-update": "Actualizarea temei gestionată",
+    "settings.theme.updated": "Temele gestionate disponibile au fost actualizate."
 }

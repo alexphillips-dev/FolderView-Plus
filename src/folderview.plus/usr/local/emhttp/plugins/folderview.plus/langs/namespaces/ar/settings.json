@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "تعديل الإعدادات الافتراضية للمجلدات",
     "settings.search.placeholder": "إعدادات البحث",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "تم حفظ ملف تعريف المظهر.",
     "settings.theme.presets-title": "الإعدادات المسبقة للألوان",
     "settings.theme.presets-help": "معاينة ألوان التمييز والرسم البياني للنطاق المحدد. يتم الاحتفاظ بالتخصيصات الأخرى. احفظ عندما تكون جاهزًا.",
-    "settings.theme.undo-preset": "التراجع عن المعاينة المعدة مسبقًا"
+    "settings.theme.undo-preset": "التراجع عن المعاينة المعدة مسبقًا",
+    "settings.environment.badge": "بيئة",
+    "settings.performance.adaptive": "التكيف",
+    "settings.performance.measured": "تكلفة العرض المقاسة: $1 مللي ثانية",
+    "settings.performance.fixed": "الحدود القصوى الثابتة",
+    "settings.performance.large": "ملف تعريف مكتبة كبيرة",
+    "settings.performance.refresh": "التحديث الفعال: $1 ثانية",
+    "settings.performance.restore": "قم باستعادة ما يصل إلى $1 من المجلدات الموسعة",
+    "settings.performance.defer": "قم بتأجيل المعاينات مع $1 أو أكثر من الأعضاء",
+    "settings.performance.immediate": "يتم عرض المعاينات على الفور",
+    "settings.activity.backup-created": "تم إنشاء نسخة احتياطية $1.",
+    "settings.activity.backup-download": "$1 بدأ تنزيل النسخة الاحتياطية. تحقق من تنزيلات متصفحك بحثًا عن الملف المحفوظ.",
+    "settings.environment.client-unavailable": "عميل طلب البيئة غير متوفر. قم بتحديث الصفحة وحاول مرة أخرى.",
+    "settings.environment.invalid-export": "قام الخادم بإرجاع لقطة بيئة غير كاملة. لم يتم إنشاء أي تنزيل.",
+    "settings.environment.download-started": "بدأ تنزيل البيئة. تحقق من تنزيلات متصفحك بحثًا عن الملف المحفوظ.",
+    "settings.theme.no-updates": "لا تتوفر تحديثات للموضوع مُدارة.",
+    "settings.theme.updating-count": "تحديث السمات المُدارة: $1...",
+    "settings.theme.batch-update": "تحديث الموضوع المدار",
+    "settings.theme.updated": "تم تحديث السمات المُدارة المتوفرة."
 }

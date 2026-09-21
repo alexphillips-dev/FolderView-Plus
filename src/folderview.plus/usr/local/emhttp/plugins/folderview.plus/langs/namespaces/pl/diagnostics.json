@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostyka",
     "diagnostics.workspace.description": "Monitoruj stan wtyczek, rozwiązuj problemy i udostępniaj dane pomocy technicznej.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Elementy wymagające sprawdzenia: $1.",
     "diagnostics.activity.successes": "Zakończone działania: $1.",
     "diagnostics.activity.updates": "Ostatnie aktualizacje: $1.",
-    "diagnostics.activity.exported": "Wyeksportowano pakiet wsparcia"
+    "diagnostics.activity.exported": "Wyeksportowano pakiet wsparcia",
+    "diagnostics.history.members-reconciled": "Zsynchronizowano odniesienia do członków",
+    "diagnostics.history.backup-restored": "Kopia zapasowa przywrócona",
+    "diagnostics.history.backup-deleted": "Kopia zapasowa została usunięta",
+    "diagnostics.history.backup-download": "Zażądano pobrania kopii zapasowej",
+    "diagnostics.history.preferences-saved": "Preferencje zostały zapisane",
+    "diagnostics.history.event-details": "Szczegóły zdarzenia"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Mevcut klasörleri nasıl yöneteceğinizi seçin. Uygula içe aktarılmasını seçene kadar hiçbir şey değişmez.",
     "import.behavior.question": "Mevcut klasörler nasıl yönetilmeli?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Geçersiz anlık görüntü; konfigürasyon sırası",
     "import.folderview3.appearance-profiles": "Etkin olmayan FolderView3 görünüm profillerini ekleme",
     "import.folderview3.order-summary": "Kaydedilen klasör sırası: Docker $1; VM'ler $2.",
-    "import.folderview3.disabled-profile-count": "Devre dışı bırakılan temalar için ayrı profiller: $1."
+    "import.folderview3.disabled-profile-count": "Devre dışı bırakılan temalar için ayrı profiller: $1.",
+    "import.compare.to": "Hedef"
 }

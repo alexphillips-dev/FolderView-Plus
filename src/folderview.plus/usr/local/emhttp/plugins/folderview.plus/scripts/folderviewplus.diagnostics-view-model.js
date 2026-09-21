@@ -308,7 +308,30 @@
         });
     };
 
+    const recoveryActionLabel = (action, translate = fallbackTranslate) => ({
+        member_identity_reconcile: translate('diagnostics.history.members-reconciled', 'Member references synchronized'),
+        backup_create: translate("legacy.surface.ebc91c7ac728323f", 'Backup created'),
+        backup_restore: translate('diagnostics.history.backup-restored', 'Backup restored'),
+        backup_delete: translate('diagnostics.history.backup-deleted', 'Backup deleted'),
+        backup_download: translate('diagnostics.history.backup-download', 'Backup download requested'),
+        support_bundle_export: translate('diagnostics.activity.exported', 'Support bundle exported'),
+        environment_export: translate("legacy.surface.eae1fdd133376e8b", 'Environment exported'),
+        environment_import: translate("legacy.surface.6f50d668c818bd67", 'Environment imported'),
+        prefs_update: translate('diagnostics.history.preferences-saved', 'Preferences saved')
+    }[String(action)] || translate("legacy.surface.033f7216c0f490c9", 'Recent change'));
+
+    const recoveryStatusLabel = (status, translate = fallbackTranslate) => {
+        const value = String(status || '').toLowerCase();
+        const level = ['ok', 'success'].includes(value) ? 'success' : ['warn', 'warning'].includes(value) ? 'warning' : ['error', 'danger', 'failed'].includes(value) ? 'error' : 'info';
+        if (level === 'success') return translate('common.state.ok', 'OK');
+        if (level === 'warning') return translate('common.state.warning', 'Warning');
+        if (level === 'error') return translate("legacy.surface.54a0e8c17ebb21a1", 'Error');
+        return translate('common.state.info', 'Information');
+    };
+
     return Object.freeze({
+        recoveryActionLabel,
+        recoveryStatusLabel,
         DEFAULT_STALE_AFTER_MS,
         normalizeStatus,
         normalizeCard,

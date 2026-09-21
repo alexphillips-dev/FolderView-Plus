@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "진단",
     "diagnostics.workspace.description": "플러그인 상태를 모니터링하고, 문제를 해결하고, 지원 데이터를 공유하세요.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "검토가 필요한 항목: $1.",
     "diagnostics.activity.successes": "완료된 작업: $1.",
     "diagnostics.activity.updates": "최근 업데이트: $1.",
-    "diagnostics.activity.exported": "지원 번들을 내보냈습니다."
+    "diagnostics.activity.exported": "지원 번들을 내보냈습니다.",
+    "diagnostics.history.members-reconciled": "회원 참조가 동기화되었습니다.",
+    "diagnostics.history.backup-restored": "백업이 복원되었습니다.",
+    "diagnostics.history.backup-deleted": "백업이 삭제되었습니다.",
+    "diagnostics.history.backup-download": "백업 다운로드가 요청되었습니다",
+    "diagnostics.history.preferences-saved": "환경설정이 저장되었습니다.",
+    "diagnostics.history.event-details": "이벤트 세부 정보"
 }

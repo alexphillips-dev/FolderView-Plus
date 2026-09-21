@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Editar predefinições das pastas",
     "settings.search.placeholder": "Definições de pesquisa",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Perfil de aparência salvo.",
     "settings.theme.presets-title": "Predefinições de cores",
     "settings.theme.presets-help": "Visualize as cores de destaque e do gráfico para o escopo selecionado. Outras personalizações são preservadas. Salve quando estiver pronto.",
-    "settings.theme.undo-preset": "Desfazer visualização predefinida"
+    "settings.theme.undo-preset": "Desfazer visualização predefinida",
+    "settings.environment.badge": "Ambiente",
+    "settings.performance.adaptive": "Adaptativo",
+    "settings.performance.measured": "Custo de renderização medido: $1 ms",
+    "settings.performance.fixed": "Limites máximos fixos",
+    "settings.performance.large": "Perfil de biblioteca grande",
+    "settings.performance.refresh": "Atualização efetiva: $1 s",
+    "settings.performance.restore": "Restaure até $1 pastas expandidas",
+    "settings.performance.defer": "Adiar visualizações com $1 ou mais membros",
+    "settings.performance.immediate": "As visualizações são renderizadas imediatamente",
+    "settings.activity.backup-created": "$1 backup criado.",
+    "settings.activity.backup-download": "$1 download de backup iniciado. Verifique os downloads do seu navegador em busca do arquivo salvo.",
+    "settings.environment.client-unavailable": "O cliente de solicitação de ambiente não está disponível. Atualize a página e tente novamente.",
+    "settings.environment.invalid-export": "O servidor retornou um instantâneo de ambiente incompleto. Nenhum download foi criado.",
+    "settings.environment.download-started": "O download do ambiente foi iniciado. Verifique os downloads do seu navegador em busca do arquivo salvo.",
+    "settings.theme.no-updates": "Nenhuma atualização de tema gerenciado está disponível.",
+    "settings.theme.updating-count": "Atualizando temas gerenciados: $1…",
+    "settings.theme.batch-update": "Atualização de tema gerenciado",
+    "settings.theme.updated": "Temas gerenciados disponíveis atualizados."
 }

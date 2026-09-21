@@ -9,7 +9,7 @@ const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const previewSource = fs.readFileSync(path.join(root, plugin, 'scripts/folder.editor.preview.js'), 'utf8');
 const editorSource = fs.readFileSync(path.join(root, plugin, 'scripts/folder.js'), 'utf8');
 
-const createPreviewHarness = ({ previewNames, includedNames }) => {
+const createPreviewHarness = ({ previewNames, includedNames, state = 'Started', mode = '1', status = 'symbol' }) => {
     let renderedHtml = '';
     const canvas = {
         length: 1,
@@ -29,8 +29,8 @@ const createPreviewHarness = ({ previewNames, includedNames }) => {
         ['Hidden app', { Name: 'Hidden app', Icon: '/hidden.png' }]
     ]);
     const form = {
-        preview: { value: '1' },
-        preview_status: { value: 'symbol' },
+        preview: { value: mode },
+        preview_status: { value: status },
         preview_rows: { value: '1' },
         dropdown_style: { value: 'minimal' },
         preview_border: { checked: false },
@@ -57,7 +57,7 @@ const createPreviewHarness = ({ previewNames, includedNames }) => {
             hoverBorder: 'transparent', background: 'transparent', hoverBackground: 'transparent',
             shadow: 'none', hoverShadow: 'none'
         }),
-        buildSampleMemberState: () => ({ label: 'Started', color: '#fff' }),
+        buildSampleMemberState: () => ({ label: state, color: '#fff' }),
         previewModeLabels: { 1: 'Icon and label' },
         defaultFolderIconPath: '/folder.png',
         iconFallbackPath: '/fallback.png'
@@ -81,6 +81,15 @@ test('modern editor live preview explains when every included member is hidden',
         previewNames: []
     });
     assert.match(html, /All included members are hidden from the collapsed preview\./);
+});
+
+test('running preview states share a display label and remain colored in status grayscale mode', () => {
+    const members = { previewNames: ['Visible app'], includedNames: ['Visible app'] };
+    for (const state of ['Started', 'started', 'running']) {
+        assert.match(createPreviewHarness({ ...members, state }), /Running/);
+        assert.doesNotMatch(createPreviewHarness({ ...members, state, mode: '2', status: 'grayscale' }), /fv-u-1opeemm/);
+    }
+    assert.match(createPreviewHarness({ ...members, state: 'stopped', mode: '2', status: 'grayscale' }), /fv-u-1opeemm/);
 });
 
 test('preview visibility participates in editor dirty state and live-preview dependencies', () => {

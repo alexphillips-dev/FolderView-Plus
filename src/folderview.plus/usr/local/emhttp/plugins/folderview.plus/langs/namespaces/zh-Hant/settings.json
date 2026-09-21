@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "編輯資料夾預設設定",
     "settings.search.placeholder": "搜尋設定",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "外觀設定檔已儲存。",
     "settings.theme.presets-title": "顏色預設",
     "settings.theme.presets-help": "預覽所選範圍的強調色和圖形顏色。保留其他自訂設定。準備好後儲存。",
-    "settings.theme.undo-preset": "撤銷預設預覽"
+    "settings.theme.undo-preset": "撤銷預設預覽",
+    "settings.environment.badge": "環境",
+    "settings.performance.adaptive": "自適應",
+    "settings.performance.measured": "測量的渲染成本：$1 ms",
+    "settings.performance.fixed": "固定最大限制",
+    "settings.performance.large": "大型庫簡介",
+    "settings.performance.refresh": "有效重新整理：$1 s",
+    "settings.performance.restore": "最多恢復 $1 個擴充資料夾",
+    "settings.performance.defer": "延遲 $1 或更多成員的預覽",
+    "settings.performance.immediate": "預覽立即呈現",
+    "settings.activity.backup-created": "$1 已建立備份。",
+    "settings.activity.backup-download": "$1 備份下載已開始。檢查瀏覽器下載的已儲存檔案。",
+    "settings.environment.client-unavailable": "環境請求客戶端不可用。重新整理頁面並重試。",
+    "settings.environment.invalid-export": "伺服器傳回不完整的環境快照。沒有建立下載。",
+    "settings.environment.download-started": "環境下載開始。檢查瀏覽器下載的已儲存檔案。",
+    "settings.theme.no-updates": "沒有可用的託管主題更新。",
+    "settings.theme.updating-count": "更新託管主題：$1...",
+    "settings.theme.batch-update": "託管主題更新",
+    "settings.theme.updated": "可用的託管主題已更新。"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Standardwerte für Ordner bearbeiten",
     "settings.search.placeholder": "Einstellungen durchsuchen",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Erscheinungsprofil gespeichert.",
     "settings.theme.presets-title": "Farbvoreinstellungen",
     "settings.theme.presets-help": "Vorschau der Akzent- und Diagrammfarben für den ausgewählten Bereich. Andere Anpassungen bleiben erhalten. Speichern Sie, wenn Sie fertig sind.",
-    "settings.theme.undo-preset": "Voreingestellte Vorschau rückgängig machen"
+    "settings.theme.undo-preset": "Voreingestellte Vorschau rückgängig machen",
+    "settings.environment.badge": "Umfeld",
+    "settings.performance.adaptive": "Adaptiv",
+    "settings.performance.measured": "Gemessene Renderkosten: $1 ms",
+    "settings.performance.fixed": "Feste Höchstgrenzen",
+    "settings.performance.large": "Großes Bibliotheksprofil",
+    "settings.performance.refresh": "Effektive Aktualisierung: $1 s",
+    "settings.performance.restore": "Stellen Sie bis zu $1 erweiterte Ordner wieder her",
+    "settings.performance.defer": "Verschieben Sie Vorschauen mit $1 oder mehr Mitgliedern",
+    "settings.performance.immediate": "Vorschauen werden sofort gerendert",
+    "settings.activity.backup-created": "$1 Backup erstellt.",
+    "settings.activity.backup-download": "$1 Backup-Download gestartet. Überprüfen Sie die Downloads Ihres Browsers auf die gespeicherte Datei.",
+    "settings.environment.client-unavailable": "Der Umgebungsanforderungsclient ist nicht verfügbar. Aktualisieren Sie die Seite und versuchen Sie es erneut.",
+    "settings.environment.invalid-export": "Der Server hat einen unvollständigen Umgebungs-Snapshot zurückgegeben. Es wurde kein Download erstellt.",
+    "settings.environment.download-started": "Der Download der Umgebung wurde gestartet. Überprüfen Sie die Downloads Ihres Browsers auf die gespeicherte Datei.",
+    "settings.theme.no-updates": "Es sind keine verwalteten Theme-Updates verfügbar.",
+    "settings.theme.updating-count": "Verwaltete Themes werden aktualisiert: $1…",
+    "settings.theme.batch-update": "Verwaltetes Theme-Update",
+    "settings.theme.updated": "Verfügbare verwaltete Themes aktualisiert."
 }

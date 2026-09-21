@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Monitorizați starea pluginului, remediați problemele și partajați date de asistență.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Elemente care necesită examinare: $1.",
     "diagnostics.activity.successes": "Acțiuni finalizate: $1.",
     "diagnostics.activity.updates": "Actualizări recente: $1.",
-    "diagnostics.activity.exported": "Pachetul de asistență exportat"
+    "diagnostics.activity.exported": "Pachetul de asistență exportat",
+    "diagnostics.history.members-reconciled": "Referințele membrilor sincronizate",
+    "diagnostics.history.backup-restored": "Backup restaurat",
+    "diagnostics.history.backup-deleted": "Backup șters",
+    "diagnostics.history.backup-download": "A fost solicitată descărcarea de rezervă",
+    "diagnostics.history.preferences-saved": "Preferințe salvate",
+    "diagnostics.history.event-details": "Detalii despre eveniment"
 }

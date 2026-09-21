@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "اختر كيفية التعامل مع المجلدات الموجودة. لن يتغير أي شيء حتى تقوم بتحديد تطبيق الاستيراد.",
     "import.behavior.question": "كيف ينبغي التعامل مع المجلدات الموجودة؟",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "لقطة غير صالحة؛ ترتيب التكوين",
     "import.folderview3.appearance-profiles": "إضافة ملفات تعريف مظهر FolderView3 غير النشطة",
     "import.folderview3.order-summary": "ترتيب المجلد المحفوظ: Docker $1; الأجهزة الافتراضية $2.",
-    "import.folderview3.disabled-profile-count": "ملفات تعريف منفصلة للموضوعات المعطلة: $1."
+    "import.folderview3.disabled-profile-count": "ملفات تعريف منفصلة للموضوعات المعطلة: $1.",
+    "import.compare.to": "إلى"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Klasör varsayılanlarını düzenle",
     "settings.search.placeholder": "Arama ayarları",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Görünüm profili kaydedildi.",
     "settings.theme.presets-title": "Renk ön ayarları",
     "settings.theme.presets-help": "Seçilen kapsam için vurgu ve grafik renklerini önizleyin. Diğer özelleştirmeler korunur. Hazır olduğunuzda kaydedin.",
-    "settings.theme.undo-preset": "Ön ayarlı önizlemeyi geri al"
+    "settings.theme.undo-preset": "Ön ayarlı önizlemeyi geri al",
+    "settings.environment.badge": "Çevre",
+    "settings.performance.adaptive": "Uyarlanabilir",
+    "settings.performance.measured": "Ölçülen oluşturma maliyeti: $1 ms",
+    "settings.performance.fixed": "Sabit maksimum limitler",
+    "settings.performance.large": "Büyük kütüphane profili",
+    "settings.performance.refresh": "Etkili yenileme: $1 sn",
+    "settings.performance.restore": "$1 adede kadar genişletilmiş klasörü geri yükleyin",
+    "settings.performance.defer": "$1 veya daha fazla üyeye sahip önizlemeleri ertele",
+    "settings.performance.immediate": "Önizlemeler anında oluşturulur",
+    "settings.activity.backup-created": "$1 yedekleme oluşturuldu.",
+    "settings.activity.backup-download": "$1 yedekleme indirme işlemi başladı. Kaydedilen dosya için tarayıcı indirmelerinizi kontrol edin.",
+    "settings.environment.client-unavailable": "Ortam isteği istemcisi kullanılamıyor. Sayfayı yenileyip tekrar deneyin.",
+    "settings.environment.invalid-export": "Sunucu, tamamlanmamış bir ortam anlık görüntüsü döndürdü. Hiçbir indirme oluşturulmadı.",
+    "settings.environment.download-started": "Ortam indirme işlemi başladı. Kaydedilen dosya için tarayıcı indirmelerinizi kontrol edin.",
+    "settings.theme.no-updates": "Yönetilen tema güncellemesi mevcut değil.",
+    "settings.theme.updating-count": "Yönetilen temalar güncelleniyor: $1…",
+    "settings.theme.batch-update": "Yönetilen tema güncellemesi",
+    "settings.theme.updated": "Mevcut yönetilen temalar güncellendi."
 }

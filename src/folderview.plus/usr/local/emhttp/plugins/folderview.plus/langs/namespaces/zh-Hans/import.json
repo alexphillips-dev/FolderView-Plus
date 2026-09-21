@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "选择如何处理现有文件夹。只有在您选择“应用导入”后，才会发生更改。",
     "import.behavior.question": "现有文件夹应如何处理？",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "快照无效；配置顺序",
     "import.folderview3.appearance-profiles": "添加非活动的FolderView3外观配置文件",
     "import.folderview3.order-summary": "保存的文件夹顺序：Docker $1； VM $2。",
-    "import.folderview3.disabled-profile-count": "禁用主题的单独配置文件：$1。"
+    "import.folderview3.disabled-profile-count": "禁用主题的单独配置文件：$1。",
+    "import.compare.to": "目标"
 }

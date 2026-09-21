@@ -31,7 +31,7 @@
         Object.freeze({ token: '--fvplus-theme-accent', label: 'Accent', fallback: '#f0a030' }),
         Object.freeze({ token: '--fvplus-theme-surface-panel', label: 'Surface panel', fallback: '#1b1d20' }),
         Object.freeze({ token: '--fvplus-theme-border-subtle', label: 'Border subtle', fallback: '#444444' }),
-        Object.freeze({ token: '--fvplus-status-started', label: 'Status started', fallback: '#ffffff' }),
+        Object.freeze({ token: '--fvplus-status-started', label: 'Running status', fallback: '#ffffff' }),
         Object.freeze({ token: '--fvplus-status-paused', label: 'Status paused', fallback: '#b8860b' }),
         Object.freeze({ token: '--fvplus-status-stopped', label: 'Status stopped', fallback: '#ff4d4d' }),
         Object.freeze({ token: '--fvplus-graph-cpu', label: 'Graph CPU', fallback: '#5aa4ff' }),
@@ -379,6 +379,12 @@
             renderVariableGrid();
             syncCustomizeFields();
             applyPreviewCss();
+            const updateButton = documentRef?.getElementById('fv-theme-update-available');
+            if (updateButton) {
+                updateButton.disabled = !workspace.themes.some((theme) => theme.updateAvailable);
+                updateButton.title = updateButton.disabled
+                    ? translate('settings.theme.no-updates', 'No managed theme updates are available.') : '';
+            }
             const activeTheme = getActiveTheme();
             setStatus(activeTheme
                 ? translate("settings.theme.active-status", "Managed theme active: $1.", activeTheme.name || activeTheme.id)
@@ -536,9 +542,13 @@
 
         const updateAvailableThemes = async () => {
             const themeIds = workspace.themes.filter((theme) => theme.updateAvailable).map((theme) => theme.id);
+            if (!themeIds.length) {
+                setStatus(translate('settings.theme.no-updates', 'No managed theme updates are available.'));
+                return null;
+            }
             const payload = { themeIds: JSON.stringify(themeIds) };
             const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_theme_updates', ...payload });
-            setStatus(`Updating ${Number(preview?.plan?.updateCount) || 0} managed theme(s) atomically...`);
+            setStatus(translate('settings.theme.updating-count', 'Updating managed themes: $1…', Number(preview?.plan?.updateCount) || 0));
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'update_themes', ...payload });
             return setWorkspace(response.workspace || {});
         };
@@ -618,7 +628,7 @@
                 safeAction('Profile deletion', () => deleteProfile(workspace.activeProfileId), 'Appearance profile deleted.').catch(() => {});
             });
             $(documentRef).off('click.fvthemeupdateavailable', '#fv-theme-update-available').on('click.fvthemeupdateavailable', '#fv-theme-update-available', () => {
-                safeAction('Managed theme batch update', updateAvailableThemes, 'Available managed themes updated.').catch(() => {});
+                safeAction(translate('settings.theme.batch-update', 'Managed theme update'), updateAvailableThemes, translate('settings.theme.updated', 'Available managed themes updated.')).catch(() => {});
             });
         };
 
@@ -626,13 +636,16 @@
             try {
                 setStatus(`${title}...`);
                 const result = await action();
-                if (successMessage) {
-                    setStatus(successMessage);
+                if (successMessage && result !== null) {
+                    const message = globalThis.FolderViewPlusI18n?.message?.(successMessage) || successMessage;
+                    setStatus(message);
+                    deps.recordActivity?.(message);
                 }
                 return result;
             } catch (error) {
-                setStatus(`${title} failed.`);
-                showError(`${title} failed`, error);
+                const message = translate("legacy.surface.2517b2dd9baadf0e", '$1 failed', globalThis.FolderViewPlusI18n?.message?.(title) || title);
+                setStatus(message);
+                showError(message, error);
                 throw error;
             }
         };

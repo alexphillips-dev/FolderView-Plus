@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করবেন তা চয়ন করুন। আপনি আমদানি প্রয়োগ করুন নির্বাচন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।",
     "import.behavior.question": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করা উচিত?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "অবৈধ স্ন্যাপশট; কনফিগারেশন অর্ডার",
     "import.folderview3.appearance-profiles": "নিষ্ক্রিয় FolderView3 উপস্থিতি প্রোফাইল যোগ করুন",
     "import.folderview3.order-summary": "সংরক্ষিত ফোল্ডার অর্ডার: ডকার $1; VMs $2।",
-    "import.folderview3.disabled-profile-count": "অক্ষম থিমগুলির জন্য পৃথক প্রোফাইলগুলি: $1৷"
+    "import.folderview3.disabled-profile-count": "অক্ষম থিমগুলির জন্য পৃথক প্রোফাইলগুলি: $1৷",
+    "import.compare.to": "পর্যন্ত"
 }

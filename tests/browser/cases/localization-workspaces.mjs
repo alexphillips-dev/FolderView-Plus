@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerRecoverySupportCases } from './recovery-support.mjs';
 import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
 import { registerLocalizedEditorStateCases } from './localization-editor-state.mjs';
 import { registerLocalizationAuditCases } from './localization-audit.mjs';
@@ -29,6 +30,7 @@ const configureGerman = (wait = true) => {
 };
 
 export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => {
+    registerRecoverySupportCases({ test, baseUrl, loadI18n });
     registerLocalizedEditorStateCases({ test, baseUrl, loadI18n });
     registerLocalizationAuditCases({ test, baseUrl, loadI18n });
     registerLocalizationRepairBoundaryCases({ test, baseUrl, loadI18n }); registerSettingsStartupRepairCases({ test, baseUrl, loadI18n });
@@ -63,13 +65,13 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
                 const label = document.createElement('p');
                 label.id = 'early-health';
                 label.textContent = window.FolderViewPlusI18n.t('common.health.folder-summary',
-                    'Folder health: $1 started | $2 paused | $3 stopped', 0, 0, 3);
+                    'Folder health: $1 running | $2 paused | $3 stopped', 0, 0, 3);
                 document.body.append(label);
             });
             assert.match(await page.locator('[data-fvplus-docker-action="expand-all"]').innerText(), /Expand All/i);
             await page.evaluate(async () => { window.releaseGerman(); await window.catalogReady; });
             assert.match(await page.locator('[data-fvplus-docker-action="expand-all"]').textContent(), /Alles erweitern/);
-            assert.match(await page.locator('#early-health').innerText(), /Ordnerstatus: 0 gestartet.*3 gestoppt/);
+            assert.match(await page.locator('#early-health').innerText(), /Ordnerstatus: 0 Läuft.*3 gestoppt/);
             assert.equal(await page.locator('.appname').last().innerText(), 'Expand All', 'user names must remain unchanged');
             assert.equal(await page.evaluate(() => document.activeElement === window.originalExpand
                 && document.querySelector('[data-fvplus-docker-action="expand-all"]') === window.originalExpand), true);
@@ -80,7 +82,7 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
     test('German workspaces use production markup and fit long labels at desktop and phone widths', async ({ page }) => {
         await page.goto(baseUrl + '/settings');
         await loadI18n(page, baseUrl);
-        for (const name of ['folderviewplus.theme-profiles', 'folderviewplus.theme-workspace', 'folderviewplus.settings-workspaces']) {
+        for (const name of ['folderviewplus.theme-profiles', 'folderviewplus.theme-workspace', 'folderviewplus.environment', 'folderviewplus.settings-workspaces']) {
             await page.addScriptTag({ url: baseUrl + '/plugin/scripts/' + name + '.js' });
         }
         await page.addStyleTag({ url: baseUrl + '/plugin/styles/theme-profiles.css' });

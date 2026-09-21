@@ -710,15 +710,6 @@
     ]
   },
   {
-    "phrase": "$1 failed.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.theme-workspace.js",
-        "anchor": "failed."
-      }
-    ]
-  },
-  {
     "phrase": "$1 folder",
     "locations": [
       {
@@ -1698,15 +1689,6 @@
       {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
         "anchor": "ms target"
-      }
-    ]
-  },
-  {
-    "phrase": "$1s effective refresh",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "s effective refresh"
       }
     ]
   },
@@ -3639,15 +3621,6 @@
     ]
   },
   {
-    "phrase": "defer previews at $1+ members$2",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "defer previews at"
-      }
-    ]
-  },
-  {
     "phrase": "Delete all backups failed.",
     "locations": [
       {
@@ -5088,15 +5061,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "'Fix invalid or incomplete rules first so the priority order behaves predictably.'"
-      }
-    ]
-  },
-  {
-    "phrase": "fixed maximum limits",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'fixed maximum limits'"
       }
     ]
   },
@@ -6868,15 +6832,6 @@
     ]
   },
   {
-    "phrase": "large library profile",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'large library profile'"
-      }
-    ]
-  },
-  {
     "phrase": "Larger installs with lots of folders or apps.",
     "locations": [
       {
@@ -7254,15 +7209,6 @@
       {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
         "anchor": "Measured"
-      }
-    ]
-  },
-  {
-    "phrase": "measured render cost ($1ms)",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "measured render cost ("
       }
     ]
   },
@@ -8860,15 +8806,6 @@
     ]
   },
   {
-    "phrase": "previews render immediately",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'previews render immediately'"
-      }
-    ]
-  },
-  {
     "phrase": "previous checkpoint",
     "locations": [
       {
@@ -9031,15 +8968,6 @@
     ]
   },
   {
-    "phrase": "Recent change",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'Recent change'"
-      }
-    ]
-  },
-  {
     "phrase": "Recent events: $1",
     "locations": [
       {
@@ -9090,15 +9018,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "tree change(s)"
-      }
-    ]
-  },
-  {
-    "phrase": "Redo complete: restored $1.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Redo complete: restored"
       }
     ]
   },
@@ -12192,15 +12111,6 @@
     ]
   },
   {
-    "phrase": "Undo complete: restored $1.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Undo complete: restored"
-      }
-    ]
-  },
-  {
     "phrase": "Undo failed.",
     "locations": [
       {
@@ -12694,15 +12604,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "'updates only'"
-      }
-    ]
-  },
-  {
-    "phrase": "Updating $1 managed theme(s) atomically...",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.theme-workspace.js",
-        "anchor": "managed theme(s) atomically..."
       }
     ]
   },

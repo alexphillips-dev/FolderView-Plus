@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Upravit výchozí nastavení složek",
     "settings.search.placeholder": "Nastavení vyhledávání",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profil vzhledu byl uložen.",
     "settings.theme.presets-title": "Předvolby barev",
     "settings.theme.presets-help": "Náhled barev zvýraznění a grafu pro vybraný rozsah. Ostatní přizpůsobení jsou zachována. Až budete připraveni, uložte.",
-    "settings.theme.undo-preset": "Vrátit zpět přednastavený náhled"
+    "settings.theme.undo-preset": "Vrátit zpět přednastavený náhled",
+    "settings.environment.badge": "Prostředí",
+    "settings.performance.adaptive": "Adaptivní",
+    "settings.performance.measured": "Naměřené náklady na vykreslení: $1 ms",
+    "settings.performance.fixed": "Pevné maximální limity",
+    "settings.performance.large": "Velký profil knihovny",
+    "settings.performance.refresh": "Efektivní obnovení: $1 s",
+    "settings.performance.restore": "Obnovte až $1 rozbalených složek",
+    "settings.performance.defer": "Odložte náhledy s $1 nebo více členy",
+    "settings.performance.immediate": "Náhledy se vykreslí okamžitě",
+    "settings.activity.backup-created": "Záloha $1 vytvořena.",
+    "settings.activity.backup-download": "Stahování zálohy $1 bylo zahájeno. Zkontrolujte stažené soubory v prohlížeči, zda neobsahuje uložený soubor.",
+    "settings.environment.client-unavailable": "Klient požadavku prostředí je nedostupný. Obnovte stránku a zkuste to znovu.",
+    "settings.environment.invalid-export": "Server vrátil neúplný snímek prostředí. Nebylo vytvořeno žádné stahování.",
+    "settings.environment.download-started": "Stahování prostředí bylo zahájeno. Zkontrolujte stažené soubory v prohlížeči, zda neobsahuje uložený soubor.",
+    "settings.theme.no-updates": "Nejsou k dispozici žádné aktualizace spravovaného motivu.",
+    "settings.theme.updating-count": "Aktualizace spravovaných motivů: $1…",
+    "settings.theme.batch-update": "Aktualizace spravovaného motivu",
+    "settings.theme.updated": "Dostupné spravované motivy byly aktualizovány."
 }

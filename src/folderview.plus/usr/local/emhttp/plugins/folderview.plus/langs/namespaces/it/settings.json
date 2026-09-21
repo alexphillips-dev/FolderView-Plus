@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Modifica le impostazioni predefinite delle cartelle",
     "settings.search.placeholder": "Impostazioni di ricerca",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profilo aspetto salvato.",
     "settings.theme.presets-title": "Preimpostazioni di colore",
     "settings.theme.presets-help": "Anteprima dei colori accentati e del grafico per l'ambito selezionato. Le altre personalizzazioni vengono mantenute. Salva quando sei pronto.",
-    "settings.theme.undo-preset": "Annulla l'anteprima preimpostata"
+    "settings.theme.undo-preset": "Annulla l'anteprima preimpostata",
+    "settings.environment.badge": "Ambiente",
+    "settings.performance.adaptive": "Adattivo",
+    "settings.performance.measured": "Costo rendering misurato: $1 ms",
+    "settings.performance.fixed": "Limiti massimi fissi",
+    "settings.performance.large": "Profilo libreria di grandi dimensioni",
+    "settings.performance.refresh": "Aggiornamento effettivo: $1 s",
+    "settings.performance.restore": "Ripristina fino a $1 cartelle espanse",
+    "settings.performance.defer": "Rinvia le anteprime con $1 o più membri",
+    "settings.performance.immediate": "Il rendering delle anteprime è immediato",
+    "settings.activity.backup-created": "$1 backup creato.",
+    "settings.activity.backup-download": "$1 download del backup avviato. Controlla i download del browser per il file salvato.",
+    "settings.environment.client-unavailable": "Il client di richiesta dell'ambiente non è disponibile. Aggiorna la pagina e riprova.",
+    "settings.environment.invalid-export": "Il server ha restituito uno snapshot dell'ambiente incompleto. Non è stato creato alcun download.",
+    "settings.environment.download-started": "È iniziato il download dell'ambiente. Controlla i download del browser per il file salvato.",
+    "settings.theme.no-updates": "Non sono disponibili aggiornamenti dei temi gestiti.",
+    "settings.theme.updating-count": "Aggiornamento dei temi gestiti: $1…",
+    "settings.theme.batch-update": "Aggiornamento del tema gestito",
+    "settings.theme.updated": "Temi gestiti disponibili aggiornati."
 }

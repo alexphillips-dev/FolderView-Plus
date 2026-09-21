@@ -612,7 +612,7 @@
     "params": []
   },
   {
-    "file": "scripts/folderviewplus.settings-workspaces.js",
+    "file": "scripts/folderviewplus.environment.js",
     "key": "common.repair.environment-export-failed-d84f08",
     "english": "Environment export failed",
     "params": []

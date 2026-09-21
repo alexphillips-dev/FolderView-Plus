@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Válassza ki a meglévő mappák kezelésének módját. Semmi sem változik, amíg ki nem választja az Importálás alkalmazása lehetőséget.",
     "import.behavior.question": "Hogyan kell kezelni a meglévő mappákat?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Érvénytelen pillanatkép; konfigurációs sorrend",
     "import.folderview3.appearance-profiles": "Inaktív FolderView3 megjelenési profilok hozzáadása",
     "import.folderview3.order-summary": "Mentett mappasorrend: Docker $1; Virtuális gépek $2.",
-    "import.folderview3.disabled-profile-count": "Külön profilok a letiltott témákhoz: $1."
+    "import.folderview3.disabled-profile-count": "Külön profilok a letiltott témákhoz: $1.",
+    "import.compare.to": "Cél"
 }

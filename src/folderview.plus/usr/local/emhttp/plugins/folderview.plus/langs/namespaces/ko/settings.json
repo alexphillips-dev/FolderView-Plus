@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "폴더 기본 설정 편집",
     "settings.search.placeholder": "검색 설정",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "외모 프로필이 저장되었습니다.",
     "settings.theme.presets-title": "색상 사전 설정",
     "settings.theme.presets-help": "선택한 범위에 대한 강조 및 그래프 색상을 미리 봅니다. 다른 사용자 정의는 유지됩니다. 준비되면 저장하세요.",
-    "settings.theme.undo-preset": "사전 설정 미리보기 실행 취소"
+    "settings.theme.undo-preset": "사전 설정 미리보기 실행 취소",
+    "settings.environment.badge": "환경",
+    "settings.performance.adaptive": "적응형",
+    "settings.performance.measured": "측정된 렌더링 비용: $1 ms",
+    "settings.performance.fixed": "고정된 최대 한도",
+    "settings.performance.large": "대형 도서관 프로필",
+    "settings.performance.refresh": "효과적인 새로 고침: $1 s",
+    "settings.performance.restore": "최대 $1 확장 폴더 복원",
+    "settings.performance.defer": "$1 이상의 회원이 있는 경우 미리보기 연기",
+    "settings.performance.immediate": "미리보기가 즉시 렌더링됩니다.",
+    "settings.activity.backup-created": "$1 백업이 생성되었습니다.",
+    "settings.activity.backup-download": "$1 백업 다운로드가 시작되었습니다. 저장된 파일에 대한 브라우저 다운로드를 확인하세요.",
+    "settings.environment.client-unavailable": "환경 요청 클라이언트를 사용할 수 없습니다. 페이지를 새로 고치고 다시 시도하세요.",
+    "settings.environment.invalid-export": "서버가 불완전한 환경 스냅샷을 반환했습니다. 다운로드가 생성되지 않았습니다.",
+    "settings.environment.download-started": "환경 다운로드가 시작되었습니다. 저장된 파일에 대한 브라우저 다운로드를 확인하세요.",
+    "settings.theme.no-updates": "관리형 테마 업데이트를 사용할 수 없습니다.",
+    "settings.theme.updating-count": "관리 테마 업데이트 중: $1…",
+    "settings.theme.batch-update": "관리형 테마 업데이트",
+    "settings.theme.updated": "사용 가능한 관리형 테마가 업데이트되었습니다."
 }

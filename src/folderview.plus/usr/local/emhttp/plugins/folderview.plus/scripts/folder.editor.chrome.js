@@ -389,7 +389,7 @@
                     <div class="fv-live-chip-panel">
                         <div class="fv-live-chip-panel-head">Status colors</div>
                         <div class="fv-live-swatches">
-                            <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                            <span class="fv-swatch-item"><em>Running</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>

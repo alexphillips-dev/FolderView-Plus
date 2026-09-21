@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "التشخيص",
     "diagnostics.workspace.description": "مراقبة صحة المكونات الإضافية واستكشاف المشكلات وإصلاحها ومشاركة بيانات الدعم.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "العناصر التي تحتاج إلى مراجعة: $1.",
     "diagnostics.activity.successes": "الإجراءات المكتملة: $1.",
     "diagnostics.activity.updates": "التحديثات الأخيرة: $1.",
-    "diagnostics.activity.exported": "تم تصدير حزمة الدعم"
+    "diagnostics.activity.exported": "تم تصدير حزمة الدعم",
+    "diagnostics.history.members-reconciled": "تمت مزامنة مراجع الأعضاء",
+    "diagnostics.history.backup-restored": "تمت استعادة النسخة الاحتياطية",
+    "diagnostics.history.backup-deleted": "تم حذف النسخة الاحتياطية",
+    "diagnostics.history.backup-download": "تم طلب تنزيل نسخة احتياطية",
+    "diagnostics.history.preferences-saved": "تم حفظ التفضيلات",
+    "diagnostics.history.event-details": "تفاصيل الحدث"
 }

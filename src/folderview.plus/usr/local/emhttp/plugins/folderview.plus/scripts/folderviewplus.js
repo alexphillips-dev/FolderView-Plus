@@ -3511,7 +3511,7 @@ const statusClassForKey = (statusKey) => {
 
 const statusLabelForKey = (statusKey) => {
     if (statusKey === 'started') {
-        return 'Started';
+        return surfaceT('started', 'Running');
     }
     if (statusKey === 'paused') {
         return 'Paused';
@@ -3700,7 +3700,8 @@ const getThemeWorkspaceApi = (() => {
             escapeHtml,
             apiGetJson,
             apiPostJson,
-            showError
+            showError,
+            recordActivity: (message) => addActivityEntry(message, 'success')
         });
         return cachedApi;
     };
@@ -3760,7 +3761,21 @@ const getSettingsWorkspacesApi = (() => {
             selectedOperationsTemplateIdByType,
             downloadFile,
             toPrettyJson,
-            showError
+            showError,
+            swal,
+            apiGetJson,
+            apiPostJson,
+            selectJsonFile,
+            showToastMessage,
+            claimAdvancedOperationLock,
+            releaseAdvancedOperationLock,
+            refreshType,
+            refreshBackups,
+            refreshThemeWorkspace: () => getThemeWorkspaceApi().readWorkspace(),
+            openImportApplyProgressDialog,
+            updateImportApplyProgressDialog,
+            closeImportApplyProgressDialog,
+            ensureRuntimeConflictActionAllowed
         });
         return cachedApi;
     };
@@ -5578,6 +5593,7 @@ const showToastMessage = ({
     message = '',
     level = 'info'
 } = {}) => {
+    if (title || message) addActivityEntry([title, message].filter(Boolean).join(': '), level);
     if (window.FolderViewPlusUI?.announce) {
         return window.FolderViewPlusUI.announce({
             title,
@@ -6115,7 +6131,6 @@ const applyTreeMoveUndo = async (type) => {
                 state.redoStack.shift();
             }
         }
-        addActivityEntry(`Undo complete: restored ${backupName}.`, 'success');
         showToastMessage({
             title: 'Undo complete',
             message: `Restored ${backupName}`,
@@ -6165,7 +6180,6 @@ const applyTreeMoveRedo = async (type) => {
         while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
             state.undoStack.shift();
         }
-        addActivityEntry(`Redo complete: restored ${backupName}.`, 'success');
         showToastMessage({
             title: 'Redo complete',
             message: `Restored ${backupName}`,
@@ -6772,7 +6786,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 key: 'started',
                 count: Number(countsByState.started || 0),
                 icon: 'fa-play',
-                label: 'Started'
+                label: surfaceT('started', 'Running')
             },
             {
                 key: 'paused',
@@ -7205,17 +7219,19 @@ const renderPerformancePolicySummary = (type, prefs) => {
     const minimumSeconds = Number(runtimePolicy?.minLiveRefreshSeconds || (mode === 'maximum' ? 45 : (strict ? 30 : (mode === 'adaptive' ? 20 : 0))));
     const effectiveSeconds = Math.max(requestedSeconds, minimumSeconds);
     const expansionBudget = runtimePolicy?.expandRestoreLimit ?? (mode === 'maximum' ? 6 : (strict ? 8 : (mode === 'adaptive' ? 12 : null)));
-    const label = mode === 'maximum' ? 'Maximum performance' : (mode === 'adaptive' ? 'Adaptive' : 'Standard');
+    const label = mode === 'maximum' ? surfaceT("legacy.surface.6ae0aec4c1075dbd", 'Maximum performance')
+        : (mode === 'adaptive' ? surfaceT('settings.performance.adaptive', 'Adaptive') : surfaceT("editor.actions.standard", 'Standard'));
     const runtimeReason = String(runtimePolicy?.reason || '');
     const reason = runtimeReason === 'measured-render-cost'
-        ? `measured render cost (${Math.round(Number(runtimePolicy?.renderMs || 0))}ms)`
-        : (mode === 'maximum' ? 'fixed maximum limits' : (strict ? 'large library profile' : `${folderCount} folders / ${itemCount} items`));
+        ? surfaceT('settings.performance.measured', 'Measured render cost: $1 ms', Math.round(Number(runtimePolicy?.renderMs || 0)))
+        : (mode === 'maximum' ? surfaceT('settings.performance.fixed', 'Fixed maximum limits')
+            : (strict ? surfaceT('settings.performance.large', 'Large library profile') : surfaceT("legacy.surface.63c4cf97dc3a36aa", '$1 folders / $2 items', folderCount, itemCount)));
     const parts = [`${label}: ${reason}`];
-    if (normalized.liveRefreshEnabled === true) parts.push(`${effectiveSeconds}s effective refresh`);
-    if (expansionBudget !== null) parts.push(`restore up to ${expansionBudget} expanded folders`);
+    if (normalized.liveRefreshEnabled === true) parts.push(surfaceT('settings.performance.refresh', 'Effective refresh: $1 s', effectiveSeconds));
+    if (expansionBudget !== null) parts.push(surfaceT('settings.performance.restore', 'Restore up to $1 expanded folders', expansionBudget));
     parts.push(normalized.lazyPreviewEnabled === true || strict
-        ? `defer previews at ${normalized.lazyPreviewThreshold}+ members${strict && normalized.lazyPreviewEnabled !== true ? ' automatically' : ''}`
-        : 'previews render immediately');
+        ? surfaceT('settings.performance.defer', 'Defer previews with $1 or more members', normalized.lazyPreviewThreshold)
+        : surfaceT('settings.performance.immediate', 'Previews render immediately'));
     $(`#${type}-performance-policy-summary`).text(parts.join(' · '));
 };
 
@@ -9075,18 +9091,22 @@ const isAdvancedModuleStale = (moduleKey, force = false) => {
     return !Number.isFinite(age) || age >= ADVANCED_MODULE_STALE_MS;
 };
 
+const backupRefreshSequence = { docker: 0, vm: 0 };
 const refreshBackups = async (type, { quiet = false } = {}) => {
     const resolvedType = normalizeManagedType(type);
+    const sequence = ++backupRefreshSequence[resolvedType];
     const moduleKey = `${resolvedType}_backups`;
     setAdvancedModuleStatus(moduleKey, 'loading');
     try {
-        backupsByType[resolvedType] = await fetchBackups(resolvedType);
+        const backups = await fetchBackups(resolvedType);
+        if (sequence !== backupRefreshSequence[resolvedType]) return false;
+        backupsByType[resolvedType] = backups;
         markAdvancedModuleLoadSuccess(moduleKey);
     } catch (error) {
-        backupsByType[resolvedType] = [];
+        if (sequence !== backupRefreshSequence[resolvedType]) return false;
         markAdvancedModuleLoadError(moduleKey, error);
         if (!quiet) {
-            showError(`Failed to load ${resolvedType.toUpperCase()} backups`, error);
+            showError(surfaceT("legacy.surface.e383df7f2914879e", 'Failed to load $1 backups', resolvedType === 'docker' ? 'Docker' : 'VM'), error);
         }
         renderBackupRows(resolvedType);
         renderBackupScheduleControls(resolvedType);
@@ -10645,6 +10665,7 @@ const createManualBackup = async (type) => {
                 text: backup?.name || 'Backup ready.',
                 type: 'success'
             });
+            addActivityEntry(surfaceT('settings.activity.backup-created', '$1 backup created.', resolvedType === 'docker' ? 'Docker' : 'VM'), 'success');
         } catch (error) {
             showError(surfaceT("common.repair.backup-failed-0e7112", "Backup failed"), error);
         }
@@ -10784,6 +10805,7 @@ const downloadBackupEntry = async (type, name) => {
         link.click();
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        addActivityEntry(surfaceT('settings.activity.backup-download', '$1 backup download started. Check your browser downloads for the saved file.', resolvedType === 'docker' ? 'Docker' : 'VM'), 'success');
     } catch (error) {
         showError('Download failed', error);
     }
@@ -10816,6 +10838,7 @@ const deleteBackupEntry = (type, name) => {
             try {
                 backupsByType[resolvedType] = await deleteBackupByName(resolvedType, name);
                 renderBackupRows(resolvedType);
+                addActivityEntry(surfaceT('diagnostics.history.backup-deleted', 'Backup deleted'), 'success');
             } catch (error) {
                 showError('Delete failed', error);
             }

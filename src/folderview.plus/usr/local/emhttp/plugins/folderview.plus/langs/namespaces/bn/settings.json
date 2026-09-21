@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "ফোল্ডারের ডিফল্ট সেটিংস সম্পাদনা করুন",
     "settings.search.placeholder": "অনুসন্ধান সেটিংস",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "চেহারা প্রোফাইল সংরক্ষিত.",
     "settings.theme.presets-title": "রঙের প্রিসেট",
     "settings.theme.presets-help": "নির্বাচিত সুযোগের জন্য অ্যাকসেন্ট এবং গ্রাফ রংগুলির পূর্বরূপ দেখুন। অন্যান্য কাস্টমাইজেশন সংরক্ষিত হয়. প্রস্তুত হলে সংরক্ষণ করুন।",
-    "settings.theme.undo-preset": "পূর্বনির্ধারিত পূর্বরূপ পূর্বাবস্থায় ফেরান"
+    "settings.theme.undo-preset": "পূর্বনির্ধারিত পূর্বরূপ পূর্বাবস্থায় ফেরান",
+    "settings.environment.badge": "পরিবেশ",
+    "settings.performance.adaptive": "অভিযোজিত",
+    "settings.performance.measured": "পরিমাপকৃত রেন্ডার খরচ: $1 মি.সে",
+    "settings.performance.fixed": "নির্দিষ্ট সর্বোচ্চ সীমা",
+    "settings.performance.large": "বড় লাইব্রেরি প্রোফাইল",
+    "settings.performance.refresh": "কার্যকরী রিফ্রেশ: $1 সে",
+    "settings.performance.restore": "$1 পর্যন্ত প্রসারিত ফোল্ডার পুনরুদ্ধার করুন",
+    "settings.performance.defer": "$1 বা তার বেশি সদস্যের সাথে পূর্বরূপ স্থগিত করুন",
+    "settings.performance.immediate": "পূর্বরূপ অবিলম্বে রেন্ডার",
+    "settings.activity.backup-created": "$1 ব্যাকআপ তৈরি হয়েছে৷",
+    "settings.activity.backup-download": "$1 ব্যাকআপ ডাউনলোড শুরু হয়েছে৷ সংরক্ষিত ফাইলের জন্য আপনার ব্রাউজার ডাউনলোড চেক করুন.",
+    "settings.environment.client-unavailable": "পরিবেশ অনুরোধ ক্লায়েন্ট অনুপলব্ধ. পৃষ্ঠাটি রিফ্রেশ করুন এবং আবার চেষ্টা করুন।",
+    "settings.environment.invalid-export": "সার্ভার একটি অসম্পূর্ণ পরিবেশের স্ন্যাপশট ফিরিয়ে দিয়েছে। কোন ডাউনলোড তৈরি করা হয়নি.",
+    "settings.environment.download-started": "পরিবেশ ডাউনলোড শুরু হয়েছে। সংরক্ষিত ফাইলের জন্য আপনার ব্রাউজার ডাউনলোড চেক করুন.",
+    "settings.theme.no-updates": "কোন পরিচালিত থিম আপডেট উপলব্ধ নেই.",
+    "settings.theme.updating-count": "পরিচালিত থিমগুলি আপডেট করা হচ্ছে: $1…",
+    "settings.theme.batch-update": "পরিচালিত থিম আপডেট",
+    "settings.theme.updated": "উপলব্ধ পরিচালিত থিম আপডেট করা হয়েছে৷"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "기존 폴더를 처리할 방법을 선택하십시오. '가져오기 적용'을 선택할 때까지 아무 것도 변경되지 않습니다.",
     "import.behavior.question": "기존 폴더를 어떻게 처리해야 합니까?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "잘못된 스냅샷입니다. 구성 순서",
     "import.folderview3.appearance-profiles": "비활성 FolderView3 모양 프로필 추가",
     "import.folderview3.order-summary": "저장된 폴더 순서: Docker $1; VM $2.",
-    "import.folderview3.disabled-profile-count": "비활성화된 테마에 대한 별도의 프로필: $1."
+    "import.folderview3.disabled-profile-count": "비활성화된 테마에 대한 별도의 프로필: $1.",
+    "import.compare.to": "대상"
 }

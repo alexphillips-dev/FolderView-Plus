@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Діагностика",
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Елементи, які потребують перевірки: $1.",
     "diagnostics.activity.successes": "Виконані дії: $1.",
     "diagnostics.activity.updates": "Останні оновлення: $1.",
-    "diagnostics.activity.exported": "Пакет підтримки експортовано"
+    "diagnostics.activity.exported": "Пакет підтримки експортовано",
+    "diagnostics.history.members-reconciled": "Посилання на учасників синхронізовано",
+    "diagnostics.history.backup-restored": "Резервну копію відновлено",
+    "diagnostics.history.backup-deleted": "Резервну копію видалено",
+    "diagnostics.history.backup-download": "Надіслано запит на завантаження резервної копії",
+    "diagnostics.history.preferences-saved": "Налаштування збережено",
+    "diagnostics.history.event-details": "Відомості про подію"
 }

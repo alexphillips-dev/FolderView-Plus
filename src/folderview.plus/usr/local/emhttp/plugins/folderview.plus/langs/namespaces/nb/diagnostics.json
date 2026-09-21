@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostikk",
     "diagnostics.workspace.description": "Overvåk plugin-helsen, feilsøk problemer og del støttedata.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Elementer som trenger gjennomgang: $1.",
     "diagnostics.activity.successes": "Fullførte handlinger: $1.",
     "diagnostics.activity.updates": "Nylige oppdateringer: $1.",
-    "diagnostics.activity.exported": "Støttepakke eksportert"
+    "diagnostics.activity.exported": "Støttepakke eksportert",
+    "diagnostics.history.members-reconciled": "Medlemsreferanser synkronisert",
+    "diagnostics.history.backup-restored": "Sikkerhetskopien gjenopprettet",
+    "diagnostics.history.backup-deleted": "Sikkerhetskopien slettet",
+    "diagnostics.history.backup-download": "Forespurt sikkerhetskopiering",
+    "diagnostics.history.preferences-saved": "Preferansene er lagret",
+    "diagnostics.history.event-details": "Hendelsesdetaljer"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Pārraugiet spraudņa stāvokli, novērsiet problēmas un kopīgojiet atbalsta datus.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Vienumi, kuriem nepieciešama pārskatīšana: $1.",
     "diagnostics.activity.successes": "Pabeigtās darbības: $1.",
     "diagnostics.activity.updates": "Jaunākie atjauninājumi: $1.",
-    "diagnostics.activity.exported": "Atbalsta komplekts ir eksportēts"
+    "diagnostics.activity.exported": "Atbalsta komplekts ir eksportēts",
+    "diagnostics.history.members-reconciled": "Dalībnieku atsauces ir sinhronizētas",
+    "diagnostics.history.backup-restored": "Dublējums ir atjaunots",
+    "diagnostics.history.backup-deleted": "Dublējums izdzēsts",
+    "diagnostics.history.backup-download": "Pieprasīta dublējuma lejupielāde",
+    "diagnostics.history.preferences-saved": "Preferences saglabātas",
+    "diagnostics.history.event-details": "Notikuma informācija"
 }

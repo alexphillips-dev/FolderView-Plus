@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Kies hoe bestaande mappen moeten worden behandeld. Er verandert niets totdat u Toepassen import selecteert.",
     "import.behavior.question": "Hoe moeten bestaande mappen worden behandeld?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Ongeldige momentopname; configuratievolgorde",
     "import.folderview3.appearance-profiles": "Voeg inactieve FolderView3-weergaveprofielen toe",
     "import.folderview3.order-summary": "Volgorde van opgeslagen mappen: Docker $1; VM's $2.",
-    "import.folderview3.disabled-profile-count": "Afzonderlijke profielen voor uitgeschakelde thema's: $1."
+    "import.folderview3.disabled-profile-count": "Afzonderlijke profielen voor uitgeschakelde thema's: $1.",
+    "import.compare.to": "Naar"
 }

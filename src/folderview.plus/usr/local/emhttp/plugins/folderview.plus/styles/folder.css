@@ -1441,7 +1441,13 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-third-party-icon-controls {
-    grid-template-columns: minmax(0, 1fr) 30px minmax(138px, 180px) minmax(120px, 160px) auto;
+    grid-template-columns: minmax(0, 1fr) 30px;
+}
+.fv-third-party-icon-controls > select,
+.fv-third-party-icon-controls > #fv-third-party-filter-toggle {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
 }
 
 .fv-third-party-pack-primary {
@@ -4597,6 +4603,9 @@ table.sortable td:nth-child(4) {
 .fv-action-type-option > span {
     display: grid;
     gap: 0.08em;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .fv-action-type-option small,

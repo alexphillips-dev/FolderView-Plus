@@ -92,7 +92,7 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsHealth = factory\(\)/);
     assert.match(script, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
-    assert.match(script, /FolderViewPlusSettingsWorkspaces = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsWorkspaces = factory\(root\.FolderViewPlusFoundationModules\?\.environment\)/);
     assert.match(script, /FolderViewPlusBulkAssignmentSharedModuleLoaded = true/);
     assert.match(script, /FolderViewPlusBulkAssignmentShared = factory\(\)/);
     assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);

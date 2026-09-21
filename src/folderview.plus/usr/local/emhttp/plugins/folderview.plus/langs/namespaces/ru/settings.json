@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Изменить настройки папок по умолчанию",
     "settings.search.placeholder": "Настройки поиска",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Профиль внешнего вида сохранен.",
     "settings.theme.presets-title": "Цветовые пресеты",
     "settings.theme.presets-help": "Предварительный просмотр акцентов и цветов графика для выбранной области. Остальные настройки сохраняются. Сохраните, когда будете готовы.",
-    "settings.theme.undo-preset": "Отменить предварительный просмотр предустановки"
+    "settings.theme.undo-preset": "Отменить предварительный просмотр предустановки",
+    "settings.environment.badge": "Среда",
+    "settings.performance.adaptive": "Адаптивный",
+    "settings.performance.measured": "Измеренная стоимость рендеринга: $1 мс.",
+    "settings.performance.fixed": "Фиксированные максимальные лимиты",
+    "settings.performance.large": "Большой профиль библиотеки",
+    "settings.performance.refresh": "Эффективное обновление: $1 с.",
+    "settings.performance.restore": "Восстановить до $1 расширенных папок",
+    "settings.performance.defer": "Отложите предварительный просмотр с $1 или более участниками",
+    "settings.performance.immediate": "Предварительный просмотр отображается немедленно",
+    "settings.activity.backup-created": "Резервная копия $1 создана.",
+    "settings.activity.backup-download": "Началась загрузка резервной копии $1. Проверьте загрузку сохраненного файла в браузере.",
+    "settings.environment.client-unavailable": "Клиент запроса среды недоступен. Обновите страницу и повторите попытку.",
+    "settings.environment.invalid-export": "Сервер вернул неполный снимок среды. Загрузка не была создана.",
+    "settings.environment.download-started": "Загрузка среды началась. Проверьте загрузку сохраненного файла в браузере.",
+    "settings.theme.no-updates": "Обновления управляемых тем недоступны.",
+    "settings.theme.updating-count": "Обновление управляемых тем: $1…",
+    "settings.theme.batch-update": "Управляемое обновление темы",
+    "settings.theme.updated": "Доступные управляемые темы обновлены."
 }

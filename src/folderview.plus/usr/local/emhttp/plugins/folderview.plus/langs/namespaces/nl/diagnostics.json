@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Items die moeten worden beoordeeld: $1.",
     "diagnostics.activity.successes": "Voltooide acties: $1.",
     "diagnostics.activity.updates": "Recente updates: $1.",
-    "diagnostics.activity.exported": "Ondersteuningsbundel geëxporteerd"
+    "diagnostics.activity.exported": "Ondersteuningsbundel geëxporteerd",
+    "diagnostics.history.members-reconciled": "Lidreferenties gesynchroniseerd",
+    "diagnostics.history.backup-restored": "Back-up hersteld",
+    "diagnostics.history.backup-deleted": "Back-up verwijderd",
+    "diagnostics.history.backup-download": "Back-updownload aangevraagd",
+    "diagnostics.history.preferences-saved": "Voorkeuren opgeslagen",
+    "diagnostics.history.event-details": "Gebeurtenisdetails"
 }

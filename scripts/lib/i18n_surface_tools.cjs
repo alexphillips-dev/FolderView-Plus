@@ -113,7 +113,7 @@ const extractFileCandidates = (source, relativePath = '') => {
     while ((match = propertyTemplateRegex.exec(source)) !== null) add(match[1], 'template', match.index);
     // Explicit runtime bindings cover conditional labels and helper arguments without
     // treating arbitrary code strings or user-provided values as translatable text.
-    const surfaceBindingRegex = /\b(?:surfaceT|starterTemplateT|importT|translateVmText|translate)\(\s*["'](legacy\.surface\.[a-f0-9]{16})["']\s*,\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g;
+    const surfaceBindingRegex = /\b(?:surfaceT|starterTemplateT|importT|diagnosticsT|translateVmText|translate)\(\s*["'](legacy\.surface\.[a-f0-9]{16})["']\s*,\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g;
     while ((match = surfaceBindingRegex.exec(source)) !== null) {
         const phrase = match[2][0] === '"' ? JSON.parse(match[2]) : decodeJavascriptText(match[2].slice(1, -1));
         if (match[1] !== keyForPhrase(phrase)) throw new Error(`Invalid surface binding in ${relativePath}:${lineNumberAt(source, match.index)}`);

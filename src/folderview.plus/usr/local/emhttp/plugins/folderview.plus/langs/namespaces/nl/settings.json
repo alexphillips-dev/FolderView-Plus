@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Standaardinstellingen voor mappen bewerken",
     "settings.search.placeholder": "Zoekinstellingen",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Uiterlijkprofiel opgeslagen.",
     "settings.theme.presets-title": "Kleurvoorinstellingen",
     "settings.theme.presets-help": "Bekijk een voorbeeld van accent- en grafiekkleuren voor het geselecteerde bereik. Andere aanpassingen blijven behouden. Opslaan als u klaar bent.",
-    "settings.theme.undo-preset": "Vooraf ingesteld voorbeeld ongedaan maken"
+    "settings.theme.undo-preset": "Vooraf ingesteld voorbeeld ongedaan maken",
+    "settings.environment.badge": "Omgeving",
+    "settings.performance.adaptive": "Adaptief",
+    "settings.performance.measured": "Gemeten renderkosten: $1 ms",
+    "settings.performance.fixed": "Vaste maximumlimieten",
+    "settings.performance.large": "Groot bibliotheekprofiel",
+    "settings.performance.refresh": "Effectieve vernieuwing: $1 s",
+    "settings.performance.restore": "Herstel maximaal $1 uitgebreide mappen",
+    "settings.performance.defer": "Stel voorbeelden uit met $1 of meer leden",
+    "settings.performance.immediate": "Voorvertoningen worden onmiddellijk weergegeven",
+    "settings.activity.backup-created": "$1 back-up gemaakt.",
+    "settings.activity.backup-download": "$1 back-updownload gestart. Controleer uw browserdownloads voor het opgeslagen bestand.",
+    "settings.environment.client-unavailable": "De omgevingsaanvraagclient is niet beschikbaar. Vernieuw de pagina en probeer het opnieuw.",
+    "settings.environment.invalid-export": "De server heeft een onvolledige momentopname van de omgeving geretourneerd. Er is geen download gemaakt.",
+    "settings.environment.download-started": "Omgevingsdownload gestart. Controleer uw browserdownloads voor het opgeslagen bestand.",
+    "settings.theme.no-updates": "Er zijn geen beheerde thema-updates beschikbaar.",
+    "settings.theme.updating-count": "Beheerde thema's bijwerken: $1…",
+    "settings.theme.batch-update": "Beheerde thema-update",
+    "settings.theme.updated": "Beschikbare beheerde thema's bijgewerkt."
 }

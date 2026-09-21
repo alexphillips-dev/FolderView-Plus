@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Edita els valors predeterminats de les carpetes",
     "settings.search.placeholder": "Configuració de cerca",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "S'ha desat el perfil d'aparença.",
     "settings.theme.presets-title": "Preajustos de colors",
     "settings.theme.presets-help": "Previsualitza els colors d'accent i gràfic per a l'àmbit seleccionat. Es conserven altres personalitzacions. Desa quan estigui llest.",
-    "settings.theme.undo-preset": "Desfés la previsualització predeterminada"
+    "settings.theme.undo-preset": "Desfés la previsualització predeterminada",
+    "settings.environment.badge": "Medi ambient",
+    "settings.performance.adaptive": "Adaptatiu",
+    "settings.performance.measured": "Cost de renderització mesurat: $1 ms",
+    "settings.performance.fixed": "Límits màxims fixats",
+    "settings.performance.large": "Gran perfil de la biblioteca",
+    "settings.performance.refresh": "Actualització efectiva: $1 s",
+    "settings.performance.restore": "Restaura fins a $1 carpetes ampliades",
+    "settings.performance.defer": "Ajornar les previsualitzacions amb $1 o més membres",
+    "settings.performance.immediate": "Les visualitzacions prèvies es mostren immediatament",
+    "settings.activity.backup-created": "S'ha creat una còpia de seguretat de $1.",
+    "settings.activity.backup-download": "$1 baixada de còpia de seguretat ha començat. Comproveu les descàrregues del vostre navegador per trobar el fitxer desat.",
+    "settings.environment.client-unavailable": "El client de sol·licitud d'entorn no està disponible. Actualitza la pàgina i torna-ho a provar.",
+    "settings.environment.invalid-export": "El servidor ha retornat una instantània de l'entorn incompleta. No s'ha creat cap baixada.",
+    "settings.environment.download-started": "S'ha iniciat la descàrrega de l'entorn. Comproveu les descàrregues del vostre navegador per trobar el fitxer desat.",
+    "settings.theme.no-updates": "No hi ha actualitzacions de temes gestionats disponibles.",
+    "settings.theme.updating-count": "S'estan actualitzant els temes gestionats: $1…",
+    "settings.theme.batch-update": "Actualització del tema gestionada",
+    "settings.theme.updated": "S'han actualitzat els temes gestionats disponibles."
 }

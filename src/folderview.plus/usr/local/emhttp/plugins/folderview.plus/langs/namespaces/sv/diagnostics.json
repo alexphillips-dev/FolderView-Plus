@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostik",
     "diagnostics.workspace.description": "Övervaka plugin-tillståndet, felsök problem och dela supportdata.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Föremål som behöver granskas: $1.",
     "diagnostics.activity.successes": "Slutförda åtgärder: $1.",
     "diagnostics.activity.updates": "Senaste uppdateringar: $1.",
-    "diagnostics.activity.exported": "Supportpaket har exporterats"
+    "diagnostics.activity.exported": "Supportpaket har exporterats",
+    "diagnostics.history.members-reconciled": "Medlemsreferenser synkroniserade",
+    "diagnostics.history.backup-restored": "Säkerhetskopieringen återställd",
+    "diagnostics.history.backup-deleted": "Säkerhetskopiering raderad",
+    "diagnostics.history.backup-download": "Säkerhetskopiering har begärts",
+    "diagnostics.history.preferences-saved": "Inställningar sparade",
+    "diagnostics.history.event-details": "Händelsedetaljer"
 }

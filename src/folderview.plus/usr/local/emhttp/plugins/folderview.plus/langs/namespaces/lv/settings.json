@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Rediģēt mapju noklusējuma iestatījumus",
     "settings.search.placeholder": "Meklēšanas iestatījumi",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Izskata profils saglabāts.",
     "settings.theme.presets-title": "Krāsu sākotnējie iestatījumi",
     "settings.theme.presets-help": "Priekšskatiet akcentu un diagrammas krāsas atlasītajā tvērumā. Citi pielāgojumi tiek saglabāti. Saglabājiet, kad esat gatavs.",
-    "settings.theme.undo-preset": "Atsaukt iepriekš iestatīto priekšskatījumu"
+    "settings.theme.undo-preset": "Atsaukt iepriekš iestatīto priekšskatījumu",
+    "settings.environment.badge": "Vide",
+    "settings.performance.adaptive": "Adaptīvs",
+    "settings.performance.measured": "Izmērītās renderēšanas izmaksas: $1 ms",
+    "settings.performance.fixed": "Fiksētie maksimālie ierobežojumi",
+    "settings.performance.large": "Liels bibliotēkas profils",
+    "settings.performance.refresh": "Efektīva atsvaidzināšana: $1 s",
+    "settings.performance.restore": "Atjaunojiet līdz pat $1 izvērstām mapēm",
+    "settings.performance.defer": "Atlikt priekšskatījumus ar $1 vai vairāk dalībniekiem",
+    "settings.performance.immediate": "Priekšskatījumi tiek renderēti nekavējoties",
+    "settings.activity.backup-created": "$1 dublējums ir izveidots.",
+    "settings.activity.backup-download": "Sākta $1 dublējuma lejupielāde. Pārbaudiet saglabāto failu pārlūkprogrammas lejupielādes.",
+    "settings.environment.client-unavailable": "Vides pieprasījuma klients nav pieejams. Atsvaidziniet lapu un mēģiniet vēlreiz.",
+    "settings.environment.invalid-export": "Serveris atgrieza nepilnīgu vides momentuzņēmumu. Lejupielāde netika izveidota.",
+    "settings.environment.download-started": "Sākta vides lejupielāde. Pārbaudiet saglabāto failu pārlūkprogrammas lejupielādes.",
+    "settings.theme.no-updates": "Pārvaldīto motīvu atjauninājumi nav pieejami.",
+    "settings.theme.updating-count": "Notiek pārvaldīto motīvu atjaunināšana: $1…",
+    "settings.theme.batch-update": "Pārvaldīts motīva atjauninājums",
+    "settings.theme.updated": "Pieejamie pārvaldītie motīvi ir atjaunināti."
 }

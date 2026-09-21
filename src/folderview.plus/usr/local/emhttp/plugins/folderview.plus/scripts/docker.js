@@ -3239,7 +3239,7 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     } else if (pausedFolders > 0 || providerHealth?.severity === 'warning') {
         badge.classList.add('is-warning');
     }
-    badge.textContent = dockerT("common.health.folder-summary", "Folder health: $1 started | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
+    badge.textContent = dockerT("common.health.folder-summary", "Folder health: $1 running | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
     if (providerHealth) {
         const providerLabel = document.createElement('span');
         providerLabel.textContent = providerHealth.text;

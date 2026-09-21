@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnòstics",
     "diagnostics.workspace.description": "Superviseu l'estat dels connectors, solucioneu problemes i compartiu dades d'assistència.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Elements que cal revisar: $1.",
     "diagnostics.activity.successes": "Accions realitzades: $1.",
     "diagnostics.activity.updates": "Actualitzacions recents: $1.",
-    "diagnostics.activity.exported": "Paquet de suport exportat"
+    "diagnostics.activity.exported": "Paquet de suport exportat",
+    "diagnostics.history.members-reconciled": "Referències de membres sincronitzades",
+    "diagnostics.history.backup-restored": "S'ha restaurat la còpia de seguretat",
+    "diagnostics.history.backup-deleted": "S'ha suprimit la còpia de seguretat",
+    "diagnostics.history.backup-download": "S'ha sol·licitat una descàrrega de còpia de seguretat",
+    "diagnostics.history.preferences-saved": "S'han desat les preferències",
+    "diagnostics.history.event-details": "Detalls de l’esdeveniment"
 }

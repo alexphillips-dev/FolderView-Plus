@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Elija cómo manejar las carpetas existentes. Nada cambia hasta que seleccione Aplicar importación.",
     "import.behavior.question": "¿Cómo se deben manejar las carpetas existentes?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Instantánea no válida; orden de configuración",
     "import.folderview3.appearance-profiles": "Agregar perfiles de apariencia inactivos de FolderView3",
     "import.folderview3.order-summary": "Orden de carpetas guardadas: Docker $1; Máquinas virtuales $2.",
-    "import.folderview3.disabled-profile-count": "Perfiles separados para temas deshabilitados: $1."
+    "import.folderview3.disabled-profile-count": "Perfiles separados para temas deshabilitados: $1.",
+    "import.compare.to": "A"
 }

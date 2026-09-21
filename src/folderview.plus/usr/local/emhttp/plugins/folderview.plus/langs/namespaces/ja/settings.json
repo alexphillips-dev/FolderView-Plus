@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "フォルダーの既定設定を編集",
     "settings.search.placeholder": "検索設定",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "外観プロファイルが保存されました。",
     "settings.theme.presets-title": "カラープリセット",
     "settings.theme.presets-help": "選択したスコープのアクセントとグラフの色をプレビューします。他のカスタマイズは保持されます。準備ができたら保存します。",
-    "settings.theme.undo-preset": "プリセットのプレビューを元に戻す"
+    "settings.theme.undo-preset": "プリセットのプレビューを元に戻す",
+    "settings.environment.badge": "環境",
+    "settings.performance.adaptive": "アダプティブ",
+    "settings.performance.measured": "測定されたレンダリングコスト: $1 ミリ秒",
+    "settings.performance.fixed": "固定された最大制限",
+    "settings.performance.large": "大規模なライブラリのプロファイル",
+    "settings.performance.refresh": "有効なリフレッシュ: $1 秒",
+    "settings.performance.restore": "最大 $1 個の展開フォルダーを復元します",
+    "settings.performance.defer": "$1 以上のメンバーのプレビューを延期する",
+    "settings.performance.immediate": "プレビューはすぐにレンダリングされます",
+    "settings.activity.backup-created": "$1 バックアップが作成されました。",
+    "settings.activity.backup-download": "$1 バックアップのダウンロードが開始されました。ブラウザのダウンロードで保存されたファイルを確認してください。",
+    "settings.environment.client-unavailable": "環境リクエストクライアントは利用できません。ページを更新して、もう一度お試しください。",
+    "settings.environment.invalid-export": "サーバーは不完全な環境スナップショットを返しました。ダウンロードは作成されませんでした。",
+    "settings.environment.download-started": "環境のダウンロードを開始しました。ブラウザのダウンロードで保存されたファイルを確認してください。",
+    "settings.theme.no-updates": "管理対象テーマの更新は利用できません。",
+    "settings.theme.updating-count": "管理対象テーマを更新しています: $1…",
+    "settings.theme.batch-update": "管理対象テーマの更新",
+    "settings.theme.updated": "利用可能な管理テーマが更新されました。"
 }

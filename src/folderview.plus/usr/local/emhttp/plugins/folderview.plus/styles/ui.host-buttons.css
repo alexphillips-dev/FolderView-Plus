@@ -1,0 +1,60 @@
+/* Own the complete button skin on plugin surfaces, including host dialog widgets.
+   These selectors deliberately exclude native Docker, VM and Dashboard controls. */
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button),
+html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):is(
+    [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]) {
+    appearance: none !important;
+    clip-path: none !important;
+    background-image: none !important;
+    background-color: var(--fvplus-ui-control) !important;
+    border: 1px solid var(--fvplus-ui-border-subtle) !important;
+    border-radius: var(--fv-ui-radius-sm) !important;
+    color: var(--fv-button-fg, var(--fvplus-ui-text-primary)) !important;
+    box-shadow: none;
+    box-sizing: border-box;
+    font-family: inherit !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: var(--fv-button-line-height, 1.35) !important;
+    min-width: 0;
+    max-width: 100%;
+    cursor: pointer;
+}
+
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):hover:not(:disabled),
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):hover:not(:disabled) {
+    background-color: var(--fvplus-ui-control-hover) !important;
+    border-color: var(--fvplus-ui-border-strong) !important;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):focus-visible,
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):focus-visible {
+    outline: 2px solid var(--fv-ui-info) !important;
+    outline-offset: 2px;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"]):disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]) {
+    border-color: var(--fvplus-theme-accent, var(--fv-ui-info)) !important;
+    background-color: color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control)) !important;
+}
+html body .fv-ui-modal-close,
+html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar-close {
+    width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 4px !important;
+    flex: 0 0 32px;
+}
+html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar {
+    min-height: 36px;
+    padding-inline-end: 44px;
+}

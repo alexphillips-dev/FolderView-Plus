@@ -2949,7 +2949,7 @@ const initEditorChrome = () => {
                             <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
                         </div>
                         <div class="fv-live-swatches">
-                            <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                            <span class="fv-swatch-item"><em>Running</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
@@ -4506,12 +4506,12 @@ const customAction = (action = undefined) => {
     const scriptInput = dialog.find('[name="action_script"]');
     const iconInput = dialog.find('[name="action_script_icon"]');
     const primaryLabel = (action !== undefined) ? $.i18n('action-edit-btn') : $.i18n('action-add-btn');
-    const targetSubject = type === 'vm' ? 'VMs' : 'Containers';
+    const targetSubject = type === 'vm' ? surfaceT("legacy.surface.ad72518f321bd308", 'VMs') : surfaceT('common.targets.containers', 'Containers');
     let primaryButton = $();
     let validationTouched = false;
 
     dialog.find('[data-fv-action-target-label]').text(`${targetSubject}:`);
-    dialog.find('[data-action-help="targets"]').text(`Only ${targetSubject.toLowerCase()} currently available to this folder are listed.`);
+    dialog.find('[data-action-help="targets"]').text(surfaceT("legacy.surface.2360b3431f8550a4", 'Only members currently available to this folder are listed.'));
     targetSelect.multiselect({
         header: false,
         noneSelectedText: "Select options",
@@ -4554,12 +4554,12 @@ const customAction = (action = undefined) => {
 
     const syncTargetSummary = () => {
         const selectedTargets = (targetSelect.val() || []).map(String);
-        dialog.find('[data-fv-action-target-count]').text(`${selectedTargets.length} selected`);
+        dialog.find('[data-fv-action-target-count]').text(surfaceT('common.targets.selected-count', 'Selected: $1', selectedTargets.length));
         const chips = dialog.find('[data-fv-action-target-chips]').empty();
         if (eligibleTargets.length === 0) {
-            chips.append($('<span class="is-empty"></span>').text(`No eligible ${targetSubject.toLowerCase()} are currently available.`));
+            chips.append($('<span class="is-empty"></span>').text(surfaceT('common.targets.none-eligible', 'No eligible members are currently available.')));
         } else if (selectedTargets.length === 0) {
-            chips.append($('<span class="is-empty"></span>').text(`No ${targetSubject.toLowerCase()} selected yet.`));
+            chips.append($('<span class="is-empty"></span>').text(surfaceT('common.targets.none-selected', 'No members selected yet.')));
         } else {
             selectedTargets.forEach((targetName) => {
                 chips.append($('<span></span>').text(targetName));

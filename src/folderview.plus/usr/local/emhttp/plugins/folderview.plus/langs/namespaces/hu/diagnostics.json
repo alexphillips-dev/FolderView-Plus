@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnosztika",
     "diagnostics.workspace.description": "Figyelemmel kísérheti a beépülő modulok állapotát, elháríthatja a problémákat, és megoszthatja a támogatási adatokat.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Felülvizsgálatra szoruló elemek: $1.",
     "diagnostics.activity.successes": "Befejezett műveletek: $1.",
     "diagnostics.activity.updates": "Legutóbbi frissítések: $1.",
-    "diagnostics.activity.exported": "Támogatási csomag exportálva"
+    "diagnostics.activity.exported": "Támogatási csomag exportálva",
+    "diagnostics.history.members-reconciled": "Taghivatkozások szinkronizálva",
+    "diagnostics.history.backup-restored": "A biztonsági mentés visszaállítva",
+    "diagnostics.history.backup-deleted": "Biztonsági másolat törölve",
+    "diagnostics.history.backup-download": "Biztonsági másolat letöltése kérve",
+    "diagnostics.history.preferences-saved": "A beállítások mentve",
+    "diagnostics.history.event-details": "Esemény részletei"
 }

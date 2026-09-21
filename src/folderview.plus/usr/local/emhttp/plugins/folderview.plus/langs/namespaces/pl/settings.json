@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Edytuj domyślne ustawienia folderów",
     "settings.search.placeholder": "Ustawienia wyszukiwania",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profil wyglądu został zapisany.",
     "settings.theme.presets-title": "Wstępne ustawienia kolorów",
     "settings.theme.presets-help": "Podgląd kolorów akcentów i wykresów dla wybranego zakresu. Inne dostosowania zostaną zachowane. Zapisz, gdy będziesz gotowy.",
-    "settings.theme.undo-preset": "Cofnij wstępnie ustawiony podgląd"
+    "settings.theme.undo-preset": "Cofnij wstępnie ustawiony podgląd",
+    "settings.environment.badge": "Środowisko",
+    "settings.performance.adaptive": "Adaptacyjny",
+    "settings.performance.measured": "Zmierzony koszt renderowania: $1 ms",
+    "settings.performance.fixed": "Stałe maksymalne limity",
+    "settings.performance.large": "Duży profil biblioteki",
+    "settings.performance.refresh": "Efektywne odświeżenie: $1 s",
+    "settings.performance.restore": "Przywróć maksymalnie $1 rozwiniętych folderów",
+    "settings.performance.defer": "Odłóż podglądy z $1 lub większą liczbą członków",
+    "settings.performance.immediate": "Podglądy są renderowane natychmiast",
+    "settings.activity.backup-created": "Utworzono kopię zapasową $1.",
+    "settings.activity.backup-download": "$1 rozpoczęło się pobieranie kopii zapasowej. Sprawdź, czy w przeglądarce pobrano zapisany plik.",
+    "settings.environment.client-unavailable": "Klient żądania środowiska jest niedostępny. Odśwież stronę i spróbuj ponownie.",
+    "settings.environment.invalid-export": "Serwer zwrócił niekompletną migawkę środowiska. Nie utworzono żadnego pliku do pobrania.",
+    "settings.environment.download-started": "Rozpoczęto pobieranie środowiska. Sprawdź, czy w przeglądarce pobrano zapisany plik.",
+    "settings.theme.no-updates": "Brak dostępnych aktualizacji motywów zarządzanych.",
+    "settings.theme.updating-count": "Aktualizowanie zarządzanych motywów: $1…",
+    "settings.theme.batch-update": "Zarządzana aktualizacja motywu",
+    "settings.theme.updated": "Zaktualizowano dostępne motywy zarządzane."
 }

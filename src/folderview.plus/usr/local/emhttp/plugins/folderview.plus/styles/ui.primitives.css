@@ -41,11 +41,13 @@ body.fv-ui-modal-open { overflow: hidden; }
     font-weight: 700;
     gap: var(--fv-ui-space-2);
     justify-content: center;
-    letter-spacing: 0.05em;
-    line-height: 1;
+    letter-spacing: normal;
+    line-height: 1.35;
     min-height: var(--fv-ui-control-height);
     padding: 0.55rem 0.85rem;
-    text-transform: uppercase;
+    text-transform: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
     transition: background var(--fv-ui-transition), border-color var(--fv-ui-transition), color var(--fv-ui-transition), opacity var(--fv-ui-transition);
 }
 
@@ -55,9 +57,9 @@ body.fv-ui-modal-open { overflow: hidden; }
 .fv-ui-button.is-sm { font-size: 1rem; min-height: 28px; padding: 0.4rem 0.6rem; }
 .fv-ui-button.is-lg { font-size: 1.2rem; min-height: 40px; padding: 0.7rem 1rem; }
 .fv-ui-button.is-primary { background: color-mix(in srgb, var(--fv-ui-info) 14%, var(--fvplus-ui-control)); border-color: color-mix(in srgb, var(--fv-ui-info) 52%, var(--fvplus-ui-border-subtle)); }
-.fv-ui-button.is-success { color: var(--fv-ui-success); }
-.fv-ui-button.is-warning { color: var(--fv-ui-warning); }
-.fv-ui-button.is-danger { color: var(--fv-ui-danger); }
+.fv-ui-button.is-success { --fv-button-fg: var(--fv-ui-success); color: var(--fv-ui-success); }
+.fv-ui-button.is-warning { --fv-button-fg: var(--fv-ui-warning); color: var(--fv-ui-warning); }
+.fv-ui-button.is-danger { --fv-button-fg: var(--fv-ui-danger); color: var(--fv-ui-danger); }
 .fv-ui-icon-button { aspect-ratio: 1; flex: 0 0 auto; padding: 0; width: var(--fv-ui-control-height); }
 .fv-ui-icon-button.is-sm { width: 28px; }
 .fv-ui-icon-button.is-lg { width: 40px; }

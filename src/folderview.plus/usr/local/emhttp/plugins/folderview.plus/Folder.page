@@ -113,7 +113,7 @@ try {
 <link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
-<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>"><link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.host-buttons.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
@@ -889,7 +889,7 @@ try {
                     <div class="fv-inline-control-row">
                         <div class="folder-status-colors">
                             <label class="folder-status-color-item">
-                                <span>Started</span>
+                        <span>Running</span>
                                 <input type="color" name="status_color_started" data-fvplus-style="fv-u-88tzw1">
                             </label>
                             <label class="folder-status-color-item">
@@ -1350,7 +1350,7 @@ try {
                     </select>
                 </label>
                 <label class="fv-action-dialog-field set" constraint="action-standard-1" data-fvplus-style="fv-u-xcjvns">
-                    <span data-i18n="custom-actions-states">States:</span>
+                    <span data-i18n="custom-actions-states">Target state:</span>
                     <select name="action_set">
                         <option value="0" data-i18n="custom-actions-set-0">Start</option>
                         <option value="1" data-i18n="custom-actions-set-1">Stop</option>

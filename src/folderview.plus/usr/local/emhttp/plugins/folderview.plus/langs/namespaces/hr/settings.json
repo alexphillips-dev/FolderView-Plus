@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Uredi zadane postavke mapa",
     "settings.search.placeholder": "Postavke pretraživanja",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profil izgleda spremljen.",
     "settings.theme.presets-title": "Unaprijed postavljene boje",
     "settings.theme.presets-help": "Pregledajte boje naglaska i grafikona za odabrani opseg. Ostale prilagodbe su sačuvane. Spremite kada budete spremni.",
-    "settings.theme.undo-preset": "Poništavanje unaprijed postavljenog pregleda"
+    "settings.theme.undo-preset": "Poništavanje unaprijed postavljenog pregleda",
+    "settings.environment.badge": "okoliš",
+    "settings.performance.adaptive": "Prilagodljiv",
+    "settings.performance.measured": "Izmjereni trošak renderiranja: $1 ms",
+    "settings.performance.fixed": "Fiksna maksimalna ograničenja",
+    "settings.performance.large": "Veliki knjižnični profil",
+    "settings.performance.refresh": "Učinkovito osvježavanje: $1 s",
+    "settings.performance.restore": "Vratite do $1 proširenih mapa",
+    "settings.performance.defer": "Odgodite preglede s $1 ili više članova",
+    "settings.performance.immediate": "Pregledi se prikazuju odmah",
+    "settings.activity.backup-created": "Stvorena je sigurnosna kopija $1.",
+    "settings.activity.backup-download": "Započelo je preuzimanje sigurnosne kopije $1. Provjerite preuzimanja preglednika za spremljenu datoteku.",
+    "settings.environment.client-unavailable": "Klijent zahtjeva okruženja nije dostupan. Osvježite stranicu i pokušajte ponovno.",
+    "settings.environment.invalid-export": "Poslužitelj je vratio nepotpunu snimku okruženja. Nije stvoreno preuzimanje.",
+    "settings.environment.download-started": "Započelo je preuzimanje okruženja. Provjerite preuzimanja preglednika za spremljenu datoteku.",
+    "settings.theme.no-updates": "Nema dostupnih upravljanih ažuriranja tema.",
+    "settings.theme.updating-count": "Ažuriranje upravljanih tema: $1…",
+    "settings.theme.batch-update": "Upravljano ažuriranje teme",
+    "settings.theme.updated": "Dostupne upravljane teme ažurirane."
 }

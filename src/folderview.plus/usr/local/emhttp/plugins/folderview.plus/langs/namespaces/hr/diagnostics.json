@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Dijagnostika",
     "diagnostics.workspace.description": "Pratite stanje dodataka, rješavajte probleme i dijelite podatke podrške.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Stavke koje je potrebno pregledati: $1.",
     "diagnostics.activity.successes": "Dovršene radnje: $1.",
     "diagnostics.activity.updates": "Nedavna ažuriranja: $1.",
-    "diagnostics.activity.exported": "Paket podrške je izvezen"
+    "diagnostics.activity.exported": "Paket podrške je izvezen",
+    "diagnostics.history.members-reconciled": "Reference članova sinkronizirane",
+    "diagnostics.history.backup-restored": "Sigurnosna kopija vraćena",
+    "diagnostics.history.backup-deleted": "Sigurnosna kopija izbrisana",
+    "diagnostics.history.backup-download": "Zatraženo preuzimanje sigurnosne kopije",
+    "diagnostics.history.preferences-saved": "Postavke spremljene",
+    "diagnostics.history.event-details": "Detalji događaja"
 }

@@ -6756,6 +6756,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button {
+    --fv-button-line-height: 1;
     min-height: 36px;
     margin: 0 !important;
     padding: 0.42rem 0.75rem !important;
@@ -8595,32 +8596,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-color: var(--fvplus-settings-button-outline) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
-    box-shadow: none !important;
-    opacity: 0.56;
-}
-
-html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button {
-    appearance: none !important;
-    border: 1px solid color-mix(in srgb, var(--fvplus-settings-text-primary) 28%, transparent) !important;
-    outline: 0 !important;
-    background: var(--fvplus-settings-surface-strong) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    box-shadow: var(--fvplus-settings-button-shadow) !important;
-    text-shadow: none !important;
-}
-
-html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:hover:not(:disabled),
-html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:focus-visible {
-    border-color: color-mix(in srgb, var(--fvplus-settings-text-primary) 42%, transparent) !important;
-    background: var(--fvplus-settings-surface-muted) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    filter: brightness(1.08);
-}
-
-html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:disabled {
-    border-color: color-mix(in srgb, var(--fvplus-settings-text-primary) 20%, transparent) !important;
-    background: var(--fvplus-settings-surface-strong) !important;
-    color: var(--fvplus-settings-text-muted) !important;
     box-shadow: none !important;
     opacity: 0.56;
 }

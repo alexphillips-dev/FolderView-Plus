@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Modifier les paramètres par défaut des dossiers",
     "settings.search.placeholder": "Paramètres de recherche",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Profil d'apparence enregistré.",
     "settings.theme.presets-title": "Préréglages de couleurs",
     "settings.theme.presets-help": "Prévisualisez les couleurs d’accentuation et de graphique pour la portée sélectionnée. Les autres personnalisations sont conservées. Enregistrez lorsque vous êtes prêt.",
-    "settings.theme.undo-preset": "Annuler l'aperçu prédéfini"
+    "settings.theme.undo-preset": "Annuler l'aperçu prédéfini",
+    "settings.environment.badge": "Environnement",
+    "settings.performance.adaptive": "Adaptatif",
+    "settings.performance.measured": "Coût de rendu mesuré : $1 ms",
+    "settings.performance.fixed": "Limites maximales fixes",
+    "settings.performance.large": "Profil de grande bibliothèque",
+    "settings.performance.refresh": "Actualisation effective : $1 s",
+    "settings.performance.restore": "Restaurer jusqu'à $1 dossiers développés",
+    "settings.performance.defer": "Différer les aperçus avec $1 ou plus de membres",
+    "settings.performance.immediate": "Les aperçus s'affichent immédiatement",
+    "settings.activity.backup-created": "Sauvegarde $1 créée.",
+    "settings.activity.backup-download": "Le téléchargement de la sauvegarde $1 a commencé. Vérifiez les téléchargements de votre navigateur pour le fichier enregistré.",
+    "settings.environment.client-unavailable": "Le client de demande d'environnement n'est pas disponible. Actualisez la page et réessayez.",
+    "settings.environment.invalid-export": "Le serveur a renvoyé un instantané d'environnement incomplet. Aucun téléchargement n'a été créé.",
+    "settings.environment.download-started": "Le téléchargement de l'environnement a démarré. Vérifiez les téléchargements de votre navigateur pour le fichier enregistré.",
+    "settings.theme.no-updates": "Aucune mise à jour de thème géré n'est disponible.",
+    "settings.theme.updating-count": "Mise à jour des thèmes gérés : $1…",
+    "settings.theme.batch-update": "Mise à jour du thème géré",
+    "settings.theme.updated": "Thèmes gérés disponibles mis à jour."
 }

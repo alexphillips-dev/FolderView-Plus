@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "诊断",
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "需要审查的项目：$1。",
     "diagnostics.activity.successes": "已完成的操作：$1。",
     "diagnostics.activity.updates": "最近更新：$1。",
-    "diagnostics.activity.exported": "支持捆绑导出"
+    "diagnostics.activity.exported": "支持捆绑导出",
+    "diagnostics.history.members-reconciled": "会员参考已同步",
+    "diagnostics.history.backup-restored": "备份已恢复",
+    "diagnostics.history.backup-deleted": "备份已删除",
+    "diagnostics.history.backup-download": "请求备份下载",
+    "diagnostics.history.preferences-saved": "已保存偏好设置",
+    "diagnostics.history.event-details": "事件详情"
 }

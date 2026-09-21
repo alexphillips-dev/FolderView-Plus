@@ -11,7 +11,31 @@ const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const review = read('scripts/lib/i18n_reviewed_runtime.json');
 const terms = read('scripts/lib/i18n_reviewed_terms.json');
 const workflows = read('scripts/lib/i18n_reviewed_workflows.json');
+const controls = read('scripts/lib/i18n_reviewed_controls.json');
 const params = (text) => [...new Set(text.match(/\$\d+/g) || [])].sort();
+
+test('running state and recovery controls use consistent contextual wording in every locale', () => {
+    const wording = read('scripts/lib/i18n_reviewed_wording.json');
+    const englishSurface = read(path.join(plugin, 'langs/namespaces/en/legacy-surface.json'));
+    const locales = fs.readdirSync(path.join(plugin, 'langs/namespaces')).filter(locale => locale !== 'en').sort();
+    assert.deepEqual(Object.keys(controls.locales).sort(), locales);
+    for (const locale of locales) {
+        const catalog = read(path.join(plugin, `langs/${locale}.json`));
+        const common = read(path.join(plugin, `langs/namespaces/${locale}/common.json`));
+        const surface = read(path.join(plugin, `langs/namespaces/${locale}/legacy-surface.json`));
+        const running = wording.locales[locale][wording.concepts.indexOf('running')];
+        assert.equal(catalog.started, running, locale);
+        assert.equal(common['common.runtime.1-2-started'], `$1/$2 ${running}`, locale);
+        assert.equal(common['common.health.folder-summary'], controls.locales[locale][controls.keys.indexOf('folder-health')], locale);
+        for (const [key, phrase] of Object.entries(englishSurface)) {
+            if (['started', 'Started', 'Running', 'running'].includes(phrase)) assert.equal(surface[key], running, `${locale}/${phrase}`);
+        }
+        controls.en.forEach((phrase, index) => {
+            assert.ok(controls.locales[locale][index].trim());
+            assert.deepEqual(params(controls.locales[locale][index]), params(phrase), `${locale}/${phrase}`);
+        });
+    }
+});
 
 test('reviewed runtime messages cover every supported locale and preserve all interpolation arguments', () => {
     const locales = fs.readdirSync(path.join(plugin, 'langs/namespaces')).filter(locale => locale !== 'en').sort();

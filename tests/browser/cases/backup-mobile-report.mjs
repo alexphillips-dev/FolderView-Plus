@@ -15,6 +15,7 @@ const loadDownload = async (page, baseUrl) => {
         const meta = document.createElement('meta');
         meta.name = 'fv-request-token'; meta.content = 'synthetic-download-token'; document.head.append(meta);
         window.downloadErrors = [];
+        window.downloadActivity = [];
     });
     for (const file of ['folderviewplus.request-diagnostics', 'folderviewplus.request']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${file}.js` });
@@ -22,6 +23,7 @@ const loadDownload = async (page, baseUrl) => {
     await page.addScriptTag({ content: `(() => {
         const requestClient = window.FolderViewPlusRequest;
         const normalizeManagedType = type => type;
+        const addActivityEntry = (message, level) => window.downloadActivity.push({ message, level });
         const surfaceT = (_key, fallback) => fallback;
         const showError = (_title, error) => window.downloadErrors.push({ message: error.message, status: error.status, reason: error.reasonCode });
         ${downloadSource}
@@ -63,6 +65,7 @@ export const registerBackupMobileReportCases = ({ test, baseUrl }) => {
         }
         await page.waitForFunction(() => window.downloadCleanup.length === 2);
         assert.deepEqual(await page.evaluate(() => window.downloadErrors), []);
+        assert.deepEqual(await page.evaluate(() => window.downloadActivity.map(entry => entry.level)), ['success', 'success']);
         assert.deepEqual(requests.map(row => row.endpoint), ['nonce', 'download', 'nonce', 'download']);
         assert.deepEqual(requests.filter(row => row.endpoint === 'download').map(row => row.body.get('type')), ['docker', 'vm']);
         assert.equal(await page.locator('a[download="docker-synthetic.json"], a[download="vm-synthetic.json"]').count(), 0);

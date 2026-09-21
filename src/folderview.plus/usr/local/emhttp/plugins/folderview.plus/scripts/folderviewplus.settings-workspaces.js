@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.environment.js'));
         return;
     }
-    root.FolderViewPlusSettingsWorkspaces = factory();
+    root.FolderViewPlusSettingsWorkspaces = factory(root.FolderViewPlusFoundationModules?.environment);
     root.FolderViewPlusSettingsWorkspacesModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(environmentModule) {
     const createApi = (deps = {}) => {
     const repairT710d5dec = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const windowRef = deps.window || (typeof window !== 'undefined' ? window : null);
@@ -58,8 +58,9 @@
         const toPrettyJson = typeof deps.toPrettyJson === 'function' ? deps.toPrettyJson : ((value) => JSON.stringify(value, null, 2));
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
         const swal = typeof deps.swal === 'function' ? deps.swal : windowRef?.swal || null;
-        const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : (async () => ({}));
-        const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : (async () => ({}));
+        const unavailableRequest = async () => { throw new Error(translate('settings.environment.client-unavailable', 'The environment request client is unavailable. Refresh the page and try again.')); };
+        const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : unavailableRequest;
+        const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : unavailableRequest;
         const selectJsonFile = typeof deps.selectJsonFile === 'function' ? deps.selectJsonFile : (async () => null);
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
         const claimAdvancedOperationLock = typeof deps.claimAdvancedOperationLock === 'function' ? deps.claimAdvancedOperationLock : (() => true);
@@ -114,30 +115,30 @@
 
         const getRecoveryEnvironmentModeLabel = (mode) => {
             if (mode === 'export') {
-                return 'Export ready';
+                return translate('legacy.surface.6d2b3b0b56fe2760', 'Export ready');
             }
             if (mode === 'preview') {
-                return 'Preview ready';
+                return translate('legacy.surface.954fcf76ac50e19a', 'Preview ready');
             }
             if (mode === 'import') {
-                return 'Imported';
+                return translate('import.folderview3.order-imported', 'Imported');
             }
-            return 'Portable backup';
+            return translate('legacy.surface.df5ddf26cf00e6be', 'Portable backup');
         };
-
+        const environmentSortLabel = (mode) => environmentModule.sortModeLabel(mode, translate);
         const buildRecoveryEnvironmentSummaryHtml = () => {
             if (!recoveryEnvironmentSummary) {
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>Export a full-environment JSON or import one from another install.</strong>
-                        <span>Environment snapshots include Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
+                        <strong>${escapeHtml(translate("legacy.surface.94b9d8d5b8059c7c", "Export a full-environment JSON or import one from another install."))}</strong>
+                        <span>${escapeHtml(translate("legacy.surface.a2604c7d03d2e66f", "Environment snapshots include Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization."))}</span>
                     </div>
                 `;
             }
 
             const summary = recoveryEnvironmentSummary;
-            const themeLabel = summary.themeWorkspace.activeThemeName || summary.themeWorkspace.activeThemeId || 'No active managed theme';
-            const exportedAt = summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown export time';
+            const themeLabel = summary.themeWorkspace.activeThemeName || summary.themeWorkspace.activeThemeId || translate('legacy.surface.be30919530bc7097', 'No active managed theme');
+            const exportedAt = summary.exportedAt ? formatTimestamp(summary.exportedAt) : translate('legacy.surface.a00372c6eccfb986', 'Unknown export time');
             const warningHtml = summary.warnings.map((warning) => (
                 `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`
             )).join('');
@@ -147,22 +148,22 @@
                     <div class="fv-recovery-history-head">
                         <div>
                             <div class="fv-recovery-history-title">${escapeHtml(getRecoveryEnvironmentModeLabel(recoveryEnvironmentMode))}</div>
-                            <div class="fv-recovery-history-copy">${escapeHtml(summary.sourceName || 'FolderView Plus Environment snapshot')}</div>
+                            <div class="fv-recovery-history-copy" data-i18n-ignore>${escapeHtml(summary.sourceName || translate('legacy.surface.288a085ed7ff8e0f', 'FolderView Plus Environment snapshot'))}</div>
                         </div>
-                        <span class="fv-recovery-history-badge">${escapeHtml(summary.kind || 'environment')}</span>
+                        <span class="fv-recovery-history-badge">${escapeHtml(translate('settings.environment.badge', 'Environment'))}</span>
                     </div>
                     <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(`Exported ${exportedAt}`)}</span>
-                        <span>${escapeHtml(`Snapshot plugin ${summary.pluginVersion || 'unknown'}`)}</span>
+                        <span>${escapeHtml(translate('legacy.surface.6a38c3740360964f', 'Exported $1', exportedAt))}</span>
+                        <span>${escapeHtml(translate('legacy.surface.e6613a7c1200cead', 'Snapshot plugin $1', summary.pluginVersion || translate('common.runtime.unknown', 'Unknown')))}</span>
                         <span>${escapeHtml(repairT710d5dec("common.repair.docker-folders-1-41f18c", "Docker folders: $1", summary.docker.folderCount))}</span>
                         <span>${escapeHtml(repairT710d5dec("common.repair.vm-folders-1-e73ec2", "VM folders: $1", summary.vm.folderCount))}</span>
                         <span>${escapeHtml(repairT710d5dec("common.repair.managed-themes-1-91e84d", "Managed themes: $1", summary.themeWorkspace.managedThemeCount))}</span>
                     </div>
                     <div class="fv-recovery-environment-meta">
-                        <span>${escapeHtml(`Docker sort: ${summary.docker.sortMode || 'created'}`)}</span>
-                        <span>${escapeHtml(`VM sort: ${summary.vm.sortMode || 'created'}`)}</span>
-                        <span>${escapeHtml(`Theme: ${themeLabel}`)}</span>
-                        <span>${escapeHtml(`Custom CSS ${summary.themeWorkspace.customCssBytes} bytes`)}</span>
+                        <span>${escapeHtml(translate('legacy.surface.40dab9de15aeeaf8', 'Docker sort: $1', environmentSortLabel(summary.docker.sortMode)))}</span>
+                        <span>${escapeHtml(translate('legacy.surface.edff718d85e25ea9', 'VM sort: $1', environmentSortLabel(summary.vm.sortMode)))}</span>
+                        <span>${escapeHtml(translate('diagnostics.cards.theme', 'Theme'))}: <span data-i18n-ignore>${escapeHtml(themeLabel)}</span></span>
+                        <span>${escapeHtml(translate('legacy.surface.8a36f1c826a82414', 'Custom CSS $1 bytes', summary.themeWorkspace.customCssBytes))}</span>
                     </div>
                     ${warningHtml}
                 </article>
@@ -194,12 +195,12 @@
 
         const buildRecoveryEnvironmentConfirmHtml = (summary) => `
             <div class="preview-meta-grid">
-                <div class="preview-meta-item"><span>Docker folders</span><strong>${escapeHtml(String(summary.docker.folderCount))}</strong></div>
-                <div class="preview-meta-item"><span>VM folders</span><strong>${escapeHtml(String(summary.vm.folderCount))}</strong></div>
-                <div class="preview-meta-item"><span>Managed themes</span><strong>${escapeHtml(String(summary.themeWorkspace.managedThemeCount))}</strong></div>
-                <div class="preview-meta-item"><span>Exported</span><strong>${escapeHtml(summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown')}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.f4185ed93100719d", "Docker folders"))}</span><strong>${escapeHtml(String(summary.docker.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.50a1502d1a6beddb", "VM folders"))}</span><strong>${escapeHtml(String(summary.vm.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("settings.theme.managed-themes", "Managed themes"))}</span><strong>${escapeHtml(String(summary.themeWorkspace.managedThemeCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.391065e4dc23592a", "Exported"))}</span><strong>${escapeHtml(summary.exportedAt ? formatTimestamp(summary.exportedAt) : translate('common.runtime.unknown', 'Unknown'))}</strong></div>
             </div>
-            <p class="rules-help">This replaces Docker folders, VM folders, preferences, folder defaults, and Theme Workspace on this install. A rollback checkpoint plus fresh Docker and VM safety backups are created first.</p>
+            <p class="rules-help">${escapeHtml(translate("legacy.surface.0f7ba62a28a752d6", "This replaces Docker folders, VM folders, preferences, folder defaults, and Theme Workspace on this install. A rollback checkpoint plus fresh Docker and VM safety backups are created first."))}</p>
             ${summary.warnings.map((warning) => `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`).join('')}
         `;
 
@@ -297,25 +298,10 @@
             }
         });
 
-        const exportEnvironmentSnapshot = async () => {
-            try {
-                const response = await apiGetJson('/plugins/folderview.plus/server/environment_snapshot.php', {
-                    data: { action: 'export' }
-                });
-                const summary = setRecoveryEnvironmentSummary(response.summary || {}, 'export');
-                downloadFile(buildEnvironmentSnapshotFileName(summary), toPrettyJson(response.snapshot || {}));
-                showToastMessage({
-                    title: 'Environment exported',
-                    message: 'Portable environment snapshot downloaded.',
-                    level: 'success',
-                    durationMs: 3600
-                });
-                return summary;
-            } catch (error) {
-                showError(repairT710d5dec("common.repair.environment-export-failed-d84f08", "Environment export failed"), error);
-                throw error;
-            }
-        };
+        const exportEnvironmentSnapshot = () => environmentModule.exportSnapshot({
+            apiGetJson, setRecoveryEnvironmentSummary, downloadFile, buildEnvironmentSnapshotFileName,
+            toPrettyJson, showToastMessage, showError, translate
+        });
 
         const importEnvironmentSnapshot = async () => {
             if (!ensureRuntimeConflictActionAllowed('Import full FolderView Plus environment')) {
@@ -459,34 +445,34 @@
                 </div>
                 <div class="fv-recovery-stat-grid">
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Restore Latest uses</span>
+                        <span class="fv-recovery-stat-label">${escapeHtml(translate("legacy.surface.f3f67377a59f5d5a", "Restore Latest uses"))}</span>
                         <strong>${escapeHtml(latestRestorableCreated)}</strong>
                         <span>${escapeHtml(latestRestorableReason)}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Newest snapshot</span>
+                        <span class="fv-recovery-stat-label">${escapeHtml(translate("legacy.surface.5fed1c95fe223495", "Newest snapshot"))}</span>
                         <strong>${escapeHtml(latestCreated)}</strong>
                         <span>${latestRawCopy}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Backup policy</span>
+                        <span class="fv-recovery-stat-label">${escapeHtml(translate("legacy.surface.d18859e1983720b1", "Backup policy"))}</span>
                         <strong>${escapeHtml(scheduleEnabled ? translate("settings.recovery.every-hours", "Every $1 h", interval) : translate("settings.recovery.manual-only", "Manual only"))}</strong>
                         <span>${escapeHtml(schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : scheduleCopy)}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">What is protected</span>
-                        <strong>FolderView setup</strong>
-                        <span>Folders, rules, preferences, defaults, and workspace settings. Container data and VM disks are not included.</span>
+                        <span class="fv-recovery-stat-label">${escapeHtml(translate("legacy.surface.fecc2b5f8968b336", "What is protected"))}</span>
+                        <strong>${escapeHtml(translate("legacy.surface.c0889faeb4e1d07d", "FolderView setup"))}</strong>
+                        <span>${escapeHtml(translate("legacy.surface.630ecf9943abba05", "Folders, rules, preferences, defaults, and workspace settings. Container data and VM disks are not included."))}</span>
                     </div>
                 </div>
                 <div class="fv-recovery-explainer-grid">
                     <div class="fv-recovery-explainer-card">
-                        <strong>Restore safely</strong>
-                        <span>Restores create a fresh checkpoint first when there are folders to protect.</span>
+                        <strong>${escapeHtml(translate("legacy.surface.561297520e350561", "Restore safely"))}</strong>
+                        <span>${escapeHtml(translate("legacy.surface.be4e4bc0e9906efb", "Restores create a fresh checkpoint first when there are folders to protect."))}</span>
                     </div>
                     <div class="fv-recovery-explainer-card">
-                        <strong>Compare before restoring</strong>
-                        <span>Use Compare Snapshots to inspect preference and folder differences before applying a restore.</span>
+                        <strong>${escapeHtml(translate("legacy.surface.993a82a95ee4db23", "Compare before restoring"))}</strong>
+                        <span>${escapeHtml(translate("legacy.surface.bab5f150a518ce56", "Use Compare Snapshots to inspect preference and folder differences before applying a restore."))}</span>
                     </div>
                 </div>
             `;
@@ -503,7 +489,7 @@
                 return `
                     <div class="fv-recovery-empty-state">
                         <strong>${escapeHtml(translate("settings.recovery.none-for-type", "No $1 backups yet.", title))}</strong>
-                        <span>Create a manual backup or run the scheduler to build recovery history.</span>
+                        <span>${escapeHtml(translate("legacy.surface.0ca3fb7e46a9d1d6", "Create a manual backup or run the scheduler to build recovery history."))}</span>
                     </div>
                 `;
             }
@@ -517,8 +503,8 @@
             const countLabel = formatRecoveryBackupFolderCount(selectedBackup);
             const isEmpty = isRecoveryBackupEmpty(selectedBackup);
             const latestName = String(backups[0]?.name || '').trim();
-            const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
-            const emptyBadge = isEmpty ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : '';
+            const latestBadge = resolvedSelectedName === latestName ? `<span class="fv-recovery-history-badge">${escapeHtml(translate("legacy.surface.8730d3c2022abf1f", "Latest"))}</span>` : '';
+            const emptyBadge = isEmpty ? `<span class="fv-recovery-history-badge is-warning">${escapeHtml(translate("legacy.surface.c6c094bc0054f9cb", "Empty"))}</span>` : '';
             const optionsHtml = backups.map((backup, index) => {
                 const name = String(backup?.name || '').trim();
                 const emptyLabel = isRecoveryBackupEmpty(backup) ? translate("settings.recovery.empty-suffix", " - empty") : '';
@@ -533,8 +519,8 @@
                 const backupReason = formatRecoveryReasonLabel(backup?.reason);
                 const backupCreated = formatTimestamp(backup?.createdAt || '');
                 const backupBadges = [
-                    index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '',
-                    isRecoveryBackupEmpty(backup) ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : ''
+                    index === 0 ? `<span class="fv-recovery-history-badge">${escapeHtml(translate("legacy.surface.8730d3c2022abf1f", "Latest"))}</span>` : '',
+                    isRecoveryBackupEmpty(backup) ? `<span class="fv-recovery-history-badge is-warning">${escapeHtml(translate("legacy.surface.c6c094bc0054f9cb", "Empty"))}</span>` : ''
                 ].join('');
                 return `
                     <button type="button" class="fv-recovery-snapshot-item${activeClass}" data-fv-onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
@@ -550,7 +536,7 @@
             summaryEl.text(translate("settings.recovery.history-summary", "Snapshots available: $1. Empty snapshots remain in the history but Restore Latest skips them.", backups.length));
             return `
                 <div class="fv-recovery-history-picker-row">
-                    <label for="recovery-backup-entry-select">Choose snapshot</label>
+                    <label for="recovery-backup-entry-select">${escapeHtml(translate("legacy.surface.5b9f1e2bf7f4d023", "Choose snapshot"))}</label>
                     <select id="recovery-backup-entry-select" data-fv-onchange="selectActiveRecoveryBackup(this.value)">
                         ${optionsHtml}
                     </select>
@@ -567,18 +553,18 @@
                         <span>${escapeHtml(countLabel)}</span>
                         <span>${escapeHtml(resolvedSelectedName)}</span>
                     </div>
-                    ${isEmpty ? '<div class="fv-recovery-history-callout">This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it.</div>' : ''}
+                    ${isEmpty ? `<div class="fv-recovery-history-callout">${escapeHtml(translate("legacy.surface.f9ea2b5acc32d631", "This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it."))}</div>` : ''}
                     <div class="backup-actions fv-recovery-history-actions-row">
-                        <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
-                        <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
-                        <button type="button" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
-                        <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
+                        <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> ${escapeHtml(translate("legacy.surface.a76e13b9839270eb", "Restore"))}</button>
+                        <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> ${escapeHtml(translate("legacy.surface.d6eafe8235910042", "Download"))}</button>
+                        <button type="button" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>
+                        <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> ${escapeHtml(translate("legacy.surface.296b5369a61d62d2", "Delete all backups"))}</button>
                     </div>
                 </article>
                 <div class="fv-recovery-snapshot-list">
                     <div class="fv-recovery-snapshot-list-head">
-                        <strong>Recent snapshots</strong>
-                        <span>Click a snapshot to inspect or restore it.</span>
+                        <strong>${escapeHtml(translate("legacy.surface.bb208ce8af5af7a0", "Recent snapshots"))}</strong>
+                        <span>${escapeHtml(translate("legacy.surface.738ad94f2192908a", "Click a snapshot to inspect or restore it."))}</span>
                     </div>
                     <div class="fv-recovery-snapshot-items">
                         ${recentHtml}
@@ -625,6 +611,13 @@
             sourcePrefs.triggerHandler('change');
         };
 
+        const recoveryMarkup = new WeakMap();
+        const updateRecoveryHtml = (host, html) => {
+            const node = host[0];
+            if (node && recoveryMarkup.get(node) === html) return;
+            host.html(html);
+            if (node) recoveryMarkup.set(node, html);
+        };
         const renderRecoveryWorkspace = (type = getActiveRecoveryWorkspaceType()) => {
             const resolvedType = normalizeRecoveryWorkspaceType(type);
             const overviewHost = $('#fv-recovery-overview');
@@ -643,8 +636,8 @@
             const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const title = resolvedType === 'docker' ? 'Docker' : 'VM';
 
-            overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
-            listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
+            updateRecoveryHtml(overviewHost, buildRecoveryOverviewHtml(resolvedType));
+            updateRecoveryHtml(listHost, buildRecoveryBackupHistoryHtml(resolvedType));
             renderRecoveryEnvironmentSummary();
             safetyNote.text(latestRestorable
                 ? translate("settings.recovery.restore-summary", "Restore Latest will use $1 and create a fresh safety backup first when folders exist.", formatTimestamp(latestRestorable.createdAt || ''))
@@ -818,22 +811,22 @@
                 </div>
                 <div class="fv-operations-stat-grid">
                     <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Folders</span>
+                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.c4d6bb200f4c058a", "Folders"))}</span>
                         <strong>${escapeHtml(String(folderCount))}</strong>
                         <span>${escapeHtml(translate("settings.operations.folders-available", "$1 folders available", title))}</span>
                     </div>
                     <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Templates</span>
+                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.56b564b75c7fdb48", "Templates"))}</span>
                         <strong>${escapeHtml(String(templateCount))}</strong>
                         <span>${escapeHtml(translate("settings.operations.presets-ready", "Saved presets ready"))}</span>
                     </div>
                     <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Live actions</span>
+                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.d8ff75cd13976e0d", "Live actions"))}</span>
                         <strong>4</strong>
-                        <span>Start, stop, pause, resume</span>
+                        <span>${escapeHtml(translate("legacy.surface.cc1af63ecbf53353", "Start, stop, pause, resume"))}</span>
                     </div>
                     <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Latest template</span>
+                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.d264b90aa03fc5cb", "Latest template"))}</span>
                         <strong>${escapeHtml(latestLabel)}</strong>
                         <span ${latestTemplate?.name ? 'data-fvplus-user-content' : ''}>${escapeHtml(latestTemplate?.name || translate("settings.operations.save-help", "Save one from a folder"))}</span>
                     </div>
@@ -855,7 +848,7 @@
             if (!plan) {
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>No runtime action preview yet.</strong>
+                        <strong>${escapeHtml(translate("legacy.surface.c1815361ad4266ae", "No runtime action preview yet."))}</strong>
                         <span>${escapeHtml(translate("settings.operations.preview-help", "Select a $1 folder and action, then preview the plan before applying it.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</span>
                     </div>
                 `;
@@ -879,44 +872,44 @@
                     </div>
                     <div class="fv-operations-stat-grid fv-operations-runtime-stats">
                         <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Requested</span>
+                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.2d9e28289facab94", "Requested"))}</span>
                             <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
-                            <span>Items in folder</span>
+                            <span>${escapeHtml(translate("legacy.surface.05640e66b2317a2e", "Items in folder"))}</span>
                         </div>
                         <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Eligible</span>
+                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.1889cf7628004753", "Eligible"))}</span>
                             <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
-                            <span>Can change now</span>
+                            <span>${escapeHtml(translate("legacy.surface.8d9d16021796b1a0", "Can change now"))}</span>
                         </div>
                         <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Skipped</span>
+                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.12698ce1ea5cd4ab", "Skipped"))}</span>
                             <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
-                            <span>Already in desired state</span>
+                            <span>${escapeHtml(translate("legacy.surface.0c616968ff8b717c", "Already in desired state"))}</span>
                         </div>
                         <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">State mix</span>
+                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.152c9e55aafaeef5", "State mix"))}</span>
                             <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
-                            <span>started / paused / stopped</span>
+                            <span>${escapeHtml(translate("legacy.surface.878435f93019a5b4", "started / paused / stopped"))}</span>
                         </div>
                     </div>
                     <div class="fv-operations-runtime-columns">
                         <div class="fv-operations-runtime-list">
-                            <strong>Will change</strong>
+                            <strong>${escapeHtml(translate("legacy.surface.de1b6744e82ff61e", "Will change"))}</strong>
                             ${eligiblePreview.length ? `
                                 <ul>
                                     ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
                                 </ul>
                                 ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
-                            ` : '<div class="fv-operations-runtime-empty">No eligible items for this action.</div>'}
+                            ` : `<div class="fv-operations-runtime-empty">${escapeHtml(translate("legacy.surface.85e2efe37bad1a44", "No eligible items for this action."))}</div>`}
                         </div>
                         <div class="fv-operations-runtime-list">
-                            <strong>Skipped</strong>
+                            <strong>${escapeHtml(translate("legacy.surface.12698ce1ea5cd4ab", "Skipped"))}</strong>
                             ${skippedPreview.length ? `
                                 <ul>
                                     ${skippedPreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.reason || row.state || 'skipped')}</span></li>`).join('')}
                                 </ul>
                                 ${skippedOverflow > 0 ? `<div class="fv-operations-runtime-more">+${skippedOverflow} more skipped item(s)</div>` : ''}
-                            ` : '<div class="fv-operations-runtime-empty">Nothing is being skipped.</div>'}
+                            ` : `<div class="fv-operations-runtime-empty">${escapeHtml(translate("legacy.surface.fdb7e1bfcb00e684", "Nothing is being skipped."))}</div>`}
                         </div>
                     </div>
                 </div>
@@ -1003,7 +996,7 @@
                 host.html(`
                     <div class="fv-recovery-empty-state">
                         <strong>${escapeHtml(translate("settings.operations.no-templates", "No saved $1 templates yet.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</strong>
-                        <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
+                        <span>${escapeHtml(translate("legacy.surface.7336697956ec839b", "Create one from an existing folder to reuse icon, settings, actions, and matching logic faster."))}</span>
                     </div>
                 `);
                 return;
@@ -1027,7 +1020,7 @@
             const folderCount = Object.keys(folders).length;
             host.html(`
                 <div class="fv-operations-template-picker-row">
-                    <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
+                    <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">${escapeHtml(translate("legacy.surface.45f95a450344da81", "Saved template"))}</label>
                     <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" data-fv-onchange="selectOperationsTemplate('${resolvedType}', this.value)">
                         ${templateSelectOptions}
                     </select>
@@ -1041,13 +1034,13 @@
                         <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
                     </div>
                     <div class="fv-operations-template-target-row">
-                        <label for="${escapeHtml(targetSelectId)}">Apply to folder</label>
+                        <label for="${escapeHtml(targetSelectId)}">${escapeHtml(translate("legacy.surface.e3248784451162bb", "Apply to folder"))}</label>
                         <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
                     </div>
                     <div class="backup-actions fv-operations-template-actions">
-                        <button type="button" data-fv-onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
-                        <button type="button" data-fv-onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
-                        <button type="button" data-fv-onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" data-fv-onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> ${escapeHtml(translate("legacy.surface.e3248784451162bb", "Apply to folder"))}</button>
+                        <button type="button" data-fv-onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> ${escapeHtml(translate("legacy.surface.3664895579f0a7e6", "Export"))}</button>
+                        <button type="button" data-fv-onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>
                     </div>
                 </div>
             `);

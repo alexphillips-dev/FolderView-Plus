@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Змінити типові налаштування папок",
     "settings.search.placeholder": "Налаштування пошуку",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Профіль зовнішнього вигляду збережено.",
     "settings.theme.presets-title": "Попередні налаштування кольорів",
     "settings.theme.presets-help": "Попередній перегляд акцентів і кольорів графіка для вибраного діапазону. Інші налаштування збережено. Збережіть, коли будете готові.",
-    "settings.theme.undo-preset": "Скасувати попередній перегляд"
+    "settings.theme.undo-preset": "Скасувати попередній перегляд",
+    "settings.environment.badge": "Навколишнє середовище",
+    "settings.performance.adaptive": "Адаптивний",
+    "settings.performance.measured": "Виміряна вартість візуалізації: $1 мс",
+    "settings.performance.fixed": "Фіксовані максимальні обмеження",
+    "settings.performance.large": "Великий бібліотечний профіль",
+    "settings.performance.refresh": "Ефективне оновлення: $1 с",
+    "settings.performance.restore": "Відновити до $1 розширених папок",
+    "settings.performance.defer": "Відкласти попередній перегляд із $1 або більше членами",
+    "settings.performance.immediate": "Попередній перегляд відображається негайно",
+    "settings.activity.backup-created": "Створено резервну копію $1.",
+    "settings.activity.backup-download": "Розпочато завантаження резервної копії $1. Перевірте завантаження свого браузера на наявність збереженого файлу.",
+    "settings.environment.client-unavailable": "Клієнт запиту середовища недоступний. Оновіть сторінку та повторіть спробу.",
+    "settings.environment.invalid-export": "Сервер повернув неповний знімок середовища. Завантаження не створено.",
+    "settings.environment.download-started": "Розпочато завантаження середовища. Перевірте завантаження свого браузера на наявність збереженого файлу.",
+    "settings.theme.no-updates": "Немає доступних керованих оновлень тем.",
+    "settings.theme.updating-count": "Оновлення керованих тем: $1…",
+    "settings.theme.batch-update": "Кероване оновлення теми",
+    "settings.theme.updated": "Доступні керовані теми оновлено."
 }

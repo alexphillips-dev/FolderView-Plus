@@ -1263,36 +1263,37 @@ const renderBackupCompareDialog = ({ type, leftSnapshot, rightSnapshot, diff, in
     }
 
     const metaItems = [
-        { label: 'Type', value: type === 'vm' ? 'vm' : 'docker' },
-        { label: 'From', value: leftSnapshot.label },
-        { label: 'To', value: rightSnapshot.label },
-        { label: 'From folders', value: diff.leftCount },
-        { label: 'To folders', value: diff.rightCount }
+        { label: importT('legacy.surface.baaddf70fb5d432b', 'Type'), value: type === 'vm' ? 'VM' : 'Docker' },
+        { label: importT('legacy.surface.218197693424e015', 'From'), value: leftSnapshot.label },
+        { label: importT('import.compare.to', 'To'), value: rightSnapshot.label },
+        { label: importT('legacy.surface.86fd278fc95cd01c', 'From folders'), value: diff.leftCount },
+        { label: importT('legacy.surface.260d414db3236cdc', 'To folders'), value: diff.rightCount }
     ];
     meta.html(metaItems.map((item) => (
-        `<span class="preview-meta-item"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
+        `<span class="preview-meta-item"><strong>${escapeHtml(window.FolderViewPlusI18n?.message?.(item.label) || item.label)}:</strong> <span data-i18n-ignore>${escapeHtml(String(item.value))}</span></span>`
     )).join(''));
 
     counts.html(`
-        <span class="import-count-chip is-create">Create: ${diff.counts.create}</span>
-        <span class="import-count-chip is-update">Update: ${diff.counts.update}</span>
-        <span class="import-count-chip is-delete">Delete: ${diff.counts.delete}</span>
-        <span class="import-count-chip is-selected">Unchanged: ${diff.counts.unchanged}</span>
-        <span class="import-count-chip is-dryrun">Prefs changed: ${includePrefs && prefsAvailable ? (prefsDiff?.rows?.length || 0) : 'n/a'}</span>
+        <span class="import-count-chip is-create">${escapeHtml(importT('legacy.surface.4759498ac2a719c6', 'Create'))}: ${diff.counts.create}</span>
+        <span class="import-count-chip is-update">${escapeHtml(importT('legacy.surface.c1c1009d3f37ec05', 'Update'))}: ${diff.counts.update}</span>
+        <span class="import-count-chip is-delete">${escapeHtml(importT('legacy.surface.e2d0a54968ead24e', 'Delete'))}: ${diff.counts.delete}</span>
+        <span class="import-count-chip is-selected">${escapeHtml(importT('legacy.surface.88b6f7429ce74e85', 'Unchanged'))}: ${diff.counts.unchanged}</span>
+        <span class="import-count-chip is-dryrun">${escapeHtml(importT('legacy.surface.e0d37fd3fb9505d1', 'Prefs changed: $1', includePrefs && prefsAvailable ? (prefsDiff?.rows?.length || 0) : '—'))}</span>
     `);
 
     renderBackupCompareDiffTable(diff.rows, { resetPage: true });
     renderBackupComparePrefsDiff({ includePrefs, prefsDiff, prefsAvailable });
 
-    const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
+    window.FolderViewPlusI18n?.translate?.(dialog[0]);
+    const modalWidth = Math.min(980, Math.max(280, window.innerWidth - 24));
     dialog.dialog({
-        title: `Compare ${type === 'docker' ? 'Docker' : 'VM'} snapshots`,
+        title: importT('legacy.surface.37fa840aca750d15', 'Compare $1 snapshots', type === 'docker' ? 'Docker' : 'VM'),
         resizable: false,
         width: modalWidth,
         modal: true,
         dialogClass: 'fv-backup-compare-modal',
         buttons: {
-            Close: function() {
+            [importT('common.close', 'Close')]: function() {
                 $(this).dialog('close');
             }
         }

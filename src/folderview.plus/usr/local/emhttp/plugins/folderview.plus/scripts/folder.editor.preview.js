@@ -127,8 +127,10 @@
                 const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
                 const memberIcon = escapeHtml(member?.Icon || deps.iconFallbackPath || '');
                 const state = buildSampleMemberState(member, index);
-                const stateLabel = escapeHtml(state.label);
-                const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' data-fvplus-style="fv-u-1opeemm"' : '';
+                const stateKey = String(state.label || '').toLowerCase();
+                const isRunning = stateKey === 'started' || stateKey === 'running';
+                const stateLabel = escapeHtml(isRunning ? surfaceT('started', 'Running') : surfaceT(stateKey, state.label));
+                const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && !isRunning) ? ' data-fvplus-style="fv-u-1opeemm"' : '';
                 return `
                     <span class="fv-live-member fv-live-member-preview-${previewMode}" data-fv-preview-member-index="${index}">
                         <img src="${memberIcon}" alt="" data-fv-onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Editar los valores predeterminados de las carpetas",
     "settings.search.placeholder": "Configuración de búsqueda",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Perfil de apariencia guardado.",
     "settings.theme.presets-title": "Ajustes preestablecidos de color",
     "settings.theme.presets-help": "Obtenga una vista previa de los colores de acento y gráficos para el alcance seleccionado. Se conservan otras personalizaciones. Guarde cuando esté listo.",
-    "settings.theme.undo-preset": "Deshacer vista previa preestablecida"
+    "settings.theme.undo-preset": "Deshacer vista previa preestablecida",
+    "settings.environment.badge": "Ambiente",
+    "settings.performance.adaptive": "Adaptativo",
+    "settings.performance.measured": "Costo de renderizado medido: $1 ms",
+    "settings.performance.fixed": "Límites máximos fijos",
+    "settings.performance.large": "Perfil de biblioteca grande",
+    "settings.performance.refresh": "Actualización efectiva: $1 s",
+    "settings.performance.restore": "Restaurar hasta $1 carpetas expandidas",
+    "settings.performance.defer": "Aplazar vistas previas con $1 o más miembros",
+    "settings.performance.immediate": "Las vistas previas se renderizan inmediatamente",
+    "settings.activity.backup-created": "$1 copia de seguridad creada.",
+    "settings.activity.backup-download": "$1 se inició la descarga de la copia de seguridad. Verifique las descargas de su navegador para ver el archivo guardado.",
+    "settings.environment.client-unavailable": "El cliente de solicitud de entorno no está disponible. Actualiza la página y vuelve a intentarlo.",
+    "settings.environment.invalid-export": "El servidor devolvió una instantánea del entorno incompleta. No se creó ninguna descarga.",
+    "settings.environment.download-started": "Se inició la descarga del entorno. Verifique las descargas de su navegador para ver el archivo guardado.",
+    "settings.theme.no-updates": "No hay actualizaciones de temas administrados disponibles.",
+    "settings.theme.updating-count": "Actualizando temas administrados: $1…",
+    "settings.theme.batch-update": "Actualización de tema administrado",
+    "settings.theme.updated": "Temas administrados disponibles actualizados."
 }

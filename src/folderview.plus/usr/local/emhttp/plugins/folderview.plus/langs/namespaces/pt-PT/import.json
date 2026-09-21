@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até selecionar Aplicar importação.",
     "import.behavior.question": "Como devem ser tratadas as pastas existentes?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Instantâneo inválido; ordem de configuração",
     "import.folderview3.appearance-profiles": "Adicionar perfis de aparência FolderView3 inativos",
     "import.folderview3.order-summary": "Ordem das pastas salvas: Docker $1; VMs $2.",
-    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1."
+    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1.",
+    "import.compare.to": "Para"
 }

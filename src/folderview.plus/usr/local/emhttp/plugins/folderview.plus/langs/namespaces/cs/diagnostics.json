@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Sledujte stav pluginu, řešte problémy a sdílejte data podpory.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Položky vyžadující kontrolu: $1.",
     "diagnostics.activity.successes": "Dokončené akce: $1.",
     "diagnostics.activity.updates": "Poslední aktualizace: $1.",
-    "diagnostics.activity.exported": "Balíček podpory byl exportován"
+    "diagnostics.activity.exported": "Balíček podpory byl exportován",
+    "diagnostics.history.members-reconciled": "Odkazy na členy byly synchronizovány",
+    "diagnostics.history.backup-restored": "Záloha obnovena",
+    "diagnostics.history.backup-deleted": "Záloha byla smazána",
+    "diagnostics.history.backup-download": "Požadováno stažení zálohy",
+    "diagnostics.history.preferences-saved": "Předvolby uloženy",
+    "diagnostics.history.event-details": "Podrobnosti události"
 }

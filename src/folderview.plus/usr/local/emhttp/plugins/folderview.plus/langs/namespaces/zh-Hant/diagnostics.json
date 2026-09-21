@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "診斷",
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "需要審查的專案：$1。",
     "diagnostics.activity.successes": "已完成的操作：$1。",
     "diagnostics.activity.updates": "最近更新：$1。",
-    "diagnostics.activity.exported": "支援捆綁匯出"
+    "diagnostics.activity.exported": "支援捆綁匯出",
+    "diagnostics.history.members-reconciled": "會員參考已同步",
+    "diagnostics.history.backup-restored": "備份已恢復",
+    "diagnostics.history.backup-deleted": "備份已刪除",
+    "diagnostics.history.backup-download": "請求備份下載",
+    "diagnostics.history.preferences-saved": "已儲存偏好設定",
+    "diagnostics.history.event-details": "事件詳情"
 }

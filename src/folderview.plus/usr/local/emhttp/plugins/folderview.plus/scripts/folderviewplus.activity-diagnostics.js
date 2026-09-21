@@ -16,7 +16,7 @@ const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry
 const diagnosticsViewModelModule = window.FolderViewPlusDiagnosticsViewModel || null;
 const diagnosticsViewModule = window.FolderViewPlusDiagnosticsView || null;
 const diagnosticsT = (key, fallback = '', ...params) => (
-    window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
+    window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token))
 );
 const diagnosticsSwal = typeof window.swal === 'function'
     ? window.swal.bind(window)
@@ -1007,11 +1007,15 @@ const setRollbackStatus = (text) => {
 };
 
 const formatActivityTimestamp = (at) => {
-    const date = new Date(Number(at) || Date.now());
+    if (at === null || at === undefined || at === '') return '';
+    const numeric = typeof at === 'number' || /^\d+$/.test(String(at));
+    const date = new Date(numeric ? Number(at) : at);
     if (Number.isNaN(date.getTime())) {
         return '';
     }
-    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { hour: '2-digit', minute: '2-digit' }) || date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }));
+    const options = numeric ? { hour: '2-digit', minute: '2-digit' }
+        : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, options) || date.toLocaleString('en', options));
 };
 
 const normalizeActivityLevel = (level) => {
@@ -1081,14 +1085,14 @@ const renderActivityFeed = () => {
         return;
     }
     if (!activityFeedEntries.length) {
-        status.text('Recent activity');
-        summary.text('Actions you run here will appear in this session history.');
+        status.text(diagnosticsT('legacy.surface.6cb44b56336af70b', 'Recent activity'));
+        summary.text(diagnosticsT('legacy.surface.d6f79eb3ddbfb605', 'Actions you run here will appear in this session history.'));
         list.empty();
         list.hide();
         toggle.attr('aria-expanded', 'false');
         toggle.toggleClass('is-expanded', false);
-        toggle.prop('disabled', true);
-        clear.prop('disabled', true);
+        toggle.prop('disabled', true).attr('title', diagnosticsT('diagnostics.activity.empty-title', 'No activity yet'));
+        clear.prop('disabled', true).attr('title', diagnosticsT('diagnostics.activity.empty-title', 'No activity yet'));
         latest.html(`
             <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
             <div class="fv-activity-latest-copy">
@@ -1102,6 +1106,8 @@ const renderActivityFeed = () => {
         return;
     }
     const first = activityFeedEntries[0];
+    toggle.removeAttr('title');
+    clear.removeAttr('title');
     const firstLevel = normalizeActivityLevel(first?.level);
     const firstMeta = getActivityLevelMeta(firstLevel);
     const firstFresh = firstLevel !== 'error' && isActivityEntryFresh(first);
@@ -1326,6 +1332,9 @@ const getRecoveryTimelineStatusClass = (value) => {
     return 'is-healthy';
 };
 
+const recoveryActionLabel = (action) => diagnosticsViewModelModule?.recoveryActionLabel(action, diagnosticsT) || String(action || '');
+const recoveryStatusLabel = (status) => diagnosticsViewModelModule?.recoveryStatusLabel(status, diagnosticsT) || String(status || '');
+
 const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostics) => {
     const summaryHost = $('#fv-recovery-change-history-summary');
     const listHost = $('#recovery-change-history-list');
@@ -1346,7 +1355,7 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
     if (!filteredTimeline.length) {
         summaryHost.html(`
             <div class="fv-recovery-empty-state">
-                <strong>No recent ${diagnosticsEscapeHtml(typeLabel)} changes found.</strong>
+                <strong>${diagnosticsEscapeHtml(diagnosticsT("legacy.surface.9675fa0517ae80f3", 'No recent $1 changes found.', typeLabel))}</strong>
                 <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.refresh-description', 'Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.'))}</span>
             </div>
         `);
@@ -1361,35 +1370,36 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
 
     const latest = filteredTimeline[0] || {};
     const latestStatus = String(latest.status || 'ok').trim() || 'ok';
-    const latestAction = String(latest.action || 'Recent change').trim() || 'Recent change';
+    const latestAction = recoveryActionLabel(latest.action);
     const latestSummary = String(latest.summary || '').trim();
     summaryHost.html(`
         <div class="fv-recovery-undo-head">
             <div>
-                <div class="fv-recovery-undo-title">Latest ${diagnosticsEscapeHtml(typeLabel)} change</div>
+                <div class="fv-recovery-undo-title">${diagnosticsEscapeHtml(diagnosticsT("legacy.surface.b81502cfaf881cea", 'Latest $1 change', typeLabel))}</div>
                 <div class="fv-recovery-undo-copy">${diagnosticsEscapeHtml(latestAction)}${latestSummary ? ` - ${diagnosticsEscapeHtml(latestSummary)}` : ''}</div>
             </div>
-            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${diagnosticsEscapeHtml(latestStatus)}</span>
+            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${diagnosticsEscapeHtml(recoveryStatusLabel(latestStatus))}</span>
         </div>
         <div class="fv-recovery-undo-meta">
             <span>${diagnosticsEscapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
-            <span>Undo latest change restores the newest undo-safe backup for ${diagnosticsEscapeHtml(typeLabel)}.</span>
+            <span>${diagnosticsEscapeHtml(diagnosticsT("legacy.surface.f4981a957b910a92", 'Undo latest change restores the newest undo-safe backup for $1.', typeLabel))}</span>
         </div>
     `);
 
     listHost.html(filteredTimeline.slice(0, 12).map((row) => {
         const status = String(row?.status || 'ok').trim() || 'ok';
-        const action = String(row?.action || 'Recent change').trim() || 'Recent change';
+        const action = recoveryActionLabel(row?.action);
         const summary = String(row?.summary || '').trim();
         const timestamp = formatActivityTimestamp(row?.timestamp || '');
         return `
             <article class="fv-recovery-timeline-card">
                 <div class="fv-recovery-timeline-head">
                     <div class="fv-recovery-timeline-title">${diagnosticsEscapeHtml(action)}</div>
-                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(status)}</span>
+                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(recoveryStatusLabel(status))}</span>
                 </div>
                 <div class="fv-recovery-timeline-meta">${diagnosticsEscapeHtml(timestamp)}</div>
-                <div class="fv-recovery-timeline-copy">${diagnosticsEscapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
+                <div class="fv-recovery-timeline-copy" data-i18n-ignore>${diagnosticsEscapeHtml(summary || diagnosticsT("legacy.surface.cd7632074a782ad0", 'No extra detail was recorded for this change.'))}</div>
+                <details><summary>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.event-details', 'Event details'))}</summary><code>${diagnosticsEscapeHtml(row?.action || '')}</code></details>
             </article>
         `;
     }).join(''));

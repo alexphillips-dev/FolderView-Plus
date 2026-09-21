@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Teşhis",
     "diagnostics.workspace.description": "Eklenti sağlığını izleyin, sorunları giderin ve destek verilerini paylaşın.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "İncelenmesi gereken öğeler: $1.",
     "diagnostics.activity.successes": "Tamamlanan işlemler: $1.",
     "diagnostics.activity.updates": "Son güncellemeler: $1.",
-    "diagnostics.activity.exported": "Destek paketi dışa aktarıldı"
+    "diagnostics.activity.exported": "Destek paketi dışa aktarıldı",
+    "diagnostics.history.members-reconciled": "Üye referansları senkronize edildi",
+    "diagnostics.history.backup-restored": "Yedekleme geri yüklendi",
+    "diagnostics.history.backup-deleted": "Yedekleme silindi",
+    "diagnostics.history.backup-download": "Yedek indirme istendi",
+    "diagnostics.history.preferences-saved": "Tercihler kaydedildi",
+    "diagnostics.history.event-details": "Olay ayrıntıları"
 }

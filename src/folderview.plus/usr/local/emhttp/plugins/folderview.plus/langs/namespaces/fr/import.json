@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Choisissez comment gérer les dossiers existants. Rien ne change tant que vous n'avez pas sélectionné Appliquer l'importation.",
     "import.behavior.question": "Comment les dossiers existants doivent-ils être gérés ?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Instantané invalide ; ordre de configuration",
     "import.folderview3.appearance-profiles": "Ajouter des profils d'apparence FolderView3 inactifs",
     "import.folderview3.order-summary": "Ordre des dossiers enregistrés : Docker $1 ; Machines virtuelles $2.",
-    "import.folderview3.disabled-profile-count": "Profils séparés pour les thèmes désactivés : $1."
+    "import.folderview3.disabled-profile-count": "Profils séparés pour les thèmes désactivés : $1.",
+    "import.compare.to": "Vers"
 }

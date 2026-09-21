@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Диагностика",
     "diagnostics.workspace.description": "Отслеживайте состояние плагина, устраняйте неполадки и делитесь данными поддержки.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Элементы, требующие проверки: $1.",
     "diagnostics.activity.successes": "Выполненные действия: $1.",
     "diagnostics.activity.updates": "Последние обновления: $1.",
-    "diagnostics.activity.exported": "Пакет поддержки экспортирован."
+    "diagnostics.activity.exported": "Пакет поддержки экспортирован.",
+    "diagnostics.history.members-reconciled": "Ссылки на участников синхронизированы",
+    "diagnostics.history.backup-restored": "Резервная копия восстановлена",
+    "diagnostics.history.backup-deleted": "Резервная копия удалена.",
+    "diagnostics.history.backup-download": "Запрошена загрузка резервной копии",
+    "diagnostics.history.preferences-saved": "Настройки сохранены.",
+    "diagnostics.history.event-details": "Сведения о событии"
 }

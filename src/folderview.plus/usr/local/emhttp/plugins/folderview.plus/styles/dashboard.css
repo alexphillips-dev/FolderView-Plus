@@ -90,6 +90,7 @@ body[data-fv-theme-class="light"] {
     align-items: center;
     gap: 6px;
     box-sizing: border-box;
+    padding: 5px;
     min-width: 0;
     width: 100%;
     max-width: 100%;
@@ -359,11 +360,11 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     --fv-dashboard-view-button-border: var(--fvplus-ui-border-subtle);
     --fv-dashboard-view-button-color: var(--fvplus-ui-text-primary);
     appearance: none;
-    background: var(--fv-dashboard-view-button-bg) !important;
-    border: 1px solid var(--fv-dashboard-view-button-border) !important;
+    background: var(--fv-dashboard-view-button-bg);
+    border: 1px solid var(--fv-dashboard-view-button-border);
     border-radius: var(--fv-ui-radius-sm);
     box-sizing: border-box;
-    color: var(--fv-dashboard-view-button-color) !important;
+    color: var(--fv-dashboard-view-button-color);
     cursor: pointer;
     font: inherit;
     margin: 0 !important;
@@ -393,6 +394,14 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 }
 .fv-dashboard-view-option-icon { color: var(--fvplus-ui-text-muted); text-align: center; }
 .fv-dashboard-view-option > span { display: grid; gap: 1px; min-width: 0; }
+.fv-dashboard-view-option :is(strong, small),
+.fv-dashboard-view-footer-action {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    letter-spacing: normal;
+    text-transform: none;
+    min-width: 0;
+}
 .fv-dashboard-view-option strong { font-size: 1.05rem; }
 .fv-dashboard-view-option small { color: var(--fvplus-ui-text-muted); font-size: 0.95rem; }
 .fv-dashboard-view-option-check { color: transparent; }
@@ -418,7 +427,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     border-top: 1px solid var(--fvplus-ui-border-faint);
     display: grid;
     gap: 2px;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 7px 8px;
 }
 .fv-dashboard-view-footer-action[data-fv-view-action="capture-diagnostics"] {

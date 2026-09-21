@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "診断",
     "diagnostics.workspace.description": "プラグインの状態を監視し、問題のトラブルシューティングを行い、サポート データを共有します。",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "レビューが必要な項目: $1。",
     "diagnostics.activity.successes": "完了したアクション: $1。",
     "diagnostics.activity.updates": "最近の更新: $1。",
-    "diagnostics.activity.exported": "サポート バンドルがエクスポートされました"
+    "diagnostics.activity.exported": "サポート バンドルがエクスポートされました",
+    "diagnostics.history.members-reconciled": "メンバー参照が同期されました",
+    "diagnostics.history.backup-restored": "バックアップが復元されました",
+    "diagnostics.history.backup-deleted": "バックアップが削除されました",
+    "diagnostics.history.backup-download": "バックアップのダウンロードが要求されました",
+    "diagnostics.history.preferences-saved": "設定が保存されました",
+    "diagnostics.history.event-details": "イベントの詳細"
 }

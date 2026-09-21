@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Edit folder defaults",
     "settings.search.placeholder": "Search settings",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Appearance profile saved.",
     "settings.theme.presets-title": "Color presets",
     "settings.theme.presets-help": "Preview accent and graph colors for the selected scope. Other customizations are preserved. Save when ready.",
-    "settings.theme.undo-preset": "Undo preset preview"
+    "settings.theme.undo-preset": "Undo preset preview",
+    "settings.environment.badge": "Environment",
+    "settings.performance.adaptive": "Adaptive",
+    "settings.performance.measured": "Measured render cost: $1 ms",
+    "settings.performance.fixed": "Fixed maximum limits",
+    "settings.performance.large": "Large library profile",
+    "settings.performance.refresh": "Effective refresh: $1 s",
+    "settings.performance.restore": "Restore up to $1 expanded folders",
+    "settings.performance.defer": "Defer previews with $1 or more members",
+    "settings.performance.immediate": "Previews render immediately",
+    "settings.activity.backup-created": "$1 backup created.",
+    "settings.activity.backup-download": "$1 backup download started. Check your browser downloads for the saved file.",
+    "settings.environment.client-unavailable": "The environment request client is unavailable. Refresh the page and try again.",
+    "settings.environment.invalid-export": "The server returned an incomplete environment snapshot. No download was created.",
+    "settings.environment.download-started": "Environment download started. Check your browser downloads for the saved file.",
+    "settings.theme.no-updates": "No managed theme updates are available.",
+    "settings.theme.updating-count": "Updating managed themes: $1…",
+    "settings.theme.batch-update": "Managed theme update",
+    "settings.theme.updated": "Available managed themes updated."
 }

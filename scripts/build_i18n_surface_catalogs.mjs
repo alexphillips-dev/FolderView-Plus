@@ -58,7 +58,7 @@ for (const [locale, values] of Object.entries(reviewedPlurals.locales)) {
     translationContext.overrides[locale] = translationContext.overrides[locale] || {};
     reviewedPlurals.en.forEach((english, index) => { translationContext.overrides[locale][english] = values[index]; });
 }
-const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server', 'download', 'startup'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
+const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server', 'download', 'startup', 'controls'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
 const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces, reviewedWording, repairMessages, reviewedRepair])).digest('hex');
 const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
     if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);
@@ -93,6 +93,11 @@ for (const [locale, values] of Object.entries(reviewedTerms.locales)) {
     terms['You review before applying'] = terms['Review before applying'];
     Object.assign(terms, { '$1 manual': `${terms.Manual}: $1`, '0 manual': `${terms.Manual}: 0`, '3. Review and apply': `3. ${terms['Review and apply']}` });
     translationContext.overrides[locale] = { ...terms, ...translationContext.overrides[locale] };
+    // Runtime labels describe the current state, not a past start event.
+    const running = reviewedWording.locales[locale][reviewedWording.concepts.indexOf('running')];
+    for (const phrase of ['started', 'Started', 'Running', 'running']) translationContext.overrides[locale][phrase] = running;
+    runtimeReviews[locale]['common.runtime.1-2-started'] = `$1/$2 ${running}`;
+    runtimeReviews[locale]['common.health.folder-summary'] = reviewedSurfaces.controls.locales[locale][reviewedSurfaces.controls.keys.indexOf('folder-health')];
 }
 const contextualBatch = (batch) => batch.map(([key, english]) => [key, translationContext.sources[english] || english]);
 const applyReviewedValues = (locale, messages, entries) => {
@@ -117,6 +122,8 @@ for (const key of Object.keys(commonEnglish)) {
     if (key.startsWith('common.repair.') || Object.keys(reviewedSurfaces).some(namespace => key.startsWith(`common.${namespace}.`))) delete commonEnglish[key];
 }
 for (const [namespace, review] of Object.entries(reviewedSurfaces)) {
+    // Controls reuse existing message keys; this table only supplies contextual wording.
+    if (namespace === 'controls') continue;
     review.keys.forEach((key, index) => { commonEnglish[`common.${namespace}.${key}`] = review.en[index]; });
 }
 Object.assign(commonEnglish, repairMessages);

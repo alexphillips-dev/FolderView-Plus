@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Redigera standardinställningar för mappar",
     "settings.search.placeholder": "Sökinställningar",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Utseendeprofilen har sparats.",
     "settings.theme.presets-title": "Förinställningar för färg",
     "settings.theme.presets-help": "Förhandsgranska accent- och graffärger för det valda omfånget. Andra anpassningar är bevarade. Spara när du är klar.",
-    "settings.theme.undo-preset": "Ångra förinställd förhandsgranskning"
+    "settings.theme.undo-preset": "Ångra förinställd förhandsgranskning",
+    "settings.environment.badge": "Miljö",
+    "settings.performance.adaptive": "Adaptiv",
+    "settings.performance.measured": "Uppmätt renderingskostnad: $1 ms",
+    "settings.performance.fixed": "Fasta maxgränser",
+    "settings.performance.large": "Stor biblioteksprofil",
+    "settings.performance.refresh": "Effektiv uppdatering: $1 s",
+    "settings.performance.restore": "Återställ upp till $1 utökade mappar",
+    "settings.performance.defer": "Skjut upp förhandsvisningar med $1 eller fler medlemmar",
+    "settings.performance.immediate": "Förhandsgranskningar återges omedelbart",
+    "settings.activity.backup-created": "$1 säkerhetskopia skapad.",
+    "settings.activity.backup-download": "$1 nedladdning av säkerhetskopiering startade. Kontrollera dina nedladdningar av din webbläsare efter den sparade filen.",
+    "settings.environment.client-unavailable": "Klienten för miljöförfrågan är inte tillgänglig. Uppdatera sidan och försök igen.",
+    "settings.environment.invalid-export": "Servern returnerade en ofullständig ögonblicksbild av miljön. Ingen nedladdning skapades.",
+    "settings.environment.download-started": "Nedladdning av miljö har startat. Kontrollera dina nedladdningar av din webbläsare efter den sparade filen.",
+    "settings.theme.no-updates": "Inga hanterade temauppdateringar är tillgängliga.",
+    "settings.theme.updating-count": "Uppdaterar hanterade teman: $1...",
+    "settings.theme.batch-update": "Hanterad temauppdatering",
+    "settings.theme.updated": "Tillgängliga hanterade teman uppdaterade."
 }

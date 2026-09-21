@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Välj hur befintliga mappar ska hanteras. Inget ändras förrän du väljer Använd import.",
     "import.behavior.question": "Hur ska befintliga mappar hanteras?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Ogiltig ögonblicksbild; konfigurationsordning",
     "import.folderview3.appearance-profiles": "Lägg till inaktiva FolderView3-utseendeprofiler",
     "import.folderview3.order-summary": "Sparad mappordning: Docker $1; virtuella datorer $2.",
-    "import.folderview3.disabled-profile-count": "Separata profiler för funktionshindrade teman: $1."
+    "import.folderview3.disabled-profile-count": "Separata profiler för funktionshindrade teman: $1.",
+    "import.compare.to": "Till"
 }

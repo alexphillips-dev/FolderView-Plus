@@ -620,7 +620,7 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /const targetsValid = mode !== 0 \|\| \(targetSelect\.val\(\) \|\| \[\]\)\.length > 0;/);
     assert.match(folderJs, /const scriptValid = mode !== 1 \|\| String\(scriptInput\.val\(\) \|\| ''\)\.trim\(\) !== '';/);
     assert.match(folderJs, /primaryButton\.prop\('disabled', !valid\)/);
-    assert.match(folderJs, /const targetSubject = type === 'vm' \? 'VMs' : 'Containers';/);
+    assert.match(folderJs, /const targetSubject = type === 'vm' \? surfaceT\([^;]+VMs[^;]+Containers[^;]+;/);
     assert.match(folderJs, /normalizePreviewIconClass\(iconInput\.val\(\), cfg\.type\)/);
     assert.match(folderJs, /open: \(\) => window\.setTimeout\(\(\) => nameInput\.trigger\('focus'\), 0\)/);
     assert.match(folderCss, /\.ui-multiselect-menu\.multiselect-container\s*\{[\s\S]*?background:\s*var\(--fv-editor-panel\);/);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnostics",
     "diagnostics.workspace.description": "Monitor plugin health, troubleshoot issues, and share support data.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Items needing review: $1.",
     "diagnostics.activity.successes": "Completed actions: $1.",
     "diagnostics.activity.updates": "Recent updates: $1.",
-    "diagnostics.activity.exported": "Support bundle exported"
+    "diagnostics.activity.exported": "Support bundle exported",
+    "diagnostics.history.members-reconciled": "Member references synchronized",
+    "diagnostics.history.backup-restored": "Backup restored",
+    "diagnostics.history.backup-deleted": "Backup deleted",
+    "diagnostics.history.backup-download": "Backup download requested",
+    "diagnostics.history.preferences-saved": "Preferences saved",
+    "diagnostics.history.event-details": "Event details"
 }

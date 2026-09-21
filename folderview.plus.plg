@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.19.01">
-<!ENTITY md5 "827eaaacc509040176bd959cb2e7a643">
-<!ENTITY sha256 "f9cdaa1a402390ba76c1a94f1c02891e5f04e2c4ad21832b153a50aab75e4f63">
+<!ENTITY version "2026.09.21.01">
+<!ENTITY md5 "346f6d74b3a48079f50fcc48b3952537">
+<!ENTITY sha256 "0b7496d8bbbf3c91680f6dedbb7613c5672540d35bb27ff3ead76062cb6bc376">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.21.01
+- Fix: Export complete environment snapshots containing Docker and VM folders, preferences, defaults, and appearance settings. Reject incomplete export responses instead of reporting a successful empty download, and reconnect environment import previews, confirmation, and refresh after applying.
+- Fix: Record successful backup and environment actions in the Activity Center so History and Clear become available after activity. Show the original date and time for persisted recovery events and readable event labels, with technical identifiers available in event details.
+- Fix: Keep the latest backup list when Recovery requests overlap or a refresh fails, and avoid rebuilding unchanged recovery controls during refresh.
+- Localization: Render Recovery summaries, backup controls, snapshot comparisons, action target text, and performance summaries in the selected language immediately. Standardize current running-state wording across Docker, VMs, editor previews, and appearance controls in all 27 supported languages while preserving stored state values.
+- Fix: Keep running preview icons colored when grayscale is limited to stopped members, and avoid reporting a managed-theme update failure when no updates are available.
+- UX: Apply the plugin's button styling consistently across Settings, editor dialogs, Docker, VMs, and Dashboard controls. Wrap long translated labels, keep dialog close controls compact, prevent icon-picker and Dashboard option clipping, and add space around Dashboard member icons.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised scripts, styles, and language catalogs. A download-started notice means the file was handed to the browser; check the browser downloads list to confirm it was saved.
+
 
 ###2026.09.19.01
 - Fix: Classify initial Docker and VM runtime loading as cold even when it finishes after the Settings interface becomes ready. Older runtime-loading samples with ambiguous classifications are discarded when restoring browser performance history; other timing history is retained. Repeated slow warm loads still produce warnings.

@@ -1,0 +1,32 @@
+{
+  "keys": ["running-status","toggle-state","set-state","target-state","folder-health","compare-to","event-details"],
+  "en": ["Running status","Toggle state","Set state","Target state:","Folder health: $1 running | $2 paused | $3 stopped","To","Event details"],
+  "locales": {
+    "ar": ["حالة التشغيل","تبديل الحالة","تعيين الحالة","الحالة المستهدفة:","صحة المجلد: $1 قيد التشغيل | $2 متوقف مؤقتًا | $3 توقف","إلى","تفاصيل الحدث"],
+    "bn": ["চলমান অবস্থা","অবস্থা পরিবর্তন করুন","অবস্থা নির্ধারণ করুন","লক্ষ্য অবস্থা:","ফোল্ডার স্বাস্থ্য: $1 চালু আছে | $2 বিরাম দেওয়া হয়েছে | $3 থামল৷","পর্যন্ত","ঘটনার বিবরণ"],
+    "ca": ["Estat en execució","Alterna l’estat","Estableix l’estat","Estat de destinació:","Estat de la carpeta: $1 En execució | $2 en pausa | $3 s'ha aturat","A","Detalls de l’esdeveniment"],
+    "cs": ["Stav běhu","Přepnout stav","Nastavit stav","Cílový stav:","Stav složky: $1 Spuštěno | $2 pozastaveno | $3 zastaveno","Do","Podrobnosti události"],
+    "da": ["Kørselsstatus","Skift tilstand","Indstil tilstand","Måltilstand:","Mappetilstand: $1 Kører | $2 sat på pause | $3 stoppede","Til","Hændelsesdetaljer"],
+    "de": ["Status: Läuft","Zustand umschalten","Zustand festlegen","Zielzustand:","Ordnerstatus: $1 Läuft | $2 pausiert | $3 gestoppt","Zu","Ereignisdetails"],
+    "es": ["Estado en ejecución","Alternar estado","Establecer estado","Estado de destino:","Estado de la carpeta: $1 En ejecución | $2 en pausa | $3 detenido","A","Detalles del evento"],
+    "fr": ["État en cours d’exécution","Basculer l’état","Définir l’état","État cible :","État du dossier : $1 En cours d’exécution | $2 en pause | $3 arrêté","Vers","Détails de l’événement"],
+    "hr": ["Status rada","Prebaci stanje","Postavi stanje","Ciljno stanje:","Zdravlje mape: $1 Pokrenuto | $2 pauzirano | $3 zaustavljen","U","Detalji događaja"],
+    "hu": ["Futási állapot","Állapot váltása","Állapot beállítása","Célállapot:","Mappa állapota: $1 Fut | $2 szünetel | $3 leállt","Cél","Esemény részletei"],
+    "it": ["Stato in esecuzione","Alterna stato","Imposta stato","Stato di destinazione:","Integrità della cartella: $1 In esecuzione | $2 in pausa | $3 interrotto","A","Dettagli dell’evento"],
+    "ja": ["実行状態","状態を切り替える","状態を設定する","変更先の状態:","フォルダーの状態: $1 実行中 | $2 一時停止しました | $3 が停止しました","比較先","イベントの詳細"],
+    "ko": ["실행 상태","상태 전환","상태 설정","대상 상태:","폴더 상태: $1 실행 중 | $2 일시중지됨 | $3이 중지되었습니다.","대상","이벤트 세부 정보"],
+    "lv": ["Darbības statuss","Pārslēgt stāvokli","Iestatīt stāvokli","Mērķa stāvoklis:","Mapes stāvoklis: $1 Darbojas | $2 apturēts | $3 apturēta","Uz","Notikuma informācija"],
+    "nb": ["Kjørestatus","Veksle tilstand","Angi tilstand","Måltilstand:","Mappehelse: $1 Kjører | $2 satt på pause | $3 stoppet","Til","Hendelsesdetaljer"],
+    "nl": ["Actieve status","Status wisselen","Status instellen","Doelstatus:","Mapstatus: $1 Actief | $2 gepauzeerd | $3 gestopt","Naar","Gebeurtenisdetails"],
+    "pl": ["Stan działania","Przełącz stan","Ustaw stan","Stan docelowy:","Kondycja folderu: $1 Uruchomione | $2 pauza | $3 zatrzymany","Do","Szczegóły zdarzenia"],
+    "pt-BR": ["Status em execução","Alternar estado","Definir estado","Estado de destino:","Integridade da pasta: $1 Em execução | $2 pausado | $3 parou","Para","Detalhes do evento"],
+    "pt-PT": ["Estado em execução","Alternar estado","Definir estado","Estado de destino:","Integridade da pasta: $1 Em execução | $2 pausado | $3 parou","Para","Detalhes do evento"],
+    "ro": ["Stare de execuție","Comută starea","Setează starea","Stare țintă:","Sănătatea dosarului: $1 În execuție | $2 întrerupt | $3 sa oprit","La","Detalii despre eveniment"],
+    "ru": ["Состояние работы","Переключить состояние","Задать состояние","Целевое состояние:","Состояние папки: $1 Работает | $2 приостановлено | $3 остановлено","В","Сведения о событии"],
+    "sv": ["Körstatus","Växla tillstånd","Ange tillstånd","Måltillstånd:","Mappstatus: $1 Körs | $2 pausad | $3 stoppade","Till","Händelsedetaljer"],
+    "tr": ["Çalışma durumu","Durumu değiştir","Durumu ayarla","Hedef durum:","Klasör sağlığı: $1 Çalışıyor | $2 duraklatıldı | $3 durduruldu","Hedef","Olay ayrıntıları"],
+    "uk": ["Стан роботи","Перемкнути стан","Задати стан","Цільовий стан:","Справність папки: $1 Працює | $2 призупинено | $3 зупинено","До","Відомості про подію"],
+    "zh-Hans": ["运行状态","切换状态","设置状态","目标状态：","文件夹运行状况：$1 运行中 | $2 暂停 | $3 已停止","目标","事件详情"],
+    "zh-Hant": ["執行狀態","切換狀態","設定狀態","目標狀態：","資料夾運作狀況：$1 執行中 | $2 暫停 | $3 已停止","目標","事件詳情"]
+  }
+}

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "import",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "import.subtitle": "Scegli come gestire le cartelle esistenti. Nulla cambia finché non selezioni Applica importazione.",
     "import.behavior.question": "Come devono essere gestite le cartelle esistenti?",
@@ -78,5 +78,6 @@
     "import.folderview3.order-invalid-status": "Istantanea non valida; ordine di configurazione",
     "import.folderview3.appearance-profiles": "Aggiungi profili di aspetto FolderView3 inattivi",
     "import.folderview3.order-summary": "Ordine delle cartelle salvate: Docker $1; Macchine virtuali $2.",
-    "import.folderview3.disabled-profile-count": "Profili separati per temi disabilitati: $1."
+    "import.folderview3.disabled-profile-count": "Profili separati per temi disabilitati: $1.",
+    "import.compare.to": "A"
 }

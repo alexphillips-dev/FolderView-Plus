@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "diagnostics",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.workspace.description": "Supervise el estado de los complementos, solucione problemas y comparta datos de soporte.",
@@ -224,5 +224,11 @@
     "diagnostics.activity.warnings": "Elementos que necesitan revisión: $1.",
     "diagnostics.activity.successes": "Acciones completadas: $1.",
     "diagnostics.activity.updates": "Actualizaciones recientes: $1.",
-    "diagnostics.activity.exported": "Paquete de soporte exportado"
+    "diagnostics.activity.exported": "Paquete de soporte exportado",
+    "diagnostics.history.members-reconciled": "Referencias de miembros sincronizadas",
+    "diagnostics.history.backup-restored": "Copia de seguridad restaurada",
+    "diagnostics.history.backup-deleted": "Copia de seguridad eliminada",
+    "diagnostics.history.backup-download": "Descarga de copia de seguridad solicitada",
+    "diagnostics.history.preferences-saved": "Preferencias guardadas",
+    "diagnostics.history.event-details": "Detalles del evento"
 }

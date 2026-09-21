@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Mappák alapértelmezett beállításainak szerkesztése",
     "settings.search.placeholder": "Keresési beállítások",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Megjelenési profil mentve.",
     "settings.theme.presets-title": "Előre beállított színek",
     "settings.theme.presets-help": "Tekintse meg a kiválasztott hatókör kiemelési és grafikonszíneinek előnézetét. A többi testreszabás megmarad. Mentse el, ha készen áll.",
-    "settings.theme.undo-preset": "Előre beállított előnézet visszavonása"
+    "settings.theme.undo-preset": "Előre beállított előnézet visszavonása",
+    "settings.environment.badge": "Környezet",
+    "settings.performance.adaptive": "Adaptív",
+    "settings.performance.measured": "Mért renderelési költség: $1 ms",
+    "settings.performance.fixed": "Rögzített maximális korlátok",
+    "settings.performance.large": "Nagy könyvtári profil",
+    "settings.performance.refresh": "Hatékony frissítés: $1 s",
+    "settings.performance.restore": "Legfeljebb $1 kibontott mappát állíthat vissza",
+    "settings.performance.defer": "Halaszd el az előnézeteket $1 vagy több taggal",
+    "settings.performance.immediate": "Az előnézetek azonnal megjelennek",
+    "settings.activity.backup-created": "$1 biztonsági másolat létrehozva.",
+    "settings.activity.backup-download": "$1 biztonsági mentés letöltése megkezdődött. Nézze meg a böngésző letöltéseiben a mentett fájlt.",
+    "settings.environment.client-unavailable": "A környezetkérő kliens nem érhető el. Frissítse az oldalt, és próbálja újra.",
+    "settings.environment.invalid-export": "A szerver hiányos környezeti pillanatképet adott vissza. Nem jött létre letöltés.",
+    "settings.environment.download-started": "A környezet letöltése elindult. Nézze meg a böngésző letöltéseiben a mentett fájlt.",
+    "settings.theme.no-updates": "Nem állnak rendelkezésre felügyelt témafrissítések.",
+    "settings.theme.updating-count": "Felügyelt témák frissítése: $1…",
+    "settings.theme.batch-update": "Felügyelt téma frissítés",
+    "settings.theme.updated": "Az elérhető kezelt témák frissítve."
 }

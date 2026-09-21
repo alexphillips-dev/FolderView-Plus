@@ -63,6 +63,7 @@
         "scripts/folderviewplus.folderview3-report.js",
         "scripts/folderviewplus.folderview3-apply.js",
         "scripts/folderviewplus.folderview3-migration.js",
+        "scripts/folderviewplus.environment.js",
         "scripts/folderviewplus.settings-workspaces.js",
         "scripts/folderviewplus.bulk-assignment.shared.js",
         "scripts/folderviewplus.bulk-assignment.js",

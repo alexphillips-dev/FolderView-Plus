@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "translation-context-revision": "83f2ded8675d1e9ee5d4c1adcf94f4ca2121b61d0e505992ed4005d4839600cd"
+        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
     },
     "settings.folder-defaults.edit": "Rediger standardinnstillinger for mapper",
     "settings.search.placeholder": "Søkeinnstillinger",
@@ -152,5 +152,23 @@
     "settings.theme.profile-saved": "Utseendeprofilen er lagret.",
     "settings.theme.presets-title": "Farge forhåndsinnstillinger",
     "settings.theme.presets-help": "Forhåndsvis aksent- og graffarger for det valgte omfanget. Andre tilpasninger beholdes. Lagre når du er klar.",
-    "settings.theme.undo-preset": "Angre forhåndsinnstilt forhåndsvisning"
+    "settings.theme.undo-preset": "Angre forhåndsinnstilt forhåndsvisning",
+    "settings.environment.badge": "Miljø",
+    "settings.performance.adaptive": "Adaptiv",
+    "settings.performance.measured": "Målt gjengivelseskostnad: $1 ms",
+    "settings.performance.fixed": "Faste maksimumsgrenser",
+    "settings.performance.large": "Stor bibliotekprofil",
+    "settings.performance.refresh": "Effektiv oppdatering: $1 s",
+    "settings.performance.restore": "Gjenopprett opptil $1 utvidede mapper",
+    "settings.performance.defer": "Utsett forhåndsvisninger med $1 eller flere medlemmer",
+    "settings.performance.immediate": "Forhåndsvisninger gjengis umiddelbart",
+    "settings.activity.backup-created": "$1 sikkerhetskopi opprettet.",
+    "settings.activity.backup-download": "$1 backup-nedlasting startet. Sjekk nettleserens nedlastinger for den lagrede filen.",
+    "settings.environment.client-unavailable": "Miljøforespørselsklienten er utilgjengelig. Oppdater siden og prøv igjen.",
+    "settings.environment.invalid-export": "Serveren returnerte et ufullstendig øyeblikksbilde av miljøet. Ingen nedlasting ble opprettet.",
+    "settings.environment.download-started": "Miljønedlasting startet. Sjekk nettleserens nedlastinger for den lagrede filen.",
+    "settings.theme.no-updates": "Ingen administrerte temaoppdateringer er tilgjengelige.",
+    "settings.theme.updating-count": "Oppdaterer administrerte temaer: $1...",
+    "settings.theme.batch-update": "Administrert temaoppdatering",
+    "settings.theme.updated": "Tilgjengelige administrerte temaer er oppdatert."
 }

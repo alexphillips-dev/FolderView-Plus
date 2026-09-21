@@ -605,6 +605,19 @@
   ],
   "moduleContracts": [
     {
+      "file": "scripts/folderviewplus.environment.js",
+      "owner": "settings-environment-export",
+      "consumers": ["settings"],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "environment",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["exportSnapshot", "sortModeLabel"]
+    },
+    {
       "file": "scripts/folderviewplus.download-status.js",
       "owner": "settings-download-status",
       "consumers": ["settings"],

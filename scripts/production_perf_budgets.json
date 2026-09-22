@@ -11,12 +11,20 @@
   "timingPolicy": { "percent": 60, "floor": 250 },
   "countPolicy": { "percent": 15, "floor": 10 },
   "scenarios": {
+    "representative": { "folders": 23, "nestedFolders": 7, "members": 51, "locale": "en", "surfaces": ["docker"] },
     "small": { "folders": 25, "members": 50, "locale": "en" },
     "normal": { "folders": 100, "members": 500, "locale": "de" },
     "extreme": { "folders": 250, "members": 2000, "locale": "de" },
     "rtl": { "folders": 25, "members": 50, "locale": "ar" }
   },
   "caseBudgets": {
+    "representative/docker": {
+      "readyMs": 1500, "longestTaskMs": 500, "longestFrameGapMs": 600,
+      "providerPreparationMs": 500, "customScriptsMs": 100, "runtimeAssetMs": 500,
+      "renderDataWaitMs": 500, "renderPreparationMs": 300, "folderRowsMs": 500,
+      "folderFinalizationMs": 300, "folderGroupingMs": 800,
+      "postRenderPolishMs": 200, "detailHydrationMs": 300
+    },
     "extreme/docker": {
       "readyMs": 90000, "settledMs": 95000, "longTaskTotalMs": 85000,
       "longestTaskMs": 55000, "longestFrameGapMs": 55000

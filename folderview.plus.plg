@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.21.04">
-<!ENTITY md5 "86bce11ddf26ec221f27227d26d23a76">
-<!ENTITY sha256 "44672b555dcd13c67f49ac23061af11a1f33c8a7908e3dedab60e29157a2fad2">
+<!ENTITY version "2026.09.22.01">
+<!ENTITY md5 "7b2886bf836a0ebd4819e7dbae19acb9">
+<!ENTITY sha256 "aea4b195e53cf3fb11b194964454e5d124684c9b3c0ec057a2be80310a64078b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.22.01
+- Performance: Reduce Docker startup work by centering the completed folder tree once instead of repeatedly measuring every folder as each row is inserted. Folder membership, nesting, and existing expand/collapse behavior are preserved.
+- Diagnostics: Include aggregate Docker startup-stage timings in support bundles, covering provider preparation, runtime loading, data preparation, folder rendering, and deferred detail application without recording container or folder identities.
+- Regression guard: Add a synthetic 23-folder, seven-child-folder, 51-container workload with repeated cold/warm measurements, exact membership and hierarchy checks, and a measured baseline taken before the optimization. Existing stress-test baselines remain enforced.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Docker support-bundle milestones now start at the earlier bootstrap stage; compare named operation durations when reviewing older bundles. Synthetic benchmark results do not measure your server's PHP or network latency.
+
 
 ###2026.09.21.04
 - Fix: Prevent the Standard performance profile label in Settings from creating a false localization advisory. Docker and VM summaries now use the shared translation catalog available on the Settings page in every supported language.

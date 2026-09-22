@@ -58,6 +58,7 @@ const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.get
     document,
     debug: FOLDER_VIEW_DEBUG_MODE
 }) || null;
+dockerRuntimePerformanceTelemetry?.mark?.('runtimeEntry');
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
@@ -3335,7 +3336,7 @@ const FOLDER_VIEW_TOUCH_MODE = (() => {
     }
 })();
 const dockerPerf = typeof dockerModules.createPerfTracker === 'function'
-    ? dockerModules.createPerfTracker('folderview-plus.docker', FOLDER_VIEW_PERF_MODE)
+    ? dockerModules.createPerfTracker('folderview-plus.docker', FOLDER_VIEW_PERF_MODE, dockerRuntimePerformanceTelemetry)
     : {
         begin: () => {},
         end: () => 0
@@ -3469,6 +3470,7 @@ const hideDockerRuntimeLoadingOverlay = () => {
 const scheduleDockerPostRenderPolish = (folderIds = []) => {
     const safeFolderIds = Array.isArray(folderIds) ? folderIds.slice() : [];
     const run = () => {
+        dockerRuntimePerformanceTelemetry?.begin?.('postRenderPolish');
         const signatureRef = { value: readDockerPostRenderPolishSignature() };
         startFolderRowCenterObserver();
         queueForceAllFolderRowsVerticalCenter();
@@ -3492,6 +3494,7 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
             folderIds: safeFolderIds,
             signatureRef
         });
+        dockerRuntimePerformanceTelemetry?.end?.('postRenderPolish');
     };
     if (typeof window.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(() => run());
@@ -4602,6 +4605,7 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             if (!parsed || Object.keys(parsed).length <= 0) {
                 return;
             }
+            dockerRuntimePerformanceTelemetry?.begin?.('detailHydration');
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
@@ -4620,6 +4624,8 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
                 entityCount: Object.keys(parsed).length
             });
             syncDockerVisibleFoldersFromRuntimeCache();
+            dockerRuntimePerformanceTelemetry?.end?.('detailHydration');
+            dockerRuntimePerformanceTelemetry?.mark?.('detailsHydrated');
             const compareGeometry = () => compareDockerPreviewActionGeometry(actionGeometryBeforeHydration);
             if (typeof window.requestAnimationFrame === 'function') {
                 window.requestAnimationFrame(compareGeometry);
@@ -4667,7 +4673,6 @@ const createFolders = async () => {
     dockerRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible', {
         nativeRowCount: dockerRuntimeRoot?.querySelectorAll?.('tr.sortable:not(.folder)')?.length || 0
     });
-    dockerRuntimePerformanceTelemetry?.begin?.('folderGrouping');
     const performanceRenderStartedAt = typeof performance !== 'undefined' && typeof performance.now === 'function'
         ? performance.now()
         : Date.now();
@@ -4693,6 +4698,7 @@ const createFolders = async () => {
     dockerRuntimeLastRenderGeneration = renderGeneration;
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(renderRequests);
+    dockerRuntimePerformanceTelemetry?.begin?.('renderPreparation');
     dockerPerf.end('createFolders.requests', { requestCount: renderRequests.length });
     markDockerFatalBannerStep('Docker runtime request bundle resolved');
 
@@ -4809,6 +4815,8 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
+    dockerRuntimePerformanceTelemetry?.end?.('renderPreparation');
+    dockerRuntimePerformanceTelemetry?.begin?.('folderRows');
     // Draw the folders in the order
     dockerPerf.begin('createFolders.renderOrdered');
     for (let key = 0; key < order.length; key++) {
@@ -4858,6 +4866,8 @@ const createFolders = async () => {
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
+    dockerRuntimePerformanceTelemetry?.end?.('folderRows');
+    dockerRuntimePerformanceTelemetry?.begin?.('folderFinalization');
 
     const $dockerList = $('#docker_list');
     if ($dockerList.length && typeof $dockerList.sortable === 'function') {
@@ -4929,6 +4939,8 @@ const createFolders = async () => {
     dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    // Measure and center the completed tree once, before the visible width commit.
+    rowCenteringTools.forceAllFolderRowsVerticalCenter?.();
     runDockerRuntimeWidthReflow('pre-visible-folder-commit', {
         force: true,
         minimumDelta: 0
@@ -4953,6 +4965,7 @@ const createFolders = async () => {
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
     foldersRenderedSuccessfully = true;
+    dockerRuntimePerformanceTelemetry?.end?.('folderFinalization');
     dockerRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
         folderCount: Object.keys(globalFolders || {}).length
     });
@@ -4976,12 +4989,8 @@ const createFolders = async () => {
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
-        folderCount: Object.keys(globalFolders || {}).length,
+        folderCount: Object.keys(globalFolders || {}).length, success: foldersRenderedSuccessfully,
         perfMode: FOLDER_VIEW_PERF_MODE
-    });
-    dockerRuntimePerformanceTelemetry?.end?.('folderGrouping', {
-        success: foldersRenderedSuccessfully,
-        folderCount: Object.keys(globalFolders || {}).length
     });
     }
 };
@@ -5156,7 +5165,6 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
         .attr('data-folder-depth', String(safeDepth))
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
-    forceFolderRowVerticalCenter(id);
 
     const $createdFolderPreview = $createdFolderRow.find('div.folder-preview').first();
     const previewNode = $createdFolderPreview.get(0);

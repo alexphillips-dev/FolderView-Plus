@@ -9,17 +9,23 @@
         };
     };
 
-    const createPerfTracker = (namespace = 'fv.docker', enabled = false) => {
+    const createPerfTracker = (namespace = 'fv.docker', enabled = false, telemetry = null) => {
+        // Only aggregate stage keys belong in support telemetry, never per-folder IDs.
+        const stages = { 'createFolders.total': 'folderGrouping', 'createFolders.requests': 'renderDataWait' };
         const marks = new Map();
         const on = Boolean(enabled && typeof performance !== 'undefined');
         return {
             begin: (key) => {
+                if (Object.hasOwn(stages, key)) telemetry?.begin?.(stages[key]);
                 if (!on) {
                     return;
                 }
                 marks.set(String(key || ''), performance.now());
             },
             end: (key, data = {}) => {
+                if (Object.hasOwn(stages, key)) telemetry?.end?.(stages[key], {
+                    folderCount: data.folderCount, success: data.success, requestCount: data.requestCount
+                });
                 if (!on) {
                     return 0;
                 }

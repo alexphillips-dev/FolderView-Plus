@@ -1,7 +1,7 @@
 {
   "version": 1,
   "browser": "153.0.8010.12",
-  "generatedAt": "2026-09-22T01:00:55.342Z",
+  "generatedAt": "2026-09-22T14:04:16.493Z",
   "cases": {
     "small/settings/cold": {
       "scenario": {
@@ -337,6 +337,76 @@
         "requests": 111,
         "scriptRequests": 86,
         "transferBytes": 56244
+      }
+    },
+    "representative/docker/cold": {
+      "scenario": {
+        "folders": 23,
+        "nestedFolders": 7,
+        "members": 51,
+        "locale": "en",
+        "surfaces": [
+          "docker"
+        ]
+      },
+      "medians": {
+        "readyMs": 412.9,
+        "settledMs": 1616.9,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 180,
+        "longestTaskMs": 180,
+        "longestFrameGapMs": 183.3,
+        "mutationCallbacks": 96,
+        "mutationRecords": 2421,
+        "domNodes": 2617,
+        "requests": 107,
+        "scriptRequests": 86,
+        "transferBytes": 2819477,
+        "providerPreparationMs": 2.9,
+        "customScriptsMs": 0,
+        "runtimeAssetMs": 33.9,
+        "renderDataWaitMs": 0.5,
+        "renderPreparationMs": 17.1,
+        "folderRowsMs": 119.6,
+        "folderFinalizationMs": 32.6,
+        "folderGroupingMs": 171.6,
+        "postRenderPolishMs": 0.8,
+        "detailHydrationMs": 40.2
+      }
+    },
+    "representative/docker/warm": {
+      "scenario": {
+        "folders": 23,
+        "nestedFolders": 7,
+        "members": 51,
+        "locale": "en",
+        "surfaces": [
+          "docker"
+        ]
+      },
+      "medians": {
+        "readyMs": 309,
+        "settledMs": 1524.6,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 156,
+        "longestTaskMs": 156,
+        "longestFrameGapMs": 150.1,
+        "mutationCallbacks": 95,
+        "mutationRecords": 2421,
+        "domNodes": 2617,
+        "requests": 107,
+        "scriptRequests": 86,
+        "transferBytes": 56594,
+        "providerPreparationMs": 0.6,
+        "customScriptsMs": 0,
+        "runtimeAssetMs": 12.7,
+        "renderDataWaitMs": 0.4,
+        "renderPreparationMs": 5.9,
+        "folderRowsMs": 107.3,
+        "folderFinalizationMs": 36.6,
+        "folderGroupingMs": 150.8,
+        "postRenderPolishMs": 0.5,
+        "detailHydrationMs": 39.5
       }
     }
   }

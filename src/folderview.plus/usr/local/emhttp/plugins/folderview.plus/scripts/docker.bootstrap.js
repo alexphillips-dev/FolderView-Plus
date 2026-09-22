@@ -28,6 +28,8 @@
     }) || null;
 
     const start = async () => {
+        const timing = window.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('docker', { window, document: window.document });
+        timing?.begin?.('providerPreparation');
         let pageExited = false;
         window.addEventListener?.('pagehide', () => {
             pageExited = true;
@@ -36,6 +38,7 @@
         await providerRegistry?.prepare?.({
             hostGeneration: decision.hostGeneration
         });
+        timing?.end?.('providerPreparation');
         if (pageExited) {
             return {
                 loaded: false,
@@ -57,6 +60,7 @@
             });
 
         try {
+            timing?.begin?.('customScripts');
             const loadCustomScripts = window.FolderViewPlusDockerLoadCustomScripts;
             window.FolderViewPlusDockerCustomScriptsReady = typeof loadCustomScripts === 'function'
                 ? Promise.resolve(loadCustomScripts())
@@ -64,6 +68,8 @@
             await window.FolderViewPlusDockerCustomScriptsReady;
         } catch (_error) {
             // Custom overrides are optional. A failed override must not prevent the core runtime.
+        } finally {
+            timing?.end?.('customScripts');
         }
 
         const runtimeUrl = String(window.FolderViewPlusDockerRuntimeAssetUrl || '').trim();
@@ -77,6 +83,7 @@
                 reason: 'already-loaded'
             };
         }
+        timing?.begin?.('runtimeAsset');
         await new Promise((resolve, reject) => {
             const script = window.document.createElement('script');
             script.src = runtimeUrl;
@@ -86,6 +93,8 @@
             script.onerror = () => reject(new Error('FolderView Plus Docker runtime could not be loaded.'));
             (window.document.head || window.document.documentElement).appendChild(script);
         });
+        timing?.end?.('runtimeAsset');
+        timing?.mark?.('runtimeLoaded');
         return {
             loaded: true,
             hostGeneration: decision.hostGeneration,

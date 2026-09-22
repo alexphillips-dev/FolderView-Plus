@@ -21,6 +21,9 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
         containers: names.filter((_name, index) => index % scenario.folders === i),
         settings: { preview: 1, preview_hover: false, expand_tab: false }, actions: []
     };
+    for (let i = 0; i < (scenario.nestedFolders || 0); i++) {
+        folders[`fixture-folder-${scenario.folders - 1 - i}`].parentId = `fixture-folder-${i}`;
+    }
     const prefs = { performanceProfile: 'standard', lazyPreviewEnabled: false, setupWizardCompleted: true, autoRules: [] };
     const snapshot = type => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type,
         folders: type === 'docker' ? folders : {}, runtime: type === 'docker' ? runtime : {},
@@ -67,6 +70,7 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
         };
         if (url.pathname === '/settings' || url.pathname === '/docker') return send(page(url.pathname.slice(1)), 'text/html');
         if (url.pathname === '/graphql') return send({ errors: [{ message: 'Synthetic legacy host has no GraphQL service.' }] });
+        if (url.pathname === '/plugins/dynamix.docker.manager/images/question.png') return send(fs.readFileSync(path.join(plugin, 'images/folder-icon.png')), 'image/png', true);
         if (url.pathname === '/fixture-host.js') return send(fs.readFileSync(path.join(rootDir, 'tests/browser/fixtures/production-performance-host.js')), 'text/javascript', true);
         if (url.pathname === '/vendor/jquery.js') return send(fs.readFileSync(path.join(rootDir, 'node_modules/jquery/dist/jquery.js')), 'text/javascript', true);
         if (url.pathname.startsWith(prefix + 'server/')) {

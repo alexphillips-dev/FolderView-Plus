@@ -498,7 +498,23 @@ test('docker post-render polish retries only when rows are still settling', () =
     assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*1000\)/);
 });
 
+test('Docker debug tracker exports only aggregate startup timings even with debug disabled', () => {
+    const window = {};
+    vm.runInNewContext(dockerModulesJs, { window });
+    const events = [];
+    const tracker = window.FolderViewDockerModules.createPerfTracker('test', false, {
+        begin: key => events.push(['begin', key]), end: key => events.push(['end', key])
+    });
+    for (const key of ['createFolders.total', 'createFolders.requests', 'createFolder.private-id', 'toString']) {
+        tracker.begin(key); tracker.end(key, { name: 'private-name' });
+    }
+    assert.deepEqual(events, [['begin', 'folderGrouping'], ['end', 'folderGrouping'], ['begin', 'renderDataWait'], ['end', 'renderDataWait']]);
+});
+
 test('docker first paint avoids repeated full-row polish and delegates support snapshot timing once', () => {
+    const rowRenderer = dockerJs.slice(dockerJs.indexOf('const renderDockerFolder ='), dockerJs.indexOf('const forceCollapseFolderRow ='));
+    assert.doesNotMatch(rowRenderer, /forceFolderRowVerticalCenter\(/);
+    assert.match(dockerJs, /rowCenteringTools\.forceAllFolderRowsVerticalCenter\?\.\(\);\s*runDockerRuntimeWidthReflow\('pre-visible-folder-commit'/);
     assert.match(dockerJs, /const scheduleDockerPostRenderPolish = \(folderIds = \[\]\) => \{/);
     assert.doesNotMatch(dockerJs, /safeFolderIds\.forEach\(\(folderId\) => forceFolderRowVerticalCenter\(folderId\)\);/);
     assert.match(dockerJs, /queueForceAllFolderRowsVerticalCenter\(\);/);

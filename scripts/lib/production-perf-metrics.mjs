@@ -8,6 +8,19 @@ export const checkMetric = (value, budget, previous, policy) => {
     const limit = Number.isFinite(previous) ? Math.min(budget, previous + Math.max(previous * policy.percent / 100, policy.floor)) : budget;
     return { value, baseline: previous ?? null, limit, passed: value <= limit };
 };
+export const dockerStartupStages = ['providerPreparation', 'customScripts', 'runtimeAsset', 'renderDataWait',
+    'renderPreparation', 'folderRows', 'folderFinalization', 'folderGrouping', 'postRenderPolish', 'detailHydration'];
+export const dockerStartupMetrics = snapshot => Object.fromEntries(dockerStartupStages.map(stage => {
+    const duration = snapshot?.operations?.[stage]?.lastMs;
+    if (!Number.isFinite(duration) || duration < 0) throw new Error(`Missing Docker startup stage: ${stage}`);
+    return [stage + 'Ms', duration];
+}));
+
+export const checkDockerMembership = (rows, folders, names) => {
+    if (rows.length !== names.length || new Set(rows.map(row => row.name)).size !== names.length) return false;
+    const expected = new Map(Object.entries(folders).flatMap(([id, folder]) => folder.containers.map(name => [name, id])));
+    return rows.every(row => expected.has(row.name) && expected.get(row.name) === row.folderId);
+};
 // Runs before any host or plugin scripts. Navigation timing includes asset startup.
 export function observeProductionStartup() {
     const state = { longTasks: [], frameGaps: [], mutationCallbacks: 0, mutationRecords: 0, stopped: false };

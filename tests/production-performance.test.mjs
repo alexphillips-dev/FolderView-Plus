@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createProductionPerfFixture } from '../scripts/lib/production-perf-fixture.mjs';
-import { median, checkMetric } from '../scripts/lib/production-perf-metrics.mjs';
+import { median, checkMetric, dockerStartupStages, dockerStartupMetrics, checkDockerMembership } from '../scripts/lib/production-perf-metrics.mjs';
 import { classifyPaths } from '../scripts/classify_ci_changes.mjs';
 
 test('production benchmark rejects missing samples and enforces absolute and baseline limits', () => {
@@ -14,6 +14,25 @@ test('production benchmark rejects missing samples and enforces absolute and bas
     assert.equal(checkMetric(121, 200, 100, policy).passed, false);
     assert.equal(checkMetric(201, 200, undefined, policy).passed, false);
     assert.throws(() => checkMetric(undefined, 200, 100, policy));
+});
+
+test('Docker timings fail closed and the representative workload preserves nesting and ownership', () => {
+    assert.throws(() => dockerStartupMetrics({ operations: {} }), /Missing Docker startup stage/);
+    const operations = Object.fromEntries(dockerStartupStages.map(stage => [stage, { lastMs: 1 }]));
+    assert.equal(Object.keys(dockerStartupMetrics({ operations })).length, dockerStartupStages.length);
+    operations.folderRows.lastMs = NaN;
+    assert.throws(() => dockerStartupMetrics({ operations }), /folderRows/);
+    const fixture = createProductionPerfFixture(process.cwd(), { folders: 23, nestedFolders: 7, members: 51 });
+    const folders = Object.entries(fixture.folders);
+    assert.equal(folders.filter(([,f]) => f.parentId).length, 7);
+    assert.equal(folders.filter(([,f]) => !f.parentId).length, 16);
+    assert.ok(folders.every(([,f]) => !f.parentId || fixture.folders[f.parentId]));
+    const rows = folders.flatMap(([folderId,f]) => f.containers.map(name => ({ name, folderId })));
+    assert.equal(checkDockerMembership(rows, fixture.folders, fixture.names), true);
+    assert.equal(checkDockerMembership(rows.slice(1), fixture.folders, fixture.names), false);
+    assert.equal(checkDockerMembership([rows[0], ...rows.slice(0,-1)], fixture.folders, fixture.names), false);
+    rows[0].folderId = 'wrong-folder';
+    assert.equal(checkDockerMembership(rows, fixture.folders, fixture.names), false);
 });
 
 test('production fixture derives Settings dependencies and markup from shipped source and isolates APIs', async () => {
@@ -52,9 +71,9 @@ test('standard performance command includes the production startup stage with re
     assert.match(runner, /await runProductionPerformance/);
     const config = JSON.parse(fs.readFileSync('scripts/production_perf_budgets.json'));
     const baseline = JSON.parse(fs.readFileSync('scripts/production_perf_baseline.json'));
-    for (const name of Object.keys(config.scenarios)) for (const surface of ['settings','docker']) for (const cache of ['cold','warm']) {
+    for (const name of Object.keys(config.scenarios)) for (const surface of config.scenarios[name].surfaces || ['settings','docker']) for (const cache of ['cold','warm']) {
         const entry = baseline.cases[`${name}/${surface}/${cache}`];
         assert.deepEqual(entry.scenario, config.scenarios[name]);
-        for (const metric of Object.keys(config.budgets)) assert.ok(Number.isFinite(entry.medians[metric]));
+        for (const metric of Object.keys({ ...config.budgets, ...config.caseBudgets?.[`${name}/${surface}`] })) assert.ok(Number.isFinite(entry.medians[metric]), metric);
     }
 });

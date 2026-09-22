@@ -5609,23 +5609,20 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 .fv-section-nav > button {
     position: relative;
     overflow: hidden;
-    font-size: 1.08rem !important;
+    font-size: 1.3rem !important;
     font-weight: 900 !important;
     letter-spacing: 0 !important;
 }
 
-.fv-section-nav > button.is-active,
-.fv-section-nav > button[data-active="true"],
-.fv-section-nav > button[aria-current="page"] {
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target].is-active,
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target][data-active="true"],
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target][aria-current="page"] {
     border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 88%, white 12%) !important;
-    outline: 2px solid color-mix(in srgb, var(--fv-editor-accent) 54%, transparent) !important;
+    outline: revert !important;
     outline-offset: 0 !important;
-    background: color-mix(in srgb, var(--fv-editor-accent) 62%, #1d1d1f 38%) !important;
-    color: #ffffff !important;
-    box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 86%, white 14%),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 8px 18px rgba(0, 0, 0, 0.32) !important;
+    background: var(--fvplus-ui-control) !important;
+    color: var(--fvplus-ui-text-primary) !important;
+    box-shadow: none !important;
 }
 
 .fv-section-nav > button.is-active > i,

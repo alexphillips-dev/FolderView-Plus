@@ -18,6 +18,7 @@
         "../tests/browser/cases/settings.mjs",
         "../tests/browser/cases/settings-start-order.mjs",
         "../tests/browser/cases/folder-editor.mjs",
+        "../tests/browser/cases/folder-editor-tabs.mjs",
         "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
         "../tests/browser/cases/import.mjs",
@@ -45,6 +46,7 @@
     { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases", "requiredImports": ["./settings-startup-repair.mjs"] },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
+    { "file": "tests/browser/cases/folder-editor-tabs.mjs", "limit": 32, "owner": "fixture editor tab themes and focus" },
     { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
@@ -64,6 +66,7 @@
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
+        "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/import.mjs",
@@ -78,10 +81,10 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs"
       ],
-      "testCount": 60,
-      "assertionCount": 710,
-      "pageEvaluateCount": 166,
-      "orderedTitleSha256": "9fc0c30d8477e3c609121da6b1236ef19ae8da7b931626c1efd0da675c25a39e"
+      "testCount": 61,
+      "assertionCount": 716,
+      "pageEvaluateCount": 167,
+      "orderedTitleSha256": "53acc65baed1b1b7c9773dd2c190753d7da6545bba4fd0b107b7fb8b256c77a1"
     }
   }
 }

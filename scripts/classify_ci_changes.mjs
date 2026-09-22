@@ -66,6 +66,9 @@ export const FILTERS = Object.freeze({
         'scripts/runtime_performance_benchmarks.mjs',
         'scripts/runtime_perf_budgets.json',
         'scripts/runtime_perf_baseline.json',
+        'scripts/production_performance_benchmarks.mjs',
+        'scripts/production_perf_*.json',
+        'scripts/lib/production-perf-*.mjs',
         'scripts/browser_smoke.sh',
         'scripts/run_ci_suite.sh'
     ],

@@ -268,4 +268,6 @@ if (report.failures.length) {
     process.exitCode = 1;
 } else {
     console.log('Runtime performance budgets passed.');
+    const { runProductionPerformance } = await import('./production_performance_benchmarks.mjs');
+    await runProductionPerformance({ updateBaseline });
 }

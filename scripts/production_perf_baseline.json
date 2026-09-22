@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "browser": "153.0.8010.12",
+  "generatedAt": "2026-09-22T01:00:55.342Z",
+  "cases": {
+    "small/settings/cold": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "en"
+      },
+      "medians": {
+        "readyMs": 449.8,
+        "settledMs": 1808.5,
+        "longTaskCount": 2,
+        "longTaskTotalMs": 152,
+        "longestTaskMs": 86,
+        "longestFrameGapMs": 116.7,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4824,
+        "domNodes": 3302,
+        "requests": 116,
+        "scriptRequests": 91,
+        "transferBytes": 3343990
+      }
+    },
+    "small/settings/warm": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "en"
+      },
+      "medians": {
+        "readyMs": 171.2,
+        "settledMs": 1539.4,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 70,
+        "longestTaskMs": 70,
+        "longestFrameGapMs": 116.7,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4824,
+        "domNodes": 3302,
+        "requests": 116,
+        "scriptRequests": 91,
+        "transferBytes": 56896
+      }
+    },
+    "small/docker/cold": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "en"
+      },
+      "medians": {
+        "readyMs": 446.3,
+        "settledMs": 1653.2,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 203,
+        "longestTaskMs": 203,
+        "longestFrameGapMs": 216.7,
+        "mutationCallbacks": 95,
+        "mutationRecords": 2082,
+        "domNodes": 2493,
+        "requests": 106,
+        "scriptRequests": 86,
+        "transferBytes": 2798412
+      }
+    },
+    "small/docker/warm": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "en"
+      },
+      "medians": {
+        "readyMs": 304.1,
+        "settledMs": 1516.6,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 161,
+        "longestTaskMs": 161,
+        "longestFrameGapMs": 166.6,
+        "mutationCallbacks": 95,
+        "mutationRecords": 2082,
+        "domNodes": 2493,
+        "requests": 106,
+        "scriptRequests": 86,
+        "transferBytes": 56244
+      }
+    },
+    "normal/settings/cold": {
+      "scenario": {
+        "folders": 100,
+        "members": 500,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 565.4,
+        "settledMs": 2800.2,
+        "longTaskCount": 5,
+        "longTaskTotalMs": 1174,
+        "longestTaskMs": 705,
+        "longestFrameGapMs": 800,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4836,
+        "domNodes": 7427,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 4123772
+      }
+    },
+    "normal/settings/warm": {
+      "scenario": {
+        "folders": 100,
+        "members": 500,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 289.4,
+        "settledMs": 2434.8,
+        "longTaskCount": 5,
+        "longTaskTotalMs": 1057,
+        "longestTaskMs": 630,
+        "longestFrameGapMs": 716.6,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4821,
+        "domNodes": 7427,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 473746
+      }
+    },
+    "normal/docker/cold": {
+      "scenario": {
+        "folders": 100,
+        "members": 500,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 5091.4,
+        "settledMs": 6326.5,
+        "longTaskCount": 5,
+        "longTaskTotalMs": 4636,
+        "longestTaskMs": 3380,
+        "longestFrameGapMs": 3416.6,
+        "mutationCallbacks": 97,
+        "mutationRecords": 17232,
+        "domNodes": 17943,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 3559265
+      }
+    },
+    "normal/docker/warm": {
+      "scenario": {
+        "folders": 100,
+        "members": 500,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 4751.8,
+        "settledMs": 5997.9,
+        "longTaskCount": 4,
+        "longTaskTotalMs": 4377,
+        "longestTaskMs": 3236,
+        "longestFrameGapMs": 3266.4,
+        "mutationCallbacks": 97,
+        "mutationRecords": 17232,
+        "domNodes": 17943,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 473094
+      }
+    },
+    "extreme/settings/cold": {
+      "scenario": {
+        "folders": 250,
+        "members": 2000,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 948.8,
+        "settledMs": 8461.9,
+        "longTaskCount": 5,
+        "longTaskTotalMs": 6852,
+        "longestTaskMs": 5541,
+        "longestFrameGapMs": 5799.8,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4836,
+        "domNodes": 15677,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 5482772
+      }
+    },
+    "extreme/settings/warm": {
+      "scenario": {
+        "folders": 250,
+        "members": 2000,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 660.6,
+        "settledMs": 8629.6,
+        "longTaskCount": 5,
+        "longTaskTotalMs": 7226,
+        "longestTaskMs": 6026,
+        "longestFrameGapMs": 6299.8,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4815,
+        "domNodes": 15677,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 1832746
+      }
+    },
+    "extreme/docker/cold": {
+      "scenario": {
+        "folders": 250,
+        "members": 2000,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 54826,
+        "settledMs": 56539.7,
+        "longTaskCount": 15,
+        "longTaskTotalMs": 54692,
+        "longestTaskMs": 36723,
+        "longestFrameGapMs": 36831.8,
+        "mutationCallbacks": 101,
+        "mutationRecords": 66732,
+        "domNodes": 66243,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 4918265
+      }
+    },
+    "extreme/docker/warm": {
+      "scenario": {
+        "folders": 250,
+        "members": 2000,
+        "locale": "de"
+      },
+      "medians": {
+        "readyMs": 56946.3,
+        "settledMs": 58755.2,
+        "longTaskCount": 16,
+        "longTaskTotalMs": 57002,
+        "longestTaskMs": 38089,
+        "longestFrameGapMs": 38198.5,
+        "mutationCallbacks": 100,
+        "mutationRecords": 66732,
+        "domNodes": 66243,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 1832094
+      }
+    },
+    "rtl/settings/cold": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "ar"
+      },
+      "medians": {
+        "readyMs": 509.7,
+        "settledMs": 1889.7,
+        "longTaskCount": 2,
+        "longTaskTotalMs": 167,
+        "longestTaskMs": 96,
+        "longestFrameGapMs": 133.3,
+        "mutationCallbacks": 108,
+        "mutationRecords": 4836,
+        "domNodes": 3302,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 3763212
+      }
+    },
+    "rtl/settings/warm": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "ar"
+      },
+      "medians": {
+        "readyMs": 226.2,
+        "settledMs": 1582.6,
+        "longTaskCount": 3,
+        "longTaskTotalMs": 187,
+        "longestTaskMs": 79,
+        "longestFrameGapMs": 133.3,
+        "mutationCallbacks": 109,
+        "mutationRecords": 4815,
+        "domNodes": 3302,
+        "requests": 123,
+        "scriptRequests": 91,
+        "transferBytes": 56896
+      }
+    },
+    "rtl/docker/cold": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "ar"
+      },
+      "medians": {
+        "readyMs": 491.3,
+        "settledMs": 1709.3,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 205,
+        "longestTaskMs": 205,
+        "longestFrameGapMs": 216.7,
+        "mutationCallbacks": 95,
+        "mutationRecords": 2082,
+        "domNodes": 2493,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 3194897
+      }
+    },
+    "rtl/docker/warm": {
+      "scenario": {
+        "folders": 25,
+        "members": 50,
+        "locale": "ar"
+      },
+      "medians": {
+        "readyMs": 301.7,
+        "settledMs": 1514.4,
+        "longTaskCount": 1,
+        "longTaskTotalMs": 153,
+        "longestTaskMs": 153,
+        "longestFrameGapMs": 150.1,
+        "mutationCallbacks": 95,
+        "mutationRecords": 2082,
+        "domNodes": 2493,
+        "requests": 111,
+        "scriptRequests": 86,
+        "transferBytes": 56244
+      }
+    }
+  }
+}

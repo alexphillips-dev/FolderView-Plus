@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "measuredRuns": 3,
+  "observationMs": 1200,
+  "knownConsoleErrors": [
+    "[FolderView Plus] Unable to initialize activity feed: activityFeedEntries is not defined",
+    "[FolderView Plus] Theme diagnostics failed: prefsByType is not defined"
+  ],
+  "maxKnownConsoleErrors": 2,
+  "knownMissingKeys": ["editor.actions.standard"],
+  "timingPolicy": { "percent": 60, "floor": 250 },
+  "countPolicy": { "percent": 15, "floor": 10 },
+  "scenarios": {
+    "small": { "folders": 25, "members": 50, "locale": "en" },
+    "normal": { "folders": 100, "members": 500, "locale": "de" },
+    "extreme": { "folders": 250, "members": 2000, "locale": "de" },
+    "rtl": { "folders": 25, "members": 50, "locale": "ar" }
+  },
+  "caseBudgets": {
+    "extreme/docker": {
+      "readyMs": 90000, "settledMs": 95000, "longTaskTotalMs": 85000,
+      "longestTaskMs": 55000, "longestFrameGapMs": 55000
+    }
+  },
+  "budgets": {
+    "readyMs": 30000, "settledMs": 40000,
+    "longTaskCount": 150, "longTaskTotalMs": 25000, "longestTaskMs": 12000,
+    "longestFrameGapMs": 15000, "mutationCallbacks": 1500, "mutationRecords": 100000,
+    "domNodes": 150000, "requests": 180, "scriptRequests": 110, "transferBytes": 12000000
+  }
+}

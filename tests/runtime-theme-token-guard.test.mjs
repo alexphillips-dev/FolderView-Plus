@@ -354,7 +354,7 @@ test('folder editor surfaces use graphite cards and fields instead of warm ornam
 test('selected folder editor and advanced settings tabs do not render redundant underline bars', () => {
     assert.doesNotMatch(folderCss, /\.fv-section-nav > button(?:\.is-active|\[data-active="true"\]|\[aria-current="page"\])::after/);
     assert.doesNotMatch(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active::after/);
-    assert.match(folderCss, /\.fv-section-nav > button\.is-active,[\s\S]*background: color-mix\(in srgb, var\(--fv-editor-accent\)/);
+    assert.match(folderCss, /#fvFolderEditorForm\.folder-editor-form \.fv-section-nav > button\[data-target\]\[aria-current="page"\]\s*\{[^}]*background: var\(--fvplus-ui-control\) !important;[^}]*box-shadow: none !important;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active\s*\{[\s\S]*background: color-mix\(in srgb, var\(--fvplus-settings-accent\)/);
 });
 

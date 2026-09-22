@@ -37,7 +37,7 @@ html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" 
     opacity: 0.48;
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
-    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button) {
+    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-section-nav > button) {
     border-color: var(--fvplus-theme-accent, var(--fv-ui-info)) !important;
     background-color: color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control)) !important;
 }

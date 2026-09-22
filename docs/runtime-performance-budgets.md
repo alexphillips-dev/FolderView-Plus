@@ -10,11 +10,36 @@ FolderView Plus validates browser runtime performance in addition to static asse
 | Normal | 100 | 500 |
 | Extreme | 250 | 2,000 |
 
-Each scenario measures navigation-to-native-row visibility, one-shot folder grouping, Settings bootstrap, modern folder editor opening, a normalized 50-event start/stop reconciliation workload, Update-All reconciliation, maximum DOM nodes, MutationObserver callbacks, retained heap after 30 view switches, and Docker bootstrap network requests.
+The component fixtures measure navigation-to-native-row visibility, one-shot folder grouping, Settings bootstrap, modern folder editor opening, a normalized 50-event start/stop reconciliation workload, Update-All reconciliation, maximum DOM nodes, MutationObserver callbacks, retained heap after 30 view switches, and Docker bootstrap network requests. These isolated fixtures do not represent full production startup.
+
+## Production startup stage
+
+The same required command also runs `scripts/production_performance_benchmarks.mjs`. This stage serves the shipped Settings markup, Settings foundation/workspace manifest, Docker bootstrap, runtime scripts, styles and localization catalogs through an isolated loopback HTTP server. Plugin startup functions are not replaced with benchmark implementations. Only Unraid host widgets, host hooks and API responses are synthetic; this does not measure PHP execution, server storage, real network latency or Unraid widget rendering.
+
+Both Settings and Docker run the three sizes above, plus an Arabic RTL small workload. Small uses English; normal and extreme use German. Each case has three fresh browser contexts, with a cold navigation followed by a repeat navigation in the same context. Repeat navigation must demonstrate actual browser script-cache reuse. No Playwright request routing disables that cache.
+
+The starting workload uses the standard performance profile with eager previews and a synthetic legacy Docker API fallback. Adaptive/deferred preview configurations and GraphQL-backed server performance are outside this startup baseline; the existing component and compatibility checks remain separate.
+
+Readiness requires the expected folder count and completed localization; Settings additionally requires successful, non-degraded bootstrap. Measurements cover readiness, long tasks, longest frame gap, DOM size, mutation callbacks/records, resource and script requests, transferred bytes and cached scripts. `settledMs` is the end of the fixed 1,200 ms post-readiness observation window, after Settings hydration; it is not a claim that every background task has become idle. Raw samples remain in the JSON report.
+
+`scripts/production_perf_budgets.json` enforces absolute ceilings and regression allowances against `scripts/production_perf_baseline.json`. Invalid or missing measurements, missing baseline entries, failed requests, unexpected JavaScript errors, unexpected missing translations, skipped production entry points/workspace scripts, incomplete folder rendering and ineffective warm caching fail the stage. Updating a baseline still enforces absolute ceilings. The ceilings are regression safeguards, not acceptable user-experience targets.
+
+The reviewed baseline exposes roughly 55–57 seconds of Docker startup and a 37–38-second longest task at the extreme size. That case has explicit starting ceilings separate from the smaller cases; it must remain visible as an optimization target. Each sample has a 120-second watchdog so a blocked renderer cannot hang the suite indefinitely. Tighten the baseline and relevant ceilings after the planned runtime improvements.
+
+The initial baseline records two existing Settings console errors (`activityFeedEntries` and `prefsByType` initialization) and the existing missing Settings translation key `editor.actions.standard`. These exact known issues are reported and bounded; additional errors fail. They remain work for the subsequent implementation, rather than being hidden by fixture replacements or fixed as part of establishing the baseline.
+
+Production reports are written to `tmp/fixture-browser-artifacts/production-performance/`. Compare measurements on the same machine/browser without concurrent CPU-heavy validation. Synthetic timings identify scaling and regressions; they are not predictions of a particular Unraid server's load time.
+
+Run or deliberately refresh just this stage with:
+
+```bash
+node scripts/production_performance_benchmarks.mjs
+node scripts/production_performance_benchmarks.mjs --update-baseline
+```
 
 ## Regression policy
 
-The runner performs one warm-up and five fresh-page measurements, then evaluates the median. Every metric must remain below both:
+The component runner performs one warm-up and five fresh-page measurements, then evaluates the median. Every metric must remain below both:
 
 - The absolute ceiling in `scripts/runtime_perf_budgets.json`.
 - The tracked median in `scripts/runtime_perf_baseline.json` plus the configured meaningful-regression allowance.

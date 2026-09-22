@@ -7,7 +7,7 @@
     "[FolderView Plus] Theme diagnostics failed: prefsByType is not defined"
   ],
   "maxKnownConsoleErrors": 2,
-  "knownMissingKeys": ["editor.actions.standard"],
+  "knownMissingKeys": [],
   "timingPolicy": { "percent": 60, "floor": 250 },
   "countPolicy": { "percent": 15, "floor": 10 },
   "scenarios": {

@@ -7220,7 +7220,7 @@ const renderPerformancePolicySummary = (type, prefs) => {
     const effectiveSeconds = Math.max(requestedSeconds, minimumSeconds);
     const expansionBudget = runtimePolicy?.expandRestoreLimit ?? (mode === 'maximum' ? 6 : (strict ? 8 : (mode === 'adaptive' ? 12 : null)));
     const label = mode === 'maximum' ? surfaceT("legacy.surface.6ae0aec4c1075dbd", 'Maximum performance')
-        : (mode === 'adaptive' ? surfaceT('settings.performance.adaptive', 'Adaptive') : surfaceT("editor.actions.standard", 'Standard'));
+        : (mode === 'adaptive' ? surfaceT('settings.performance.adaptive', 'Adaptive') : surfaceT("legacy.surface.ef6691545d2c5523", 'Standard'));
     const runtimeReason = String(runtimePolicy?.reason || '');
     const reason = runtimeReason === 'measured-render-cost'
         ? surfaceT('settings.performance.measured', 'Measured render cost: $1 ms', Math.round(Number(runtimePolicy?.renderMs || 0)))

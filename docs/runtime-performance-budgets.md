@@ -26,7 +26,7 @@ Readiness requires the expected folder count and completed localization; Setting
 
 The reviewed baseline exposes roughly 55–57 seconds of Docker startup and a 37–38-second longest task at the extreme size. That case has explicit starting ceilings separate from the smaller cases; it must remain visible as an optimization target. Each sample has a 120-second watchdog so a blocked renderer cannot hang the suite indefinitely. Tighten the baseline and relevant ceilings after the planned runtime improvements.
 
-The initial baseline records two existing Settings console errors (`activityFeedEntries` and `prefsByType` initialization) and the existing missing Settings translation key `editor.actions.standard`. These exact known issues are reported and bounded; additional errors fail. They remain work for the subsequent implementation, rather than being hidden by fixture replacements or fixed as part of establishing the baseline.
+The initial baseline records two existing Settings console errors (`activityFeedEntries` and `prefsByType` initialization). These exact known issues are reported and bounded; additional errors fail. The Settings performance-label lookup that previously requested the unloaded `editor.actions.standard` key has been corrected to use the shared catalog. Missing translation keys are no longer allowed in any startup case.
 
 Production reports are written to `tmp/fixture-browser-artifacts/production-performance/`. Compare measurements on the same machine/browser without concurrent CPU-heavy validation. Synthetic timings identify scaling and regressions; they are not predictions of a particular Unraid server's load time.
 

@@ -7,7 +7,7 @@
     "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
         "FolderViewPlus.page": 638,
-        "scripts/folderviewplus.js": 264,
+        "scripts/folderviewplus.js": 265,
         "Folder.page": 226,
         "scripts/folderviewplus.wizard.js": 202,
         "scripts/folder.js": 117,

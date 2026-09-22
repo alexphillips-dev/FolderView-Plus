@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.21.03">
-<!ENTITY md5 "0032eae802a30b44948e843aeb952519">
-<!ENTITY sha256 "3a426e9a39f182393f49cfbd745762296738bd9a10d6503ad6d74d1d320c7ed1">
+<!ENTITY version "2026.09.21.04">
+<!ENTITY md5 "86bce11ddf26ec221f27227d26d23a76">
+<!ENTITY sha256 "44672b555dcd13c67f49ac23061af11a1f33c8a7908e3dedab60e29157a2fad2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.21.04
+- Fix: Prevent the Standard performance profile label in Settings from creating a false localization advisory. Docker and VM summaries now use the shared translation catalog available on the Settings page in every supported language.
+- Regression guard: Require zero missing translation keys in startup benchmarks, and verify all performance profiles across all 27 locales while retaining warnings for genuine localization failures.
+- Compatibility: Hard-refresh the Unraid webGUI after updating, then run the health check again. Missing-key advisories belong to the current page session and clear when the corrected page loads.
+
 
 ###2026.09.21.03
 - UX: Folder editor tab labels now use 1.3rem text. The selected tab uses an accent border with the same background as other tabs, while keyboard focus remains visible in light and dark themes.

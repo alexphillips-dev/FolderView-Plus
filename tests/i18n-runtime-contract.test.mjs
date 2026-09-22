@@ -14,7 +14,7 @@ const runtimeSource = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewp
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 
-const createRuntime = (catalogs) => {
+const createRuntime = (catalogs, globals = {}) => {
     const messageStore = {
         messages: {},
         set(locale, messages) {
@@ -84,7 +84,7 @@ const createRuntime = (catalogs) => {
             return { ok: true, status: 200, async json() { return catalogs[url]; } };
         }
     };
-    vm.runInNewContext(runtimeSource, { window, console, Intl, Date, Promise, Set, Map }, {
+    vm.runInNewContext(runtimeSource, { window, console, Intl, Date, Promise, Set, Map, ...globals }, {
         filename: 'folderviewplus.i18n.js'
     });
     return {
@@ -94,6 +94,33 @@ const createRuntime = (catalogs) => {
         getTranslatedDomCount: () => translatedDomCount
     };
 };
+
+test('automatic translation avoids template scans for empty and repeated unknown DOM values', async () => {
+    let scans = 0;
+    class CountingRegExp extends RegExp {
+        exec(value) { scans++; return super.exec(value); }
+    }
+    const english = readJson(path.join(langsRoot, 'namespaces/en/legacy-surface.json'));
+    const runtime = createRuntime({ '/en.json': english }, { RegExp: CountingRegExp });
+    await runtime.api.configure({ requestedLocale: 'en', resolvedLocale: 'en', assets: [{ locale: 'en', namespace: 'legacy-surface', url: '/en.json' }] });
+    scans = 0;
+    assert.equal(runtime.api.message(''), '');
+    assert.equal(scans, 0);
+    const unknown = 'fixture-unrecognized-runtime-value';
+    assert.equal(runtime.api.message(unknown), unknown);
+    const firstScans = scans;
+    assert.ok(firstScans > 100, 'exercise the production template catalog');
+    for (let i = 0; i < 500; i++) assert.equal(runtime.api.message(unknown), unknown);
+    assert.equal(scans, firstScans, 'repeated DOM values must not rescan all templates');
+    const phrase = Object.values(english).find(value => typeof value === 'string' && /\$1/.test(value));
+    const expanded = phrase.replace(/\$\d+/g, '7');
+    assert.equal(runtime.api.message(expanded), expanded);
+    runtime.api.usePseudoLocale('ar-XB');
+    const before = scans;
+    assert.equal(runtime.api.message(unknown), unknown);
+    assert.ok(scans > before, 'locale changes invalidate previous misses');
+    assert.notEqual(runtime.api.message(expanded), expanded);
+});
 
 test('locale catalogs expose consistent versioned metadata and unique English keys', () => {
     const englishCatalogFiles = [

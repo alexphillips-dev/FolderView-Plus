@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.21.01">
-<!ENTITY md5 "346f6d74b3a48079f50fcc48b3952537">
-<!ENTITY sha256 "0b7496d8bbbf3c91680f6dedbb7613c5672540d35bb27ff3ead76062cb6bc376">
+<!ENTITY version "2026.09.21.02">
+<!ENTITY md5 "202d071012ddfd1832325595f6435265">
+<!ENTITY sha256 "462fa245c20ffae3d527c1471bb958f18db7a6f4666f37eca80140d6df00a02c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.21.02
+- Fix: Restore configured minimal folder chevrons and their colors on Docker and VM pages. Preserve colored status and alert chips in Settings and remove the unwanted outer box around pinned switches while keeping plugin button themes.
+- Fix: Prevent the folder editor from flashing a startup error while its scripts are still loading normally. Missing or stalled scripts and a missing runtime startup marker still produce actionable errors.
+- Performance: Allow versioned editor scripts to use the browser cache on normal folder opens, while explicit recovery retries request fresh copies. Reduce repeated translation work on empty attributes and unchanged, unrecognized page text across all supported languages.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Check folder loading and navigation on your server; automated performance checks use isolated fixtures rather than a live Unraid system.
+
 
 ###2026.09.21.01
 - Fix: Export complete environment snapshots containing Docker and VM folders, preferences, defaults, and appearance settings. Reject incomplete export responses instead of reporting a successful empty download, and reconnect environment import previews, confirmation, and refresh after applying.

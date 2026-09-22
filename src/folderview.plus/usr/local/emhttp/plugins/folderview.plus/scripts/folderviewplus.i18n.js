@@ -148,7 +148,9 @@
         return text;
     };
 
+    const autoPhraseMisses = new Set();
     const rebuildAutoPhraseIndex = () => {
+        autoPhraseMisses.clear();
         const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
         autoPhraseIndex = new Map();
         autoTemplateIndex = [];
@@ -180,10 +182,12 @@
     };
 
     const resolveAutoTranslation = (phrase) => {
+        if (!phrase) return '';
         const early = earlyMessages.get(phrase);
         if (state.initialized && early) return translate(early.key, early.fallback, ...early.params);
         const exactKey = autoPhraseIndex.get(phrase);
         if (exactKey) return translate(exactKey, phrase);
+        if (autoPhraseMisses.has(phrase)) return '';
         for (const template of autoTemplateIndex) {
             const match = phrase.match(template.regex);
             if (!match) continue;
@@ -192,6 +196,10 @@
                 parameters[number - 1] = match[index + 1];
             });
             return translate(template.key, template.phrase, ...parameters);
+        }
+        if (state.initialized && phrase.length <= 512) {
+            if (autoPhraseMisses.size >= 1024) autoPhraseMisses.delete(autoPhraseMisses.values().next().value);
+            autoPhraseMisses.add(phrase);
         }
         return '';
     };

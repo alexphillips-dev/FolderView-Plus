@@ -80,7 +80,8 @@
         const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
             const script = doc.createElement('script');
             const separator = relativePath.includes('?') ? '&' : '?';
-            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}&attempt=${bootAttempt}`;
+            const retryQuery = bootAttempt > 1 ? `&boot=${encodeURIComponent(bootNonce)}&attempt=${bootAttempt}` : '';
+            const src = `${relativePath}${separator}v=${assetVersion}${retryQuery}`;
             const moduleName = relativePath.split('/').pop() || relativePath;
             const startedAt = new Date().toISOString();
             const startedMs = Date.now();
@@ -150,12 +151,17 @@
             scriptQueue.forEach((relativePath, index) => {
                 chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
             });
-            return chain.catch((error) => {
+            return chain.then(() => {
+                if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) return;
+                const error = new Error('The editor page has now attempted a direct runtime script injection and still did not receive a startup marker.');
+                error.runtimeMarkerMissing = true;
+                throw error;
+            }).catch((error) => {
                 report(
-                    'Folder editor runtime assets failed to load.',
+                    error?.runtimeMarkerMissing ? 'Folder editor runtime still has not started.' : 'Folder editor runtime assets failed to load.',
                     String(error?.message || error || 'Unknown runtime asset failure.'),
                     'invalid',
-                    'runtime-asset-load-failed'
+                    error?.runtimeMarkerMissing ? 'runtime-script-still-pending' : 'runtime-asset-load-failed'
                 );
                 if (propagateFailure) {
                     throw error;
@@ -169,26 +175,4 @@
         } else {
             run();
         }
-        win.setTimeout(() => {
-            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
-                return;
-            }
-            report(
-                'Folder editor runtime has not started yet.',
-                'The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.',
-                'warning',
-                'runtime-script-pending'
-            );
-        }, 900);
-        win.setTimeout(() => {
-            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
-                return;
-            }
-            report(
-                'Folder editor runtime still has not started.',
-                'The editor page has now attempted a direct runtime script injection and still did not receive a startup marker.',
-                'invalid',
-                'runtime-script-still-pending'
-            );
-        }, 2500);
     })(window, document);

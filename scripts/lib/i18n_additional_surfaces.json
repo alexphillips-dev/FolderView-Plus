@@ -5244,15 +5244,6 @@
     ]
   },
   {
-    "phrase": "Folder editor runtime has not started yet.",
-    "locations": [
-      {
-        "file": "scripts/folder.editor.runtime-bootstrap.js",
-        "anchor": "'Folder editor runtime has not started yet.'"
-      }
-    ]
-  },
-  {
     "phrase": "Folder editor runtime rejected during bootstrap.",
     "locations": [
       {
@@ -11484,15 +11475,6 @@
       {
         "file": "scripts/folder.editor.chrome.js",
         "anchor": "'The modern editor shell rendered, but the runtime never reached its first ready checkpoint.'"
-      }
-    ]
-  },
-  {
-    "phrase": "The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.",
-    "locations": [
-      {
-        "file": "scripts/folder.editor.runtime-bootstrap.js",
-        "anchor": "'The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.'"
       }
     ]
   },

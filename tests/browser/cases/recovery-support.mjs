@@ -147,6 +147,55 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         await page.keyboard.press('Escape');
     });
 
+    test('component button skins preserve minimal chevrons, semantic status colors and unboxed pin switches', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/runtime.shared.css` });
+        await page.evaluate(() => {
+            document.getElementById('fv-settings-root').innerHTML = `
+                <button class="folder-dropdown" data-fv-onclick="fixture" aria-label="Expand folder"
+                    style="--fvplus-folder-dropdown-border-width:0px;--fvplus-folder-dropdown-border-color:transparent;
+                    --fvplus-folder-dropdown-bg:transparent;--fvplus-folder-dropdown-shadow:none;
+                    --fvplus-folder-dropdown-color:#12ab34;--fvplus-folder-dropdown-hover-color:#12ab34;
+                    --fvplus-folder-dropdown-hover-border-color:transparent;--fvplus-folder-dropdown-hover-bg:transparent;
+                    --fvplus-folder-dropdown-hover-shadow:none">⌄</button>
+                <button class="folder-runtime-status status-chip is-started">Running</button>
+                <button class="folder-runtime-status status-chip is-stopped">Stopped</button>
+                <button class="folder-runtime-status status-chip is-mixed">Mixed</button>
+                <button class="folder-metric-chip health-chip is-ok">Healthy</button>
+                <button class="folder-metric-chip health-chip is-danger">Critical</button>
+                <button class="folder-pin-switch" role="switch" aria-checked="false" aria-label="Pin folder">
+                    <span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span>
+                </button>`;
+        });
+        const capture = () => page.locator('#fv-settings-root button').evaluateAll(buttons => buttons.map(button => {
+            const style = getComputedStyle(button);
+            return { color: style.color, background: style.backgroundColor, border: style.borderTopWidth,
+                borderColor: style.borderTopColor, radius: style.borderRadius, padding: style.padding, shadow: style.boxShadow };
+        }));
+        for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true; });
+            const componentStyles = await capture();
+            assert.equal(componentStyles[0].color, 'rgb(18, 171, 52)');
+            assert.equal(componentStyles[0].border, '0px');
+            assert.notEqual(componentStyles[1].color, componentStyles[2].color);
+            assert.notEqual(componentStyles[3].color, componentStyles[1].color);
+            assert.notEqual(componentStyles[4].color, componentStyles[5].color);
+            assert.equal(componentStyles[6].border, '0px');
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = false; });
+            assert.deepEqual(await capture(), componentStyles);
+            await page.locator('.folder-dropdown').hover();
+            assert.equal((await capture())[0].color, 'rgb(18, 171, 52)');
+            assert.equal((await capture())[0].background, 'rgba(0, 0, 0, 0)');
+            await page.locator('.folder-pin-switch').hover();
+            assert.equal((await capture())[6].border, '0px');
+            assert.equal((await capture())[6].background, 'rgba(0, 0, 0, 0)');
+            await page.mouse.move(0, 0);
+        }
+        await page.locator('.folder-pin-switch').focus();
+        assert.notEqual(await page.locator('.folder-pin-switch').evaluate(button => getComputedStyle(button).outlineStyle), 'none');
+    });
+
     test('theme update with no available updates makes no mutation request', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`);
         await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });

@@ -1,27 +1,25 @@
-/* Ordinary plugin buttons override host skins. Component buttons below already
-   own their semantic colors, configured chevrons and switch geometry. */
-html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
-    :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button):not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button),
-html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):is(
-    [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]):not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button) {
-    background-color: var(--fvplus-ui-control) !important;
-    border: 1px solid var(--fvplus-ui-border-subtle) !important;
+/* Fallback skins outrank native element selectors without outranking the
+   plugin's component classes. Preserve component typography and geometry. */
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)),
+html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):where(
+    [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
+    background-color: var(--fv-button-bg, var(--fvplus-ui-control)) !important;
+    border: 1px solid var(--fv-button-border, var(--fvplus-ui-border-subtle)) !important;
     border-radius: var(--fv-ui-radius-sm) !important;
     color: var(--fv-button-fg, var(--fvplus-ui-text-primary)) !important;
-    box-shadow: none;
     box-sizing: border-box;
     font-family: inherit !important;
     white-space: normal !important;
     overflow-wrap: anywhere;
-    line-height: var(--fv-button-line-height, 1.35) !important;
     min-width: 0;
     max-width: 100%;
     cursor: pointer;
 }
 
-html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
-    :is(button, input[type="button"], input[type="submit"], a[role="button"]):hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button),
-html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button) {
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)),
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
     background-color: var(--fvplus-ui-control-hover) !important;
     border-color: var(--fvplus-ui-border-strong) !important;
 }
@@ -36,10 +34,10 @@ html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" 
     cursor: not-allowed;
     opacity: 0.48;
 }
-html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
-    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-section-nav > button) {
-    border-color: var(--fvplus-theme-accent, var(--fv-ui-info)) !important;
-    background-color: color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control)) !important;
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-section-nav > button)) {
+    border-color: var(--fv-button-border, var(--fvplus-theme-accent, var(--fv-ui-info))) !important;
+    background-color: var(--fv-button-bg, color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control))) !important;
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
     :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button),
@@ -49,8 +47,6 @@ html body button:is(.folder-dropdown, .folder-pin-switch, .folder-runtime-status
     appearance: none !important;
     clip-path: none !important;
     background-image: none !important;
-    text-transform: none !important;
-    letter-spacing: normal !important;
 }
 html body .fv-ui-modal-close,
 html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar-close {

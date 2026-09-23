@@ -360,11 +360,11 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     --fv-dashboard-view-button-border: var(--fvplus-ui-border-subtle);
     --fv-dashboard-view-button-color: var(--fvplus-ui-text-primary);
     appearance: none;
-    background: var(--fv-dashboard-view-button-bg);
-    border: 1px solid var(--fv-dashboard-view-button-border);
+    background: var(--fv-dashboard-view-button-bg) !important;
+    border: 1px solid var(--fv-dashboard-view-button-border) !important;
     border-radius: var(--fv-ui-radius-sm);
     box-sizing: border-box;
-    color: var(--fv-dashboard-view-button-color);
+    color: var(--fv-dashboard-view-button-color) !important;
     cursor: pointer;
     font: inherit;
     margin: 0 !important;
@@ -398,8 +398,6 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 .fv-dashboard-view-footer-action {
     white-space: normal;
     overflow-wrap: anywhere;
-    letter-spacing: normal;
-    text-transform: none;
     min-width: 0;
 }
 .fv-dashboard-view-option strong { font-size: 1.05rem; }

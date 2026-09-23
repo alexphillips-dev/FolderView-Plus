@@ -41,22 +41,22 @@ body.fv-ui-modal-open { overflow: hidden; }
     font-weight: 700;
     gap: var(--fv-ui-space-2);
     justify-content: center;
-    letter-spacing: normal;
-    line-height: 1.35;
+    letter-spacing: 0.05em;
+    line-height: 1;
     min-height: var(--fv-ui-control-height);
     padding: 0.55rem 0.85rem;
-    text-transform: none;
+    text-transform: uppercase;
     white-space: normal;
     overflow-wrap: anywhere;
     transition: background var(--fv-ui-transition), border-color var(--fv-ui-transition), color var(--fv-ui-transition), opacity var(--fv-ui-transition);
 }
 
-.fv-ui-button:hover:not(:disabled) { background: var(--fvplus-ui-control-hover); border-color: var(--fvplus-ui-border-strong); }
+.fv-ui-button:hover:not(:disabled) { --fv-button-bg: var(--fvplus-ui-control-hover); --fv-button-border: var(--fvplus-ui-border-strong); background: var(--fvplus-ui-control-hover); border-color: var(--fvplus-ui-border-strong); }
 .fv-ui-button:focus-visible { border-color: var(--fv-ui-info); box-shadow: 0 0 0 3px var(--fvplus-ui-focus-ring); outline: 0; }
 .fv-ui-button:disabled { cursor: not-allowed; opacity: 0.48; }
 .fv-ui-button.is-sm { font-size: 1rem; min-height: 28px; padding: 0.4rem 0.6rem; }
 .fv-ui-button.is-lg { font-size: 1.2rem; min-height: 40px; padding: 0.7rem 1rem; }
-.fv-ui-button.is-primary { background: color-mix(in srgb, var(--fv-ui-info) 14%, var(--fvplus-ui-control)); border-color: color-mix(in srgb, var(--fv-ui-info) 52%, var(--fvplus-ui-border-subtle)); }
+.fv-ui-button.is-primary { --fv-button-bg: color-mix(in srgb, var(--fv-ui-info) 14%, var(--fvplus-ui-control)); --fv-button-border: color-mix(in srgb, var(--fv-ui-info) 52%, var(--fvplus-ui-border-subtle)); background: var(--fv-button-bg); border-color: var(--fv-button-border); }
 .fv-ui-button.is-success { --fv-button-fg: var(--fv-ui-success); color: var(--fv-ui-success); }
 .fv-ui-button.is-warning { --fv-button-fg: var(--fv-ui-warning); color: var(--fv-ui-warning); }
 .fv-ui-button.is-danger { --fv-button-fg: var(--fv-ui-danger); color: var(--fv-ui-danger); }

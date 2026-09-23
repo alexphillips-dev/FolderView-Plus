@@ -129,7 +129,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 buttons: [...document.querySelectorAll('#fv-settings-root button, #fv-settings-root input[type=submit], .fv-ui-modal button')]
                     .filter(button => button.getClientRects().length).map(button => {
                         const style = getComputedStyle(button);
-                        return { image: style.backgroundImage, spacing: style.letterSpacing, transform: style.textTransform,
+                        return { image: style.backgroundImage,
                             clip: style.clipPath, overflow: button.scrollWidth > button.clientWidth + 2 };
                     }),
                 close: document.querySelector('.fv-ui-modal-close').getBoundingClientRect().width,
@@ -139,12 +139,54 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 normalText: getComputedStyle(document.getElementById('selected-fixture')).color
             }));
             assert.match(styles.native, /gradient/);
-            for (const button of styles.buttons) assert.deepEqual(button, { image: 'none', spacing: 'normal', transform: 'none', clip: 'none', overflow: false });
+            for (const button of styles.buttons) assert.deepEqual(button, { image: 'none', clip: 'none', overflow: false });
             assert.equal(styles.close, 32);
             assert.notEqual(styles.selected, styles.normal);
             assert.notEqual(styles.danger, styles.normalText);
         }
         await page.keyboard.press('Escape');
+    });
+
+    test('button fallback preserves main typography and component skins across themes and narrow layouts', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folder.css` });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/dashboard.css` });
+        await page.evaluate(() => {
+            document.getElementById('fv-settings-root').innerHTML = `
+                <button class="fv-ui-button">Restore latest backup</button>
+                <button class="fv-ui-button is-primary">Restore</button>
+                <div class="backup-actions"><button>Download</button></div>
+                <div class="fv-diagnostics-toolbar"><button class="fv-ui-button">Run health check</button></div>
+                <div class="fv-dashboard-view-popover"><button class="fv-dashboard-view-option is-active"><i></i><span><strong>Running only</strong></span><i></i></button></div>
+                <form id="fvFolderEditorForm" class="folder-editor-form"><button class="fv-webui-profile-button">Add profile</button></form>`;
+        });
+        const capture = () => page.locator('#fv-settings-root button').evaluateAll(buttons => buttons.map(button => {
+            const s = getComputedStyle(button), box = button.getBoundingClientRect();
+            return { font: s.fontSize, weight: s.fontWeight, transform: s.textTransform, spacing: s.letterSpacing,
+                line: s.lineHeight, padding: s.padding, color: s.color, background: s.backgroundColor,
+                border: s.border, radius: s.borderRadius, shadow: s.boxShadow, width: box.width, height: box.height };
+        }));
+        for (const theme of ['black', 'white']) for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            await page.evaluate(theme => {
+                document.documentElement.dataset.fvplusHostTheme = theme;
+                document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true;
+            }, theme);
+            const baseline = await capture();
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = false; });
+            const styled = await capture();
+            assert.deepEqual(styled, baseline);
+            assert.equal(styled[0].transform, 'uppercase');
+            assert.ok(Math.abs(parseFloat(styled[0].spacing) - parseFloat(styled[0].font) * 0.05) < 0.01);
+            assert.ok(styled[0].height >= 34);
+            assert.ok(styled[3].height >= 36);
+            await page.locator('.backup-actions button').hover();
+            const hovered = await capture();
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true; });
+            assert.deepEqual(await capture(), hovered);
+            await page.mouse.move(0, 0);
+        }
     });
 
     test('component button skins preserve minimal chevrons, semantic status colors and unboxed pin switches', async ({ page }) => {

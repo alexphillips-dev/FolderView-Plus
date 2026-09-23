@@ -5607,11 +5607,14 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 
 /* Final folder editor tab-state override. Keep this after shared button rules. */
 .fv-section-nav > button {
+    --fv-editor-button-bg-top: var(--fvplus-ui-control);
+    --fv-editor-button-fg: var(--fvplus-ui-text-primary);
     position: relative;
     overflow: hidden;
     font-size: 1.3rem !important;
     font-weight: 900 !important;
     letter-spacing: 0 !important;
+    text-transform: none;
 }
 
 html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target].is-active,

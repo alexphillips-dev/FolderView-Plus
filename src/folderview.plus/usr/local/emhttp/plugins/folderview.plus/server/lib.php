@@ -2574,6 +2574,7 @@
     require_once(__DIR__ . '/lib.folder-rules.php'); require_once(__DIR__ . '/lib.docker-start-order-sequence.php');
     require_once(__DIR__ . '/lib.docker-order.php');
 
+    require_once(__DIR__ . '/lib.folder-batch-order.php');
     require_once(__DIR__ . '/lib.folder-mutations.php');
 
     require_once(__DIR__ . '/lib.custom-icon-storage.php');

@@ -161,3 +161,17 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
     assert.equal(result.listViewMode, 'advanced');
     assert.equal(result.memberContextAudits, 3);
 };
+
+export const exerciseLargeCollapsedPreview = async ({ page, baseUrl }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    await page.evaluate(() => window.fixtureChildFolderPreviewContext.renderLargePreview());
+    const preview = page.locator('#fixture-child-folder-preview');
+    assert.equal(await preview.locator('.fv-nested-preview-item').count(), 24);
+    assert.equal(await preview.locator('.fv-folder-preview-child').count(), 12);
+    const more = preview.getByRole('button', { name: 'Show more (14)' });
+    await more.focus();
+    await more.press('Enter');
+    assert.equal(await preview.locator('.fv-nested-preview-item').count(), 30);
+    assert.equal(await preview.locator('.fv-folder-preview-child').count(), 20);
+    assert.equal(await preview.locator('.fv-preview-show-more').count(), 0);
+};

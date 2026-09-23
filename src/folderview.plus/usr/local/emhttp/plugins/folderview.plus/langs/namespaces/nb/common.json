@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Beholdere med oppdateringer: $1. Klikk for kun å vise mapper med oppdateringer.",
     "common.repair.autostart-vms": "Autostart VM-er: $1",
     "common.repair.matches-summary": "Treffer: $1. $2",
-    "common.repair.template-summary": "$1 — Opprettet: $2; hoppet over: $3; automatisk tildelt: $4; gjennomgang nødvendig: $5; uovertruffen: $6."
+    "common.repair.template-summary": "$1 — Opprettet: $2; hoppet over: $3; automatisk tildelt: $4; gjennomgang nødvendig: $5; uovertruffen: $6.",
+    "common.repair.position-changes-manual-sort": "Før eller etter plassering endrer sorteringsmodusen til Manuell.",
+    "common.repair.drop-inside-this-folder": "Inne i denne mappen",
+    "common.repair.drop-before-this-folder": "Før denne mappen",
+    "common.repair.drop-after-this-folder": "Etter denne mappen",
+    "common.repair.move-preview-path": "Resulterende bane: $1",
+    "common.repair.move-preview-branch": "Mapper i filial: $1",
+    "common.repair.preview-show-more": "Vis mer ($1)"
 }

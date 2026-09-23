@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "업데이트된 컨테이너: $1. 업데이트된 폴더만 표시하려면 클릭하세요.",
     "common.repair.autostart-vms": "VM 자동 시작: $1",
     "common.repair.matches-summary": "일치 항목: $1. $2",
-    "common.repair.template-summary": "$1 — 생성됨: $2; 건너뛰었습니다: $3; 자동 할당: $4; 검토 필요: $5; 일치하지 않음: $6."
+    "common.repair.template-summary": "$1 — 생성됨: $2; 건너뛰었습니다: $3; 자동 할당: $4; 검토 필요: $5; 일치하지 않음: $6.",
+    "common.repair.position-changes-manual-sort": "배치 전 또는 배치 후는 정렬 모드를 수동으로 변경합니다.",
+    "common.repair.drop-inside-this-folder": "이 폴더 안에",
+    "common.repair.drop-before-this-folder": "이 폴더 이전",
+    "common.repair.drop-after-this-folder": "이 폴더 이후",
+    "common.repair.move-preview-path": "결과 경로: $1",
+    "common.repair.move-preview-branch": "분기의 폴더: $1",
+    "common.repair.preview-show-more": "자세히 보기($1)"
 }

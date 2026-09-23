@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Containere cu actualizări: $1. Faceți clic pentru a afișa dosarele numai cu actualizări.",
     "common.repair.autostart-vms": "Pornire automată VM: $1",
     "common.repair.matches-summary": "Potriviri: $1. $2",
-    "common.repair.template-summary": "$1 — Creat: $2; omis: $3; atribuit automat: $4; revizuire necesară: $5; fără egal: $6."
+    "common.repair.template-summary": "$1 — Creat: $2; omis: $3; atribuit automat: $4; revizuire necesară: $5; fără egal: $6.",
+    "common.repair.position-changes-manual-sort": "Înainte sau După plasarea schimbă modul de sortare în Manual.",
+    "common.repair.drop-inside-this-folder": "În interiorul acestui folder",
+    "common.repair.drop-before-this-folder": "Înainte de acest folder",
+    "common.repair.drop-after-this-folder": "După acest folder",
+    "common.repair.move-preview-path": "Calea rezultată: $1",
+    "common.repair.move-preview-branch": "Dosare în ramură: $1",
+    "common.repair.preview-show-more": "Afișați mai multe ($1)"
 }

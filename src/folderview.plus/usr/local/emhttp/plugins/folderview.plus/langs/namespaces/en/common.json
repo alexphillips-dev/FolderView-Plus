@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Containers with updates: $1. Click to show folders with updates only.",
     "common.repair.autostart-vms": "Autostart VMs: $1",
     "common.repair.matches-summary": "Matches: $1. $2",
-    "common.repair.template-summary": "$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6."
+    "common.repair.template-summary": "$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6.",
+    "common.repair.position-changes-manual-sort": "Before or After placement changes the sort mode to Manual.",
+    "common.repair.drop-inside-this-folder": "Inside this folder",
+    "common.repair.drop-before-this-folder": "Before this folder",
+    "common.repair.drop-after-this-folder": "After this folder",
+    "common.repair.move-preview-path": "Resulting path: $1",
+    "common.repair.move-preview-branch": "Folders in branch: $1",
+    "common.repair.preview-show-more": "Show more ($1)"
 }

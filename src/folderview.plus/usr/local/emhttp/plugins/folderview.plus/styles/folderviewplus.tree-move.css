@@ -1,0 +1,44 @@
+.fv-tree-move-note {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+.fv-tree-move-note[hidden] {
+    display: none;
+}
+
+.fv-tree-move-preview {
+    margin: 0.45rem 0 0;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-strong);
+    overflow-wrap: anywhere;
+}
+
+.folder-table table tbody tr.fv-row-drag-over-inside > td {
+    box-shadow: inset 0 0 0 2px var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-before > td:first-child,
+.folder-table table tbody tr.fv-row-drag-over-inside > td:first-child,
+.folder-table table tbody tr.fv-row-drag-over-after > td:first-child {
+    position: relative;
+}
+
+.folder-table table tbody tr[class*="fv-row-drag-over-"] > td:first-child::after {
+    content: attr(data-fv-drop-label);
+    position: absolute;
+    z-index: 2;
+    inset-inline-start: 0.3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.18rem 0.4rem;
+    border-radius: 4px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-accent);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    pointer-events: none;
+}

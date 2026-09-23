@@ -110,6 +110,7 @@
     <script src="/plugin/scripts/runtime.column-layout.js"></script>
     <script src="/plugin/scripts/docker.runtime.preview-actions.js"></script>
     <script src="/plugin/scripts/docker.runtime.child-folder-preview-menu.js"></script>
+    <script src="/plugin/scripts/folderviewplus.utils-hierarchy.js"></script>
     <script src="/plugin/scripts/docker.runtime.hierarchy.js"></script>
     <script src="/plugin/scripts/runtime.shared-primitives.js"></script>
     <script src="/plugin/scripts/runtime.shared-diagnostics.js"></script>
@@ -320,7 +321,8 @@
             actionCount: 0,
             contextBindings: { default: 0, advanced: 0 },
             contextClicks: { default: 0, advanced: 0 },
-            contextAudits: 0
+            contextAudits: 0,
+            largeMemberCount: 0
         };
         const childFolderFixtureFolders = {
             'fixture-parent': {
@@ -357,6 +359,11 @@
                     return { childMember: { name: 'Private child member', state: true } };
                 }
                 if (folderId === 'fixture-parent' && includeDescendants !== true) {
+                    if (childFolderFixtureState.largeMemberCount > 0) {
+                        return Object.fromEntries(Array.from({ length: childFolderFixtureState.largeMemberCount }, (_, index) => [
+                            `member-${index}`, { name: `Member ${index}`, shortId: `member-${index}`, state: true }
+                        ]));
+                    }
                     return {
                         parentMemberOne: { name: 'Private parent member one', shortId: 'fixture-parent-one', state: true },
                         parentMemberTwo: { name: 'Private parent member two', shortId: 'fixture-parent-two', state: true }
@@ -408,6 +415,20 @@
             );
         }
         window.fixtureChildFolderPreviewContext = {
+            renderLargePreview() {
+                childFolderFixtureState.largeMemberCount = 30;
+                childFolderFixtureHierarchy.childrenById['fixture-parent'] = Array.from({ length: 20 }, (_, index) => `child-${index}`);
+                for (const childId of childFolderFixtureHierarchy.childrenById['fixture-parent']) {
+                    childFolderFixtureFolders[childId] = { name: childId, settings: { preview: 1 }, runtimeContainers: {} };
+                    childFolderFixtureHierarchy.ids.push(childId);
+                    childFolderFixtureHierarchy.parentById[childId] = 'fixture-parent';
+                    childFolderFixtureHierarchy.childrenById[childId] = [];
+                }
+                childFolderHierarchyApi.renderNestedAggregatePreview(
+                    'fixture-parent', childFolderFixtureFolders['fixture-parent'], {},
+                    { includeChildFolders: true, collapsed: true }
+                );
+            },
             closeMenu() {
                 window.jQuery('.fv-folder-preview-context-menu').remove();
                 window.jQuery(document).off('click.fvFolderPreviewContext keydown.fvFolderPreviewContext');

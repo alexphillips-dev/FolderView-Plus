@@ -83,10 +83,10 @@
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
         "tests/browser/helpers/vm-lifecycle.mjs"
       ],
-      "testCount": 61,
-      "assertionCount": 719,
-      "pageEvaluateCount": 169,
-      "orderedTitleSha256": "53acc65baed1b1b7c9773dd2c190753d7da6545bba4fd0b107b7fb8b256c77a1"
+      "testCount": 62,
+      "assertionCount": 724,
+      "pageEvaluateCount": 170,
+      "orderedTitleSha256": "fee83430812655608b7c94b5531b7841e4d1665b065f37259275c02fa872966a"
     }
   }
 }

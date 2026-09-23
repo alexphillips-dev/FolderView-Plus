@@ -600,7 +600,7 @@ const ensureFolderSortModeManual = async (type) => {
     return sortMode === 'manual';
 };
 
-const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null) => {
+const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null, preferredTargetId = '') => {
     const resolvedType = normalizeManagedType(type);
     const folders = getFolderMap(resolvedType);
     const sourceId = String(sourceFolderId || '').trim();
@@ -616,7 +616,7 @@ const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null) 
         const depth = Math.max(0, Number(meta.depthById[id] || 0));
         const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(10, depth) * 3) : '';
         const prefix = depth > 0 ? '&#8627;&nbsp;' : '';
-        options.push(`<option value="${escapeHtml(id)}">${indent}${prefix}${escapeHtml(folderName)}</option>`);
+        options.push(`<option value="${escapeHtml(id)}"${id === preferredTargetId ? ' selected' : ''}>${indent}${prefix}${escapeHtml(folderName)}</option>`);
     }
     return options.join('');
 };
@@ -673,7 +673,9 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
     }
 
     const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
-    const orderWithoutSource = fullOrder.filter((id) => id !== sourceId);
+    const sourceSubtreeIds = fullOrder.filter((id) => id === sourceId || descendants.includes(id));
+    const sourceSubtreeSet = new Set(sourceSubtreeIds);
+    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(id));
     let insertIndex;
     if (mode === 'before') {
         const targetIndex = orderWithoutSource.indexOf(targetId);
@@ -689,9 +691,10 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
     }
 
     const nextOrder = orderWithoutSource.slice();
-    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, sourceId);
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
     const parentChanged = nextParentId !== existingParentId;
-    const orderChanged = nextOrder.some((id, index) => id !== fullOrder[index]);
+    const positionalMove = mode === 'before' || mode === 'after';
+    const orderChanged = positionalMove && nextOrder.some((id, index) => id !== fullOrder[index]);
     if (!parentChanged && !orderChanged) {
         setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already in that position.');
         return;
@@ -699,22 +702,19 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
 
     let backup = null;
     try {
-        const manualReady = await ensureFolderSortModeManual(resolvedType);
-        if (!manualReady) {
-            throw new Error('Manual sort mode is required for tree move.');
-        }
         clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
         backup = await createBackup(resolvedType, `before-tree-move-${sourceId}`);
-        if (parentChanged) {
-            const nextFolder = {
-                ...sourceFolder,
-                parentId: nextParentId
-            };
-            await saveFolderRecord(resolvedType, sourceId, nextFolder);
+        const expectedRevision = readFolderConfigurationRevision(resolvedType);
+        const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
+        if (expectedRevision === null || (positionalMove && !Number.isInteger(expectedPrefsRevision))) {
+            throw new Error('Current folder or preference revision is unavailable. Refresh and try again.');
         }
-        if (orderChanged) {
-            await persistManualOrder(resolvedType, nextOrder, { refresh: false });
-        }
+        await requestFolderBatchMutation(resolvedType, {
+            deletes: [],
+            upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: nextParentId } }],
+            creates: [],
+            ...(positionalMove ? { manualOrder: nextOrder, expectedPrefsRevision } : {})
+        }, { expectedRevision });
         await refreshType(resolvedType);
         if (backup?.name) {
             await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Tree move', sourceId);
@@ -746,7 +746,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
     }
     const hierarchyMeta = buildFolderHierarchyMeta(folders);
     const hasParent = Boolean(String(hierarchyMeta.parentById?.[sourceId] || '').trim());
-    const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta);
+    const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta, String(options?.targetId || '').trim());
     const modeInsideOnly = options?.modeInsideOnly === true;
     if ((!targetOptions && !hasParent) || (modeInsideOnly && !targetOptions)) {
         setFolderTreeMoveError(resolvedType, sourceId, 'No valid folder locations are available.');
@@ -764,6 +764,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
                <option value="before"${preferredPlacement === 'before' ? ' selected' : ''}>Before target</option>
                <option value="after"${preferredPlacement === 'after' ? ' selected' : ''}>After target</option>
              </select>
+             <p id="fv-tree-move-sort-note" class="fv-tree-move-note">${escapeHtml(repairTaa339208('common.repair.position-changes-manual-sort', 'Before or After placement changes the sort mode to Manual.'))}</p>
            </div>`;
     const sourceName = escapeHtml(String(folder.name || sourceId));
     const targetLabel = modeInsideOnly ? 'Move under folder' : 'Destination';
@@ -778,6 +779,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
                 <label class="fv-tree-move-field-label" for="fv-tree-move-target">${targetLabel}</label>
                 <select id="fv-tree-move-target">${rootOption}${targetOptions}</select>
                 ${placementSelectHtml}
+                <p id="fv-tree-move-preview" class="fv-tree-move-preview" role="status" aria-live="polite"></p>
             </div>
         `,
         html: true,
@@ -800,20 +802,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
             : normalizeTreeMovePlacement($('#fv-tree-move-placement').val() || preferredPlacement);
         void applyFolderTreeMove(resolvedType, sourceId, targetId, placement);
     });
-    if (!modeInsideOnly) {
-        window.setTimeout(() => {
-            const target = document.querySelector('#fv-tree-move-target');
-            const placementField = document.querySelector('#fv-tree-move-placement-field');
-            if (!(target instanceof HTMLSelectElement) || !(placementField instanceof HTMLElement)) {
-                return;
-            }
-            const syncPlacementVisibility = () => {
-                placementField.hidden = target.value === '__root__';
-            };
-            target.addEventListener('change', syncPlacementVisibility);
-            syncPlacementVisibility();
-        }, 0);
-    }
+    bindTreeMoveDialogPreview(resolvedType, sourceId, folders, hierarchyMeta, modeInsideOnly, repairTaa339208);
 };
 
 const moveFolderToRootQuick = async (type, folderId) => {
@@ -835,16 +824,17 @@ const moveFolderToRootQuick = async (type, folderId) => {
     }
     let backup = null;
     try {
-        const manualReady = await ensureFolderSortModeManual(resolvedType);
-        if (!manualReady) {
-            throw new Error('Manual sort mode is required for root move.');
-        }
         clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
         backup = await createBackup(resolvedType, `before-root-move-${sourceId}`);
-        await saveFolderRecord(resolvedType, sourceId, {
-            ...sourceFolder,
-            parentId: ''
-        });
+        const expectedRevision = readFolderConfigurationRevision(resolvedType);
+        if (expectedRevision === null) {
+            throw new Error('Current folder revision is unavailable. Refresh and try again.');
+        }
+        await requestFolderBatchMutation(resolvedType, {
+            deletes: [],
+            upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: '' } }],
+            creates: []
+        }, { expectedRevision });
         await refreshType(resolvedType);
         if (backup?.name) {
             await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Move to root', sourceId);

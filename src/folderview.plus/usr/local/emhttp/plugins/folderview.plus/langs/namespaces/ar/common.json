@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "الحاويات ذات التحديثات: $1. انقر لإظهار المجلدات التي تحتوي على التحديثات فقط.",
     "common.repair.autostart-vms": "تشغيل الأجهزة الافتراضية تلقائيًا: $1",
     "common.repair.matches-summary": "التطابقات: $1. $2",
-    "common.repair.template-summary": "$1 — تم الإنشاء: $2; تم تخطي: $3; المعينة تلقائيًا: $4؛ المراجعة مطلوبة: $5; لا مثيل له: $6."
+    "common.repair.template-summary": "$1 — تم الإنشاء: $2; تم تخطي: $3; المعينة تلقائيًا: $4؛ المراجعة مطلوبة: $5; لا مثيل له: $6.",
+    "common.repair.position-changes-manual-sort": "قبل أو بعد الموضع يغير وضع الفرز إلى يدوي.",
+    "common.repair.drop-inside-this-folder": "داخل هذا المجلد",
+    "common.repair.drop-before-this-folder": "قبل هذا المجلد",
+    "common.repair.drop-after-this-folder": "بعد هذا المجلد",
+    "common.repair.move-preview-path": "المسار الناتج: $1",
+    "common.repair.move-preview-branch": "المجلدات الموجودة في الفرع: $1",
+    "common.repair.preview-show-more": "عرض المزيد ($1)"
 }

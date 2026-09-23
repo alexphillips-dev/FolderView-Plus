@@ -165,7 +165,7 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerChildFolderPreviewMenuJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeHierarchyJs, /^\/\/ @ts-check/m);
     assert.match(dockerRuntimeHierarchyJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
-    assert.match(dockerRuntimeHierarchyJs, /root\.FolderViewPlusDockerRuntimeHierarchy = factory\(\);/);
+    assert.match(dockerRuntimeHierarchyJs, /root\.FolderViewPlusDockerRuntimeHierarchy = factory\(root\.FolderViewPlusUtils \|\| root\.FolderViewPlusFoundationModules\?\.utilityHierarchy\);/);
     assert.match(dockerRuntimeHierarchyJs, /root\.FolderViewPlusDockerRuntimeHierarchyModuleLoaded = true;/);
     assert.match(dockerRuntimeHierarchyJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeActionsJs, /^\/\/ @ts-check/m);

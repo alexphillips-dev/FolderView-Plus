@@ -53,6 +53,7 @@ const trackedAssets = [
   'scripts/folder.js',
 ];
 const settingsRuntimePaths = [
+  'scripts/folderviewplus.utils-hierarchy.js',
   'scripts/folderviewplus.runtime-parity.js',
   'scripts/folderviewplus.settings-sections.js',
   'scripts/folderviewplus.setup-assistant.js',

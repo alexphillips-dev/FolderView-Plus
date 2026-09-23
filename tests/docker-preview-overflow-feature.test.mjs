@@ -185,7 +185,11 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /dockerAdvancedPreviewContextBindersByName\.get\(containerName\)/);
     assert.match(dockerJs, /bindAdvancedContext\(\$trigger, \{ folder, folderId \}\)/);
     assert.match(dockerRuntimeHierarchyJs, /const depthLimit = normalizeChildFolderPreviewDepth\(folder\?\.settings \|\| \{\}\);/);
-    assert.match(dockerRuntimeHierarchyJs, /for \(const descendant of getFolderPreviewDescendants\(id, depthLimit\)\)/);
+    assert.match(dockerRuntimeHierarchyJs, /const descendants = getFolderPreviewDescendants\(id, depthLimit\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const visibleDescendants = isLimited \? descendants\.slice\(0, COLLAPSED_PREVIEW_FOLDER_LIMIT\) : descendants;/);
+    assert.match(dockerRuntimeHierarchyJs, /const visibleEntries = isLimited \? entries\.slice\(0, COLLAPSED_PREVIEW_ITEM_LIMIT\) : entries;/);
+    assert.match(dockerRuntimeHierarchyJs, /expandedNestedPreviewIds\.add\(String\(id\)\);/);
+    assert.match(dockerRuntimeHierarchyJs, /renderNestedAggregatePreview\(id, folder, runtimeContainers, options\);/);
     assert.doesNotMatch(dockerRuntimeHierarchyJs, /for \(const childId of getFolderChildren\(id\)\) \{[\s\S]*buildChildFolderPreviewItem\(id, childId, childFolder\)/);
     assert.match(dockerJs, /editFolder: \(id\) => editFolder\(id\)/);
     assert.match(dockerJs, /openFolderActions: \(id\) => \{/);

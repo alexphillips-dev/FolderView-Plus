@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Contêineres com atualizações: $1. Clique para mostrar apenas pastas com atualizações.",
     "common.repair.autostart-vms": "VMs de inicialização automática: $1",
     "common.repair.matches-summary": "Correspondências: $1. $2",
-    "common.repair.template-summary": "$1 — Criado: $2; ignorado: $3; atribuído automaticamente: $4; revisão necessária: $5; incomparável: $6."
+    "common.repair.template-summary": "$1 — Criado: $2; ignorado: $3; atribuído automaticamente: $4; revisão necessária: $5; incomparável: $6.",
+    "common.repair.position-changes-manual-sort": "Antes ou Depois do posicionamento altera o modo de classificação para Manual.",
+    "common.repair.drop-inside-this-folder": "Dentro desta pasta",
+    "common.repair.drop-before-this-folder": "Antes desta pasta",
+    "common.repair.drop-after-this-folder": "Depois desta pasta",
+    "common.repair.move-preview-path": "Caminho resultante: $1",
+    "common.repair.move-preview-branch": "Pastas na ramificação: $1",
+    "common.repair.preview-show-more": "Mostrar mais ($1)"
 }

@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.utils.js'));
         return;
     }
-    root.FolderViewPlusFolderHierarchy = factory();
+    root.FolderViewPlusFolderHierarchy = factory(root.FolderViewPlusUtils);
     root.FolderViewPlusFolderHierarchyModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(sharedUtils) {
     const createApi = (deps = {}) => {
         const jq = deps.$;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
@@ -18,6 +18,10 @@
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
         const smartDefaultFieldNames = deps.smartDefaultFieldNames instanceof Set ? deps.smartDefaultFieldNames : new Set();
         const getParentDefaults = typeof deps.getParentDefaults === 'function' ? deps.getParentDefaults : (() => ({}));
+        const buildHierarchy = sharedUtils?.buildFolderHierarchyModel;
+        if (typeof buildHierarchy !== 'function') {
+            throw new Error('Shared folder hierarchy model is unavailable.');
+        }
 
         const state = {
             currentFolderDescendantIds: new Set(),
@@ -28,71 +32,18 @@
         const normalizeParentFolderId = (value) => String(value || '').trim();
 
         const computeFolderDescendantIds = (foldersMap, rootId) => {
-            const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
             const rootFolderId = normalizeParentFolderId(rootId);
             if (!rootFolderId) {
                 return new Set();
             }
-            const descendants = new Set();
-            const queue = [rootFolderId];
-            while (queue.length > 0) {
-                const current = queue.shift();
-                for (const [id, folder] of Object.entries(source)) {
-                    const parentId = normalizeParentFolderId(folder?.parentId || '');
-                    if (parentId !== current || descendants.has(id)) {
-                        continue;
-                    }
-                    descendants.add(id);
-                    queue.push(id);
-                }
-            }
-            descendants.delete(rootFolderId);
-            return descendants;
+            const model = buildHierarchy(foldersMap);
+            return new Set(model.descendantsById[rootFolderId] || []);
         };
 
         const buildNestedFolderOrder = (foldersMap) => {
             const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
-            const ids = Object.keys(source);
-            if (ids.length <= 0) {
-                return [];
-            }
-            const indexById = new Map(ids.map((id, idx) => [id, idx]));
-            const childrenByParent = new Map();
-            for (const id of ids) {
-                const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || source[id]?.parent_id || '');
-                const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
-                const key = parentId || '__root__';
-                if (!childrenByParent.has(key)) {
-                    childrenByParent.set(key, []);
-                }
-                childrenByParent.get(key).push(id);
-            }
-            const sortBySourceIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
-            for (const list of childrenByParent.values()) {
-                list.sort(sortBySourceIndex);
-            }
-            const rows = [];
-            const visiting = new Set();
-            const visited = new Set();
-            const visit = (id, depth) => {
-                if (!id || visited.has(id) || visiting.has(id)) {
-                    return;
-                }
-                visiting.add(id);
-                rows.push({ id, folder: source[id], depth: Math.max(0, depth) });
-                for (const childId of (childrenByParent.get(id) || [])) {
-                    visit(childId, depth + 1);
-                }
-                visiting.delete(id);
-                visited.add(id);
-            };
-            for (const rootId of (childrenByParent.get('__root__') || [])) {
-                visit(rootId, 0);
-            }
-            for (const id of ids) {
-                visit(id, 0);
-            }
-            return rows;
+            const model = buildHierarchy(source, { includeDescendants: false });
+            return model.orderedIds.map((id) => ({ id, folder: source[id], depth: model.depthById[id] || 0 }));
         };
 
         const buildParentFolderEntries = (foldersMap, blockedIds = new Set()) => {

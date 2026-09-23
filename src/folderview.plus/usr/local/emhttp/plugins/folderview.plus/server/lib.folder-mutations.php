@@ -66,17 +66,11 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $deletes = $operations['deletes'] ?? [];
         $upserts = $operations['upserts'] ?? [];
         $creates = $operations['creates'] ?? [];
+        [$manualOrder, $expectedPrefsRevision] = parseBatchManualOrder($operations);
         if (!is_array($deletes) || !is_array($upserts) || !is_array($creates)) {
             throw new RuntimeException('Batch operations must contain delete, update, and create arrays.');
         }
-        $operationCount = count($deletes) + count($upserts) + count($creates);
-        if ($operationCount <= 0) {
-            throw new RuntimeException('No folder operations were provided.');
-        }
-        if ($operationCount > FVPLUS_MAX_FOLDER_BATCH_OPERATIONS) {
-            throw new RuntimeException('Folder batch exceeds the maximum operation count.');
-        }
-
+        $operationCount = assertBatchFolderOperationCount($deletes, $upserts, $creates);
         $normalizedDeletes = [];
         foreach ($deletes as $rawId) {
             $id = trim((string)$rawId);
@@ -128,11 +122,14 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $normalizedDeletes,
             $normalizedUpserts,
             $normalizedCreates,
+            $manualOrder,
+            $expectedPrefsRevision,
             $operationCount,
             $expectedRevision
         ): array {
             $startedAt = microtime(true);
             assertExpectedConfigRevision($type, 'folder', $expectedRevision);
+            assertBatchManualOrderRevision($type, $manualOrder, $expectedPrefsRevision);
             $originalFolders = readRawFolderMap($type);
             $originalPrefs = readTypePrefs($type);
             $nextFolders = $originalFolders;
@@ -196,6 +193,9 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
 
             $nextFolders = normalizeFolderParentLinks($nextFolders);
             $nextPrefs = reconcileManualOrderPrefs($originalPrefs, $nextFolders);
+            if ($manualOrder !== null) {
+                $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
+            }
             $folderWriteCommitted = false;
             $prefsWriteCommitted = false;
             try {

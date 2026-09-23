@@ -864,7 +864,6 @@ const getDockerRuntimeHierarchyApi = () => {
                     : { ids: [], parentById: {}, childrenById: {} };
                 return dockerFolderHierarchy;
             },
-            normalizeFolderParentId: (value) => normalizeFolderParentId(value),
             folderEvents,
             getDirectMemberRowsForFolder: (id) => getDirectMemberRowsForFolder(id),
             forceCollapseFolderRow: (id, syncStatus = true) => forceCollapseFolderRow(id, syncStatus),

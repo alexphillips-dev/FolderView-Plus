@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "আপডেট সহ ধারক: $1৷ শুধুমাত্র আপডেট সহ ফোল্ডারগুলি দেখাতে ক্লিক করুন৷",
     "common.repair.autostart-vms": "অটোস্টার্ট VMs: $1",
     "common.repair.matches-summary": "মিল: $1। $2",
-    "common.repair.template-summary": "$1 — তৈরি করা হয়েছে: $2; বাদ দেওয়া হয়েছে: $3; স্বয়ংক্রিয়ভাবে নির্ধারিত: $4; পর্যালোচনা প্রয়োজন: $5; অতুলনীয়: $6।"
+    "common.repair.template-summary": "$1 — তৈরি করা হয়েছে: $2; বাদ দেওয়া হয়েছে: $3; স্বয়ংক্রিয়ভাবে নির্ধারিত: $4; পর্যালোচনা প্রয়োজন: $5; অতুলনীয়: $6।",
+    "common.repair.position-changes-manual-sort": "বসানোর আগে বা পরে সাজানোর মোডকে ম্যানুয়াল এ পরিবর্তন করে।",
+    "common.repair.drop-inside-this-folder": "এই ফোল্ডারের ভিতরে",
+    "common.repair.drop-before-this-folder": "এই ফোল্ডারের আগে",
+    "common.repair.drop-after-this-folder": "এই ফোল্ডারের পরে",
+    "common.repair.move-preview-path": "ফলাফলের পথ: $1",
+    "common.repair.move-preview-branch": "শাখায় ফোল্ডার: $1",
+    "common.repair.preview-show-more": "আরো দেখান ($1)"
 }

@@ -7,6 +7,25 @@ const imageFallbacks = require('../src/folderview.plus/usr/local/emhttp/plugins/
 globalThis.FolderViewPlusFoundationModules = { imageFallbacks };
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
+test('shared hierarchy model normalizes parents, breaks cycles, and preserves branch order', () => {
+    const folders = {
+        child: { name: 'Child', parentId: 'parent' },
+        parent: { name: 'Parent' },
+        grandchild: { name: 'Grandchild', parentId: 'child' },
+        orphan: { name: 'Orphan', parentId: 'missing' },
+        cycleA: { name: 'A', parentId: 'cycleB' },
+        cycleB: { name: 'B', parentId: 'cycleA' }
+    };
+    const model = utils.buildFolderHierarchyModel(folders);
+    assert.deepEqual(model.orderedIds, ['parent', 'child', 'grandchild', 'orphan', 'cycleA', 'cycleB']);
+    assert.deepEqual(model.descendantsById.parent, ['child', 'grandchild']);
+    assert.equal(model.depthById.grandchild, 2);
+    assert.equal(model.parentById.orphan, '');
+    assert.equal(model.parentById.cycleA, '');
+    assert.equal(model.parentById.cycleB, 'cycleA');
+    assert.deepEqual(utils.buildFolderHierarchyModel(folders, { includeDescendants: false }).descendantsById, {});
+});
+
 test('normalizePrefs preserves transient configuration revision metadata for stale-save protection', () => {
     const prefs = utils.normalizePrefs({
         sortMode: 'manual',

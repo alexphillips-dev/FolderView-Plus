@@ -2,7 +2,7 @@
     if (typeof module === 'object' && module.exports) {
         module.exports = factory(
             require('./folderviewplus.utils-foundation.js'),
-            require('./folderviewplus.utils-normalization.js'),
+            require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-hierarchy.js'),
             require('./folderviewplus.utils-prefs.js'),
             require('./folderviewplus.utils-ordering.js'),
             require('./folderviewplus.utils-transfer.js'),
@@ -13,7 +13,7 @@
     const modules = root.FolderViewPlusFoundationModules || {};
     root.FolderViewPlusUtils = factory(
         modules.utilityFoundation,
-        modules.utilityNormalization,
+        modules.utilityNormalization, modules.utilityHierarchy,
         modules.utilityPrefs,
         modules.utilityOrdering,
         modules.utilityTransfer,
@@ -21,14 +21,14 @@
     );
 }(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(
     utilityFoundation,
-    utilityNormalization,
+    utilityNormalization, utilityHierarchy,
     utilityPrefs,
     utilityOrdering,
     utilityTransfer,
     utilityRules
 ) {
     'use strict';
-    const modules = [utilityFoundation, utilityNormalization, utilityPrefs, utilityOrdering, utilityTransfer, utilityRules];
+    const modules = [utilityFoundation, utilityNormalization, utilityHierarchy, utilityPrefs, utilityOrdering, utilityTransfer, utilityRules];
     if (modules.some((moduleApi) => !moduleApi || typeof moduleApi !== 'object')) {
         throw new Error('FolderView Plus utility modules are unavailable.');
     }
@@ -54,7 +54,7 @@
         sanitizeImageUrl: api.sanitizeImageUrl,
         sanitizeImageSrc: api.sanitizeImageSrc,
         normalizeFolderId: api.normalizeFolderId,
-        normalizeFolderMap: api.normalizeFolderMap,
+        normalizeFolderMap: api.normalizeFolderMap, buildFolderHierarchyModel: utilityHierarchy.buildFolderHierarchyModel,
         normalizeFolderMembers: api.normalizeFolderMembers,
         normalizeAppColumnWidth: api.normalizeAppColumnWidth,
         normalizeDashboardLayout: api.normalizeDashboardLayout,

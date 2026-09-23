@@ -53,6 +53,7 @@ const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const treeMoveCss = fs.readFileSync(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.tree-move.css'), 'utf8');
 const settingsChrome = fs.readFileSync(settingsChromePath, 'utf8');
 
 test('settings topbar keeps search adjacent to mode controls without a save-status badge', () => {
@@ -510,6 +511,19 @@ test('basic folder drag uses a full-row drag image', () => {
     assert.match(script, /event\.dataTransfer\.setDragImage\(dragImage, offsetX, offsetY\);/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image\s*\{[\s\S]*filter:\s*drop-shadow/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});
+
+test('folder drag offers three drop zones and opens a destination review', () => {
+    const helper = script.match(/const resolveBasicFolderDropPlacement = \(row, clientY\) => \{[\s\S]*?\n\};/)?.[0];
+    assert.ok(helper);
+    const placement = Function(`${helper}\nreturn resolveBasicFolderDropPlacement;`)();
+    const row = { getBoundingClientRect: () => ({ top: 100, height: 100 }) };
+    assert.equal(placement(row, 105), 'before');
+    assert.equal(placement(row, 150), 'inside');
+    assert.equal(placement(row, 195), 'after');
+    assert.match(script, /openFolderTreeMoveDialog\(resolvedType, draggedId, \{ targetId, placement \}\)/);
+    assert.match(script, /blockedIds\.has\(targetId\)/);
+    assert.match(treeMoveCss, /\.fv-row-drag-over-inside > td/);
 });
 
 test('basic folder drag handle renders a compact six-dot grip', () => {

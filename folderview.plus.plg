@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.23.03">
-<!ENTITY md5 "e026ba75e4788468a25dca05da0a977d">
-<!ENTITY sha256 "8409462402c0059e365aab10cd6d7e34f5a66c804ad00505678f61f48f95f502">
+<!ENTITY version "2026.09.23.04">
+<!ENTITY md5 "16cdd4b648dd61a0867e4a9bf34544d5">
+<!ENTITY sha256 "2985aa31453ef05f2a3678c87ea246dd10ad7ff7b011b260cff3c20bb54e0442">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.04
+- Fix: Tree moves now save a folder's parent and manual position together, with revision checks that reject stale changes instead of leaving a partial move.
+- UX: Moving a folder inside another folder or back to the root keeps the current sort mode. Before and After moves set Manual sort, with the change shown in the move dialog.
+- UX: Drag folders between levels using labeled Before, Inside, and After targets. Review the destination path and number of folders in the moving branch before confirming; the Move folder action remains available for keyboard use.
+- UX: Large collapsed Docker previews initially show up to 24 container cards and 12 child folder chips. Use Show more to reveal the rest.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings and Docker assets.
+
 
 ###2026.09.23.03
 - Fix: Restore the stable release's button typography and component styling across plugin workspaces while continuing to use plugin theme colors instead of native Unraid button skins.

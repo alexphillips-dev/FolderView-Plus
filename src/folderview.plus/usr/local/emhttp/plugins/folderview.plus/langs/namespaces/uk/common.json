@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Контейнери з оновленнями: $1. Натисніть, щоб показати лише папки з оновленнями.",
     "common.repair.autostart-vms": "Автозапуск віртуальних машин: $1",
     "common.repair.matches-summary": "Збігається: $1. $2",
-    "common.repair.template-summary": "$1 — Створено: $2; пропущено: $3; автоматично призначено: $4; необхідна перевірка: $5; не відповідає: $6."
+    "common.repair.template-summary": "$1 — Створено: $2; пропущено: $3; автоматично призначено: $4; необхідна перевірка: $5; не відповідає: $6.",
+    "common.repair.position-changes-manual-sort": "До або після розміщення змінює режим сортування на ручний.",
+    "common.repair.drop-inside-this-folder": "Усередині цієї папки",
+    "common.repair.drop-before-this-folder": "Перед цією папкою",
+    "common.repair.drop-after-this-folder": "Після цієї папки",
+    "common.repair.move-preview-path": "Отриманий шлях: $1",
+    "common.repair.move-preview-branch": "Папки у гілці: $1",
+    "common.repair.preview-show-more": "Показати більше ($1)"
 }

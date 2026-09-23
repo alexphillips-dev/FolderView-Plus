@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "更新のあるコンテナ: $1。クリックすると、アップデートが含まれるフォルダーのみが表示されます。",
     "common.repair.autostart-vms": "VM の自動起動: $1",
     "common.repair.matches-summary": "一致します: $1。 $2",
-    "common.repair.template-summary": "$1 — 作成されました: $2;スキップされました: $3;自動割り当て: $4;レビューが必要です: $5;一致しません: $6。"
+    "common.repair.template-summary": "$1 — 作成されました: $2;スキップされました: $3;自動割り当て: $4;レビューが必要です: $5;一致しません: $6。",
+    "common.repair.position-changes-manual-sort": "配置の前後で並べ替えモードが手動に変わります。",
+    "common.repair.drop-inside-this-folder": "このフォルダの中には",
+    "common.repair.drop-before-this-folder": "このフォルダの前に",
+    "common.repair.drop-after-this-folder": "このフォルダ以降",
+    "common.repair.move-preview-path": "結果のパス: $1",
+    "common.repair.move-preview-branch": "ブランチ内のフォルダー: $1",
+    "common.repair.preview-show-more": "もっと見る ($1)"
 }

@@ -14,7 +14,7 @@ const importPath = path.join(pluginRoot, 'scripts/folderviewplus.import.js');
 const endpoint = fs.readFileSync(endpointPath, 'utf8');
 const settings = fs.readFileSync(settingsPath, 'utf8');
 const importRuntime = fs.readFileSync(importPath, 'utf8');
-const lib = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(pluginRoot, 'server/lib.folder-mutations.php'), 'utf8')}`;
+const lib = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(pluginRoot, 'server/lib.folder-mutations.php'), 'utf8')}\n${fs.readFileSync(path.join(pluginRoot, 'server/lib.folder-batch-order.php'), 'utf8')}`;
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
@@ -105,6 +105,33 @@ try {
 }
 $afterStale = file_get_contents(getFolderFilePath('vm'));
 $afterStaleMetadata = readConfigMetadata('vm', false);
+$moveBefore = readConfigMetadata('vm', false);
+$moveFolders = readRawFolderMap('vm');
+$moveChild = $moveFolders['child'];
+$moveResult = applyFolderBatchOperations('vm', [
+    'deletes' => [],
+    'upserts' => [['id' => 'child', 'folder' => array_merge($moveChild, ['parentId' => 'keep'])]],
+    'creates' => [],
+    'manualOrder' => ['keep', 'child'],
+    'expectedPrefsRevision' => $moveBefore['prefsRevision']
+], $moveBefore['folderRevision']);
+$moveAfter = readConfigMetadata('vm', false);
+$movedFolders = readRawFolderMap('vm');
+$movedPrefs = readTypePrefs('vm');
+$beforeStaleMoveFolders = file_get_contents(getFolderFilePath('vm'));
+$beforeStaleMovePrefs = file_get_contents(getTypePrefsPath('vm'));
+$stalePrefsRejected = false;
+try {
+    applyFolderBatchOperations('vm', [
+        'deletes' => [],
+        'upserts' => [['id' => 'child', 'folder' => array_merge($moveChild, ['parentId' => ''])]],
+        'creates' => [],
+        'manualOrder' => ['child', 'keep'],
+        'expectedPrefsRevision' => $moveBefore['prefsRevision']
+    ], $moveAfter['folderRevision']);
+} catch (RuntimeException $error) {
+    $stalePrefsRejected = str_contains($error->getMessage(), 'changed in another page or browser tab');
+}
 
 echo json_encode([
     'result' => $result,
@@ -118,7 +145,15 @@ echo json_encode([
     'invalidPreservedRevision' => $beforeInvalidMetadata['folderRevision'] === $afterInvalidMetadata['folderRevision'],
     'staleRejected' => $staleRejected,
     'stalePreservedFolders' => $beforeStale === $afterStale,
-    'stalePreservedRevision' => $beforeStaleMetadata['folderRevision'] === $afterStaleMetadata['folderRevision']
+    'stalePreservedRevision' => $beforeStaleMetadata['folderRevision'] === $afterStaleMetadata['folderRevision'],
+    'moveResult' => $moveResult,
+    'moveBefore' => $moveBefore,
+    'moveAfter' => $moveAfter,
+    'movedParentId' => $movedFolders['child']['parentId'],
+    'movedManualOrder' => $movedPrefs['manualOrder'],
+    'stalePrefsRejected' => $stalePrefsRejected,
+    'stalePrefsPreservedFolders' => $beforeStaleMoveFolders === file_get_contents(getFolderFilePath('vm')),
+    'stalePrefsPreservedPrefs' => $beforeStaleMovePrefs === file_get_contents(getTypePrefsPath('vm'))
 ], JSON_UNESCAPED_SLASHES);
 `;
 
@@ -164,6 +199,14 @@ test('server batch mutation validates first and commits one atomic folder revisi
     assert.equal(output.staleRejected, true, 'stale batches must be rejected with a revision conflict');
     assert.equal(output.stalePreservedFolders, true, 'stale batches must not overwrite newer folder data');
     assert.equal(output.stalePreservedRevision, true, 'stale batches must not advance metadata');
+    assert.equal(output.moveResult.updatedIds[0], 'child');
+    assert.equal(output.moveAfter.folderRevision, output.moveBefore.folderRevision + 1);
+    assert.equal(output.moveAfter.prefsRevision, output.moveBefore.prefsRevision + 1);
+    assert.equal(output.movedParentId, 'keep');
+    assert.deepEqual(output.movedManualOrder.slice(0, 2), ['keep', 'child']);
+    assert.equal(output.stalePrefsRejected, true);
+    assert.equal(output.stalePrefsPreservedFolders, true);
+    assert.equal(output.stalePrefsPreservedPrefs, true);
 });
 
 test('batch endpoint is guarded, bounded, and delegates one transaction', () => {
@@ -173,6 +216,7 @@ test('batch endpoint is guarded, bounded, and delegates one transaction', () => 
     assert.match(lib, /function applyFolderBatchOperations\(string \$type, array \$operations, \$expectedRevision = ''\): array/);
     assert.match(lib, /withConfigMutationLock\(static function/);
     assert.match(lib, /assertExpectedConfigRevision\(\$type, 'folder', \$expectedRevision\)/);
+    assert.match(lib, /assertExpectedConfigRevision\(\$type, 'prefs', \$expectedPrefsRevision\)/);
     assert.match(lib, /writeRawFolderMap\(\$type, \$nextFolders\)/);
     assert.match(lib, /reconcileManualOrderPrefs\(\$originalPrefs, \$nextFolders\)/);
     assert.match(lib, /appendDiagnosticsHistoryEvent\('folder_batch_mutation'/);
@@ -182,9 +226,21 @@ test('imports and deletes use one batch request instead of per-folder endpoints'
     const clearFlow = settings.slice(settings.indexOf('const clearType ='), settings.indexOf('const updatePrefsPartial ='));
     assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
+    assert.match(fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.folder-editor.js'), 'utf8'), /await requestFolderBatchMutation\(resolvedType, \{/);
     assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);
     assert.doesNotMatch(importRuntime, /runImportChunked/);
     assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}\)/);
     assert.doesNotMatch(clearFlow, /await new Promise\(\(resolve\) => setTimeout\(resolve, (?:180|650)\)\)/);
+});
+
+test('parent-only tree moves keep the current sort mode and positional moves save manual order atomically', () => {
+    const editor = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.folder-editor.js'), 'utf8');
+    const move = editor.slice(editor.indexOf('const applyFolderTreeMove ='), editor.indexOf('const openFolderTreeMoveDialog ='));
+    const root = editor.slice(editor.indexOf('const moveFolderToRootQuick ='), editor.indexOf('Object.assign(window, {'));
+    assert.match(move, /const positionalMove = mode === 'before' \|\| mode === 'after'/);
+    assert.match(move, /\.\.\.\(positionalMove \? \{ manualOrder: nextOrder, expectedPrefsRevision \} : \{\}\)/);
+    assert.doesNotMatch(move, /ensureFolderSortModeManual/);
+    assert.match(root, /await requestFolderBatchMutation\(resolvedType/);
+    assert.doesNotMatch(root, /ensureFolderSortModeManual|saveFolderRecord/);
 });

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Spremnici s ažuriranjima: $1. Kliknite za prikaz mapa samo s ažuriranjima.",
     "common.repair.autostart-vms": "Automatsko pokretanje VM-ova: $1",
     "common.repair.matches-summary": "Odgovara: $1. $2",
-    "common.repair.template-summary": "$1 — Kreirano: $2; preskočeno: $3; automatski dodijeljeno: $4; potreban pregled: $5; bez podudaranja: $6."
+    "common.repair.template-summary": "$1 — Kreirano: $2; preskočeno: $3; automatski dodijeljeno: $4; potreban pregled: $5; bez podudaranja: $6.",
+    "common.repair.position-changes-manual-sort": "Prije ili poslije postavljanja mijenja način sortiranja u Ručno.",
+    "common.repair.drop-inside-this-folder": "Unutar ove mape",
+    "common.repair.drop-before-this-folder": "Prije ove mape",
+    "common.repair.drop-after-this-folder": "Nakon ove mape",
+    "common.repair.move-preview-path": "Rezultirajući put: $1",
+    "common.repair.move-preview-branch": "Mape u grani: $1",
+    "common.repair.preview-show-more": "Prikaži više ($1)"
 }

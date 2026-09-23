@@ -47,97 +47,41 @@ const buildFolderPathLabel = (type, folderId, foldersInput = null, hierarchyMeta
 };
 
 const buildFolderHierarchyMeta = (foldersInput) => {
-    const folders = utils.normalizeFolderMap(foldersInput || {});
-    const ids = Object.keys(folders);
-    const idSet = new Set(ids);
-    const parentById = {};
-    const childrenById = {};
-    const depthById = {};
-    const descendantsById = {};
-    const indexById = new Map(ids.map((id, index) => [id, index]));
+    return utils.buildFolderHierarchyModel(utils.normalizeFolderMap(foldersInput || {}));
+};
 
-    for (const id of ids) {
-        childrenById[id] = [];
-    }
-
-    for (const id of ids) {
-        const rawParent = String(folders[id]?.parentId || '').trim();
-        const safeParent = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
-        parentById[id] = safeParent;
-        if (safeParent) {
-            childrenById[safeParent].push(id);
-        }
-    }
-
-    const sortBySourceOrder = (left, right) => (
-        (indexById.get(left) || 0) - (indexById.get(right) || 0)
-    );
-    for (const children of Object.values(childrenById)) {
-        children.sort(sortBySourceOrder);
-    }
-
-    const visitedDepth = new Set();
-    const assignDepth = (id, depth, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
+const bindTreeMoveDialogPreview = (type, sourceId, folders, hierarchyMeta, modeInsideOnly, translate) => {
+    window.setTimeout(() => {
+        const target = document.querySelector('#fv-tree-move-target');
+        const placement = document.querySelector('#fv-tree-move-placement');
+        const placementField = document.querySelector('#fv-tree-move-placement-field');
+        const sortNote = document.querySelector('#fv-tree-move-sort-note');
+        const preview = document.querySelector('#fv-tree-move-preview');
+        if (!(target instanceof HTMLSelectElement) || !(placement instanceof HTMLElement) || !(preview instanceof HTMLElement)) {
             return;
         }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        if (!Object.prototype.hasOwnProperty.call(depthById, id)) {
-            depthById[id] = depth;
-        } else {
-            depthById[id] = Math.min(depthById[id], depth);
-        }
-        for (const childId of (childrenById[id] || [])) {
-            assignDepth(childId, depth + 1, nextPath);
-        }
-        visitedDepth.add(id);
-    };
-
-    const rootIds = ids.filter((id) => !parentById[id]);
-    rootIds.sort(sortBySourceOrder);
-    for (const rootId of rootIds) {
-        assignDepth(rootId, 0);
-    }
-    for (const id of ids) {
-        if (!visitedDepth.has(id)) {
-            assignDepth(id, 0);
-        }
-    }
-
-    const collectDescendants = (id, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
-            return [];
-        }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        const output = [];
-        for (const childId of (childrenById[id] || [])) {
-            if (!output.includes(childId)) {
-                output.push(childId);
+        const syncPreview = () => {
+            const root = target.value === '__root__';
+            const selectedPlacement = modeInsideOnly ? 'inside' : normalizeTreeMovePlacement(placement.value);
+            if (placementField instanceof HTMLElement) {
+                placementField.hidden = root;
             }
-            const childDescendants = collectDescendants(childId, nextPath);
-            for (const descendantId of childDescendants) {
-                if (!output.includes(descendantId)) {
-                    output.push(descendantId);
-                }
+            if (sortNote instanceof HTMLElement) {
+                sortNote.hidden = root || selectedPlacement === 'inside';
             }
-        }
-        return output;
-    };
-
-    for (const id of ids) {
-        descendantsById[id] = collectDescendants(id);
-    }
-
-    return {
-        ids,
-        idSet,
-        parentById,
-        childrenById,
-        depthById,
-        descendantsById
-    };
+            const parentId = root
+                ? ''
+                : (selectedPlacement === 'inside' ? target.value : String(hierarchyMeta.parentById?.[target.value] || '').trim());
+            const parentPath = parentId ? buildFolderPathLabel(type, parentId, folders, hierarchyMeta) : '';
+            const sourceName = String(folders[sourceId]?.name || sourceId);
+            const path = parentPath ? `${parentPath} / ${sourceName}` : sourceName;
+            const branchCount = 1 + (hierarchyMeta.descendantsById?.[sourceId]?.length || 0);
+            preview.textContent = `${translate('common.repair.move-preview-path', 'Resulting path: $1', path)} · ${translate('common.repair.move-preview-branch', 'Folders in branch: $1', branchCount)}`;
+        };
+        target.addEventListener('change', syncPreview);
+        placement.addEventListener('change', syncPreview);
+        syncPreview();
+    }, 0);
 };
 
 const areStringSetsEqual = (left, right) => {

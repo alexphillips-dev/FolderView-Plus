@@ -7128,24 +7128,6 @@
     ]
   },
   {
-    "phrase": "Manual sort mode is required for root move.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folder-editor.js",
-        "anchor": "'Manual sort mode is required for root move.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Manual sort mode is required for tree move.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folder-editor.js",
-        "anchor": "'Manual sort mode is required for tree move.'"
-      }
-    ]
-  },
-  {
     "phrase": "Matches Docker images containing \"$1\" for $2.",
     "locations": [
       {

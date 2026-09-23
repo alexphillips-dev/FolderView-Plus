@@ -5028,7 +5028,11 @@ const requestFolderBatchMutation = async (type, operations, options = {}) => {
         operations: JSON.stringify({
             deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
             upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
-            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : []
+            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : [],
+            ...(Array.isArray(safeOperations.manualOrder) ? {
+                manualOrder: safeOperations.manualOrder,
+                expectedPrefsRevision: safeOperations.expectedPrefsRevision
+            } : {})
         })
     };
     if (options?.expectedRevision !== null && options?.expectedRevision !== undefined && options?.expectedRevision !== '') {
@@ -6431,8 +6435,9 @@ const removeBasicFolderDragImage = () => {
 };
 
 const clearBasicFolderDragState = () => {
-    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
-        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after', 'fv-row-drag-source');
+    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-inside, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
+        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after', 'fv-row-drag-source');
+        row.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
     });
     removeBasicFolderDragImage();
     basicFolderDragState = null;
@@ -6458,7 +6463,7 @@ const createBasicFolderDragImage = (row) => {
     clonedRow.removeAttribute('id');
     clonedRow.removeAttribute('tabindex');
     clonedRow.removeAttribute('onkeydown');
-    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-after');
+    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
     const sourceCells = Array.from(row.children || []);
     Array.from(clonedRow.children || []).forEach((cell, index) => {
         const sourceCellRect = sourceCells[index]?.getBoundingClientRect?.();
@@ -6471,6 +6476,12 @@ const createBasicFolderDragImage = (row) => {
     ghost.appendChild(table);
     document.body.appendChild(ghost);
     return ghost;
+};
+
+const resolveBasicFolderDropPlacement = (row, clientY) => {
+    const rect = row.getBoundingClientRect();
+    const fraction = rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5;
+    return fraction < 0.3 ? 'before' : (fraction > 0.7 ? 'after' : 'inside');
 };
 
 const bindBasicFolderDragHandles = (type) => {
@@ -6490,7 +6501,7 @@ const bindBasicFolderDragHandles = (type) => {
             basicFolderDragState = {
                 type: resolvedType,
                 folderId,
-                parentId: String(row.getAttribute('data-folder-parent') || '')
+                blockedIds: new Set([folderId, ...(buildFolderHierarchyMeta(getFolderMap(resolvedType)).descendantsById[folderId] || [])])
             };
             row.classList.add('fv-row-drag-source');
             if (event.dataTransfer) {
@@ -6516,43 +6527,48 @@ const bindBasicFolderDragHandles = (type) => {
                 return;
             }
             const targetId = String(row.getAttribute('data-folder-id') || '').trim();
-            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
-            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+            if (!targetId || basicFolderDragState.blockedIds.has(targetId)) {
                 return;
             }
             event.preventDefault();
             if (event.dataTransfer) {
                 event.dataTransfer.dropEffect = 'move';
             }
-            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after').forEach((activeRow) => {
+            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-inside, .fv-row-drag-over-after').forEach((activeRow) => {
                 if (activeRow !== row) {
-                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
+                    activeRow.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
                 }
             });
-            const rect = row.getBoundingClientRect();
-            const after = event.clientY > rect.top + (rect.height / 2);
-            row.classList.toggle('fv-row-drag-over-before', !after);
-            row.classList.toggle('fv-row-drag-over-after', after);
+            const placement = resolveBasicFolderDropPlacement(row, event.clientY);
+            row.classList.toggle('fv-row-drag-over-before', placement === 'before');
+            row.classList.toggle('fv-row-drag-over-inside', placement === 'inside');
+            row.classList.toggle('fv-row-drag-over-after', placement === 'after');
+            row.querySelector('td:first-child')?.setAttribute('data-fv-drop-label', placement === 'inside'
+                ? surfaceT('common.repair.drop-inside-this-folder', 'Inside this folder')
+                : (placement === 'before'
+                    ? surfaceT('common.repair.drop-before-this-folder', 'Before this folder')
+                    : surfaceT('common.repair.drop-after-this-folder', 'After this folder')));
         });
         row.addEventListener('dragleave', () => {
-            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
+            row.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
         });
         row.addEventListener('drop', (event) => {
             if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
                 return;
             }
             const targetId = String(row.getAttribute('data-folder-id') || '').trim();
-            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
-            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+            if (!targetId || basicFolderDragState.blockedIds.has(targetId)) {
                 clearBasicFolderDragState();
                 return;
             }
             event.preventDefault();
-            const placement = row.classList.contains('fv-row-drag-over-after') ? 'after' : 'before';
+            const placement = resolveBasicFolderDropPlacement(row, event.clientY);
             const draggedId = basicFolderDragState.folderId;
             clearBasicFolderDragState();
-            if (typeof moveFolderRowBesideSibling === 'function') {
-                void moveFolderRowBesideSibling(resolvedType, draggedId, targetId, placement);
+            if (typeof openFolderTreeMoveDialog === 'function') {
+                openFolderTreeMoveDialog(resolvedType, draggedId, { targetId, placement });
             }
         });
     });
@@ -6977,7 +6993,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : '';
         const dragHandleHtml = (hideOrderControls || mobileTreeReorderMode)
             ? ''
-            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
+            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to move or reorder" aria-label="Drag ${safeNameText} to move or reorder"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';

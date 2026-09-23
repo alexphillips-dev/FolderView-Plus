@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "具有更新的容器：$1。按一下可顯示僅包含更新的資料夾。",
     "common.repair.autostart-vms": "自動啟動 VM：$1",
     "common.repair.matches-summary": "匹配：$1。 $2",
-    "common.repair.template-summary": "$1 — 建立：$2；跳過：$3；自動分配：$4；需要審查：$5；不符：$6。"
+    "common.repair.template-summary": "$1 — 建立：$2；跳過：$3；自動分配：$4；需要審查：$5；不符：$6。",
+    "common.repair.position-changes-manual-sort": "在放置之前或之後將排序模式變更為手動。",
+    "common.repair.drop-inside-this-folder": "在這個資料夾裡面",
+    "common.repair.drop-before-this-folder": "在此資料夾之前",
+    "common.repair.drop-after-this-folder": "在此資料夾之後",
+    "common.repair.move-preview-path": "結果路徑：$1",
+    "common.repair.move-preview-branch": "分支中的資料夾：$1",
+    "common.repair.preview-show-more": "顯示更多 ($1)"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -943,9 +943,9 @@
     "legacy.surface.bf78733717254c51": "Download was not received",
     "legacy.surface.a75ee6a28c39f865": "Drag child folders to control the order shown in previews and expanded rows.",
     "legacy.surface.249f3f2c46142a6a": "Drag reorder only works within the same level. Use Tree move to change parent.",
+    "legacy.surface.ce37216cc8ac4cbe": "Drag to move or reorder",
     "legacy.surface.fcf4a4036d170f75": "Drag to reorder folder",
     "legacy.surface.06edad49030fab7b": "Drag to reorder this member.",
-    "legacy.surface.f728f30997731c4a": "Drag to reorder within this level",
     "legacy.surface.0a8da50259761b90": "Drop target no longer exists.",
     "legacy.surface.507b0f5c6bae22f8": "Drop target order could not be resolved.",
     "legacy.surface.d5da154d9f00ca14": "Dry run",
@@ -1564,8 +1564,6 @@
     "legacy.surface.9df2c50dfcf1cad4": "Manual order is active",
     "legacy.surface.bb25e653dd556adb": "Manual order will be captured as you move folders.",
     "legacy.surface.a05b753d29e320a5": "Manual sort",
-    "legacy.surface.09a26db3d8c024d2": "Manual sort mode is required for root move.",
-    "legacy.surface.e753fa31a7cfea92": "Manual sort mode is required for tree move.",
     "legacy.surface.663e0cd5f1d214cb": "Mask external URLs",
     "legacy.surface.fed998e279241658": "Mask image registries",
     "legacy.surface.8600edb883562f2c": "Mask LAN IPs",

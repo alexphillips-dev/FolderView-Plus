@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
+        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -652,5 +652,12 @@
     "common.repair.updates-show-matching": "Containers met updates: $1. Klik om alleen mappen met updates weer te geven.",
     "common.repair.autostart-vms": "VM's automatisch starten: $1",
     "common.repair.matches-summary": "Komt overeen met: $1. $2",
-    "common.repair.template-summary": "$1 — Aangemaakt: $2; overgeslagen: $3; automatisch toegewezen: $4; beoordeling nodig: $5; ongeëvenaard: $6."
+    "common.repair.template-summary": "$1 — Aangemaakt: $2; overgeslagen: $3; automatisch toegewezen: $4; beoordeling nodig: $5; ongeëvenaard: $6.",
+    "common.repair.position-changes-manual-sort": "Voor of Na plaatsing wordt de sorteermodus gewijzigd in Handmatig.",
+    "common.repair.drop-inside-this-folder": "In deze map",
+    "common.repair.drop-before-this-folder": "Vóór deze map",
+    "common.repair.drop-after-this-folder": "Na deze map",
+    "common.repair.move-preview-path": "Resulterend pad: $1",
+    "common.repair.move-preview-branch": "Mappen in filiaal: $1",
+    "common.repair.preview-show-more": "Meer weergeven ($1)"
 }

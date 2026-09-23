@@ -454,5 +454,12 @@
   "common.repair.updates-show-matching": "Containers with updates: $1. Click to show folders with updates only.",
   "common.repair.autostart-vms": "Autostart VMs: $1",
   "common.repair.matches-summary": "Matches: $1. $2",
-  "common.repair.template-summary": "$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6."
+  "common.repair.template-summary": "$1 — Created: $2; skipped: $3; auto-assigned: $4; review needed: $5; unmatched: $6.",
+  "common.repair.position-changes-manual-sort": "Before or After placement changes the sort mode to Manual.",
+  "common.repair.drop-inside-this-folder": "Inside this folder",
+  "common.repair.drop-before-this-folder": "Before this folder",
+  "common.repair.drop-after-this-folder": "After this folder",
+  "common.repair.move-preview-path": "Resulting path: $1",
+  "common.repair.move-preview-branch": "Folders in branch: $1",
+  "common.repair.preview-show-more": "Show more ($1)"
 }

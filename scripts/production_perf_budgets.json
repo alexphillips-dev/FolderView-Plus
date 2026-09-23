@@ -2,11 +2,8 @@
   "version": 1,
   "measuredRuns": 3,
   "observationMs": 1200,
-  "knownConsoleErrors": [
-    "[FolderView Plus] Unable to initialize activity feed: activityFeedEntries is not defined",
-    "[FolderView Plus] Theme diagnostics failed: prefsByType is not defined"
-  ],
-  "maxKnownConsoleErrors": 2,
+  "knownConsoleErrors": [],
+  "maxKnownConsoleErrors": 0,
   "knownMissingKeys": [],
   "timingPolicy": { "percent": 60, "floor": 250 },
   "countPolicy": { "percent": 15, "floor": 10 },

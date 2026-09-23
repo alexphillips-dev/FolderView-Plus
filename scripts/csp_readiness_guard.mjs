@@ -55,7 +55,7 @@ const explicitHtmlSinkReviews = new Map([
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:604', 'Panel titles and descriptions come from the frozen plugin-authored section metadata table.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:680', 'Section keys and labels come from the plugin-authored editor metadata tables.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:832', 'The preview image source is a fixed plugin asset path.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js:563', 'Rule, template, status, and folder values are contextually escaped by the owning markup builders before the panel is mounted.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js:562', 'Rule, template, status, and folder values are contextually escaped by the owning markup builders before the panel is mounted.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js:691', 'The empty-filter state contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js:343', 'Folder identity and path values are escaped, status values are normalized counts, and action groups use guarded builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js:189', 'FolderView3 report text is escaped at every interpolation boundary; counts and selected states are normalized before markup is mounted.'],

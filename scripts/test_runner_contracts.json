@@ -38,6 +38,7 @@
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
+    { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
@@ -79,11 +80,12 @@
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs",
         "tests/browser/helpers/docker-preview-context.mjs",
-        "tests/browser/helpers/docker-hidden-folder-context.mjs"
+        "tests/browser/helpers/docker-hidden-folder-context.mjs",
+        "tests/browser/helpers/vm-lifecycle.mjs"
       ],
       "testCount": 61,
-      "assertionCount": 716,
-      "pageEvaluateCount": 167,
+      "assertionCount": 719,
+      "pageEvaluateCount": 169,
       "orderedTitleSha256": "53acc65baed1b1b7c9773dd2c190753d7da6545bba4fd0b107b7fb8b256c77a1"
     }
   }

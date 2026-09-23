@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { checkVmPauseResume } from '../helpers/vm-lifecycle.mjs';
 
 export const registerDashboardLifecycleFixtureCases = ({ test, baseUrl }) => {
 test('Compact Matrix responds to the Dashboard widget width without clipping long names', async ({ page }) => {
@@ -311,32 +312,7 @@ test('VM lifecycle keeps native rows, folder totals, icons, and context actions 
 });
 
 test('VM lifecycle reconciles Pause and Resume without stale native menus or spinner tails', async ({ page }) => {
-    await page.goto(`${baseUrl}/vm-lifecycle`, { waitUntil: 'load' });
-    await page.click('#fixture-vm-row');
-    await page.click('#fixture-context-menu [data-action="domain-pause"]');
-    await page.waitForFunction(() => {
-        const snapshot = window.fixtureVmLifecycle.getSnapshot();
-        return snapshot.runtimeState === 'paused' && snapshot.busyIconCount === 0;
-    });
-    let snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
-    assert.equal(snapshot.folderText, '1/1 paused');
-    assert.match(snapshot.memberIconClasses, /fa-pause/);
-    assert.match(snapshot.memberIconClasses, /orange-text/);
-
-    await page.click('#fixture-vm-row');
-    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), [
-        'domain-resume', 'domain-destroy'
-    ]);
-    await page.click('#fixture-context-menu [data-action="domain-resume"]');
-    await page.waitForFunction(() => {
-        const current = window.fixtureVmLifecycle.getSnapshot();
-        return current.runtimeState === 'running' && current.busyIconCount === 0;
-    });
-    snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
-    assert.equal(snapshot.nativeLoadlistCount, 0);
-    assert.equal(snapshot.lifecycle.fallbackCount, 0);
-    assert.equal(snapshot.consoleIconClasses, 'fa fa-desktop');
-    assert.equal(snapshot.menuIconClasses, 'fa fa-bars');
+    await checkVmPauseResume(page, baseUrl);
 });
 
 test('Dashboard lifecycle performs one native fallback when Start snapshots remain stale', async ({ page }) => {

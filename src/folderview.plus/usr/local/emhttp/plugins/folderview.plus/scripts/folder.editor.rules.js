@@ -212,6 +212,7 @@
         };
 
         const saveFolderEditorPrefs = async (nextPrefs) => {
+            nextPrefs = rootWindow.FolderViewPlusPrefsStore?.cleanPatch(nextPrefs, folderEditorPrefs) || nextPrefs;
             if (preferenceCoordinator) {
                 folderEditorPrefs = normalizePrefs(await preferenceCoordinator.save(type, nextPrefs || {}, {
                     currentPrefs: folderEditorPrefs,
@@ -225,9 +226,7 @@
             }
             const payload = {
                 type,
-                prefs: JSON.stringify(Object.fromEntries(
-                    Object.entries(nextPrefs || {}).filter(([key]) => key !== '_metadata')
-                ))
+                prefs: JSON.stringify(Object.fromEntries(Object.entries(nextPrefs || {}).filter(([key]) => key !== '_metadata')))
             };
             const expectedRevision = Math.max(
                 0,

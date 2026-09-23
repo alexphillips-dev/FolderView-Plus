@@ -52,15 +52,15 @@
         return next;
     };
 
-    const cleanPatch = (patch) => {
-        if (!isPlainObject(patch)) {
-            return {};
-        }
-        return Object.fromEntries(
-            Object.entries(patch)
-                .filter(([key]) => key !== '_metadata')
-                .map(([key, value]) => [key, cloneValue(value)])
-        );
+    const cleanPatch = (patch, baseline = null) => {
+        if (!isPlainObject(patch)) return {};
+        return Object.fromEntries(Object.entries(patch).flatMap(([key, value]) => {
+            if (key === '_metadata') return [];
+            const previous = baseline?.[key];
+            const next = isPlainObject(value) ? cleanPatch(value, previous) : cloneValue(value);
+            const unchanged = isPlainObject(value) ? Object.keys(next).length === 0 : JSON.stringify(value) === JSON.stringify(previous);
+            return isPlainObject(baseline) && unchanged ? [] : [[key, next]];
+        }));
     };
 
     const protectDashboardLayoutFromBroadPrefsWrite = (prefs, options = {}) => {

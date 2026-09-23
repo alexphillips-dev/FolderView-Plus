@@ -104,7 +104,7 @@
             let backup = null;
             try {
                 backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
-                prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+                prefsByType[resolvedType] = await postPrefs(resolvedType, next, { baselinePrefs: current });
                 await refreshType(resolvedType);
                 if (backup?.name) {
                     await offerUndoAction(resolvedType, backup, pinned ? 'Pin branch' : 'Unpin branch');

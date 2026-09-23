@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.23.01">
-<!ENTITY md5 "2deca5e693d37efc9dc33a2eeac53c89">
-<!ENTITY sha256 "19ed9296a1d9c72d609d284d4a01d23dcce0d33be567aebe80cb05033fd55f1c">
+<!ENTITY version "2026.09.23.02">
+<!ENTITY md5 "1eb6e7d35917297e0d085bc2cd26fb4d">
+<!ENTITY sha256 "238b21461f1e36af416d77feeb98bc8a6ea60fd43d588a0c02146e4579e58c2c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.02
+- Fix: Settings and folder-editor saves now preserve unrelated changes made in another tab, including when a save retries after a revision conflict. Delayed branch-pin and Docker start-order saves retain only the intended edits.
+- Fix: Settings diagnostics start after Settings initialization and run once, preventing misleading startup errors from accessing settings before they are ready.
+- Fix: Overlapping VM actions release abandoned busy indicators while keeping newer and queued actions marked busy. Late responses from superseded actions no longer finalize the current action or trigger a stale page refresh.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised browser scripts.
+
 
 ###2026.09.23.01
 - Fix: Restoring the latest Docker or VM backup now selects the intended snapshot before creating its safety backup, so it no longer restores the current state by mistake.

@@ -869,7 +869,9 @@ const protectDashboardLayoutFromBroadPrefsWrite = (prefs, options = {}) => {
 };
 
 const postPrefs = async (type, prefs, options = {}) => {
-    const protectedPrefs = protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
+    const protectedPrefs = diagnosticsPrefsStoreModule?.cleanPatch(
+        protectDashboardLayoutFromBroadPrefsWrite(prefs, options), options.baselinePrefs || (options.currentPrefs ? null : prefsByType?.[type])
+    ) || protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
     if (diagnosticsPrefsCoordinator) {
         const savedPrefs = await diagnosticsPrefsCoordinator.save(type, protectedPrefs, {
             currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
@@ -2258,6 +2260,7 @@ Object.assign(window, {
 });
 
 window.FolderViewPlusDiagnostics = Object.freeze({
+    initialize: () => initializeActivityDiagnosticsRuntime(),
     getDiagnostics,
     getSupportBundle,
     runDiagnosticAction,
@@ -2303,7 +2306,10 @@ window.FolderViewPlusDiagnostics = Object.freeze({
 });
 window.FolderViewPlusDiagnosticsModuleLoaded = true;
 
+let activityDiagnosticsInitialized = false;
 const initializeActivityDiagnosticsRuntime = () => {
+    if (activityDiagnosticsInitialized) return;
+    activityDiagnosticsInitialized = true;
     const startupActions = [
         ['activity feed', renderActivityFeed],
         ['theme diagnostics', runThemeDiagnostics],
@@ -2323,9 +2329,4 @@ const initializeActivityDiagnosticsRuntime = () => {
     }
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeActivityDiagnosticsRuntime, { once: true });
-} else {
-    initializeActivityDiagnosticsRuntime();
-}
 })(window, document);

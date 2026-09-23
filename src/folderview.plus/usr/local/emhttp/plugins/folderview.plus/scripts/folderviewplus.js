@@ -8401,7 +8401,7 @@ const persistQueuedDockerStartOrderPrefs = () => {
     dockerStartOrderQueuedPrefs = null;
     dockerStartOrderSaveChain = dockerStartOrderSaveChain
         .then(async () => {
-            const savedPrefs = await postPrefs('docker', nextPrefs);
+            const savedPrefs = await postPrefs('docker', nextPrefs, { currentPrefs: prefsByType.docker });
             if (!dockerStartOrderQueuedPrefs) {
                 prefsByType.docker = savedPrefs;
             }
@@ -8422,7 +8422,7 @@ const flushDockerStartOrderSaveQueue = async () => {
 };
 
 const queueDockerStartOrderPrefsSave = (nextPrefs) => {
-    dockerStartOrderQueuedPrefs = nextPrefs;
+    dockerStartOrderQueuedPrefs = prefsStoreModule.mergePatch(dockerStartOrderQueuedPrefs || {}, nextPrefs);
     if (dockerStartOrderSaveTimer) {
         window.clearTimeout(dockerStartOrderSaveTimer);
     }
@@ -8456,7 +8456,7 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     });
     prefsByType.docker = nextPrefs;
     renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
-    queueDockerStartOrderPrefsSave(nextPrefs);
+    queueDockerStartOrderPrefsSave({ dockerStartOrder: Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]])) });
     if (options.refreshPreview === true) {
         scheduleDockerStartOrderPreviewRefresh();
     }
@@ -11698,6 +11698,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
+        window.FolderViewPlusDiagnostics?.initialize?.();
         revealSettingsBootstrapSurface();
         void refreshPluginUpdateIndicator();
         hydrateActiveDiagnosticsPreview();

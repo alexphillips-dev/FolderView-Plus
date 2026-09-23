@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "বাল্ক সরানো অনুপলব্ধ",
     "legacy.surface.0020e8cd415b07b6": "ডকার ফোল্ডার এখনও সেট আপ করা হয়নি",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus একটি অবৈধ শনাক্তকারী সহ একটি ফোল্ডার রেন্ডার করতে অস্বীকার করেছে৷",
     "legacy.surface.16f04d98040248c8": "স্বাস্থ্য সতর্কতা থ্রেশহোল্ড",
     "legacy.surface.170322a32f3c35b2": "তথ্য",
+    "legacy.surface.170796299d00e8f9": "এই স্ন্যাপশটের ফোল্ডার এবং সংরক্ষিত পছন্দগুলি পুনরুদ্ধার করবেন? প্রথমে একটি নিরাপত্তা ব্যাকআপ তৈরি করা হয়।",
     "legacy.surface.170f66fa3c7b3a46": "ডকার টেবিল বডি",
     "legacy.surface.171ea0536a2c7b21": "$1 এর অধীনে নেস্টেড",
     "legacy.surface.171f990651a89dce": "একটি টেমপ্লেট নাম লিখুন (3-64 অক্ষর)।",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "ওয়েবইউআই",
     "legacy.surface.2a2eafdd4473edc6": "ফোল্ডার সম্পাদক রানটাইম সম্পদ লোড করতে ব্যর্থ হয়েছে.",
     "legacy.surface.2a486d9ebaf7c653": "স্বাস্থ্য আপডেট নীতি",
-    "legacy.surface.2a61fbb803812885": "এটি বর্তমান $1 ফোল্ডারগুলিকে ওভাররাইট করবে৷",
     "legacy.surface.2a7bb086c977a805": "ফাঁকা সেটিংস পৃষ্ঠ পুনরুদ্ধার করুন",
     "legacy.surface.2a87066300527366": "গাছ মেরামতের কাজ চলছে",
     "legacy.surface.2aaa0172cce46f2e": "টোকেন ওভাররাইড রিসেট। এই পরিবর্তনটি প্রয়োগ করতে কাস্টমাইজেশন স্তরটি সংরক্ষণ করুন।",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "শাখা আপডেট করুন",
     "legacy.surface.da608eae33b5b3ac": "বিভাজক বেধ",
     "legacy.surface.da6896d5c20e12f5": "স্ট্যাটাস চিপ অ্যাকসেন্ট দ্বারা ব্যবহৃত বন্ধ শতাংশ সতর্কতা থ্রেশহোল্ডের জন্য ঐচ্ছিক প্রতি-ফোল্ডার ওভাররাইড।",
-    "legacy.surface.da85bb79d8abda9f": "এটি সাম্প্রতিক ব্যাকআপ স্ন্যাপশট সহ বর্তমান $1 ফোল্ডারগুলিকে ওভাররাইট করবে৷",
     "legacy.surface.da8fa2dead361907": "আইটেম বন্ধ করা হয়।",
     "legacy.surface.da9d07446fbb1b7d": "প্রিভিউ থ্রেশহোল্ড",
     "legacy.surface.daaf6edca8ef1238": "প্রথম নতুন তৈরি করা হয়েছে",

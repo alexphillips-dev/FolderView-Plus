@@ -5490,13 +5490,14 @@ const fetchBackupSnapshot = async (type, name) => {
     return response.snapshot || {};
 };
 
-const restoreBackupByName = async (type, name) => {
+const restoreBackupByName = async (type, name, createSafetyBackup = false) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore',
-        name
+        name, createSafetyBackup
     });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
@@ -10685,7 +10686,7 @@ const restoreBackupEntry = (type, name) => {
     }
     swal({
         title: 'Restore this backup?',
-        text: `This will overwrite current ${resolvedType} folders.`,
+        text: surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -10697,10 +10698,9 @@ const restoreBackupEntry = (type, name) => {
         }
         await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup restore`, async () => {
             try {
-                const undoBackup = await createBackup(resolvedType, `before-restore-${name}`);
-                await restoreBackupByName(resolvedType, name);
+                const restore = await restoreBackupByName(resolvedType, name, true);
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-                await offerUndoAction(resolvedType, undoBackup, 'Backup restore');
+                await offerUndoAction(resolvedType, restore.backup, 'Backup restore');
             } catch (error) {
                 showError('Restore failed', error);
             }
@@ -10721,7 +10721,7 @@ const restoreLatestBackup = (type) => {
     }
     swal({
         title: 'Restore latest backup?',
-        text: `This will overwrite current ${resolvedType} folders with the latest backup snapshot.`,
+        text: surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -10746,10 +10746,9 @@ const restoreLatestBackup = (type) => {
                 progressOpen = true;
                 setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
-                const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
+                const restore = await restoreLatest(resolvedType), undoBackup = restore.backup;
                 setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
 
-                await restoreLatest(resolvedType);
                 setProgress(2, 'Restored latest backup snapshot.');
 
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);

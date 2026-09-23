@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Massenverschiebung nicht verfügbar",
     "legacy.surface.0020e8cd415b07b6": "Docker-Ordner sind noch nicht eingerichtet",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus weigerte sich, einen Ordner mit einer ungültigen Kennung darzustellen.",
     "legacy.surface.16f04d98040248c8": "Schwellenwert für Gesundheitswarnung",
     "legacy.surface.170322a32f3c35b2": "Infos",
+    "legacy.surface.170796299d00e8f9": "Ordner und gespeicherte Einstellungen dieses Snapshots wiederherstellen? Zunächst wird ein Sicherheits-Backup erstellt.",
     "legacy.surface.170f66fa3c7b3a46": "Docker-Tabellenkörper",
     "legacy.surface.171ea0536a2c7b21": "Verschachtelt unter $1",
     "legacy.surface.171f990651a89dce": "Geben Sie einen Vorlagennamen ein (3–64 Zeichen).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Die Laufzeitressourcen des Ordnereditors konnten nicht geladen werden.",
     "legacy.surface.2a486d9ebaf7c653": "Richtlinie für Gesundheitsaktualisierungen",
-    "legacy.surface.2a61fbb803812885": "Dadurch werden die aktuellen $1-Ordner überschrieben.",
     "legacy.surface.2a7bb086c977a805": "Stellen Sie die leere Einstellungsoberfläche wieder her",
     "legacy.surface.2a87066300527366": "Baumreparatur im Gange",
     "legacy.surface.2aaa0172cce46f2e": "Zurücksetzen des Token-Overrides. Speichern Sie die Anpassungsebene, um diese Änderung zu übernehmen.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Zweig aktualisieren",
     "legacy.surface.da608eae33b5b3ac": "Teilerdicke",
     "legacy.surface.da6896d5c20e12f5": "Optionale Überschreibung pro Ordner für den Warnschwellenwert für gestoppte Prozent, der vom Status-Chip-Akzent verwendet wird.",
-    "legacy.surface.da85bb79d8abda9f": "Dadurch werden die aktuellen $1-Ordner mit dem neuesten Backup-Snapshot überschrieben.",
     "legacy.surface.da8fa2dead361907": "Artikel ist gestoppt.",
     "legacy.surface.da9d07446fbb1b7d": "Vorschauschwellenwert",
     "legacy.surface.daaf6edca8ef1238": "Das Neueste zuerst erstellt",

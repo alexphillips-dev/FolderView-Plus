@@ -48,6 +48,7 @@
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
+      "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
       "server/lib.custom-icon-actions.php": { "limit": 448, "target": 380, "history": [448] },
       "server/lib.custom-icon-endpoint-foundation.php": { "limit": 513, "target": 420, "history": [513] },
       "server/lib.custom-icon-storage.php": { "limit": 499, "target": 420, "history": [499] },
@@ -467,10 +468,20 @@
       "owner": "server-backup-snapshots",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.backup-schedule.php", "server/lib.storage.php", "server/lib.prefs.php"],
+      "dependsOn": ["server/lib.backup-schedule.php", "server/lib.storage.php", "server/lib.prefs.php", "server/lib.backup-restore.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 17, "sha256": "a549ee92cf8e9602672a84d5717be08a1ec974f480daa06a8e00d32cfa61c8cd" }
+      "functionInventory": { "count": 13, "sha256": "1d72df9d3e97fc6a9446563e3b0e20869027b27ef7006a4ce2d534eaafe3dd9a" }
+    },
+    {
+      "file": "server/lib.backup-restore.php",
+      "owner": "server-backup-restore",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.backup-snapshots.php", "server/lib.storage.php", "server/lib.prefs.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.backup-snapshots.php",
+      "functionInventory": { "count": 4, "sha256": "a57424ba21dcd1537f13e00a2bb886d8a64f3ff07dfa776627470b28b92cb13c" }
     },
     {
       "file": "server/lib.folder-rules.php",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimiento masivo no disponible",
     "legacy.surface.0020e8cd415b07b6": "Las carpetas de Docker aún no están configuradas",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus se negó a mostrar una carpeta con un identificador no válido.",
     "legacy.surface.16f04d98040248c8": "Umbral de advertencia de salud",
     "legacy.surface.170322a32f3c35b2": "Información",
+    "legacy.surface.170796299d00e8f9": "¿Restaurar las carpetas y las preferencias guardadas de esta instantánea? Primero se crea una copia de seguridad.",
     "legacy.surface.170f66fa3c7b3a46": "Cuerpo de la mesa acoplable",
     "legacy.surface.171ea0536a2c7b21": "Anidado en $1",
     "legacy.surface.171f990651a89dce": "Ingrese un nombre de plantilla (3-64 caracteres).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "interfaz de usuario web",
     "legacy.surface.2a2eafdd4473edc6": "Los recursos de tiempo de ejecución del editor de carpetas no se pudieron cargar.",
     "legacy.surface.2a486d9ebaf7c653": "Política de actualizaciones de salud",
-    "legacy.surface.2a61fbb803812885": "Esto sobrescribirá las carpetas actuales de $1.",
     "legacy.surface.2a7bb086c977a805": "Recuperar la superficie de configuración en blanco",
     "legacy.surface.2a87066300527366": "Reparación de árboles en progreso",
     "legacy.surface.2aaa0172cce46f2e": "Restablecimiento de anulación de token. Guarde la capa de personalización para aplicar este cambio.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Rama de actualización",
     "legacy.surface.da608eae33b5b3ac": "Grosor del divisor",
     "legacy.surface.da6896d5c20e12f5": "Anulación opcional por carpeta para el umbral de advertencia de porcentaje detenido utilizado por el acento del chip de estado.",
-    "legacy.surface.da85bb79d8abda9f": "Esto sobrescribirá las carpetas actuales de $1 con la última instantánea de respaldo.",
     "legacy.surface.da8fa2dead361907": "El artículo está detenido.",
     "legacy.surface.da9d07446fbb1b7d": "Umbral de vista previa",
     "legacy.surface.daaf6edca8ef1238": "Creado el más nuevo primero",

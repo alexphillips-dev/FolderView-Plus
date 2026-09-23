@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -2197,6 +2197,7 @@
     "legacy.surface.ce9558158f330075": "Restore the latest safe snapshot or create a manual checkpoint before making changes.",
     "legacy.surface.592d4dcf500ea0dc": "Restore the latest undo-capable $1 backup snapshot.",
     "legacy.surface.d3357dea7f97aaa5": "Restore this backup?",
+    "legacy.surface.170796299d00e8f9": "Restore this snapshot’s folders and saved preferences? A safety backup is created first.",
     "legacy.surface.3b2382b41cde8dc1": "restore up to $1 expanded folders",
     "legacy.surface.01c2cf1218cb6003": "Restored $1",
     "legacy.surface.d78457ae55f08616": "Restored $1.",
@@ -2768,8 +2769,6 @@
     "legacy.surface.f9ea2b5acc32d631": "This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it.",
     "legacy.surface.b3ee8d3a9c123ef1": "This Unraid API does not expose a supported Docker container query.",
     "legacy.surface.deb615f4f9c25278": "this Unraid server",
-    "legacy.surface.da85bb79d8abda9f": "This will overwrite current $1 folders with the latest backup snapshot.",
-    "legacy.surface.2a61fbb803812885": "This will overwrite current $1 folders.",
     "legacy.surface.c00a130f69316d1b": "This will reset parent links to root for $1 folder(s). Advisory depth/empty-branch warnings are reported but not auto-changed.",
     "legacy.surface.04f0e839041b1d85": "Thread with some icons",
     "legacy.surface.3d5abd9fd766c233": "Threshold must be an integer between 0 and 100.",

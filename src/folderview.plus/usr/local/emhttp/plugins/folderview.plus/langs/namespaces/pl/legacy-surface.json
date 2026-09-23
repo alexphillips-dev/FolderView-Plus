@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Przenoszenie zbiorcze niedostępne",
     "legacy.surface.0020e8cd415b07b6": "Foldery Dockera nie zostały jeszcze skonfigurowane",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus odmówił renderowania folderu z nieprawidłowym identyfikatorem.",
     "legacy.surface.16f04d98040248c8": "Próg ostrzeżenia o stanie zdrowia",
     "legacy.surface.170322a32f3c35b2": "Informacje",
+    "legacy.surface.170796299d00e8f9": "Przywrócić foldery i zapisane preferencje tej migawki? Najpierw tworzona jest kopia zapasowa bezpieczeństwa.",
     "legacy.surface.170f66fa3c7b3a46": "Treść tabeli dokowanej",
     "legacy.surface.171ea0536a2c7b21": "Zagnieżdżone w $1",
     "legacy.surface.171f990651a89dce": "Wpisz nazwę szablonu (3–64 znaki).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Nie udało się załadować zasobów środowiska wykonawczego edytora folderów.",
     "legacy.surface.2a486d9ebaf7c653": "Polityka aktualizacji stanu zdrowia",
-    "legacy.surface.2a61fbb803812885": "Spowoduje to zastąpienie bieżących folderów $1.",
     "legacy.surface.2a7bb086c977a805": "Odzyskaj pustą powierzchnię ustawień",
     "legacy.surface.2a87066300527366": "Trwa naprawa drzew",
     "legacy.surface.2aaa0172cce46f2e": "Reset zastąpienia tokenu. Zapisz warstwę dostosowywania, aby zastosować tę zmianę.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Zaktualizuj oddział",
     "legacy.surface.da608eae33b5b3ac": "Grubość rozdzielacza",
     "legacy.surface.da6896d5c20e12f5": "Opcjonalne zastąpienie dla folderu progu ostrzegawczego procentu zatrzymania używanego przez akcent chipa stanu.",
-    "legacy.surface.da85bb79d8abda9f": "Spowoduje to zastąpienie bieżących folderów $1 najnowszą migawką kopii zapasowej.",
     "legacy.surface.da8fa2dead361907": "Element został zatrzymany.",
     "legacy.surface.da9d07446fbb1b7d": "Próg podglądu",
     "legacy.surface.daaf6edca8ef1238": "Najpierw utworzono najnowsze",

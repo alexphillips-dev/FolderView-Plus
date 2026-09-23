@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "El moviment massiu no està disponible",
     "legacy.surface.0020e8cd415b07b6": "Les carpetes Docker encara no s'han configurat",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus es va negar a representar una carpeta amb un identificador no vàlid.",
     "legacy.surface.16f04d98040248c8": "Llindar d'avís de salut",
     "legacy.surface.170322a32f3c35b2": "Informació",
+    "legacy.surface.170796299d00e8f9": "Voleu restaurar les carpetes i les preferències desades d'aquesta instantània? Primer es crea una còpia de seguretat.",
     "legacy.surface.170f66fa3c7b3a46": "Cos de la taula Docker",
     "legacy.surface.171ea0536a2c7b21": "Imbricat sota $1",
     "legacy.surface.171f990651a89dce": "Introduïu un nom de plantilla (3-64 caràcters).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Els recursos en temps d'execució de l'editor de carpetes no s'han pogut carregar.",
     "legacy.surface.2a486d9ebaf7c653": "Política d'actualitzacions de salut",
-    "legacy.surface.2a61fbb803812885": "Això sobreescriurà les carpetes $1 actuals.",
     "legacy.surface.2a7bb086c977a805": "Recupera la superfície de configuració en blanc",
     "legacy.surface.2a87066300527366": "Reparació d'arbres en curs",
     "legacy.surface.2aaa0172cce46f2e": "Restabliment de la substitució del testimoni. Deseu la capa de personalització per aplicar aquest canvi.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Actualitzar la branca",
     "legacy.surface.da608eae33b5b3ac": "Gruix del divisor",
     "legacy.surface.da6896d5c20e12f5": "Anul·lació opcional per carpeta per al llindar d'avís de percentatge aturat utilitzat per l'accent del xip d'estat.",
-    "legacy.surface.da85bb79d8abda9f": "Això sobreescriurà les carpetes $1 actuals amb la darrera instantània de còpia de seguretat.",
     "legacy.surface.da8fa2dead361907": "L'article està aturat.",
     "legacy.surface.da9d07446fbb1b7d": "Llindar de previsualització",
     "legacy.surface.daaf6edca8ef1238": "Creat el més nou primer",

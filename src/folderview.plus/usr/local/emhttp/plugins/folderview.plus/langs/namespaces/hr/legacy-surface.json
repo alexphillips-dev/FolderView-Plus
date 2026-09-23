@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Skupno premještanje nije dostupno",
     "legacy.surface.0020e8cd415b07b6": "Docker mape još nisu postavljene",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus odbio je prikazati mapu s nevažećim identifikatorom.",
     "legacy.surface.16f04d98040248c8": "Prag zdravstvenog upozorenja",
     "legacy.surface.170322a32f3c35b2": "Info",
+    "legacy.surface.170796299d00e8f9": "Vratiti mape i spremljene postavke ove snimke? Prvo se stvara sigurnosna kopija.",
     "legacy.surface.170f66fa3c7b3a46": "Tijelo doker stola",
     "legacy.surface.171ea0536a2c7b21": "Ugniježđeno pod $1",
     "legacy.surface.171f990651a89dce": "Unesite naziv predloška (3-64 znaka).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Elementi vremena izvođenja uređivača mapa nisu se uspjeli učitati.",
     "legacy.surface.2a486d9ebaf7c653": "Politika ažuriranja zdravlja",
-    "legacy.surface.2a61fbb803812885": "Ovo će prebrisati trenutne $1 mape.",
     "legacy.surface.2a7bb086c977a805": "Vratite praznu površinu postavki",
     "legacy.surface.2a87066300527366": "Popravak stabla u tijeku",
     "legacy.surface.2aaa0172cce46f2e": "Ponovno postavljanje tokena. Spremite sloj prilagodbe da biste primijenili ovu promjenu.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Ažuriraj granu",
     "legacy.surface.da608eae33b5b3ac": "Debljina razdjelnika",
     "legacy.surface.da6896d5c20e12f5": "Neobavezno nadjačavanje po mapi za prag upozorenja postotka zaustavljenog koji koristi naglasak statusnog čipa.",
-    "legacy.surface.da85bb79d8abda9f": "Ovo će prebrisati trenutne $1 mape najnovijom sigurnosnom snimkom.",
     "legacy.surface.da8fa2dead361907": "Stavka je zaustavljena.",
     "legacy.surface.da9d07446fbb1b7d": "Prag pregleda",
     "legacy.surface.daaf6edca8ef1238": "Prvo kreirano najnovije",

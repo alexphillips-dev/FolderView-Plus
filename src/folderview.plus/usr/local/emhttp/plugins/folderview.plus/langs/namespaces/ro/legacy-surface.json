@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Mutare în bloc indisponibilă",
     "legacy.surface.0020e8cd415b07b6": "Dosarele Docker nu au fost încă configurate",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus a refuzat să redea un folder cu un identificator nevalid.",
     "legacy.surface.16f04d98040248c8": "Prag de avertizare de sănătate",
     "legacy.surface.170322a32f3c35b2": "Info",
+    "legacy.surface.170796299d00e8f9": "Restabiliți folderele acestui instantaneu și preferințele salvate? Mai întâi este creată o copie de rezervă de siguranță.",
     "legacy.surface.170f66fa3c7b3a46": "Corpul mesei Docker",
     "legacy.surface.171ea0536a2c7b21": "Imbricat sub $1",
     "legacy.surface.171f990651a89dce": "Introduceți un nume de șablon (3-64 de caractere).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Elementele de rulare ale editorului de foldere nu s-au încărcat.",
     "legacy.surface.2a486d9ebaf7c653": "Politica actualizărilor de sănătate",
-    "legacy.surface.2a61fbb803812885": "Aceasta va suprascrie dosarele $1 actuale.",
     "legacy.surface.2a7bb086c977a805": "Recuperați suprafața goală de Setări",
     "legacy.surface.2a87066300527366": "Repararea copacilor în curs",
     "legacy.surface.2aaa0172cce46f2e": "Resetare anulare simbol. Salvați stratul de personalizare pentru a aplica această modificare.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Actualizați ramura",
     "legacy.surface.da608eae33b5b3ac": "Grosimea separatorului",
     "legacy.surface.da6896d5c20e12f5": "Suprascriere opțională per folder pentru pragul de avertizare procentual oprit utilizat de accentul cip de stare.",
-    "legacy.surface.da85bb79d8abda9f": "Aceasta va suprascrie dosarele curente $1 cu cel mai recent instantaneu de rezervă.",
     "legacy.surface.da8fa2dead361907": "Elementul este oprit.",
     "legacy.surface.da9d07446fbb1b7d": "Pragul de previzualizare",
     "legacy.surface.daaf6edca8ef1238": "Creat mai întâi cel mai nou",

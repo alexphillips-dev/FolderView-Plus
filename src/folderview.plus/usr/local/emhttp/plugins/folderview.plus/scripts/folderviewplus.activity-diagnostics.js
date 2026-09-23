@@ -949,10 +949,8 @@ const restorePreviousGlobalRollbackCheckpointApi = async () => {
 const restoreLatest = async (type) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        type: resolvedType,
-        action: 'restore_latest'
-    });
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest' });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
     }
@@ -962,10 +960,8 @@ const restoreLatest = async (type) => {
 const restoreLatestUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Undo latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} restore`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        type: resolvedType,
-        action: 'restore_latest_undo'
-    });
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest_undo' });
     if (!response.ok) {
         throw new Error(response.error || 'Undo restore failed.');
     }

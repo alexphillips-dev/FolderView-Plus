@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "대량이동 불가",
     "legacy.surface.0020e8cd415b07b6": "Docker 폴더가 아직 설정되지 않았습니다.",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus는 잘못된 식별자가 있는 폴더 렌더링을 거부했습니다.",
     "legacy.surface.16f04d98040248c8": "상태 경고 임계값",
     "legacy.surface.170322a32f3c35b2": "정보",
+    "legacy.surface.170796299d00e8f9": "이 스냅샷의 폴더와 저장된 환경설정을 복원하시겠습니까? 안전 백업이 먼저 생성됩니다.",
     "legacy.surface.170f66fa3c7b3a46": "Docker 테이블 본문",
     "legacy.surface.171ea0536a2c7b21": "$1 아래에 중첩됨",
     "legacy.surface.171f990651a89dce": "템플릿 이름(3~64자)을 입력합니다.",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "웹UI",
     "legacy.surface.2a2eafdd4473edc6": "폴더 편집기 런타임 자산을 로드하지 못했습니다.",
     "legacy.surface.2a486d9ebaf7c653": "건강 업데이트 정책",
-    "legacy.surface.2a61fbb803812885": "현재 $1 폴더를 덮어쓰게 됩니다.",
     "legacy.surface.2a7bb086c977a805": "빈 설정 화면 복구",
     "legacy.surface.2a87066300527366": "나무 수리 진행 중",
     "legacy.surface.2aaa0172cce46f2e": "토큰 재정의가 재설정되었습니다. 이 변경 사항을 적용하려면 사용자 정의 레이어를 저장하세요.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "지점 업데이트",
     "legacy.surface.da608eae33b5b3ac": "분배기 두께",
     "legacy.surface.da6896d5c20e12f5": "상태 칩 액센트에서 사용되는 중지된 백분율 경고 임계값에 대한 선택적 폴더별 재정의입니다.",
-    "legacy.surface.da85bb79d8abda9f": "현재 $1 폴더를 최신 백업 스냅샷으로 덮어쓰게 됩니다.",
     "legacy.surface.da8fa2dead361907": "항목이 중지되었습니다.",
     "legacy.surface.da9d07446fbb1b7d": "미리보기 임계값",
     "legacy.surface.daaf6edca8ef1238": "최신 항목부터 생성됨",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Hromadný přesun není k dispozici",
     "legacy.surface.0020e8cd415b07b6": "Docker složky ještě nejsou nastaveny",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus odmítl vykreslit složku s neplatným identifikátorem.",
     "legacy.surface.16f04d98040248c8": "Práh varování zdraví",
     "legacy.surface.170322a32f3c35b2": "Info",
+    "legacy.surface.170796299d00e8f9": "Obnovit složky a uložené předvolby tohoto snímku? Nejprve se vytvoří bezpečnostní záloha.",
     "legacy.surface.170f66fa3c7b3a46": "Tělo dockerového stolu",
     "legacy.surface.171ea0536a2c7b21": "Vnořeno pod $1",
     "legacy.surface.171f990651a89dce": "Zadejte název šablony (3–64 znaků).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Položky za běhu editoru složek se nepodařilo načíst.",
     "legacy.surface.2a486d9ebaf7c653": "Zásady aktualizací zdraví",
-    "legacy.surface.2a61fbb803812885": "Tím se přepíší aktuální složky $1.",
     "legacy.surface.2a7bb086c977a805": "Obnovte prázdný povrch nastavení",
     "legacy.surface.2a87066300527366": "Probíhá oprava stromu",
     "legacy.surface.2aaa0172cce46f2e": "Resetování přepsání tokenu. Chcete-li použít tuto změnu, uložte vrstvu přizpůsobení.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Aktualizovat větev",
     "legacy.surface.da608eae33b5b3ac": "Tloušťka děliče",
     "legacy.surface.da6896d5c20e12f5": "Volitelné přepsání pro každou složku pro prahovou hodnotu varování v procentech, kterou používá akcent stavového čipu.",
-    "legacy.surface.da85bb79d8abda9f": "To přepíše aktuální složky $1 nejnovějším snímkem zálohy.",
     "legacy.surface.da8fa2dead361907": "Položka je zastavena.",
     "legacy.surface.da9d07446fbb1b7d": "Práh náhledu",
     "legacy.surface.daaf6edca8ef1238": "Vytvořeno jako nejnovější",

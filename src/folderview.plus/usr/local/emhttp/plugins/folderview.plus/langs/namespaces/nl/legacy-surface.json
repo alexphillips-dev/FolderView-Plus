@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Bulkverplaatsing niet beschikbaar",
     "legacy.surface.0020e8cd415b07b6": "Docker-mappen zijn nog niet ingesteld",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus weigerde een map met een ongeldige ID weer te geven.",
     "legacy.surface.16f04d98040248c8": "Gezondheidswaarschuwingsdrempel",
     "legacy.surface.170322a32f3c35b2": "Info",
+    "legacy.surface.170796299d00e8f9": "De mappen en opgeslagen voorkeuren van deze momentopname herstellen? Er wordt eerst een veiligheidsback-up gemaakt.",
     "legacy.surface.170f66fa3c7b3a46": "Docker-tabellichaam",
     "legacy.surface.171ea0536a2c7b21": "Genest onder $1",
     "legacy.surface.171f990651a89dce": "Voer een sjabloonnaam in (3-64 tekens).",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "Runtime-items van de mapeditor kunnen niet worden geladen.",
     "legacy.surface.2a486d9ebaf7c653": "Beleid voor gezondheidsupdates",
-    "legacy.surface.2a61fbb803812885": "Hierdoor worden de huidige $1-mappen overschreven.",
     "legacy.surface.2a7bb086c977a805": "Herstel het lege instellingenoppervlak",
     "legacy.surface.2a87066300527366": "Boomreparatie in uitvoering",
     "legacy.surface.2aaa0172cce46f2e": "Token-overschrijving opnieuw ingesteld. Sla de aanpassingslaag op om deze wijziging toe te passen.",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "Filiaal bijwerken",
     "legacy.surface.da608eae33b5b3ac": "Dikte van de verdeler",
     "legacy.surface.da6896d5c20e12f5": "Optionele overschrijving per map voor de gestopte percentagewaarschuwingsdrempel die wordt gebruikt door het statuschipaccent.",
-    "legacy.surface.da85bb79d8abda9f": "Hierdoor worden de huidige $1-mappen overschreven met de nieuwste back-upmomentopname.",
     "legacy.surface.da8fa2dead361907": "Artikel is gestopt.",
     "legacy.surface.da9d07446fbb1b7d": "Voorbeelddrempel",
     "legacy.surface.daaf6edca8ef1238": "Nieuwste eerst gemaakt",

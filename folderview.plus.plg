@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.22.01">
-<!ENTITY md5 "7b2886bf836a0ebd4819e7dbae19acb9">
-<!ENTITY sha256 "aea4b195e53cf3fb11b194964454e5d124684c9b3c0ec057a2be80310a64078b">
+<!ENTITY version "2026.09.23.01">
+<!ENTITY md5 "2deca5e693d37efc9dc33a2eeac53c89">
+<!ENTITY sha256 "19ed9296a1d9c72d609d284d4a01d23dcce0d33be567aebe80cb05033fd55f1c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.01
+- Fix: Restoring the latest Docker or VM backup now selects the intended snapshot before creating its safety backup, so it no longer restores the current state by mistake.
+- Fix: Restores now recover saved preferences alongside folders, including rules, pins, ordering, and Dashboard layout. Older folder-only snapshots continue to preserve existing preferences.
+- Fix: Restoring an older snapshot works when the backup retention limit is reached, including a limit of one. Retention runs after a successful restore and preserves the new safety backup for undo.
+- Fix: Restore operations wait for pending preference saves and roll back configuration changes if a restore fails. Confirmation text explains the restored contents in every supported language.
+
 
 ###2026.09.22.01
 - Performance: Reduce Docker startup work by centering the completed folder tree once instead of repeatedly measuring every folder as each row is inserted. Folder membership, nesting, and existing expand/collapse behavior are preserved.

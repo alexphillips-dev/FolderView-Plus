@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "legacy-surface",
-        "translation-context-revision": "f3e38e1a5058ee321587d7e21cffd7b663c81a9c28de08b765713f3b40dc2e1d"
+        "translation-context-revision": "1d08db299df3ae423a2a9fcc8115fe162e504e00a8f2af8166ee49baf456ea2e"
     },
     "legacy.surface.0008eb7acd3f7a56": "一括移動は利用できません",
     "legacy.surface.0020e8cd415b07b6": "Docker フォルダーがまだセットアップされていません",
@@ -300,6 +300,7 @@
     "legacy.surface.16e3fb2fcf573ca8": "FolderView Plus は、無効な識別子を持つフォルダーのレンダリングを拒否しました。",
     "legacy.surface.16f04d98040248c8": "ヘルス警告しきい値",
     "legacy.surface.170322a32f3c35b2": "情報",
+    "legacy.surface.170796299d00e8f9": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
     "legacy.surface.170f66fa3c7b3a46": "Dockerテーブル本体",
     "legacy.surface.171ea0536a2c7b21": "$1 の下にネストされています",
     "legacy.surface.171f990651a89dce": "テンプレート名を入力します(3～64文字)。",
@@ -533,7 +534,6 @@
     "legacy.surface.2a240977f49a77bc": "WebUI",
     "legacy.surface.2a2eafdd4473edc6": "フォルダー エディターのランタイム アセットのロードに失敗しました。",
     "legacy.surface.2a486d9ebaf7c653": "ヘルスアップデートポリシー",
-    "legacy.surface.2a61fbb803812885": "これにより、現在の $1 フォルダーが上書きされます。",
     "legacy.surface.2a7bb086c977a805": "空白の設定画面を復元する",
     "legacy.surface.2a87066300527366": "木の修復中",
     "legacy.surface.2aaa0172cce46f2e": "トークンオーバーライドのリセット。カスタマイズ レイヤーを保存して、この変更を適用します。",
@@ -2610,7 +2610,6 @@
     "legacy.surface.da5aa44d6e6be650": "ブランチを更新する",
     "legacy.surface.da608eae33b5b3ac": "ディバイダーの厚さ",
     "legacy.surface.da6896d5c20e12f5": "ステータス チップ アクセントで使用される停止パーセンテージ警告しきい値のフォルダーごとのオプションのオーバーライド。",
-    "legacy.surface.da85bb79d8abda9f": "これにより、現在の $1 フォルダーが最新のバックアップ スナップショットで上書きされます。",
     "legacy.surface.da8fa2dead361907": "アイテムが停止されています。",
     "legacy.surface.da9d07446fbb1b7d": "プレビューのしきい値",
     "legacy.surface.daaf6edca8ef1238": "新しいものから順に作成",

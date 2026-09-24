@@ -1,36 +1,43 @@
 import assert from 'node:assert/strict';
 
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
-    test('Activity History and Clear respond after successful actions and return to the empty state', async ({ page }) => {
+    test('Logs show selected actions newest first, keep a bounded history, and clear it', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`);
         await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
         await page.evaluate(async () => {
             const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
             document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
             window.activityFeedEntries = [];
+            window.describeTrackedEvent = eventType => `Tracked ${eventType}`;
             Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
         });
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
         await page.evaluate(() => {
             delete document.readyState;
             const api = window.FolderViewPlusDiagnostics;
-            window.FolderViewPlusCspEvents.registerActions({ toggleActivityCenterHistory: api.toggleActivityCenterHistory,
-                clearActivityFeed: api.clearActivityFeed }, { owner: 'activity-fixture' });
+            window.FolderViewPlusCspEvents.registerActions({ clearActivityFeed: api.clearActivityFeed }, { owner: 'activity-fixture' });
             api.renderActivityFeed();
         });
-        const history = page.locator('#fv-activity-center-toggle'), clear = page.locator('#fv-activity-center-clear');
-        assert.equal(await history.isDisabled(), true);
-        await page.evaluate(() => window.FolderViewPlusDiagnostics.addActivityEntry('Backup created', 'success'));
-        assert.equal(await history.isDisabled(), false);
-        await history.click();
-        assert.equal(await history.getAttribute('aria-expanded'), 'true');
-        assert.equal(await page.locator('#fv-activity-feed-list').isVisible(), true);
-        await history.click();
-        assert.equal(await history.getAttribute('aria-expanded'), 'false');
-        await clear.click();
-        assert.equal(await history.isDisabled(), true);
+        const clear = page.locator('#fv-activity-center-clear');
         assert.equal(await clear.isDisabled(), true);
-        assert.equal(await page.locator('#fv-activity-feed-list li').count(), 0);
+        await page.evaluate(async () => {
+            const api = window.FolderViewPlusDiagnostics;
+            api.addActivityEntry('Backup created', 'success');
+            api.addActivityEntry('Folder move failed', 'error');
+            await api.trackDiagnosticsEvent({ eventType: 'conflict_scan' });
+            await api.trackDiagnosticsEvent({ eventType: 'diagnostics_export' });
+        });
+        assert.equal(await clear.isDisabled(), false);
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        await page.evaluate(() => {
+            for (let index = 0; index < 105; index++) window.FolderViewPlusDiagnostics.addActivityEntry(`Action ${index}`, 'success');
+        });
+        assert.equal(await page.locator('.fv-activity-item').count(), 100);
+        assert.equal(await page.locator('.fv-activity-text').first().textContent(), 'Action 104');
+        await clear.click();
+        assert.equal(await clear.isDisabled(), true);
+        assert.equal(await page.locator('.fv-activity-item').count(), 0);
     });
 
     test('German Dashboard options wrap inside a narrow widget and member icons retain padding', async ({ page }) => {

@@ -12,9 +12,9 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4540,
-        "total-source-messages": 4540,
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translated-messages": 4534,
+        "total-source-messages": 4534,
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "add-folder": "フォルダーを追加",
     "up-to-date": "最新の状態",

@@ -93,8 +93,9 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             const source = await fetch('/plugin/FolderViewPlus.page').then(response => response.text());
             const parsed = new DOMParser().parseFromString(source, 'text/html');
             const root = document.getElementById('fv-settings-root');
-            root.innerHTML = ['fv-activity-feed-panel', 'fv-theme-workspace-panel']
-                .map(id => parsed.getElementById(id).outerHTML).join('')
+            root.innerHTML = parsed.querySelector('[data-fv-section="logs"]').outerHTML
+                + ['fv-activity-feed-panel', 'fv-theme-workspace-panel']
+                    .map(id => parsed.getElementById(id).outerHTML).join('')
                 + '<section id="german-recovery"></section><section id="german-operations"></section><section id="german-support"></section>';
             const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -127,7 +128,9 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             window.FolderViewPlusI18n.translate(root);
             window.originalProfiles = JSON.stringify(window.germanTheme.getWorkspace().profiles);
         });
-        assert.match(await page.locator('#fv-activity-center-toggle').textContent(), /Verlauf/);
+        assert.equal((await page.locator('[data-fv-section="logs"]').textContent()).trim(), 'Protokolle');
+        assert.notEqual((await page.locator('[data-i18n="settings.logs.description"]').textContent()).trim(),
+            'Recent actions and issues in this Settings session. Newest first.');
         assert.equal((await page.locator('#fv-activity-center-clear').textContent()).trim(), 'Leeren');
         assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/);
         assert.match(await page.locator('#german-recovery').innerText(), /Aktuelle Ordner: 2/);

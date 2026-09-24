@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "선택됨: $1",
     "common.targets.none-eligible": "현재 자격을 갖춘 회원이 없습니다.",
     "common.targets.none-selected": "아직 선택된 회원이 없습니다.",
+    "settings.logs.description": "이 설정 세션의 최근 작업 및 문제입니다. 최신순.",
     "common.counts.recommendations": "권장 사항: $1.",
     "common.counts.notes": "참고 사항: $1.",
     "common.counts.icon-references": "이 아이콘을 사용하는 폴더 수: $1.",

@@ -26,7 +26,8 @@
       { "id": "operations", "label": "Operations" },
       { "id": "startup", "label": "Start Order" },
       { "id": "appearance", "label": "Appearance" },
-      { "id": "diagnostics", "label": "Diagnostics" }
+      { "id": "diagnostics", "label": "Diagnostics" },
+      { "id": "logs", "label": "Logs" }
     ],
     "folderActionSurface": {
       "label": "folder action sheet",

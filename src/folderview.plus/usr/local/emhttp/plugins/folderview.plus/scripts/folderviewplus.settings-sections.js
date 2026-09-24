@@ -24,10 +24,11 @@ const ADVANCED_SECTION_KEYS = new Set([
     'docker-start-order',
     'backups',
     'change-history',
+    'logs',
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'];
 const translate = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
 const ADVANCED_GROUP_LABELS = {
     get automation() { return translate("settings.navigation.automation", "Automation"); },
@@ -36,7 +37,8 @@ const ADVANCED_GROUP_LABELS = {
     get operations() { return translate("settings.navigation.operations", "Operations"); },
     get startup() { return translate("settings.navigation.startup", "Start Order"); },
     get appearance() { return translate("settings.navigation.appearance", "Appearance"); },
-    get diagnostics() { return translate("diagnostics.title", "Diagnostics"); }
+    get diagnostics() { return translate("diagnostics.title", "Diagnostics"); },
+    get logs() { return translate('logs', 'Logs'); }
 };
 const SECTION_APPLY_BEHAVIOR = Object.freeze({
     customizations: 'instant',
@@ -50,6 +52,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'docker-start-order': 'instant',
     backups: 'instant',
     'change-history': 'instant',
+    logs: 'instant',
     diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
@@ -61,6 +64,7 @@ const ADVANCED_GROUP_BY_SECTION = {
     'change-history': 'recovery',
     'runtime-actions': 'operations',
     'docker-start-order': 'startup',
+    logs: 'logs',
     'diagnostics': 'diagnostics'
 };
 const ADVANCED_MODULE_STALE_MS = 1000 * 60 * 2;
@@ -78,7 +82,8 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     operations: Object.freeze(['docker_templates', 'vm_templates']),
     startup: Object.freeze([]),
     appearance: Object.freeze([]),
-    diagnostics: Object.freeze(['change_history'])
+    diagnostics: Object.freeze(['change_history']),
+    logs: Object.freeze([])
 });
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({

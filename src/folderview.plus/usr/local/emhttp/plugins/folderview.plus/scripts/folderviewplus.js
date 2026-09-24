@@ -829,7 +829,8 @@ const settingsUiState = {
         rules: '',
         recovery: '',
         operations: '',
-        diagnostics: ''
+        diagnostics: '',
+        logs: ''
     },
     searchAllAdvanced: false,
     searchDebounceTimer: null,
@@ -1857,7 +1858,8 @@ const renderAdvancedNav = () => {
                 operations: 'fa-bolt',
                 startup: 'fa-sort-amount-asc',
                 appearance: 'fa-paint-brush',
-                diagnostics: 'fa-stethoscope'
+                diagnostics: 'fa-stethoscope',
+                logs: 'fa-list-alt'
             };
             const icon = icons[entry.group] || 'fa-sliders';
             return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span></button>`;
@@ -5598,7 +5600,9 @@ const showToastMessage = ({
     message = '',
     level = 'info'
 } = {}) => {
-    if (title || message) addActivityEntry([title, message].filter(Boolean).join(': '), level);
+    if (['warning', 'error', 'danger'].includes(level) && (title || message)) {
+        addActivityEntry([title, message].filter(Boolean).join(': '), level);
+    }
     if (window.FolderViewPlusUI?.announce) {
         return window.FolderViewPlusUI.announce({
             title,

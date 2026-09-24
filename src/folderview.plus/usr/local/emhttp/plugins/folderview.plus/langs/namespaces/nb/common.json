@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Valgt: $1",
     "common.targets.none-eligible": "Ingen kvalifiserte medlemmer er tilgjengelige for øyeblikket.",
     "common.targets.none-selected": "Ingen medlemmer valgt ennå.",
+    "settings.logs.description": "Nylige handlinger og problemer i denne Innstillingsøkten. Nyeste først.",
     "common.counts.recommendations": "Anbefalinger: $1.",
     "common.counts.notes": "Informasjonsmerknader: $1.",
     "common.counts.icon-references": "Mapper som bruker dette ikonet: $1.",

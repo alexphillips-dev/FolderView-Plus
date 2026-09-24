@@ -1945,15 +1945,6 @@
     ]
   },
   {
-    "phrase": "Activity recorded.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'Activity recorded.'"
-      }
-    ]
-  },
-  {
     "phrase": "Add a regex rule below, or open the full Rules workspace for label-based rules and global reordering.",
     "locations": [
       {

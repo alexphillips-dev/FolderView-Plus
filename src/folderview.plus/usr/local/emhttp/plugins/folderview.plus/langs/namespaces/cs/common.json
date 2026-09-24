@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Vybráno: $1",
     "common.targets.none-eligible": "Momentálně nejsou k dispozici žádní způsobilí členové.",
     "common.targets.none-selected": "Zatím nejsou vybráni žádní členové.",
+    "settings.logs.description": "Nedávné akce a problémy v této relaci Nastavení. Nejdříve nejnovější.",
     "common.counts.recommendations": "Doporučení: $1.",
     "common.counts.notes": "Informační poznámky: $1.",
     "common.counts.icon-references": "Složky používající tuto ikonu: $1.",

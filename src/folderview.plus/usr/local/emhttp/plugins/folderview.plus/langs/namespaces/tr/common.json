@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Seçilen: $1",
     "common.targets.none-eligible": "Şu anda uygun üye bulunmamaktadır.",
     "common.targets.none-selected": "Henüz üye seçilmedi.",
+    "settings.logs.description": "Bu Ayarlar oturumundaki son işlemler ve sorunlar. Önce en yenisi.",
     "common.counts.recommendations": "Öneriler: $1.",
     "common.counts.notes": "Bilgilendirme notları: $1.",
     "common.counts.icon-references": "Bu simgeyi kullanan klasörler: $1.",

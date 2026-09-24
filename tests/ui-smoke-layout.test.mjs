@@ -208,35 +208,24 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.doesNotMatch(settingsPage, /Use new folder settings page/);
 });
 
-test('settings activity center replaces plain recent activity feed', () => {
-    assert.match(settingsPage, /Activity Center/);
-    assert.match(settingsPage, /id="fv-activity-center-status"/);
+test('advanced Logs owns the live activity list without a Basic activity bar', () => {
+    assert.match(settingsPage, /data-fv-section="logs" data-fv-advanced="1" data-fv-advanced-group="logs"/);
+    assert.ok(settingsPage.indexOf('id="fv-activity-feed-panel"') > settingsPage.indexOf('data-fv-section="logs"'));
+    assert.ok(settingsPage.indexOf('id="fv-activity-feed-panel"') < settingsPage.indexOf('data-fv-section="diagnostics"'));
     assert.match(settingsPage, /id="fv-activity-center-summary"/);
-    assert.match(settingsPage, /id="fv-activity-center-toggle"/);
     assert.match(settingsPage, /id="fv-activity-center-clear"/);
-    assert.match(settingsPage, /data-fv-onclick="toggleActivityCenterHistory\(\)"/);
-    assert.match(settingsPage, /id="fv-activity-center-latest"/);
-    assert.match(settingsPage, /No activity yet/);
-    assert.doesNotMatch(settingsPage, /id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;"/);
+    assert.match(settingsPage, /id="fv-activity-feed-list"/);
+    assert.doesNotMatch(settingsPage, /Activity Center|fv-activity-center-latest|fv-activity-center-toggle/);
+    assert.match(settingsJs, /const ADVANCED_GROUPS = \[[^\]]*'logs'/);
+    assert.match(settingsJs, /get logs\(\) \{ return translate\('logs', 'Logs'\)/);
     assert.match(settingsCss, /\.fv-activity-center-head\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-kicker\s*\{[^}]*font-size:\s*1\.1rem;/s);
-    assert.match(settingsCss, /\.fv-activity-center-latest\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-latest\.is-empty\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-latest\.is-fresh\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-latest-icon\.is-error\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-latest-icon\.is-info\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-actions > button\.is-expanded\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-feed-list\s*\{[^}]*max-height:/s);
     assert.match(settingsCss, /\.fv-activity-level\s*\{/);
     assert.match(settingsCss, /\.fv-activity-center-actions > button,/);
-    assert.doesNotMatch(settingsCss, /\.fv-activity-feed-head > button/);
     assert.match(settingsJs, /const normalizeActivityLevel = \(level\) =>/);
     assert.match(settingsJs, /const summarizeActivityFeed = \(\) =>/);
-    assert.match(settingsJs, /const isActivityEntryFresh = \(entry\) =>/);
-    assert.match(settingsJs, /panel\.show\(\);[\s\S]*return;/);
-    assert.match(settingsJs, /list\.toggle\(activityCenterHistoryExpanded\)/);
-    assert.doesNotMatch(settingsJs, /activityFeedEntries = \[\];[\s\S]*renderActivityFeed\(\);[\s\S]*}, ACTIVITY_FEED_AUTO_CLEAR_MS\)/);
-    assert.match(settingsJs, /const toggleActivityCenterHistory = \(\) =>/);
-    assert.match(settingsJs, /toggleActivityCenterHistory,/);
+    assert.match(settingsJs, /const ACTIVITY_FEED_MAX_ENTRIES = 100;/);
+    assert.doesNotMatch(settingsJs, /toggleActivityCenterHistory|ACTIVITY_FEED_AUTO_CLEAR_MS/);
 });
 
 test('folder page ships the modern editor runtime only', () => {

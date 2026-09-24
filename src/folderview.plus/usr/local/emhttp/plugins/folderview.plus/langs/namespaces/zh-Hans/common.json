@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "已选择：$1",
     "common.targets.none-eligible": "目前没有符合资格的会员。",
     "common.targets.none-selected": "尚未选择任何成员。",
+    "settings.logs.description": "此设置会话中的最新操作和问题。最新的优先。",
     "common.counts.recommendations": "建议数：$1。",
     "common.counts.notes": "信息说明数：$1。",
     "common.counts.icon-references": "使用此图标的文件夹数：$1。",

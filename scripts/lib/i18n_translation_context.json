@@ -49,6 +49,7 @@
             "Manual $1": "Atribuire manuală: $1"
         },
         "ja": {
+            "Recent actions and issues in this Settings session. Newest first.": "この設定セッションでの最近の操作と問題。新しい順に表示します。",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
         },

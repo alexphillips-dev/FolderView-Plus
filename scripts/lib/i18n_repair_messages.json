@@ -462,5 +462,6 @@
   "common.repair.move-preview-path": "Resulting path: $1",
   "common.repair.move-preview-branch": "Folders in branch: $1",
   "common.repair.preview-show-more": "Show more ($1)",
-  "common.repair.wait-for-tree-move": "Wait for the current folder move to finish."
+  "common.repair.wait-for-tree-move": "Wait for the current folder move to finish.",
+  "settings.logs.description": "Recent actions and issues in this Settings session. Newest first."
 }

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.23.06">
-<!ENTITY md5 "ec2b0180284ccf1e1b41fa847a92ad9c">
-<!ENTITY sha256 "d419db6b1917f3c010f0ff4a6102547a6361bdc7a4e3a1cf7a3007a5410da38a">
+<!ENTITY version "2026.09.23.07">
+<!ENTITY md5 "afc4808cac6443e3c1a863a6c9b0b4d4">
+<!ENTITY sha256 "417783ab570763da9409a0df90e2977fefc970549e6cef8f7605962596fc7926">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.07
+- UX: Settings activity now appears in Advanced > Logs instead of the bar above Basic settings. Entries are always visible with the newest at the top, and the latest action is shown only once.
+- UX: Logs keep up to 100 recent entries from the current Settings session. Routine informational notices and background diagnostic successes are omitted; completed actions, warnings, and failures remain visible. Clear empties the list.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts and styles.
+
 
 ###2026.09.23.06
 - UX: Folder moves in Settings > Basic now appear as soon as a folder is dropped. The save continues in the background, with the previous position restored if it fails.

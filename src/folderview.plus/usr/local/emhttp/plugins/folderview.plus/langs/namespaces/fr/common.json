@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Sélectionné : $1",
     "common.targets.none-eligible": "Aucun membre éligible n’est actuellement disponible.",
     "common.targets.none-selected": "Aucun membre sélectionné pour l'instant.",
+    "settings.logs.description": "Actions et problèmes récents dans cette session Paramètres. Le plus récent en premier.",
     "common.counts.recommendations": "Recommandations : $1.",
     "common.counts.notes": "Notes informatives : $1.",
     "common.counts.icon-references": "Dossiers utilisant cette icône : $1.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Geselecteerd: $1",
     "common.targets.none-eligible": "Er zijn momenteel geen in aanmerking komende leden beschikbaar.",
     "common.targets.none-selected": "Er zijn nog geen leden geselecteerd.",
+    "settings.logs.description": "Recente acties en problemen in deze sessie Instellingen. Nieuwste eerst.",
     "common.counts.recommendations": "Aanbevelingen: $1.",
     "common.counts.notes": "Informatieve opmerkingen: $1.",
     "common.counts.icon-references": "Mappen die dit pictogram gebruiken: $1.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
+        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -117,6 +117,7 @@
     "common.targets.selected-count": "已選擇：$1",
     "common.targets.none-eligible": "目前沒有符合資格的會員。",
     "common.targets.none-selected": "尚未選擇任何成員。",
+    "settings.logs.description": "此設定會話中的最新操作和問題。最新的優先。",
     "common.counts.recommendations": "建議數：$1。",
     "common.counts.notes": "資訊說明數：$1。",
     "common.counts.icon-references": "使用此圖示的資料夾數：$1。",

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Ausgewählt: $1",
     "common.targets.none-eligible": "Derzeit sind keine berechtigten Mitglieder verfügbar.",
     "common.targets.none-selected": "Noch keine Mitglieder ausgewählt.",
+    "settings.logs.retention-description": "Aktuelle Aktionen und Probleme werden 30 Tage lang in diesem Browser gespeichert. Das Neueste zuerst.",
     "common.counts.recommendations": "Empfehlungen: $1.",
     "common.counts.notes": "Informative Hinweise: $1.",
     "common.counts.icon-references": "Ordner, die dieses Symbol verwenden: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Resultierender Pfad: $1",
     "common.repair.move-preview-branch": "Ordner im Zweig: $1",
     "common.repair.preview-show-more": "Mehr anzeigen ($1)",
-    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist.",
-    "settings.logs.retention-description": "Aktuelle Aktionen und Probleme werden 30 Tage lang in diesem Browser gespeichert. Das Neueste zuerst."
+    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist."
 }

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Geselecteerd: $1",
     "common.targets.none-eligible": "Er zijn momenteel geen in aanmerking komende leden beschikbaar.",
     "common.targets.none-selected": "Er zijn nog geen leden geselecteerd.",
+    "settings.logs.retention-description": "Recente acties en problemen worden 30 dagen in deze browser bewaard. Nieuwste eerst.",
     "common.counts.recommendations": "Aanbevelingen: $1.",
     "common.counts.notes": "Informatieve opmerkingen: $1.",
     "common.counts.icon-references": "Mappen die dit pictogram gebruiken: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Resulterend pad: $1",
     "common.repair.move-preview-branch": "Mappen in filiaal: $1",
     "common.repair.preview-show-more": "Meer weergeven ($1)",
-    "common.repair.wait-for-tree-move": "Wacht tot de huidige mapverplaatsing is voltooid.",
-    "settings.logs.retention-description": "Recente acties en problemen worden 30 dagen in deze browser bewaard. Nieuwste eerst."
+    "common.repair.wait-for-tree-move": "Wacht tot de huidige mapverplaatsing is voltooid."
 }

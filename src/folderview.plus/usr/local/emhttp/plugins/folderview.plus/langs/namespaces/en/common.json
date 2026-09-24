@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Selected: $1",
     "common.targets.none-eligible": "No eligible members are currently available.",
     "common.targets.none-selected": "No members selected yet.",
+    "settings.logs.retention-description": "Recent actions and issues are kept in this browser for 30 days. Newest first.",
     "common.counts.recommendations": "Recommendations: $1.",
     "common.counts.notes": "Informational notes: $1.",
     "common.counts.icon-references": "Folders using this icon: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Resulting path: $1",
     "common.repair.move-preview-branch": "Folders in branch: $1",
     "common.repair.preview-show-more": "Show more ($1)",
-    "common.repair.wait-for-tree-move": "Wait for the current folder move to finish.",
-    "settings.logs.retention-description": "Recent actions and issues are kept in this browser for 30 days. Newest first."
+    "common.repair.wait-for-tree-move": "Wait for the current folder move to finish."
 }

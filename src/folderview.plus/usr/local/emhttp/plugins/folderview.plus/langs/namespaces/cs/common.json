@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Vybráno: $1",
     "common.targets.none-eligible": "Momentálně nejsou k dispozici žádní způsobilí členové.",
     "common.targets.none-selected": "Zatím nejsou vybráni žádní členové.",
+    "settings.logs.retention-description": "Nedávné akce a problémy jsou v tomto prohlížeči uchovávány po dobu 30 dnů. Nejdříve nejnovější.",
     "common.counts.recommendations": "Doporučení: $1.",
     "common.counts.notes": "Informační poznámky: $1.",
     "common.counts.icon-references": "Složky používající tuto ikonu: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Výsledná cesta: $1",
     "common.repair.move-preview-branch": "Složky ve větvi: $1",
     "common.repair.preview-show-more": "Zobrazit více ($1)",
-    "common.repair.wait-for-tree-move": "Počkejte na dokončení přesunu aktuální složky.",
-    "settings.logs.retention-description": "Nedávné akce a problémy jsou v tomto prohlížeči uchovávány po dobu 30 dnů. Nejdříve nejnovější."
+    "common.repair.wait-for-tree-move": "Počkejte na dokončení přesunu aktuální složky."
 }

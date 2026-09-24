@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Выбрано: $1",
     "common.targets.none-eligible": "В настоящее время нет подходящих участников.",
     "common.targets.none-selected": "Участники еще не выбраны.",
+    "settings.logs.retention-description": "Недавние действия и проблемы хранятся в этом браузере в течение 30 дней. Сначала самые новые.",
     "common.counts.recommendations": "Рекомендации: $1.",
     "common.counts.notes": "Информационные примечания: $1.",
     "common.counts.icon-references": "Папки, использующие этот значок: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Результирующий путь: $1.",
     "common.repair.move-preview-branch": "Папки в ветке: $1",
     "common.repair.preview-show-more": "Показать больше ($1)",
-    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки.",
-    "settings.logs.retention-description": "Недавние действия и проблемы хранятся в этом браузере в течение 30 дней. Сначала самые новые."
+    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки."
 }

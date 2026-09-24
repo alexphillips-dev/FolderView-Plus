@@ -117,6 +117,7 @@
     "common.targets.selected-count": "選択済み: $1",
     "common.targets.none-eligible": "現在、対象となるメンバーはいません。",
     "common.targets.none-selected": "まだメンバーが選ばれていません。",
+    "settings.logs.retention-description": "最近の操作と問題は、このブラウザーに30日間保存されます。新しい順に表示します。",
     "common.counts.recommendations": "推奨事項: $1。",
     "common.counts.notes": "参考情報: $1。",
     "common.counts.icon-references": "このアイコンを使用するフォルダー数: $1。",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "結果のパス: $1",
     "common.repair.move-preview-branch": "ブランチ内のフォルダー: $1",
     "common.repair.preview-show-more": "もっと見る ($1)",
-    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。",
-    "settings.logs.retention-description": "最近の操作と問題は、このブラウザーに30日間保存されます。新しい順に表示します。"
+    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。"
 }

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "선택됨: $1",
     "common.targets.none-eligible": "현재 자격을 갖춘 회원이 없습니다.",
     "common.targets.none-selected": "아직 선택된 회원이 없습니다.",
+    "settings.logs.retention-description": "최근 작업과 문제는 이 브라우저에 30일 동안 보관됩니다. 최신순.",
     "common.counts.recommendations": "권장 사항: $1.",
     "common.counts.notes": "참고 사항: $1.",
     "common.counts.icon-references": "이 아이콘을 사용하는 폴더 수: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "결과 경로: $1",
     "common.repair.move-preview-branch": "분기의 폴더: $1",
     "common.repair.preview-show-more": "자세히 보기($1)",
-    "common.repair.wait-for-tree-move": "현재 폴더 이동이 완료될 때까지 기다립니다.",
-    "settings.logs.retention-description": "최근 작업과 문제는 이 브라우저에 30일 동안 보관됩니다. 최신순."
+    "common.repair.wait-for-tree-move": "현재 폴더 이동이 완료될 때까지 기다립니다."
 }

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Seçilen: $1",
     "common.targets.none-eligible": "Şu anda uygun üye bulunmamaktadır.",
     "common.targets.none-selected": "Henüz üye seçilmedi.",
+    "settings.logs.retention-description": "Son işlemler ve sorunlar bu tarayıcıda 30 gün boyunca saklanır. Önce en yenisi.",
     "common.counts.recommendations": "Öneriler: $1.",
     "common.counts.notes": "Bilgilendirme notları: $1.",
     "common.counts.icon-references": "Bu simgeyi kullanan klasörler: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Ortaya çıkan yol: $1",
     "common.repair.move-preview-branch": "Şubedeki klasörler: $1",
     "common.repair.preview-show-more": "Daha fazlasını göster ($1)",
-    "common.repair.wait-for-tree-move": "Geçerli klasör taşıma işleminin tamamlanmasını bekleyin.",
-    "settings.logs.retention-description": "Son işlemler ve sorunlar bu tarayıcıda 30 gün boyunca saklanır. Önce en yenisi."
+    "common.repair.wait-for-tree-move": "Geçerli klasör taşıma işleminin tamamlanmasını bekleyin."
 }

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Odabrano: $1",
     "common.targets.none-eligible": "Trenutno nema dostupnih članova koji ispunjavaju uvjete.",
     "common.targets.none-selected": "Još nema odabranih članova.",
+    "settings.logs.retention-description": "Nedavne radnje i problemi čuvaju se u ovom pregledniku 30 dana. Prvo najnoviji.",
     "common.counts.recommendations": "Preporuke: $1.",
     "common.counts.notes": "Informativne napomene: $1.",
     "common.counts.icon-references": "Mape koje koriste ovu ikonu: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Rezultirajući put: $1",
     "common.repair.move-preview-branch": "Mape u grani: $1",
     "common.repair.preview-show-more": "Prikaži više ($1)",
-    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape.",
-    "settings.logs.retention-description": "Nedavne radnje i problemi čuvaju se u ovom pregledniku 30 dana. Prvo najnoviji."
+    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape."
 }

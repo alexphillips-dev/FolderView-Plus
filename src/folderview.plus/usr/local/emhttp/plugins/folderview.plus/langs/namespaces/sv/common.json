@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Valt: $1",
     "common.targets.none-eligible": "Inga berättigade medlemmar är för närvarande tillgängliga.",
     "common.targets.none-selected": "Inga medlemmar har valts än.",
+    "settings.logs.retention-description": "Senaste åtgärder och problem sparas i den här webbläsaren i 30 dagar. Nyaste först.",
     "common.counts.recommendations": "Rekommendationer: $1.",
     "common.counts.notes": "Informationsmeddelanden: $1.",
     "common.counts.icon-references": "Mappar som använder den här ikonen: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Resulterande sökväg: $1",
     "common.repair.move-preview-branch": "Mappar i filial: $1",
     "common.repair.preview-show-more": "Visa mer ($1)",
-    "common.repair.wait-for-tree-move": "Vänta tills den aktuella mappflytten är klar.",
-    "settings.logs.retention-description": "Senaste åtgärder och problem sparas i den här webbläsaren i 30 dagar. Nyaste först."
+    "common.repair.wait-for-tree-move": "Vänta tills den aktuella mappflytten är klar."
 }

@@ -117,6 +117,7 @@
     "common.targets.selected-count": "تم التحديد: $1",
     "common.targets.none-eligible": "لا يوجد أعضاء مؤهلين متاحين حاليا.",
     "common.targets.none-selected": "لم يتم اختيار أي أعضاء حتى الآن.",
+    "settings.logs.retention-description": "يتم الاحتفاظ بالإجراءات والقضايا الأخيرة في هذا المتصفح لمدة 30 يومًا. الأحدث أولاً.",
     "common.counts.recommendations": "التوصيات: $1.",
     "common.counts.notes": "الملاحظات التوضيحية: $1.",
     "common.counts.icon-references": "المجلدات التي تستخدم هذه الأيقونة: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "المسار الناتج: $1",
     "common.repair.move-preview-branch": "المجلدات الموجودة في الفرع: $1",
     "common.repair.preview-show-more": "عرض المزيد ($1)",
-    "common.repair.wait-for-tree-move": "انتظر حتى تنتهي عملية نقل المجلد الحالي.",
-    "settings.logs.retention-description": "يتم الاحتفاظ بالإجراءات والقضايا الأخيرة في هذا المتصفح لمدة 30 يومًا. الأحدث أولاً."
+    "common.repair.wait-for-tree-move": "انتظر حتى تنتهي عملية نقل المجلد الحالي."
 }

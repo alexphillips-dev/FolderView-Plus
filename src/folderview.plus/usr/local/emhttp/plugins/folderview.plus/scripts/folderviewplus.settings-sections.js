@@ -2,20 +2,7 @@
 (() => {
 const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
-const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
-const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
-
-const LEGACY_ADVANCED_SECTION_KEYS = [
-    'auto-assignment',
-    'bulk-assignment',
-    'runtime-actions',
-    'backups',
-    'folder-templates',
-    'change-history',
-    'diagnostics',
-    'conflict-inspector'
-];
 const ADVANCED_SECTION_KEYS = new Set([
     'theme-workspace',
     'auto-assignment',
@@ -146,10 +133,7 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
 Object.assign(window, {
     ADVANCED_TAB_STORAGE_KEY,
     ADVANCED_SECTION_STORAGE_KEY,
-    ADVANCED_EXPANDED_STORAGE_KEY,
-    ADVANCED_KNOWN_STORAGE_KEY,
     SEARCH_ALL_ADVANCED_STORAGE_KEY,
-    LEGACY_ADVANCED_SECTION_KEYS,
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,
@@ -165,10 +149,7 @@ Object.assign(window, {
 window.FolderViewPlusSettingsSections = Object.freeze({
     ADVANCED_TAB_STORAGE_KEY,
     ADVANCED_SECTION_STORAGE_KEY,
-    ADVANCED_EXPANDED_STORAGE_KEY,
-    ADVANCED_KNOWN_STORAGE_KEY,
     SEARCH_ALL_ADVANCED_STORAGE_KEY,
-    LEGACY_ADVANCED_SECTION_KEYS,
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,

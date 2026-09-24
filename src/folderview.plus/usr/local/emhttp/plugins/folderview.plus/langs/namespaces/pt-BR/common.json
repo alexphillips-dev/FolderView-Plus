@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Selecionado: $1",
     "common.targets.none-eligible": "Nenhum membro elegível está disponível no momento.",
     "common.targets.none-selected": "Nenhum membro selecionado ainda.",
+    "settings.logs.retention-description": "Ações e problemas recentes são mantidos neste navegador por 30 dias. O mais novo primeiro.",
     "common.counts.recommendations": "Recomendações: $1.",
     "common.counts.notes": "Notas informativas: $1.",
     "common.counts.icon-references": "Pastas que usam este ícone: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Caminho resultante: $1",
     "common.repair.move-preview-branch": "Pastas na ramificação: $1",
     "common.repair.preview-show-more": "Mostrar mais ($1)",
-    "common.repair.wait-for-tree-move": "Aguarde a conclusão da movimentação da pasta atual.",
-    "settings.logs.retention-description": "Ações e problemas recentes são mantidos neste navegador por 30 dias. O mais novo primeiro."
+    "common.repair.wait-for-tree-move": "Aguarde a conclusão da movimentação da pasta atual."
 }

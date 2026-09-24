@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Seleccionado: $1",
     "common.targets.none-eligible": "Actualmente no hay miembros elegibles disponibles.",
     "common.targets.none-selected": "Aún no hay miembros seleccionados.",
+    "settings.logs.retention-description": "Las acciones y los problemas recientes se guardan en este navegador durante 30 días. Lo más nuevo primero.",
     "common.counts.recommendations": "Recomendaciones: $1.",
     "common.counts.notes": "Notas informativas: $1.",
     "common.counts.icon-references": "Carpetas que usan este icono: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Ruta resultante: $1",
     "common.repair.move-preview-branch": "Carpetas en rama: $1",
     "common.repair.preview-show-more": "Mostrar más ($1)",
-    "common.repair.wait-for-tree-move": "Espere a que finalice el movimiento de la carpeta actual.",
-    "settings.logs.retention-description": "Las acciones y los problemas recientes se guardan en este navegador durante 30 días. Lo más nuevo primero."
+    "common.repair.wait-for-tree-move": "Espere a que finalice el movimiento de la carpeta actual."
 }

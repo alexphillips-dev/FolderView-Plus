@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Selezionato: $1",
     "common.targets.none-eligible": "Nessun membro idoneo è attualmente disponibile.",
     "common.targets.none-selected": "Nessun membro ancora selezionato.",
+    "settings.logs.retention-description": "Le azioni e i problemi recenti vengono conservati in questo browser per 30 giorni. Prima il più recente.",
     "common.counts.recommendations": "Raccomandazioni: $1.",
     "common.counts.notes": "Note informative: $1.",
     "common.counts.icon-references": "Cartelle che usano questa icona: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Percorso risultante: $1",
     "common.repair.move-preview-branch": "Cartelle nel ramo: $1",
     "common.repair.preview-show-more": "Mostra altro ($1)",
-    "common.repair.wait-for-tree-move": "Attendi il completamento dello spostamento della cartella corrente.",
-    "settings.logs.retention-description": "Le azioni e i problemi recenti vengono conservati in questo browser per 30 giorni. Prima il più recente."
+    "common.repair.wait-for-tree-move": "Attendi il completamento dello spostamento della cartella corrente."
 }

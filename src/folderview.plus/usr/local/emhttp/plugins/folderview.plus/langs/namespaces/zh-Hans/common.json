@@ -117,6 +117,7 @@
     "common.targets.selected-count": "已选择：$1",
     "common.targets.none-eligible": "目前没有符合资格的会员。",
     "common.targets.none-selected": "尚未选择任何成员。",
+    "settings.logs.retention-description": "最近的操作和问题会在此浏览器中保留 30 天。最新的优先。",
     "common.counts.recommendations": "建议数：$1。",
     "common.counts.notes": "信息说明数：$1。",
     "common.counts.icon-references": "使用此图标的文件夹数：$1。",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "结果路径：$1",
     "common.repair.move-preview-branch": "分支中的文件夹：$1",
     "common.repair.preview-show-more": "显示更多 ($1)",
-    "common.repair.wait-for-tree-move": "等待当前文件夹移动完成。",
-    "settings.logs.retention-description": "最近的操作和问题会在此浏览器中保留 30 天。最新的优先。"
+    "common.repair.wait-for-tree-move": "等待当前文件夹移动完成。"
 }

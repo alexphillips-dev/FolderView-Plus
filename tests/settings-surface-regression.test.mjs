@@ -35,6 +35,16 @@ const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
+
+test('Advanced tabs show their sections without Compact or Expand controls', () => {
+    assert.match(settingsJs, /class="fv-advanced-tabs">\$\{tabsHtml\}<\/div>/);
+    assert.match(settingsJs, /node\.classList\.toggle\('fv-section-hidden', !visible\)/);
+    assert.doesNotMatch(settingsJs, /fv-advanced-compact|fv-section-toggle|fv-section-content-hidden|expandedAdvancedSections/);
+    assert.doesNotMatch(settingsCss, /\.fv-advanced-compact|\.fv-section-toggle|\.fv-section-content-hidden/);
+    assert.doesNotMatch(settingsSectionsJs, /ADVANCED_EXPANDED_STORAGE_KEY|ADVANCED_KNOWN_STORAGE_KEY/);
+    assert.match(settingsJs, /removeSettingsStorage\('fv\.settings\.advancedExpanded\.v2'\)/);
+    assert.match(settingsJs, /removeSettingsStorage\('fv\.settings\.advancedKnown\.v1'\)/);
+});
 const themeWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 

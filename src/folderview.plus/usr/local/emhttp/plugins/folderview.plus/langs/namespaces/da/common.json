@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Valgt: $1",
     "common.targets.none-eligible": "Ingen berettigede medlemmer er i øjeblikket tilgængelige.",
     "common.targets.none-selected": "Ingen medlemmer valgt endnu.",
+    "settings.logs.retention-description": "Seneste handlinger og problemer gemmes i denne browser i 30 dage. Nyeste først.",
     "common.counts.recommendations": "Anbefalinger: $1.",
     "common.counts.notes": "Oplysende bemærkninger: $1.",
     "common.counts.icon-references": "Mapper, der bruger dette ikon: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Resulterende sti: $1",
     "common.repair.move-preview-branch": "Mapper i filial: $1",
     "common.repair.preview-show-more": "Vis mere ($1)",
-    "common.repair.wait-for-tree-move": "Vent på, at den aktuelle mappeflytning er færdig.",
-    "settings.logs.retention-description": "Seneste handlinger og problemer gemmes i denne browser i 30 dage. Nyeste først."
+    "common.repair.wait-for-tree-move": "Vent på, at den aktuelle mappeflytning er færdig."
 }

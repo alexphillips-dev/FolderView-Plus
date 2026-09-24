@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Kiválasztva: $1",
     "common.targets.none-eligible": "Jelenleg nincs elérhető tag.",
     "common.targets.none-selected": "Még nincs kiválasztott tag.",
+    "settings.logs.retention-description": "A legutóbbi műveletek és problémák 30 napig megmaradnak ebben a böngészőben. Először a legújabb.",
     "common.counts.recommendations": "Javaslatok: $1.",
     "common.counts.notes": "Tájékoztató megjegyzések: $1.",
     "common.counts.icon-references": "Ezt az ikont használó mappák: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Az eredmény elérési útja: $1",
     "common.repair.move-preview-branch": "Mappák az ágban: $1",
     "common.repair.preview-show-more": "Továbbiak megjelenítése ($1)",
-    "common.repair.wait-for-tree-move": "Várja meg, amíg az aktuális mappa áthelyezése befejeződik.",
-    "settings.logs.retention-description": "A legutóbbi műveletek és problémák 30 napig megmaradnak ebben a böngészőben. Először a legújabb."
+    "common.repair.wait-for-tree-move": "Várja meg, amíg az aktuális mappa áthelyezése befejeződik."
 }

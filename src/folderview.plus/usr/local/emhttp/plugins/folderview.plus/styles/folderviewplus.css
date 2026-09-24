@@ -9946,8 +9946,6 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     #fv-settings-root .folder-action-btn,
     #fv-settings-root .folder-overflow-btn,
     #fv-settings-root .folder-tree-toggle,
-    #fv-settings-root .fv-section-toggle,
-    #fv-settings-root .fv-advanced-compact,
     #fv-settings-root .health-breakdown-btn {
         -webkit-appearance: none !important;
         appearance: none !important;
@@ -12756,34 +12754,6 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     pointer-events: none;
 }
 
-.fv-advanced-compact {
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    min-height: 24px !important;
-    max-width: 24px !important;
-    max-height: 24px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 24px !important;
-    align-self: center;
-    font-size: 0;
-    line-height: 0;
-    overflow: hidden;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    box-sizing: border-box !important;
-}
-
-.fv-advanced-compact i {
-    font-size: 0.78rem;
-    line-height: 1;
-    pointer-events: none;
-}
-
 h2[data-fv-section] {
     display: flex;
     align-items: center;
@@ -12846,50 +12816,7 @@ h2[data-fv-section] {
     color: var(--fvplus-settings-title-accent);
 }
 
-.fv-section-toggle {
-    margin-left: auto;
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    min-height: 24px !important;
-    max-width: 24px !important;
-    max-height: 24px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-    font-size: 0;
-    line-height: 0;
-    flex: 0 0 24px !important;
-    overflow: hidden;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    box-sizing: border-box !important;
-}
-
-.fv-section-toggle::before {
-    content: "\f066";
-    font-family: FontAwesome;
-    font-size: 0.78rem;
-    line-height: 1;
-    opacity: 0.9;
-}
-
-.fv-section-toggle.is-collapsed::before {
-    content: "\f065";
-}
-
-.fv-section-collapsed .fv-section-toggle {
-    opacity: 0.85;
-}
-
 .fv-section-hidden {
-    display: none !important;
-}
-
-.fv-section-content-hidden {
     display: none !important;
 }
 
@@ -13495,8 +13422,6 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
-    .fv-section-toggle,
-    .fv-advanced-compact,
     .health-breakdown-btn,
     .updates-chip
 ) {
@@ -13511,8 +13436,6 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn,
-    .fv-section-toggle,
-    .fv-advanced-compact,
     .updates-chip
 ) {
     color: var(--fvplus-settings-title-accent) !important;
@@ -13529,16 +13452,12 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
-    .fv-section-toggle,
-    .fv-advanced-compact,
     .health-breakdown-btn,
     .updates-chip
 ):hover,
 #fv-settings-root :is(
     .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
-    .fv-section-toggle,
-    .fv-advanced-compact,
     .health-breakdown-btn,
     .updates-chip
 ):focus-visible {
@@ -14303,38 +14222,10 @@ body.fv-folder-action-sheet-open {
         padding: 0.32rem 0.55rem;
     }
 
-    .fv-advanced-compact {
-        width: 24px !important;
-        height: 24px !important;
-        min-width: 24px !important;
-        min-height: 24px !important;
-        max-width: 24px !important;
-        max-height: 24px !important;
-        flex: 0 0 24px !important;
-        padding: 0 !important;
-    }
-
     h2[data-fv-section] {
         flex-wrap: wrap;
         align-items: center;
         gap: 0.35rem 0.45rem;
-    }
-
-    h2[data-fv-section][data-fv-advanced="1"] {
-        cursor: pointer;
-        -webkit-tap-highlight-color: rgba(77, 163, 255, 0.15);
-    }
-
-    h2[data-fv-section][data-fv-advanced="1"] .fv-section-toggle {
-        margin-left: 0;
-        width: 24px !important;
-        height: 24px !important;
-        min-width: 24px !important;
-        min-height: 24px !important;
-        max-width: 24px !important;
-        max-height: 24px !important;
-        flex: 0 0 24px !important;
-        padding: 0 !important;
     }
 
     .fv-update-notes-actions {

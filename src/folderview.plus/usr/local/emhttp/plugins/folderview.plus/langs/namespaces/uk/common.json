@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Вибрано: $1",
     "common.targets.none-eligible": "Наразі немає відповідних учасників.",
     "common.targets.none-selected": "Учасників ще не вибрано.",
+    "settings.logs.retention-description": "Останні дії та проблеми зберігаються в цьому браузері протягом 30 днів. Спочатку найновіші.",
     "common.counts.recommendations": "Рекомендації: $1.",
     "common.counts.notes": "Інформаційні примітки: $1.",
     "common.counts.icon-references": "Теки, що використовують цю піктограму: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Отриманий шлях: $1",
     "common.repair.move-preview-branch": "Папки у гілці: $1",
     "common.repair.preview-show-more": "Показати більше ($1)",
-    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки.",
-    "settings.logs.retention-description": "Останні дії та проблеми зберігаються в цьому браузері протягом 30 днів. Спочатку найновіші."
+    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки."
 }

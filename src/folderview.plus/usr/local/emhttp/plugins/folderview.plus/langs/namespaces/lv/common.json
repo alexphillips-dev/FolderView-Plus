@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Atlasīts: $1",
     "common.targets.none-eligible": "Pašlaik nav pieejams neviens piemērots dalībnieks.",
     "common.targets.none-selected": "Vēl nav atlasīts neviens dalībnieks.",
+    "settings.logs.retention-description": "Pēdējās darbības un problēmas tiek glabātas šajā pārlūkprogrammā 30 dienas. Jaunākie vispirms.",
     "common.counts.recommendations": "Ieteikumi: $1.",
     "common.counts.notes": "Informatīvas piezīmes: $1.",
     "common.counts.icon-references": "Mapes, kas izmanto šo ikonu: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Iegūtais ceļš: $1",
     "common.repair.move-preview-branch": "Mapes filiālē: $1",
     "common.repair.preview-show-more": "Rādīt vairāk ($1)",
-    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana.",
-    "settings.logs.retention-description": "Pēdējās darbības un problēmas tiek glabātas šajā pārlūkprogrammā 30 dienas. Jaunākie vispirms."
+    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana."
 }

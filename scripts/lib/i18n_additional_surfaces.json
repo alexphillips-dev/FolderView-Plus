@@ -3083,24 +3083,6 @@
     ]
   },
   {
-    "phrase": "Compact section",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Compact section'"
-      }
-    ]
-  },
-  {
-    "phrase": "Compact tab",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Compact tab'"
-      }
-    ]
-  },
-  {
     "phrase": "Compatible legacy exports",
     "locations": [
       {
@@ -4560,24 +4542,6 @@
       {
         "file": "scripts/folder.editor.schema.js",
         "anchor": "'Expand on tab load'"
-      }
-    ]
-  },
-  {
-    "phrase": "Expand section",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Expand section'"
-      }
-    ]
-  },
-  {
-    "phrase": "Expand tab",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Expand tab'"
       }
     ]
   },

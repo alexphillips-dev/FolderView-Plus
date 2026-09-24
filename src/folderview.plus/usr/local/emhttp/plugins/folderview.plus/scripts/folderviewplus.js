@@ -834,9 +834,6 @@ const settingsUiState = {
     },
     searchAllAdvanced: false,
     searchDebounceTimer: null,
-    expandedAdvancedSections: new Set(),
-    knownAdvancedSections: new Set(),
-    hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
 const SETTINGS_SEARCH_ALIASES_BY_SECTION = window.FolderViewPlusSettingsSections?.SETTINGS_SEARCH_ALIASES_BY_SECTION
@@ -957,7 +954,6 @@ let settingsThemeReflowBound = false;
 let settingsThemeReflowObserver = null;
 let settingsThemeReflowTimer = null;
 let lastThemeResolverSnapshot = null;
-const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
 const MOBILE_LAYOUT_COARSE_BREAKPOINT_PX = 1600;
 
@@ -970,19 +966,6 @@ const getEffectiveThemeCompatibilityMode = () => {
         ? dockerMode
         : vmMode;
 };
-
-const supportsTouchInput = () => (
-    ('ontouchstart' in window)
-    || (navigator.maxTouchPoints > 0)
-    || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
-);
-
-const isMobileSettingsViewport = () => (
-    window.matchMedia
-    && window.matchMedia(`(max-width: ${MOBILE_SETTINGS_BREAKPOINT_PX}px)`).matches
-);
-
-const shouldUseMobileSectionToggle = () => supportsTouchInput() && isMobileSettingsViewport();
 
 const getViewportWidth = () => {
     const visualWidth = Number(window?.visualViewport?.width || 0);
@@ -1368,97 +1351,6 @@ const getRequestedAdvancedModuleKeys = ({
     return getAdvancedModulesForTab(targetTab, includeSearchAll);
 };
 
-const persistExpandedAdvancedSections = () => {
-    const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
-    settingsUiState.hasExpandedAdvancedPreference = true;
-    writeSettingsStorage(ADVANCED_EXPANDED_STORAGE_KEY, payload, { delayMs: 70, idle: true });
-};
-
-const persistKnownAdvancedSections = () => {
-    const payload = JSON.stringify(Array.from(settingsUiState.knownAdvancedSections || []));
-    writeSettingsStorage(ADVANCED_KNOWN_STORAGE_KEY, payload, { delayMs: 70, idle: true });
-};
-
-const setsEqual = (a, b) => {
-    if (a.size !== b.size) {
-        return false;
-    }
-    for (const item of a) {
-        if (!b.has(item)) {
-            return false;
-        }
-    }
-    return true;
-};
-
-const normalizeExpandedAdvancedSections = () => {
-    const advancedKeys = settingsUiState.sections
-        .filter((section) => section.advanced)
-        .map((section) => section.key);
-    const knownKeys = new Set(advancedKeys);
-    const priorExpanded = new Set(settingsUiState.expandedAdvancedSections || []);
-    let knownAdvanced = new Set(
-        Array.from(settingsUiState.knownAdvancedSections || [])
-            .map((key) => String(key || '').trim())
-            .filter((key) => key !== '' && knownKeys.has(key))
-    );
-
-    // Guard for old installs: if we had expansion prefs but no known-section list,
-    // treat legacy sections as known so newly added sections auto-expand once.
-    if (settingsUiState.hasExpandedAdvancedPreference && knownAdvanced.size === 0) {
-        knownAdvanced = new Set(
-            LEGACY_ADVANCED_SECTION_KEYS.filter((key) => knownKeys.has(key))
-        );
-    }
-
-    const normalized = new Set(
-        Array.from(settingsUiState.expandedAdvancedSections || [])
-            .map((key) => String(key || '').trim())
-            .filter((key) => key !== '' && knownKeys.has(key))
-    );
-    if (!settingsUiState.hasExpandedAdvancedPreference) {
-        // New defaults: start less cluttered by expanding only the first section
-        // in each advanced tab. Users can still expand all via the tab compact toggle.
-        for (const group of ADVANCED_GROUPS) {
-            const firstInGroup = settingsUiState.sections.find((section) => (
-                section.advanced === true && section.advancedGroup === group
-            ));
-            if (firstInGroup?.key) {
-                normalized.add(firstInGroup.key);
-            }
-        }
-        if (normalized.size === 0 && advancedKeys.length > 0) {
-            normalized.add(advancedKeys[0]);
-        }
-        settingsUiState.expandedAdvancedSections = normalized;
-        if (advancedKeys.length > 0) {
-            persistExpandedAdvancedSections();
-        }
-        settingsUiState.knownAdvancedSections = new Set(advancedKeys);
-        persistKnownAdvancedSections();
-        return;
-    }
-
-    for (const key of advancedKeys) {
-        if (!knownAdvanced.has(key)) {
-            normalized.add(key);
-        }
-    }
-
-    const changedByCleanup = !setsEqual(normalized, priorExpanded);
-    settingsUiState.expandedAdvancedSections = normalized;
-    if (changedByCleanup) {
-        persistExpandedAdvancedSections();
-    }
-
-    const nextKnown = new Set(advancedKeys);
-    const knownChanged = !setsEqual(nextKnown, settingsUiState.knownAdvancedSections);
-    settingsUiState.knownAdvancedSections = nextKnown;
-    if (knownChanged) {
-        persistKnownAdvancedSections();
-    }
-};
-
 const persistActiveAdvancedSection = (sectionKey) => {
     const key = String(sectionKey || '').trim();
     if (!key) {
@@ -1597,7 +1489,6 @@ const buildSettingsSections = (options = {}) => {
                 && (
                     node.classList.contains('fv-section-badge')
                     || node.classList.contains('fv-section-mode')
-                    || node.classList.contains('fv-section-toggle')
                 )
             ))
             .map((node) => node.textContent || '')
@@ -1645,18 +1536,6 @@ const buildSettingsSections = (options = {}) => {
             heading.appendChild(modeBadge);
         }
 
-        let toggle = heading.querySelector('.fv-section-toggle');
-        if (advanced && !toggle) {
-            toggle = document.createElement('button');
-            toggle.type = 'button';
-            toggle.className = 'fv-section-toggle';
-            toggle.dataset.sectionToggle = key;
-            toggle.setAttribute('aria-label', `Toggle ${title || key}`);
-            heading.appendChild(toggle);
-        }
-
-        const contentNodes = nodes.filter((node) => node !== sectionStartNode);
-
         sections.push({
             key,
             title,
@@ -1665,9 +1544,7 @@ const buildSettingsSections = (options = {}) => {
             heading,
             badge,
             modeBadge,
-            toggle,
-            nodes,
-            contentNodes
+            nodes
         });
     }
 
@@ -1865,66 +1742,13 @@ const renderAdvancedNav = () => {
             return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span></button>`;
         })
         .join('');
-    const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);
-    const allExpandedInTab = activeTabSections.length > 0
-        && activeTabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
-    const compactLabel = allExpandedInTab ? 'Compact tab' : 'Expand tab';
-    const compactIcon = allExpandedInTab ? 'fa-compress' : 'fa-expand';
-
     container.html(`
         <div class="fv-advanced-nav-inner">
             <div class="fv-advanced-controls">
                 <div class="fv-advanced-tabs">${tabsHtml}</div>
-                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact" title="${escapeHtml(compactLabel)}" aria-label="${escapeHtml(compactLabel)}"><i class="fa ${compactIcon}" aria-hidden="true"></i></button>
             </div>
         </div>
     `).show();
-};
-
-const toggleAdvancedTabCompactState = () => {
-    const tabSections = settingsUiState.sections.filter((section) => (
-        section.advanced && section.advancedGroup === settingsUiState.advancedTab
-    ));
-    if (!tabSections.length) {
-        return;
-    }
-    const shouldCompact = tabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
-    for (const section of tabSections) {
-        if (shouldCompact) {
-            settingsUiState.expandedAdvancedSections.delete(section.key);
-        } else {
-            settingsUiState.expandedAdvancedSections.add(section.key);
-        }
-    }
-    persistExpandedAdvancedSections();
-    applySettingsSectionVisibility();
-    syncSectionJumpOptions();
-    refreshSectionHealthBadges();
-};
-
-const toggleAdvancedSectionByKey = (sectionKey) => {
-    const key = String(sectionKey || '').trim();
-    if (!key) {
-        return false;
-    }
-    const section = settingsUiState.sections.find((entry) => entry.key === key);
-    if (!section || !section.advanced) {
-        return false;
-    }
-
-    if (settingsUiState.expandedAdvancedSections.has(key)) {
-        settingsUiState.expandedAdvancedSections.delete(key);
-    } else {
-        settingsUiState.expandedAdvancedSections.add(key);
-        settingsUiState.activeSectionKey = key;
-        persistActiveAdvancedSection(key);
-        setAdvancedTab(section.advancedGroup);
-    }
-    persistExpandedAdvancedSections();
-    applySettingsSectionVisibility();
-    syncSectionJumpOptions();
-    refreshSectionHealthBadges();
-    return true;
 };
 
 const applySettingsSectionVisibility = () => {
@@ -1934,28 +1758,12 @@ const applySettingsSectionVisibility = () => {
             visibleKeys.add(section.key);
         }
     }
-    const forceExpandForQuery = Boolean(settingsUiState.query);
-
     for (const section of settingsUiState.sections) {
         const visible = visibleKeys.has(section.key);
-        const expanded = !section.advanced
-            || settingsUiState.expandedAdvancedSections.has(section.key)
-            || forceExpandForQuery;
         for (const node of section.nodes) {
             node.classList.toggle('fv-section-hidden', !visible);
         }
-        for (const node of section.contentNodes || []) {
-            node.classList.toggle('fv-section-content-hidden', visible && !expanded);
-        }
-        if (section.toggle) {
-            const toggleLabel = expanded ? 'Compact section' : 'Expand section';
-            section.toggle.title = toggleLabel;
-            section.toggle.setAttribute('aria-label', `${toggleLabel}: ${section.title || section.key}`);
-            section.toggle.classList.toggle('is-expanded', expanded);
-            section.toggle.classList.toggle('is-collapsed', !expanded);
-        }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
-        section.heading.classList.toggle('fv-section-collapsed', visible && section.advanced && !expanded);
     }
 
     renderAdvancedNav();
@@ -2582,30 +2390,6 @@ const initSettingsControls = () => {
             quiet: false
         });
     });
-    $(document).off('click.fvcompact', '#fv-advanced-compact').on('click.fvcompact', '#fv-advanced-compact', (event) => {
-        event.preventDefault();
-        toggleAdvancedTabCompactState();
-    });
-
-    $(document).off('click.fvsectiontoggle', '.fv-section-toggle').on('click.fvsectiontoggle', '.fv-section-toggle', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const key = String($(event.currentTarget).attr('data-section-toggle') || '').trim();
-        toggleAdvancedSectionByKey(key);
-    });
-
-    $(document).off('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]').on('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]', (event) => {
-        if (!shouldUseMobileSectionToggle()) {
-            return;
-        }
-        const target = event.target instanceof Element ? event.target : null;
-        if (target && target.closest('.fv-section-toggle, button, a, input, select, textarea, label')) {
-            return;
-        }
-        const key = String($(event.currentTarget).attr('data-fv-section') || '').trim();
-        toggleAdvancedSectionByKey(key);
-    });
-
     $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')
         .off('input.fvlivematch change.fvlivematch')
         .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('docker'));
@@ -2678,9 +2462,6 @@ const refreshSettingsUx = (options = {}) => {
     }
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
-    if (sectionsRebuilt || options.normalizeSections === true) {
-        normalizeExpandedAdvancedSections();
-    }
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
         const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -2774,7 +2555,6 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
         buildSettingsSections({ force: true });
-        normalizeExpandedAdvancedSections();
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshInputInvalidStyles();
@@ -11587,34 +11367,8 @@ if (window.FolderViewPlusUI?.registerAction) {
             setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
             settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
             settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
-            const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
-            const knownRaw = localStorage.getItem(ADVANCED_KNOWN_STORAGE_KEY);
-            settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
-            if (expandedRaw !== null) {
-                try {
-                    const expanded = JSON.parse(expandedRaw);
-                    settingsUiState.expandedAdvancedSections = new Set(
-                        Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                    );
-                } catch (_error) {
-                    settingsUiState.hasExpandedAdvancedPreference = false;
-                    settingsUiState.expandedAdvancedSections = new Set();
-                }
-            } else {
-                settingsUiState.expandedAdvancedSections = new Set();
-            }
-            if (knownRaw !== null) {
-                try {
-                    const known = JSON.parse(knownRaw);
-                    settingsUiState.knownAdvancedSections = new Set(
-                        Array.isArray(known) ? known.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                    );
-                } catch (_error) {
-                    settingsUiState.knownAdvancedSections = new Set();
-                }
-            } else {
-                settingsUiState.knownAdvancedSections = new Set();
-            }
+            removeSettingsStorage('fv.settings.advancedExpanded.v2');
+            removeSettingsStorage('fv.settings.advancedKnown.v1');
             restoreTableUiState();
             applySettingsLaunchOverrides({ persist: false });
         });

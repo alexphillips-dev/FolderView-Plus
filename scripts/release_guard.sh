@@ -554,12 +554,16 @@ NODE
 rm -f "${TMP_ARCHIVE_RUNTIME_INTEGRITY}"
 trap - EXIT
 
-if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
-  echo "ERROR: Source folderviewplus.js is missing mobile section-toggle header binding." >&2
+if ! grep -Fq 'class="fv-advanced-tabs"' "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js is missing Advanced tab navigation." >&2
   exit 1
 fi
-if ! grep -Fq 'h2[data-fv-section][data-fv-advanced="1"]' "${SOURCE_SETTINGS_JS}"; then
-  echo "ERROR: Source folderviewplus.js is missing advanced-section heading selector for mobile support." >&2
+if ! grep -Fq "node.classList.toggle('fv-section-hidden', !visible)" "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js is missing tab-based section visibility." >&2
+  exit 1
+fi
+if grep -Eq 'fv-advanced-compact|fv-section-toggle|fv-section-content-hidden|click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js still includes retired Advanced collapse controls." >&2
   exit 1
 fi
 if ! grep -q 'window.FolderViewPlusDirtyTracker' "${SOURCE_SETTINGS_JS}"; then
@@ -648,8 +652,8 @@ if ! grep -q '@media (max-width: 760px)' "${SOURCE_SETTINGS_CSS}"; then
   echo "ERROR: Source folderviewplus.css is missing mobile settings breakpoint rules." >&2
   exit 1
 fi
-if ! grep -q '\.fv-section-toggle::before' "${SOURCE_SETTINGS_CSS}"; then
-  echo "ERROR: Source folderviewplus.css is missing mobile-friendly section toggle affordance." >&2
+if grep -Eq '\.fv-section-toggle|\.fv-advanced-compact|\.fv-section-content-hidden' "${SOURCE_SETTINGS_CSS}"; then
+  echo "ERROR: Source folderviewplus.css still includes retired Advanced collapse styles." >&2
   exit 1
 fi
 

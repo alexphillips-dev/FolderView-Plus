@@ -117,6 +117,7 @@
     "common.targets.selected-count": "Wybrano: $1",
     "common.targets.none-eligible": "Obecnie nie ma dostępnych żadnych kwalifikujących się członków.",
     "common.targets.none-selected": "Nie wybrano jeszcze żadnych członków.",
+    "settings.logs.retention-description": "Ostatnie działania i problemy są przechowywane w tej przeglądarce przez 30 dni. Najpierw najnowsze.",
     "common.counts.recommendations": "Zalecenia: $1.",
     "common.counts.notes": "Uwagi informacyjne: $1.",
     "common.counts.icon-references": "Foldery używające tej ikony: $1.",
@@ -660,6 +661,5 @@
     "common.repair.move-preview-path": "Wynikowa ścieżka: $1",
     "common.repair.move-preview-branch": "Foldery w oddziale: $1",
     "common.repair.preview-show-more": "Pokaż więcej ($1)",
-    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu.",
-    "settings.logs.retention-description": "Ostatnie działania i problemy są przechowywane w tej przeglądarce przez 30 dni. Najpierw najnowsze."
+    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu."
 }

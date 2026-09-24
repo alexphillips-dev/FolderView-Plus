@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { verifyAdvancedWorkspaceLayout } from '../helpers/advanced-workspace-layout.mjs';
+import { verifyAdvancedTitleBadges } from '../helpers/advanced-title-badges.mjs';
 
 const settingsJs = fs.readFileSync(path.join(process.cwd(),
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'), 'utf8');
@@ -34,16 +35,20 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
             renderAdvancedNav();
             window.fixtureAdvancedNav = { state: settingsUiState, render: renderAdvancedNav };
         })();` });
+        await page.addStyleTag({ content: '#fv-settings-root .fv-advanced-tab { margin-block: 8px; }' });
         const desktop = await page.evaluate(() => {
             const workspace = document.getElementById('fv-advanced-workspace');
             const nav = document.getElementById('fv-advanced-nav');
             const content = document.getElementById('fv-advanced-content');
+            const buttons = Array.from(nav.querySelectorAll('.fv-advanced-tab'));
             return {
                 columns: getComputedStyle(workspace).gridTemplateColumns.split(' ').length,
                 navRight: nav.getBoundingClientRect().right,
                 contentLeft: content.getBoundingClientRect().left,
                 navWidth: nav.getBoundingClientRect().width,
-                buttons: nav.querySelectorAll('.fv-advanced-tab').length,
+                buttons: buttons.length,
+                buttonMargin: getComputedStyle(buttons[0]).marginTop,
+                buttonGap: buttons[1].getBoundingClientRect().top - buttons[0].getBoundingClientRect().bottom,
                 pickerHidden: getComputedStyle(nav.querySelector('.fv-advanced-mobile-picker')).display === 'none',
                 active: nav.querySelectorAll('.fv-advanced-tab[aria-current="true"]').length,
                 sticky: getComputedStyle(workspace.querySelector('.fv-advanced-sidebar')).position,
@@ -56,6 +61,7 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         assert.equal(desktop.columns, 2);
         assert.ok(desktop.navRight < desktop.contentLeft && desktop.navWidth <= 246);
         assert.equal(desktop.buttons, 8);
+        assert.ok(desktop.buttonMargin === '0px' && desktop.buttonGap <= 5, JSON.stringify(desktop));
         assert.equal(desktop.pickerHidden, true);
         assert.equal(desktop.active, 1);
         assert.equal(desktop.sticky, 'sticky');
@@ -106,5 +112,6 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         assert.notEqual(colors.background, 'rgba(0, 0, 0, 0)');
         assert.ok(colors.contentRight < colors.navLeft, 'RTL rail must appear to the right of content');
         await verifyAdvancedWorkspaceLayout(page);
+        await verifyAdvancedTitleBadges(page);
     });
 };

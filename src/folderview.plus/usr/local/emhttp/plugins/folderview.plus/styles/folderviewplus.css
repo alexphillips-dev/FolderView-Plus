@@ -12782,6 +12782,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     width: 100%;
     min-width: 0;
     min-height: 40px;
+    margin: 0 !important;
     padding: 0.45rem 0.65rem !important;
     font-size: 1.12rem !important;
     font-weight: 600 !important;
@@ -12897,6 +12898,10 @@ h2[data-fv-section] {
     border: 1px solid var(--fvplus-settings-border-subtle);
     color: var(--fvplus-settings-text-muted);
     background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-section-mode[hidden] {
+    display: none;
 }
 
 .fv-section-mode.is-instant {

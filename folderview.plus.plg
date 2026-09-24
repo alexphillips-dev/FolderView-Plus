@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.14">
-<!ENTITY md5 "004caab5b85c41c0d35f120ab3c031f1">
-<!ENTITY sha256 "fe8d9ea87ed3170d15f4c5a3a1e6f83df64f31e83e0444c079d0214b563884e1">
+<!ENTITY version "2026.09.24.15">
+<!ENTITY md5 "968c765994fbf6a583cff15d323e09a5">
+<!ENTITY sha256 "eb2300e7102f2cbfac896f8ccb594bbd18013feab1dffc279a8010ab7551a6af">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.15
+- UX: Reduce the blank space between Advanced Settings menu buttons while keeping their labels and focus states readable.
+- Fix: Remove status and apply-mode badges from Advanced section titles, including the empty dash beside titles such as Operations workspace.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings script and styles.
+
 
 ###2026.09.24.14
 - UX: Advanced tabs now share one heading size, position, and content inset across Workflows, Appearance, and Support.

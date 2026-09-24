@@ -44,8 +44,9 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
-    { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 110, "owner": "fixture Advanced Settings navigation layout and focus" },
+    { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 120, "owner": "fixture Advanced Settings navigation layout and focus" },
     { "file": "tests/browser/helpers/advanced-workspace-layout.mjs", "limit": 64, "owner": "fixture Advanced Settings section heading and content alignment" },
+    { "file": "tests/browser/helpers/advanced-title-badges.mjs", "limit": 46, "owner": "fixture Advanced Settings title badge removal" },
     { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases", "requiredImports": ["./settings-startup-repair.mjs"] },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
@@ -85,11 +86,12 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
         "tests/browser/helpers/vm-lifecycle.mjs",
-        "tests/browser/helpers/advanced-workspace-layout.mjs"
+        "tests/browser/helpers/advanced-workspace-layout.mjs",
+        "tests/browser/helpers/advanced-title-badges.mjs"
       ],
       "testCount": 64,
-      "assertionCount": 745,
-      "pageEvaluateCount": 177,
+      "assertionCount": 748,
+      "pageEvaluateCount": 178,
       "orderedTitleSha256": "48529c77f59d9d90e82ad9e2f668e6fcd6ca611f7ce9818a22f673b1e18427c3"
     }
   }

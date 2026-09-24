@@ -1522,14 +1522,20 @@ const buildSettingsSections = (options = {}) => {
         heading.dataset.fvAdvanced = advanced ? '1' : '0';
 
         let badge = heading.querySelector('.fv-section-badge');
-        if (!badge) {
+        if (advanced) {
+            badge?.remove();
+            badge = null;
+        } else if (!badge) {
             badge = document.createElement('span');
             badge.className = 'fv-section-badge is-ok';
             heading.appendChild(badge);
         }
 
         let modeBadge = heading.querySelector('.fv-section-mode');
-        if (!modeBadge) {
+        if (advanced) {
+            modeBadge?.remove();
+            modeBadge = null;
+        } else if (!modeBadge) {
             modeBadge = document.createElement('span');
             modeBadge.className = 'fv-section-mode is-instant';
             modeBadge.textContent = 'Applies instantly';
@@ -1975,6 +1981,9 @@ const setSearchAllAdvanced = (enabled) => {
 
 const refreshSectionHealthBadges = () => {
     for (const section of settingsUiState.sections) {
+        if (!section.badge) {
+            continue;
+        }
         const inputs = [];
         for (const node of section.nodes) {
             if (!(node instanceof HTMLElement)) {

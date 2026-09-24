@@ -175,33 +175,6 @@ const canFolderUseTreeMove = (type, sourceFolderId, hierarchyMeta = null) => {
     return false;
 };
 
-const treePathHintSelectorByType = Object.freeze({
-    docker: '#docker-tree-path-hint',
-    vm: '#vm-tree-path-hint'
-});
-
-const updateMobileTreePathHint = (type, folderId = '') => {
-    const resolvedType = normalizeManagedType(type);
-    const selector = treePathHintSelectorByType[resolvedType];
-    const host = selector ? $(selector) : $();
-    if (!host.length) {
-        return;
-    }
-    const id = String(folderId || '').trim();
-    if (!id) {
-        host.text('Path: select a folder');
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, id)) {
-        host.text('Path: folder unavailable');
-        return;
-    }
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const path = buildFolderPathLabel(resolvedType, id, folders, hierarchyMeta);
-    host.text(`Path: ${path}`);
-};
-
 const getFolderBranchIds = (type, folderId, hierarchyMeta = null) => {
     const resolvedType = normalizeManagedType(type);
     const sourceId = String(folderId || '').trim();
@@ -786,7 +759,6 @@ window.FolderViewPlusSettingsTree = Object.freeze({
     syncCollapsedTreeParentsForType,
     isFolderHiddenByCollapsedAncestor,
     canFolderUseTreeMove,
-    updateMobileTreePathHint,
     getFolderBranchIds,
     setFolderBranchCollapse,
     toggleFolderTreeCollapse,

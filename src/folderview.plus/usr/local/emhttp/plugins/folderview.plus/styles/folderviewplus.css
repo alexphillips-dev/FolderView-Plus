@@ -458,21 +458,6 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     opacity: 0.7;
 }
 
-.fv-tree-path-hint {
-    margin-top: 0.3rem;
-    margin-bottom: 0.18rem;
-    padding: 0.26rem 0.42rem;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 5px;
-    background: var(--fvplus-settings-surface-field);
-    color: var(--fvplus-settings-text-muted);
-    font-size: 0.96rem;
-    line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .fv-folder-filter-strip {
     display: grid;
     gap: 0.36rem;

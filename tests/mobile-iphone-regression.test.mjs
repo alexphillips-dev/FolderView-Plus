@@ -52,8 +52,8 @@ test('settings stylesheet keeps iPhone/touch control chrome reset guard', () => 
     assert.match(settingsCss, /content:\s*none !important/);
 });
 
-test('mobile compact mode keeps optional tree reorder controls and path hints for narrow screens', () => {
-    assert.match(settingsCss, /\.fv-tree-path-hint/);
+test('mobile compact mode keeps optional tree reorder controls for narrow screens', () => {
+    assert.doesNotMatch(settingsCss, /\.fv-tree-path-hint/);
     assert.match(settingsCss, /\.tree-management-controls > button\.is-active/);
     assert.match(settingsCss, /\.fv-mobile-tree-reorder-docker/);
     assert.match(settingsCss, /\.fv-mobile-tree-reorder-vm/);

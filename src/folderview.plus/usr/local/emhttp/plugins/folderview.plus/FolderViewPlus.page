@@ -486,7 +486,6 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </details>
     <div id="docker-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
-    <div id="docker-tree-path-hint" class="fv-tree-path-hint">Path: select a folder</div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -780,7 +779,6 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </details>
     <div id="vm-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
-    <div id="vm-tree-path-hint" class="fv-tree-path-hint">Path: select a folder</div>
     <div class="table-wrap">
         <table>
             <thead>

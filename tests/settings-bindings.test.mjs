@@ -480,8 +480,7 @@ test('nested tree settings expose collapse controls and inline undo hosts', () =
     assert.match(page, /id="vm-tree-history-redo"/);
     assert.match(page, /id="docker-tree-reorder-toggle"/);
     assert.match(page, /id="vm-tree-reorder-toggle"/);
-    assert.match(page, /id="docker-tree-path-hint"/);
-    assert.match(page, /id="vm-tree-path-hint"/);
+    assert.doesNotMatch(page, /id="(?:docker|vm)-tree-path-hint"/);
     assert.match(page, /runTreeIntegrityCheck\('docker'/);
     assert.match(page, /runTreeIntegrityCheck\('vm'/);
 });

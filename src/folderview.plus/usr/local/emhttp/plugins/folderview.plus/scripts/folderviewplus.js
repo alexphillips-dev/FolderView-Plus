@@ -5474,8 +5474,6 @@ const focusFolderRow = (type, folderId) => {
     if (!row.length) {
         return false;
     }
-    updateMobileTreePathHint(target.type, target.id);
-
     const tbody = row.closest('tbody');
     tbody.find('tr.fv-row-focus').removeClass('fv-row-focus');
     row.addClass('fv-row-focus');
@@ -7275,12 +7273,8 @@ const ensureExternalFolderFilterStrip = (type, details, searchInput, quickFilter
                 <div class="fv-folder-filter-quick"></div>
             </div>
         `);
-        const pathHint = $(`#${resolvedType}-tree-path-hint`);
-        if (pathHint.length) {
-            pathHint.replaceWith(strip);
-        } else {
-            details.after(strip);
-        }
+        const undoBanner = $(`#${resolvedType}-tree-undo-banner`);
+        (undoBanner.length ? undoBanner : details).after(strip);
     }
 
     const searchHost = strip.find('.fv-folder-filter-search');
@@ -8686,7 +8680,6 @@ const renderTable = (type) => {
     applyColumnWidths(type);
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
-    updateMobileTreePathHint(type);
     scheduleSettingsSecondarySurfaces(type, { immediate: settingsUiState.initialized !== true });
 };
 

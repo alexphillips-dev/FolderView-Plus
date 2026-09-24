@@ -505,21 +505,6 @@ const bindRowTouchQuickActions = (type) => {
         }
         showFolderRowQuickActions(resolvedType, folderId, { trigger: event.currentTarget });
     });
-    $(document).on(`mouseenter${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
-        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
-        if (!folderId) {
-            return;
-        }
-        updateMobileTreePathHint(resolvedType, folderId);
-    });
-    $(document).on(`focusin${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
-        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
-        if (!folderId) {
-            return;
-        }
-        updateMobileTreePathHint(resolvedType, folderId);
-    });
-
     $(document).on(`click${namespace}`, overflowSelector, (event) => {
         event.preventDefault();
         event.stopPropagation();

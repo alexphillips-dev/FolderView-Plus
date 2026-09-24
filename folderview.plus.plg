@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.09">
-<!ENTITY md5 "31b32e6f140e3ffc45748e47bd6d29d7">
-<!ENTITY sha256 "888fa5116868e31e83f5497677dbff69c76034b4fe7a853f43d364ae7adf48bd">
+<!ENTITY version "2026.09.24.10">
+<!ENTITY md5 "0c8a686397209a5f0de60f729581c29a">
+<!ENTITY sha256 "556e32de7487502eb6faa2d6921d9235b41592d008f5943379514d68656a8dbe">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.10
+- UX: Docker and VM Basic Settings toolbars now match the Settings header control height and spacing, with blue Export all and green Import buttons in both light and dark themes.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
 
 ###2026.09.24.09
 - UX: Docker and VM Basic Settings folder names now show direct container or VM counts with matching icons, plus immediate sub-folder counts when present.

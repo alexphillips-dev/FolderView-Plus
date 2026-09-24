@@ -183,8 +183,8 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('docker')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
         </div>
         <div class="toolbar-actions">
-            <button type="button" data-i18n="[html]export-all" data-fv-onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button type="button" data-i18n="[html]import-all" data-fv-onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" class="fv-basic-export-btn" data-i18n="[html]export-all" data-fv-onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" class="fv-basic-import-btn" data-i18n="[html]import-all" data-fv-onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
             <button type="button" data-fv-onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
             <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
@@ -537,8 +537,8 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('vm')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
         </div>
         <div class="toolbar-actions">
-            <button type="button" data-i18n="[html]export-all" data-fv-onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button type="button" data-i18n="[html]import-all" data-fv-onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" class="fv-basic-export-btn" data-i18n="[html]export-all" data-fv-onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" class="fv-basic-import-btn" data-i18n="[html]import-all" data-fv-onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
             <button type="button" data-fv-onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
             <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>

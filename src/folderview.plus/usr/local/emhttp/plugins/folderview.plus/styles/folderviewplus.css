@@ -2922,7 +2922,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.45rem;
 }
 
 .folder-toolbar > :is(.fv-basic-commandbar, .toolbar-actions) {
@@ -2941,14 +2941,14 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-toolbar .toolbar-actions > button {
     min-width: 0;
-    min-height: 44px;
-    padding: 0 0.75rem;
+    min-height: 34px;
+    padding: 0 0.55rem;
 }
 
 .fv-basic-search,
 .fv-basic-sort,
 .fv-basic-add-btn {
-    min-height: 44px;
+    min-height: 34px;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
     background: var(--fvplus-settings-surface-field);
@@ -2972,7 +2972,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-basic-search > input[type="text"] {
     width: 100%;
-    min-height: 38px;
+    min-height: 32px;
     margin: 0;
     border: 0 !important;
     background: transparent !important;
@@ -3011,7 +3011,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-basic-sort > select {
     min-width: 128px;
-    min-height: 38px;
+    min-height: 32px;
     border: 0 !important;
     background: transparent !important;
     color: inherit;
@@ -13427,6 +13427,22 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root #fv-run-wizard {
     color: var(--fvplus-settings-navigation-info) !important;
+}
+
+#fv-settings-root .folder-toolbar .toolbar-actions > .fv-basic-export-btn {
+    --fvplus-settings-button-fg: var(--fvplus-settings-chip-info);
+    --fvplus-settings-button-outline: var(--fvplus-settings-chip-info-border);
+    --fvplus-settings-button-outline-hover: var(--fvplus-settings-chip-info-border);
+    --fvplus-settings-button-bg-top: color-mix(in srgb, var(--fvplus-settings-chip-info) 22%, var(--fvplus-settings-surface-card));
+    --fvplus-settings-button-hover-top: color-mix(in srgb, var(--fvplus-settings-chip-info) 32%, var(--fvplus-settings-surface-card));
+}
+
+#fv-settings-root .folder-toolbar .toolbar-actions > .fv-basic-import-btn {
+    --fvplus-settings-button-fg: var(--fvplus-settings-chip-success);
+    --fvplus-settings-button-outline: var(--fvplus-settings-chip-success-border);
+    --fvplus-settings-button-outline-hover: var(--fvplus-settings-chip-success-border);
+    --fvplus-settings-button-bg-top: color-mix(in srgb, var(--fvplus-settings-chip-success) 22%, var(--fvplus-settings-surface-card));
+    --fvplus-settings-button-hover-top: color-mix(in srgb, var(--fvplus-settings-chip-success) 32%, var(--fvplus-settings-surface-card));
 }
 
 #fv-settings-root :is(

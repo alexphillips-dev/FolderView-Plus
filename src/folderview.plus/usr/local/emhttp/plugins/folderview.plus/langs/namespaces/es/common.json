@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Seleccionado: $1",
     "common.targets.none-eligible": "Actualmente no hay miembros elegibles disponibles.",
     "common.targets.none-selected": "Aún no hay miembros seleccionados.",
-    "settings.logs.description": "Acciones y problemas recientes en esta sesión de Configuración. Lo más nuevo primero.",
     "common.counts.recommendations": "Recomendaciones: $1.",
     "common.counts.notes": "Notas informativas: $1.",
     "common.counts.icon-references": "Carpetas que usan este icono: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Ruta resultante: $1",
     "common.repair.move-preview-branch": "Carpetas en rama: $1",
     "common.repair.preview-show-more": "Mostrar más ($1)",
-    "common.repair.wait-for-tree-move": "Espere a que finalice el movimiento de la carpeta actual."
+    "common.repair.wait-for-tree-move": "Espere a que finalice el movimiento de la carpeta actual.",
+    "settings.logs.retention-description": "Las acciones y los problemas recientes se guardan en este navegador durante 30 días. Lo más nuevo primero."
 }

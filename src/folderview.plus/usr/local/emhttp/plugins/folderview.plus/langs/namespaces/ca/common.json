@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Seleccionat: $1",
     "common.targets.none-eligible": "No hi ha membres disponibles actualment.",
     "common.targets.none-selected": "Encara no hi ha cap membre seleccionat.",
-    "settings.logs.description": "Accions i problemes recents en aquesta sessió de configuració. El més nou primer.",
     "common.counts.recommendations": "Recomanacions: $1.",
     "common.counts.notes": "Notes informatives: $1.",
     "common.counts.icon-references": "Carpetes que utilitzen aquesta icona: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Camí resultant: $1",
     "common.repair.move-preview-branch": "Carpetes a la branca: $1",
     "common.repair.preview-show-more": "Mostra'n més ($1)",
-    "common.repair.wait-for-tree-move": "Espereu que finalitzi el moviment de la carpeta actual."
+    "common.repair.wait-for-tree-move": "Espereu que finalitzi el moviment de la carpeta actual.",
+    "settings.logs.retention-description": "Les accions i problemes recents es conserven en aquest navegador durant 30 dies. El més nou primer."
 }

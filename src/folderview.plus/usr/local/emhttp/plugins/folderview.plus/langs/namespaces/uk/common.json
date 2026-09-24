@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Вибрано: $1",
     "common.targets.none-eligible": "Наразі немає відповідних учасників.",
     "common.targets.none-selected": "Учасників ще не вибрано.",
-    "settings.logs.description": "Останні дії та проблеми в цьому сеансі налаштувань. Спочатку найновіші.",
     "common.counts.recommendations": "Рекомендації: $1.",
     "common.counts.notes": "Інформаційні примітки: $1.",
     "common.counts.icon-references": "Теки, що використовують цю піктограму: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Отриманий шлях: $1",
     "common.repair.move-preview-branch": "Папки у гілці: $1",
     "common.repair.preview-show-more": "Показати більше ($1)",
-    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки."
+    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки.",
+    "settings.logs.retention-description": "Останні дії та проблеми зберігаються в цьому браузері протягом 30 днів. Спочатку найновіші."
 }

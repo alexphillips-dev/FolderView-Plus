@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Выбрано: $1",
     "common.targets.none-eligible": "В настоящее время нет подходящих участников.",
     "common.targets.none-selected": "Участники еще не выбраны.",
-    "settings.logs.description": "Недавние действия и проблемы в этом сеансе настроек. Сначала самые новые.",
     "common.counts.recommendations": "Рекомендации: $1.",
     "common.counts.notes": "Информационные примечания: $1.",
     "common.counts.icon-references": "Папки, использующие этот значок: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Результирующий путь: $1.",
     "common.repair.move-preview-branch": "Папки в ветке: $1",
     "common.repair.preview-show-more": "Показать больше ($1)",
-    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки."
+    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки.",
+    "settings.logs.retention-description": "Недавние действия и проблемы хранятся в этом браузере в течение 30 дней. Сначала самые новые."
 }

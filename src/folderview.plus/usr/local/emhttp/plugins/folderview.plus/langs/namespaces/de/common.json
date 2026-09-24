@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Ausgewählt: $1",
     "common.targets.none-eligible": "Derzeit sind keine berechtigten Mitglieder verfügbar.",
     "common.targets.none-selected": "Noch keine Mitglieder ausgewählt.",
-    "settings.logs.description": "Aktuelle Aktionen und Probleme in dieser Einstellungssitzung. Das Neueste zuerst.",
     "common.counts.recommendations": "Empfehlungen: $1.",
     "common.counts.notes": "Informative Hinweise: $1.",
     "common.counts.icon-references": "Ordner, die dieses Symbol verwenden: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Resultierender Pfad: $1",
     "common.repair.move-preview-branch": "Ordner im Zweig: $1",
     "common.repair.preview-show-more": "Mehr anzeigen ($1)",
-    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist."
+    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist.",
+    "settings.logs.retention-description": "Aktuelle Aktionen und Probleme werden 30 Tage lang in diesem Browser gespeichert. Das Neueste zuerst."
 }

@@ -103,6 +103,10 @@ let supportBundleTelemetryApi = null;
 let diagnosticsViewApi = null;
 let diagnosticsRunState = Object.freeze({ running: false, errorMessage: '' });
 const ACTIVITY_FEED_MAX_ENTRIES = 100;
+const ACTIVITY_FEED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const ACTIVITY_FEED_STORAGE_KEY = 'fv.settings.logs.v1';
+const ACTIVITY_FEED_MAX_MESSAGE_LENGTH = 4096;
+let activityFeedRestored = false;
 const LOGGED_DIAGNOSTIC_EVENTS = new Set([
     'import', 'delete_folder', 'clear_folders', 'runtime_bulk_action', 'bulk_assign',
     'diagnostics_export', 'support_bundle_export'
@@ -1031,6 +1035,51 @@ const normalizeActivityLevel = (level) => {
     return 'info';
 };
 
+const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entries) ? entries : [])
+    .map((entry) => {
+        const at = Number(entry?.at);
+        const message = typeof entry?.message === 'string' ? entry.message.trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH) : '';
+        if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || !message) {
+            return null;
+        }
+        return { at, level: normalizeActivityLevel(entry.level), message };
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.at - left.at)
+    .slice(0, ACTIVITY_FEED_MAX_ENTRIES);
+
+const persistActivityFeed = () => {
+    try {
+        if (!activityFeedEntries.length) {
+            localStorage.removeItem(ACTIVITY_FEED_STORAGE_KEY);
+            return;
+        }
+        localStorage.setItem(ACTIVITY_FEED_STORAGE_KEY, JSON.stringify({
+            schemaVersion: 1,
+            entries: activityFeedEntries
+        }));
+    } catch (_error) {
+        // Browser storage is optional; the in-memory feed remains usable.
+    }
+};
+
+const restoreActivityFeed = () => {
+    if (activityFeedRestored) return;
+    activityFeedRestored = true;
+    const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
+    const entries = Number(stored?.schemaVersion) === 1 ? stored.entries : [];
+    activityFeedEntries = retainActivityEntries([...activityFeedEntries, ...(Array.isArray(entries) ? entries : [])]);
+    persistActivityFeed();
+};
+
+const syncActivityFeedFromStorage = (event) => {
+    if (event.key !== ACTIVITY_FEED_STORAGE_KEY && event.key !== null) return;
+    activityFeedRestored = true;
+    const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
+    activityFeedEntries = retainActivityEntries(Number(stored?.schemaVersion) === 1 ? stored.entries : []);
+    renderActivityFeed();
+};
+
 const getActivityLevelMeta = (level) => {
     switch (normalizeActivityLevel(level)) {
         case 'success':
@@ -1075,6 +1124,12 @@ const renderActivityFeed = () => {
     if (!panel.length || !list.length) {
         return;
     }
+    restoreActivityFeed();
+    const retained = retainActivityEntries(activityFeedEntries);
+    if (retained.length !== activityFeedEntries.length) {
+        activityFeedEntries = retained;
+        persistActivityFeed();
+    }
     summary.text(summarizeActivityFeed());
     if (!activityFeedEntries.length) {
         list.html(`<li class="fv-activity-empty"><strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.ready', 'Ready'))}</strong><span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-description', 'Folder changes, backups, imports, and recovery actions will appear here.'))}</span></li>`);
@@ -1092,7 +1147,8 @@ const renderActivityFeed = () => {
 };
 
 const addActivityEntry = (message, level = 'info') => {
-    const text = String(message || '').trim();
+    restoreActivityFeed();
+    const text = String(message || '').trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH);
     if (!text) {
         return;
     }
@@ -1101,14 +1157,15 @@ const addActivityEntry = (message, level = 'info') => {
         level: String(level || 'info'),
         message: text
     });
-    if (activityFeedEntries.length > ACTIVITY_FEED_MAX_ENTRIES) {
-        activityFeedEntries = activityFeedEntries.slice(0, ACTIVITY_FEED_MAX_ENTRIES);
-    }
+    activityFeedEntries = retainActivityEntries(activityFeedEntries);
+    persistActivityFeed();
     renderActivityFeed();
 };
 
 const clearActivityFeed = () => {
+    activityFeedRestored = true;
     activityFeedEntries = [];
+    persistActivityFeed();
     renderActivityFeed();
 };
 
@@ -2230,6 +2287,10 @@ let activityDiagnosticsInitialized = false;
 const initializeActivityDiagnosticsRuntime = () => {
     if (activityDiagnosticsInitialized) return;
     activityDiagnosticsInitialized = true;
+    window.addEventListener?.('storage', syncActivityFeedFromStorage);
+    document.addEventListener?.('visibilitychange', () => {
+        if (!document.hidden) renderActivityFeed();
+    });
     const startupActions = [
         ['activity feed', renderActivityFeed],
         ['theme diagnostics', runThemeDiagnostics],

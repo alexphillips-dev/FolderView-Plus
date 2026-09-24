@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Sélectionné : $1",
     "common.targets.none-eligible": "Aucun membre éligible n’est actuellement disponible.",
     "common.targets.none-selected": "Aucun membre sélectionné pour l'instant.",
-    "settings.logs.description": "Actions et problèmes récents dans cette session Paramètres. Le plus récent en premier.",
     "common.counts.recommendations": "Recommandations : $1.",
     "common.counts.notes": "Notes informatives : $1.",
     "common.counts.icon-references": "Dossiers utilisant cette icône : $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Chemin résultant : $1",
     "common.repair.move-preview-branch": "Dossiers dans la branche : $1",
     "common.repair.preview-show-more": "Afficher plus ($1)",
-    "common.repair.wait-for-tree-move": "Attendez la fin du déplacement du dossier en cours."
+    "common.repair.wait-for-tree-move": "Attendez la fin du déplacement du dossier en cours.",
+    "settings.logs.retention-description": "Les actions et problèmes récents sont conservés dans ce navigateur pendant 30 jours. Le plus récent en premier."
 }

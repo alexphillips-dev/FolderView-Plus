@@ -151,7 +151,7 @@ Recommended first setup:
 
 FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, diagnostics, and Logs.
 
-Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use Advanced > Logs, restore controls, and backups to confirm what changed and recover when needed. Logs show up to 100 useful entries from the current Settings session, with the newest at the top.
+Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use Advanced > Logs, restore controls, and backups to confirm what changed and recover when needed. Logs keep up to 100 useful entries in this browser for 30 days, with the newest at the top. Clear removes the saved history; clearing browser site data also removes it. Entries can include folder names or error details, so use Clear on a shared browser.
 
 The diagnostics workspace includes health checks, a copyable issue report, and a v2 support bundle export preview. Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default so reports can be shared without exposing unnecessary personal details.
 

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Atlasīts: $1",
     "common.targets.none-eligible": "Pašlaik nav pieejams neviens piemērots dalībnieks.",
     "common.targets.none-selected": "Vēl nav atlasīts neviens dalībnieks.",
-    "settings.logs.description": "Pēdējās darbības un problēmas šajā iestatījumu sesijā. Jaunākie vispirms.",
     "common.counts.recommendations": "Ieteikumi: $1.",
     "common.counts.notes": "Informatīvas piezīmes: $1.",
     "common.counts.icon-references": "Mapes, kas izmanto šo ikonu: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Iegūtais ceļš: $1",
     "common.repair.move-preview-branch": "Mapes filiālē: $1",
     "common.repair.preview-show-more": "Rādīt vairāk ($1)",
-    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana."
+    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana.",
+    "settings.logs.retention-description": "Pēdējās darbības un problēmas tiek glabātas šajā pārlūkprogrammā 30 dienas. Jaunākie vispirms."
 }

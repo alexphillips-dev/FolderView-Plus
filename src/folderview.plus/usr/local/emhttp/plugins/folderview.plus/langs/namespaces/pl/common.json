@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Wybrano: $1",
     "common.targets.none-eligible": "Obecnie nie ma dostępnych żadnych kwalifikujących się członków.",
     "common.targets.none-selected": "Nie wybrano jeszcze żadnych członków.",
-    "settings.logs.description": "Ostatnie działania i problemy w tej sesji Ustawienia. Najpierw najnowsze.",
     "common.counts.recommendations": "Zalecenia: $1.",
     "common.counts.notes": "Uwagi informacyjne: $1.",
     "common.counts.icon-references": "Foldery używające tej ikony: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Wynikowa ścieżka: $1",
     "common.repair.move-preview-branch": "Foldery w oddziale: $1",
     "common.repair.preview-show-more": "Pokaż więcej ($1)",
-    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu."
+    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu.",
+    "settings.logs.retention-description": "Ostatnie działania i problemy są przechowywane w tej przeglądarce przez 30 dni. Najpierw najnowsze."
 }

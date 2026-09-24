@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "選択済み: $1",
     "common.targets.none-eligible": "現在、対象となるメンバーはいません。",
     "common.targets.none-selected": "まだメンバーが選ばれていません。",
-    "settings.logs.description": "この設定セッションでの最近の操作と問題。新しい順に表示します。",
     "common.counts.recommendations": "推奨事項: $1。",
     "common.counts.notes": "参考情報: $1。",
     "common.counts.icon-references": "このアイコンを使用するフォルダー数: $1。",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "結果のパス: $1",
     "common.repair.move-preview-branch": "ブランチ内のフォルダー: $1",
     "common.repair.preview-show-more": "もっと見る ($1)",
-    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。"
+    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。",
+    "settings.logs.retention-description": "最近の操作と問題は、このブラウザーに30日間保存されます。新しい順に表示します。"
 }

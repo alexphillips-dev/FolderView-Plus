@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Seçilen: $1",
     "common.targets.none-eligible": "Şu anda uygun üye bulunmamaktadır.",
     "common.targets.none-selected": "Henüz üye seçilmedi.",
-    "settings.logs.description": "Bu Ayarlar oturumundaki son işlemler ve sorunlar. Önce en yenisi.",
     "common.counts.recommendations": "Öneriler: $1.",
     "common.counts.notes": "Bilgilendirme notları: $1.",
     "common.counts.icon-references": "Bu simgeyi kullanan klasörler: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Ortaya çıkan yol: $1",
     "common.repair.move-preview-branch": "Şubedeki klasörler: $1",
     "common.repair.preview-show-more": "Daha fazlasını göster ($1)",
-    "common.repair.wait-for-tree-move": "Geçerli klasör taşıma işleminin tamamlanmasını bekleyin."
+    "common.repair.wait-for-tree-move": "Geçerli klasör taşıma işleminin tamamlanmasını bekleyin.",
+    "settings.logs.retention-description": "Son işlemler ve sorunlar bu tarayıcıda 30 gün boyunca saklanır. Önce en yenisi."
 }

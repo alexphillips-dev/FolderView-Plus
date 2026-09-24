@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "নির্বাচিত: $1",
     "common.targets.none-eligible": "কোনো যোগ্য সদস্য বর্তমানে উপলব্ধ নেই.",
     "common.targets.none-selected": "এখনো কোনো সদস্য নির্বাচিত হয়নি।",
-    "settings.logs.description": "এই সেটিংস সেশনে সাম্প্রতিক অ্যাকশন এবং সমস্যা। নতুন প্রথম।",
     "common.counts.recommendations": "পরামর্শ: $1।",
     "common.counts.notes": "তথ্যমূলক নোট: $1।",
     "common.counts.icon-references": "এই আইকন ব্যবহারকারী ফোল্ডার: $1।",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "ফলাফলের পথ: $1",
     "common.repair.move-preview-branch": "শাখায় ফোল্ডার: $1",
     "common.repair.preview-show-more": "আরো দেখান ($1)",
-    "common.repair.wait-for-tree-move": "বর্তমান ফোল্ডার সরানো শেষ হওয়ার জন্য অপেক্ষা করুন।"
+    "common.repair.wait-for-tree-move": "বর্তমান ফোল্ডার সরানো শেষ হওয়ার জন্য অপেক্ষা করুন।",
+    "settings.logs.retention-description": "সাম্প্রতিক ক্রিয়াকলাপ এবং সমস্যাগুলি এই ব্রাউজারে 30 দিনের জন্য রাখা হয়৷ নতুন প্রথম।"
 }

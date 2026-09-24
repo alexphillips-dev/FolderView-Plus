@@ -2,23 +2,26 @@ import assert from 'node:assert/strict';
 
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
     test('Logs show selected actions newest first, keep a bounded history, and clear it', async ({ page }) => {
-        await page.goto(`${baseUrl}/settings`);
-        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
-        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
-        await page.evaluate(async () => {
-            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
-            document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
-            window.activityFeedEntries = [];
-            window.describeTrackedEvent = eventType => `Tracked ${eventType}`;
-            Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
-        });
-        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
-        await page.evaluate(() => {
-            delete document.readyState;
-            const api = window.FolderViewPlusDiagnostics;
-            window.FolderViewPlusCspEvents.registerActions({ clearActivityFeed: api.clearActivityFeed }, { owner: 'activity-fixture' });
-            api.renderActivityFeed();
-        });
+        const mountLogs = async () => {
+            await page.goto(`${baseUrl}/settings`);
+            await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+            await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
+            await page.evaluate(async () => {
+                const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+                document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
+                window.activityFeedEntries = [];
+                window.describeTrackedEvent = eventType => `Tracked ${eventType}`;
+                Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
+            });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+            await page.evaluate(() => {
+                delete document.readyState;
+                const api = window.FolderViewPlusDiagnostics;
+                window.FolderViewPlusCspEvents.registerActions({ clearActivityFeed: api.clearActivityFeed }, { owner: 'activity-fixture' });
+                api.renderActivityFeed();
+            });
+        };
+        await mountLogs();
         const clear = page.locator('#fv-activity-center-clear');
         assert.equal(await clear.isDisabled(), true);
         await page.evaluate(async () => {
@@ -56,6 +59,22 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.notEqual(lightPalette.success.text, darkPalette.success.text);
         await page.setViewportSize({ width: 390, height: 800 });
         assert.equal(new Set(Object.values(await readPalette()).map(value => value.border)).size, 4);
+        await page.goto(`${baseUrl}/dashboard-layout`);
+        await mountLogs();
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Helpful detail', 'Review needed', 'Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        await page.evaluate(() => {
+            const key = 'fv.settings.logs.v1';
+            const saved = JSON.parse(localStorage.getItem(key));
+            const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            saved.entries.push({ at: cutoff + 60000, level: 'warning', message: 'Within retention' });
+            saved.entries.push({ at: cutoff - 1000, level: 'error', message: 'Expired issue' });
+            localStorage.setItem(key, JSON.stringify(saved));
+        });
+        await mountLogs();
+        assert.equal(await page.locator('.fv-activity-text').last().textContent(), 'Within retention');
+        assert.equal(await page.getByText('Expired issue').count(), 0);
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('fv.settings.logs.v1')).entries.length), 6);
         await page.evaluate(() => {
             for (let index = 0; index < 105; index++) window.FolderViewPlusDiagnostics.addActivityEntry(`Action ${index}`, 'success');
         });
@@ -63,6 +82,9 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.equal(await page.locator('.fv-activity-text').first().textContent(), 'Action 104');
         await clear.click();
         assert.equal(await clear.isDisabled(), true);
+        assert.equal(await page.locator('.fv-activity-item').count(), 0);
+        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1')), null);
+        await mountLogs();
         assert.equal(await page.locator('.fv-activity-item').count(), 0);
     });
 

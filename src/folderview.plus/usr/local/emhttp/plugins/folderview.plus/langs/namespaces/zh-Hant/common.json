@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "已選擇：$1",
     "common.targets.none-eligible": "目前沒有符合資格的會員。",
     "common.targets.none-selected": "尚未選擇任何成員。",
-    "settings.logs.description": "此設定會話中的最新操作和問題。最新的優先。",
     "common.counts.recommendations": "建議數：$1。",
     "common.counts.notes": "資訊說明數：$1。",
     "common.counts.icon-references": "使用此圖示的資料夾數：$1。",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "結果路徑：$1",
     "common.repair.move-preview-branch": "分支中的資料夾：$1",
     "common.repair.preview-show-more": "顯示更多 ($1)",
-    "common.repair.wait-for-tree-move": "等待目前資料夾移動完成。"
+    "common.repair.wait-for-tree-move": "等待目前資料夾移動完成。",
+    "settings.logs.retention-description": "最近的操作和問題會在此瀏覽器中保留 30 天。最新的優先。"
 }

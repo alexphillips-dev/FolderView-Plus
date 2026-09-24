@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Odabrano: $1",
     "common.targets.none-eligible": "Trenutno nema dostupnih članova koji ispunjavaju uvjete.",
     "common.targets.none-selected": "Još nema odabranih članova.",
-    "settings.logs.description": "Nedavne radnje i problemi u ovoj sesiji postavki. Prvo najnoviji.",
     "common.counts.recommendations": "Preporuke: $1.",
     "common.counts.notes": "Informativne napomene: $1.",
     "common.counts.icon-references": "Mape koje koriste ovu ikonu: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Rezultirajući put: $1",
     "common.repair.move-preview-branch": "Mape u grani: $1",
     "common.repair.preview-show-more": "Prikaži više ($1)",
-    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape."
+    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape.",
+    "settings.logs.retention-description": "Nedavne radnje i problemi čuvaju se u ovom pregledniku 30 dana. Prvo najnoviji."
 }

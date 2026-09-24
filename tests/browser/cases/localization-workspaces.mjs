@@ -129,8 +129,8 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             window.originalProfiles = JSON.stringify(window.germanTheme.getWorkspace().profiles);
         });
         assert.equal((await page.locator('[data-fv-section="logs"]').textContent()).trim(), 'Protokolle');
-        assert.notEqual((await page.locator('[data-i18n="settings.logs.description"]').textContent()).trim(),
-            'Recent actions and issues in this Settings session. Newest first.');
+        assert.notEqual((await page.locator('[data-i18n="settings.logs.retention-description"]').textContent()).trim(),
+            'Recent actions and issues are kept in this browser for 30 days. Newest first.');
         assert.equal((await page.locator('#fv-activity-center-clear').textContent()).trim(), 'Leeren');
         assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/);
         assert.match(await page.locator('#german-recovery').innerText(), /Aktuelle Ordner: 2/);

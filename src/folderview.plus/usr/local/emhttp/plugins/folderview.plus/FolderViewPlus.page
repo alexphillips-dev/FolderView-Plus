@@ -1570,7 +1570,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div id="fv-activity-feed-panel" class="fv-activity-feed-panel">
     <div class="fv-activity-center-head">
         <div class="fv-activity-center-title">
-            <p data-i18n="settings.logs.description">Recent actions and issues in this Settings session. Newest first.</p>
+            <p data-i18n="settings.logs.retention-description">Recent actions and issues are kept in this browser for 30 days. Newest first.</p>
             <span id="fv-activity-center-summary" class="fv-activity-center-summary" role="status" aria-live="polite">No recent activity.</span>
         </div>
         <div class="fv-activity-center-actions">

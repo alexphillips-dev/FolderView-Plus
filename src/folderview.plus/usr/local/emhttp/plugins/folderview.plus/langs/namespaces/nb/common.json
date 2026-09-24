@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "8c53b3963913b17f0d53cff641db5f2a3f03570f48846d84e3baa90194293049"
+        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -117,7 +117,6 @@
     "common.targets.selected-count": "Valgt: $1",
     "common.targets.none-eligible": "Ingen kvalifiserte medlemmer er tilgjengelige for øyeblikket.",
     "common.targets.none-selected": "Ingen medlemmer valgt ennå.",
-    "settings.logs.description": "Nylige handlinger og problemer i denne Innstillingsøkten. Nyeste først.",
     "common.counts.recommendations": "Anbefalinger: $1.",
     "common.counts.notes": "Informasjonsmerknader: $1.",
     "common.counts.icon-references": "Mapper som bruker dette ikonet: $1.",
@@ -661,5 +660,6 @@
     "common.repair.move-preview-path": "Resulterende bane: $1",
     "common.repair.move-preview-branch": "Mapper i filial: $1",
     "common.repair.preview-show-more": "Vis mer ($1)",
-    "common.repair.wait-for-tree-move": "Vent til den gjeldende mappeflyttingen er ferdig."
+    "common.repair.wait-for-tree-move": "Vent til den gjeldende mappeflyttingen er ferdig.",
+    "settings.logs.retention-description": "Nylige handlinger og problemer lagres i denne nettleseren i 30 dager. Nyeste først."
 }

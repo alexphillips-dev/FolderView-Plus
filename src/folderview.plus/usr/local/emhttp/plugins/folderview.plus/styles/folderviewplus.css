@@ -1671,6 +1671,14 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     color: inherit;
 }
 
+.name-cell-metrics {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem 0.65rem;
+    max-width: 100%;
+}
+
 .name-cell-members-meta {
     display: inline-flex;
     align-items: center;
@@ -1684,6 +1692,13 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 
 .name-cell-members-meta i {
     font-size: 0.85em;
+    opacity: 0.85;
+}
+
+.name-cell-members-meta svg {
+    width: 0.95em;
+    height: 0.95em;
+    flex: none;
     opacity: 0.85;
 }
 

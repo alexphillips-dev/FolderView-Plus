@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
+        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -352,6 +352,9 @@
     "common.repair.defaults-inherited-from-parent-2-1-55c01c": "Noklusējumi, kas mantoti no vecāka “$2”: $1.",
     "common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767": "Mapes, kas izmanto \"$1\": $2. Pirms šīs ikonas dzēšanas noņemiet atsauces.",
     "common.repair.items-1-e8a685": "Vienumi: $1",
+    "common.repair.folder-containers-1": "Konteineri: $1",
+    "common.repair.folder-vms-1": "Virtuālās mašīnas: $1",
+    "common.repair.folder-subfolders-1": "Apakšmapes: $1",
     "common.repair.current-matches-1-611f8b": "Pašreizējās spēles: $1",
     "common.repair.advanced-conflicts-1-f44446": "Izvērstie konflikti: $1",
     "common.repair.legacy-overlaps-1-eca247": "Mantotie pārklājumi: $1",

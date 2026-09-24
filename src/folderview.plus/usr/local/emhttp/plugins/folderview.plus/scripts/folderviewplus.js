@@ -6347,6 +6347,23 @@ const bindBasicFolderDragHandles = (type) => {
     });
 };
 
+const NAME_CELL_METRIC_ICONS = Object.freeze({
+    docker: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13h15.3c1.5 0 2.7-.5 3.7-1.6-.2 4.3-3.4 7.1-8 7.1H8.4c-3.1 0-5.4-2.1-5.9-5.5zM18 11c.5-1.1 1.5-1.8 2.6-1.8"/><path d="M5 10h3v3H5zM8 10h3v3H8zM11 10h3v3h-3zM8 7h3v3H8zM11 7h3v3h-3z"/></svg>',
+    vm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M9 21h6M12 18v3"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
+});
+
+const buildNameCellMetricsHtml = (type, memberCount, subfolderCount, membersTitle) => {
+    const memberLabel = type === 'docker'
+        ? surfaceT('common.repair.folder-containers-1', 'Containers: $1', memberCount)
+        : surfaceT('common.repair.folder-vms-1', 'VMs: $1', memberCount);
+    const memberIcon = type === 'docker' ? NAME_CELL_METRIC_ICONS.docker : NAME_CELL_METRIC_ICONS.vm;
+    const subfolderHtml = subfolderCount > 0
+        ? `<span class="name-cell-members-meta is-subfolder-count">${NAME_CELL_METRIC_ICONS.folder}<span>${escapeHtml(surfaceT('common.repair.folder-subfolders-1', 'Sub-folders: $1', subfolderCount))}</span></span>`
+        : '';
+    return `<span class="name-cell-metrics"><span class="name-cell-members-meta is-member-count" title="${escapeHtml(membersTitle)}">${memberIcon}<span>${escapeHtml(memberLabel)}</span></span>${subfolderHtml}</span>`;
+};
+
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
     const runtimeState = ['ready', 'unavailable'].includes(String(statusContext?.runtimeState || ''))
@@ -6748,8 +6765,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const membersCellHtml = totalMemberCount > directMemberCount
             ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
-        const memberLabelText = surfaceT("common.repair.items-1-e8a685", "Items: $1", totalMemberCount);
-        const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
+        const membersMetaHtml = buildNameCellMetricsHtml(type, directMemberCount, childFolderIds.length, membersTitle);
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
         const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;

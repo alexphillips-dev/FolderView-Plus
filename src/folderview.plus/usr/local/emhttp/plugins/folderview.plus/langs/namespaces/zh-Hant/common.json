@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
+        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -352,6 +352,9 @@
     "common.repair.defaults-inherited-from-parent-2-1-55c01c": "從父級「$2」繼承的預設值：$1。",
     "common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767": "使用「$1」的資料夾：$2。在刪除此圖示之前先刪除引用。",
     "common.repair.items-1-e8a685": "專案：$1",
+    "common.repair.folder-containers-1": "容器：$1",
+    "common.repair.folder-vms-1": "虛擬機器：$1",
+    "common.repair.folder-subfolders-1": "子資料夾：$1",
     "common.repair.current-matches-1-611f8b": "目前匹配：$1",
     "common.repair.advanced-conflicts-1-f44446": "高階衝突：$1",
     "common.repair.legacy-overlaps-1-eca247": "舊版重疊：$1",

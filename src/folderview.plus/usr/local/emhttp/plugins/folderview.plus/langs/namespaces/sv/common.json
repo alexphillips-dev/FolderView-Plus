@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
+        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -352,6 +352,9 @@
     "common.repair.defaults-inherited-from-parent-2-1-55c01c": "Standardvärden ärvt från föräldern \"$2\": $1.",
     "common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767": "Mappar som använder \"$1\": $2. Ta bort referenser innan du tar bort den här ikonen.",
     "common.repair.items-1-e8a685": "Objekt: $1",
+    "common.repair.folder-containers-1": "Behållare: $1",
+    "common.repair.folder-vms-1": "virtuella datorer: $1",
+    "common.repair.folder-subfolders-1": "Undermappar: $1",
     "common.repair.current-matches-1-611f8b": "Aktuella matcher: $1",
     "common.repair.advanced-conflicts-1-f44446": "Avancerade konflikter: $1",
     "common.repair.legacy-overlaps-1-eca247": "Äldre överlappningar: $1",

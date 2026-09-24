@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics",
-        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
+        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
     },
     "diagnostics.title": "Diagnostikk",
     "diagnostics.workspace.description": "Overvåk plugin-helsen, feilsøk problemer og del støttedata.",

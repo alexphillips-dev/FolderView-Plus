@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "ec567e607a6ee90ae9a679e744679af25cb457d94858ce3065a933c7bcd8170d"
+        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -352,6 +352,9 @@
     "common.repair.defaults-inherited-from-parent-2-1-55c01c": "ডিফল্টগুলি অভিভাবক \"$2\" থেকে উত্তরাধিকারসূত্রে প্রাপ্ত: $1৷",
     "common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767": "ফোল্ডারগুলি \"$1\" ব্যবহার করছে: $2৷ এই আইকন মুছে ফেলার আগে রেফারেন্স সরান.",
     "common.repair.items-1-e8a685": "আইটেম: $1",
+    "common.repair.folder-containers-1": "ধারক: $1",
+    "common.repair.folder-vms-1": "ভার্চুয়াল মেশিন: $1",
+    "common.repair.folder-subfolders-1": "সাব-ফোল্ডার: $1",
     "common.repair.current-matches-1-611f8b": "বর্তমান মিল: $1",
     "common.repair.advanced-conflicts-1-f44446": "উন্নত দ্বন্দ্ব: $1",
     "common.repair.legacy-overlaps-1-eca247": "উত্তরাধিকার ওভারল্যাপ: $1",

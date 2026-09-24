@@ -1219,10 +1219,26 @@
   },
   {
     "file": "scripts/folderviewplus.js",
-    "key": "common.repair.items-1-e8a685",
-    "english": "Items: $1",
+    "key": "common.repair.folder-containers-1",
+    "english": "Containers: $1",
     "params": [
-      "totalMemberCount"
+      "memberCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folder-vms-1",
+    "english": "VMs: $1",
+    "params": [
+      "memberCount"
+    ]
+  },
+  {
+    "file": "scripts/folderviewplus.js",
+    "key": "common.repair.folder-subfolders-1",
+    "english": "Sub-folders: $1",
+    "params": [
+      "subfolderCount"
     ]
   },
   {

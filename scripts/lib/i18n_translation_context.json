@@ -53,7 +53,11 @@
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
         },
+        "bn": {
+            "VMs: $1": "ভার্চুয়াল মেশিন: $1"
+        },
         "ca": {
+            "VMs: $1": "Màquines virtuals: $1",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "Voleu restaurar les carpetes i les preferències desades d'aquesta instantània? Primer es crea una còpia de seguretat.",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Carpetes inicials: $1 (seleccionades: $2; existents que s'ometen: $3; coincidències assignades automàticament: $4; pendents de revisió: $5; sense coincidències: $6)",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Diagnòstic d'inici de l'editor de carpetes de FolderView Plus",
@@ -107,6 +111,7 @@
             "Clear": "Wyczyść"
         },
         "de": {
+            "VMs: $1": "Virtuelle Maschinen: $1",
             "Dashboard": "Dashboard",
             "Order": "Reihenfolge",
             "Manual": "Manuell zugeordnet",
@@ -152,14 +157,17 @@
             "$1 refs": "Referanser: $1"
         },
         "nl": {
-            "type mismatch": "typen komen niet overeen"
+            "type mismatch": "typen komen niet overeen",
+            "Containers: $1": "Docker-containers: $1"
         },
         "pt-BR": {
-            "Manual $1": "Atribuição manual: $1"
+            "Manual $1": "Atribuição manual: $1",
+            "VMs: $1": "Máquinas virtuais: $1"
         },
         "pt-PT": {
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "Restaurar as pastas e as preferências guardadas deste instantâneo? Primeiro, é criada uma cópia de segurança.",
-            "Manual $1": "Atribuição manual: $1"
+            "Manual $1": "Atribuição manual: $1",
+            "VMs: $1": "Máquinas virtuais: $1"
         },
         "uk": {
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Діагностика запуску редактора папок FolderView Plus"

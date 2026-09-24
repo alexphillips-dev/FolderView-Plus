@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.07">
-<!ENTITY md5 "67ccfdb8f13d4017a293daf4aa342a48">
-<!ENTITY sha256 "7d29dae647ebc7ccda4aba0d67fdafdddeb92b7c7c13bad92a31be464d661035">
+<!ENTITY version "2026.09.24.08">
+<!ENTITY md5 "8619b737fa5a614db42a32775a90a5df">
+<!ENTITY sha256 "5be608d19c2b7bb1ac54a241211c0d888f35f7948852d453dde644616be5278c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.08
+- UX: Docker and VM Basic Settings summary cards have slightly more vertical padding for a more comfortable fit while retaining their compact layout.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised style.
+
 
 ###2026.09.24.07
 - UX: Docker and VM Basic Settings summary cards use less vertical space while allowing longer content to expand naturally on narrow screens.

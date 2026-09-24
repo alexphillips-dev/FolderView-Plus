@@ -3014,7 +3014,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     grid-template-columns: 48px minmax(0, 1fr);
     align-items: center;
     gap: 0.72rem;
-    padding: 0.45rem 0.95rem;
+    padding: 0.65rem 0.95rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
     background: var(--fvplus-settings-surface-card);

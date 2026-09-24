@@ -4,6 +4,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
     test('Logs show selected actions newest first, keep a bounded history, and clear it', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`);
         await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
         await page.evaluate(async () => {
             const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
             document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
@@ -26,10 +27,35 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             api.addActivityEntry('Folder move failed', 'error');
             await api.trackDiagnosticsEvent({ eventType: 'conflict_scan' });
             await api.trackDiagnosticsEvent({ eventType: 'diagnostics_export' });
+            api.addActivityEntry('Review needed', 'warning');
+            api.addActivityEntry('Helpful detail', 'info');
         });
         assert.equal(await clear.isDisabled(), false);
         assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
-            ['Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+            ['Helpful detail', 'Review needed', 'Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        const readPalette = () => page.evaluate(() => Object.fromEntries(
+            [...document.querySelectorAll('.fv-activity-item')].map(item => {
+                const level = [...item.classList].find(name => name.startsWith('is-')).slice(3);
+                const style = getComputedStyle(item);
+                return [level, {
+                    border: style.borderInlineStartColor,
+                    background: style.backgroundColor,
+                    text: getComputedStyle(item.querySelector('.fv-activity-text')).color
+                }];
+            })
+        ));
+        const darkPalette = await readPalette();
+        assert.deepEqual(Object.keys(darkPalette).sort(), ['error', 'info', 'success', 'warning']);
+        assert.equal(new Set(Object.values(darkPalette).map(value => value.border)).size, 4);
+        assert.equal(new Set(Object.values(darkPalette).map(value => value.background)).size, 4);
+        for (const value of Object.values(darkPalette)) assert.equal(value.text, value.border);
+        await page.locator('#fv-settings-root').evaluate(root => root.dataset.fvThemeClass = 'light');
+        const lightPalette = await readPalette();
+        assert.equal(new Set(Object.values(lightPalette).map(value => value.border)).size, 4);
+        for (const value of Object.values(lightPalette)) assert.equal(value.text, value.border);
+        assert.notEqual(lightPalette.success.text, darkPalette.success.text);
+        await page.setViewportSize({ width: 390, height: 800 });
+        assert.equal(new Set(Object.values(await readPalette()).map(value => value.border)).size, 4);
         await page.evaluate(() => {
             for (let index = 0; index < 105; index++) window.FolderViewPlusDiagnostics.addActivityEntry(`Action ${index}`, 'success');
         });

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.23.07">
-<!ENTITY md5 "afc4808cac6443e3c1a863a6c9b0b4d4">
-<!ENTITY sha256 "417783ab570763da9409a0df90e2977fefc970549e6cef8f7605962596fc7926">
+<!ENTITY version "2026.09.23.08">
+<!ENTITY md5 "63dcbb27e3039f602c97deb22d2493be">
+<!ENTITY sha256 "432ac372459f1970f25c728424bb81c8cbfc3cdd5b0257ff12abce1e69f5202a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.08
+- UX: Advanced > Logs now color-codes each entry: green for completed actions, red for errors, orange for warnings, and blue for information. A matching tinted row and leading border make the status clear in light and dark themes.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
 
 ###2026.09.23.07
 - UX: Settings activity now appears in Advanced > Logs instead of the bar above Basic settings. Entries are always visible with the newest at the top, and the latest action is shown only once.

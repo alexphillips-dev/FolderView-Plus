@@ -13032,8 +13032,34 @@ h2[data-fv-section].fv-search-match {
     font-size: 1.03rem;
     line-height: 1.3;
     padding: 0.34rem 0.46rem;
+    border: 1px solid var(--fv-activity-border);
+    border-inline-start: 4px solid var(--fv-activity-tone);
     border-radius: 8px;
-    background: var(--fvplus-settings-surface-field);
+    background: var(--fv-activity-bg);
+}
+
+.fv-activity-item.is-info {
+    --fv-activity-tone: var(--fvplus-settings-chip-info);
+    --fv-activity-border: var(--fvplus-settings-chip-info-border);
+    --fv-activity-bg: var(--fvplus-settings-chip-info-bg);
+}
+
+.fv-activity-item.is-success {
+    --fv-activity-tone: var(--fvplus-settings-chip-success);
+    --fv-activity-border: var(--fvplus-settings-chip-success-border);
+    --fv-activity-bg: var(--fvplus-settings-chip-success-bg);
+}
+
+.fv-activity-item.is-warning {
+    --fv-activity-tone: var(--fvplus-settings-chip-warning);
+    --fv-activity-border: var(--fvplus-settings-chip-warning-border);
+    --fv-activity-bg: var(--fvplus-settings-chip-warning-bg);
+}
+
+.fv-activity-item.is-error {
+    --fv-activity-tone: var(--fvplus-settings-chip-danger);
+    --fv-activity-border: var(--fvplus-settings-chip-danger-border);
+    --fv-activity-bg: var(--fvplus-settings-chip-danger-bg);
 }
 
 .fv-activity-level {
@@ -13053,31 +13079,15 @@ h2[data-fv-section].fv-search-match {
     overflow-wrap: anywhere;
 }
 
+.fv-activity-level,
+.fv-activity-text {
+    color: var(--fv-activity-tone);
+}
+
 @media (max-width: 640px) {
     .fv-activity-center-head { align-items: flex-start; }
     .fv-activity-item { grid-template-columns: minmax(0, 1fr) auto; }
     .fv-activity-text { grid-column: 1 / -1; }
-}
-
-.fv-activity-item.is-error .fv-activity-text {
-    color: var(--fvplus-settings-danger);
-}
-
-.fv-activity-item.is-error .fv-activity-level {
-    color: var(--fvplus-settings-danger);
-}
-
-.fv-activity-item.is-success .fv-activity-text {
-    color: var(--fvplus-settings-success);
-}
-
-.fv-activity-item.is-success .fv-activity-level {
-    color: var(--fvplus-settings-success);
-}
-
-.fv-activity-item.is-warning .fv-activity-level,
-.fv-activity-item.is-warning .fv-activity-text {
-    color: var(--fvplus-settings-warning, #f0ad4e);
 }
 
 .folder-quick-filters {

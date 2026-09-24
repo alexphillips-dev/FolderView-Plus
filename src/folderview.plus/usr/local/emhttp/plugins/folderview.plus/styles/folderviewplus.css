@@ -9990,6 +9990,10 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin: 0;
 }
 
+#fv-settings-root.fv-advanced-mode .fv-customizations-header {
+    display: none;
+}
+
 #fv-settings-topbar {
     margin: 0 0 0.65rem 0;
     display: flex;
@@ -12776,8 +12780,9 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     border-inline-start: 3px solid var(--fvplus-settings-title-accent);
     padding: 0.2rem 0.55rem;
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.13rem;
+    font-size: 1.45rem;
     font-weight: 800;
+    line-height: 1.25;
 }
 
 .fv-advanced-tabs {

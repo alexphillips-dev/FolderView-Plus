@@ -26,7 +26,17 @@ function cleanupTempDir(targetPath) {
             fs.chmodSync(entryPath, 0o644);
         } catch {}
     }
-    fs.rmSync(targetPath, { recursive: true, force: true, maxRetries: 40, retryDelay: 250 });
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+        try {
+            fs.rmSync(targetPath, { recursive: true, force: true });
+            return;
+        } catch (error) {
+            if (!['EPERM', 'EBUSY', 'ENOTEMPTY'].includes(error.code) || attempt === 39) {
+                throw error;
+            }
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+        }
+    }
 }
 
 function copyFileIntoTemp(tempRoot, relativePath) {

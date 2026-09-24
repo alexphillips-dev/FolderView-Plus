@@ -29,11 +29,10 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
             ${renderSource}
             const root = document.getElementById('fv-settings-root');
             root.classList.add('fv-advanced-mode');
-            root.insertAdjacentHTML('beforeend', '<div id="fv-advanced-workspace" class="fv-advanced-workspace"><div class="fv-advanced-sidebar"><h2 class="fv-advanced-sidebar-title">Customizations</h2><nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections"></nav></div><div id="fv-advanced-content" class="fv-advanced-content"><h2 data-fv-section="runtime-actions">Operations</h2><div class="rules-panel">Operations content</div></div></div>');
+            root.insertAdjacentHTML('beforeend', '<div class="fv-customizations-header"><h2 data-fv-section="customizations">Customizations</h2></div><div id="fv-advanced-workspace" class="fv-advanced-workspace"><div class="fv-advanced-sidebar"><h2 class="fv-advanced-sidebar-title">Customizations</h2><nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections"></nav></div><div id="fv-advanced-content" class="fv-advanced-content"><h2 data-fv-section="runtime-actions">Operations</h2><div class="rules-panel">Operations content</div></div></div>');
             renderAdvancedNav();
             window.fixtureAdvancedNav = { state: settingsUiState, render: renderAdvancedNav };
         })();` });
-
         const desktop = await page.evaluate(() => {
             const workspace = document.getElementById('fv-advanced-workspace');
             const nav = document.getElementById('fv-advanced-nav');
@@ -48,6 +47,8 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
                 active: nav.querySelectorAll('.fv-advanced-tab[aria-current="true"]').length,
                 sticky: getComputedStyle(workspace.querySelector('.fv-advanced-sidebar')).position,
                 aligned: Math.abs(workspace.querySelector('.fv-advanced-sidebar-title').getBoundingClientRect().top - content.querySelector('h2').getBoundingClientRect().top) < 2,
+                visibleTitles: Array.from(document.querySelectorAll('.fv-customizations-header h2, .fv-advanced-sidebar-title')).filter((title) => title.getClientRects().length).length,
+                labelScale: parseFloat(getComputedStyle(nav.querySelector('.fv-advanced-nav-label')).fontSize) / parseFloat(getComputedStyle(nav.querySelector('.fv-advanced-tab')).fontSize),
                 groups: Array.from(nav.querySelectorAll('.fv-advanced-nav-group')).map((group) => Array.from(group.querySelectorAll('.fv-advanced-tab')).map((button) => button.dataset.fvAdvancedTab).join(','))
             };
         });
@@ -57,9 +58,8 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         assert.equal(desktop.pickerHidden, true);
         assert.equal(desktop.active, 1);
         assert.equal(desktop.sticky, 'sticky');
-        assert.equal(desktop.aligned, true);
+        assert.ok(desktop.aligned && desktop.visibleTitles === 1 && desktop.labelScale >= 1.2, JSON.stringify(desktop));
         assert.deepEqual(desktop.groups, ['operations,automation,rules,startup', 'appearance', 'recovery,diagnostics,logs']);
-
         await page.locator('[data-fv-advanced-tab="operations"]').focus();
         const focusKept = await page.evaluate(() => {
             const button = document.activeElement;

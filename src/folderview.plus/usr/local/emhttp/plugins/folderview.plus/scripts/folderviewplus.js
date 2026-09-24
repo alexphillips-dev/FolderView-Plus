@@ -6567,8 +6567,8 @@ const bindBasicFolderDragHandles = (type) => {
             const placement = resolveBasicFolderDropPlacement(row, event.clientY);
             const draggedId = basicFolderDragState.folderId;
             clearBasicFolderDragState();
-            if (typeof openFolderTreeMoveDialog === 'function') {
-                openFolderTreeMoveDialog(resolvedType, draggedId, { targetId, placement });
+            if (typeof applyFolderTreeMove === 'function') {
+                void applyFolderTreeMove(resolvedType, draggedId, targetId, placement);
             }
         });
     });

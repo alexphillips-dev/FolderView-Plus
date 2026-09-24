@@ -20,8 +20,8 @@ test('Phase 8 runner contract preserves deterministic fixture intent inventory',
         cwd: rootDir,
         encoding: 'utf8'
     });
-    assert.match(output, /62 ordered fixture cases/);
-    assert.equal(contract.intent.fixture.assertionCount, 724);
+    assert.match(output, /63 ordered fixture cases/);
+    assert.equal(contract.intent.fixture.assertionCount, 729);
 });
 
 test('Phase 8 change classification covers every extracted runner family', async () => {

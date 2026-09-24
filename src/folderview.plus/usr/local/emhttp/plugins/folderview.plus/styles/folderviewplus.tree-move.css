@@ -1,24 +1,13 @@
-.fv-tree-move-note {
-    margin: 0.35rem 0 0;
-    font-size: 0.95rem;
-    opacity: 0.85;
+.folder-table table tbody tr.fv-row-drag-over-before > td {
+    border-top-color: var(--fvplus-settings-accent);
 }
 
-.fv-tree-move-note[hidden] {
-    display: none;
-}
-
-.fv-tree-move-preview {
-    margin: 0.45rem 0 0;
-    padding: 0.55rem 0.65rem;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 6px;
-    background: var(--fvplus-settings-surface-strong);
-    overflow-wrap: anywhere;
+.folder-table table tbody tr.fv-row-drag-over-after > td {
+    border-bottom-color: var(--fvplus-settings-accent);
 }
 
 .folder-table table tbody tr.fv-row-drag-over-inside > td {
-    box-shadow: inset 0 0 0 2px var(--fvplus-settings-accent);
+    border-color: var(--fvplus-settings-accent);
 }
 
 .folder-table table tbody tr.fv-row-drag-over-before > td:first-child,

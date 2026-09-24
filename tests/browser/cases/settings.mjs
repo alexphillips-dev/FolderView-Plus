@@ -607,4 +607,26 @@ test('Mobile reorder persists click state and isolates Docker and VM controls', 
     assert.equal(state.vmCell, 'table-cell');
     assert.deepEqual(state.calls, { persists: 3, renders: ['docker', 'vm', 'docker'] });
 });
+
+test('Inside drop highlights only the outside edges of a folder row', async ({ page }) => {
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    const edges = await page.evaluate(() => {
+        const host = document.createElement('div');
+        host.className = 'folder-table';
+        host.innerHTML = '<table><tbody><tr class="fv-row-drag-over-inside"><td>First</td><td>Middle</td><td>Last</td></tr></tbody></table>';
+        document.getElementById('fv-settings-root').appendChild(host);
+        return [...host.querySelectorAll('td')].map((cell) => {
+            const style = getComputedStyle(cell);
+            return { top: style.borderTopColor, bottom: style.borderBottomColor,
+                left: style.borderLeftColor, right: style.borderRightColor,
+                leftWidth: style.borderLeftWidth, rightWidth: style.borderRightWidth,
+                shadow: style.boxShadow };
+        });
+    });
+    assert.ok(edges.every((edge) => edge.top === edge.bottom && edge.shadow === 'none'));
+    assert.equal(edges[0].left, edges[0].top);
+    assert.equal(edges[2].right, edges[2].top);
+    assert.equal(edges[1].leftWidth, '0px');
+    assert.equal(edges[1].rightWidth, '0px');
+});
 };

@@ -43,7 +43,7 @@
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
-    { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
     { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases", "requiredImports": ["./settings-startup-repair.mjs"] },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
@@ -83,10 +83,10 @@
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
         "tests/browser/helpers/vm-lifecycle.mjs"
       ],
-      "testCount": 62,
-      "assertionCount": 724,
-      "pageEvaluateCount": 170,
-      "orderedTitleSha256": "fee83430812655608b7c94b5531b7841e4d1665b065f37259275c02fa872966a"
+      "testCount": 63,
+      "assertionCount": 729,
+      "pageEvaluateCount": 171,
+      "orderedTitleSha256": "a3d451eff047db1585ecfa382bd1566d7025ceee21061963684f21f6957f2b5f"
     }
   }
 }

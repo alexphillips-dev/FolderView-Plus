@@ -1875,6 +1875,25 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     text-align: left;
 }
 
+.fv-tree-move-note {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+.fv-tree-move-note[hidden] {
+    display: none;
+}
+
+.fv-tree-move-preview {
+    margin: 0.45rem 0 0;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-strong);
+    overflow-wrap: anywhere;
+}
+
 .fv-tree-move-source {
     font-size: 1.03rem;
     opacity: 0.9;
@@ -3196,14 +3215,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-basic-row-drag-image tr > td:last-child {
     border-right: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 0 8px 8px 0;
-}
-
-.folder-table table tbody tr.fv-row-drag-over-before > td {
-    box-shadow: inset 0 2px 0 var(--fvplus-settings-accent);
-}
-
-.folder-table table tbody tr.fv-row-drag-over-after > td {
-    box-shadow: inset 0 -2px 0 var(--fvplus-settings-accent);
 }
 
 .folder-pin-switch {

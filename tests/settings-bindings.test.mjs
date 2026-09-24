@@ -513,7 +513,7 @@ test('basic folder drag uses a full-row drag image', () => {
     assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
 });
 
-test('folder drag offers three drop zones and opens a destination review', () => {
+test('folder drag offers three drop zones and applies the highlighted move directly', () => {
     const helper = script.match(/const resolveBasicFolderDropPlacement = \(row, clientY\) => \{[\s\S]*?\n\};/)?.[0];
     assert.ok(helper);
     const placement = Function(`${helper}\nreturn resolveBasicFolderDropPlacement;`)();
@@ -521,9 +521,11 @@ test('folder drag offers three drop zones and opens a destination review', () =>
     assert.equal(placement(row, 105), 'before');
     assert.equal(placement(row, 150), 'inside');
     assert.equal(placement(row, 195), 'after');
-    assert.match(script, /openFolderTreeMoveDialog\(resolvedType, draggedId, \{ targetId, placement \}\)/);
+    assert.match(script, /void applyFolderTreeMove\(resolvedType, draggedId, targetId, placement\)/);
+    assert.doesNotMatch(script, /openFolderTreeMoveDialog\(resolvedType, draggedId, \{ targetId, placement \}\)/);
     assert.match(script, /blockedIds\.has\(targetId\)/);
-    assert.match(treeMoveCss, /\.fv-row-drag-over-inside > td/);
+    assert.match(treeMoveCss, /\.fv-row-drag-over-inside > td\s*\{\s*border-color: var\(--fvplus-settings-accent\);/);
+    assert.doesNotMatch(treeMoveCss, /fv-row-drag-over-inside > td\s*\{\s*box-shadow:/);
 });
 
 test('basic folder drag handle renders a compact six-dot grip', () => {

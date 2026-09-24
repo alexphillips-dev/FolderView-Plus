@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.04">
-<!ENTITY md5 "ad388a303a6c301880daa712d43b11fe">
-<!ENTITY sha256 "0c7e4d4f682a48f6a89e1249bd6d52c76d123d8ea6f0df0323368f6fb73069be">
+<!ENTITY version "2026.09.24.05">
+<!ENTITY md5 "6f36429f0b049b1ec13a2634c419e548">
+<!ENTITY sha256 "31ed46fb1b8055423034d77f7bb82873f21d4dec9fc81dbcc036783dcf2ff30e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.05
+- UX: Docker and VM Basic Settings now place search, sort, Add Folder Group, Export, Import, Restore, and Clear in one responsive toolbar. The redundant Filters button is removed; Filters and view settings remains available from its section heading.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
 
 ###2026.09.24.04
 - UX: Removed the Path bar above the Docker and VM folder lists in Basic Settings. Folder filters remain directly above each list.

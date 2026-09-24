@@ -6,7 +6,7 @@
     "catalog-message-count": 4527,
     "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
-        "FolderViewPlus.page": 630,
+        "FolderViewPlus.page": 628,
         "scripts/folderviewplus.js": 265,
         "Folder.page": 226,
         "scripts/folderviewplus.wizard.js": 202,

@@ -2906,20 +2906,34 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-toolbar {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.65rem;
 }
 
-.fv-basic-commandbar {
-    display: grid;
-    grid-template-columns: minmax(260px, 1fr) auto minmax(190px, auto) auto;
-    gap: 0.65rem;
-    align-items: center;
+.folder-toolbar > :is(.fv-basic-commandbar, .toolbar-actions) {
+    display: contents;
+}
+
+.folder-toolbar .fv-basic-search {
+    flex: 1 1 200px;
+    min-width: 180px;
+}
+
+.folder-toolbar :is(.fv-basic-sort, .fv-basic-add-btn),
+.folder-toolbar .toolbar-actions > button {
+    flex: 0 0 auto;
+}
+
+.folder-toolbar .toolbar-actions > button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 0.75rem;
 }
 
 .fv-basic-search,
 .fv-basic-sort,
-.fv-basic-control-btn,
 .fv-basic-add-btn {
     min-height: 44px;
     border: 1px solid var(--fvplus-settings-border-subtle);
@@ -2939,7 +2953,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-basic-search > i,
 .fv-basic-sort > i,
-.fv-basic-control-btn > i,
 .fv-basic-add-btn > i {
     font-size: 1.08rem;
 }
@@ -2958,7 +2971,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     outline: none;
 }
 
-.fv-basic-control-btn,
 .fv-basic-add-btn {
     display: inline-flex;
     align-items: center;
@@ -3292,26 +3304,28 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 @media (max-width: 1280px) {
-    .fv-basic-commandbar,
     .fv-basic-summary-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .fv-basic-search {
-        grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 720px) {
-    .fv-basic-commandbar,
     .fv-basic-summary-grid {
         grid-template-columns: 1fr;
     }
 
-    .fv-basic-control-btn,
+    .folder-toolbar .fv-basic-search {
+        flex-basis: 100%;
+        min-width: 0;
+    }
+
     .fv-basic-add-btn,
     .fv-basic-sort {
         width: 100%;
+    }
+
+    .folder-toolbar .toolbar-actions > button {
+        flex: 1 1 calc(50% - 0.35rem);
     }
 }
 
@@ -13105,7 +13119,6 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
     .fv-theme-token-reset,
-    .fv-basic-control-btn,
     .fv-basic-add-btn,
     .fv-basic-sort,
     .tree-visibility-controls > button,
@@ -13162,7 +13175,6 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
     .fv-theme-token-reset,
-    .fv-basic-control-btn,
     .fv-basic-add-btn,
     .fv-basic-sort,
     .tree-visibility-controls > button,
@@ -13207,7 +13219,6 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
     .fv-theme-token-reset,
-    .fv-basic-control-btn,
     .fv-basic-add-btn,
     .fv-basic-sort,
     .tree-visibility-controls > button,
@@ -13261,7 +13272,6 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
     .fv-theme-token-reset,
-    .fv-basic-control-btn,
     .fv-basic-add-btn,
     .fv-basic-sort,
     .tree-visibility-controls > button,
@@ -13313,7 +13323,6 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
     .fv-theme-token-reset,
-    .fv-basic-control-btn,
     .fv-basic-add-btn,
     .fv-basic-sort,
     .tree-visibility-controls > button,

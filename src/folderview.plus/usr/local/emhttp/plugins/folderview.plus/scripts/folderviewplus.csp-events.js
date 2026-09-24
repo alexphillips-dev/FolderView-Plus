@@ -25,7 +25,7 @@
         'saveThemeWorkspaceCustomize scanSmartRuleSuggestions scanThemeWorkspaceGithub selectActiveRecoveryBackup ' +
         'selectOperationsTemplate setFilterQuery setIconAsContainer setOperationsWorkspaceType setQuickFolderFilter ' +
         'setRecoveryWorkspaceType setRulesWorkspaceType showFolderHealthBreakdown submitForm syncDockerStartOrderNow testAutoRule ' +
-        'toggleAllRuleSelections toggleAutoRule toggleBasicSettingsPanel toggleDockerUpdatesFilter ' +
+        'toggleAllRuleSelections toggleAutoRule toggleDockerUpdatesFilter ' +
         'toggleFolderPin toggleFolderTreeCollapse toggleHealthSeverityFilter toggleMobileTreeReorderMode toggleRuleKindFields ' +
         'toggleRuleSelection toggleStatusFilter undoActiveRecoveryChange updateBulkSelectedCount updateContainer ' +
         'updateDockerStartOrderBatch updateDockerStartOrderMode updateDockerStartOrderRemaining updateDockerStartOrderWait toggleDockerStartOrderAutostart updateFolder updateForm updateIcon ' +

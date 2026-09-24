@@ -1,4 +1,17 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const settingsPageSource = fs.readFileSync(path.join(process.cwd(),
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'), 'utf8');
+const basicToolbarMarkup = (type) => {
+    const sectionName = type === 'docker' ? 'docker' : 'vms';
+    const section = settingsPageSource.indexOf(`<h2 data-i18n="${sectionName}" data-fv-section="${sectionName}">`);
+    const start = settingsPageSource.indexOf('<div class="folder-toolbar"', section);
+    const end = settingsPageSource.indexOf(`<div id="${type}-basic-summary"`, start);
+    assert.ok(section >= 0 && start > section && end > start, `${type} Basic toolbar markup must exist`);
+    return settingsPageSource.slice(start, end);
+};
 
 export const verifySettingsSearchAlignment = async (page) => {
     const desktop = await page.evaluate(() => {
@@ -61,4 +74,49 @@ export const verifySettingsSearchAlignment = async (page) => {
     assert.ok(mobile.iconInputGap >= 6, 'mobile search icon needs breathing room before the text');
     assert.ok(mobile.searchWidth > 0 && mobile.searchLeft >= -1 && mobile.searchRight <= mobile.viewportWidth + 1,
         `mobile search field must fit within the viewport: ${JSON.stringify(mobile)}`);
+};
+
+export const verifyBasicToolbarLayout = async (page) => {
+    await page.evaluate(({ docker, vm }) => {
+        const host = document.createElement('div');
+        host.innerHTML = `<section class="folder-table" data-toolbar-type="docker">${docker}</section>`
+            + `<section class="folder-table" data-toolbar-type="vm">${vm}</section>`;
+        document.querySelector('#fv-settings-root').append(host);
+    }, { docker: basicToolbarMarkup('docker'), vm: basicToolbarMarkup('vm') });
+    for (const width of [1700, 1180, 390]) {
+        await page.setViewportSize({ width, height: 720 });
+        const layouts = await page.evaluate(() => ['docker', 'vm'].map((type) => {
+            const toolbar = document.querySelector(`[data-toolbar-type="${type}"] .folder-toolbar`);
+            const bounds = toolbar.getBoundingClientRect();
+            const controls = [...toolbar.querySelectorAll(
+                '.fv-basic-search, .fv-basic-sort, .fv-basic-add-btn, .toolbar-actions > button'
+            )].map((element) => {
+                const rect = element.getBoundingClientRect();
+                return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+            });
+            return {
+                type, bounds: { left: bounds.left, right: bounds.right }, controls,
+                filtersButton: [...toolbar.querySelectorAll('button')].some((button) => button.textContent.trim() === 'Filters')
+            };
+        }));
+        for (const layout of layouts) {
+            assert.equal(layout.controls.length, 7, `${layout.type} toolbar must contain search, sort, add, and four actions`);
+            assert.equal(layout.filtersButton, false, `${layout.type} toolbar must not include a Filters button`);
+            if (width >= 1180) {
+                const tops = layout.controls.map((box) => box.top);
+                assert.ok(Math.max(...tops) - Math.min(...tops) <= 2,
+                    `${layout.type} controls must share one desktop row: ${JSON.stringify(layout)}`);
+            }
+            for (const [index, box] of layout.controls.entries()) {
+                assert.ok(box.left >= layout.bounds.left - 1 && box.right <= layout.bounds.right + 1,
+                    `${layout.type} toolbar control must fit at ${width}px: ${JSON.stringify(layout)}`);
+                for (const other of layout.controls.slice(index + 1)) {
+                    const overlapX = Math.min(box.right, other.right) - Math.max(box.left, other.left);
+                    const overlapY = Math.min(box.bottom, other.bottom) - Math.max(box.top, other.top);
+                    assert.ok(overlapX <= 1 || overlapY <= 1,
+                        `${layout.type} toolbar controls must not overlap at ${width}px: ${JSON.stringify(layout)}`);
+                }
+            }
+        }
+    }
 };

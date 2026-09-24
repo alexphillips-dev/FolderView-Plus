@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs';
-import { verifySettingsSearchAlignment } from './settings-search-layout.mjs';
+import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
 registerLocalizationWorkspaceFixtureCases({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
@@ -30,6 +30,7 @@ test('Settings chrome keeps search and mode controls aligned without clipping', 
     const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
     assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
     await verifySettingsSearchAlignment(page);
+    await verifyBasicToolbarLayout(page);
 });
 test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
     const readLayout = async () => page.evaluate(async () => {

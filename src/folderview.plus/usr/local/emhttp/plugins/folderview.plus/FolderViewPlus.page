@@ -161,13 +161,12 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">
-    <div class="folder-toolbar">
-        <div class="fv-basic-commandbar" aria-label="Docker folder controls">
+    <div class="folder-toolbar" role="group" aria-label="Docker folder controls">
+        <div class="fv-basic-commandbar">
             <label class="fv-basic-search" for="docker-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
                 <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" data-fv-oninput="setFilterQuery('folders','docker',this.value)">
             </label>
-            <button type="button" class="fv-basic-control-btn" data-fv-onclick="toggleBasicSettingsPanel('docker')" aria-controls="docker-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
             <label class="fv-basic-sort" for="docker-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
                 <span>Sort</span>
@@ -516,13 +515,12 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <h2 data-i18n="vms" data-fv-section="vms">VMs</h2>
 <div class="folder-table">
-    <div class="folder-toolbar">
-        <div class="fv-basic-commandbar" aria-label="VM folder controls">
+    <div class="folder-toolbar" role="group" aria-label="VM folder controls">
+        <div class="fv-basic-commandbar">
             <label class="fv-basic-search" for="vm-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
                 <input id="vm-folder-filter" type="text" placeholder="Search VM folders" data-fv-oninput="setFilterQuery('folders','vm',this.value)">
             </label>
-            <button type="button" class="fv-basic-control-btn" data-fv-onclick="toggleBasicSettingsPanel('vm')" aria-controls="vm-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
             <label class="fv-basic-sort" for="vm-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
                 <span>Sort</span>

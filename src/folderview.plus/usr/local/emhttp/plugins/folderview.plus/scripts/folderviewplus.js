@@ -6115,15 +6115,6 @@ const highlightSearchText = (text, query) => {
     return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
 };
 
-const toggleBasicSettingsPanel = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const panel = document.getElementById(`${resolvedType}-view-settings`);
-    if (!panel) {
-        return;
-    }
-    panel.open = !panel.open;
-};
-
 const formatBasicSummaryPercent = (count, total) => {
     const safeTotal = Math.max(0, Number(total) || 0);
     if (safeTotal <= 0) {
@@ -11196,7 +11187,6 @@ settingsActionSupportModule.registerActions(window, {
     importVm,
     clearDocker,
     clearVm,
-    toggleBasicSettingsPanel,
     fileManager,
     createRollbackCheckpoint,
     rollbackLatestCheckpoint,

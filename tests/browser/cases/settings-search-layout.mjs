@@ -17,6 +17,34 @@ export const verifySettingsSearchAlignment = async (page) => {
         `search must be vertically centered with the buttons: ${JSON.stringify(desktop)}`);
     assert.ok(desktop.iconInputGap >= 6, 'search icon needs breathing room before the text');
 
+    await page.locator('#fv-settings-search').click();
+    await page.waitForFunction(() => {
+        const input = document.querySelector('#fv-settings-search');
+        const wrapper = input.closest('.fv-settings-search-wrap');
+        const accent = document.createElement('span');
+        accent.style.color = 'var(--fvplus-settings-accent)';
+        wrapper.append(accent);
+        const borderHasAccent = getComputedStyle(wrapper).borderTopColor === getComputedStyle(accent).color;
+        accent.remove();
+        return wrapper.matches(':focus-within') && borderHasAccent;
+    });
+    const focus = await page.evaluate(() => {
+        const input = document.querySelector('#fv-settings-search');
+        const wrapper = input.closest('.fv-settings-search-wrap');
+        const accent = document.createElement('span');
+        accent.style.color = 'var(--fvplus-settings-accent)';
+        wrapper.append(accent);
+        const colors = {
+            outlineStyle: getComputedStyle(input).outlineStyle,
+            wrapperBorder: getComputedStyle(wrapper).borderTopColor,
+            accent: getComputedStyle(accent).color
+        };
+        accent.remove();
+        return colors;
+    });
+    assert.equal(focus.outlineStyle, 'none', 'search input must not draw a second focus outline');
+    assert.equal(focus.wrapperBorder, focus.accent, 'focused search box must retain its accent border');
+
     await page.setViewportSize({ width: 390, height: 720 });
     const mobile = await page.evaluate(() => {
         const icon = document.querySelector('.fv-settings-search-icon').getBoundingClientRect();

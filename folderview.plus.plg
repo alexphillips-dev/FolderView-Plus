@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.02">
-<!ENTITY md5 "a70de68f4dc4a7b23d66e4e9d13c7435">
-<!ENTITY sha256 "52dc220cd05a009a30e7b06cd3572e9965f20d2df33d35c86c9e5ceabbef974b">
+<!ENTITY version "2026.09.24.03">
+<!ENTITY md5 "bd7a61afee6449b3e2c06e9c94c6ab4b">
+<!ENTITY sha256 "f394fc7a08e6177a4118a3b6ed10612590f45c0d3bf26644214c2aad6170726d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.03
+- UX: Focusing the Settings search field no longer draws a blue outline inside the input. The highlighted border around the whole search box remains visible.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
 
 ###2026.09.24.02
 - UX: Advanced Settings now uses its tabs to organize sections without Compact or Expand buttons in section headings or the tab bar. Every section in the selected tab shows its content, including after updating from a previously compacted layout.

@@ -10355,6 +10355,10 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     appearance: none;
 }
 
+#fv-settings-root .fv-settings-search-wrap input[type="search"]:focus-visible {
+    outline: 0;
+}
+
 .fv-settings-search-wrap input[type="search"]::-webkit-search-cancel-button {
     display: none;
 }

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.06">
-<!ENTITY md5 "a22bdb2f14e23b8a88384673142e1538">
-<!ENTITY sha256 "609b381f5b5abcce827c69cb2f390eb58525662b258aa428f883f6f790e7bfef">
+<!ENTITY version "2026.09.24.07">
+<!ENTITY md5 "67ccfdb8f13d4017a293daf4aa342a48">
+<!ENTITY sha256 "7d29dae647ebc7ccda4aba0d67fdafdddeb92b7c7c13bad92a31be464d661035">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.07
+- UX: Docker and VM Basic Settings summary cards use less vertical space while allowing longer content to expand naturally on narrow screens.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised style.
+
 
 ###2026.09.24.06
 - UX: The Filters and view settings bar in Docker and VM Basic Settings now uses a solid theme-aware background instead of a gradient.

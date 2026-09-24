@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.15">
-<!ENTITY md5 "968c765994fbf6a583cff15d323e09a5">
-<!ENTITY sha256 "eb2300e7102f2cbfac896f8ccb594bbd18013feab1dffc279a8010ab7551a6af">
+<!ENTITY version "2026.09.24.16">
+<!ENTITY md5 "f27314e78a0d223a7a72c60e8e6ef35f">
+<!ENTITY sha256 "6539f881af21823a7ae220a0c336519c8bc88d87d4a61cd1e0a0661eb8b90ddf">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.16
+- Feature: Add Backup readiness and Live runtime connectivity cards to Settings > Advanced > Diagnostics. The cards show Docker and VM backup age and live connection status.
+- Fix: Flag missing, unreadable, empty, or overdue scheduled backups and connections to enabled runtimes that fail. Disabled services and checks without enough evidence appear as informational.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the new Diagnostics cards and styling.
+- Diagnostics: Backup readiness checks snapshot metadata and age without performing a test restore. Runtime connectivity reflects the latest health check.
+
 
 ###2026.09.24.15
 - UX: Reduce the blank space between Advanced Settings menu buttons while keeping their labels and focus states readable.

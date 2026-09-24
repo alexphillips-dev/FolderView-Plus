@@ -13,7 +13,7 @@ const libDiagnosticsPath = path.join(
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-const buildSummaryHarnessPhp = ({ typesData, customIcons = {}, update = {} }) => `<?php
+const buildSummaryHarnessPhp = ({ typesData, customIcons = {}, update = {}, runtimeConnectivity = {} }) => `<?php
 const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
 const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 80;
 const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 7;
@@ -33,13 +33,17 @@ $update = json_decode(<<<'JSON'
 ${JSON.stringify(update)}
 JSON, true);
 
-echo json_encode(diagnosticsBuildOverviewSummary($typesData, $customIcons, $update), JSON_UNESCAPED_SLASHES);
+$runtimeConnectivity = json_decode(<<<'JSON'
+${JSON.stringify(runtimeConnectivity)}
+JSON, true);
+
+echo json_encode(diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, [], [], $runtimeConnectivity), JSON_UNESCAPED_SLASHES);
 `;
 
-const runOverviewSummary = ({ typesData, customIcons = {}, update = {} }) => {
+const runOverviewSummary = ({ typesData, customIcons = {}, update = {}, runtimeConnectivity = {} }) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-diagnostics-summary-'));
     const harnessPath = path.join(tempDir, 'summary.php');
-    fs.writeFileSync(harnessPath, buildSummaryHarnessPhp({ typesData, customIcons, update }), 'utf8');
+    fs.writeFileSync(harnessPath, buildSummaryHarnessPhp({ typesData, customIcons, update, runtimeConnectivity }), 'utf8');
     try {
         return JSON.parse(execFileSync('php', [harnessPath], {
             cwd: repoRoot,
@@ -83,6 +87,43 @@ const buildTypesData = (dockerIntegrity, vmIntegrity = buildIntegrityChecks()) =
         backupCount: 5,
         integrityChecks: vmIntegrity
     }
+});
+
+test('backup and runtime cards distinguish missing, overdue, disabled, and unverified states', () => {
+    const typesData = buildTypesData(buildIntegrityChecks());
+    typesData.docker.backupSchedule = { enabled: true, intervalHours: 24 };
+    typesData.docker.lastBackup = { createdAt: '2020-01-01T00:00:00Z', count: 2, size: 100 };
+    typesData.vm.lastBackup = null;
+    const summary = runOverviewSummary({ typesData, runtimeConnectivity: { docker: 'unavailable', vm: 'disabled' } });
+    const backup = summary.cards.find((card) => card.key === 'backup_readiness');
+    const runtime = summary.cards.find((card) => card.key === 'runtime_connectivity');
+    assert.equal(backup.status, 'warning');
+    assert.equal(backup.states.docker.state, 'overdue');
+    assert.equal(backup.states.vm.state, 'missing');
+    assert.equal(runtime.status, 'warning');
+    assert.deepEqual(runtime.states, { docker: 'unavailable', vm: 'disabled' });
+    assert.equal(summary.warningCount >= 2, true);
+    assert.doesNotMatch(JSON.stringify([backup, runtime]), /\/boot|token|password|exception/i);
+
+    typesData.docker.folderCount = 0;
+    typesData.vm.folderCount = 0;
+    const neutral = runOverviewSummary({ typesData, update: { ok: true, updateAvailable: false }, runtimeConnectivity: { docker: 'disabled', vm: 'unknown' } });
+    assert.equal(neutral.cards.find((card) => card.key === 'backup_readiness').status, 'info');
+    assert.equal(neutral.cards.find((card) => card.key === 'runtime_connectivity').status, 'info');
+    assert.equal(neutral.status, 'info');
+
+    typesData.docker.folderCount = 2;
+    typesData.docker.lastBackup = { createdAt: new Date().toISOString(), count: 2, size: 100 };
+    typesData.vm.folderCount = 1;
+    typesData.vm.lastBackup = { createdAt: new Date().toISOString(), count: null, size: 100 };
+    const mixed = runOverviewSummary({ typesData, runtimeConnectivity: { docker: 'ready', vm: 'ready' } });
+    assert.equal(mixed.cards.find((card) => card.key === 'backup_readiness').states.docker.state, 'ready');
+    assert.equal(mixed.cards.find((card) => card.key === 'backup_readiness').states.vm.state, 'invalid');
+    typesData.vm.lastBackup.count = 0;
+    const emptySnapshot = runOverviewSummary({ typesData, runtimeConnectivity: { docker: 'ready', vm: 'disabled' } });
+    assert.equal(emptySnapshot.cards.find((card) => card.key === 'backup_readiness').states.vm.state, 'invalid');
+    assert.equal(emptySnapshot.cards.find((card) => card.key === 'runtime_connectivity').status, 'info');
+    assert.equal(emptySnapshot.cards.find((card) => card.key === 'runtime_connectivity').headline, 'Review Docker and VM runtime status.');
 });
 
 test('diagnostics summary names orphaned Docker members instead of generic counts', () => {

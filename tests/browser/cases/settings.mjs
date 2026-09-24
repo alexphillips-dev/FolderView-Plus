@@ -329,7 +329,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.setViewportSize({ width: 1700, height: 1100 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readDiagnosticsLayout();
-    assert.equal(layout.coreCards, 6);
+    assert.equal(layout.coreCards, 8);
     assert.equal(layout.additionalSectionVisible, false);
     assert.equal(layout.secondaryHealthCardsVisible, false);
     assert.equal(layout.technicalDetailsCount, 0);
@@ -344,7 +344,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
     assert.equal(layout.metricTextIsCentered, true);
-    assert.equal(layout.systemSvgIcons, 6);
+    assert.equal(layout.systemSvgIcons, 8);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.ok(

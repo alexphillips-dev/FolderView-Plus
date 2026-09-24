@@ -6904,6 +6904,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-warning);
 }
 
+.fv-diagnostics-hero.is-info .fv-diagnostics-status-ring {
+    color: var(--fvplus-settings-chip-info);
+}
+
 .fv-diagnostics-hero.is-error .fv-diagnostics-status-ring,
 .fv-diagnostics-unchecked.is-error .fv-diagnostics-status-ring {
     color: var(--fvplus-settings-chip-danger);
@@ -6972,7 +6976,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-danger);
 }
 
-.fv-diagnostics-status-badge.is-info {
+.fv-diagnostics-status-badge.is-info,
+.fv-diagnostics-overall-chip.is-info {
     border-color: var(--fvplus-settings-chip-info-border);
     background: var(--fvplus-settings-chip-info-bg);
     color: var(--fvplus-settings-chip-info);
@@ -7085,6 +7090,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-metric.is-core.is-warning .fv-diagnostics-core-progress > span {
     background: var(--fvplus-settings-chip-warning);
+}
+
+.fv-diagnostics-metric.is-core.is-info .fv-diagnostics-core-progress > span {
+    background: var(--fvplus-settings-chip-info);
 }
 
 .fv-diagnostics-metric.is-core.is-error .fv-diagnostics-core-progress > span {

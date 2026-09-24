@@ -57,6 +57,7 @@
       "server/lib.diagnostics-integrity.php": { "limit": 741, "target": 400, "history": [741] },
       "server/lib.diagnostics-redaction.php": { "limit": 495, "target": 400, "history": [495] },
       "server/lib.diagnostics-summary.php": { "limit": 785, "target": 400, "history": [785] },
+      "server/lib.diagnostics-health-cards.php": { "limit": 120, "target": 90, "history": [120] },
       "server/lib.webui-profiles.php": { "limit": 128, "target": 120, "history": [128] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
@@ -219,7 +220,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-support-bundle.php"],
+      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-health-cards.php", "server/lib.diagnostics-support-bundle.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -585,6 +586,16 @@
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
       "functionInventory": { "count": 12, "sha256": "a58ee2ba2b616c31d868a9736a527f2647589af5bee06c91bcd231e6010fe9d7" }
+    },
+    {
+      "file": "server/lib.diagnostics-health-cards.php",
+      "owner": "server-diagnostics-health-cards",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.diagnostics-summary.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.diagnostics.php",
+      "functionInventory": { "count": 5, "sha256": "ea126dc663b380946522e9e3372740bbcc651e00dd9e461cf1c7a801d7418043" }
     },
     {
       "file": "server/lib.diagnostics-support-bundle.php",

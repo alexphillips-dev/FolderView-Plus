@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
+        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -659,5 +659,6 @@
     "common.repair.drop-after-this-folder": "このフォルダ以降",
     "common.repair.move-preview-path": "結果のパス: $1",
     "common.repair.move-preview-branch": "ブランチ内のフォルダー: $1",
-    "common.repair.preview-show-more": "もっと見る ($1)"
+    "common.repair.preview-show-more": "もっと見る ($1)",
+    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。"
 }

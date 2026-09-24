@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
+        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -659,5 +659,6 @@
     "common.repair.drop-after-this-folder": "在此文件夹之后",
     "common.repair.move-preview-path": "结果路径：$1",
     "common.repair.move-preview-branch": "分支中的文件夹：$1",
-    "common.repair.preview-show-more": "显示更多 ($1)"
+    "common.repair.preview-show-more": "显示更多 ($1)",
+    "common.repair.wait-for-tree-move": "等待当前文件夹移动完成。"
 }

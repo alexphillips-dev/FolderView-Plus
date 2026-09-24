@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
+        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -659,5 +659,6 @@
     "common.repair.drop-after-this-folder": "이 폴더 이후",
     "common.repair.move-preview-path": "결과 경로: $1",
     "common.repair.move-preview-branch": "분기의 폴더: $1",
-    "common.repair.preview-show-more": "자세히 보기($1)"
+    "common.repair.preview-show-more": "자세히 보기($1)",
+    "common.repair.wait-for-tree-move": "현재 폴더 이동이 완료될 때까지 기다립니다."
 }

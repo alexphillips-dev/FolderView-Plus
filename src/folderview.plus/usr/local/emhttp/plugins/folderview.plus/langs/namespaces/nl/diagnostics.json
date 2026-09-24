@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics",
-        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
+        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "6519e15629622f1c5555400873013716bc821df54e7eb45b1dbebf177c6f1d77"
+        "translation-context-revision": "8c28c3a2e4cdcc716ebd2490ddff9e499513e8536eb53c8c7a50cc2a8847ed4b"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -659,5 +659,6 @@
     "common.repair.drop-after-this-folder": "Après ce dossier",
     "common.repair.move-preview-path": "Chemin résultant : $1",
     "common.repair.move-preview-branch": "Dossiers dans la branche : $1",
-    "common.repair.preview-show-more": "Afficher plus ($1)"
+    "common.repair.preview-show-more": "Afficher plus ($1)",
+    "common.repair.wait-for-tree-move": "Attendez la fin du déplacement du dossier en cours."
 }

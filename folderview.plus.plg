@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.23.05">
-<!ENTITY md5 "9ff9b59314a516e11552469b11675be7">
-<!ENTITY sha256 "d829f16fcc33959d34fd0e9fdd24876188f39401759e48ab153fb27138ba3e1a">
+<!ENTITY version "2026.09.23.06">
+<!ENTITY md5 "ec2b0180284ccf1e1b41fa847a92ad9c">
+<!ENTITY sha256 "d419db6b1917f3c010f0ff4a6102547a6361bdc7a4e3a1cf7a3007a5410da38a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.23.06
+- UX: Folder moves in Settings > Basic now appear as soon as a folder is dropped. The save continues in the background, with the previous position restored if it fails.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts.
+
 
 ###2026.09.23.05
 - UX: Dragging a folder onto a highlighted Before, Inside, or After target now moves it immediately without an extra confirmation dialog. The Move folder button remains available for keyboard-based moves.

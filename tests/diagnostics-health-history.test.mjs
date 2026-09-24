@@ -16,7 +16,7 @@ const createHarness = () => {
     const window = { document, location: { pathname: '/Settings/FolderViewPlus' }, showError: (...args) => errors.push(args) };
     const context = vm.createContext({
         window, document, console, setTimeout: () => 0, clearTimeout() {},
-        $: () => ({ length: 0 }), prefsByType: {}, advancedModuleStatusByKey: {},
+        $: () => ({ length: 0 }), prefsByType: {}, advancedModuleStatusByKey: {}, activityFeedEntries: [],
         getEffectiveThemeCompatibilityMode: () => 'auto',
         markAdvancedModuleLoadSuccess: (key) => statuses.push([key, 'success']),
         markAdvancedModuleLoadError: (key) => statuses.push([key, 'error']),

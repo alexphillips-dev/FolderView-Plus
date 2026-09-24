@@ -107,6 +107,8 @@ const ACTIVITY_FEED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const ACTIVITY_FEED_STORAGE_KEY = 'fv.settings.logs.v1';
 const ACTIVITY_FEED_MAX_MESSAGE_LENGTH = 4096;
 let activityFeedRestored = false;
+let activityFeedClearedAt = 0;
+let activityFeedClearedServerKeys = [];
 const LOGGED_DIAGNOSTIC_EVENTS = new Set([
     'import', 'delete_folder', 'clear_folders', 'runtime_bulk_action', 'bulk_assign',
     'diagnostics_export', 'support_bundle_export'
@@ -1023,17 +1025,26 @@ const formatActivityTimestamp = (at) => {
 
 const normalizeActivityLevel = (level) => {
     const normalized = String(level || 'info').trim().toLowerCase();
-    if (normalized === 'error' || normalized === 'danger') {
+    if (['error', 'danger', 'failed', 'fatal'].includes(normalized)) {
         return 'error';
     }
     if (normalized === 'success' || normalized === 'ok') {
         return 'success';
     }
-    if (normalized === 'warning' || normalized === 'warn') {
+    if (['warning', 'warn', 'degraded', 'partial'].includes(normalized)) {
         return 'warning';
     }
     return 'info';
 };
+
+const normalizeActivityClearedAt = (value, now = Date.now()) => {
+    const at = Number(value);
+    return Number.isSafeInteger(at) && at > now - ACTIVITY_FEED_RETENTION_MS && at <= now ? at : 0;
+};
+
+const normalizeActivityClearedServerKeys = (value) => (Array.isArray(value) ? value : [])
+    .filter((key) => typeof key === 'string' && /^s:[a-zA-Z0-9_-]{1,48}$/.test(key))
+    .slice(0, 80);
 
 const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entries) ? entries : [])
     .map((entry) => {
@@ -1042,7 +1053,9 @@ const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entr
         if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || !message) {
             return null;
         }
-        return { at, level: normalizeActivityLevel(entry.level), message };
+        const serverKey = typeof entry.serverKey === 'string' && /^s:[a-zA-Z0-9_-]{1,48}$/.test(entry.serverKey)
+            ? entry.serverKey : '';
+        return { at, level: normalizeActivityLevel(entry.level), message, ...(serverKey ? { serverKey } : {}) };
     })
     .filter(Boolean)
     .sort((left, right) => right.at - left.at)
@@ -1050,12 +1063,15 @@ const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entr
 
 const persistActivityFeed = () => {
     try {
-        if (!activityFeedEntries.length) {
+        activityFeedClearedAt = normalizeActivityClearedAt(activityFeedClearedAt);
+        if (!activityFeedEntries.length && !activityFeedClearedAt) {
             localStorage.removeItem(ACTIVITY_FEED_STORAGE_KEY);
             return;
         }
         localStorage.setItem(ACTIVITY_FEED_STORAGE_KEY, JSON.stringify({
             schemaVersion: 1,
+            clearedAt: activityFeedClearedAt,
+            clearedServerKeys: activityFeedClearedAt ? activityFeedClearedServerKeys : [],
             entries: activityFeedEntries
         }));
     } catch (_error) {
@@ -1068,6 +1084,8 @@ const restoreActivityFeed = () => {
     activityFeedRestored = true;
     const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
     const entries = Number(stored?.schemaVersion) === 1 ? stored.entries : [];
+    activityFeedClearedAt = normalizeActivityClearedAt(stored?.clearedAt);
+    activityFeedClearedServerKeys = activityFeedClearedAt ? normalizeActivityClearedServerKeys(stored?.clearedServerKeys) : [];
     activityFeedEntries = retainActivityEntries([...activityFeedEntries, ...(Array.isArray(entries) ? entries : [])]);
     persistActivityFeed();
 };
@@ -1076,6 +1094,8 @@ const syncActivityFeedFromStorage = (event) => {
     if (event.key !== ACTIVITY_FEED_STORAGE_KEY && event.key !== null) return;
     activityFeedRestored = true;
     const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
+    activityFeedClearedAt = normalizeActivityClearedAt(stored?.clearedAt);
+    activityFeedClearedServerKeys = activityFeedClearedAt ? normalizeActivityClearedServerKeys(stored?.clearedServerKeys) : [];
     activityFeedEntries = retainActivityEntries(Number(stored?.schemaVersion) === 1 ? stored.entries : []);
     renderActivityFeed();
 };
@@ -1164,7 +1184,15 @@ const addActivityEntry = (message, level = 'info') => {
 
 const clearActivityFeed = () => {
     activityFeedRestored = true;
+    const boundary = Math.floor(Date.now() / 1000) * 1000;
+    const serverEvents = Array.isArray(lastDiagnostics?.importExportHistory?.events)
+        ? lastDiagnostics.importExportHistory.events : [];
+    activityFeedClearedServerKeys = normalizeActivityClearedServerKeys([
+        ...activityFeedEntries.filter((entry) => entry.at === boundary).map((entry) => entry.serverKey),
+        ...serverEvents.filter((row) => Date.parse(String(row?.timestamp || '')) === boundary).map(serverActivityKey)
+    ]);
     activityFeedEntries = [];
+    activityFeedClearedAt = boundary;
     persistActivityFeed();
     renderActivityFeed();
 };
@@ -1187,8 +1215,8 @@ const ADVANCED_MODULE_STATUS_CONFIG = Object.freeze({
         label: 'VM templates'
     }),
     change_history: Object.freeze({
-        anchorSelector: '#recovery-change-history-list',
-        label: 'Change history'
+        anchorSelector: '#fv-activity-feed-list',
+        label: 'Logs'
     })
 });
 
@@ -1210,7 +1238,7 @@ const ensureAdvancedModuleStatusHost = (moduleKey) => {
         host = document.createElement('div');
         host.className = 'inline-validation-hint fv-advanced-module-status';
         host.setAttribute('data-fv-advanced-module-status', moduleKey);
-        const header = panel.querySelector('.rules-header');
+        const header = panel.querySelector('.rules-header, .fv-activity-center-head');
         if (header instanceof HTMLElement) {
             header.insertAdjacentElement('afterend', host);
         } else {
@@ -1299,59 +1327,95 @@ const withAdvancedOperationLock = async (type, scope, actionLabel, callback) => 
 
 const getCachedDiagnostics = () => lastDiagnostics;
 
-const getRecoveryTimelineStatusClass = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    if (normalized === 'error' || normalized === 'failed' || normalized === 'fatal') {
-        return 'is-danger';
+const serverActivityLabel = (action) => {
+    switch (String(action || '')) {
+        case 'backup_create': return diagnosticsT('legacy.surface.ebc91c7ac728323f', 'Backup created');
+        case 'backup_restore': return diagnosticsT('diagnostics.history.backup-restored', 'Backup restored');
+        case 'backup_delete': return diagnosticsT('diagnostics.history.backup-deleted', 'Backup deleted');
+        case 'backup_delete_all': return diagnosticsT('legacy.surface.477235d571fd27bc', 'Backups deleted');
+        case 'rollback_create': return diagnosticsT('legacy.surface.488de119a17f3cb0', 'Rollback checkpoint created');
+        case 'rollback_restore': return diagnosticsT('legacy.surface.4a326363548eeb45', 'Rollback restored');
+        case 'environment_export': return diagnosticsT('legacy.surface.eae1fdd133376e8b', 'Environment exported');
+        case 'environment_import': return diagnosticsT('legacy.surface.6f50d668c818bd67', 'Environment imported');
+        case 'folder_create': return diagnosticsT('legacy.surface.b1dfe0e9670cba07', 'Folder created');
+        case 'folder_update': return diagnosticsT('legacy.surface.1bafabfde564c2ff', 'Folder updated');
+        case 'folder_delete':
+        case 'delete_folder': return diagnosticsT('legacy.surface.796dc50ba898b20e', 'Folder deleted');
+        case 'folder_batch_mutation': return diagnosticsT('legacy.surface.3b82ea5d8d562750', 'Folders changed');
+        case 'folder_settings_apply': return diagnosticsT('legacy.surface.30eeaf5fbcbf6551', 'Folder settings applied');
+        case 'folder_batch_assignment':
+        case 'bulk_assign': return diagnosticsT('legacy.surface.108df9023de0f1ef', 'Folders assigned');
+        case 'reorder': return diagnosticsT('legacy.surface.9932c276701d61cb', 'Folder order changed');
+        case 'runtime_bulk_action': return diagnosticsT('legacy.surface.0f26990ce5039407', 'Runtime action completed');
+        case 'template_create': return diagnosticsT('legacy.surface.1b34f8ff69d42e9b', 'Template saved');
+        case 'template_delete': return diagnosticsT('legacy.surface.8fa9d4a8b8272f35', 'Template deleted');
+        case 'template_apply': return diagnosticsT('legacy.surface.d71a690c533f0773', 'Template applied');
+        case 'import': return diagnosticsT('legacy.surface.fbf4233b76201b64', 'Import applied');
+        case 'clear_folders': return diagnosticsT('legacy.surface.4831800dd74859de', 'Folders cleared');
+        default: return '';
     }
-    if (normalized === 'warning' || normalized === 'degraded' || normalized === 'partial') {
-        return 'is-warning';
-    }
-    return 'is-healthy';
 };
 
-const recoveryActionLabel = (action) => diagnosticsViewModelModule?.recoveryActionLabel(action, diagnosticsT) || String(action || '');
-const recoveryStatusLabel = (status) => diagnosticsViewModelModule?.recoveryStatusLabel(status, diagnosticsT) || String(status || '');
-
-const renderServerChangeHistory = (diagnostics = lastDiagnostics) => {
-    const listHost = $('#recovery-change-history-list');
-    if (!listHost.length) {
-        return;
+const serverActivityFailureLabel = (action) => {
+    const name = String(action || '');
+    if (name.startsWith('backup_')) return diagnosticsT('common.repair.backup-failed-0e7112', 'Backup failed');
+    if (name === 'import' || name === 'environment_import') return diagnosticsT('legacy.surface.0a26f41abd00f95e', 'Import failed');
+    if (name === 'environment_export') return diagnosticsT('legacy.surface.e94d3ee06ecf6aac', 'Export failed');
+    if (name.startsWith('folder_') || ['delete_folder', 'clear_folders', 'bulk_assign', 'reorder'].includes(name)) {
+        return diagnosticsT('legacy.surface.5ea309a60ed8fe70', 'Folder change failed');
     }
+    if (name === 'runtime_bulk_action') return diagnosticsT('legacy.surface.138dfeb0adcc5e76', 'Runtime action failed');
+    if (name.startsWith('template_')) return diagnosticsT('legacy.surface.775c54cd56850c18', 'Template action failed');
+    if (name.startsWith('rollback_')) return diagnosticsT('legacy.surface.07d59065ece38c26', 'Recovery action failed');
+    return diagnosticsT('legacy.surface.2ead3b8f92a1292d', 'Server action failed');
+};
 
-    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
-    if (!timeline.length) {
-        listHost.html(`
-            <div class="fv-recovery-empty-state">
-                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.empty-title', 'No timeline entries yet.'))}</strong>
-            </div>
-        `);
-        return;
+const serverActivityKey = (row) => {
+    const id = String(row?.id || '');
+    if (/^[a-zA-Z0-9_-]{1,48}$/.test(id)) return 's:' + id;
+    const signature = [row?.timestamp, row?.type, row?.action, row?.status, row?.summary].join('|');
+    let hash = 2166136261;
+    for (let index = 0; index < signature.length; index++) {
+        hash = Math.imul(hash ^ signature.charCodeAt(index), 16777619);
     }
+    return 's:' + (hash >>> 0).toString(16);
+};
 
-    listHost.html(timeline.map((row) => {
-        const status = String(row?.status || 'ok').trim() || 'ok';
-        const action = recoveryActionLabel(row?.action);
-        const source = String(row?.type || '').trim().toLowerCase();
+const renderChangeHistory = (diagnostics = lastDiagnostics) => {
+    if (!document.getElementById('fv-activity-feed-panel')) return;
+    restoreActivityFeed();
+    const events = Array.isArray(diagnostics?.importExportHistory?.events)
+        ? diagnostics.importExportHistory.events
+        : (Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : []);
+    const knownKeys = new Set(activityFeedEntries.map((entry) => entry.serverKey).filter(Boolean));
+    const now = Date.now();
+    let added = false;
+    for (const row of events) {
+        const at = Date.parse(String(row?.timestamp || ''));
+        if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || at < activityFeedClearedAt) continue;
+        const level = normalizeActivityLevel(row?.status || 'ok');
+        const action = serverActivityLabel(row?.action);
+        if (!action && level !== 'warning' && level !== 'error') continue;
+        const serverKey = serverActivityKey(row);
+        if (knownKeys.has(serverKey) || (at === activityFeedClearedAt && activityFeedClearedServerKeys.includes(serverKey))) continue;
+        const source = String(row?.type || '').toLowerCase();
         const sourceLabel = source === 'docker' ? 'Docker' : (source === 'vm' ? 'VM' : '');
-        const summary = String(row?.summary || '').trim();
-        const timestamp = formatActivityTimestamp(row?.timestamp || '');
-        return `
-            <article class="fv-recovery-timeline-card">
-                <div class="fv-recovery-timeline-head">
-                    <div class="fv-recovery-timeline-title">${sourceLabel ? `${diagnosticsEscapeHtml(sourceLabel)} · ` : ''}${diagnosticsEscapeHtml(action)}</div>
-                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(recoveryStatusLabel(status))}</span>
-                </div>
-                <div class="fv-recovery-timeline-meta">${diagnosticsEscapeHtml(timestamp)}</div>
-                <div class="fv-recovery-timeline-copy" data-i18n-ignore>${diagnosticsEscapeHtml(summary || diagnosticsT("legacy.surface.cd7632074a782ad0", 'No extra detail was recorded for this change.'))}</div>
-                <details><summary>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.event-details', 'Event details'))}</summary><code>${diagnosticsEscapeHtml(row?.action || '')}</code></details>
-            </article>
-        `;
-    }).join(''));
-};
-
-const renderChangeHistory = (diagnostics) => {
-    renderServerChangeHistory(diagnostics);
+        const label = level === 'error' ? serverActivityFailureLabel(row?.action)
+            : (level === 'warning' ? diagnosticsT('legacy.surface.c7ca4f1d51295f49', 'Server warning') : action);
+        activityFeedEntries.push({
+            at,
+            level,
+            message: sourceLabel ? sourceLabel + ' · ' + label : label,
+            serverKey
+        });
+        knownKeys.add(serverKey);
+        added = true;
+    }
+    if (added) {
+        activityFeedEntries = retainActivityEntries(activityFeedEntries);
+        persistActivityFeed();
+    }
+    renderActivityFeed();
 };
 
 const refreshChangeHistory = async ({ quiet = false } = {}) => {
@@ -1369,7 +1433,7 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     } catch (error) {
         markAdvancedModuleLoadError('change_history', error);
         if (!quiet) {
-            diagnosticsShowError('Change history refresh failed', error);
+            diagnosticsShowError('Logs refresh failed', error);
         }
         return false;
     }
@@ -2161,7 +2225,6 @@ Object.assign(window, {
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
-    renderServerChangeHistory,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
@@ -2199,7 +2262,6 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
-    renderServerChangeHistory,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,

@@ -83,32 +83,66 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         await clear.click();
         assert.equal(await clear.isDisabled(), true);
         assert.equal(await page.locator('.fv-activity-item').count(), 0);
-        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1')), null);
+        assert.deepEqual(await page.evaluate(() => {
+            const saved = JSON.parse(localStorage.getItem('fv.settings.logs.v1'));
+            return { entries: saved.entries, hasClearTime: saved.clearedAt > 0 };
+        }), { entries: [], hasClearTime: true });
         await mountLogs();
         assert.equal(await page.locator('.fv-activity-item').count(), 0);
     });
 
-    test('Logs show server changes for Docker and VM without making them browser-only entries', async ({ page }) => {
-        await page.goto(`${baseUrl}/settings`);
-        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
-        await page.evaluate(async () => {
-            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
-            const history = parsed.getElementById('recovery-change-history-list');
-            document.getElementById('fv-settings-root').innerHTML = history.closest('.fv-recovery-module-wrap').outerHTML;
-            Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
-        });
-        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+    test('Logs merge useful server events into one-line rows and do not replay cleared events', async ({ page }) => {
+        const mountLogs = async () => {
+            await page.goto(`${baseUrl}/settings`);
+            await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+            await page.evaluate(async () => {
+                const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+                if (parsed.getElementById('recovery-change-history-list')) throw new Error('Recovery timeline still present');
+                document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
+                window.activityFeedEntries = [];
+                Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
+            });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+            await page.evaluate(() => {
+                delete document.readyState;
+                window.FolderViewPlusCspEvents.registerActions({
+                    clearActivityFeed: window.FolderViewPlusDiagnostics.clearActivityFeed
+                }, { owner: 'activity-fixture' });
+            });
+        };
+        await mountLogs();
         await page.evaluate(() => {
-            delete document.readyState;
-            window.FolderViewPlusDiagnostics.renderServerChangeHistory({ recentTimeline: [
-                { timestamp: '2026-09-24T20:00:00Z', type: 'vm', action: 'backup_restore', status: 'ok', summary: 'Restored VM backup' },
-                { timestamp: '2026-09-24T19:00:00Z', type: 'docker', action: 'import', status: 'error', summary: '<unsafe> failed' }
-            ] });
+            const api = window.FolderViewPlusDiagnostics;
+            const now = Date.now();
+            const events = [
+                { id: 'vmbackup', timestamp: new Date(now - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok', details: { name: 'Private VM' } },
+                { id: 'dockerimport', timestamp: new Date(now - 2000).toISOString(), type: 'docker', action: 'import', status: 'failed', details: { name: '<unsafe>' } },
+                { id: 'serverwarning', timestamp: new Date(now - 3000).toISOString(), action: 'unknown_action', status: 'warning', summary: '<unsafe> failed' },
+                { id: 'routine', timestamp: new Date(now - 4000).toISOString(), type: 'docker', action: 'member_identity_reconcile', status: 'ok' }
+            ];
+            api.addActivityEntry('Browser action', 'success');
+            api.renderChangeHistory({ importExportHistory: { events } });
+            api.renderChangeHistory({ importExportHistory: { events } });
         });
-        assert.deepEqual(await page.locator('.fv-recovery-timeline-title').allTextContents(), ['VM · Backup restored', 'Docker · Recent change']);
-        assert.equal(await page.locator('.fv-recovery-timeline-copy').last().textContent(), '<unsafe> failed');
-        assert.equal(await page.locator('.fv-recovery-timeline-copy').last().locator('unsafe').count(), 0);
-        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1')), null);
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Browser action', 'VM · Backup restored', 'Docker · Import failed', 'Server warning']);
+        assert.deepEqual(await page.locator('.fv-activity-item').evaluateAll(rows =>
+            rows.map(row => [...row.classList].find(name => name.startsWith('is-')))),
+        ['is-success', 'is-success', 'is-error', 'is-warning']);
+        assert.equal(await page.locator('.fv-recovery-timeline-card').count(), 0);
+        assert.equal(await page.locator('.fv-activity-item details').count(), 0);
+        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1').includes('Private VM') ||
+            localStorage.getItem('fv.settings.logs.v1').includes('<unsafe>')), false);
+        await page.locator('#fv-activity-center-clear').click();
+        await mountLogs();
+        await page.evaluate(() => {
+            const boundary = JSON.parse(localStorage.getItem('fv.settings.logs.v1')).clearedAt;
+            window.FolderViewPlusDiagnostics.renderChangeHistory({ importExportHistory: { events: [
+                { id: 'vmbackup', timestamp: new Date(boundary - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok' },
+                { id: 'newbackup', timestamp: new Date(boundary).toISOString(), type: 'docker', action: 'backup_create', status: 'ok' }
+            ] } });
+        });
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(), ['Docker · Backup created']);
     });
 
     test('German Dashboard options wrap inside a narrow widget and member icons retain padding', async ({ page }) => {

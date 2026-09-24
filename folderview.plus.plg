@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.17">
-<!ENTITY md5 "d8999315f63356885aa3ce47f2b0d4b0">
-<!ENTITY sha256 "c82945c303d8d7bc98f9b0512d5fdc7757843f8870ad60f1273916ce6c0124a0">
+<!ENTITY version "2026.09.24.18">
+<!ENTITY md5 "1005a95da4c0236949a9ad32de2dd631">
+<!ENTITY sha256 "e358a13ff31fe740a22d4964d82b42514f6f9ae47be6a1eb5a074be5fd52e715">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.18
+- UX: Show recent Docker, VM, and recovery events as color-coded single-line entries in Advanced > Logs. Remove the separate Recent recovery timeline panel.
+- Fix: Capture selected server events in the existing browser Logs feed for up to 30 days, order them with browser actions, and prevent cleared events from reappearing after navigation or refresh.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
 
 ###2026.09.24.17
 - UX: Move Undo latest change beside the restore controls in Advanced > Recovery and remove the separate Undo and recent changes section.

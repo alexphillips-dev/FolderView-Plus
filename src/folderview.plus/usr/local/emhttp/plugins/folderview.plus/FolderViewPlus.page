@@ -1553,21 +1553,6 @@ if (!empty($fvplusRuntimeConflicts)) {
     </div>
     <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
 </div>
-<div class="fv-recovery-module-wrap">
-    <div class="rules-panel fv-recovery-panel fv-recovery-history-panel">
-        <div class="rules-header">
-            <h3>Recent recovery timeline</h3>
-            <button type="button" data-fv-onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
-        </div>
-        <div class="fv-recovery-section-body">
-            <div id="recovery-change-history-list" class="fv-recovery-change-history-list">
-                <div class="fv-recovery-empty-state">
-                    <strong>No recent changes loaded yet.</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <hr>
 
 <h2 id="fv-diagnostics-title" data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics" data-i18n="diagnostics.title">Diagnostics</h2>

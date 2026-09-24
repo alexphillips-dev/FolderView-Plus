@@ -2765,11 +2765,11 @@
     ]
   },
   {
-    "phrase": "Change history refresh failed",
+    "phrase": "Logs refresh failed",
     "locations": [
       {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'Change history refresh failed'"
+        "anchor": "'Logs refresh failed'"
       }
     ]
   },
@@ -7684,15 +7684,6 @@
       {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
         "anchor": "'No extra action needed'"
-      }
-    ]
-  },
-  {
-    "phrase": "No extra detail was recorded for this change.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "'No extra detail was recorded for this change.'"
       }
     ]
   },

@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "도커 시작 순서",
     "settings.navigation.appearance": "외관",
     "settings.navigation.workflows": "워크플로",
-    "settings.navigation.appearance-recovery": "외관 및 복구",
     "settings.navigation.support": "지원",
     "settings.navigation.sections": "고급 섹션",
     "settings.recovery.last-scheduled": "마지막 예약 실행: $1",

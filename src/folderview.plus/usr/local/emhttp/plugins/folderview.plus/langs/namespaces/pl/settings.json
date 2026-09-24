@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Kolejność uruchamiania Dockera",
     "settings.navigation.appearance": "Wygląd",
     "settings.navigation.workflows": "Przepływy pracy",
-    "settings.navigation.appearance-recovery": "Wygląd i przywracanie",
     "settings.navigation.support": "Wsparcie",
     "settings.navigation.sections": "Zaawansowane sekcje",
     "settings.recovery.last-scheduled": "Ostatnie zaplanowane uruchomienie: $1",

@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Ordre d'inici de Docker",
     "settings.navigation.appearance": "Aparença",
     "settings.navigation.workflows": "Fluxos de treball",
-    "settings.navigation.appearance-recovery": "Aspecte i recuperació",
     "settings.navigation.support": "Suport",
     "settings.navigation.sections": "Seccions avançades",
     "settings.recovery.last-scheduled": "Darrera execució programada: $1",

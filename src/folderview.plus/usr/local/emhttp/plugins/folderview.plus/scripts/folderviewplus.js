@@ -1720,8 +1720,8 @@ const renderAdvancedNav = () => {
     const available = new Set(advancedSections.map((section) => section.advancedGroup));
     const navigationGroups = [
         { key: 'workflows', label: surfaceT('settings.navigation.workflows', 'Workflows'), tabs: ['operations', 'automation', 'rules', 'startup'] },
-        { key: 'manage', label: surfaceT('settings.navigation.appearance-recovery', 'Appearance and recovery'), tabs: ['appearance', 'recovery'] },
-        { key: 'support', label: surfaceT('settings.navigation.support', 'Support'), tabs: ['diagnostics', 'logs'] }
+        { key: 'appearance', label: surfaceT('settings.navigation.appearance', 'Appearance'), tabs: ['appearance'] },
+        { key: 'support', label: surfaceT('settings.navigation.support', 'Support'), tabs: ['recovery', 'diagnostics', 'logs'] }
     ].map((group) => ({ ...group, tabs: group.tabs.filter((tab) => available.has(tab)) }))
         .filter((group) => group.tabs.length > 0);
     const labels = Object.fromEntries(ADVANCED_GROUPS.map((group) => [group, ADVANCED_GROUP_LABELS[group] || group]));

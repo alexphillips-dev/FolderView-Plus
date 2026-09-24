@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker startordre",
     "settings.navigation.appearance": "Utseende",
     "settings.navigation.workflows": "Arbeidsflyter",
-    "settings.navigation.appearance-recovery": "Utseende og gjenoppretting",
     "settings.navigation.support": "Støtte",
     "settings.navigation.sections": "Avanserte seksjoner",
     "settings.recovery.last-scheduled": "Siste planlagte kjøring: $1",

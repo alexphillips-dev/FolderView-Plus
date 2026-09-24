@@ -29,7 +29,7 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
             ${renderSource}
             const root = document.getElementById('fv-settings-root');
             root.classList.add('fv-advanced-mode');
-            root.insertAdjacentHTML('beforeend', '<div id="fv-advanced-workspace" class="fv-advanced-workspace"><nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections"></nav><div id="fv-advanced-content" class="fv-advanced-content"><h2>Operations</h2><div class="rules-panel">Operations content</div></div></div>');
+            root.insertAdjacentHTML('beforeend', '<div id="fv-advanced-workspace" class="fv-advanced-workspace"><div class="fv-advanced-sidebar"><h2 class="fv-advanced-sidebar-title">Customizations</h2><nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections"></nav></div><div id="fv-advanced-content" class="fv-advanced-content"><h2 data-fv-section="runtime-actions">Operations</h2><div class="rules-panel">Operations content</div></div></div>');
             renderAdvancedNav();
             window.fixtureAdvancedNav = { state: settingsUiState, render: renderAdvancedNav };
         })();` });
@@ -46,7 +46,9 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
                 buttons: nav.querySelectorAll('.fv-advanced-tab').length,
                 pickerHidden: getComputedStyle(nav.querySelector('.fv-advanced-mobile-picker')).display === 'none',
                 active: nav.querySelectorAll('.fv-advanced-tab[aria-current="true"]').length,
-                sticky: getComputedStyle(nav).position
+                sticky: getComputedStyle(workspace.querySelector('.fv-advanced-sidebar')).position,
+                aligned: Math.abs(workspace.querySelector('.fv-advanced-sidebar-title').getBoundingClientRect().top - content.querySelector('h2').getBoundingClientRect().top) < 2,
+                groups: Array.from(nav.querySelectorAll('.fv-advanced-nav-group')).map((group) => Array.from(group.querySelectorAll('.fv-advanced-tab')).map((button) => button.dataset.fvAdvancedTab).join(','))
             };
         });
         assert.equal(desktop.columns, 2);
@@ -55,6 +57,8 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         assert.equal(desktop.pickerHidden, true);
         assert.equal(desktop.active, 1);
         assert.equal(desktop.sticky, 'sticky');
+        assert.equal(desktop.aligned, true);
+        assert.deepEqual(desktop.groups, ['operations,automation,rules,startup', 'appearance', 'recovery,diagnostics,logs']);
 
         await page.locator('[data-fv-advanced-tab="operations"]').focus();
         const focusKept = await page.evaluate(() => {

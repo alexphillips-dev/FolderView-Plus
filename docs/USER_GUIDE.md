@@ -7,7 +7,7 @@ This guide covers the normal FolderView Plus workflow after installation. Start 
 Open `Settings -> FolderView Plus`.
 
 - **Basic** contains everyday folder creation, ordering, membership, visibility, and display controls.
-- **Advanced** contains Operations, Bulk assignment, Rules, Docker start order, Appearance, Recovery, Diagnostics, and Logs. On desktop, choose a section from the left rail. On a phone, use the section picker above the content.
+- **Advanced** groups Operations, Bulk assignment, Rules, and Docker start order under Workflows; Appearance in its own group; and Recovery, Diagnostics, and Logs under Support. On desktop, choose a section from the left rail. On a phone, use the section picker above the content.
 - **Setup Assistant** provides a guided first-run or migration flow. It previews the planned changes and does not require an import file for a fresh setup.
 
 Settings search matches labels and common aliases. Change its scope when you want to search only the current mode or include all Advanced workspaces.

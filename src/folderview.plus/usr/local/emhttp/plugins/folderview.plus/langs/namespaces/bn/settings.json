@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker শুরুর ক্রম",
     "settings.navigation.appearance": "চেহারা",
     "settings.navigation.workflows": "কর্মপ্রবাহ",
-    "settings.navigation.appearance-recovery": "চেহারা এবং পুনরুদ্ধার",
     "settings.navigation.support": "সমর্থন",
     "settings.navigation.sections": "উন্নত বিভাগ",
     "settings.recovery.last-scheduled": "শেষ নির্ধারিত রান: $1",

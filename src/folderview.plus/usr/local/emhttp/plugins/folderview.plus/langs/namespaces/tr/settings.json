@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker başlangıç sırası",
     "settings.navigation.appearance": "Görünüm",
     "settings.navigation.workflows": "İş akışları",
-    "settings.navigation.appearance-recovery": "Görünüm ve kurtarma",
     "settings.navigation.support": "Destek",
     "settings.navigation.sections": "Gelişmiş bölümler",
     "settings.recovery.last-scheduled": "Son planlanan çalıştırma: $1",

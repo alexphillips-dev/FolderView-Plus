@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker indítási sorrend",
     "settings.navigation.appearance": "Megjelenés",
     "settings.navigation.workflows": "Munkafolyamatok",
-    "settings.navigation.appearance-recovery": "Megjelenés és visszaállítás",
     "settings.navigation.support": "Támogatás",
     "settings.navigation.sections": "Haladó szakaszok",
     "settings.recovery.last-scheduled": "Utolsó ütemezett futtatás: $1",

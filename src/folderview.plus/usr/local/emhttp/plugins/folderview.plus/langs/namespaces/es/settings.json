@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Orden de inicio de Docker",
     "settings.navigation.appearance": "Apariencia",
     "settings.navigation.workflows": "Flujos de trabajo",
-    "settings.navigation.appearance-recovery": "Apariencia y recuperación",
     "settings.navigation.support": "Soporte",
     "settings.navigation.sections": "Secciones avanzadas",
     "settings.recovery.last-scheduled": "Última ejecución programada: $1",

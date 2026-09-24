@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker starta secība",
     "settings.navigation.appearance": "Izskats",
     "settings.navigation.workflows": "Darbplūsmas",
-    "settings.navigation.appearance-recovery": "Izskats un atjaunošana",
     "settings.navigation.support": "Atbalsts",
     "settings.navigation.sections": "Izvērstās sadaļas",
     "settings.recovery.last-scheduled": "Pēdējais ieplānotais brauciens: $1",

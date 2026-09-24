@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Ordine de pornire Docker",
     "settings.navigation.appearance": "Aspectul",
     "settings.navigation.workflows": "Fluxuri de lucru",
-    "settings.navigation.appearance-recovery": "Aspect și recuperare",
     "settings.navigation.support": "Asistență",
     "settings.navigation.sections": "Secțiuni avansate",
     "settings.recovery.last-scheduled": "Ultima rulare programată: $1",

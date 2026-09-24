@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Dockerの起動順序",
     "settings.navigation.appearance": "外観",
     "settings.navigation.workflows": "ワークフロー",
-    "settings.navigation.appearance-recovery": "外観と復元",
     "settings.navigation.support": "サポート",
     "settings.navigation.sections": "高度なセクション",
     "settings.recovery.last-scheduled": "前回のスケジュール実行: $1",

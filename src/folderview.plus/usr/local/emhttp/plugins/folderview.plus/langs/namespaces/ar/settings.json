@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "ترتيب بدء تشغيل Docker",
     "settings.navigation.appearance": "المظهر",
     "settings.navigation.workflows": "سير العمل",
-    "settings.navigation.appearance-recovery": "المظهر والاستعادة",
     "settings.navigation.support": "الدعم",
     "settings.navigation.sections": "أقسام متقدمة",
     "settings.recovery.last-scheduled": "آخر تشغيل مجدول: $1",

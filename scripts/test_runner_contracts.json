@@ -86,7 +86,7 @@
         "tests/browser/helpers/vm-lifecycle.mjs"
       ],
       "testCount": 64,
-      "assertionCount": 742,
+      "assertionCount": 744,
       "pageEvaluateCount": 176,
       "orderedTitleSha256": "48529c77f59d9d90e82ad9e2f668e6fcd6ca611f7ce9818a22f673b1e18427c3"
     }

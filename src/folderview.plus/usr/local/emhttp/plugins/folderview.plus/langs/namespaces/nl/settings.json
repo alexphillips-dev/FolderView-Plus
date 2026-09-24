@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker-startvolgorde",
     "settings.navigation.appearance": "Uiterlijk",
     "settings.navigation.workflows": "Werkstromen",
-    "settings.navigation.appearance-recovery": "Uiterlijk en herstel",
     "settings.navigation.support": "Ondersteuning",
     "settings.navigation.sections": "Geavanceerde secties",
     "settings.recovery.last-scheduled": "Laatst gepland uitgevoerd: $1",

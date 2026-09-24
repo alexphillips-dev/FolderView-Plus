@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Pořadí spuštění dockeru",
     "settings.navigation.appearance": "Vzhled",
     "settings.navigation.workflows": "Pracovní postupy",
-    "settings.navigation.appearance-recovery": "Vzhled a obnovení",
     "settings.navigation.support": "Podpora",
     "settings.navigation.sections": "Pokročilé sekce",
     "settings.recovery.last-scheduled": "Poslední plánované spuštění: $1",

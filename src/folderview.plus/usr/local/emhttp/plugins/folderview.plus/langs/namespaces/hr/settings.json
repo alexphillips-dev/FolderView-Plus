@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Redoslijed pokretanja Dockera",
     "settings.navigation.appearance": "Izgled",
     "settings.navigation.workflows": "Tijek rada",
-    "settings.navigation.appearance-recovery": "Izgled i oporavak",
     "settings.navigation.support": "podrška",
     "settings.navigation.sections": "Napredni odjeljci",
     "settings.recovery.last-scheduled": "Zadnje planirano izvođenje: $1",

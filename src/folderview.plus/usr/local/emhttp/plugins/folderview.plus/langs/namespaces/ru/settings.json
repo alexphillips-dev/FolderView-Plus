@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Порядок запуска Docker",
     "settings.navigation.appearance": "Внешний вид",
     "settings.navigation.workflows": "Рабочие процессы",
-    "settings.navigation.appearance-recovery": "Внешний вид и восстановление",
     "settings.navigation.support": "Поддержка",
     "settings.navigation.sections": "Расширенные разделы",
     "settings.recovery.last-scheduled": "Последний запланированный запуск: $1",

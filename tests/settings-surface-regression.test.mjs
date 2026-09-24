@@ -39,8 +39,10 @@ const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/fo
 test('Advanced navigation groups sections and preserves focus when switching', () => {
     assert.match(settingsPage, /id="fv-advanced-workspace"[\s\S]*id="fv-advanced-nav"[\s\S]*id="fv-advanced-content"/);
     assert.match(settingsJs, /tabs: \['operations', 'automation', 'rules', 'startup'\]/);
-    assert.match(settingsJs, /tabs: \['appearance', 'recovery'\]/);
-    assert.match(settingsJs, /tabs: \['diagnostics', 'logs'\]/);
+    assert.match(settingsJs, /tabs: \['appearance'\]/);
+    assert.match(settingsJs, /tabs: \['recovery', 'diagnostics', 'logs'\]/);
+    assert.match(settingsPage, /class="fv-advanced-sidebar"[\s\S]*class="fv-advanced-sidebar-title"[\s\S]*id="fv-advanced-nav"/);
+    assert.match(settingsCss, /\.fv-advanced-nav-group \+ \.fv-advanced-nav-group \{[\s\S]*border-top:/);
     assert.match(settingsJs, /if \(container\.data\('fvNavSignature'\) !== signature\) \{[\s\S]*container\.html\(/);
     assert.match(settingsJs, /button\.classList\.toggle\('is-active', active\)/);
     assert.match(settingsJs, /button\.setAttribute\('aria-current', 'true'\)/);

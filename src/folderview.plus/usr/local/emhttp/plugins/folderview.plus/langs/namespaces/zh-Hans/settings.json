@@ -140,7 +140,6 @@
     "settings.navigation.docker-start-order": "Docker 启动顺序",
     "settings.navigation.appearance": "外观",
     "settings.navigation.workflows": "工作流程",
-    "settings.navigation.appearance-recovery": "外观与恢复",
     "settings.navigation.support": "支持",
     "settings.navigation.sections": "高级设置分区",
     "settings.recovery.last-scheduled": "上次计划运行：$1",

@@ -355,7 +355,8 @@ test('selected folder editor and advanced settings tabs do not render redundant 
     assert.doesNotMatch(folderCss, /\.fv-section-nav > button(?:\.is-active|\[data-active="true"\]|\[aria-current="page"\])::after/);
     assert.doesNotMatch(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active::after/);
     assert.match(folderCss, /#fvFolderEditorForm\.folder-editor-form \.fv-section-nav > button\[data-target\]\[aria-current="page"\]\s*\{[^}]*background: var\(--fvplus-ui-control\) !important;[^}]*box-shadow: none !important;/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active\s*\{[\s\S]*background: color-mix\(in srgb, var\(--fvplus-settings-accent\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active\s*\{[^}]*--fvplus-settings-button-bg-top: var\(--fvplus-settings-accent-soft\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-advanced-tab\.is-active\s*\{[^}]*--fvplus-settings-button-shadow: inset 3px 0 0 var\(--fvplus-settings-accent\)/);
 });
 
 test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {

@@ -823,7 +823,7 @@ const settingsUiState = {
     sections: [],
     baselineByInputId: new Map(),
     activeSectionKey: '',
-    advancedTab: 'automation',
+    advancedTab: 'operations',
     advancedSearchByTab: {
         automation: '',
         rules: '',
@@ -1707,51 +1707,67 @@ const renderAdvancedNav = () => {
         return;
     }
     if (settingsUiState.mode !== 'advanced') {
-        container.hide().empty();
+        container.hide();
         return;
     }
 
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (!advancedSections.length) {
-        container.hide().empty();
+        container.hide();
         return;
     }
 
-    const groups = ADVANCED_GROUPS
-        .map((group) => ({
-            group,
-            count: advancedSections.filter((section) => section.advancedGroup === group).length
-        }))
-        .filter((entry) => entry.count > 0);
-    const tabsHtml = groups
-        .map((entry) => {
-            const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
-            const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
-            const countTitle = surfaceT("common.repair.sections-in-2-1-8cd9f7", "Sections in $2: $1", entry.count, label);
-            const icons = {
-                automation: 'fa-magic',
-                rules: 'fa-balance-scale',
-                recovery: 'fa-history',
-                operations: 'fa-bolt',
-                startup: 'fa-sort-amount-asc',
-                appearance: 'fa-paint-brush',
-                diagnostics: 'fa-stethoscope',
-                logs: 'fa-list-alt'
-            };
-            const icon = icons[entry.group] || 'fa-sliders';
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span></button>`;
-        })
-        .join('');
-    container.html(`
-        <div class="fv-advanced-nav-inner">
-            <div class="fv-advanced-controls">
-                <div class="fv-advanced-tabs">${tabsHtml}</div>
+    const available = new Set(advancedSections.map((section) => section.advancedGroup));
+    const navigationGroups = [
+        { key: 'workflows', label: surfaceT('settings.navigation.workflows', 'Workflows'), tabs: ['operations', 'automation', 'rules', 'startup'] },
+        { key: 'manage', label: surfaceT('settings.navigation.appearance-recovery', 'Appearance and recovery'), tabs: ['appearance', 'recovery'] },
+        { key: 'support', label: surfaceT('settings.navigation.support', 'Support'), tabs: ['diagnostics', 'logs'] }
+    ].map((group) => ({ ...group, tabs: group.tabs.filter((tab) => available.has(tab)) }))
+        .filter((group) => group.tabs.length > 0);
+    const labels = Object.fromEntries(ADVANCED_GROUPS.map((group) => [group, ADVANCED_GROUP_LABELS[group] || group]));
+    const signature = JSON.stringify(navigationGroups.map((group) => [
+        group.key, group.label, ...group.tabs.map((tab) => `${tab}:${labels[tab]}`)
+    ]));
+    if (container.data('fvNavSignature') !== signature) {
+        const icons = {
+            automation: 'fa-tasks', rules: 'fa-balance-scale', recovery: 'fa-history',
+            operations: 'fa-bolt', startup: 'fa-sort-amount-asc', appearance: 'fa-paint-brush',
+            diagnostics: 'fa-stethoscope', logs: 'fa-list-alt'
+        };
+        const groupsHtml = navigationGroups.map((group) => `
+            <div class="fv-advanced-nav-group" role="group" aria-labelledby="fv-advanced-group-${group.key}">
+                <div id="fv-advanced-group-${group.key}" class="fv-advanced-nav-label">${escapeHtml(group.label)}</div>
+                <div class="fv-advanced-tabs">${group.tabs.map((tab) => `
+                    <button type="button" class="fv-advanced-tab" data-fv-advanced-tab="${tab}" aria-controls="fv-advanced-content"><i class="fa ${icons[tab]}" aria-hidden="true"></i><span>${escapeHtml(labels[tab])}</span></button>
+                `).join('')}</div>
             </div>
-        </div>
-    `).show();
+        `).join('');
+        const optionsHtml = navigationGroups.map((group) => `
+            <optgroup label="${escapeHtml(group.label)}">${group.tabs.map((tab) => `
+                <option value="${tab}">${escapeHtml(labels[tab])}</option>
+            `).join('')}</optgroup>
+        `).join('');
+        const pickerLabel = surfaceT('settings.navigation.sections', 'Advanced sections');
+        container.html(`
+            <div class="fv-advanced-nav-groups">${groupsHtml}</div>
+            <label class="fv-advanced-mobile-picker" for="fv-advanced-section-picker">
+                <span>${escapeHtml(pickerLabel)}</span>
+                <select id="fv-advanced-section-picker" aria-controls="fv-advanced-content">${optionsHtml}</select>
+            </label>
+        `).data('fvNavSignature', signature);
+    }
+    container.find('.fv-advanced-tab').each((_, button) => {
+        const active = button.dataset.fvAdvancedTab === settingsUiState.advancedTab;
+        button.classList.toggle('is-active', active);
+        if (active) button.setAttribute('aria-current', 'true');
+        else button.removeAttribute('aria-current');
+    });
+    container.find('#fv-advanced-section-picker').val(settingsUiState.advancedTab);
+    container.show();
 };
 
 const applySettingsSectionVisibility = () => {
+    $('#fv-settings-root').toggleClass('fv-advanced-mode', settingsUiState.mode === 'advanced');
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
     if (!visibleKeys.size && settingsUiState.mode === 'basic' && !settingsUiState.query) {
         for (const section of getBasicWorkspaceSections()) {
@@ -2298,10 +2314,6 @@ const initSettingsControls = () => {
         });
     }
 
-    if (!$('#fv-advanced-nav').length) {
-        $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" data-fvplus-style="fv-u-uydnfn"></div>');
-    }
-
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode, { persistServer: true });
@@ -2370,13 +2382,28 @@ const initSettingsControls = () => {
         applyRegexPreset(type, preset);
     });
 
-    $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
-        const tab = String($(event.currentTarget).attr('data-fv-advanced-tab') || '');
+    const activateAdvancedTab = (tab) => {
+        if (!ADVANCED_GROUPS.includes(tab)) return;
         setAdvancedTab(tab);
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshSectionHealthBadges();
         scheduleActiveAdvancedSecondarySurfaces();
+    };
+    $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
+        activateAdvancedTab(String($(event.currentTarget).attr('data-fv-advanced-tab') || ''));
+    });
+    $(document).off('change.fvtab', '#fv-advanced-section-picker').on('change.fvtab', '#fv-advanced-section-picker', (event) => {
+        activateAdvancedTab(String(event.currentTarget.value || ''));
+    });
+    $(document).off('keydown.fvtab', '.fv-advanced-tab').on('keydown.fvtab', '.fv-advanced-tab', (event) => {
+        const buttons = [...document.querySelectorAll('#fv-advanced-nav .fv-advanced-tab')];
+        const index = buttons.indexOf(event.currentTarget);
+        if (index < 0) return;
+        const nextIndex = ({ ArrowDown: index + 1, ArrowUp: index - 1, Home: 0, End: buttons.length - 1 })[event.key];
+        if (nextIndex === undefined) return;
+        event.preventDefault();
+        buttons[Math.max(0, Math.min(buttons.length - 1, nextIndex))]?.focus();
     });
     $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
         event.preventDefault();
@@ -11363,7 +11390,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(localStorage.getItem(OPERATIONS_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRulesWorkspaceType = normalizeRulesWorkspaceType(localStorage.getItem(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(localStorage.getItem(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
-            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
+            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'operations', false);
             settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
             settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
             removeSettingsStorage('fv.settings.advancedExpanded.v2');

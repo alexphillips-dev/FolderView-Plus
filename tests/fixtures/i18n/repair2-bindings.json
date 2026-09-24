@@ -1153,15 +1153,6 @@
   },
   {
     "file": "scripts/folderviewplus.js",
-    "key": "common.repair.sections-in-2-1-8cd9f7",
-    "english": "Sections in $2: $1",
-    "params": [
-      "entry.count",
-      "label"
-    ]
-  },
-  {
-    "file": "scripts/folderviewplus.js",
     "key": "common.repair.script-actions-1-379e3d",
     "english": "Script actions: $1",
     "params": [

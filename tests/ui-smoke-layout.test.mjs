@@ -962,7 +962,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const showFolderHealthBreakdown = \(\.\.\.args\) => getRowDetailsApi\(\)\.showFolderHealthBreakdown\(\.\.\.args\);/);
     assert.match(settingsJs, /registerActions\(window,\s*\{[\s\S]*showFolderHealthBreakdown/);
     assert.match(settingsJs, /class="health-breakdown-btn"/);
-    assert.doesNotMatch(settingsJs, /Advanced sections/);
+    assert.match(settingsJs, /surfaceT\('settings\.navigation\.sections', 'Advanced sections'\)/);
     assert.doesNotMatch(settingsJs, /fv-advanced-compact|fv-section-toggle|expandedAdvancedSections/);
     assert.doesNotMatch(settingsJs, /toggle\.textContent = 'Compact';/);
     assert.match(settingsJs, /for \(const node of section\.nodes\) \{\s*node\.classList\.toggle\('fv-section-hidden', !visible\);/);
@@ -1083,8 +1083,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-quick-preset\s*\{[\s\S]*white-space:\s*normal/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
-    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*display:\s*inline-flex/);
-    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*width:\s*auto/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-advanced-mode \.fv-advanced-workspace\s*\{[^}]*display:\s*grid/);
+    assert.match(settingsCss, /\.fv-advanced-tabs\s*\{[^}]*display:\s*grid/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.folder-table table td\.status-cell\s*\{[\s\S]*text-align:\s*left/);
     assert.match(settingsCss, /\.folder-table table th\.fv-col-hidden,\s*[\s\S]*\.folder-table table td\.fv-col-hidden\s*\{[\s\S]*display:\s*none !important/);

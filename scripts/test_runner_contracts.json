@@ -44,6 +44,7 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 110, "owner": "fixture Advanced Settings navigation layout and focus" },
     { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases", "requiredImports": ["./settings-startup-repair.mjs"] },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
@@ -65,6 +66,7 @@
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
+        "tests/browser/cases/settings-advanced-navigation.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
@@ -83,10 +85,10 @@
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
         "tests/browser/helpers/vm-lifecycle.mjs"
       ],
-      "testCount": 63,
-      "assertionCount": 730,
-      "pageEvaluateCount": 171,
-      "orderedTitleSha256": "a3d451eff047db1585ecfa382bd1566d7025ceee21061963684f21f6957f2b5f"
+      "testCount": 64,
+      "assertionCount": 742,
+      "pageEvaluateCount": 176,
+      "orderedTitleSha256": "48529c77f59d9d90e82ad9e2f668e6fcd6ca611f7ce9818a22f673b1e18427c3"
     }
   }
 }

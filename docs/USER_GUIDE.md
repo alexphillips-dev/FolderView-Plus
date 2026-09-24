@@ -7,7 +7,7 @@ This guide covers the normal FolderView Plus workflow after installation. Start 
 Open `Settings -> FolderView Plus`.
 
 - **Basic** contains everyday folder creation, ordering, membership, visibility, and display controls.
-- **Advanced** contains Automation, Rules, Recovery, Operations, Start Order, Appearance, and Diagnostics.
+- **Advanced** contains Operations, Bulk assignment, Rules, Docker start order, Appearance, Recovery, Diagnostics, and Logs. On desktop, choose a section from the left rail. On a phone, use the section picker above the content.
 - **Setup Assistant** provides a guided first-run or migration flow. It previews the planned changes and does not require an import file for a fresh setup.
 
 Settings search matches labels and common aliases. Change its scope when you want to search only the current mode or include all Advanced workspaces.
@@ -116,7 +116,7 @@ Legacy folder regex remains compatible for imports and existing installations, b
 
 ## Bulk assignment and templates
 
-Use `Advanced -> Automation` when many members need to move at once. Bulk plans are validated as one operation and committed atomically, so an invalid target blocks the complete batch instead of leaving a partial move.
+Use `Advanced -> Bulk assignment` when many members need to move at once. Bulk plans are validated as one operation and committed atomically, so an invalid target blocks the complete batch instead of leaving a partial move.
 
 Templates save reusable folder settings. Review member-bound custom actions when copying or applying a template because actions that depend on unavailable members are disabled for safety.
 
@@ -145,7 +145,7 @@ Safety backups are created before supported imports, restores, bulk changes, and
 
 ## Docker start order
 
-`Advanced -> Start Order` can follow the Docker page folder order or define custom startup batches. Custom plans can specify groups, members, and delays. Always preview and validate a changed plan before syncing it to the host.
+`Advanced -> Docker start order` can follow the Docker page folder order or define custom startup batches. Custom plans can specify groups, members, and delays. Always preview and validate a changed plan before syncing it to the host.
 
 ## Performance profiles
 

@@ -20,11 +20,11 @@
   "featureNames": {
     "settingsModes": ["Basic", "Advanced"],
     "advancedWorkspaces": [
-      { "id": "automation", "label": "Automation" },
+      { "id": "automation", "label": "Bulk assignment" },
       { "id": "rules", "label": "Rules" },
       { "id": "recovery", "label": "Recovery" },
       { "id": "operations", "label": "Operations" },
-      { "id": "startup", "label": "Start Order" },
+      { "id": "startup", "label": "Docker start order" },
       { "id": "appearance", "label": "Appearance" },
       { "id": "diagnostics", "label": "Diagnostics" },
       { "id": "logs", "label": "Logs" }

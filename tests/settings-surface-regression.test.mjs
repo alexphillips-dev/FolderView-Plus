@@ -36,8 +36,20 @@ const settingsJs = [
 ].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
 
-test('Advanced tabs show their sections without Compact or Expand controls', () => {
-    assert.match(settingsJs, /class="fv-advanced-tabs">\$\{tabsHtml\}<\/div>/);
+test('Advanced navigation groups sections and preserves focus when switching', () => {
+    assert.match(settingsPage, /id="fv-advanced-workspace"[\s\S]*id="fv-advanced-nav"[\s\S]*id="fv-advanced-content"/);
+    assert.match(settingsJs, /tabs: \['operations', 'automation', 'rules', 'startup'\]/);
+    assert.match(settingsJs, /tabs: \['appearance', 'recovery'\]/);
+    assert.match(settingsJs, /tabs: \['diagnostics', 'logs'\]/);
+    assert.match(settingsJs, /if \(container\.data\('fvNavSignature'\) !== signature\) \{[\s\S]*container\.html\(/);
+    assert.match(settingsJs, /button\.classList\.toggle\('is-active', active\)/);
+    assert.match(settingsJs, /button\.setAttribute\('aria-current', 'true'\)/);
+    assert.match(settingsJs, /id="fv-advanced-section-picker"/);
+    assert.match(settingsJs, /\.on\('change\.fvtab', '#fv-advanced-section-picker',/);
+    assert.match(settingsJs, /ArrowDown: index \+ 1, ArrowUp: index - 1, Home: 0, End: buttons\.length - 1/);
+    assert.match(settingsCss, /@media \(max-width: 960px\) \{[\s\S]*\.fv-advanced-mobile-picker \{[\s\S]*display: grid/);
+    assert.match(settingsSectionsJs, /"settings\.navigation\.bulk-assignment", "Bulk assignment"/);
+    assert.match(settingsSectionsJs, /"settings\.navigation\.docker-start-order", "Docker start order"/);
     assert.match(settingsJs, /node\.classList\.toggle\('fv-section-hidden', !visible\)/);
     assert.doesNotMatch(settingsJs, /fv-advanced-compact|fv-section-toggle|fv-section-content-hidden|expandedAdvancedSections/);
     assert.doesNotMatch(settingsCss, /\.fv-advanced-compact|\.fv-section-toggle|\.fv-section-content-hidden/);
@@ -422,7 +434,7 @@ test('operations tab uses one source-switched workspace for runtime actions and 
 test('Docker start order lives in its own startup advanced tab', () => {
     const window = {};
     vm.runInNewContext(settingsSectionsJs, { window });
-    assert.equal(window.ADVANCED_GROUP_LABELS.startup, 'Start Order');
+    assert.equal(window.ADVANCED_GROUP_LABELS.startup, 'Docker start order');
     assert.match(settingsSectionsJs, /'docker-start-order':\s*'startup'/);
     assert.match(settingsPage, /<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order<\/h2>/);
     assert.match(settingsPage, /id="docker-start-order-workspace"/);

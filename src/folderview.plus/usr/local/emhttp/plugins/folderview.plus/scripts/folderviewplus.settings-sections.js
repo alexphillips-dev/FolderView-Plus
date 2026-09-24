@@ -18,11 +18,11 @@ const ADVANCED_SECTION_KEYS = new Set([
 const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'];
 const translate = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
 const ADVANCED_GROUP_LABELS = {
-    get automation() { return translate("settings.navigation.automation", "Automation"); },
+    get automation() { return translate("settings.navigation.bulk-assignment", "Bulk assignment"); },
     get rules() { return translate("settings.navigation.rules", "Rules"); },
     get recovery() { return translate("settings.navigation.recovery", "Recovery"); },
     get operations() { return translate("settings.navigation.operations", "Operations"); },
-    get startup() { return translate("settings.navigation.startup", "Start Order"); },
+    get startup() { return translate("settings.navigation.docker-start-order", "Docker start order"); },
     get appearance() { return translate("settings.navigation.appearance", "Appearance"); },
     get diagnostics() { return translate("diagnostics.title", "Diagnostics"); },
     get logs() { return translate('logs', 'Logs'); }

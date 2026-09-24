@@ -138,12 +138,12 @@ Recommended first setup:
 
 | Tool | What it is for |
 |---|---|
-| Automation | Bulk assignment workflows for moving many Docker containers or VMs at once. |
-| Rules | Ordered assignment rules with testing, matching, and conflict review. |
-| Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
 | Operations | Runtime actions, reusable templates, imports, and exports. |
-| Start Order | Docker autostart order from folder order or custom startup batches. |
+| Bulk assignment | Move many Docker containers or VMs at once. |
+| Rules | Ordered assignment rules with testing, matching, and conflict review. |
+| Docker start order | Set Docker autostart order from folder order or custom startup batches. |
 | Appearance | Theme and display controls for the plugin experience. |
+| Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
 | Diagnostics | Health checks, support reports, runtime diagnostics, and troubleshooting helpers. |
 | Logs | Recent Settings actions and issues, newest first, with a Clear control. |
 

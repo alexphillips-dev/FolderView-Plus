@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.10">
-<!ENTITY md5 "0c8a686397209a5f0de60f729581c29a">
-<!ENTITY sha256 "556e32de7487502eb6faa2d6921d9235b41592d008f5943379514d68656a8dbe">
+<!ENTITY version "2026.09.24.11">
+<!ENTITY md5 "fe4dd67639ebb1c8aafa18894d587e79">
+<!ENTITY sha256 "817bac73e5b9013165d4574eba975bd3d1a13d819ccf8ba63f5646b81018e559">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.11
+- UX: Advanced Settings now uses a grouped navigation rail on desktop and a single section picker on phones, keeping section choices easy to find.
+- Accessibility: The selected section has a clear, restrained accent, and switching sections keeps keyboard focus on the navigation control.
+- UX: Rename Automation to Bulk assignment and Start Order to Docker start order. The updated navigation labels are translated across all supported languages.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
 
 ###2026.09.24.10
 - UX: Docker and VM Basic Settings toolbars now match the Settings header control height and spacing, with blue Export all and green Import buttons in both light and dark themes.

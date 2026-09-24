@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs';
-import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
+import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs'; import { registerSettingsAdvancedNavigationCase } from './settings-advanced-navigation.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
-registerLocalizationWorkspaceFixtureCases({ test, baseUrl });
+registerLocalizationWorkspaceFixtureCases({ test, baseUrl }); registerSettingsAdvancedNavigationCase({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1180, height: 720 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });

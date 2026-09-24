@@ -63,6 +63,9 @@ if (!empty($fvplusRuntimeConflicts)) {
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
+<div id="fv-advanced-workspace" class="fv-advanced-workspace">
+<nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections" data-i18n="[aria-label]settings.navigation.sections"></nav>
+<div id="fv-advanced-content" class="fv-advanced-content">
 <h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace</h2>
 <div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
     <div class="rules-panel fv-theme-workspace-shell">
@@ -1613,6 +1616,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     </section>
 </div>
 <hr>
+</div>
+</div>
 
 <div id="import-preview-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="import-preview-head">

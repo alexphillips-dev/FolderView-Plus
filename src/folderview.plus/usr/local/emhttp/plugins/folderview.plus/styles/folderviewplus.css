@@ -869,9 +869,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     overflow: hidden;
     border-color: var(--fvplus-settings-border-subtle);
     border-radius: 10px;
-    background:
-        radial-gradient(circle at 22% 0%, var(--fvplus-settings-surface-strong), transparent 34%),
-        var(--fvplus-settings-surface-panel);
+    background: var(--fvplus-settings-surface-panel);
     color: var(--fvplus-settings-text-primary);
 }
 

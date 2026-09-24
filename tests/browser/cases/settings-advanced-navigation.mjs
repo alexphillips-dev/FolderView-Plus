@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { verifyAdvancedWorkspaceLayout } from '../helpers/advanced-workspace-layout.mjs';
 
 const settingsJs = fs.readFileSync(path.join(process.cwd(),
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'), 'utf8');
@@ -70,7 +71,6 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
                 && document.querySelector('[aria-current="true"]')?.dataset.fvAdvancedTab === 'logs';
         });
         assert.equal(focusKept, true, 'tab changes must update existing controls in place');
-
         await page.setViewportSize({ width: 390, height: 800 });
         const phone = await page.evaluate(() => {
             const nav = document.getElementById('fv-advanced-nav');
@@ -85,7 +85,6 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
             };
         });
         assert.deepEqual(phone, { groupsHidden: true, pickerVisible: true, pickerValue: 'logs', navPosition: 'static', navFits: true, pickerFits: true });
-
         await page.setViewportSize({ width: 1440, height: 900 });
         await page.evaluate(() => {
             const root = document.getElementById('fv-settings-root');
@@ -106,5 +105,6 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         assert.match(colors.shadow, /-3px/, JSON.stringify(colors));
         assert.notEqual(colors.background, 'rgba(0, 0, 0, 0)');
         assert.ok(colors.contentRight < colors.navLeft, 'RTL rail must appear to the right of content');
+        await verifyAdvancedWorkspaceLayout(page);
     });
 };

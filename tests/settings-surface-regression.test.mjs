@@ -478,7 +478,8 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.ok(shareWithSupportIndex > diagnosticsSummaryIndex, 'share with support should remain below the health summary');
     assert.doesNotMatch(settingsPage, /Suggested fixes|fv-diagnostics-actions|diagnostics\.fixes\./);
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
-    assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-advanced-mode \.fv-advanced-content\s*\{[^}]*padding-inline:\s*var\(--fv-advanced-side-padding\);/);
+    assert.doesNotMatch(settingsCss, /\.fv-diagnostics-workspace\s*\{[^}]*margin-inline:/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics\s*\{[\s\S]*align-self:\s*center;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[^}]*border-color:\s*var\(--fvplus-settings-border-subtle\)[^}]*color:\s*var\(--fvplus-settings-button-fg\)/);

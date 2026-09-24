@@ -5128,8 +5128,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-recovery-history-card,
-.fv-recovery-timeline-card,
-.fv-recovery-undo-summary {
+.fv-recovery-timeline-card {
     display: grid;
     gap: 0.7rem;
     padding: 0.95rem 1rem;
@@ -5139,8 +5138,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-recovery-history-head,
-.fv-recovery-timeline-head,
-.fv-recovery-undo-head {
+.fv-recovery-timeline-head {
     display: flex;
     justify-content: space-between;
     gap: 0.7rem;
@@ -5148,22 +5146,19 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-recovery-history-title,
-.fv-recovery-timeline-title,
-.fv-recovery-undo-title {
+.fv-recovery-timeline-title {
     font-size: 1.02rem;
     font-weight: 700;
     color: var(--fvplus-settings-text-primary);
 }
 
 .fv-recovery-history-copy,
-.fv-recovery-timeline-copy,
-.fv-recovery-undo-copy {
+.fv-recovery-timeline-copy {
     color: var(--fvplus-settings-text-primary);
     line-height: 1.45;
 }
 
-.fv-recovery-history-meta,
-.fv-recovery-undo-meta {
+.fv-recovery-history-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem 0.8rem;
@@ -5929,8 +5924,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .fv-recovery-overview-head,
     .fv-recovery-history-head,
-    .fv-recovery-timeline-head,
-    .fv-recovery-undo-head {
+    .fv-recovery-timeline-head {
         flex-direction: column;
         align-items: flex-start;
     }

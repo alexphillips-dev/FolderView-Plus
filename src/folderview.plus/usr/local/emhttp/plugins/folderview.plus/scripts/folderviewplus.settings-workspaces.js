@@ -648,7 +648,6 @@
                 ? translate("settings.recovery.policy-summary", "Every $1 h; retain $2; $3.", schedule.intervalHours || 24, schedule.retention || 25, schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : translate("settings.recovery.waiting", "Waiting for first run"))
                 : translate("settings.recovery.manual-help", "Manual only. Enable scheduled backups if you want automatic recovery points."));
             syncVisibleRecoveryCompareControls(resolvedType);
-            windowRef?.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
         };
 
         const syncRecoveryWorkspaceUi = () => {

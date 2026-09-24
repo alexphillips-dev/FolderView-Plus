@@ -6805,15 +6805,6 @@
     ]
   },
   {
-    "phrase": "Latest $1 change",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "Latest"
-      }
-    ]
-  },
-  {
     "phrase": "latest undo backup",
     "locations": [
       {
@@ -7792,15 +7783,6 @@
       {
         "file": "scripts/folderviewplus.folder-editor.js",
         "anchor": "'No other folder or parent location is available.'"
-      }
-    ]
-  },
-  {
-    "phrase": "No recent $1 changes found.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "changes found."
       }
     ]
   },
@@ -8892,15 +8874,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "'Ready to run rule test.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Recent events: $1",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "Recent events:"
       }
     ]
   },
@@ -12044,15 +12017,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "tree change(s)"
-      }
-    ]
-  },
-  {
-    "phrase": "Undo latest change restores the newest undo-safe backup for $1.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.activity-diagnostics.js",
-        "anchor": "Undo latest change restores the newest undo-safe backup for"
       }
     ]
   },

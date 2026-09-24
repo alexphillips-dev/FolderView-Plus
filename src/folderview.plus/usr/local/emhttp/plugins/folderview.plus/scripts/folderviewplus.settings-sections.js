@@ -10,7 +10,6 @@ const ADVANCED_SECTION_KEYS = new Set([
     'runtime-actions',
     'docker-start-order',
     'backups',
-    'change-history',
     'logs',
     'diagnostics',
     'conflict-inspector'
@@ -38,7 +37,6 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'runtime-actions': 'instant',
     'docker-start-order': 'instant',
     backups: 'instant',
-    'change-history': 'instant',
     logs: 'instant',
     diagnostics: 'instant'
 });
@@ -48,7 +46,6 @@ const ADVANCED_GROUP_BY_SECTION = {
     'bulk-assignment': 'automation',
     'conflict-inspector': 'rules',
     'backups': 'recovery',
-    'change-history': 'recovery',
     'runtime-actions': 'operations',
     'docker-start-order': 'startup',
     logs: 'logs',
@@ -65,12 +62,12 @@ const ADVANCED_MODULE_KEYS = Object.freeze([
 const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     automation: Object.freeze([]),
     rules: Object.freeze([]),
-    recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
+    recovery: Object.freeze(['docker_backups', 'vm_backups']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
     startup: Object.freeze([]),
     appearance: Object.freeze([]),
     diagnostics: Object.freeze(['change_history']),
-    logs: Object.freeze([])
+    logs: Object.freeze(['change_history'])
 });
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({

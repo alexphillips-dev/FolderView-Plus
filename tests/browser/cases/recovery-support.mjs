@@ -88,6 +88,29 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.equal(await page.locator('.fv-activity-item').count(), 0);
     });
 
+    test('Logs show server changes for Docker and VM without making them browser-only entries', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        await page.evaluate(async () => {
+            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+            const history = parsed.getElementById('recovery-change-history-list');
+            document.getElementById('fv-settings-root').innerHTML = history.closest('.fv-recovery-module-wrap').outerHTML;
+            Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
+        });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+        await page.evaluate(() => {
+            delete document.readyState;
+            window.FolderViewPlusDiagnostics.renderServerChangeHistory({ recentTimeline: [
+                { timestamp: '2026-09-24T20:00:00Z', type: 'vm', action: 'backup_restore', status: 'ok', summary: 'Restored VM backup' },
+                { timestamp: '2026-09-24T19:00:00Z', type: 'docker', action: 'import', status: 'error', summary: '<unsafe> failed' }
+            ] });
+        });
+        assert.deepEqual(await page.locator('.fv-recovery-timeline-title').allTextContents(), ['VM · Backup restored', 'Docker · Recent change']);
+        assert.equal(await page.locator('.fv-recovery-timeline-copy').last().textContent(), '<unsafe> failed');
+        assert.equal(await page.locator('.fv-recovery-timeline-copy').last().locator('unsafe').count(), 0);
+        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1')), null);
+    });
+
     test('German Dashboard options wrap inside a narrow widget and member icons retain padding', async ({ page }) => {
         await page.goto(`${baseUrl}/dashboard-layout`);
         await loadI18n(page, baseUrl);

@@ -1459,6 +1459,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                     <div class="backup-actions fv-recovery-primary-actions">
                         <button type="button" data-fv-onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
+                        <button type="button" data-fv-onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
                         <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
                         <button type="button" data-fv-onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
                     </div>
@@ -1539,35 +1540,6 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="change-history" data-fv-advanced="1" data-fv-advanced-group="recovery">Undo and recent changes</h2>
-<div class="fv-recovery-module-wrap">
-    <div class="rules-panel fv-recovery-panel fv-recovery-history-panel">
-        <div class="rules-header">
-            <h3>Recent recovery timeline</h3>
-            <span class="rules-help">Refresh the recent change feed, review what happened for the selected source, and undo the latest change if needed.</span>
-        </div>
-        <div class="fv-recovery-section-body">
-            <div id="fv-recovery-change-history-summary" class="fv-recovery-undo-summary">
-                <div class="fv-recovery-empty-state">
-                    <strong>Recent change history loads when diagnostics refresh.</strong>
-                    <span>Use the undo action only when you want to restore the latest undo-safe backup for the selected source.</span>
-                </div>
-            </div>
-            <div class="backup-actions fv-recovery-history-actions">
-                <button type="button" data-fv-onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
-                <button type="button" data-fv-onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
-            </div>
-            <div id="recovery-change-history-list" class="fv-recovery-change-history-list">
-                <div class="fv-recovery-empty-state">
-                    <strong>No recent changes loaded yet.</strong>
-                    <span>Refresh history to review the latest actions for the selected source.</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<hr>
-
 <h2 data-i18n="logs" data-fv-section="logs" data-fv-advanced="1" data-fv-advanced-group="logs">Logs</h2>
 <div id="fv-activity-feed-panel" class="fv-activity-feed-panel">
     <div class="fv-activity-center-head">
@@ -1580,6 +1552,21 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </div>
     <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
+</div>
+<div class="fv-recovery-module-wrap">
+    <div class="rules-panel fv-recovery-panel fv-recovery-history-panel">
+        <div class="rules-header">
+            <h3>Recent recovery timeline</h3>
+            <button type="button" data-fv-onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
+        </div>
+        <div class="fv-recovery-section-body">
+            <div id="recovery-change-history-list" class="fv-recovery-change-history-list">
+                <div class="fv-recovery-empty-state">
+                    <strong>No recent changes loaded yet.</strong>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <hr>
 

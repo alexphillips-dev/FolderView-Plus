@@ -822,18 +822,46 @@
             `;
         };
 
-        const setRuntimePreviewOutput = (type, html) => {
+        const setRuntimePreviewOutput = (type, html, status = '') => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             const host = $(`#${resolvedType}-runtime-preview-output`);
             if (!host.length) {
                 return;
             }
             const content = String(html || '');
-            host.html(content).prop('hidden', !content);
+            host.html(content || `
+                <div class="fv-operations-empty">
+                    <i class="fa fa-file-text-o" aria-hidden="true"></i>
+                    <strong>${escapeHtml(translate('settings.operations.preview-empty', 'No runtime action preview yet.'))}</strong>
+                    <span>${escapeHtml(translate('settings.operations.preview-empty-help', 'Select a folder and action, then click Preview to see the planned changes before applying them.'))}</span>
+                </div>
+            `).prop('hidden', false);
+            $(`#${resolvedType}-runtime-preview-status`).text(status || (content
+                ? translate('settings.operations.preview-needed', 'Preview needed')
+                : translate('settings.operations.no-action-selected', 'No action selected')));
         };
 
         const renderOperationsWorkspace = () => {
             const activeType = normalizeOperationsWorkspaceType(getActiveOperationsWorkspaceTypeValue());
+            documentRef?.querySelectorAll('[data-fv-operations-template-search]').forEach((input) => {
+                if (input.dataset.fvOperationsSearchBound === '1') {
+                    return;
+                }
+                input.dataset.fvOperationsSearchBound = '1';
+                input.addEventListener('input', () => filterOperationsTemplates(input.getAttribute('data-fv-operations-template-search')));
+            });
+            documentRef?.querySelectorAll('.fv-operations-template-library').forEach((library) => {
+                if (library.dataset.fvOperationsCreateBound === '1') {
+                    return;
+                }
+                library.dataset.fvOperationsCreateBound = '1';
+                library.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-fv-operations-create-cta]');
+                    if (button && library.contains(button)) {
+                        documentRef.getElementById(`${normalizeOperationsWorkspaceType(button.getAttribute('data-fv-operations-create-cta'))}-template-name`)?.focus();
+                    }
+                });
+            });
             documentRef?.querySelectorAll('[data-fv-operations-source-toggle]').forEach((button) => {
                 if (!(button instanceof windowRef.HTMLButtonElement)) {
                     return;
@@ -869,6 +897,10 @@
             renderTemplateRows(resolvedType);
         };
 
+        const filterOperationsTemplates = (type) => {
+            renderTemplateRows(normalizeOperationsWorkspaceType(type));
+        };
+
         const exportTemplateEntry = (type, templateId) => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             const template = (templatesByType[resolvedType] || []).find((entry) => String(entry?.id || '') === String(templateId || ''));
@@ -893,7 +925,10 @@
                 return;
             }
             const allTemplates = templatesByType[resolvedType] || [];
-            $(`#${resolvedType}-operations-template-count`).text(String(allTemplates.length));
+            const query = String($(`#${resolvedType}-operations-template-search`).val() || '').trim().toLocaleLowerCase();
+            const visibleTemplates = query
+                ? allTemplates.filter((template) => String(template?.name || '').toLocaleLowerCase().includes(query))
+                : allTemplates;
             const folders = getFolderMap(resolvedType);
             const folderOptions = Object.entries(folders).map(([id, folder]) => (
                 `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
@@ -902,19 +937,26 @@
             if (!allTemplates.length) {
                 selectedOperationsTemplateIdByType[resolvedType] = '';
                 host.html(`
-                    <div class="fv-recovery-empty-state">
+                    <div class="fv-operations-empty">
+                        <i class="fa fa-file-text-o" aria-hidden="true"></i>
                         <strong>${escapeHtml(translate("settings.operations.no-templates", "No saved $1 templates yet.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.empty-help", "Create one from an existing folder to reuse its setup later."))}</span>
+                        <span>${escapeHtml(translate("settings.operations.empty-help-template", "Save a template from an existing folder to reuse its structure, settings, actions, and matching rules later."))}</span>
+                        <button type="button" class="fv-operations-create-cta" data-fv-operations-create-cta="${resolvedType}"><i class="fa fa-plus" aria-hidden="true"></i> ${escapeHtml(translate('settings.operations.create-first-template', 'Create your first template'))}</button>
                     </div>
                 `);
                 return;
             }
 
+            if (!visibleTemplates.length) {
+                host.html(`<div class="fv-operations-empty"><i class="fa fa-search" aria-hidden="true"></i><strong>${escapeHtml(translate('settings.operations.no-search-results', 'No matching templates'))}</strong><span>${escapeHtml(translate('settings.operations.search-help', 'Try another search term or save a new template from a folder.'))}</span></div>`);
+                return;
+            }
+
             const selectedTemplateId = String(selectedOperationsTemplateIdByType[resolvedType] || '').trim();
-            const selectedTemplate = allTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || allTemplates[0];
+            const selectedTemplate = visibleTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || visibleTemplates[0];
             const resolvedTemplateId = String(selectedTemplate?.id || '').trim();
             selectedOperationsTemplateIdByType[resolvedType] = resolvedTemplateId;
-            const templateSelectOptions = allTemplates.map((template) => {
+            const templateSelectOptions = visibleTemplates.map((template) => {
                 const templateId = String(template?.id || '');
                 const templateName = String(template?.name || templateId);
                 const updated = formatTimestamp(template?.updatedAt || template?.createdAt || '');
@@ -988,6 +1030,7 @@
             renderOperationsWorkspace,
             setOperationsWorkspaceType,
             selectOperationsTemplate,
+            filterOperationsTemplates,
             exportTemplateEntry,
             renderTemplateRows
         });

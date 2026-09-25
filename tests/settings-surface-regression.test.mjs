@@ -11,6 +11,7 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const settingsWatchdogJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js');
 const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/operations-workspace.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.diagnostics.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
 ].map((relativePath) => read(relativePath)).join('\n');
@@ -416,15 +417,18 @@ test('recovery tab keeps undo with restore controls and merges server changes in
     assert.doesNotMatch(settingsCss, /\.fv-recovery-timeline-card/);
 });
 
-test('operations tab uses one source-switched workspace for runtime actions and templates', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations<\/h2>/);
+test('operations tab shows the reference action and template workflows for both sources', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
     assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
     assert.doesNotMatch(settingsPage, /id="(?:docker|vm)-operations-overview"/);
-    assert.match(settingsPage, /<label for="docker-runtime-folder">Folder[\s\S]*<label for="docker-runtime-action">Action/);
-    assert.match(settingsPage, /id="docker-runtime-apply"[^>]*hidden disabled/);
-    assert.match(settingsPage, /<details id="docker-operations-template-create"[\s\S]*<summary>Create template<\/summary>/);
+    assert.match(settingsPage, /<label for="docker-runtime-folder">[\s\S]*Folder<\/label>[\s\S]*<label for="docker-runtime-action">[\s\S]*Action<\/label>/);
+    assert.match(settingsPage, /id="docker-runtime-apply"[^>]*class="fv-operations-apply"/);
+    assert.match(settingsPage, /id="docker-runtime-preview-output"[^>]*role="status"/);
+    assert.match(settingsPage, /id="docker-operations-template-create" class="fv-operations-template-create"/);
+    assert.match(settingsPage, /id="docker-operations-template-search"[^>]*data-fv-operations-template-search="docker"/);
+    assert.match(settingsPage, /class="fv-operations-create-cta"/);
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
     assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);

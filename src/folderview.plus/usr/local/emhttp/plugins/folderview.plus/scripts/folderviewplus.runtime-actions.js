@@ -81,7 +81,6 @@
         const invalidateFolderRuntimePreview = (type, html = '') => {
             const resolvedType = normalizeManagedType(type);
             runtimePreviewByType[resolvedType] = null;
-            $(`#${resolvedType}-runtime-apply`).prop('disabled', true).prop('hidden', true);
             setRuntimePreviewOutput(resolvedType, html);
         };
         const treeIntegrityApi = deps.treeIntegrityApi
@@ -308,11 +307,9 @@
                 return;
             }
             runtimePreviewByType[resolvedType] = { folderId, action, signature: runtimePlanSignature(plan) };
-            setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan));
-            const applyButton = $(`#${resolvedType}-runtime-apply`);
             const eligibleCount = plan.eligible.length;
-            applyButton.prop('disabled', eligibleCount === 0).prop('hidden', eligibleCount === 0);
-            applyButton.find('.fv-operations-apply-label').text(surfaceT('settings.operations.apply-to-count', 'Apply action ($1 eligible)', eligibleCount));
+            setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan),
+                eligibleCount ? surfaceT('settings.operations.ready-to-apply', 'Ready to apply') : surfaceT('settings.operations.no-eligible', 'No eligible items'));
         };
 
         const applyFolderRuntimeAction = (type) => {
@@ -370,7 +367,8 @@
                 try {
                     const result = await executeFolderRuntimeAction(resolvedType, action, plan.eligible.map((row) => row.name));
                     await refreshType(resolvedType);
-                    setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, result));
+                    setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, result),
+                        surfaceT('settings.operations.action-complete', 'Action complete'));
                     await trackDiagnosticsEvent({
                         eventType: 'runtime_bulk_action',
                         type: resolvedType,

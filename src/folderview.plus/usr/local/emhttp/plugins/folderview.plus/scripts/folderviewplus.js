@@ -10773,13 +10773,11 @@ const createTemplateFromFolder = async (type) => {
             templatesByType[type] = await createTemplate(type, folderId, templateName);
             markAdvancedModuleLoadSuccess(`${type}_templates`);
             $(`#${type}-template-name`).val('');
+            $(`#${type}-operations-template-search`).val('');
+            selectedOperationsTemplateIdByType[type] = String(templatesByType[type][templatesByType[type].length - 1]?.id || '');
             setInlineValidationHint(`${type}-template-validation`, '', 'info');
             renderTemplateRows(type);
             renderOperationsWorkspace();
-            const createDetails = document.getElementById(`${type}-operations-template-create`);
-            if (createDetails) {
-                createDetails.open = false;
-            }
             swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
         } catch (error) {
             markAdvancedModuleLoadError(`${type}_templates`, error);

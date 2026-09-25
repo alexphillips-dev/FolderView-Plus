@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.20">
-<!ENTITY md5 "5de6f5fbf71b0cebbbc88ebab29cb07d">
-<!ENTITY sha256 "f97a525938a8d4b4289998f49210087c6ea2e72e2557207ccb8f6544adcc5ba5">
+<!ENTITY version "2026.09.24.21">
+<!ENTITY md5 "92f443c1632cd64608aca90c75c183f2">
+<!ENTITY sha256 "2385f2163bf51085c08fd6bfea036a3c996f10adabe48c209bb2b50609ae32c1">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.21
+- UX: Redesign Advanced > Operations with side-by-side folder actions and template library cards, prominent Docker and VM tabs, an always-visible action preview, and a visible template creation form.
+- Feature: Search saved templates by name. The empty library's creation shortcut focuses the template name field, and a newly saved template is selected in the library.
+- Fix: Keep Apply action visible while still requiring a current preview with eligible items before a folder action can run.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles and scripts.
+
 
 ###2026.09.24.20
 - UX: Simplify Advanced > Operations into a focused folder action flow and a separate saved templates section. The heading is now "Operations"; controls have labels, the action plan appears after Preview, and template creation fields open on request.

@@ -10,21 +10,13 @@ test('folder actions require a current eligible preview before opening confirmat
         ['#docker-runtime-folder', 'media'],
         ['#docker-runtime-action', 'start']
     ]);
-    const properties = new Map();
-    const labels = new Map();
     const dialogs = [];
     const outputs = [];
     const executions = [];
     let itemState = 'stopped';
     const $ = (selector) => ({
         val: () => values.get(selector),
-        prop(name, value) {
-            properties.set(`${selector}:${name}`, value);
-            return this;
-        },
-        find() {
-            return { text: (value) => labels.set(selector, value) };
-        }
+        prop() { return this; }
     });
     const api = createApi({
         $,
@@ -48,13 +40,11 @@ test('folder actions require a current eligible preview before opening confirmat
     assert.match(outputs.at(-1), /Preview this action/);
 
     api.previewFolderRuntimeAction('docker');
-    assert.equal(properties.get('#docker-runtime-apply:disabled'), false);
-    assert.equal(properties.get('#docker-runtime-apply:hidden'), false);
-    assert.equal(labels.get('#docker-runtime-apply'), 'Apply action (1 eligible)');
+    assert.equal(outputs.at(-1), 'preview');
 
     values.set('#docker-runtime-action', 'stop');
     api.invalidateFolderRuntimePreview('docker');
-    assert.equal(properties.get('#docker-runtime-apply:hidden'), true);
+    assert.equal(outputs.at(-1), '');
     api.applyFolderRuntimeAction('docker');
     assert.equal(dialogs.length, 0);
 
@@ -70,6 +60,5 @@ test('folder actions require a current eligible preview before opening confirmat
     assert.equal(dialogs.length, 1);
     await dialogs[0].callback(true);
     assert.deepEqual(executions, [{ type: 'docker', action: 'start', names: ['container-one'] }]);
-    assert.equal(properties.get('#docker-runtime-apply:hidden'), true);
     assert.equal(outputs.at(-1), 'result');
 });

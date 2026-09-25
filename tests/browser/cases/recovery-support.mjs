@@ -278,6 +278,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folder.css` });
         await page.addStyleTag({ url: `${baseUrl}/plugin/styles/dashboard.css` });
+        await page.addStyleTag({ content: '#fv-settings-root button { transition: none !important; animation: none !important; }' });
         await page.evaluate(() => {
             document.getElementById('fv-settings-root').innerHTML = `
                 <button class="fv-ui-button">Restore latest backup</button>

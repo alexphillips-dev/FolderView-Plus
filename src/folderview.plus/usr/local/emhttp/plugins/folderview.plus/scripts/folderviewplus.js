@@ -5685,18 +5685,6 @@ const setImportantStyle = (element, property, value) => {
 };
 
 const enforceNoHorizontalOverflow = () => {
-    const rootTargets = [
-        document.documentElement,
-        document.body,
-        document.querySelector('.canvas'),
-        document.querySelector('#content'),
-        document.querySelector('#canvas')
-    ].filter(Boolean);
-
-    for (const target of rootTargets) {
-        setImportantStyle(target, 'overflow-x', 'hidden');
-    }
-
     const compact = shouldUseCompactMobileLayout();
     const tableTargets = document.querySelectorAll('.folder-table .table-wrap');
     tableTargets.forEach((target) => {

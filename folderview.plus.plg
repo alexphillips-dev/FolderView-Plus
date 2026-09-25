@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.23">
-<!ENTITY md5 "a913ea672f90010ee16b64c148c40524">
-<!ENTITY sha256 "0e18666ad3415ba8125bf12bc443764ad12f0b78c1f20e4ab70b65af65493d54">
+<!ENTITY version "2026.09.25.01">
+<!ENTITY md5 "7db7431f2f463a521d02a13aa7998964">
+<!ENTITY sha256 "1021d983e37db373d98f3019d1bfb7a68c491511dcb25f49caa178eb7073730c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.25.01
+- Fix: Keep the Settings page reachable when the Unraid webGUI positions its content below a short header, including the layout reported with Firefox on Unraid 7.1.4.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so Settings loads the revised script.
+
 
 ###2026.09.24.23
 - UX: Make the Operations dropdowns, template search, template name field, and Save from folder button more compact for Docker and VMs.

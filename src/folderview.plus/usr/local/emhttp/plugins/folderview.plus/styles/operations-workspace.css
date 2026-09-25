@@ -1,4 +1,4 @@
-/* Advanced Operations workspace */
+/* Advanced Operations */
 .fv-operations-hero {
     display: flex;
     align-items: center;
@@ -20,7 +20,10 @@
 .fv-operations-hero-icon {
     width: 66px;
     height: 66px;
-    font-size: 2rem;
+}
+
+.fv-operations-hero-icon > .fa {
+    font-size: 2.8rem !important;
 }
 
 .fv-operations-hero-copy {
@@ -47,8 +50,7 @@
     align-items: center;
     gap: 1rem;
     margin-inline-start: auto;
-    white-space: nowrap;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
 }
 
 .fv-operations-hero-help > a {
@@ -57,6 +59,7 @@
     gap: 0.55rem;
     color: var(--fvplus-settings-text-primary);
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .fv-operations-hero-help > span {
@@ -93,21 +96,22 @@
     background: var(--fvplus-settings-surface-muted) !important;
     color: var(--fvplus-settings-text-muted) !important;
     box-shadow: none !important;
-    font-size: 1rem;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
     letter-spacing: 0;
     text-transform: none;
 }
 
-#fv-settings-root .fv-operations-source-switch > .fv-rules-source-btn.is-active {
+#fv-settings-root #fv-operations-source-switch > .fv-rules-source-btn:is(.is-active, [aria-pressed="true"]) {
     border-color: var(--fvplus-settings-accent) !important;
     border-bottom: 3px solid var(--fvplus-settings-accent) !important;
-    background: color-mix(in srgb, var(--fvplus-settings-accent) 16%, var(--fvplus-settings-surface-panel)) !important;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-surface-panel)) !important;
     color: var(--fvplus-settings-accent-strong) !important;
 }
 
 .fv-operations-source-switch .fa {
     margin-inline-end: 0.6rem;
-    font-size: 1.15rem;
+    font-size: 1.35rem !important;
 }
 
 .fv-operations-source-panel {
@@ -155,7 +159,10 @@
 .fv-operations-stage-icon {
     width: 56px;
     height: 56px;
-    font-size: 1.5rem;
+}
+
+.fv-operations-stage-icon > .fa {
+    font-size: 2.2rem !important;
 }
 
 .fv-operations-template-stage-head {
@@ -204,6 +211,19 @@
     min-width: 0;
 }
 
+.fv-operations-control::after {
+    content: '';
+    position: absolute;
+    inset-inline-end: 1rem;
+    top: calc(50% - 0.25rem);
+    width: 0.48rem;
+    height: 0.48rem;
+    border-inline-end: 2px solid var(--fvplus-settings-text-primary);
+    border-bottom: 2px solid var(--fvplus-settings-text-primary);
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
 .fv-operations-control > .fa,
 .fv-operations-search > .fa {
     position: absolute;
@@ -215,21 +235,39 @@
     color: var(--fvplus-settings-text-muted);
 }
 
-.fv-operations-runtime-grid select,
-.fv-operations-template-create select,
-.fv-operations-template-create input,
-.fv-operations-search input {
+#fv-settings-root .fv-operations-runtime-grid select,
+#fv-settings-root .fv-operations-template-create select,
+#fv-settings-root .fv-operations-template-create input,
+#fv-settings-root .fv-operations-search input {
     width: 100%;
     min-width: 0;
-    min-height: 46px;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding-block: 0 !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
     border-radius: 8px;
-    background: var(--fvplus-settings-surface-field);
-    color: var(--fvplus-settings-text-primary);
+    background: var(--fvplus-settings-surface-field) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: none;
+    font-size: 1.08rem !important;
 }
 
-.fv-operations-control select,
-.fv-operations-search input {
-    padding-inline-start: 2.5rem;
+#fv-settings-root .fv-operations-control select,
+#fv-settings-root .fv-operations-search input {
+    padding-inline-start: 2.5rem !important;
+}
+
+#fv-settings-root .fv-operations-control select {
+    appearance: none !important;
+    padding-inline-end: 2.5rem !important;
+}
+
+#fv-settings-root .fv-operations-runtime-grid select:focus-visible,
+#fv-settings-root .fv-operations-template-create :is(select, input):focus-visible,
+#fv-settings-root .fv-operations-search input:focus-visible {
+    border-color: var(--fvplus-settings-accent) !important;
+    outline: 2px solid var(--fvplus-settings-accent) !important;
+    outline-offset: 1px;
 }
 
 .fv-operations-action-buttons {
@@ -248,11 +286,16 @@
     border-radius: 10px;
     letter-spacing: 0;
     text-transform: none;
-    font-size: 1rem;
+}
+
+.fv-operations-action-buttons > button > strong {
+    font-size: 1.4rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
 }
 
 .fv-operations-action-buttons > button > span {
-    font-size: 0.85rem;
+    font-size: 1.1rem !important;
     font-weight: 400;
 }
 
@@ -406,7 +449,8 @@
 }
 
 .fv-operations-save-button {
-    min-height: 46px;
+    height: 42px !important;
+    min-height: 42px !important;
     white-space: nowrap;
 }
 
@@ -414,6 +458,7 @@
     border: 1px solid var(--fvplus-settings-accent) !important;
     background: color-mix(in srgb, var(--fvplus-settings-accent) 13%, var(--fvplus-settings-surface-panel)) !important;
     color: var(--fvplus-settings-accent-strong) !important;
+    font-size: 1.02rem !important;
 }
 
 .fv-operations-save-button > .fa {
@@ -510,7 +555,10 @@
     .fv-operations-hero-icon {
         width: 48px;
         height: 48px;
-        font-size: 1.4rem;
+    }
+
+    .fv-operations-hero-icon > .fa {
+        font-size: 2rem !important;
     }
 
     .fv-operations-hero-copy > h2[data-fv-advanced="1"] {

@@ -1282,7 +1282,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="fv-operations-hero" data-fv-section-row="1">
     <div class="fv-operations-hero-icon"><i class="fa fa-cog" aria-hidden="true"></i></div>
     <div class="fv-operations-hero-copy">
-        <h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace</h2>
+        <h2 data-i18n="settings.navigation.operations" data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations</h2>
         <p>Run actions and use templates for Docker or VMs. Manage, automate, and streamline your environments.</p>
     </div>
     <div class="fv-operations-hero-help">
@@ -1293,9 +1293,9 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="fv-operations-module-wrap">
     <div class="rules-panel fv-operations-panel">
         <div class="fv-operations-section-body">
-            <div class="fv-rules-source-switch fv-operations-source-switch" role="group" aria-label="Operations source">
-                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
-                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
+            <div id="fv-operations-source-switch" class="fv-rules-source-switch fv-operations-source-switch" role="group" aria-label="Operations source">
+                <button type="button" class="fv-rules-source-btn is-active" aria-pressed="true" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
+                <button type="button" class="fv-rules-source-btn" aria-pressed="false" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
             </div>
 
             <section class="fv-operations-source-panel" data-fv-operations-panel="docker">
@@ -1341,7 +1341,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </section>
 
-            <section class="fv-operations-source-panel" data-fv-operations-panel="vm">
+            <section class="fv-operations-source-panel" data-fv-operations-panel="vm" hidden>
                 <div class="fv-operations-stage-grid">
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">

@@ -418,7 +418,7 @@ test('recovery tab keeps undo with restore controls and merges server changes in
 });
 
 test('operations tab shows the reference action and template workflows for both sources', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace<\/h2>/);
+    assert.match(settingsPage, /<h2 data-i18n="settings.navigation.operations" data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
     assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);

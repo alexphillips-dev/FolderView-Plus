@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.21">
-<!ENTITY md5 "92f443c1632cd64608aca90c75c183f2">
-<!ENTITY sha256 "2385f2163bf51085c08fd6bfea036a3c996f10adabe48c209bb2b50609ae32c1">
+<!ENTITY version "2026.09.24.22">
+<!ENTITY md5 "7785e63a4fb039a533e9aeca84acc25e">
+<!ENTITY sha256 "17e5e8f1dab6566130e529c0d257f8a39af98344d7a8c368e9d001319897a118">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.22
+- UX: Rename the Advanced Operations heading and enlarge its help text, source tabs, action labels, and icons.
+- Fix: Highlight the selected Docker or VM tab and give folder selectors full borders and visible chevrons across supported themes.
+- UX: Shorten the template search, folder selectors, template name field, and Save from folder button to a consistent height.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
 
 ###2026.09.24.21
 - UX: Redesign Advanced > Operations with side-by-side folder actions and template library cards, prominent Docker and VM tabs, an always-visible action preview, and a visible template creation form.

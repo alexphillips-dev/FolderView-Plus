@@ -8136,8 +8136,6 @@ const renderBackupRows = (type) => {
 // folderviewplus.import.js provides backup comparison helpers.
 
 const normalizeOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeOperationsWorkspaceType(...args);
-const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buildOperationsOverviewHtml(...args);
-const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
 const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
 const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
 const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
@@ -8563,7 +8561,6 @@ const renderSettingsSecondarySurfaces = (type) => {
         syncRecoveryWorkspaceUi();
     }
     if (shouldRefreshSecondaryAdvancedGroup('operations')) {
-        renderOperationsOverview(resolvedType);
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
     }
@@ -8601,8 +8598,6 @@ const renderActiveAdvancedSecondarySurfaces = () => {
         syncRecoveryWorkspaceUi();
     }
     if (shouldRefreshSecondaryAdvancedGroup('operations')) {
-        renderOperationsOverview('docker');
-        renderOperationsOverview('vm');
         renderTemplateRows('docker');
         renderTemplateRows('vm');
         renderOperationsWorkspace();
@@ -8969,13 +8964,11 @@ const refreshTemplates = async (type, { quiet = false } = {}) => {
         if (!quiet) {
             showError(`Failed to load ${resolvedType.toUpperCase()} templates`, error);
         }
-        renderOperationsOverview(resolvedType);
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
         refreshSettingsUx();
         return false;
     }
-    renderOperationsOverview(resolvedType);
     renderTemplateRows(resolvedType);
     renderOperationsWorkspace();
     refreshSettingsUx();
@@ -10436,6 +10429,7 @@ const assignSelectedItems = (...args) => getBulkAssignmentApi().assignSelectedIt
 
 const previewFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().previewFolderRuntimeAction(...args);
 const applyFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().applyFolderRuntimeAction(...args);
+const invalidateFolderRuntimePreview = (...args) => getSettingsRuntimeActionsApi().invalidateFolderRuntimePreview(...args);
 
 const undoLatestChange = (type) => {
     let resolvedType;
@@ -10780,9 +10774,12 @@ const createTemplateFromFolder = async (type) => {
             markAdvancedModuleLoadSuccess(`${type}_templates`);
             $(`#${type}-template-name`).val('');
             setInlineValidationHint(`${type}-template-validation`, '', 'info');
-            renderOperationsOverview(type);
             renderTemplateRows(type);
             renderOperationsWorkspace();
+            const createDetails = document.getElementById(`${type}-operations-template-create`);
+            if (createDetails) {
+                createDetails.open = false;
+            }
             swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
         } catch (error) {
             markAdvancedModuleLoadError(`${type}_templates`, error);
@@ -10853,7 +10850,6 @@ const deleteTemplateEntry = (type, templateId) => {
             try {
                 templatesByType[type] = await deleteTemplate(type, templateId);
                 markAdvancedModuleLoadSuccess(`${type}_templates`);
-                renderOperationsOverview(type);
                 renderTemplateRows(type);
                 renderOperationsWorkspace();
             } catch (error) {
@@ -11296,6 +11292,7 @@ settingsActionSupportModule.registerActions(window, {
     deleteAllBackupEntries,
     previewFolderRuntimeAction,
     applyFolderRuntimeAction,
+    invalidateFolderRuntimePreview,
     refreshChangeHistory,
     undoLatestChange,
     undoActiveRecoveryChange,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 const sections = [
-    ['Operations', '<h2 data-fv-advanced="1">Operations workspace</h2><div class="fv-operations-module-wrap"><div class="rules-panel fv-operations-panel" data-layout-surface></div></div>'],
+    ['Operations', '<h2 data-fv-advanced="1">Operations</h2><div class="fv-operations-module-wrap"><div class="rules-panel fv-operations-panel" data-layout-surface></div></div>'],
     ['Bulk assignment', '<h2 data-fv-advanced="1">Bulk assignment</h2><div class="bulk-assign-grid" data-layout-surface><div class="rules-panel"></div></div>'],
     ['Rules', '<h2 data-fv-advanced="1">Auto-assignment rules</h2><div class="rules-bottom-grid fv-rules-grid" data-layout-surface><div class="rules-panel"></div></div>'],
     ['Rule testing', '<h2 data-fv-advanced="1">Rule testing and troubleshooting</h2><div class="rules-bottom-grid fv-rules-grid" data-layout-surface><div class="rules-panel"></div></div>'],

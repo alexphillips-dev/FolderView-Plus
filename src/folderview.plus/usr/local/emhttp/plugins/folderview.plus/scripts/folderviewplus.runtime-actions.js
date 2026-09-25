@@ -72,6 +72,18 @@
         const executeFolderRuntimeAction = typeof deps.executeFolderRuntimeAction === 'function'
             ? deps.executeFolderRuntimeAction
             : (async () => ({}));
+        const runtimePreviewByType = { docker: null, vm: null };
+        const runtimePlanSignature = (plan) => JSON.stringify({
+            requestedCount: plan.requestedCount,
+            eligible: plan.eligible.map((item) => [item.name, item.state]),
+            skipped: plan.skipped.map((item) => [item.name, item.state, item.reason])
+        });
+        const invalidateFolderRuntimePreview = (type, html = '') => {
+            const resolvedType = normalizeManagedType(type);
+            runtimePreviewByType[resolvedType] = null;
+            $(`#${resolvedType}-runtime-apply`).prop('disabled', true).prop('hidden', true);
+            setRuntimePreviewOutput(resolvedType, html);
+        };
         const treeIntegrityApi = deps.treeIntegrityApi
             || (deps.treeIntegrityModule && typeof deps.treeIntegrityModule.createApi === 'function'
                 ? deps.treeIntegrityModule.createApi(deps)
@@ -278,10 +290,11 @@
         };
 
         const previewFolderRuntimeAction = (type) => {
-            const folderId = String($(`#${type}-runtime-folder`).val() || '');
-            const action = String($(`#${type}-runtime-action`).val() || '');
+            const resolvedType = normalizeManagedType(type);
+            const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
+            const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                setRuntimePreviewOutput(type, `
+                invalidateFolderRuntimePreview(resolvedType, `
             <div class="fv-recovery-empty-state">
                 <strong>Select a folder and action first.</strong>
                 <span>Pick the target folder and the runtime action you want to preview.</span>
@@ -289,15 +302,25 @@
         `);
                 return;
             }
-            const plan = getRuntimePlanForFolder(type, folderId, action);
-            setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
+            const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
+            if (!plan) {
+                invalidateFolderRuntimePreview(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, null));
+                return;
+            }
+            runtimePreviewByType[resolvedType] = { folderId, action, signature: runtimePlanSignature(plan) };
+            setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan));
+            const applyButton = $(`#${resolvedType}-runtime-apply`);
+            const eligibleCount = plan.eligible.length;
+            applyButton.prop('disabled', eligibleCount === 0).prop('hidden', eligibleCount === 0);
+            applyButton.find('.fv-operations-apply-label').text(surfaceT('settings.operations.apply-to-count', 'Apply action ($1 eligible)', eligibleCount));
         };
 
         const applyFolderRuntimeAction = (type) => {
-            const folderId = String($(`#${type}-runtime-folder`).val() || '');
-            const action = String($(`#${type}-runtime-action`).val() || '');
+            const resolvedType = normalizeManagedType(type);
+            const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
+            const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                setRuntimePreviewOutput(type, `
+                invalidateFolderRuntimePreview(resolvedType, `
             <div class="fv-recovery-empty-state">
                 <strong>Select a folder and action first.</strong>
                 <span>Pick the target folder and the runtime action you want to apply.</span>
@@ -305,18 +328,23 @@
         `);
                 return;
             }
-            const plan = getRuntimePlanForFolder(type, folderId, action);
-            if (!plan) {
-                setRuntimePreviewOutput(type, `
+            const preview = runtimePreviewByType[resolvedType];
+            if (!preview || preview.folderId !== folderId || preview.action !== action) {
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state">Preview this action before applying it.</div>');
+                return;
+            }
+            const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
+            if (!plan || runtimePlanSignature(plan) !== preview.signature) {
+                invalidateFolderRuntimePreview(resolvedType, `
             <div class="fv-recovery-empty-state">
-                <strong>No valid action plan was generated.</strong>
-                <span>Refresh the source data and try the preview again.</span>
+                <strong>Folder state changed.</strong>
+                <span>Preview the action again before applying it.</span>
             </div>
         `);
                 return;
             }
             if (!plan.eligible.length) {
-                setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
+                invalidateFolderRuntimePreview(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan));
                 swal({
                     title: 'Nothing to apply',
                     text: 'No eligible items were found for this action.',
@@ -325,7 +353,7 @@
                 return;
             }
 
-            const folderName = getFolderNameForId(type, folderId);
+            const folderName = getFolderNameForId(resolvedType, folderId);
             swal({
                 title: 'Apply folder action?',
                 text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
@@ -338,13 +366,14 @@
                 if (!confirmed) {
                     return;
                 }
+                invalidateFolderRuntimePreview(resolvedType);
                 try {
-                    const result = await executeFolderRuntimeAction(type, action, plan.eligible.map((row) => row.name));
-                    await refreshType(type);
-                    setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan, result));
+                    const result = await executeFolderRuntimeAction(resolvedType, action, plan.eligible.map((row) => row.name));
+                    await refreshType(resolvedType);
+                    setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, result));
                     await trackDiagnosticsEvent({
                         eventType: 'runtime_bulk_action',
-                        type,
+                        type: resolvedType,
                         details: {
                             action,
                             folderId,
@@ -370,6 +399,7 @@
             exportFolderBranch,
             importFolderBranch,
             runTreeIntegrityCheck,
+            invalidateFolderRuntimePreview,
             previewFolderRuntimeAction,
             applyFolderRuntimeAction
         });

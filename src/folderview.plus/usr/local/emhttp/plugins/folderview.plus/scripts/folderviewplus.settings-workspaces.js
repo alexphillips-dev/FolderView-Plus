@@ -771,84 +771,13 @@
             String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
         );
 
-        const getLatestTemplateForType = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-            if (!templates.length) {
-                return null;
-            }
-            return [...templates].sort((left, right) => {
-                const leftTime = Date.parse(String(left?.updatedAt || left?.createdAt || 0));
-                const rightTime = Date.parse(String(right?.updatedAt || right?.createdAt || 0));
-                return rightTime - leftTime;
-            })[0] || null;
-        };
-
-        const buildOperationsOverviewHtml = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-            const folders = Object.keys(getFolderMap(resolvedType));
-            const folderCount = folders.length;
-            const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-            const templateCount = templates.length;
-            const latestTemplate = getLatestTemplateForType(resolvedType);
-            const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : translate("settings.operations.not-saved", "Not saved yet");
-            const headline = templateCount
-                ? translate("settings.operations.summary", "Saved templates: $1. Available folders: $2.", templateCount, folderCount)
-                : translate("settings.operations.no-templates", "No saved $1 templates yet.", title);
-            const copy = folderCount
-                ? translate("settings.operations.available-help", "Run folder actions or reuse templates here. Available $1 folders: $2.", title, folderCount)
-                : translate("settings.operations.create-first", "Create your first $1 folder to use folder actions and reusable templates here.", title);
-            return `
-                <div class="fv-operations-overview-head">
-                    <div>
-                        <span class="fv-operations-source-label">${escapeHtml(title)}</span>
-                        <div class="fv-operations-headline">${escapeHtml(headline)}</div>
-                        <div class="fv-operations-copy">${escapeHtml(copy)}</div>
-                    </div>
-                    <span class="fv-recovery-history-badge">${escapeHtml(templateCount > 0 ? translate("common.state.ready", "Ready") : translate("settings.operations.needs-template", "Needs first template"))}</span>
-                </div>
-                <div class="fv-operations-stat-grid">
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.c4d6bb200f4c058a", "Folders"))}</span>
-                        <strong>${escapeHtml(String(folderCount))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.folders-available", "$1 folders available", title))}</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.56b564b75c7fdb48", "Templates"))}</span>
-                        <strong>${escapeHtml(String(templateCount))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.presets-ready", "Saved presets ready"))}</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.d8ff75cd13976e0d", "Live actions"))}</span>
-                        <strong>4</strong>
-                        <span>${escapeHtml(translate("legacy.surface.cc1af63ecbf53353", "Start, stop, pause, resume"))}</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.d264b90aa03fc5cb", "Latest template"))}</span>
-                        <strong>${escapeHtml(latestLabel)}</strong>
-                        <span ${latestTemplate?.name ? 'data-fvplus-user-content' : ''}>${escapeHtml(latestTemplate?.name || translate("settings.operations.save-help", "Save one from a folder"))}</span>
-                    </div>
-                </div>
-            `;
-        };
-
-        const renderOperationsOverview = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const host = $(`#${resolvedType}-operations-overview`);
-            if (!host.length) {
-                return;
-            }
-            host.html(buildOperationsOverviewHtml(resolvedType));
-        };
-
         const buildRuntimePreviewHtml = (type, folderId, action, plan, result = null) => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             if (!plan) {
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>${escapeHtml(translate("legacy.surface.c1815361ad4266ae", "No runtime action preview yet."))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.preview-help", "Select a $1 folder and action, then preview the plan before applying it.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</span>
+                        <strong>${escapeHtml(translate("settings.operations.preview-unavailable", "Unable to preview this action."))}</strong>
+                        <span>${escapeHtml(translate("settings.operations.preview-retry", "Refresh the folder data and try again."))}</span>
                     </div>
                 `;
             }
@@ -859,7 +788,7 @@
             const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
             const resultCopy = result
                 ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
-                : `Preview which ${resolvedType === 'docker' ? 'containers' : 'VMs'} will change before applying ${action}.`;
+                : translate("settings.operations.plan-summary", "$1 eligible, $2 skipped", plan.eligible.length, plan.skipped.length);
             return `
                 <div class="fv-operations-runtime-summary">
                     <div class="fv-operations-runtime-head">
@@ -868,28 +797,6 @@
                             <div class="fv-operations-runtime-copy">${escapeHtml(resultCopy)}</div>
                         </div>
                         ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
-                    </div>
-                    <div class="fv-operations-stat-grid fv-operations-runtime-stats">
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.2d9e28289facab94", "Requested"))}</span>
-                            <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
-                            <span>${escapeHtml(translate("legacy.surface.05640e66b2317a2e", "Items in folder"))}</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.1889cf7628004753", "Eligible"))}</span>
-                            <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
-                            <span>${escapeHtml(translate("legacy.surface.8d9d16021796b1a0", "Can change now"))}</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.12698ce1ea5cd4ab", "Skipped"))}</span>
-                            <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
-                            <span>${escapeHtml(translate("legacy.surface.0c616968ff8b717c", "Already in desired state"))}</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">${escapeHtml(translate("legacy.surface.152c9e55aafaeef5", "State mix"))}</span>
-                            <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
-                            <span>${escapeHtml(translate("legacy.surface.878435f93019a5b4", "started / paused / stopped"))}</span>
-                        </div>
                     </div>
                     <div class="fv-operations-runtime-columns">
                         <div class="fv-operations-runtime-list">
@@ -921,7 +828,8 @@
             if (!host.length) {
                 return;
             }
-            host.html(String(html || ''));
+            const content = String(html || '');
+            host.html(content).prop('hidden', !content);
         };
 
         const renderOperationsWorkspace = () => {
@@ -985,6 +893,7 @@
                 return;
             }
             const allTemplates = templatesByType[resolvedType] || [];
+            $(`#${resolvedType}-operations-template-count`).text(String(allTemplates.length));
             const folders = getFolderMap(resolvedType);
             const folderOptions = Object.entries(folders).map(([id, folder]) => (
                 `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
@@ -995,7 +904,7 @@
                 host.html(`
                     <div class="fv-recovery-empty-state">
                         <strong>${escapeHtml(translate("settings.operations.no-templates", "No saved $1 templates yet.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</strong>
-                        <span>${escapeHtml(translate("legacy.surface.7336697956ec839b", "Create one from an existing folder to reuse icon, settings, actions, and matching logic faster."))}</span>
+                        <span>${escapeHtml(translate("settings.operations.empty-help", "Create one from an existing folder to reuse its setup later."))}</span>
                     </div>
                 `);
                 return;
@@ -1074,8 +983,6 @@
             syncRulesWorkspaceUi,
             setRulesWorkspaceType,
             normalizeOperationsWorkspaceType,
-            buildOperationsOverviewHtml,
-            renderOperationsOverview,
             buildRuntimePreviewHtml,
             setRuntimePreviewOutput,
             renderOperationsWorkspace,

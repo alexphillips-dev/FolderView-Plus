@@ -1279,62 +1279,61 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace</h2>
+<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations</h2>
 <div class="fv-operations-module-wrap">
     <div class="rules-panel fv-operations-panel">
-        <div class="rules-header">
-            <h3>Run actions and reuse templates</h3>
-            <span class="rules-help">Choose Docker or VMs, run live folder actions, and reuse saved folder templates from one workspace.</span>
-        </div>
+        <p class="fv-operations-intro">Run actions on a folder or save its setup to reuse later.</p>
         <div class="fv-operations-section-body">
-            <div class="fv-rules-source-switch fv-operations-source-switch" role="tablist" aria-label="Operations source">
+            <div class="fv-rules-source-switch fv-operations-source-switch" role="group" aria-label="Operations source">
                 <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')">Docker</button>
                 <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')">VMs</button>
             </div>
 
             <section class="fv-operations-source-panel" data-fv-operations-panel="docker">
-                <div id="docker-operations-overview" class="fv-operations-overview">
-                    <div class="fv-recovery-empty-state">
-                        <strong>Docker operations load after folders and templates finish loading.</strong>
-                        <span>Use this workspace to run live folder actions and reuse saved Docker folder templates.</span>
-                    </div>
-                </div>
                 <div class="fv-operations-stage-grid">
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
-                            <strong>Run folder action</strong>
-                            <span class="rules-help">Choose one folder, preview which items are eligible, then apply the action only when the plan looks right.</span>
+                            <h3>Run folder action</h3>
+                            <span class="rules-help">Choose a folder and action, then review which containers will change.</span>
                         </div>
                         <div class="runtime-action-grid fv-operations-runtime-grid">
-                            <select id="docker-runtime-folder"></select>
-                            <select id="docker-runtime-action">
-                                <option value="start">Start</option>
-                                <option value="stop">Stop</option>
-                                <option value="pause">Pause</option>
-                                <option value="resume">Resume</option>
-                            </select>
-                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
-                            <button type="button" data-fv-onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
+                            <label for="docker-runtime-folder">Folder
+                                <select id="docker-runtime-folder" data-fv-onchange="invalidateFolderRuntimePreview('docker')"></select>
+                            </label>
+                            <label for="docker-runtime-action">Action
+                                <select id="docker-runtime-action" data-fv-onchange="invalidateFolderRuntimePreview('docker')">
+                                    <option value="start">Start</option>
+                                    <option value="stop">Stop</option>
+                                    <option value="pause">Pause</option>
+                                    <option value="resume">Resume</option>
+                                </select>
+                            </label>
                         </div>
-                        <div id="docker-runtime-preview-output" class="fv-operations-runtime-output">
-                            <div class="fv-recovery-empty-state">
-                                <strong>No runtime action preview yet.</strong>
-                                <span>Select a Docker folder and action, then preview the plan before applying it.</span>
-                            </div>
+                        <div class="fv-operations-action-buttons">
+                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview action</button>
                         </div>
+                        <div id="docker-runtime-preview-output" class="fv-operations-runtime-output" role="status" aria-live="polite" hidden></div>
+                        <button id="docker-runtime-apply" type="button" class="fv-operations-apply" data-fv-onclick="applyFolderRuntimeAction('docker')" hidden disabled><i class="fa fa-play"></i> <span class="fv-operations-apply-label">Apply action</span></button>
                     </section>
 
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
-                            <strong>Template library</strong>
-                            <span class="rules-help">Save a folder as a reusable template, then apply that template to another folder with one target selector.</span>
+                            <h3>Saved templates <span id="docker-operations-template-count" class="fv-operations-count">0</span></h3>
+                            <span class="rules-help">Reuse a folder's icon, settings, actions, and matching rules.</span>
                         </div>
-                        <div class="fv-operations-template-create">
-                            <select id="docker-template-source-folder"></select>
-                            <input id="docker-template-name" type="text" placeholder="Template name">
-                            <button type="button" data-fv-onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save from folder</button>
-                        </div>
-                        <div id="docker-template-validation" class="inline-validation-hint"></div>
+                        <details id="docker-operations-template-create" class="fv-operations-create-details">
+                            <summary>Create template</summary>
+                            <div class="fv-operations-template-create">
+                                <label for="docker-template-source-folder">Source folder
+                                    <select id="docker-template-source-folder"></select>
+                                </label>
+                                <label for="docker-template-name">Template name
+                                    <input id="docker-template-name" type="text">
+                                </label>
+                                <button type="button" data-fv-onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save template</button>
+                            </div>
+                            <div id="docker-template-validation" class="inline-validation-hint"></div>
+                        </details>
                         <div id="docker-operations-template-library" class="fv-operations-template-library">
                             <div class="fv-recovery-empty-state">
                                 <strong>No Docker templates loaded yet.</strong>
@@ -1346,48 +1345,50 @@ if (!empty($fvplusRuntimeConflicts)) {
             </section>
 
             <section class="fv-operations-source-panel" data-fv-operations-panel="vm">
-                <div id="vm-operations-overview" class="fv-operations-overview">
-                    <div class="fv-recovery-empty-state">
-                        <strong>VM operations load after folders and templates finish loading.</strong>
-                        <span>Use this workspace to run live VM folder actions and reuse saved VM folder templates.</span>
-                    </div>
-                </div>
                 <div class="fv-operations-stage-grid">
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
-                            <strong>Run folder action</strong>
-                            <span class="rules-help">Choose one folder, preview which VMs are eligible, then apply the action only when the plan looks right.</span>
+                            <h3>Run folder action</h3>
+                            <span class="rules-help">Choose a folder and action, then review which VMs will change.</span>
                         </div>
                         <div class="runtime-action-grid fv-operations-runtime-grid">
-                            <select id="vm-runtime-folder"></select>
-                            <select id="vm-runtime-action">
-                                <option value="start">Start</option>
-                                <option value="stop">Stop</option>
-                                <option value="pause">Pause</option>
-                                <option value="resume">Resume</option>
-                            </select>
-                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
-                            <button type="button" data-fv-onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
+                            <label for="vm-runtime-folder">Folder
+                                <select id="vm-runtime-folder" data-fv-onchange="invalidateFolderRuntimePreview('vm')"></select>
+                            </label>
+                            <label for="vm-runtime-action">Action
+                                <select id="vm-runtime-action" data-fv-onchange="invalidateFolderRuntimePreview('vm')">
+                                    <option value="start">Start</option>
+                                    <option value="stop">Stop</option>
+                                    <option value="pause">Pause</option>
+                                    <option value="resume">Resume</option>
+                                </select>
+                            </label>
                         </div>
-                        <div id="vm-runtime-preview-output" class="fv-operations-runtime-output">
-                            <div class="fv-recovery-empty-state">
-                                <strong>No runtime action preview yet.</strong>
-                                <span>Select a VM folder and action, then preview the plan before applying it.</span>
-                            </div>
+                        <div class="fv-operations-action-buttons">
+                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview action</button>
                         </div>
+                        <div id="vm-runtime-preview-output" class="fv-operations-runtime-output" role="status" aria-live="polite" hidden></div>
+                        <button id="vm-runtime-apply" type="button" class="fv-operations-apply" data-fv-onclick="applyFolderRuntimeAction('vm')" hidden disabled><i class="fa fa-play"></i> <span class="fv-operations-apply-label">Apply action</span></button>
                     </section>
 
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
-                            <strong>Template library</strong>
-                            <span class="rules-help">Save a VM folder as a reusable template, then apply that template to another folder with one target selector.</span>
+                            <h3>Saved templates <span id="vm-operations-template-count" class="fv-operations-count">0</span></h3>
+                            <span class="rules-help">Reuse a folder's icon, settings, actions, and matching rules.</span>
                         </div>
-                        <div class="fv-operations-template-create">
-                            <select id="vm-template-source-folder"></select>
-                            <input id="vm-template-name" type="text" placeholder="Template name">
-                            <button type="button" data-fv-onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save from folder</button>
-                        </div>
-                        <div id="vm-template-validation" class="inline-validation-hint"></div>
+                        <details id="vm-operations-template-create" class="fv-operations-create-details">
+                            <summary>Create template</summary>
+                            <div class="fv-operations-template-create">
+                                <label for="vm-template-source-folder">Source folder
+                                    <select id="vm-template-source-folder"></select>
+                                </label>
+                                <label for="vm-template-name">Template name
+                                    <input id="vm-template-name" type="text">
+                                </label>
+                                <button type="button" data-fv-onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save template</button>
+                            </div>
+                            <div id="vm-template-validation" class="inline-validation-hint"></div>
+                        </details>
                         <div id="vm-operations-template-library" class="fv-operations-template-library">
                             <div class="fv-recovery-empty-state">
                                 <strong>No VM templates loaded yet.</strong>

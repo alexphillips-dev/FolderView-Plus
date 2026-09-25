@@ -8698,15 +8698,6 @@
     ]
   },
   {
-    "phrase": "Preview which $1 will change before applying $2.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.settings-workspaces.js",
-        "anchor": "will change before applying"
-      }
-    ]
-  },
-  {
     "phrase": "previous checkpoint",
     "locations": [
       {

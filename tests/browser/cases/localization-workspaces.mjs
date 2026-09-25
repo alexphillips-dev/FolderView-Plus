@@ -119,7 +119,8 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             });
             document.getElementById('german-recovery').innerHTML = workspace.buildRecoveryOverviewHtml('docker')
                 + workspace.buildRecoveryBackupHistoryHtml('vm');
-            document.getElementById('german-operations').innerHTML = workspace.buildOperationsOverviewHtml('vm');
+            document.getElementById('german-operations').innerHTML = '<span id="vm-operations-template-count"></span><div id="vm-operations-template-library"></div>';
+            workspace.renderTemplateRows('vm');
             const preview = window.FolderViewPlusSupportBundlePreview.createApi({ t, escapeHtml });
             const bundle = { bundleMeta: { privacyMode: 'sanitized', previewOnly: true }, system: {}, pluginState: {},
                 runtimeState: {}, uiTelemetry: {}, healthAndHistory: {}, redactionManifest: {} };

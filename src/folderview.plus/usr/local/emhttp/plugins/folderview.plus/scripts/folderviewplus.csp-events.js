@@ -14,7 +14,7 @@
         'deleteSelectedActiveRecoveryBackup deleteTemplateEntry deleteThemeWorkspaceTheme downloadBackupEntry downloadDocker ' +
         'downloadSelectedActiveRecoveryBackup downloadVm dropDownButton editFolder expandAllFolderTrees exportEnvironmentSnapshot ' +
         'exportTemplateEntry filterBulkItems forceUpdateFolder handleFolderRowKeydown hideAllTips importDocker ' +
-        'importEnvironmentSnapshot importThemeWorkspaceGithub importVm moveAutoRule moveDockerStartOrderBatch ' +
+        'importEnvironmentSnapshot importThemeWorkspaceGithub importVm invalidateFolderRuntimePreview moveAutoRule moveDockerStartOrderBatch ' +
         'moveDockerStartOrderItem moveFolderRow moveFolderToRootQuick openFolderTreeMoveDialog openSettingsFolderEditor openTerminal ' +
         'previewFolderRuntimeAction quickCreateStarterFolder rCcustomAction refreshChangeHistory refreshDockerStartOrderPreview ' +
         'removeDockerStartOrderBatch removeDockerStartOrderItem resetDropdownColorDefaults resetFolderAccentDefaults ' +

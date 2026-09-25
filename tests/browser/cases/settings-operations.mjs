@@ -12,6 +12,7 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
             document.getElementById('docker-runtime-folder').innerHTML = '<option>Audiobooks</option>';
             document.getElementById('docker-template-source-folder').innerHTML = '<option>Audiobooks</option>';
         });
+        await page.addStyleTag({ content: '#fv-settings-root .fv-operations-template-create button { margin-bottom: 10px; }' });
         for (const viewport of [
             { width: 1912, dir: 'ltr', theme: 'dark', sideBySide: true },
             { width: 1440, dir: 'ltr', theme: 'light', sideBySide: true },
@@ -41,6 +42,13 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
                 const dockerTab = root.querySelector('[data-fv-operations-source-toggle="docker"]');
                 const vmTab = root.querySelector('[data-fv-operations-source-toggle="vm"]');
                 const folderSelect = document.getElementById('docker-runtime-folder');
+                const actionSelect = document.getElementById('docker-runtime-action');
+                const templateSource = document.getElementById('docker-template-source-folder');
+                const templateName = document.getElementById('docker-template-name');
+                const saveButton = root.querySelector('[data-fv-operations-panel="docker"] .fv-operations-save-button');
+                const sourceBox = templateSource.getBoundingClientRect();
+                const nameBox = templateName.getBoundingClientRect();
+                const saveBox = saveButton.getBoundingClientRect();
                 const previewTitle = root.querySelector('.fv-operations-preview-button > strong');
                 const previewDescription = root.querySelector('.fv-operations-preview-button > span');
                 return {
@@ -52,8 +60,13 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
                     dockerActive: dockerTab.getAttribute('aria-pressed') === 'true' && vmTab.getAttribute('aria-pressed') === 'false',
                     activeTabOrange: getComputedStyle(dockerTab).backgroundColor !== getComputedStyle(vmTab).backgroundColor,
                     controlHeight: folderSelect.getBoundingClientRect().height,
+                    actionHeight: actionSelect.getBoundingClientRect().height,
+                    templateSourceHeight: sourceBox.height,
+                    templateNameHeight: nameBox.height,
                     searchHeight: document.getElementById('docker-operations-template-search').getBoundingClientRect().height,
-                    saveHeight: root.querySelector('[data-fv-operations-panel="docker"] .fv-operations-save-button').getBoundingClientRect().height,
+                    saveHeight: saveBox.height,
+                    saveMarginBottom: getComputedStyle(saveButton).marginBottom,
+                    templateRowAligned: Math.abs(sourceBox.top - nameBox.top) <= 1 && Math.abs(sourceBox.top - saveBox.top) <= 1,
                     selectBorder: getComputedStyle(folderSelect).borderTopWidth,
                     selectAppearance: getComputedStyle(folderSelect).appearance,
                     selectChevron: getComputedStyle(folderSelect.parentElement, '::after').content,
@@ -74,7 +87,12 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
             assert.equal(state.sideBySide, viewport.sideBySide, JSON.stringify({ viewport, state }));
             assert.equal(state.applyVisible && state.previewVisible && state.templateNameVisible, true);
             assert.equal(state.dockerActive && state.activeTabOrange, true, JSON.stringify({ viewport, state }));
-            assert.deepEqual([state.controlHeight, state.searchHeight, state.saveHeight], [42, 42, 42], JSON.stringify({ viewport, state }));
+            assert.deepEqual(
+                [state.controlHeight, state.actionHeight, state.templateSourceHeight, state.templateNameHeight, state.searchHeight, state.saveHeight],
+                [36, 36, 36, 36, 36, 36], JSON.stringify({ viewport, state })
+            );
+            assert.equal(state.saveMarginBottom, '0px');
+            if (viewport.sideBySide) assert.equal(state.templateRowAligned, true, JSON.stringify({ viewport, state }));
             assert.equal(state.selectBorder, '1px');
             assert.equal(state.selectAppearance, 'none');
             assert.equal(state.selectChevron, '""');
@@ -94,5 +112,22 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
             return getComputedStyle(vmTab).backgroundColor !== getComputedStyle(dockerTab).backgroundColor;
         });
         assert.equal(vmSelection, true);
+        await page.setViewportSize({ width: 1440, height: 900 });
+        const vmLayout = await page.evaluate(() => {
+            const root = document.getElementById('fv-settings-root');
+            root.querySelector('[data-fv-operations-panel="docker"]').hidden = true;
+            root.querySelector('[data-fv-operations-panel="vm"]').hidden = false;
+            const controls = [
+                'vm-runtime-folder', 'vm-runtime-action', 'vm-template-source-folder',
+                'vm-template-name', 'vm-operations-template-search'
+            ].map((id) => document.getElementById(id).getBoundingClientRect());
+            const save = root.querySelector('[data-fv-operations-panel="vm"] .fv-operations-save-button').getBoundingClientRect();
+            return {
+                heights: [...controls.map((box) => box.height), save.height],
+                rowAligned: Math.abs(controls[2].top - controls[3].top) <= 1 && Math.abs(controls[2].top - save.top) <= 1
+            };
+        });
+        assert.deepEqual(vmLayout.heights, [36, 36, 36, 36, 36, 36]);
+        assert.equal(vmLayout.rowAligned, true);
     });
 };

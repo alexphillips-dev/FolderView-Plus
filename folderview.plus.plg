@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.22">
-<!ENTITY md5 "7785e63a4fb039a533e9aeca84acc25e">
-<!ENTITY sha256 "17e5e8f1dab6566130e529c0d257f8a39af98344d7a8c368e9d001319897a118">
+<!ENTITY version "2026.09.24.23">
+<!ENTITY md5 "a913ea672f90010ee16b64c148c40524">
+<!ENTITY sha256 "0e18666ad3415ba8125bf12bc443764ad12f0b78c1f20e4ab70b65af65493d54">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.23
+- UX: Make the Operations dropdowns, template search, template name field, and Save from folder button more compact for Docker and VMs.
+- Fix: Align Save from folder with the source folder and template name inputs, including when the Unraid theme adds button spacing.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
 
 ###2026.09.24.22
 - UX: Rename the Advanced Operations heading and enlarge its help text, source tabs, action labels, and icons.

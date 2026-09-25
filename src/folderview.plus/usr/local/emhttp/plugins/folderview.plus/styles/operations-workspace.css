@@ -241,8 +241,9 @@
 #fv-settings-root .fv-operations-search input {
     width: 100%;
     min-width: 0;
-    height: 42px !important;
-    min-height: 42px !important;
+    box-sizing: border-box;
+    height: 36px !important;
+    min-height: 36px !important;
     padding-block: 0 !important;
     border: 1px solid var(--fvplus-settings-border-subtle) !important;
     border-radius: 8px;
@@ -449,12 +450,18 @@
 }
 
 .fv-operations-save-button {
-    height: 42px !important;
-    min-height: 42px !important;
+    height: 36px !important;
+    min-height: 36px !important;
     white-space: nowrap;
 }
 
-#fv-settings-root .fv-operations-save-button {
+#fv-settings-root .fv-operations-template-create > .fv-operations-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: end;
+    margin: 0;
+    padding-block: 0;
     border: 1px solid var(--fvplus-settings-accent) !important;
     background: color-mix(in srgb, var(--fvplus-settings-accent) 13%, var(--fvplus-settings-surface-panel)) !important;
     color: var(--fvplus-settings-accent-strong) !important;

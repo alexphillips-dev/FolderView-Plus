@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.24.18">
-<!ENTITY md5 "1005a95da4c0236949a9ad32de2dd631">
-<!ENTITY sha256 "e358a13ff31fe740a22d4964d82b42514f6f9ae47be6a1eb5a074be5fd52e715">
+<!ENTITY version "2026.09.24.19">
+<!ENTITY md5 "7d613158c893184076d771dbcd3b0805">
+<!ENTITY sha256 "92bc9d99d6ee45c1a3f81dddd4c02862c2337de48950c3006738197b4936d73a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.24.19
+- UX: Keep Logs rows neutral while retaining colored status icons and labels for complete, attention, issue, and information entries.
+- Fix: Show useful event details beside server log actions, including folder change counts, backup folder counts, and partial action outcomes. Existing recent server entries gain details when refreshed, without adding raw names or paths to the browser log.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles and scripts.
+
 
 ###2026.09.24.18
 - UX: Show recent Docker, VM, and recovery events as color-coded single-line entries in Advanced > Logs. Remove the separate Recent recovery timeline panel.

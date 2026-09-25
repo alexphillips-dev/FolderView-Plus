@@ -1439,6 +1439,17 @@
       ]
     },
     {
+      "file": "scripts/folderviewplus.activity-detail.js",
+      "owner": "settings-activity-detail",
+      "consumers": ["settings"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "global": "FolderViewPlusActivityDetail",
+      "loader": "commonjs",
+      "exports": ["buildActivityEventDetail"]
+    },
+    {
       "file": "scripts/folderviewplus.diagnostics-actions.js",
       "owner": "settings-diagnostics-actions",
       "consumers": ["settings"],

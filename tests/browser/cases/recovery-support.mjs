@@ -13,6 +13,8 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 window.describeTrackedEvent = eventType => `Tracked ${eventType}`;
                 Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
             });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.diagnostics-view-model.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-detail.js` });
             await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
             await page.evaluate(() => {
                 delete document.readyState;
@@ -41,24 +43,29 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 const level = [...item.classList].find(name => name.startsWith('is-')).slice(3);
                 const style = getComputedStyle(item);
                 return [level, {
-                    border: style.borderInlineStartColor,
+                    border: style.borderTopColor,
                     background: style.backgroundColor,
-                    text: getComputedStyle(item.querySelector('.fv-activity-text')).color
+                    text: getComputedStyle(item.querySelector('.fv-activity-text')).color,
+                    label: getComputedStyle(item.querySelector('.fv-activity-level')).color
                 }];
             })
         ));
         const darkPalette = await readPalette();
         assert.deepEqual(Object.keys(darkPalette).sort(), ['error', 'info', 'success', 'warning']);
-        assert.equal(new Set(Object.values(darkPalette).map(value => value.border)).size, 4);
-        assert.equal(new Set(Object.values(darkPalette).map(value => value.background)).size, 4);
-        for (const value of Object.values(darkPalette)) assert.equal(value.text, value.border);
+        for (const property of ['border', 'background', 'text']) {
+            assert.equal(new Set(Object.values(darkPalette).map(value => value[property])).size, 1);
+        }
+        assert.equal(new Set(Object.values(darkPalette).map(value => value.label)).size, 4);
+        assert.notEqual(darkPalette.success.label, darkPalette.success.text);
         await page.locator('#fv-settings-root').evaluate(root => root.dataset.fvThemeClass = 'light');
         const lightPalette = await readPalette();
-        assert.equal(new Set(Object.values(lightPalette).map(value => value.border)).size, 4);
-        for (const value of Object.values(lightPalette)) assert.equal(value.text, value.border);
-        assert.notEqual(lightPalette.success.text, darkPalette.success.text);
+        for (const property of ['border', 'background', 'text']) {
+            assert.equal(new Set(Object.values(lightPalette).map(value => value[property])).size, 1);
+        }
+        assert.equal(new Set(Object.values(lightPalette).map(value => value.label)).size, 4);
+        assert.notEqual(lightPalette.success.label, darkPalette.success.label);
         await page.setViewportSize({ width: 390, height: 800 });
-        assert.equal(new Set(Object.values(await readPalette()).map(value => value.border)).size, 4);
+        assert.equal(new Set(Object.values(await readPalette()).map(value => value.background)).size, 1);
         await page.goto(`${baseUrl}/dashboard-layout`);
         await mountLogs();
         assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
@@ -102,6 +109,8 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 window.activityFeedEntries = [];
                 Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
             });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.diagnostics-view-model.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-detail.js` });
             await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
             await page.evaluate(() => {
                 delete document.readyState;
@@ -115,9 +124,11 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             const api = window.FolderViewPlusDiagnostics;
             const now = Date.now();
             const events = [
-                { id: 'vmbackup', timestamp: new Date(now - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok', details: { name: 'Private VM' } },
+                { id: 'vmbackup', timestamp: new Date(now - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok', details: { name: 'Private VM', folderCount: 3 } },
                 { id: 'dockerimport', timestamp: new Date(now - 2000).toISOString(), type: 'docker', action: 'import', status: 'failed', details: { name: '<unsafe>' } },
                 { id: 'serverwarning', timestamp: new Date(now - 3000).toISOString(), action: 'unknown_action', status: 'warning', summary: '<unsafe> failed' },
+                { id: 'batch', timestamp: new Date(now - 3500).toISOString(), type: 'docker', action: 'folder_batch_mutation', status: 'ok', details: { createdCount: 1, updatedCount: 2, deletedCount: 0, folderCount: 23, folderId: '<private>' } },
+                { id: 'backup', timestamp: new Date(now - 3750).toISOString(), type: 'docker', action: 'backup_create', status: 'ok', details: { folderCount: 23, reason: 'before-tree-move-private-id', name: '<private>' } },
                 { id: 'routine', timestamp: new Date(now - 4000).toISOString(), type: 'docker', action: 'member_identity_reconcile', status: 'ok' }
             ];
             api.addActivityEntry('Browser action', 'success');
@@ -125,14 +136,17 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             api.renderChangeHistory({ importExportHistory: { events } });
         });
         assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
-            ['Browser action', 'VM · Backup restored', 'Docker · Import failed', 'Server warning']);
+            ['Browser action', 'VM · Backup restored — 3 folders restored', 'Docker · Import failed — Action: import',
+                'Server warning — Action: unknown action', 'Docker · Folders changed — 1 created, 2 updated, 0 deleted',
+                'Docker · Backup created — 23 folders saved · before a folder move']);
         assert.deepEqual(await page.locator('.fv-activity-item').evaluateAll(rows =>
             rows.map(row => [...row.classList].find(name => name.startsWith('is-')))),
-        ['is-success', 'is-success', 'is-error', 'is-warning']);
+        ['is-success', 'is-success', 'is-error', 'is-warning', 'is-success', 'is-success']);
         assert.equal(await page.locator('.fv-recovery-timeline-card').count(), 0);
         assert.equal(await page.locator('.fv-activity-item details').count(), 0);
-        assert.equal(await page.evaluate(() => localStorage.getItem('fv.settings.logs.v1').includes('Private VM') ||
-            localStorage.getItem('fv.settings.logs.v1').includes('<unsafe>')), false);
+        assert.equal(await page.evaluate(() => ['Private VM', '<unsafe>', '<private>', 'private-id'].some(value =>
+            localStorage.getItem('fv.settings.logs.v1').includes(value))), false);
+        assert.equal(await page.locator('.fv-activity-detail').count(), 5);
         await page.locator('#fv-activity-center-clear').click();
         await mountLogs();
         await page.evaluate(() => {

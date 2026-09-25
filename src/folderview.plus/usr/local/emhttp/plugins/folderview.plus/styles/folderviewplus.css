@@ -13055,34 +13055,26 @@ h2[data-fv-section].fv-search-match {
     font-size: 1.03rem;
     line-height: 1.3;
     padding: 0.34rem 0.46rem;
-    border: 1px solid var(--fv-activity-border);
-    border-inline-start: 4px solid var(--fv-activity-tone);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
-    background: var(--fv-activity-bg);
+    background: var(--fvplus-settings-surface-card);
+    color: var(--fvplus-settings-text-primary);
 }
 
 .fv-activity-item.is-info {
     --fv-activity-tone: var(--fvplus-settings-chip-info);
-    --fv-activity-border: var(--fvplus-settings-chip-info-border);
-    --fv-activity-bg: var(--fvplus-settings-chip-info-bg);
 }
 
 .fv-activity-item.is-success {
     --fv-activity-tone: var(--fvplus-settings-chip-success);
-    --fv-activity-border: var(--fvplus-settings-chip-success-border);
-    --fv-activity-bg: var(--fvplus-settings-chip-success-bg);
 }
 
 .fv-activity-item.is-warning {
     --fv-activity-tone: var(--fvplus-settings-chip-warning);
-    --fv-activity-border: var(--fvplus-settings-chip-warning-border);
-    --fv-activity-bg: var(--fvplus-settings-chip-warning-bg);
 }
 
 .fv-activity-item.is-error {
     --fv-activity-tone: var(--fvplus-settings-chip-danger);
-    --fv-activity-border: var(--fvplus-settings-chip-danger-border);
-    --fv-activity-bg: var(--fvplus-settings-chip-danger-bg);
 }
 
 .fv-activity-level {
@@ -13102,9 +13094,12 @@ h2[data-fv-section].fv-search-match {
     overflow-wrap: anywhere;
 }
 
-.fv-activity-level,
-.fv-activity-text {
+.fv-activity-level {
     color: var(--fv-activity-tone);
+}
+
+.fv-activity-detail {
+    color: var(--fvplus-settings-text-muted);
 }
 
 @media (max-width: 640px) {

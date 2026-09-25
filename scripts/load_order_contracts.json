@@ -51,6 +51,7 @@
         "scripts/folderviewplus.diagnostics-view-model.js",
         "scripts/folderviewplus.diagnostics-actions.js",
         "scripts/folderviewplus.diagnostics-view.js",
+        "scripts/folderviewplus.activity-detail.js",
         "scripts/folderviewplus.activity-diagnostics.js",
         "scripts/folderviewplus.settings-tree.js",
         "scripts/folderviewplus.tree-integrity.js",

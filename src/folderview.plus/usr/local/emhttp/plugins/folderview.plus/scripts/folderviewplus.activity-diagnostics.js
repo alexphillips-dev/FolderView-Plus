@@ -1050,12 +1050,13 @@ const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entr
     .map((entry) => {
         const at = Number(entry?.at);
         const message = typeof entry?.message === 'string' ? entry.message.trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH) : '';
+        const detail = typeof entry?.detail === 'string' ? entry.detail.trim().slice(0, 256) : '';
         if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || !message) {
             return null;
         }
         const serverKey = typeof entry.serverKey === 'string' && /^s:[a-zA-Z0-9_-]{1,48}$/.test(entry.serverKey)
             ? entry.serverKey : '';
-        return { at, level: normalizeActivityLevel(entry.level), message, ...(serverKey ? { serverKey } : {}) };
+        return { at, level: normalizeActivityLevel(entry.level), message, ...(detail ? { detail } : {}), ...(serverKey ? { serverKey } : {}) };
     })
     .filter(Boolean)
     .sort((left, right) => right.at - left.at)
@@ -1160,7 +1161,8 @@ const renderActivityFeed = () => {
     const rows = activityFeedEntries.map((entry) => {
         const level = normalizeActivityLevel(entry?.level);
         const meta = getActivityLevelMeta(level);
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
+        const detail = entry.detail ? `<span class="fv-activity-detail"> — ${diagnosticsEscapeHtml(entry.detail)}</span>` : '';
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}${detail}</span></li>`;
     }).join('');
     list.html(rows);
     clear.prop('disabled', false);
@@ -1387,7 +1389,7 @@ const renderChangeHistory = (diagnostics = lastDiagnostics) => {
     const events = Array.isArray(diagnostics?.importExportHistory?.events)
         ? diagnostics.importExportHistory.events
         : (Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : []);
-    const knownKeys = new Set(activityFeedEntries.map((entry) => entry.serverKey).filter(Boolean));
+    const knownEntries = new Map(activityFeedEntries.filter((entry) => entry.serverKey).map((entry) => [entry.serverKey, entry]));
     const now = Date.now();
     let added = false;
     for (const row of events) {
@@ -1397,7 +1399,16 @@ const renderChangeHistory = (diagnostics = lastDiagnostics) => {
         const action = serverActivityLabel(row?.action);
         if (!action && level !== 'warning' && level !== 'error') continue;
         const serverKey = serverActivityKey(row);
-        if (knownKeys.has(serverKey) || (at === activityFeedClearedAt && activityFeedClearedServerKeys.includes(serverKey))) continue;
+        const detail = window.FolderViewPlusActivityDetail?.buildActivityEventDetail?.(row, diagnosticsT) || '';
+        const existing = knownEntries.get(serverKey);
+        if (existing) {
+            if (!existing.detail && detail) {
+                existing.detail = detail;
+                added = true;
+            }
+            continue;
+        }
+        if (at === activityFeedClearedAt && activityFeedClearedServerKeys.includes(serverKey)) continue;
         const source = String(row?.type || '').toLowerCase();
         const sourceLabel = source === 'docker' ? 'Docker' : (source === 'vm' ? 'VM' : '');
         const label = level === 'error' ? serverActivityFailureLabel(row?.action)
@@ -1406,9 +1417,10 @@ const renderChangeHistory = (diagnostics = lastDiagnostics) => {
             at,
             level,
             message: sourceLabel ? sourceLabel + ' · ' + label : label,
+            ...(detail ? { detail } : {}),
             serverKey
         });
-        knownKeys.add(serverKey);
+        knownEntries.set(serverKey, activityFeedEntries[activityFeedEntries.length - 1]);
         added = true;
     }
     if (added) {

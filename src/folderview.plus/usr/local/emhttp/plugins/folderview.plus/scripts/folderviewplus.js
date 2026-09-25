@@ -2526,15 +2526,7 @@ const refreshSettingsUx = (options = {}) => {
 };
 
 const isVisibleSettingsElement = (node) => {
-    if (!(node instanceof HTMLElement)) {
-        return false;
-    }
-    const style = typeof window.getComputedStyle === 'function' ? window.getComputedStyle(node) : null;
-    if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) {
-        return false;
-    }
-    const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-    return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
+    return window.FolderViewPlusSettingsIsVisible?.(node) === true;
 };
 
 const hasVisibleSettingsSurface = () => {
@@ -2544,8 +2536,8 @@ const hasVisibleSettingsSurface = () => {
     }
     const selectors = [
         '#fvplus-fatal-banner',
-        '#fv-settings-topbar > *',
-        'h2[data-fv-section]:not(.fv-section-hidden)',
+        'h2[data-fv-advanced="1"]:not(.fv-section-hidden)',
+        '.settings-mini-card:not(.fv-section-hidden)',
         '.folder-table:not(.fv-section-hidden)',
         'tbody#docker tr:not(.fv-section-hidden)',
         'tbody#vms tr:not(.fv-section-hidden)',

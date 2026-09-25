@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.25.01">
-<!ENTITY md5 "7db7431f2f463a521d02a13aa7998964">
-<!ENTITY sha256 "1021d983e37db373d98f3019d1bfb7a68c491511dcb25f49caa178eb7073730c">
+<!ENTITY version "2026.09.25.02">
+<!ENTITY md5 "1cfcd178a33c79704f686e9d40fb5a1c">
+<!ENTITY sha256 "ddf7a56f91a0202ad36aef0f4cab3a56b413263f42a52411383ed965833577d9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.25.02
+- Fix: Settings now detects when its content is clipped by an ancestor or only its header remains visible, so the blank-page checks do not report a usable page in those cases.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so the revised Settings scripts load.
+
 
 ###2026.09.25.01
 - Fix: Keep the Settings page reachable when the Unraid webGUI positions its content below a short header, including the layout reported with Firefox on Unraid 7.1.4.

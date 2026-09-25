@@ -332,7 +332,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6180,
+      "line": 6172,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -342,7 +342,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 7976,
+      "line": 7968,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

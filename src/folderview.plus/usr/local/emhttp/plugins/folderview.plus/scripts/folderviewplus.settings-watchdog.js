@@ -23,8 +23,21 @@
         const style = win.getComputedStyle ? win.getComputedStyle(node) : null;
         if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) return false;
         const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-        return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
+        if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+        for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) {
+            const ancestorStyle = win.getComputedStyle ? win.getComputedStyle(ancestor) : null;
+            if (!ancestorStyle) continue;
+            if (ancestorStyle.display === 'none' || ancestorStyle.visibility === 'hidden' || Number(ancestorStyle.opacity) === 0) return false;
+            const clipsX = ancestorStyle.overflowX !== 'visible';
+            const clipsY = ancestorStyle.overflowY !== 'visible';
+            if (!clipsX && !clipsY) continue;
+            const bounds = ancestor.getBoundingClientRect();
+            if ((clipsX && (rect.right <= bounds.left || rect.left >= bounds.right))
+                || (clipsY && (rect.bottom <= bounds.top || rect.top >= bounds.bottom))) return false;
+        }
+        return true;
     };
+    win.FolderViewPlusSettingsIsVisible = isVisible;
     const collectBlankDetails = (root) => {
         const topbar = doc.getElementById('fv-settings-topbar');
         const visibleSections = root ? root.querySelectorAll('h2[data-fv-section]:not(.fv-section-hidden)').length : 0;
@@ -49,10 +62,9 @@
     };
     const hasVisibleSettingsContent = (root) => {
         if (!root || !isVisible(root)) return false;
-        if (root.querySelector('#fvplus-fatal-banner')) return true;
+        if (isVisible(root.querySelector('#fvplus-fatal-banner'))) return true;
         const selectors = [
-            '#fv-settings-topbar > *',
-            'h2[data-fv-section]:not(.fv-section-hidden)',
+            'h2[data-fv-advanced="1"]:not(.fv-section-hidden)',
             '.settings-mini-card:not(.fv-section-hidden)',
             '.folder-table:not(.fv-section-hidden)',
             'tbody#docker tr:not(.fv-section-hidden)',

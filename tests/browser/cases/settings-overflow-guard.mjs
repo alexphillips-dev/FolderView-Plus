@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { registerSettingsVisibilityCase } from './settings-visibility.mjs';
 
 const settingsJs = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js', 'utf8');
 const overflowGuardSource = settingsJs.match(/const enforceNoHorizontalOverflow = \(\) => \{[\s\S]*?\n\};/)?.[0];
 
-export const registerSettingsOverflowGuardCase = ({ test }) => {
+export const registerSettingsOverflowGuardCase = ({ test, baseUrl }) => {
     test('Settings overflow guard leaves positioned host content visible', async ({ page }) => {
         assert.ok(overflowGuardSource, 'Settings overflow guard source must be available');
         await page.setContent(`
@@ -45,4 +46,6 @@ export const registerSettingsOverflowGuardCase = ({ test }) => {
         assert.deepEqual(styles.hostOverflow, ['', '', '', '']);
         assert.equal(styles.tableOverflow, 'auto');
     }, { skipAccessibility: true });
+
+    registerSettingsVisibilityCase({ test, baseUrl });
 };

@@ -44,7 +44,8 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
-    { "file": "tests/browser/cases/settings-overflow-guard.mjs", "limit": 65, "owner": "fixture Settings host clipping regression" },
+    { "file": "tests/browser/cases/settings-overflow-guard.mjs", "limit": 65, "owner": "fixture Settings host clipping regression", "requiredImports": ["./settings-visibility.mjs"] },
+    { "file": "tests/browser/cases/settings-visibility.mjs", "limit": 55, "owner": "fixture Settings clipped-content detection" },
     { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 120, "owner": "fixture Advanced Settings navigation layout and focus" },
     { "file": "tests/browser/helpers/advanced-workspace-layout.mjs", "limit": 64, "owner": "fixture Advanced Settings section heading and content alignment" },
     { "file": "tests/browser/helpers/advanced-title-badges.mjs", "limit": 46, "owner": "fixture Advanced Settings title badge removal" },
@@ -70,6 +71,7 @@
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-overflow-guard.mjs",
+        "tests/browser/cases/settings-visibility.mjs",
         "tests/browser/cases/settings-advanced-navigation.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
@@ -91,10 +93,10 @@
         "tests/browser/helpers/advanced-workspace-layout.mjs",
         "tests/browser/helpers/advanced-title-badges.mjs"
       ],
-      "testCount": 65,
-      "assertionCount": 754,
-      "pageEvaluateCount": 183,
-      "orderedTitleSha256": "d8e7ab4c155c2bb0e5db6e267aecaa9d922833850b4a7a96775cba239e0fab00"
+      "testCount": 66,
+      "assertionCount": 759,
+      "pageEvaluateCount": 192,
+      "orderedTitleSha256": "108867b23842b26657ea2ea5bfcc9c87c37645c5bb21068f016b71e14cdca723"
     }
   }
 }

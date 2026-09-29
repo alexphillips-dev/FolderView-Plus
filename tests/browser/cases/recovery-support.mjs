@@ -3,6 +3,23 @@ import assert from 'node:assert/strict';
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
     test('Recovery mockup layout keeps history, policy, and actions usable for Docker and VMs', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`);
+        const diagnosticsText = await page.evaluate(() => {
+            const workspace = document.querySelector('.fv-diagnostics-workspace');
+            const probe = document.createElement('div');
+            probe.innerHTML = '<div class="fv-diagnostics-overall"><h3>Health</h3></div><div class="fv-diagnostics-section-heading"><h3>System health</h3></div><div class="fv-diagnostics-metrics"><div><dd>6</dd><small>checks</small></div></div>';
+            workspace.appendChild(probe);
+            const size = selector => parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
+            const sizes = {
+                body: size('.fv-diagnostics-workspace'),
+                headline: size('.fv-diagnostics-overall h3'),
+                section: size('.fv-diagnostics-section-heading h3'),
+                metric: size('.fv-diagnostics-metrics dd'),
+                caption: size('.fv-diagnostics-metrics small'),
+                action: size('.fv-diagnostics-toolbar > .fv-ui-button')
+            };
+            probe.remove();
+            return sizes;
+        });
         await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
         await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.environment.js` });
@@ -44,18 +61,24 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 summary: parseFloat(style('.fv-recovery-copy').fontSize),
                 metricIcon: parseFloat(style('.fv-recovery-stat-card > .fa').fontSize),
                 metricValue: parseFloat(style('.fv-recovery-stat-card strong').fontSize),
+                sourceFont: parseFloat(style('.fv-recovery-source-switch .fv-rules-source-btn').fontSize),
+                stageHeading: parseFloat(style('.fv-recovery-stage-head > div > strong').fontSize),
+                stageDescription: parseFloat(style('.fv-recovery-stage-head > div > span').fontSize),
                 historyDate: parseFloat(style('.fv-recovery-snapshot-item > strong').fontSize),
                 historyAlignment: style('.fv-recovery-snapshot-item').textAlign,
                 actionFont: parseFloat(style('.fv-recovery-primary-actions button').fontSize),
+                actionHeight: actions[0].height,
                 actionWidth: actions[0].width,
                 actionGap: actions[1].left - actions[0].right,
                 iconGap: parseFloat(style('.fv-recovery-primary-actions button > .fa').marginInlineEnd)
             };
         });
-        assert.ok(readability.intro >= 16 && readability.headline >= 21 && readability.summary >= 15);
-        assert.ok(readability.metricIcon >= 22 && readability.metricValue >= 16);
-        assert.ok(readability.historyDate >= 15 && readability.historyAlignment === 'left');
-        assert.ok(readability.actionFont >= 16 && readability.actionWidth >= 200 && readability.actionGap <= 16);
+        const closeTo = (actual, expected, tolerance = 1) => Math.abs(actual - expected) <= tolerance;
+        assert.ok(closeTo(readability.intro, diagnosticsText.body) && closeTo(readability.headline, diagnosticsText.headline) && closeTo(readability.summary, diagnosticsText.body), JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.metricIcon >= diagnosticsText.body && readability.metricIcon <= diagnosticsText.headline + 2 && closeTo(readability.metricValue, diagnosticsText.metric));
+        assert.ok(closeTo(readability.sourceFont, diagnosticsText.body) && closeTo(readability.stageHeading, diagnosticsText.section) && closeTo(readability.stageDescription, diagnosticsText.caption));
+        assert.ok(closeTo(readability.historyDate, diagnosticsText.body) && readability.historyAlignment === 'left');
+        assert.ok(readability.actionFont >= diagnosticsText.action && readability.actionFont <= diagnosticsText.body + 1 && readability.actionHeight >= 38 && readability.actionHeight <= 46 && readability.actionWidth >= 200 && readability.actionGap <= 16, JSON.stringify({ readability, diagnosticsText }));
         assert.ok(readability.iconGap >= 8);
         await page.locator('.fv-recovery-snapshot-item').nth(1).focus();
         await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.29.03">
-<!ENTITY md5 "06898af02958c8989dd5923345c6d60f">
-<!ENTITY sha256 "3e5cb0c6d7140e953f99b0a405f89dc6a29da6736e8a8c4648e23eb80ccf3448">
+<!ENTITY version "2026.09.29.04">
+<!ENTITY md5 "313071c96d144729d2c7b56f7f139e58">
+<!ENTITY sha256 "8d4ce946587334ef8699266ff806de2e1d8a22f18c18a5848f82522440aaa29d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.29.04
+- UI/UX: Recovery text, snapshot history, and action buttons now follow the same type scale as Diagnostics, with a more compact layout.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Recovery styles.
+
 
 ###2026.09.29.03
 - UI/UX: Moving and reordering folders in Basic Settings updates the row immediately without scrolling back to it after the save finishes.

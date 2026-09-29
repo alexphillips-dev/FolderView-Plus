@@ -453,10 +453,12 @@
                 return `
                     <div class="fv-recovery-snapshot-row${activeClass}">
                         <button type="button" class="fv-recovery-snapshot-item" data-fv-onclick="selectActiveRecoveryBackup('${escapeHtml(escapeJsString(name))}')" aria-pressed="${isSelected}">
-                            <strong>${escapeHtml(backupCreated)}</strong><small title="${escapeHtml(name)}">${escapeHtml(name)} · ${escapeHtml(formatRecoveryReasonLabel(backup?.reason))} · ${escapeHtml(formatRecoveryBackupFolderCount(backup))}</small>
+                            <strong>${escapeHtml(backupCreated)}</strong>
+                            <small>${escapeHtml(formatRecoveryReasonLabel(backup?.reason))} · ${escapeHtml(formatRecoveryBackupFolderCount(backup))}</small>
+                            <span class="fv-recovery-snapshot-filename" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
                         </button>
                         <span class="fv-recovery-history-badges">${index === 0 ? `<span class="fv-recovery-history-badge">${escapeHtml(translate("legacy.surface.8730d3c2022abf1f", "Latest"))}</span>` : ''}${isRecoveryBackupEmpty(backup) ? `<span class="fv-recovery-history-badge is-warning">${escapeHtml(translate("legacy.surface.c6c094bc0054f9cb", "Empty"))}</span>` : ''}</span>
-                        ${isSelected ? `<div class="backup-actions fv-recovery-history-actions-row">
+                        ${isSelected ? `<div class="fv-recovery-history-actions-row">
                             <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.a76e13b9839270eb", "Restore"))}</button>
                             <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.d6eafe8235910042", "Download"))}</button>
                             <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>

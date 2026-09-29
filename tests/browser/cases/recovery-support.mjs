@@ -35,6 +35,28 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         });
         assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 5);
         assert.equal(await page.locator('#fv-recovery-restore-latest').isDisabled(), false);
+        const readability = await page.evaluate(() => {
+            const style = selector => getComputedStyle(document.querySelector(selector));
+            const actions = Array.from(document.querySelectorAll('.fv-recovery-primary-actions button'), button => button.getBoundingClientRect());
+            return {
+                intro: parseFloat(style('.fv-recovery-intro span').fontSize),
+                headline: parseFloat(style('.fv-recovery-headline').fontSize),
+                summary: parseFloat(style('.fv-recovery-copy').fontSize),
+                metricIcon: parseFloat(style('.fv-recovery-stat-card > .fa').fontSize),
+                metricValue: parseFloat(style('.fv-recovery-stat-card strong').fontSize),
+                historyDate: parseFloat(style('.fv-recovery-snapshot-item > strong').fontSize),
+                historyAlignment: style('.fv-recovery-snapshot-item').textAlign,
+                actionFont: parseFloat(style('.fv-recovery-primary-actions button').fontSize),
+                actionWidth: actions[0].width,
+                actionGap: actions[1].left - actions[0].right,
+                iconGap: parseFloat(style('.fv-recovery-primary-actions button > .fa').marginInlineEnd)
+            };
+        });
+        assert.ok(readability.intro >= 16 && readability.headline >= 21 && readability.summary >= 15);
+        assert.ok(readability.metricIcon >= 22 && readability.metricValue >= 16);
+        assert.ok(readability.historyDate >= 15 && readability.historyAlignment === 'left');
+        assert.ok(readability.actionFont >= 16 && readability.actionWidth >= 200 && readability.actionGap <= 16);
+        assert.ok(readability.iconGap >= 8);
         await page.locator('.fv-recovery-snapshot-item').nth(1).focus();
         await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');
         assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').count(), 1);

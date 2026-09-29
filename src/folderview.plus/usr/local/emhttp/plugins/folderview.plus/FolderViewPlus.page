@@ -1433,7 +1433,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
 
             <div class="fv-recovery-action-bar">
-                <div class="backup-actions fv-recovery-primary-actions">
+                <div class="fv-recovery-primary-actions">
                     <button id="fv-recovery-restore-latest" type="button" class="fv-recovery-primary-restore" data-fv-onclick="restoreLatestActiveRecoveryBackup()" disabled><i class="fa fa-history" aria-hidden="true"></i> Restore Latest Backup</button>
                     <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera" aria-hidden="true"></i> Create Backup Now</button>
                     <button type="button" data-fv-recovery-disclosure="fv-recovery-compare-panel" aria-controls="fv-recovery-compare-panel" aria-expanded="false"><i class="fa fa-exchange" aria-hidden="true"></i> Compare Snapshots</button>
@@ -1480,7 +1480,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
             <section class="fv-recovery-stage fv-recovery-environment-stage">
                 <div class="fv-recovery-stage-head"><i class="fa fa-wrench" aria-hidden="true"></i><div><strong>Additional tools</strong><span>Export or import your FolderView Plus environment.</span></div></div>
-                <div class="backup-actions fv-recovery-environment-actions">
+                <div class="fv-recovery-environment-actions">
                     <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-upload"></i> Export Environment</button>
                     <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-download"></i> Import Environment</button>
                 </div>

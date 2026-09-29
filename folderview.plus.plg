@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.09.29.01">
-<!ENTITY md5 "2cde983a19278692bfa568e5b793ca5c">
-<!ENTITY sha256 "e21df6decac10d15dccf8713e7f5111a25e6ac57c2d26075935afb32f5a9e9fb">
+<!ENTITY version "2026.09.29.02">
+<!ENTITY md5 "1587f01903c279125b3ac82bf86b2f03">
+<!ENTITY sha256 "0155f53490d3178e2be05392bcdafb035fe0b74ce686cca7bf0595820ed5b964">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.09.29.02
+- UI/UX: Recovery now uses larger, clearer text and icons in its introduction, readiness summary, backup metrics, and backup history.
+- UI/UX: Restore, backup, and compare actions fill a tighter row, with readable labels and spacing between button icons and text.
+- UI/UX: Snapshot history separates the date, reason, folder count, and filename so long backup names are easier to scan.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings assets.
+
 
 ###2026.09.29.01
 - UI/UX: Advanced > Recovery now shows a compact status summary, primary restore and backup actions, selectable snapshot history, and backup policy details for Docker and VMs.

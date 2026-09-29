@@ -7,7 +7,7 @@ const sections = [
     ['Rule testing', '<h2 data-fv-advanced="1">Rule testing and troubleshooting</h2><div class="rules-bottom-grid fv-rules-grid" data-layout-surface><div class="rules-panel"></div></div>'],
     ['Docker start order', '<div class="fv-docker-start-order-heading-row"><div class="fv-docker-start-order-heading-copy"><h2 data-fv-advanced="1">Docker start order</h2><p>Start order description</p></div></div><div class="fv-operations-module-wrap"><div class="rules-panel fv-operations-panel" data-layout-surface></div></div>'],
     ['Appearance', '<h2 data-fv-advanced="1">Theme workspace</h2><div id="fv-theme-workspace-panel"><div class="rules-panel" data-layout-surface></div></div>'],
-    ['Recovery', '<h2 data-fv-advanced="1">Recovery workspace</h2><div class="fv-recovery-module-wrap"><div class="rules-panel fv-recovery-panel" data-layout-surface></div></div>'],
+    ['Recovery', '<h2 data-fv-advanced="1">Restore and Backup Snapshots</h2><div class="fv-recovery-module-wrap"><div class="rules-panel fv-recovery-panel" data-layout-surface></div></div>'],
     ['Recovery history', '<h2 data-fv-advanced="1">Undo and recent changes</h2><div class="fv-recovery-module-wrap"><div class="rules-panel fv-recovery-panel" data-layout-surface></div></div>'],
     ['Diagnostics', '<h2 id="fv-diagnostics-title" data-fv-advanced="1">Diagnostics</h2><div id="fv-diagnostics-workspace" class="fv-diagnostics-workspace" data-layout-surface></div>'],
     ['Logs', '<h2 data-fv-advanced="1">Logs</h2><div class="fv-activity-feed-panel" data-layout-surface></div>']

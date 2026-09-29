@@ -382,11 +382,14 @@ test('rules tab uses a source-switched workspace and bulk assignment keeps the t
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });
 
-test('recovery tab keeps undo with restore controls and merges server changes into Logs', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace<\/h2>/);
+test('recovery tab presents restore, history, policy, and environment actions in one workspace', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Restore and Backup Snapshots<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-recovery-source-switch"[\s\S]*setRecoveryWorkspaceType\('docker'\)[\s\S]*setRecoveryWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /id="fv-recovery-overview"/);
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-details"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-editor"/);
+    assert.match(settingsPage, /id="fv-recovery-compare-panel"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.doesNotMatch(settingsPage, /data-fv-section="change-history"/);
     assert.match(settingsPage, /data-fv-section="logs"[\s\S]*id="fv-activity-feed-list"/);
@@ -397,11 +400,13 @@ test('recovery tab keeps undo with restore controls and merges server changes in
     assert.match(settingsPage, /data-fv-onclick="exportEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
-    assert.match(settingsPage, /class="backup-actions fv-recovery-primary-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsPage, /class="fv-recovery-more-menu backup-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.doesNotMatch(settingsPage, /data-fv-folderview3-action="(?:detect|preview-export)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
-    assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
+    assert.match(settingsJs, /class="fv-recovery-snapshot-row\$\{activeClass\}"/);
+    assert.match(settingsJs, /toggleAllRecoverySnapshots/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(diagnosticsJs, /const renderChangeHistory = \(diagnostics = lastDiagnostics\) =>/);
@@ -412,7 +417,7 @@ test('recovery tab keeps undo with restore controls and merges server changes in
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
     assert.match(settingsCss, /\.fv-recovery-environment-meta/);
-    assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
+    assert.match(settingsCss, /\.fv-recovery-policy-row/);
     assert.match(settingsCss, /\.fv-recovery-history-list\s*\{/);
     assert.doesNotMatch(settingsCss, /\.fv-recovery-timeline-card/);
 });

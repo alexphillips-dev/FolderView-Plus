@@ -1411,22 +1411,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace</h2>
+<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Restore and Backup Snapshots</h2>
 <div class="fv-recovery-module-wrap">
     <div class="rules-panel fv-recovery-panel">
-        <div class="rules-header">
-            <h3>Restore and backup snapshots</h3>
-            <span class="rules-help">Choose Docker or VMs, confirm you are protected, then create, compare, restore, or review snapshots from one place.</span>
-        </div>
         <div class="fv-recovery-section-body">
             <div class="fv-recovery-intro">
                 <div>
-                    <strong>Recovery protects your FolderView Plus setup.</strong>
-                    <span>Use this page to create restore points, restore a previous folder layout, compare two snapshots, or move your setup to another server.</span>
+                    <span>Protect, restore, and manage your FolderView Plus setup. Create restore points, compare snapshots, or move your setup to another server.</span>
                 </div>
-                <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" data-fv-onclick="setRecoveryWorkspaceType('docker')">Docker</button>
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" data-fv-onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+                <div class="fv-rules-source-switch fv-recovery-source-switch" role="group" aria-label="Recovery source">
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" data-fv-onclick="setRecoveryWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" data-fv-onclick="setRecoveryWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
                 </div>
             </div>
 
@@ -1437,82 +1432,60 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </div>
 
-            <div class="fv-recovery-stage-grid">
-                <section class="fv-recovery-stage">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Restore and safety</strong>
-                        <span class="rules-help">Restore the latest safe snapshot or create a manual checkpoint before making changes.</span>
+            <div class="fv-recovery-action-bar">
+                <div class="backup-actions fv-recovery-primary-actions">
+                    <button id="fv-recovery-restore-latest" type="button" class="fv-recovery-primary-restore" data-fv-onclick="restoreLatestActiveRecoveryBackup()" disabled><i class="fa fa-history" aria-hidden="true"></i> Restore Latest Backup</button>
+                    <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera" aria-hidden="true"></i> Create Backup Now</button>
+                    <button type="button" data-fv-recovery-disclosure="fv-recovery-compare-panel" aria-controls="fv-recovery-compare-panel" aria-expanded="false"><i class="fa fa-exchange" aria-hidden="true"></i> Compare Snapshots</button>
+                </div>
+                <details class="fv-recovery-more-actions">
+                    <summary><i class="fa fa-ellipsis-v" aria-hidden="true"></i> More actions <i class="fa fa-angle-down" aria-hidden="true"></i></summary>
+                    <div class="fv-recovery-more-menu backup-actions">
+                        <button type="button" data-fv-onclick="undoActiveRecoveryChange()">Undo latest change</button>
+                        <button type="button" data-fv-onclick="runActiveRecoveryScheduler()">Run scheduler now</button>
+                        <button type="button" class="fv-recovery-danger-action" data-fv-recovery-action="delete-all">Delete all backups</button>
                     </div>
-                    <div class="backup-actions fv-recovery-primary-actions">
-                        <button type="button" data-fv-onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
-                        <button type="button" data-fv-onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
-                        <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
-                        <button type="button" data-fv-onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
-                    </div>
-                    <div id="fv-recovery-safety-note" class="fv-recovery-callout">
-                        Restoring always creates a fresh safety backup first.
-                    </div>
-                </section>
-
-                <section class="fv-recovery-stage fv-recovery-compare-stage">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Compare snapshots</strong>
-                        <span class="rules-help">Preview folder and preference differences before restoring anything.</span>
-                    </div>
+                </details>
+            </div>
+            <div id="fv-recovery-compare-panel" class="fv-recovery-inline-panel" hidden>
+                <strong>Compare snapshots</strong>
+                <p>Preview folder and preference differences before restoring anything.</p>
                     <div class="backup-compare-row fv-recovery-compare-row">
-                        <label for="recovery-backup-compare-left">Compare</label>
+                        <label for="recovery-backup-compare-left">Snapshot</label>
                         <select id="recovery-backup-compare-left"></select>
                         <span class="backup-compare-sep">vs</span>
-                        <select id="recovery-backup-compare-right"></select>
+                        <label for="recovery-backup-compare-right" class="fv-sr-only">Compare with</label><select id="recovery-backup-compare-right"></select>
                         <label class="backup-compare-prefs-toggle"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
                         <button type="button" data-fv-onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
                     </div>
+            </div>
+
+            <div class="fv-recovery-stage-grid">
+                <section class="fv-recovery-stage fv-recovery-history-stage">
+                    <div class="fv-recovery-stage-head"><i class="fa fa-database" aria-hidden="true"></i><div><strong>Backup history</strong><span id="fv-recovery-history-summary" class="rules-help">Choose a snapshot to restore, download, or delete.</span></div></div>
+                    <div id="fv-recovery-backup-list" class="fv-recovery-history-list"><div class="fv-recovery-empty-state"><strong>No backups loaded yet.</strong><span>Create a backup to start building recovery history.</span></div></div>
                 </section>
 
                 <section class="fv-recovery-stage fv-recovery-policy">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Backup policy</strong>
-                        <span id="fv-recovery-policy-summary" class="rules-help">Manual backups only.</span>
-                    </div>
-                    <div class="schedule-row fv-recovery-policy-grid">
+                    <div class="fv-recovery-stage-head"><i class="fa fa-cog" aria-hidden="true"></i><div><strong>Backup policy &amp; protection</strong><span>Configure scheduled backups and see what is protected.</span></div><button type="button" class="fv-recovery-edit-settings" data-fv-recovery-disclosure="fv-recovery-policy-editor" aria-controls="fv-recovery-policy-editor" aria-expanded="false"><i class="fa fa-pencil" aria-hidden="true"></i> Edit Settings</button></div>
+                    <div id="fv-recovery-policy-summary" class="fv-recovery-policy-summary"></div>
+                    <div id="fv-recovery-policy-details" class="fv-recovery-policy-details"></div>
+                    <div id="fv-recovery-policy-editor" class="fv-recovery-inline-panel" hidden><strong>Edit backup schedule</strong><div class="schedule-row fv-recovery-policy-grid">
                         <label><input id="recovery-backup-schedule-enabled" type="checkbox" data-fv-onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
                         <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" data-fv-onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
                         <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" data-fv-onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
                         <span id="recovery-backup-last-run" class="schedule-hint"></span>
-                    </div>
+                    </div></div>
                 </section>
             </div>
-
-            <section class="fv-recovery-stage fv-recovery-history-stage">
-                <div class="fv-recovery-stage-head">
-                    <strong>Backup history</strong>
-                    <span id="fv-recovery-history-summary" class="rules-help">Choose one stored snapshot, then restore, download, or delete it.</span>
-                </div>
-                <div id="fv-recovery-backup-list" class="fv-recovery-history-list">
-                    <div class="fv-recovery-empty-state">
-                        <strong>No backups loaded yet.</strong>
-                        <span>Create a manual snapshot or run the scheduler once to start building recovery history.</span>
-                    </div>
-                </div>
-            </section>
-
             <section class="fv-recovery-stage fv-recovery-environment-stage">
-                <div class="fv-recovery-stage-head">
-                    <strong>Environment export and import</strong>
-                    <span class="rules-help">Move the full plugin environment between installs in one JSON file. This includes Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
-                </div>
+                <div class="fv-recovery-stage-head"><i class="fa fa-wrench" aria-hidden="true"></i><div><strong>Additional tools</strong><span>Export or import your FolderView Plus environment.</span></div></div>
                 <div class="backup-actions fv-recovery-environment-actions">
-                    <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
-                    <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
+                    <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-upload"></i> Export Environment</button>
+                    <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-download"></i> Import Environment</button>
                 </div>
-                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list">
-                    <div class="fv-recovery-empty-state">
-                        <strong>Portable environment snapshots are ready.</strong>
-                        <span>Export everything to one JSON file or import a snapshot from another FolderView Plus install.</span>
-                    </div>
-                </div>
+                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list" aria-live="polite"></div>
             </section>
-            <section class="fv-recovery-stage fv-recovery-environment-stage"><div class="fv-recovery-stage-head"><strong data-i18n="import.folderview3.preview-title">FolderView3 migration preview</strong><span class="rules-help" data-i18n="import.folderview3.preview-help">Discover an installed FolderView3 configuration or inspect a full-export JSON. Detection and preview are read-only; native organizer records and Docker autostart mutations remain excluded unless a later apply explicitly includes them.</span></div><div class="backup-actions fv-recovery-environment-actions"><button type="button" data-fv-folderview3-action="detect"><i class="fa fa-search"></i> Detect installed FolderView3</button><button type="button" data-fv-folderview3-action="preview-export"><i class="fa fa-eye"></i> Preview FolderView3 export</button></div><div id="fv-recovery-folderview3-summary" class="fv-recovery-history-list"><div class="fv-recovery-empty-state"><strong data-i18n="import.folderview3.read-only-title">FolderView3 migration is read-only until you approve an apply plan.</strong><span data-i18n="import.folderview3.read-only-help">Detect an installed configuration or preview a FolderView3 export without writing any plugin or Unraid state.</span></div></div></section>
             <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
                 <select id="docker-backup-compare-left"></select>
                 <select id="docker-backup-compare-right"></select>

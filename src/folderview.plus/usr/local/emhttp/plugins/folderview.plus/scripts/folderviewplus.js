@@ -4264,6 +4264,8 @@ const renderRecoveryWorkspace = (...args) => getSettingsWorkspacesApi().renderRe
 const syncRecoveryWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRecoveryWorkspaceUi(...args);
 const setRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().setRecoveryWorkspaceType(...args);
 const selectActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().selectActiveRecoveryBackup(...args);
+const toggleAllRecoverySnapshots = (...args) => getSettingsWorkspacesApi().toggleAllRecoverySnapshots(...args);
+const toggleRecoveryDisclosure = (...args) => getSettingsWorkspacesApi().toggleRecoveryDisclosure(...args);
 const filterActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().filterActiveRecoveryBackups(...args);
 const createActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().createActiveRecoveryBackup(...args);
 const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreLatestActiveRecoveryBackup(...args);
@@ -11258,6 +11260,8 @@ settingsActionSupportModule.registerActions(window, {
     restoreLatestBackup,
     restoreLatestActiveRecoveryBackup,
     selectActiveRecoveryBackup,
+    toggleAllRecoverySnapshots,
+    toggleRecoveryDisclosure,
     restoreSelectedActiveRecoveryBackup,
     downloadSelectedActiveRecoveryBackup,
     deleteSelectedActiveRecoveryBackup,

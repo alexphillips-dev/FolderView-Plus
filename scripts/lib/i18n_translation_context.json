@@ -49,6 +49,7 @@
             "Manual $1": "Atribuire manuală: $1"
         },
         "ja": {
+            "Disabled": "無効",
             "Recent actions and issues are kept in this browser for 30 days. Newest first.": "最近の操作と問題は、このブラウザーに30日間保存されます。新しい順に表示します。",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
@@ -81,12 +82,14 @@
             "$1 refs": "Referenser: $1"
         },
         "zh-Hans": {
+            "Disabled": "已禁用",
             "Move batch up": "上移批次",
             "Move batch down": "下移批次",
             "Remove batch": "移除批次",
             "Container": "容器"
         },
         "zh-Hant": {
+            "Disabled": "已停用",
             "Container": "容器"
         },
         "da": {
@@ -108,6 +111,7 @@
             "$1 refs": "Referencer: $1"
         },
         "pl": {
+            "Disabled": "Wyłączone",
             "Clear": "Wyczyść"
         },
         "de": {
@@ -139,11 +143,16 @@
             "Toggle $1": "$1 umschalten"
         },
         "es": {
+            "Disabled": "Desactivado",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "¿Restaurar las carpetas y las preferencias guardadas de esta instantánea? Primero se crea una copia de seguridad.",
             "Manual $1": "Asignación manual: $1"
         },
         "hr": {
+            "Disabled": "Onemogućeno",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Dijagnostika pokretanja uređivača mapa FolderView Plus"
+        },
+        "ko": {
+            "Disabled": "비활성화됨"
         },
         "nb": {
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Oppstartsdiagnostikk for mapperedigering i FolderView Plus",

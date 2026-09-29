@@ -133,8 +133,8 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
         assert.notEqual((await page.locator('[data-i18n="settings.logs.retention-description"]').textContent()).trim(),
             'Recent actions and issues are kept in this browser for 30 days. Newest first.');
         assert.equal((await page.locator('#fv-activity-center-clear').textContent()).trim(), 'Leeren');
-        assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/);
-        assert.match(await page.locator('#german-recovery').innerText(), /Aktuelle Ordner: 2/);
+        assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/i);
+        assert.match(await page.locator('#german-recovery').innerText(), /2\s+Ordner/i);
         assert.match(await page.locator('#german-operations').innerText(), /Noch keine gespeicherten VM-Vorlagen/);
         assert.match(await page.locator('#fv-theme-workspace-summary').innerText(), /Standardprofil \/ Global/);
         assert.equal(await page.locator('.fv-support-bundle-section-badge').first().innerText(), 'Enthalten');

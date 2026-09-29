@@ -365,7 +365,8 @@ test('basic folder pin toggle persists quickly and broadcasts runtime refresh', 
     assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);
     assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(eventPayload\)\);/);
-    assert.match(script, /const backup = latestPrefsBackupByType\[resolvedType\];/);
+    assert.doesNotMatch(script, /latestPrefsBackupByType/);
+    assert.doesNotMatch(script, /before-pin-branch-|before-unpin-branch-/);
     assert.doesNotMatch(script, /backup = await createBackup\(resolvedType, exists \? `before-unpin-\$\{id\}` : `before-pin-\$\{id\}`\);/);
 });
 
@@ -493,14 +494,14 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /const queueFolderReorderPersist = \(type, \{/);
     assert.match(script, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
     assert.match(script, /registerActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode/);
-    assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
+    assert.match(script, /const applyTreeMoveHistoryEntry = async \(type, entry, direction\) =>/);
     assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
     assert.match(script, /History: \$\{historyDepth\.undo\} undo \/ \$\{historyDepth\.redo\} redo\./);
     assert.doesNotMatch(script, /<td class="parent-cell">/);
-    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
-    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
+    assert.match(script, /actionLabel: 'Tree move', focusFolderId: sourceId/);
+    assert.match(script, /activityMessage: `Folder moved to root:/);
     assert.match(script, /queueFolderReorderPersist\(resolvedType, \{/);
-    assert.match(script, /await recordTreeMoveHistoryFromBackup\([\s\S]*'Reorder folders'[\s\S]*focusFolderId/);
+    assert.match(script, /actionLabel: 'Reorder folders', focusFolderId/);
 });
 
 test('basic folder drag uses a full-row drag image', () => {

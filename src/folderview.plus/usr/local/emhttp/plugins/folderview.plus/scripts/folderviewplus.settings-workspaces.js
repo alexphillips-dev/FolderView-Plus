@@ -395,7 +395,7 @@
             const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const backupCount = backups.length;
             const scheduleEnabled = schedule.enabled === true;
-            const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
+            const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 1;
             const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : translate("settings.recovery.not-created", "Not created yet");
             const latestRestorableCreated = latestRestorable?.createdAt ? formatTimestamp(latestRestorable.createdAt) : translate("settings.recovery.none-available", "None available");
             const folderCount = Object.keys(folders || {}).length;
@@ -538,12 +538,12 @@
             updateRecoveryHtml(listHost, buildRecoveryBackupHistoryHtml(resolvedType));
             renderRecoveryEnvironmentSummary();
             policySummary.text(schedule.enabled === true
-                ? translate("settings.recovery.every-hours", "Every $1 h", schedule.intervalHours || 24)
+                ? translate("settings.recovery.every-hours", "Every $1 h", schedule.intervalHours || 1)
                 : translate("settings.recovery.manual-only", "Manual only"));
             const policyDetails = $('#fv-recovery-policy-details');
             if (policyDetails.length) {
                 const scheduleEnabled = schedule.enabled === true;
-                const interval = Number(schedule.intervalHours) || 24;
+                const interval = Number(schedule.intervalHours) || 1;
                 const retention = Number(schedule.retention) || 25;
                 const detailRows = [
                     ['fa-clock-o', translate('settings.recovery.scheduled-backups', 'Scheduled backups'), scheduleEnabled ? translate('settings.recovery.enabled', 'Enabled') : translate('settings.recovery.disabled', 'Disabled')],
@@ -555,7 +555,7 @@
                 updateRecoveryHtml(policyDetails, detailRows.map(([icon, label, value]) => `<div class="fv-recovery-policy-row"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join(''));
             }
             $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);
-            $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 24));
+            $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 1));
             $('#recovery-backup-retention').val(String(schedule.retention || 25));
             $('#recovery-backup-last-run').text(schedule.lastRunAt ? translate('settings.recovery.last-run', 'Last run: $1', formatTimestamp(schedule.lastRunAt)) : translate('settings.recovery.never-scheduled', 'Last scheduled run: never'));
             syncVisibleRecoveryCompareControls(resolvedType);

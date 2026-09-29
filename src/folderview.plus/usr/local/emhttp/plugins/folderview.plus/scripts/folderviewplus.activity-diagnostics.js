@@ -884,7 +884,6 @@ const postPrefs = async (type, prefs, options = {}) => {
             currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
             immediate: options.immediate === true
         });
-        latestPrefsBackupByType[type] = diagnosticsPrefsCoordinator.getSnapshot(type)?.lastBackup || null;
         return utils.normalizePrefs(savedPrefs);
     }
     const expectedRevision = Math.max(
@@ -908,7 +907,6 @@ const postPrefs = async (type, prefs, options = {}) => {
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
-    latestPrefsBackupByType[type] = response.backup || null;
     const fallbackPrefs = typeof diagnosticsPrefsStoreModule?.mergePatch === 'function'
         ? diagnosticsPrefsStoreModule.mergePatch(prefsByType?.[type] || {}, protectedPrefs || {})
         : { ...(prefsByType?.[type] || {}), ...(protectedPrefs || {}) };

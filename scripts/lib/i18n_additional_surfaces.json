@@ -7369,15 +7369,6 @@
     ]
   },
   {
-    "phrase": "Move to root failed.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folder-editor.js",
-        "anchor": "'Move to root failed.'"
-      }
-    ]
-  },
-  {
     "phrase": "Multiple incoming folders resolved to target \"$1\"",
     "locations": [
       {
@@ -8209,15 +8200,6 @@
     ]
   },
   {
-    "phrase": "Pin branch",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.runtime-actions.js",
-        "anchor": "'Pin branch'"
-      }
-    ]
-  },
-  {
     "phrase": "Pin entire branch",
     "locations": [
       {
@@ -8244,10 +8226,6 @@
     "locations": [
       {
         "file": "scripts/docker.js",
-        "anchor": "'Pin folder'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
         "anchor": "'Pin folder'"
       },
       {
@@ -12290,15 +12268,6 @@
     ]
   },
   {
-    "phrase": "Unpin branch",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.runtime-actions.js",
-        "anchor": "'Unpin branch'"
-      }
-    ]
-  },
-  {
     "phrase": "Unpin entire branch",
     "locations": [
       {
@@ -12325,10 +12294,6 @@
     "locations": [
       {
         "file": "scripts/docker.js",
-        "anchor": "'Unpin folder'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
         "anchor": "'Unpin folder'"
       },
       {

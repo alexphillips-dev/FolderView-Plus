@@ -112,14 +112,9 @@
                 pinnedFolderIds: Array.from(pinnedSet)
             };
             const branchLabel = surfaceT("common.runtime.folders-1", "Folders: $1", branchIds.length);
-            let backup = null;
             try {
-                backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
                 prefsByType[resolvedType] = await postPrefs(resolvedType, next, { baselinePrefs: current });
                 await refreshType(resolvedType);
-                if (backup?.name) {
-                    await offerUndoAction(resolvedType, backup, pinned ? 'Pin branch' : 'Unpin branch');
-                }
                 showToastMessage({
                     title: pinned ? 'Branch pinned' : 'Branch unpinned',
                     message: `${branchLabel} updated.`,

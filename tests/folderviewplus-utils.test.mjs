@@ -735,8 +735,8 @@ test('normalizePrefs includes live refresh, performance profile, and backup sche
     assert.equal(prefs.pageViewMode, 'folderview');
     assert.equal(prefs.themeCompatibilityMode, 'auto');
     assert.deepEqual(prefs.backupSchedule, {
-        enabled: false,
-        intervalHours: 24,
+        enabled: true,
+        intervalHours: 1,
         retention: 25,
         lastRunAt: ''
     });

@@ -242,6 +242,6 @@ test('parent-only tree moves keep the current sort mode and positional moves sav
     assert.match(move, /await persistOptimisticTreeMove\(resolvedType/);
     assert.match(editor, /\.\.\.\(positionalMove \? \{ manualOrder: nextOrder, expectedPrefsRevision \} : \{\}\)/);
     assert.doesNotMatch(move, /ensureFolderSortModeManual/);
-    assert.match(root, /await requestFolderBatchMutation\(resolvedType/);
+    assert.match(root, /await persistOptimisticTreeMove\(resolvedType/);
     assert.doesNotMatch(root, /ensureFolderSortModeManual|saveFolderRecord/);
 });

@@ -700,6 +700,7 @@ const treeMoveHistoryByType = {
         redoStack: []
     }
 };
+const treeMoveHistoryBusyByType = { docker: false, vm: false };
 const TREE_MOVE_HISTORY_LIMIT = 20;
 const TREE_INTEGRITY_DEPTH_WARN_LEVEL = 4;
 let mobileTreeReorderModeByType = {
@@ -746,10 +747,6 @@ let backupCompareDiffPagingState = {
 };
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
-let latestPrefsBackupByType = {
-    docker: null,
-    vm: null
-};
 let backupCompareSelectionByType = {
     docker: {
         left: '',
@@ -5491,7 +5488,7 @@ const expandAncestorChainForFolder = (type, folderId) => {
     return changed;
 };
 
-const focusFolderRow = (type, folderId) => {
+const focusFolderRow = (type, folderId, { scroll = true } = {}) => {
     const target = normalizeFocusableFolderId(type, folderId);
     if (!target) {
         return false;
@@ -5516,7 +5513,7 @@ const focusFolderRow = (type, folderId) => {
     }, ROW_FOCUS_HIGHLIGHT_MS);
 
     const element = row.get(0);
-    if (element && typeof element.scrollIntoView === 'function') {
+    if (scroll && element && typeof element.scrollIntoView === 'function') {
         element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     }
     return true;
@@ -5728,23 +5725,26 @@ const getTreeMoveHistoryState = (type) => {
 const pushTreeMoveHistoryEntry = (type, entry) => {
     const resolvedType = normalizeManagedType(type);
     const state = getTreeMoveHistoryState(resolvedType);
-    const beforeBackupName = String(entry?.beforeBackupName || '').trim();
-    const afterBackupName = String(entry?.afterBackupName || '').trim();
-    if (!beforeBackupName || !afterBackupName) {
-        return;
-    }
     const nextEntry = {
-        beforeBackupName,
-        afterBackupName,
+        kind: entry?.kind === 'order' ? 'order' : 'parent',
+        folderId: String(entry?.folderId || '').trim(),
+        beforeParentId: String(entry?.beforeParentId || '').trim(),
+        afterParentId: String(entry?.afterParentId || '').trim(),
+        beforeOrder: Array.isArray(entry?.beforeOrder) ? entry.beforeOrder.slice() : null,
+        afterOrder: Array.isArray(entry?.afterOrder) ? entry.afterOrder.slice() : null,
         actionLabel: String(entry?.actionLabel || 'Tree move').trim(),
         focusFolderId: String(entry?.focusFolderId || '').trim(),
         createdAt: Date.now()
     };
+    if (nextEntry.kind === 'order' && (!nextEntry.beforeOrder || !nextEntry.afterOrder)) return;
+    if (nextEntry.kind === 'parent' && !nextEntry.folderId) return;
     state.undoStack.push(nextEntry);
     while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
         state.undoStack.shift();
     }
     state.redoStack = [];
+    queueTreeMoveUndoBanner(resolvedType, nextEntry);
+    updateTreeMoveHistoryButtons(resolvedType);
 };
 
 const getTreeMoveHistoryDepth = (type) => {
@@ -5796,13 +5796,12 @@ const renderTreeMoveUndoBanner = (type) => {
     }
     const notice = treeMoveUndoNoticeByType[resolvedType];
     const historyDepth = getTreeMoveHistoryDepth(resolvedType);
-    if (!notice || !notice.backupName) {
+    if (!notice || !notice.entry) {
         host.addClass('is-hidden').empty();
         updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const actionLabel = String(notice.actionLabel || 'Tree change').trim();
-    const backupName = String(notice.backupName || '').trim();
     const expiresAt = Number(notice.expiresAt || 0);
     const remainingMs = Number.isFinite(expiresAt) ? Math.max(0, expiresAt - Date.now()) : 0;
     if (remainingMs <= 0) {
@@ -5854,21 +5853,18 @@ const renderTreeMoveUndoBanner = (type) => {
             }
             dismissTreeMoveUndoBanner(targetType);
         });
-    host.attr('title', backupName);
+    host.attr('title', actionLabel);
     updateTreeMoveHistoryButtons(resolvedType);
 };
 
-const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = '') => {
+const queueTreeMoveUndoBanner = (type, entry) => {
     const resolvedType = normalizeManagedType(type);
-    const safeBackupName = String(backupName || '').trim();
-    if (!safeBackupName) {
-        return;
-    }
+    if (!entry) return;
     clearTreeMoveUndoTimer(resolvedType);
     treeMoveUndoNoticeByType[resolvedType] = {
-        backupName: safeBackupName,
-        actionLabel: String(actionLabel || 'Tree change').trim(),
-        focusFolderId: String(focusFolderId || '').trim(),
+        entry,
+        actionLabel: String(entry.actionLabel || 'Tree change').trim(),
+        focusFolderId: String(entry.focusFolderId || '').trim(),
         expiresAt: Date.now() + UNDO_WINDOW_MS
     };
     treeMoveUndoTimersByType[resolvedType] = window.setTimeout(() => {
@@ -5877,40 +5873,38 @@ const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = 
     renderTreeMoveUndoBanner(resolvedType);
 };
 
-const recordTreeMoveHistoryFromBackup = async (type, beforeBackupName, actionLabel, focusFolderId = '') => {
+const applyTreeMoveHistoryEntry = async (type, entry, direction) => {
     const resolvedType = normalizeManagedType(type);
-    const safeBeforeBackupName = String(beforeBackupName || '').trim();
-    if (!safeBeforeBackupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
+    const restoringBefore = direction === 'undo';
+    const order = restoringBefore ? entry.beforeOrder : entry.afterOrder;
+    if (entry.kind === 'order') {
+        applyOptimisticManualOrder(resolvedType, order);
+        await persistManualOrder(resolvedType, order, { refresh: false });
+    } else {
+        const folderId = String(entry.folderId || '').trim();
+        const folders = getFolderMap(resolvedType);
+        const folder = folders[folderId];
+        if (!folder) throw new Error(surfaceT('legacy.surface.f5800c37a77aca60', 'Folder no longer exists.'));
+        const parentId = restoringBefore ? entry.beforeParentId : entry.afterParentId;
+        const expectedRevision = readFolderConfigurationRevision(resolvedType);
+        const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
+        if (expectedRevision === null || (order && !Number.isInteger(expectedPrefsRevision))) {
+            throw new Error(surfaceT('legacy.surface.84d5e5d264943e57', 'Unable to verify the current folder configuration revision. Refresh and try again.'));
+        }
+        setTypeFolders(resolvedType, { ...folders, [folderId]: { ...folder, parentId } });
+        if (order) applyOptimisticManualOrder(resolvedType, order); else renderTable(resolvedType);
+        const result = await requestFolderBatchMutation(resolvedType, {
+            deletes: [], upserts: [{ id: folderId, folder: { ...folder, parentId } }], creates: [],
+            ...(order ? { manualOrder: order, expectedPrefsRevision } : {})
+        }, { expectedRevision });
+        if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
     }
-    let afterBackupName = '';
-    try {
-        const slug = String(actionLabel || 'tree-change')
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, 32) || 'tree-change';
-        const postBackup = await createBackup(resolvedType, `after-${slug}-${Date.now()}`);
-        afterBackupName = String(postBackup?.name || '').trim();
-    } catch (_error) {
-        // Keep undo banner even if post-action snapshot cannot be captured.
-    }
-    if (afterBackupName) {
-        pushTreeMoveHistoryEntry(resolvedType, {
-            beforeBackupName: safeBeforeBackupName,
-            afterBackupName,
-            actionLabel: String(actionLabel || 'Tree change').trim() || 'Tree change',
-            focusFolderId
-        });
-    }
-    queueTreeMoveUndoBanner(resolvedType, safeBeforeBackupName, actionLabel, focusFolderId);
-    updateTreeMoveHistoryButtons(resolvedType);
+    await refreshType(resolvedType, { configOnly: true, render: false });
 };
 
 const applyTreeMoveUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    if (treeMoveHistoryBusyByType[resolvedType] || folderReorderQueueByType[resolvedType]?.active || pendingTreeMoveTypes.has(resolvedType)) return;
     const state = getTreeMoveHistoryState(resolvedType);
     if (!Array.isArray(state.undoStack) || state.undoStack.length <= 0) {
         dismissTreeMoveUndoBanner(resolvedType);
@@ -5918,42 +5912,28 @@ const applyTreeMoveUndo = async (type) => {
         return;
     }
     const entry = state.undoStack.pop();
-    const backupName = String(entry?.beforeBackupName || '').trim();
-    const focusFolderId = String(entry?.focusFolderId || '').trim();
-    if (!backupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
-    }
+    treeMoveHistoryBusyByType[resolvedType] = true;
     try {
-        await restoreBackupByName(resolvedType, backupName);
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
-        if (entry?.afterBackupName) {
-            state.redoStack.push(entry);
-            while (state.redoStack.length > TREE_MOVE_HISTORY_LIMIT) {
-                state.redoStack.shift();
-            }
+        await applyTreeMoveHistoryEntry(resolvedType, entry, 'undo');
+        state.redoStack.push(entry);
+        while (state.redoStack.length > TREE_MOVE_HISTORY_LIMIT) {
+            state.redoStack.shift();
         }
         showToastMessage({
             title: 'Undo complete',
-            message: `Restored ${backupName}`,
+            message: entry.actionLabel,
             level: 'success',
             durationMs: 3200
         });
     } catch (error) {
         state.undoStack.push(entry);
+        try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
         showError('Undo failed', error);
     } finally {
+        treeMoveHistoryBusyByType[resolvedType] = false;
         const latestUndo = state.undoStack[state.undoStack.length - 1];
-        if (latestUndo?.beforeBackupName) {
-            queueTreeMoveUndoBanner(
-                resolvedType,
-                latestUndo.beforeBackupName,
-                latestUndo.actionLabel || 'Tree change',
-                latestUndo.focusFolderId || ''
-            );
+        if (latestUndo) {
+            queueTreeMoveUndoBanner(resolvedType, latestUndo);
         } else {
             dismissTreeMoveUndoBanner(resolvedType);
         }
@@ -5963,46 +5943,35 @@ const applyTreeMoveUndo = async (type) => {
 
 const applyTreeMoveRedo = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    if (treeMoveHistoryBusyByType[resolvedType] || folderReorderQueueByType[resolvedType]?.active || pendingTreeMoveTypes.has(resolvedType)) return;
     const state = getTreeMoveHistoryState(resolvedType);
     if (!Array.isArray(state.redoStack) || state.redoStack.length <= 0) {
         updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const entry = state.redoStack.pop();
-    const backupName = String(entry?.afterBackupName || '').trim();
-    const focusFolderId = String(entry?.focusFolderId || '').trim();
-    if (!backupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
-    }
+    treeMoveHistoryBusyByType[resolvedType] = true;
     try {
-        await restoreBackupByName(resolvedType, backupName);
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
+        await applyTreeMoveHistoryEntry(resolvedType, entry, 'redo');
         state.undoStack.push(entry);
         while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
             state.undoStack.shift();
         }
         showToastMessage({
             title: 'Redo complete',
-            message: `Restored ${backupName}`,
+            message: entry.actionLabel,
             level: 'success',
             durationMs: 3200
         });
     } catch (error) {
         state.redoStack.push(entry);
+        try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
         showError(surfaceT("common.repair.redo-failed-37647f", "Redo failed"), error);
     } finally {
+        treeMoveHistoryBusyByType[resolvedType] = false;
         const latestUndo = state.undoStack[state.undoStack.length - 1];
-        if (latestUndo?.beforeBackupName) {
-            queueTreeMoveUndoBanner(
-                resolvedType,
-                latestUndo.beforeBackupName,
-                latestUndo.actionLabel || 'Tree change',
-                latestUndo.focusFolderId || ''
-            );
+        if (latestUndo) {
+            queueTreeMoveUndoBanner(resolvedType, latestUndo);
         } else {
             dismissTreeMoveUndoBanner(resolvedType);
         }
@@ -7169,13 +7138,13 @@ const renderBackupScheduleControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     const schedule = prefs.backupSchedule || {};
     $(`#${type}-backup-schedule-enabled`).prop('checked', schedule.enabled === true);
-    $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 24));
+    $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 1));
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
     const lastRunText = schedule.lastRunAt ? translateSettingsText("settings.recovery.last-scheduled", "Last scheduled run: $1", formatTimestamp(schedule.lastRunAt)) : translateSettingsText("settings.recovery.never-scheduled", "Last scheduled run: never");
     $(`#${type}-backup-last-run`).text(lastRunText);
     if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
         $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);
-        $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 24));
+        $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 1));
         $('#recovery-backup-retention').val(String(schedule.retention || 25));
         $('#recovery-backup-last-run').text(lastRunText);
     }
@@ -9910,10 +9879,6 @@ const toggleFolderPin = async (type, folderId) => {
                 timestamp: Date.now()
             })
         });
-        const backup = latestPrefsBackupByType[resolvedType];
-        if (backup?.name) {
-            await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
-        }
     } catch (error) {
         showError(surfaceT("common.repair.pin-update-failed-cd5726", "Pin update failed"), error);
     }
@@ -10063,7 +10028,7 @@ const changeBackupSchedulePref = async (type, key, value) => {
         schedule.enabled = value === true;
     } else if (key === 'intervalHours') {
         const parsed = Number(value);
-        schedule.intervalHours = Number.isFinite(parsed) ? Math.min(168, Math.max(1, Math.round(parsed))) : schedule.intervalHours || 24;
+        schedule.intervalHours = Number.isFinite(parsed) ? Math.min(168, Math.max(1, Math.round(parsed))) : schedule.intervalHours || 1;
     } else if (key === 'retention') {
         const parsed = Number(value);
         schedule.retention = Number.isFinite(parsed) ? Math.min(200, Math.max(1, Math.round(parsed))) : schedule.retention || 25;

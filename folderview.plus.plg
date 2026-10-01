@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.04">
-<!ENTITY md5 "6a20a8974fe545263d5ef77c4b55ee2a">
-<!ENTITY sha256 "acbc0e4c88742a2e94b62129a840864d683c0e39c4a56073f686ceb67709b844">
+<!ENTITY version "2026.10.01.05">
+<!ENTITY md5 "c26f0b12debfa82c3f4db2cc46d6440f">
+<!ENTITY sha256 "58f6edc572b0d22bcc1aaec3e41b92ef025eed478d7acb7d6790d250e333006a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.05
+- Fix: Snapshot comparison popups now retain their intended layout on newer Unraid dialog libraries, with a full-width title above the content and action buttons in the footer.
+- UI/UX: Comparison buttons use consistent sizing and readable labels. Removed the duplicate title-bar Close button; Cancel or Close remains in the footer, and Escape still dismisses the popup.
+- Compatibility: Snapshot choosers and results keep their intended widths, theme colors, and scrollable content when Unraid's dialog styles are applied. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.01.04
 - UI/UX: Compare Snapshots in Restore and Backup Snapshots now opens a dialog to choose the two sources and whether to include preference changes.

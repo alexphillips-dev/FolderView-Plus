@@ -100,7 +100,7 @@
         "tests/browser/helpers/settings-alerts-health-layout.mjs"
       ],
       "testCount": 69,
-      "assertionCount": 807,
+      "assertionCount": 808,
       "pageEvaluateCount": 208,
       "orderedTitleSha256": "0d1be6ec97adbf01914a2240ec3c7e39ed047d765bfee590ee7b97abd9f9692a"
     }

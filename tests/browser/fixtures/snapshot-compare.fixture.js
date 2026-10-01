@@ -64,7 +64,8 @@ $.fn.dialog = function(action, ...args) {
     }
     state.opener = document.activeElement;
     state.options = action; state.opened = true;
-    state.widget.attr('class', `ui-dialog ${action.dialogClass}`).css({ width: action.width, display: 'block' });
+    // Current jQuery UI ignores the legacy dialogClass option unless compatibility mode is enabled.
+    state.widget.attr('class', `ui-dialog ${action.classes?.['ui-dialog'] || ''}`).css({ width: action.width, display: 'block' });
     state.head.find('.ui-dialog-title').text(action.title).attr('id', `${this.attr('id')}-title`);
     state.widget.attr('aria-labelledby', `${this.attr('id')}-title`);
     state.footer.find('.ui-dialog-buttonset').empty();

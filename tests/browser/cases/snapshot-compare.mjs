@@ -10,6 +10,7 @@ const mountCompare = async (page, baseUrl) => {
         document.getElementById('fv-settings-root').dataset.fvThemeClass = document.body.dataset.fvThemeClass;
     });
     await page.addStyleTag({ content: 'html{font-size:10px}.ui-dialog p{font-size:10px;white-space:pre-line}.ui-dialog strong{font-size:inherit}button{letter-spacing:2px} .ui-dialog-content{box-sizing:border-box}' });
+    await page.addStyleTag({ url: `${baseUrl}/fixtures/snapshot-compare-host.css` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-workspaces.js` });
     await page.addScriptTag({ url: `${baseUrl}/fixtures/snapshot-compare.fixture.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.csp-events.js` });
@@ -20,12 +21,16 @@ const verifyModal = async (page) => {
     const layout = await page.locator('.ui-dialog:visible').evaluate(modal => {
         const box = modal.getBoundingClientRect(); const content = modal.querySelector('.ui-dialog-content');
         const footer = modal.querySelector('.ui-dialog-buttonpane').getBoundingClientRect();
+        const heading = modal.querySelector('.ui-dialog-titlebar').getBoundingClientRect(); const contentBox = content.getBoundingClientRect();
+        const buttons = [...modal.querySelectorAll('.ui-dialog-buttonpane button')].map(button => ({ size: parseFloat(getComputedStyle(button).fontSize), font: getComputedStyle(button).fontFamily, width: button.getBoundingClientRect().width, height: button.getBoundingClientRect().height }));
         return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, viewport: innerWidth, height: innerHeight,
             footer: footer.bottom, overflow: content.scrollWidth > content.clientWidth + 1,
+            stacked: heading.bottom <= contentBox.top + 1 && contentBox.bottom <= footer.top + 1, buttons, font: getComputedStyle(content).fontFamily, limit: modal.classList.contains('fv-backup-compare-picker-modal') ? 700 : 980,
             bodySize: parseFloat(getComputedStyle(content).fontSize), scrolls: content.scrollHeight > content.clientHeight };
     });
     assert.ok(layout.left >= -1 && layout.right <= layout.viewport + 1 && layout.top >= -1 && layout.bottom <= layout.height + 1, JSON.stringify(layout));
     assert.ok(layout.footer <= layout.height && layout.bodySize >= 14 && !layout.overflow, JSON.stringify(layout));
+    assert.ok(layout.stacked && layout.right - layout.left <= layout.limit + 1 && layout.buttons.every(button => button.size >= 14 && button.font === layout.font && button.width >= 88 && button.height >= 40 && button.height <= 64), JSON.stringify(layout));
     return layout;
 };
 

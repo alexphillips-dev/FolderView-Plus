@@ -9166,10 +9166,17 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
         margin-left: 0.28rem !important;
     }
 }
-.ui-dialog.fv-snapshot-compare-modal {
+html body .ui-dialog.fv-snapshot-compare-modal {
+    --dynamix-jquery-ui-content-background: var(--fvplus-settings-surface-panel);
+    --dynamix-jquery-ui-content-color: var(--fvplus-settings-text-primary);
+    --dynamix-jquery-ui-header-background: var(--fvplus-settings-surface-panel);
+    --dynamix-jquery-ui-header-color: var(--fvplus-settings-text-primary);
+    --dynamix-jquery-ui-border-color: var(--fvplus-settings-border-faint);
     display: flex;
     box-sizing: border-box;
     flex-direction: column;
+    width: min(var(--fv-compare-width), calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     padding: 0;
@@ -9188,7 +9195,8 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
     flex-shrink: 0;
     position: relative;
     margin: 0;
-    padding: 16px 86px 14px 18px;
+    width: 100%;
+    padding: 16px 18px 14px;
     background: var(--fvplus-settings-surface-panel);
     border: 0;
     border-bottom: 1px solid var(--fvplus-settings-border-faint);
@@ -9198,27 +9206,18 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
     color: inherit;
 }
 
-.ui-dialog.fv-snapshot-compare-modal .ui-dialog-title { float: none; margin: 0; font: inherit; }
+.ui-dialog.fv-snapshot-compare-modal .ui-dialog-title { float: none; width: 100%; margin: 0; font: inherit; white-space: normal; overflow-wrap: anywhere; }
 .ui-dialog.fv-snapshot-compare-modal .ui-dialog-titlebar-close {
-    position: absolute;
-    top: 12px;
-    inset-inline-end: 12px;
-    width: 64px;
-    height: 32px;
-    margin: 0;
-    padding: 4px;
-    font-size: 12px;
-    color: var(--fvplus-settings-text-muted);
-    background: var(--fvplus-settings-surface-card);
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 6px;
-    letter-spacing: 0;
+    display: none !important;
 }
 
 .ui-dialog.fv-snapshot-compare-modal .ui-dialog-content {
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 0 !important;
+    max-height: none !important;
     min-width: 0;
+    width: 100%;
+    align-items: stretch;
     padding: 18px;
     overflow: auto;
     overscroll-behavior: contain;
@@ -9231,6 +9230,7 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
 
 .ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonpane {
     flex-shrink: 0;
+    width: 100%;
     margin: 0;
     padding: 12px 18px;
     background: var(--fvplus-settings-surface-panel);
@@ -9238,20 +9238,29 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode
     border-top: 1px solid var(--fvplus-settings-border-faint);
 }
 
-.ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonset { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; float: none; }
+.ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonset { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; float: none; width: 100%; }
 .ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonpane button {
-    min-height: 38px;
+    flex: 0 1 auto;
+    min-width: 88px;
+    min-height: 40px;
+    max-width: 100%;
     margin: 0;
     padding: 8px 14px;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 7px;
     color: var(--fvplus-settings-text-primary);
     background: var(--fvplus-settings-surface-card);
-    font-size: 14px;
+    font: inherit;
+    font-weight: 600;
     line-height: 1.3;
     letter-spacing: 0;
     text-transform: none;
+    text-align: center;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
 }
+.ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonpane .ui-button-text { padding: 0; font: inherit; letter-spacing: inherit; }
 .ui-dialog.fv-snapshot-compare-modal .ui-dialog-buttonpane .fv-compare-primary { background: var(--fvplus-settings-chip-info-bg); color: var(--fvplus-settings-chip-info); border-color: var(--fvplus-settings-chip-info-border); }
 .ui-dialog.fv-snapshot-compare-modal button:disabled { opacity: 0.5; cursor: default; }
 .ui-dialog.fv-snapshot-compare-modal :is(button, select, input, summary):focus-visible { outline: 2px solid var(--fvplus-settings-chip-info); outline-offset: 3px; }

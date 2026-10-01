@@ -949,11 +949,12 @@ const openSnapshotCompareDialog = (dialog, options) => {
         dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
     };
     dialog.dialog({
-        ...options, modal: true, resizable: false, height: 'auto',
+        ...options, modal: true, resizable: false, draggable: false, height: 'auto',
         closeText: importT('common.close', 'Close'),
         width: Math.min(options.width, Math.max(280, window.innerWidth - 24)),
         dialogClass: `fv-snapshot-compare-modal ${options.dialogClass}`,
-        open() { dialog.dialog('widget').css('display', 'flex'); syncTheme(); window.FolderViewPlusI18n?.translate?.(dialog.dialog('widget')[0]); },
+        classes: { 'ui-dialog': `fv-snapshot-compare-modal ${options.dialogClass}` },
+        open() { dialog.dialog('widget').css({ display: 'flex', '--fv-compare-width': `${options.width}px` }); window.FolderViewPlusI18n?.translate?.(dialog.dialog('widget')[0]); fit(); },
         close() { $(window).off('resize.fvsnapshotcompare'); options.close?.(); }
     });
     $(window).off('resize.fvsnapshotcompare').on('resize.fvsnapshotcompare', fit);

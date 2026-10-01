@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "1c5b675653bb5c22dbe9b12b556ec555138e09fd",
+      "version": "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@1c5b675653bb5c22dbe9b12b556ec555138e09fd",
+      "purl": "pkg:github/github/codeql-action@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
       "properties": [
         {
           "name": "folderview-plus:usage",

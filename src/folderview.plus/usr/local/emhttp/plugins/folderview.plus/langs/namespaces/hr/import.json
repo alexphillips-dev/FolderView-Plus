@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "import",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Odaberite način rukovanja postojećim mapama. Ništa se ne mijenja dok ne odaberete Primijeni uvoz.",
     "import.behavior.question": "Kako treba postupati s postojećim mapama?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "Uvoz VM mapa",
     "import.actions.apply": "Primijeni uvoz",
     "import.folderview3.preview-title": "FolderView3 pregled migracije",
-    "import.folderview3.preview-help": "Otkrijte instaliranu konfiguraciju FolderView3 ili pregledajte potpuno izvezeni JSON. Otkrivanje i pregled su samo za čitanje; izvorni zapisi organizatora i Docker autostart mutacije ostaju isključeni osim ako ih kasnija primjena eksplicitno ne uključuje.",
     "import.folderview3.read-only-title": "Migracija FolderView3 samo je za čitanje dok ne odobrite plan primjene.",
-    "import.folderview3.read-only-help": "Otkrijte instaliranu konfiguraciju ili pregledajte izvoz FolderView3 bez pisanja bilo kakvog dodatka ili stanja Unraid.",
     "import.folderview3.read-only-preview-help": "Otkrijte instaliranu FolderView3 konfiguraciju ili pregledajte FolderView3 izvoz. Pregled nikad ne zapisuje konfiguraciju dodatka ili Unraid.",
     "import.folderview3.not-detected": "Nije otkrivena instalirana konfiguracija FolderView3.",
     "import.folderview3.preview-export-help": "Još uvijek možete pregledati FolderView3 puni izvoz JSON-a s drugog poslužitelja.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "import",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Mevcut klasörleri nasıl yöneteceğinizi seçin. Uygula içe aktarılmasını seçene kadar hiçbir şey değişmez.",
     "import.behavior.question": "Mevcut klasörler nasıl yönetilmeli?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "VM Klasör Aktar",
     "import.actions.apply": "Aktarımı uygula",
     "import.folderview3.preview-title": "FolderView3 geçiş önizlemesi",
-    "import.folderview3.preview-help": "Yüklü bir FolderView3 yapılandırmasını keşfedin veya tam dışa aktarılan bir JSON'u inceleyin. Algılama ve önizleme salt okunurdur; yerel düzenleyici kayıtları ve Docker otomatik başlatma mutasyonları, daha sonraki bir başvuruda açıkça yer almadığı sürece hariç tutulur.",
     "import.folderview3.read-only-title": "FolderView3 geçişi, siz bir uygulama planını onaylayana kadar salt okunurdur.",
-    "import.folderview3.read-only-help": "Yüklü bir yapılandırmayı tespit edin veya herhangi bir eklenti veya Unraid durumu yazmadan FolderView3 dışa aktarımının önizlemesini yapın.",
     "import.folderview3.read-only-preview-help": "Yüklü bir FolderView3 yapılandırmasını algılayın veya bir FolderView3 dışa aktarımının önizlemesini yapın. Önizleme hiçbir zaman eklentiyi veya Unraid yapılandırmasını yazmaz.",
     "import.folderview3.not-detected": "Yüklü FolderView3 yapılandırması algılanmadı.",
     "import.folderview3.preview-export-help": "FolderView3'ün tam dışa aktarılan JSON'unu başka bir sunucudan önizlemeye devam edebilirsiniz.",

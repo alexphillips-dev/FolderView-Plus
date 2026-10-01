@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "التشخيص",
     "diagnostics.workspace.description": "مراقبة صحة المكونات الإضافية واستكشاف المشكلات وإصلاحها ومشاركة بيانات الدعم.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "لا يوجد نشاط بعد",
     "diagnostics.activity.empty-description": "ستظهر هنا تغييرات المجلد والنسخ الاحتياطية والواردات وإجراءات الاسترداد.",
     "diagnostics.activity.ready": "جاهز",
-    "diagnostics.history.refresh-description": "قم بتحديث السجل بعد الحفظ أو الاستيراد أو الاستعادة أو التراجع لمراجعة أحدث الأحداث الآمنة للاسترداد.",
-    "diagnostics.history.empty-title": "لا توجد إدخالات الجدول الزمني حتى الآن.",
-    "diagnostics.history.empty-description": "ستظهر هنا بطاقات التغيير الأخيرة لمصدر الاسترداد المحدد.",
     "diagnostics.cards.technical-details": "التفاصيل الفنية",
     "diagnostics.actions.retry": "أعد المحاولة",
     "diagnostics.capture.age-unknown": "العمر غير معروف",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "تم حذف $1، وفشل $2",
     "diagnostics.activity.detail.action": "الإجراء: $1",
     "diagnostics.activity.exported": "تم تصدير حزمة الدعم",
-    "diagnostics.history.members-reconciled": "تمت مزامنة مراجع الأعضاء",
     "diagnostics.history.backup-restored": "تمت استعادة النسخة الاحتياطية",
-    "diagnostics.history.backup-deleted": "تم حذف النسخة الاحتياطية",
-    "diagnostics.history.backup-download": "تم طلب تنزيل نسخة احتياطية",
-    "diagnostics.history.preferences-saved": "تم حفظ التفضيلات",
-    "diagnostics.history.event-details": "تفاصيل الحدث"
+    "diagnostics.history.backup-deleted": "تم حذف النسخة الاحتياطية"
 }

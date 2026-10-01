@@ -28,17 +28,26 @@ writeRawFolderMap('docker', [
     'folder-one' => ['name' => 'One', 'containers' => ['alpha']]
 ]);
 writeTypePrefs('docker', $current);
-$first = createCoalescedPrefsBackupSnapshot('docker', 5);
-$second = createCoalescedPrefsBackupSnapshot('docker', 5);
+$saved = writeTypePrefs('docker', mergeTypePrefsPatch($current, [
+    'backupSchedule' => ['enabled' => false, 'intervalHours' => 24]
+]));
+$backupsAfterPrefsSave = count(listBackupSnapshots('docker'));
+writeTypePrefs('docker', defaultTypePrefs());
+$readFolderCount = count((array)json_decode(readFolder('docker'), true));
+$backupsAfterFolderRead = count(listBackupSnapshots('docker'));
+runScheduledBackups('docker');
+$backupsAfterScheduledRun = count(listBackupSnapshots('docker'));
+runScheduledBackups('docker');
 
 echo json_encode([
     'dashboard' => $merged['dashboard'],
     'pinnedFolderIds' => $merged['pinnedFolderIds'],
-    'first' => $first,
-    'second' => $second,
-    'displayPatchRequiresBackup' => prefsPatchRequiresSafetyBackup(['dashboard' => ['privacyMode' => true]]),
-    'rulePatchRequiresBackup' => prefsPatchRequiresSafetyBackup(['autoRules' => [['pattern' => 'media']]]),
-    'unchangedBroadPatchRequiresBackup' => prefsPatchRequiresSafetyBackup($current, $current, $current),
+    'defaultSchedule' => defaultTypePrefs()['backupSchedule'],
+    'savedSchedule' => $saved['backupSchedule'],
+    'backupsAfterPrefsSave' => $backupsAfterPrefsSave,
+    'readFolderCount' => $readFolderCount,
+    'backupsAfterFolderRead' => $backupsAfterFolderRead,
+    'backupsAfterScheduledRun' => $backupsAfterScheduledRun,
     'backupCount' => count(listBackupSnapshots('docker'))
 ], JSON_UNESCAPED_SLASHES);
 `;
@@ -66,25 +75,26 @@ const runHarness = () => {
     }
 };
 
-test('server preference merge preserves nested siblings and replaces list values', () => {
+test('server preference merge preserves nested siblings, hourly defaults, and explicit schedules without backup files', () => {
     const result = runHarness();
     assert.equal(result.dashboard.privacyMaskNames, true);
     assert.equal(result.dashboard.privacyMaskPorts, false);
     assert.deepEqual(result.pinnedFolderIds, ['three']);
-    assert.equal(result.first.coalesced, false);
-    assert.equal(result.second.coalesced, true);
-    assert.equal(result.second.name, result.first.name);
-    assert.equal(result.displayPatchRequiresBackup, false);
-    assert.equal(result.rulePatchRequiresBackup, true);
-    assert.equal(result.unchangedBroadPatchRequiresBackup, false);
+    assert.equal(result.defaultSchedule.enabled, true);
+    assert.equal(result.defaultSchedule.intervalHours, 1);
+    assert.equal(result.savedSchedule.enabled, false);
+    assert.equal(result.savedSchedule.intervalHours, 24);
+    assert.equal(result.backupsAfterPrefsSave, 0);
+    assert.equal(result.readFolderCount, 1);
+    assert.equal(result.backupsAfterFolderRead, 0);
+    assert.equal(result.backupsAfterScheduledRun, 1);
     assert.equal(result.backupCount, 1);
 });
 
 test('preference endpoint exposes revision-safe merge and mutation diagnostics', () => {
     assert.match(prefsEndpoint, /mergeTypePrefsPatch\(\$current, \$decoded\)/);
     assert.match(prefsEndpoint, /clientMutationId/);
-    assert.match(prefsEndpoint, /createCoalescedPrefsBackupSnapshot\(\$type\)/);
-    assert.match(prefsEndpoint, /prefsPatchRequiresSafetyBackup\(\$decoded, \$current, \$next\)/);
+    assert.doesNotMatch(prefsEndpoint, /createBackupSnapshot\(|createCoalescedPrefsBackupSnapshot\(/);
     assert.match(prefsEndpoint, /'backupRequired'/);
     assert.match(prefsEndpoint, /'backupCoalesced'/);
 });

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Surveillez l’état du plugin, résolvez les problèmes et partagez les données d’assistance.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Aucune activité pour le moment",
     "diagnostics.activity.empty-description": "Les modifications de dossiers, sauvegardes, importations et actions de récupération apparaîtront ici.",
     "diagnostics.activity.ready": "Prêt",
-    "diagnostics.history.refresh-description": "Actualisez l'historique après une sauvegarde, un import, une restauration ou une annulation pour consulter les derniers événements sûrs pour la récupération.",
-    "diagnostics.history.empty-title": "Aucune entrée de chronologie pour le moment.",
-    "diagnostics.history.empty-description": "Les cartes de modifications récentes apparaîtront ici pour la source de récupération sélectionnée.",
     "diagnostics.cards.technical-details": "Détails techniques",
     "diagnostics.actions.retry": "Réessayer",
     "diagnostics.capture.age-unknown": "âge inconnu",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 supprimé, $2 a échoué",
     "diagnostics.activity.detail.action": "Action : $1",
     "diagnostics.activity.exported": "Offre groupée de support exportée",
-    "diagnostics.history.members-reconciled": "Références des membres synchronisées",
     "diagnostics.history.backup-restored": "Sauvegarde restaurée",
-    "diagnostics.history.backup-deleted": "Sauvegarde supprimée",
-    "diagnostics.history.backup-download": "Téléchargement de sauvegarde demandé",
-    "diagnostics.history.preferences-saved": "Préférences enregistrées",
-    "diagnostics.history.event-details": "Détails de l’événement"
+    "diagnostics.history.backup-deleted": "Sauvegarde supprimée"
 }

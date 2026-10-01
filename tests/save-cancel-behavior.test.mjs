@@ -42,7 +42,7 @@ test('folder reordering remains instant-persist and outside staged save/cancel d
     assert.match(settingsRuntimeJs, /const queueFolderReorderPersist = \(type, \{/);
     assert.match(settingsRuntimeJs, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
     assert.match(settingsRuntimeJs, /applyOptimisticManualOrder\(resolvedType, nextOrder\);/);
-    assert.match(settingsRuntimeJs, /focusFolderRow\(resolvedType, safeFolderId\);[\s\S]*queueFolderReorderPersist\(resolvedType, \{/);
+    assert.match(settingsRuntimeJs, /focusFolderRow\(resolvedType, safeFolderId, \{ scroll: false \}\);[\s\S]*queueFolderReorderPersist\(resolvedType, \{/);
     const moveBlockMatch = settingsRuntimeJs.match(/const moveFolderRow = async \(type, folderId, direction\) => \{([\s\S]*?)\n\};/);
     assert.ok(moveBlockMatch, 'Expected moveFolderRow function block to exist.');
     const moveBlock = moveBlockMatch?.[1] || '';
@@ -59,9 +59,9 @@ test('folder reordering remains instant-persist and outside staged save/cancel d
     const flushBlockMatch = settingsRuntimeJs.match(/const flushQueuedFolderReorderPersist = async \(type\) => \{([\s\S]*?)\n\};/);
     assert.ok(flushBlockMatch, 'Expected flushQueuedFolderReorderPersist function block to exist.');
     const flushBlock = flushBlockMatch?.[1] || '';
-    assert.match(flushBlock, /session\.backupPromise = createBackup\(resolvedType, backupReason\)/);
+    assert.doesNotMatch(flushBlock, /createBackup\(/);
     assert.match(flushBlock, /await persistManualOrder\(resolvedType, orderToPersist, \{ refresh: false \}\);/);
-    assert.match(flushBlock, /await recordTreeMoveHistoryFromBackup\(/);
+    assert.match(flushBlock, /pushTreeMoveHistoryEntry\(resolvedType,/);
     assert.match(flushBlock, /prefsByType\[resolvedType\] = baselinePrefs;\s*renderTable\(resolvedType\);/);
     assert.match(flushBlock, /await refreshType\(resolvedType\);/);
 });

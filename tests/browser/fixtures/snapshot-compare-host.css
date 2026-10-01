@@ -1,0 +1,25 @@
+/* Isolated host rules modeled on Unraid's default-dynamix.css and jquery.ui.css. */
+.ui-dialog:not(.ui-dialog-content-full) {
+    width: 100% !important;
+    max-width: 100rem;
+}
+.ui-dialog:not(.ui-dialog-content-full) .ui-dialog-content {
+    min-height: 20vh !important;
+    max-height: 70vh !important;
+    align-items: center;
+}
+.ui-widget-content {
+    background: var(--dynamix-jquery-ui-content-background, #222) !important;
+    color: var(--dynamix-jquery-ui-content-color, #eee) !important;
+}
+.ui-widget-header {
+    background: var(--dynamix-jquery-ui-header-background, #333) !important;
+    color: var(--dynamix-jquery-ui-header-color, #eee) !important;
+}
+.ui-dialog-buttonpane .ui-dialog-buttonset button {
+    font-family: clear-sans;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 9px 18px;
+}

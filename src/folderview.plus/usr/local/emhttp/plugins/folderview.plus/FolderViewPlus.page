@@ -34,7 +34,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.host-buttons.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
-<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/operations-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.tree-move.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/operations-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/bulk-assignment-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.tree-move.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.diagnostics.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/start-order-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme-profiles.css')?>">
 
@@ -1131,150 +1131,108 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>
-<div class="bulk-assign-grid">
-    <div class="rules-panel bulk-module" data-fv-bulk-type="docker">
-        <div class="rules-header">
-            <h3>Docker bulk assignment</h3>
-            <span class="rules-help">Move multiple containers to one folder. Existing folder membership is cleaned up automatically.</span>
-        </div>
-        <div class="bulk-step-strip" aria-hidden="true">
-            <span class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy">Choose target</span></span>
-            <span class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy">Select items</span></span>
-            <span class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy">Review and apply</span></span>
-        </div>
-        <div class="bulk-summary-grid">
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Target</span>
-                <strong id="docker-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong>
-            </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Available</span>
-                <strong id="docker-bulk-available-summary" class="bulk-summary-value">0</strong>
-            </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Selected</span>
-                <strong id="docker-bulk-selected-summary" class="bulk-summary-value">0</strong>
-            </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Changes</span>
-                <strong id="docker-bulk-action-summary" class="bulk-summary-value">0</strong>
-            </div>
-        </div>
-        <div class="bulk-stage">
-            <div class="bulk-stage-heading">
-                <strong>1. Choose target</strong>
-                <span>Pick the folder that should receive the selected containers.</span>
-            </div>
-            <div class="bulk-row bulk-target-row">
-                <label for="docker-bulk-folder">Target folder</label>
-                <select id="docker-bulk-folder" data-fv-track-save="0"></select>
-                <button id="docker-bulk-assign-btn" type="button" data-fv-onclick="assignSelectedItems('docker')"><i class="fa fa-list-alt"></i> Preview changes</button>
-            </div>
-        </div>
-        <div class="bulk-stage">
-            <div class="bulk-stage-heading">
-                <strong>2. Select items</strong>
-                <span>Filter the list, then choose the containers you want moved into the target folder.</span>
-            </div>
-            <div class="bulk-row bulk-filter-row">
-                <input id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0" data-fv-oninput="filterBulkItems('docker', this.value)">
-                <div class="bulk-selection-actions">
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> All shown</button>
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
-                </div>
-            </div>
-            <div class="bulk-row bulk-meta-row">
-                <span id="docker-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-                <span class="rules-help">Select the items you want to move. The plan updates live below.</span>
-            </div>
-            <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
-            <select id="docker-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" data-fv-onchange="updateBulkSelectedCount('docker')"></select>
-        </div>
-        <div class="bulk-stage bulk-stage-review">
-            <div class="bulk-stage-heading">
-                <strong>3. Review and apply</strong>
-                <span id="docker-bulk-help" class="bulk-help-text">Choose a target and select items to see the plan.</span>
-            </div>
-            <div id="docker-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
-            <div id="docker-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
-            <div class="bulk-result-actions is-hidden">
-                <button id="docker-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
-            </div>
-        </div>
+<div class="fv-bulk-hero" data-fv-section-row="1"><i class="fa fa-cube" aria-hidden="true"></i><div><h2 id="fv-bulk-title" data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk Move Containers</h2><p id="fv-bulk-description">Move multiple Docker containers to a target folder in one action.</p></div><a href="https://github.com/alexphillips-dev/FolderView-Plus/wiki" target="_blank" rel="noopener noreferrer"><i class="fa fa-question-circle-o" aria-hidden="true"></i> Need help?</a></div>
+<div class="fv-bulk-workspace">
+    <div class="bulk-source-switch" role="group" aria-label="Bulk move source"><button type="button" data-fv-bulk-source="docker" aria-pressed="true"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button><button type="button" data-fv-bulk-source="vm" aria-pressed="false"><i class="fa fa-desktop" aria-hidden="true"></i> VM</button></div>
+    <div class="bulk-assign-grid">
+<section class="rules-panel bulk-module" data-fv-bulk-type="docker">
+    <div class="bulk-step-strip" aria-label="Bulk move steps">
+        <div class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy"><strong>Choose destination</strong><small>Select the target folder</small></span></div>
+        <div class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy"><strong>Select containers</strong><small>Choose the items to move</small></span></div>
+        <div class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy"><strong>Review &amp; apply</strong><small>Confirm and move</small></span></div>
     </div>
-
-    <div class="rules-panel bulk-module" data-fv-bulk-type="vm">
-        <div class="rules-header">
-            <h3>VM bulk assignment</h3>
-            <span class="rules-help">Move multiple VMs to one folder. Existing folder membership is cleaned up automatically.</span>
-        </div>
-        <div class="bulk-step-strip" aria-hidden="true">
-            <span class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy">Choose target</span></span>
-            <span class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy">Select items</span></span>
-            <span class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy">Review and apply</span></span>
-        </div>
-        <div class="bulk-summary-grid">
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Target</span>
-                <strong id="vm-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong>
+    <div class="bulk-summary-grid">
+        <button type="button" class="bulk-summary-card bulk-summary-target" data-fv-bulk-action="destination"><i class="fa fa-folder-o" aria-hidden="true"></i><span><span class="bulk-summary-label">Destination folder</span><strong id="docker-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong></span><i class="fa fa-angle-down" aria-hidden="true"></i></button>
+        <div class="bulk-summary-card"><i class="fa fa-cube" aria-hidden="true"></i><span><span class="bulk-summary-label">Available containers</span><strong id="docker-bulk-available-summary" class="bulk-summary-value">0</strong></span></div>
+        <div class="bulk-summary-card"><i class="fa fa-check-square-o" aria-hidden="true"></i><span><span class="bulk-summary-label">Selected containers</span><strong id="docker-bulk-selected-summary" class="bulk-summary-value">0</strong></span></div>
+        <div class="bulk-summary-card"><i class="fa fa-exchange" aria-hidden="true"></i><span><span class="bulk-summary-label">Planned changes</span><strong id="docker-bulk-action-summary" class="bulk-summary-value">0</strong></span></div>
+    </div>
+    <div class="bulk-workspace-body">
+        <aside class="bulk-stage bulk-sidebar">
+            <div class="bulk-stage-heading"><strong><i class="fa fa-folder-o" aria-hidden="true"></i> 1. Destination folder</strong><span>Select the folder that will receive the containers.</span></div>
+            <label class="bulk-field"><span class="fv-sr-only">Destination folder</span><span class="bulk-select-wrap"><i class="fa fa-folder" aria-hidden="true"></i><select id="docker-bulk-folder" data-fv-track-save="0"></select></span></label>
+            <div class="bulk-sidebar-filters">
+                <div class="bulk-stage-heading"><strong><i class="fa fa-filter" aria-hidden="true"></i> Filters (optional)</strong><span>Filter the list to quickly find what you need.</span></div>
+                <label class="bulk-search"><i class="fa fa-search" aria-hidden="true"></i><span class="fv-sr-only">Search containers</span><input id="docker-bulk-filter" type="search" placeholder="Search containers..." data-fv-track-save="0" data-fv-oninput="filterBulkItems('docker', this.value)"></label>
+                <label class="bulk-field"><span>Current folder</span><select id="docker-bulk-current-folder" data-fv-bulk-filter="folder" data-fv-track-save="0"><option value="">All folders</option></select></label>
+                <label class="bulk-field"><span>Status</span><select id="docker-bulk-status-filter" data-fv-bulk-filter="status" data-fv-track-save="0"><option value="">All containers</option><option value="started">Running</option><option value="stopped">Stopped</option><option value="paused">Paused</option><option value="unknown">Unknown</option></select></label>
+                <button type="button" class="bulk-clear-filters" data-fv-bulk-action="clear-filters"><i class="fa fa-refresh" aria-hidden="true"></i> Clear filters</button>
             </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Available</span>
-                <strong id="vm-bulk-available-summary" class="bulk-summary-value">0</strong>
+        </aside>
+        <section class="bulk-stage bulk-selection-stage">
+            <div class="bulk-stage-heading bulk-list-heading"><div><strong><i class="fa fa-cube" aria-hidden="true"></i> 2. Select containers</strong><span id="docker-bulk-selection-description">Choose the containers you want to move.</span></div><span id="docker-bulk-visible-count"></span></div>
+            <div class="bulk-list-toolbar"><div class="bulk-workspace-actions">
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o" aria-hidden="true"></i> Select all</button>
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o" aria-hidden="true"></i> Clear</button>
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random" aria-hidden="true"></i> Invert</button>
+            </div><label class="bulk-search"><i class="fa fa-search" aria-hidden="true"></i><span class="fv-sr-only">Search containers</span><input id="docker-bulk-table-filter" type="search" placeholder="Search containers..." data-fv-track-save="0" data-fv-bulk-search="1"></label></div>
+            <div class="bulk-table-scroll"><table class="bulk-table"><thead><tr>
+                <th class="bulk-check-cell"><input id="docker-bulk-toggle-all" type="checkbox" data-fv-bulk-action="toggle-all" aria-label="Select all shown items" data-fv-track-save="0"></th>
+                <th scope="col" aria-sort="ascending"><button type="button" data-fv-bulk-sort="name">Container name <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+                <th scope="col" aria-sort="none"><button type="button" data-fv-bulk-sort="folder">Current folder <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+                <th scope="col" aria-sort="none"><button type="button" data-fv-bulk-sort="status">Status <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+            </tr></thead><tbody id="docker-bulk-items-list" class="bulk-items-list"></tbody></table></div>
+            <select id="docker-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple data-fv-onchange="updateBulkSelectedCount('docker')"></select>
+        </section>
+    </div>
+    <div class="bulk-stage bulk-stage-review">
+        <div class="bulk-footer-summary"><i class="fa fa-info-circle" aria-hidden="true"></i><div><strong id="docker-bulk-selected-count">0 selected</strong><span id="docker-bulk-help" class="bulk-help-text">Select items from the list to preview folder moves.</span></div></div>
+        <div class="bulk-footer-destination"><i class="fa fa-long-arrow-right" aria-hidden="true"></i><i class="fa fa-folder-o" aria-hidden="true"></i><div><strong id="docker-bulk-footer-target">Choose a folder</strong><span id="docker-bulk-footer-count">0</span></div></div>
+        <button id="docker-bulk-assign-btn" type="button" class="bulk-move-button" data-fv-onclick="assignSelectedItems('docker')" disabled><i class="fa fa-play" aria-hidden="true"></i> Move containers (0)</button>
+    </div>
+    <details class="bulk-plan-details"><summary>Review planned changes</summary><div id="docker-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div></details>
+    <div id="docker-bulk-result" class="bulk-result-panel" role="status" hidden></div>
+    <div class="bulk-result-actions is-hidden"><button id="docker-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat" aria-hidden="true"></i> Retry failed</button></div>
+</section>
+<section class="rules-panel bulk-module" data-fv-bulk-type="vm" hidden>
+    <div class="bulk-step-strip" aria-label="Bulk move steps">
+        <div class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy"><strong>Choose destination</strong><small>Select the target folder</small></span></div>
+        <div class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy"><strong>Select VMs</strong><small>Choose the items to move</small></span></div>
+        <div class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy"><strong>Review &amp; apply</strong><small>Confirm and move</small></span></div>
+    </div>
+    <div class="bulk-summary-grid">
+        <button type="button" class="bulk-summary-card bulk-summary-target" data-fv-bulk-action="destination"><i class="fa fa-folder-o" aria-hidden="true"></i><span><span class="bulk-summary-label">Destination folder</span><strong id="vm-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong></span><i class="fa fa-angle-down" aria-hidden="true"></i></button>
+        <div class="bulk-summary-card"><i class="fa fa-desktop" aria-hidden="true"></i><span><span class="bulk-summary-label">Available VMs</span><strong id="vm-bulk-available-summary" class="bulk-summary-value">0</strong></span></div>
+        <div class="bulk-summary-card"><i class="fa fa-check-square-o" aria-hidden="true"></i><span><span class="bulk-summary-label">Selected VMs</span><strong id="vm-bulk-selected-summary" class="bulk-summary-value">0</strong></span></div>
+        <div class="bulk-summary-card"><i class="fa fa-exchange" aria-hidden="true"></i><span><span class="bulk-summary-label">Planned changes</span><strong id="vm-bulk-action-summary" class="bulk-summary-value">0</strong></span></div>
+    </div>
+    <div class="bulk-workspace-body">
+        <aside class="bulk-stage bulk-sidebar">
+            <div class="bulk-stage-heading"><strong><i class="fa fa-folder-o" aria-hidden="true"></i> 1. Destination folder</strong><span>Select the folder that will receive the VMs.</span></div>
+            <label class="bulk-field"><span class="fv-sr-only">Destination folder</span><span class="bulk-select-wrap"><i class="fa fa-folder" aria-hidden="true"></i><select id="vm-bulk-folder" data-fv-track-save="0"></select></span></label>
+            <div class="bulk-sidebar-filters">
+                <div class="bulk-stage-heading"><strong><i class="fa fa-filter" aria-hidden="true"></i> Filters (optional)</strong><span>Filter the list to quickly find what you need.</span></div>
+                <label class="bulk-search"><i class="fa fa-search" aria-hidden="true"></i><span class="fv-sr-only">Search VMs</span><input id="vm-bulk-filter" type="search" placeholder="Search VMs..." data-fv-track-save="0" data-fv-oninput="filterBulkItems('vm', this.value)"></label>
+                <label class="bulk-field"><span>Current folder</span><select id="vm-bulk-current-folder" data-fv-bulk-filter="folder" data-fv-track-save="0"><option value="">All folders</option></select></label>
+                <label class="bulk-field"><span>Status</span><select id="vm-bulk-status-filter" data-fv-bulk-filter="status" data-fv-track-save="0"><option value="">All VMs</option><option value="started">Running</option><option value="stopped">Stopped</option><option value="paused">Paused</option><option value="unknown">Unknown</option></select></label>
+                <button type="button" class="bulk-clear-filters" data-fv-bulk-action="clear-filters"><i class="fa fa-refresh" aria-hidden="true"></i> Clear filters</button>
             </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Selected</span>
-                <strong id="vm-bulk-selected-summary" class="bulk-summary-value">0</strong>
-            </div>
-            <div class="bulk-summary-card">
-                <span class="bulk-summary-label">Changes</span>
-                <strong id="vm-bulk-action-summary" class="bulk-summary-value">0</strong>
-            </div>
-        </div>
-        <div class="bulk-stage">
-            <div class="bulk-stage-heading">
-                <strong>1. Choose target</strong>
-                <span>Pick the folder that should receive the selected VMs.</span>
-            </div>
-            <div class="bulk-row bulk-target-row">
-                <label for="vm-bulk-folder">Target folder</label>
-                <select id="vm-bulk-folder" data-fv-track-save="0"></select>
-                <button id="vm-bulk-assign-btn" type="button" data-fv-onclick="assignSelectedItems('vm')"><i class="fa fa-list-alt"></i> Preview changes</button>
-            </div>
-        </div>
-        <div class="bulk-stage">
-            <div class="bulk-stage-heading">
-                <strong>2. Select items</strong>
-                <span>Filter the list, then choose the VMs you want moved into the target folder.</span>
-            </div>
-            <div class="bulk-row bulk-filter-row">
-                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0" data-fv-oninput="filterBulkItems('vm', this.value)">
-                <div class="bulk-selection-actions">
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> All shown</button>
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
-                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
-                </div>
-            </div>
-            <div class="bulk-row bulk-meta-row">
-                <span id="vm-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-                <span class="rules-help">Select the VMs you want to move. The plan updates live below.</span>
-            </div>
-            <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
-            <select id="vm-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" data-fv-onchange="updateBulkSelectedCount('vm')"></select>
-        </div>
-        <div class="bulk-stage bulk-stage-review">
-            <div class="bulk-stage-heading">
-                <strong>3. Review and apply</strong>
-                <span id="vm-bulk-help" class="bulk-help-text">Choose a target and select items to see the plan.</span>
-            </div>
-            <div id="vm-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
-            <div id="vm-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
-            <div class="bulk-result-actions is-hidden">
-                <button id="vm-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
-            </div>
-        </div>
+        </aside>
+        <section class="bulk-stage bulk-selection-stage">
+            <div class="bulk-stage-heading bulk-list-heading"><div><strong><i class="fa fa-desktop" aria-hidden="true"></i> 2. Select VMs</strong><span id="vm-bulk-selection-description">Choose the VMs you want to move.</span></div><span id="vm-bulk-visible-count"></span></div>
+            <div class="bulk-list-toolbar"><div class="bulk-workspace-actions">
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o" aria-hidden="true"></i> Select all</button>
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o" aria-hidden="true"></i> Clear</button>
+                <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random" aria-hidden="true"></i> Invert</button>
+            </div><label class="bulk-search"><i class="fa fa-search" aria-hidden="true"></i><span class="fv-sr-only">Search VMs</span><input id="vm-bulk-table-filter" type="search" placeholder="Search VMs..." data-fv-track-save="0" data-fv-bulk-search="1"></label></div>
+            <div class="bulk-table-scroll"><table class="bulk-table"><thead><tr>
+                <th class="bulk-check-cell"><input id="vm-bulk-toggle-all" type="checkbox" data-fv-bulk-action="toggle-all" aria-label="Select all shown items" data-fv-track-save="0"></th>
+                <th scope="col" aria-sort="ascending"><button type="button" data-fv-bulk-sort="name">VM name <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+                <th scope="col" aria-sort="none"><button type="button" data-fv-bulk-sort="folder">Current folder <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+                <th scope="col" aria-sort="none"><button type="button" data-fv-bulk-sort="status">Status <i class="fa fa-sort" aria-hidden="true"></i></button></th>
+            </tr></thead><tbody id="vm-bulk-items-list" class="bulk-items-list"></tbody></table></div>
+            <select id="vm-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple data-fv-onchange="updateBulkSelectedCount('vm')"></select>
+        </section>
+    </div>
+    <div class="bulk-stage bulk-stage-review">
+        <div class="bulk-footer-summary"><i class="fa fa-info-circle" aria-hidden="true"></i><div><strong id="vm-bulk-selected-count">0 selected</strong><span id="vm-bulk-help" class="bulk-help-text">Select items from the list to preview folder moves.</span></div></div>
+        <div class="bulk-footer-destination"><i class="fa fa-long-arrow-right" aria-hidden="true"></i><i class="fa fa-folder-o" aria-hidden="true"></i><div><strong id="vm-bulk-footer-target">Choose a folder</strong><span id="vm-bulk-footer-count">0</span></div></div>
+        <button id="vm-bulk-assign-btn" type="button" class="bulk-move-button" data-fv-onclick="assignSelectedItems('vm')" disabled><i class="fa fa-play" aria-hidden="true"></i> Move VMs (0)</button>
+    </div>
+    <details class="bulk-plan-details"><summary>Review planned changes</summary><div id="vm-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div></details>
+    <div id="vm-bulk-result" class="bulk-result-panel" role="status" hidden></div>
+    <div class="bulk-result-actions is-hidden"><button id="vm-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat" aria-hidden="true"></i> Retry failed</button></div>
+</section>
     </div>
 </div>
 <hr>
@@ -1411,22 +1369,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace</h2>
+<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Restore and Backup Snapshots</h2>
 <div class="fv-recovery-module-wrap">
     <div class="rules-panel fv-recovery-panel">
-        <div class="rules-header">
-            <h3>Restore and backup snapshots</h3>
-            <span class="rules-help">Choose Docker or VMs, confirm you are protected, then create, compare, restore, or review snapshots from one place.</span>
-        </div>
         <div class="fv-recovery-section-body">
             <div class="fv-recovery-intro">
                 <div>
-                    <strong>Recovery protects your FolderView Plus setup.</strong>
-                    <span>Use this page to create restore points, restore a previous folder layout, compare two snapshots, or move your setup to another server.</span>
+                    <span>Protect, restore, and manage your FolderView Plus setup. Create restore points, compare snapshots, or move your setup to another server.</span>
                 </div>
-                <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" data-fv-onclick="setRecoveryWorkspaceType('docker')">Docker</button>
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" data-fv-onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+                <div class="fv-rules-source-switch fv-recovery-source-switch" role="group" aria-label="Recovery source">
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" data-fv-onclick="setRecoveryWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" data-fv-onclick="setRecoveryWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
                 </div>
             </div>
 
@@ -1437,82 +1390,47 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </div>
 
+            <div class="fv-recovery-action-bar">
+                <div class="fv-recovery-primary-actions">
+                    <button id="fv-recovery-restore-latest" type="button" class="fv-recovery-primary-restore" data-fv-onclick="restoreLatestActiveRecoveryBackup()" disabled><i class="fa fa-history" aria-hidden="true"></i> Restore Latest Backup</button>
+                    <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera" aria-hidden="true"></i> Create Backup Now</button>
+                    <button type="button" data-fv-onclick="openActiveRecoverySnapshotCompare()" aria-haspopup="dialog"><i class="fa fa-exchange" aria-hidden="true"></i> Compare Snapshots</button>
+                </div>
+                <details class="fv-recovery-more-actions">
+                    <summary><i class="fa fa-ellipsis-v" aria-hidden="true"></i> More actions <i class="fa fa-angle-down" aria-hidden="true"></i></summary>
+                    <div class="fv-recovery-more-menu backup-actions">
+                        <button type="button" data-fv-onclick="undoActiveRecoveryChange()">Undo latest change</button>
+                        <button type="button" data-fv-onclick="runActiveRecoveryScheduler()">Run scheduler now</button>
+                        <button type="button" class="fv-recovery-danger-action" data-fv-recovery-action="delete-all">Delete all backups</button>
+                    </div>
+                </details>
+            </div>
             <div class="fv-recovery-stage-grid">
-                <section class="fv-recovery-stage">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Restore and safety</strong>
-                        <span class="rules-help">Restore the latest safe snapshot or create a manual checkpoint before making changes.</span>
-                    </div>
-                    <div class="backup-actions fv-recovery-primary-actions">
-                        <button type="button" data-fv-onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
-                        <button type="button" data-fv-onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
-                        <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
-                        <button type="button" data-fv-onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
-                    </div>
-                    <div id="fv-recovery-safety-note" class="fv-recovery-callout">
-                        Restoring always creates a fresh safety backup first.
-                    </div>
-                </section>
-
-                <section class="fv-recovery-stage fv-recovery-compare-stage">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Compare snapshots</strong>
-                        <span class="rules-help">Preview folder and preference differences before restoring anything.</span>
-                    </div>
-                    <div class="backup-compare-row fv-recovery-compare-row">
-                        <label for="recovery-backup-compare-left">Compare</label>
-                        <select id="recovery-backup-compare-left"></select>
-                        <span class="backup-compare-sep">vs</span>
-                        <select id="recovery-backup-compare-right"></select>
-                        <label class="backup-compare-prefs-toggle"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-                        <button type="button" data-fv-onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
-                    </div>
+                <section class="fv-recovery-stage fv-recovery-history-stage">
+                    <div class="fv-recovery-stage-head"><i class="fa fa-database" aria-hidden="true"></i><div><strong>Backup history</strong><span id="fv-recovery-history-summary" class="rules-help">Choose a snapshot to restore, download, or delete.</span></div></div>
+                    <div id="fv-recovery-backup-list" class="fv-recovery-history-list"><div class="fv-recovery-empty-state"><strong>No backups loaded yet.</strong><span>Create a backup to start building recovery history.</span></div></div>
                 </section>
 
                 <section class="fv-recovery-stage fv-recovery-policy">
-                    <div class="fv-recovery-stage-head">
-                        <strong>Backup policy</strong>
-                        <span id="fv-recovery-policy-summary" class="rules-help">Manual backups only.</span>
-                    </div>
-                    <div class="schedule-row fv-recovery-policy-grid">
+                    <div class="fv-recovery-stage-head"><i class="fa fa-cog" aria-hidden="true"></i><div><strong>Backup policy &amp; protection</strong><span>Configure scheduled backups and see what is protected.</span></div><button type="button" class="fv-recovery-edit-settings" data-fv-recovery-disclosure="fv-recovery-policy-editor" aria-controls="fv-recovery-policy-editor" aria-expanded="false"><i class="fa fa-pencil" aria-hidden="true"></i> Edit Settings</button></div>
+                    <div id="fv-recovery-policy-summary" class="fv-recovery-policy-summary"></div>
+                    <div id="fv-recovery-policy-details" class="fv-recovery-policy-details"></div>
+                    <div id="fv-recovery-policy-editor" class="fv-recovery-inline-panel" hidden><strong>Edit backup schedule</strong><div class="schedule-row fv-recovery-policy-grid">
                         <label><input id="recovery-backup-schedule-enabled" type="checkbox" data-fv-onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
                         <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" data-fv-onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
                         <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" data-fv-onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
                         <span id="recovery-backup-last-run" class="schedule-hint"></span>
-                    </div>
+                    </div></div>
                 </section>
             </div>
-
-            <section class="fv-recovery-stage fv-recovery-history-stage">
-                <div class="fv-recovery-stage-head">
-                    <strong>Backup history</strong>
-                    <span id="fv-recovery-history-summary" class="rules-help">Choose one stored snapshot, then restore, download, or delete it.</span>
-                </div>
-                <div id="fv-recovery-backup-list" class="fv-recovery-history-list">
-                    <div class="fv-recovery-empty-state">
-                        <strong>No backups loaded yet.</strong>
-                        <span>Create a manual snapshot or run the scheduler once to start building recovery history.</span>
-                    </div>
-                </div>
-            </section>
-
             <section class="fv-recovery-stage fv-recovery-environment-stage">
-                <div class="fv-recovery-stage-head">
-                    <strong>Environment export and import</strong>
-                    <span class="rules-help">Move the full plugin environment between installs in one JSON file. This includes Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
+                <div class="fv-recovery-stage-head"><i class="fa fa-wrench" aria-hidden="true"></i><div><strong>Additional tools</strong><span>Export or import your FolderView Plus environment.</span></div></div>
+                <div class="fv-recovery-environment-actions">
+                    <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-upload"></i> Export Environment</button>
+                    <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-download"></i> Import Environment</button>
                 </div>
-                <div class="backup-actions fv-recovery-environment-actions">
-                    <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
-                    <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
-                </div>
-                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list">
-                    <div class="fv-recovery-empty-state">
-                        <strong>Portable environment snapshots are ready.</strong>
-                        <span>Export everything to one JSON file or import a snapshot from another FolderView Plus install.</span>
-                    </div>
-                </div>
+                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list" aria-live="polite"></div>
             </section>
-            <section class="fv-recovery-stage fv-recovery-environment-stage"><div class="fv-recovery-stage-head"><strong data-i18n="import.folderview3.preview-title">FolderView3 migration preview</strong><span class="rules-help" data-i18n="import.folderview3.preview-help">Discover an installed FolderView3 configuration or inspect a full-export JSON. Detection and preview are read-only; native organizer records and Docker autostart mutations remain excluded unless a later apply explicitly includes them.</span></div><div class="backup-actions fv-recovery-environment-actions"><button type="button" data-fv-folderview3-action="detect"><i class="fa fa-search"></i> Detect installed FolderView3</button><button type="button" data-fv-folderview3-action="preview-export"><i class="fa fa-eye"></i> Preview FolderView3 export</button></div><div id="fv-recovery-folderview3-summary" class="fv-recovery-history-list"><div class="fv-recovery-empty-state"><strong data-i18n="import.folderview3.read-only-title">FolderView3 migration is read-only until you approve an apply plan.</strong><span data-i18n="import.folderview3.read-only-help">Detect an installed configuration or preview a FolderView3 export without writing any plugin or Unraid state.</span></div></div></section>
             <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
                 <select id="docker-backup-compare-left"></select>
                 <select id="docker-backup-compare-right"></select>
@@ -1664,15 +1582,31 @@ if (!empty($fvplusRuntimeConflicts)) {
         <label id="import-review-ack-row" class="import-review-ack" data-fvplus-style="fv-u-xcjvns"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
     </div>
 </div>
+<div id="backup-compare-picker" data-fvplus-style="fv-u-xcjvns">
+    <p class="fv-compare-intro">Choose a snapshot and a comparison target. No changes will be saved.</p>
+    <div class="fv-compare-source-grid">
+        <div class="fv-compare-source-card">
+            <label for="recovery-backup-compare-left">From snapshot</label>
+            <select id="recovery-backup-compare-left"></select>
+        </div>
+        <div class="fv-compare-source-card">
+            <label for="recovery-backup-compare-right">Compare with</label>
+            <select id="recovery-backup-compare-right"></select>
+        </div>
+    </div>
+    <label class="backup-compare-prefs-toggle fv-compare-prefs-option"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
+    <p id="backup-compare-picker-status" class="fv-compare-notice" role="status" hidden></p>
+</div>
 <div id="backup-compare-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="backup-compare-head">
-        <p class="import-preview-title">Snapshot comparison</p>
-        <p class="import-preview-subtitle">Review exactly what changed between two configuration snapshots.</p>
+        <p class="fv-compare-kicker">Read-only comparison</p>
+        <h3>Snapshot comparison</h3>
+        <p class="fv-compare-intro">Review exactly what changed between two configuration snapshots.</p>
     </div>
-    <div id="backup-compare-meta" class="preview-meta"></div>
-    <div id="backup-compare-counts" class="import-preview-counts"></div>
-    <div id="backup-compare-diff" class="backup-compare-diff"></div>
-    <div id="backup-compare-prefs" class="backup-compare-prefs"></div>
+    <div id="backup-compare-meta" class="fv-compare-source-grid"></div>
+    <div id="backup-compare-counts" class="fv-compare-counts"></div>
+    <section class="fv-compare-section"><h3>Folder changes</h3><div id="backup-compare-diff" class="backup-compare-diff"></div></section>
+    <section class="fv-compare-section"><h3>Preferences</h3><div id="backup-compare-prefs" class="backup-compare-prefs"></div></section>
 </div>
 
 <div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>
@@ -1746,6 +1680,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-report.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
         '/plugins/folderview.plus/scripts/folderviewplus.environment.js', '/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.view.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
         '/plugins/folderview.plus/scripts/runtime.transport.core.js',

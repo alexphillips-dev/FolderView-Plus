@@ -79,8 +79,8 @@
                 'actionsWidth' => 'standard'
             ],
             'backupSchedule' => [
-                'enabled' => false,
-                'intervalHours' => 24,
+                'enabled' => true,
+                'intervalHours' => 1,
                 'retention' => 25,
                 'lastRunAt' => ''
             ],
@@ -392,36 +392,6 @@
         return $merged;
     }
 
-    function prefsPatchRequiresSafetyBackup(array $patch, ?array $current = null, ?array $next = null): bool {
-        // Atomic last-good writes protect ordinary display toggles. Keep full
-        // recovery checkpoints for preference changes that can reshape folder
-        // assignment, ordering, automation, imports, or scheduled recovery.
-        $recoveryCriticalKeys = [
-            'sortMode',
-            'manualOrder',
-            'pinnedFolderIds',
-            'autoRules',
-            'backupSchedule',
-            'dockerStartOrder',
-            'folderDefaults',
-            'importPresets'
-        ];
-        foreach ($recoveryCriticalKeys as $key) {
-            if (!array_key_exists($key, $patch)) {
-                continue;
-            }
-            if (is_array($current) && is_array($next)) {
-                $before = json_encode($current[$key] ?? null, JSON_UNESCAPED_SLASHES);
-                $after = json_encode($next[$key] ?? null, JSON_UNESCAPED_SLASHES);
-                if ($before === $after) {
-                    continue;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['folderview', 'host', 'command'], true)) {
@@ -623,8 +593,8 @@
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
         $normalized['backupSchedule'] = [
-            'enabled' => normalizeBool($scheduleIncoming['enabled'] ?? false, false),
-            'intervalHours' => normalizeIntInRange($scheduleIncoming['intervalHours'] ?? 24, 1, 168, 24),
+            'enabled' => normalizeBool($scheduleIncoming['enabled'] ?? true, true),
+            'intervalHours' => normalizeIntInRange($scheduleIncoming['intervalHours'] ?? 1, 1, 168, 1),
             'retention' => normalizeIntInRange($scheduleIncoming['retention'] ?? 25, 1, 200, 25),
             'lastRunAt' => is_string($scheduleIncoming['lastRunAt'] ?? null) ? (string)$scheduleIncoming['lastRunAt'] : ''
         ];

@@ -15,7 +15,7 @@
         'downloadSelectedActiveRecoveryBackup downloadVm dropDownButton editFolder expandAllFolderTrees exportEnvironmentSnapshot ' +
         'exportTemplateEntry filterBulkItems forceUpdateFolder handleFolderRowKeydown hideAllTips importDocker ' +
         'importEnvironmentSnapshot importThemeWorkspaceGithub importVm invalidateFolderRuntimePreview moveAutoRule moveDockerStartOrderBatch ' +
-        'moveDockerStartOrderItem moveFolderRow moveFolderToRootQuick openFolderTreeMoveDialog openSettingsFolderEditor openTerminal ' +
+        'moveDockerStartOrderItem moveFolderRow moveFolderToRootQuick openActiveRecoverySnapshotCompare openFolderTreeMoveDialog openSettingsFolderEditor openTerminal ' +
         'previewFolderRuntimeAction quickCreateStarterFolder rCcustomAction refreshChangeHistory refreshDockerStartOrderPreview ' +
         'removeDockerStartOrderBatch removeDockerStartOrderItem resetDropdownColorDefaults resetFolderAccentDefaults ' +
         'resetPreviewBarDefaults resetPreviewBorderDefaults resetSettingsTableColumns resetStatusColorDefaults ' +
@@ -25,7 +25,7 @@
         'saveThemeWorkspaceCustomize scanSmartRuleSuggestions scanThemeWorkspaceGithub selectActiveRecoveryBackup ' +
         'selectOperationsTemplate setFilterQuery setIconAsContainer setOperationsWorkspaceType setQuickFolderFilter ' +
         'setRecoveryWorkspaceType setRulesWorkspaceType showFolderHealthBreakdown submitForm syncDockerStartOrderNow testAutoRule ' +
-        'toggleAllRuleSelections toggleAutoRule toggleDockerUpdatesFilter ' +
+        'toggleAllRecoverySnapshots toggleAllRuleSelections toggleAutoRule toggleDockerUpdatesFilter ' +
         'toggleFolderPin toggleFolderTreeCollapse toggleHealthSeverityFilter toggleMobileTreeReorderMode toggleRuleKindFields ' +
         'toggleRuleSelection toggleStatusFilter undoActiveRecoveryChange updateBulkSelectedCount updateContainer ' +
         'updateDockerStartOrderBatch updateDockerStartOrderMode updateDockerStartOrderRemaining updateDockerStartOrderWait toggleDockerStartOrderAutostart updateFolder updateForm updateIcon ' +

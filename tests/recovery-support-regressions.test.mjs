@@ -108,3 +108,25 @@ test('history formats persisted ISO timestamps without replacing them with the c
     assert.equal(format(0), '1970-01-01T00:00:00.000Z');
     for (const value of ['', undefined, null, 'invalid']) assert.equal(format(value), '');
 });
+
+test('Recovery history keeps selected actions on the active row and expands all snapshots', () => {
+    const backups = Array.from({ length: 7 }, (_, index) => ({ name: `snapshot-${index}.json`, count: index === 0 ? 0 : 2,
+        createdAt: `2026-09-2${9 - index}T12:00:00Z`, reason: 'manual' }));
+    const selected = { docker: '', vm: '' };
+    let currentType = 'docker';
+    const summaryHost = { text: () => summaryHost };
+    const api = workspaces.createApi({ $: selector => selector === '#fv-recovery-history-summary' ? summaryHost : { length: 0 },
+        escapeHtml: value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;'),
+        getSortedBackupsForType: type => type === 'docker' ? backups : [],
+        recoverySelectedBackupByType: selected, getActiveRecoveryWorkspaceTypeValue: () => currentType,
+        formatTimestamp: value => value });
+    const recent = api.buildRecoveryBackupHistoryHtml('docker');
+    assert.equal((recent.match(/fv-recovery-snapshot-row/g) || []).length, 5);
+    assert.match(recent, /snapshot-0\.json[\s\S]*Empty/);
+    assert.match(recent, /restoreSelectedActiveRecoveryBackup\(\)/);
+    assert.match(recent, /toggleAllRecoverySnapshots\(\)/);
+    assert.equal(selected.docker, 'snapshot-0.json');
+    currentType = 'vm';
+    assert.match(api.buildRecoveryBackupHistoryHtml('vm'), /No VM backups yet/);
+    assert.equal(selected.vm, '');
+});

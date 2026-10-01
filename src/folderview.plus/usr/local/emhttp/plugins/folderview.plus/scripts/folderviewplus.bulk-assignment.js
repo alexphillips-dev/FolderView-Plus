@@ -19,6 +19,7 @@
         failedNames: [],
         lastTargetFolderId: '',
         lastResult: null,
+        confirming: false,
         applying: false,
         renderToken: 0
     });
@@ -127,6 +128,7 @@
             docker: createBulkAssignUiState(),
             vm: createBulkAssignUiState()
         };
+        let workspace = null;
 
         const sanitizeBulkItemName = (value) => (
             sharedApi && typeof sharedApi.sanitizeBulkItemName === 'function'
@@ -374,8 +376,8 @@
                 label = surfaceT("common.runtime.choose-target-first", "Choose target first");
                 disabled = true;
             } else if (!Array.isArray(plan?.selectedNames) || plan.selectedNames.length <= 0) {
-                icon = 'fa-check-square-o';
-                label = surfaceT("common.runtime.select-items-first", "Select items first");
+                icon = 'fa-play';
+                label = type === 'vm' ? surfaceT('legacy.surface.0b6704b3edf02d3c', 'Move VMs ($1)', 0) : surfaceT('legacy.surface.89348b7fa76ab753', 'Move containers ($1)', 0);
                 disabled = true;
             } else if (!Array.isArray(plan?.actionableNames) || plan.actionableNames.length <= 0) {
                 icon = 'fa-check';
@@ -383,15 +385,15 @@
                 disabled = true;
             } else {
                 const changeCount = plan.actionableNames.length;
-                icon = 'fa-check';
-                label = surfaceT("common.runtime.apply-changes-1", "Apply changes ($1)", changeCount);
+                icon = 'fa-play';
+                label = type === 'vm' ? surfaceT('legacy.surface.0b6704b3edf02d3c', 'Move VMs ($1)', changeCount) : surfaceT('legacy.surface.89348b7fa76ab753', 'Move containers ($1)', changeCount);
                 disabled = false;
             }
             button.replaceChildren(
                 createSafeElement('i', { className: `fa ${icon}` }),
                 documentRef.createTextNode(` ${label}`)
             );
-            button.disabled = disabled;
+            button.disabled = disabled || state.confirming === true;
             button.setAttribute('data-fv-bulk-state', state.applying === true ? 'applying' : (disabled ? 'idle' : 'ready'));
         };
 
@@ -473,6 +475,7 @@
                 ? planInput
                 : buildBulkAssignmentPlan(resolvedType, folderId, Array.from(state.selected || []));
             updateBulkSummaryCards(resolvedType, plan);
+            workspace?.update(resolvedType, plan);
             updateBulkStepState(resolvedType, plan);
             updateBulkPrimaryAction(resolvedType, plan);
             return plan;
@@ -547,7 +550,7 @@
             const actionRow = retryButton.closest('.bulk-result-actions');
             retryButton.toggleClass('is-hidden', failedCount <= 0);
             actionRow.toggleClass('is-hidden', failedCount <= 0 || !(state.lastResult && typeof state.lastResult === 'object'));
-            retryButton.prop('disabled', state.applying === true);
+            retryButton.prop('disabled', state.applying === true || state.confirming === true);
             if (failedCount > 0) {
                 retryButton.html(`<i class="fa fa-repeat"></i> Retry failed (${failedCount})`);
             }
@@ -655,7 +658,7 @@
             visibleCount = 0,
             filter = ''
         } = {}) => {
-            if (!$) {
+            if (!$ || workspace) {
                 return;
             }
             const help = $(`#${type}-bulk-help`);
@@ -679,52 +682,7 @@
         };
 
         const renderBulkChecklist = (type, visibleNames) => {
-            const list = documentRef?.getElementById?.(`${type}-bulk-items-list`);
-            if (!(list instanceof HTMLElement)) {
-                return;
-            }
-            const state = getBulkState(type);
-            state.renderToken += 1;
-            const renderToken = state.renderToken;
-            list.innerHTML = '';
-            if (!Array.isArray(visibleNames) || !visibleNames.length) {
-                list.innerHTML = '<div class="bulk-items-empty">No items match this filter.</div>';
-                return;
-            }
-            const selected = state.selected || new Set();
-            let cursor = 0;
-            const appendChunk = () => {
-                if (renderToken !== state.renderToken) {
-                    return;
-                }
-                const end = Math.min(cursor + BULK_LIST_RENDER_CHUNK_SIZE, visibleNames.length);
-                const fragment = documentRef.createDocumentFragment();
-                while (cursor < end) {
-                    const name = visibleNames[cursor];
-                    cursor += 1;
-                    const row = documentRef.createElement('label');
-                    row.className = 'bulk-item-row';
-                    row.title = name;
-                    const checkbox = documentRef.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.className = 'bulk-item-checkbox';
-                    checkbox.value = name;
-                    checkbox.checked = selected.has(name);
-                    checkbox.setAttribute('data-fv-bulk-type', type);
-                    checkbox.setAttribute('aria-label', `Select ${name}`);
-                    const nameNode = documentRef.createElement('span');
-                    nameNode.className = 'bulk-item-name';
-                    nameNode.textContent = name;
-                    row.appendChild(checkbox);
-                    row.appendChild(nameNode);
-                    fragment.appendChild(row);
-                }
-                list.appendChild(fragment);
-                if (cursor < visibleNames.length) {
-                    requestAnimationFrameRef(appendChunk);
-                }
-            };
-            appendChunk();
+            workspace?.renderItems(type, visibleNames);
         };
 
         const renderBulkItemOptions = (type) => {
@@ -739,9 +697,10 @@
             const hasTargetFolders = $(`#${type}-bulk-folder`).prop('disabled') !== true;
             const allNames = getBulkAssignableNames(type);
             const filter = getBulkItemsFilterQuery(type);
-            const visibleNames = filter
+            const matches = filter
                 ? allNames.filter((name) => name.toLowerCase().includes(filter))
                 : allNames;
+            const visibleNames = workspace ? workspace.filterItems(type, matches) : matches;
             state.allNames = allNames;
             state.visibleNames = visibleNames;
             normalizeBulkSelectionForType(type);
@@ -783,7 +742,7 @@
                 };
             }
             filtersByType[resolvedType].bulk = normalized;
-            const input = $(`#${resolvedType}-bulk-filter`);
+            const input = $(`#${resolvedType}-bulk-filter, #${resolvedType}-bulk-table-filter`);
             if (input.length && input.val() !== displayValue) {
                 input.val(displayValue);
             }
@@ -882,7 +841,7 @@
             }
             const resolvedType = normalizeManagedType(type);
             const state = getBulkState(resolvedType);
-            if (state.applying === true) {
+            if (state.applying === true || state.confirming === true) {
                 return;
             }
             const folderId = String($(`#${resolvedType}-bulk-folder`).val() || '');
@@ -930,12 +889,20 @@
                 swal({ title: 'Nothing to apply', text: summary, type: 'info' });
                 return;
             }
-            const confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
+            state.confirming = true;
+            workspace?.update(resolvedType, plan);
+            let confirmed;
+            try {
+                confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
+            } finally {
+                state.confirming = false;
+                syncBulkWorkflowUi(resolvedType);
+            }
             if (!confirmed) {
                 return;
             }
             state.applying = true;
-            updateBulkPrimaryAction(resolvedType, plan);
+            syncBulkWorkflowUi(resolvedType, plan);
             updateBulkResultActions(resolvedType);
             renderBulkResultPanel(resolvedType, {
                 level: 'progress',
@@ -1000,6 +967,11 @@
             }
         };
 
+        workspace = win?.FolderViewPlusBulkAssignmentView?.createApi({
+            window: win, document: documentRef, $, getBulkState, getFolderMap, getInfoByType, createSafeElement,
+            getBulkMemberFolderLookup, renderBulkItemOptions, filterBulkItems, bulkItemSelectionAction, requestAnimationFrameRef,
+            getItemRuntimeStateKind: deps.getItemRuntimeStateKind || (() => 'unknown')
+        });
         return Object.freeze({
             getBulkAssignableNames,
             clearBulkExecutionState,

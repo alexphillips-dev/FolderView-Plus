@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.workspace.description": "Monitore a integridade do plug-in, solucione problemas e compartilhe dados de suporte.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Ainda sem atividade",
     "diagnostics.activity.empty-description": "As alterações de pastas, backups, importações e ações de recuperação irão aparecer aqui.",
     "diagnostics.activity.ready": "Pronto",
-    "diagnostics.history.refresh-description": "Atualize o histórico após guardar, importar, restaurar ou desfazer para rever os eventos mais recentes seguros para recuperação.",
-    "diagnostics.history.empty-title": "Ainda sem entradas na linha temporal.",
-    "diagnostics.history.empty-description": "Os cartões de alterações recentes aparecerão aqui para a fonte de recuperação selecionada.",
     "diagnostics.cards.technical-details": "Detalhes técnicos",
     "diagnostics.actions.retry": "Tentar novamente",
     "diagnostics.capture.age-unknown": "idade desconhecida",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 excluído, $2 falhou",
     "diagnostics.activity.detail.action": "Ação: $1",
     "diagnostics.activity.exported": "Pacote de suporte exportado",
-    "diagnostics.history.members-reconciled": "Referências de membros sincronizadas",
     "diagnostics.history.backup-restored": "Backup restaurado",
-    "diagnostics.history.backup-deleted": "Backup excluído",
-    "diagnostics.history.backup-download": "Download de backup solicitado",
-    "diagnostics.history.preferences-saved": "Preferências salvas",
-    "diagnostics.history.event-details": "Detalhes do evento"
+    "diagnostics.history.backup-deleted": "Backup excluído"
 }

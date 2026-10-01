@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostyka",
     "diagnostics.workspace.description": "Monitoruj stan wtyczek, rozwiązuj problemy i udostępniaj dane pomocy technicznej.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Brak aktywności",
     "diagnostics.activity.empty-description": "Zmiany w folderach, kopie zapasowe, importy i działania związane z odzyskiwaniem będą wyświetlane tutaj.",
     "diagnostics.activity.ready": "Gotowe",
-    "diagnostics.history.refresh-description": "Odśwież historię po zapisaniu, imporcie, przywracaniu lub cofnięciu, aby zobaczyć najnowsze zdarzenia bezpieczne dla odzyskiwania.",
-    "diagnostics.history.empty-title": "Brak wpisów w osi czasu.",
-    "diagnostics.history.empty-description": "Ostatnie karty zmian pojawią się tutaj dla wybranego źródła odzyskiwania.",
     "diagnostics.cards.technical-details": "Szczegóły techniczne",
     "diagnostics.actions.retry": "Ponów próbę",
     "diagnostics.capture.age-unknown": "wiek nieznany",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 usunięty, $2 nie powiódł się",
     "diagnostics.activity.detail.action": "Akcja: $1",
     "diagnostics.activity.exported": "Wyeksportowano pakiet wsparcia",
-    "diagnostics.history.members-reconciled": "Zsynchronizowano odniesienia do członków",
     "diagnostics.history.backup-restored": "Kopia zapasowa przywrócona",
-    "diagnostics.history.backup-deleted": "Kopia zapasowa została usunięta",
-    "diagnostics.history.backup-download": "Zażądano pobrania kopii zapasowej",
-    "diagnostics.history.preferences-saved": "Preferencje zostały zapisane",
-    "diagnostics.history.event-details": "Szczegóły zdarzenia"
+    "diagnostics.history.backup-deleted": "Kopia zapasowa została usunięta"
 }

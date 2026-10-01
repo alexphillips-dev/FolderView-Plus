@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Sledujte stav pluginu, řešte problémy a sdílejte data podpory.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Zatím žádná aktivita",
     "diagnostics.activity.empty-description": "Zde se zobrazí změny složek, zálohy, importy a akce obnovení.",
     "diagnostics.activity.ready": "Připraveno",
-    "diagnostics.history.refresh-description": "Obnovte historii po uložení, importu, obnovení nebo vrácení zpět, abyste si mohli prohlédnout nejnovější události bezpečné pro obnovení.",
-    "diagnostics.history.empty-title": "Zatím žádné záznamy na časové ose.",
-    "diagnostics.history.empty-description": "Zde se zobrazí karty posledních změn pro vybraný zdroj obnovy.",
     "diagnostics.cards.technical-details": "Technické detaily",
     "diagnostics.actions.retry": "Zkuste to znovu",
     "diagnostics.capture.age-unknown": "věk neznámý",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 smazáno, $2 se nezdařilo",
     "diagnostics.activity.detail.action": "Akce: $1",
     "diagnostics.activity.exported": "Balíček podpory byl exportován",
-    "diagnostics.history.members-reconciled": "Odkazy na členy byly synchronizovány",
     "diagnostics.history.backup-restored": "Záloha obnovena",
-    "diagnostics.history.backup-deleted": "Záloha byla smazána",
-    "diagnostics.history.backup-download": "Požadováno stažení zálohy",
-    "diagnostics.history.preferences-saved": "Předvolby uloženy",
-    "diagnostics.history.event-details": "Podrobnosti události"
+    "diagnostics.history.backup-deleted": "Záloha byla smazána"
 }

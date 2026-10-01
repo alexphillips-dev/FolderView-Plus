@@ -9,8 +9,8 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     'use strict';
 
-    const SAFE_ATTRIBUTE = /^(?:aria-[a-z0-9-]+|data-[a-z0-9-]+|id|name|title|type|value|role|href|target|rel|disabled|checked|selected)$/i;
-    const SAFE_TAG = /^(?:a|button|div|i|input|label|li|ol|option|p|small|span|strong|ul)$/i;
+    const SAFE_ATTRIBUTE = /^(?:aria-[a-z0-9-]+|data-[a-z0-9-]+|id|name|title|type|value|role|href|target|rel|disabled|checked|selected|for|colspan)$/i;
+    const SAFE_TAG = /^(?:a|button|div|i|input|label|li|ol|option|p|small|span|strong|ul|tr|td)$/i;
 
     const create = (documentRef, tagName, options = {}) => {
         if (!documentRef || !SAFE_TAG.test(String(tagName || ''))) {

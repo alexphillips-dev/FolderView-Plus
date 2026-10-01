@@ -68,6 +68,7 @@
         "scripts/folderviewplus.environment.js",
         "scripts/folderviewplus.settings-workspaces.js",
         "scripts/folderviewplus.bulk-assignment.shared.js",
+        "scripts/folderviewplus.bulk-assignment.view.js",
         "scripts/folderviewplus.bulk-assignment.js",
         "scripts/folderviewplus.runtime-actions.js",
         "scripts/runtime.transport.core.js",

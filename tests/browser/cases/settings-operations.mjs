@@ -129,5 +129,9 @@ export const registerSettingsOperationsCase = ({ test, baseUrl }) => {
         });
         assert.deepEqual(vmLayout.heights, [36, 36, 36, 36, 36, 36]);
         assert.equal(vmLayout.rowAligned, true);
+        // Let the selected-tab color transition finish before the runner audits contrast.
+        await page.locator('.fv-rules-source-btn.is-active').evaluate(async (button) => {
+            await Promise.all(button.getAnimations().map((animation) => animation.finished.catch(() => {})));
+        });
     });
 };

@@ -883,7 +883,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const advancedDataLoadState = \{/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
-    assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
+    assert.match(settingsJs, /const focusFolderRow = \(type, folderId, \{ scroll = true \} = \{\}\) =>/);
     assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
     assert.doesNotMatch(settingsJs, /setActionDockExpanded/);
     assert.doesNotMatch(settingsJs, /setActionDockMoreOpen/);

@@ -607,7 +607,7 @@ const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null, 
 };
 
 const pendingTreeMoveTypes = new Set();
-const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextParentId, nextOrder, positionalMove, activityMessage }) => {
+const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextParentId, nextOrder, positionalMove, activityMessage, errorTitle = '' }) => {
     const repairTac0a8e31 = (key, fallback) => globalThis.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
     const resolvedType = normalizeManagedType(type);
     if (pendingTreeMoveTypes.has(resolvedType)) return setFolderTreeMoveError(resolvedType, sourceId, repairTac0a8e31('common.repair.wait-for-tree-move', 'Wait for the current folder move to finish.'));
@@ -616,29 +616,32 @@ const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextPar
     if (expectedRevision === null || (positionalMove && !Number.isInteger(expectedPrefsRevision))) return setFolderTreeMoveError(resolvedType, sourceId, 'Current folder or preference revision is unavailable. Refresh and try again.');
     const previousFolders = typeFolders(resolvedType);
     const previousPrefs = prefsByType[resolvedType];
+    const previousOrder = positionalMove ? getOrderedFolderIdsForTreeOps(resolvedType) : null;
     pendingTreeMoveTypes.add(resolvedType);
     let committed = false;
     try {
         clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
         setTypeFolders(resolvedType, { ...previousFolders, [sourceId]: { ...sourceFolder, parentId: nextParentId } });
         if (positionalMove) applyOptimisticManualOrder(resolvedType, nextOrder); else renderTable(resolvedType);
-        focusFolderRow(resolvedType, sourceId);
-        const backup = await createBackup(resolvedType, `before-tree-move-${sourceId}`);
+        focusFolderRow(resolvedType, sourceId, { scroll: false });
         const result = await requestFolderBatchMutation(resolvedType, {
             deletes: [], upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: nextParentId } }], creates: [],
             ...(positionalMove ? { manualOrder: nextOrder, expectedPrefsRevision } : {})
         }, { expectedRevision });
         committed = true;
         if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
-        await refreshType(resolvedType, { configOnly: true });
-        if (backup?.name) await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Tree move', sourceId);
-        focusFolderRow(resolvedType, sourceId);
+        pushTreeMoveHistoryEntry(resolvedType, {
+            kind: 'parent', folderId: sourceId,
+            beforeParentId: String(sourceFolder.parentId || '').trim(), afterParentId: nextParentId,
+            beforeOrder: previousOrder, afterOrder: positionalMove ? nextOrder : null,
+            actionLabel: 'Tree move', focusFolderId: sourceId
+        });
         addActivityEntry(activityMessage, 'success');
     } catch (error) {
         if (!committed) { setTypeFolders(resolvedType, previousFolders); prefsByType[resolvedType] = previousPrefs; renderTable(resolvedType); }
-        try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
+        if (!committed) try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
         setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
-        showError(repairTac0a8e31('common.repair.tree-move-failed-6ad607', 'Tree move failed'), error);
+        showError(errorTitle || repairTac0a8e31('common.repair.tree-move-failed-6ad607', 'Tree move failed'), error);
     } finally { pendingTreeMoveTypes.delete(resolvedType); }
 };
 
@@ -817,30 +820,11 @@ const moveFolderToRootQuick = async (type, folderId) => {
         setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already at root level.');
         return;
     }
-    let backup = null;
-    try {
-        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
-        backup = await createBackup(resolvedType, `before-root-move-${sourceId}`);
-        const expectedRevision = readFolderConfigurationRevision(resolvedType);
-        if (expectedRevision === null) {
-            throw new Error('Current folder revision is unavailable. Refresh and try again.');
-        }
-        await requestFolderBatchMutation(resolvedType, {
-            deletes: [],
-            upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: '' } }],
-            creates: []
-        }, { expectedRevision });
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Move to root', sourceId);
-        }
-        focusFolderRow(resolvedType, sourceId);
-        addActivityEntry(`Folder moved to root: ${sourceFolder.name || sourceId}.`, 'success');
-    } catch (error) {
-        await refreshType(resolvedType);
-        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Move to root failed.');
-        showError(repairTaa339208("common.repair.move-to-root-failed-755799", "Move to root failed"), error);
-    }
+    await persistOptimisticTreeMove(resolvedType, {
+        sourceId, sourceFolder, nextParentId: '', nextOrder: [], positionalMove: false,
+        activityMessage: `Folder moved to root: ${sourceFolder.name || sourceId}.`,
+        errorTitle: repairTaa339208("common.repair.move-to-root-failed-755799", "Move to root failed")
+    });
 };
 
 Object.assign(window, {

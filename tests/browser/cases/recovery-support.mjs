@@ -1,6 +1,118 @@
 import assert from 'node:assert/strict';
 
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
+    test('Recovery mockup layout keeps history, policy, and actions usable for Docker and VMs', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        const diagnosticsText = await page.evaluate(() => {
+            const workspace = document.querySelector('.fv-diagnostics-workspace');
+            const probe = document.createElement('div');
+            probe.innerHTML = '<div class="fv-diagnostics-overall"><h3>Health</h3></div><div class="fv-diagnostics-section-heading"><h3>System health</h3></div><div class="fv-diagnostics-metrics"><div><dd>6</dd><small>checks</small></div></div>';
+            workspace.appendChild(probe);
+            const size = selector => parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
+            const sizes = {
+                body: size('.fv-diagnostics-workspace'),
+                headline: size('.fv-diagnostics-overall h3'),
+                section: size('.fv-diagnostics-section-heading h3'),
+                metric: size('.fv-diagnostics-metrics dd'),
+                caption: size('.fv-diagnostics-metrics small'),
+                action: size('.fv-diagnostics-toolbar > .fv-ui-button')
+            };
+            probe.remove();
+            return sizes;
+        });
+        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.environment.js` });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-workspaces.js` });
+        await page.evaluate(async () => {
+            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+            const root = document.getElementById('fv-settings-root');
+            root.classList.add('fv-advanced-mode');
+            root.innerHTML = `<div class="fv-advanced-content">${parsed.querySelector('[data-fv-section="backups"]').outerHTML}${parsed.querySelector('.fv-recovery-module-wrap').outerHTML}</div>`;
+            const snapshots = type => Array.from({ length: type === 'docker' ? 7 : 2 }, (_, index) => ({
+                name: `${type}-${index}.json`, count: 2, reason: 'manual', createdAt: `2026-09-${29 - index}T12:00:00Z`
+            }));
+            let activeType = 'docker';
+            window.recoveryActions = [];
+            window.recoveryFixture = window.FolderViewPlusSettingsWorkspaces.createApi({ window, document, $: window.jQuery,
+                escapeHtml: value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;'),
+                getFolderMap: type => type === 'docker' ? { one: {}, two: {} } : { one: {} },
+                getSortedBackupsForType: snapshots,
+                prefsByType: { docker: { backupSchedule: { enabled: false, intervalHours: 24, retention: 25 } },
+                    vm: { backupSchedule: { enabled: true, intervalHours: 12, retention: 10 } } },
+                getActiveRecoveryWorkspaceTypeValue: () => activeType,
+                setActiveRecoveryWorkspaceTypeValue: value => { activeType = value; },
+                formatTimestamp: value => value,
+                restoreBackupEntry: (type, name) => window.recoveryActions.push(`${type}:${name}`) });
+            window.FolderViewPlusCspEvents.registerActions({
+                selectActiveRecoveryBackup: window.recoveryFixture.selectActiveRecoveryBackup,
+                toggleAllRecoverySnapshots: window.recoveryFixture.toggleAllRecoverySnapshots
+            }, { owner: 'recovery-fixture' });
+            window.recoveryFixture.syncRecoveryWorkspaceUi();
+        });
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 5);
+        assert.equal(await page.locator('#fv-recovery-restore-latest').isDisabled(), false);
+        const readability = await page.evaluate(() => {
+            const style = selector => getComputedStyle(document.querySelector(selector));
+            const actions = Array.from(document.querySelectorAll('.fv-recovery-primary-actions button'), button => button.getBoundingClientRect());
+            return {
+                intro: parseFloat(style('.fv-recovery-intro span').fontSize),
+                headline: parseFloat(style('.fv-recovery-headline').fontSize),
+                summary: parseFloat(style('.fv-recovery-copy').fontSize),
+                metricIcon: parseFloat(style('.fv-recovery-stat-card > .fa').fontSize),
+                metricValue: parseFloat(style('.fv-recovery-stat-card strong').fontSize),
+                sourceFont: parseFloat(style('.fv-recovery-source-switch .fv-rules-source-btn').fontSize),
+                stageHeading: parseFloat(style('.fv-recovery-stage-head > div > strong').fontSize),
+                stageDescription: parseFloat(style('.fv-recovery-stage-head > div > span').fontSize),
+                historyDate: parseFloat(style('.fv-recovery-snapshot-item > strong').fontSize),
+                historyAlignment: style('.fv-recovery-snapshot-item').textAlign,
+                actionFont: parseFloat(style('.fv-recovery-primary-actions button').fontSize),
+                actionHeight: actions[0].height,
+                actionWidth: actions[0].width,
+                actionGap: actions[1].left - actions[0].right,
+                iconGap: parseFloat(style('.fv-recovery-primary-actions button > .fa').marginInlineEnd)
+            };
+        });
+        const closeTo = (actual, expected, tolerance = 1) => Math.abs(actual - expected) <= tolerance;
+        assert.ok(closeTo(readability.intro, diagnosticsText.body) && closeTo(readability.headline, diagnosticsText.headline) && closeTo(readability.summary, diagnosticsText.body), JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.metricIcon >= diagnosticsText.body && readability.metricIcon <= diagnosticsText.headline + 2 && closeTo(readability.metricValue, diagnosticsText.metric));
+        assert.ok(closeTo(readability.sourceFont, diagnosticsText.body) && closeTo(readability.stageHeading, diagnosticsText.section) && closeTo(readability.stageDescription, diagnosticsText.caption));
+        assert.ok(closeTo(readability.historyDate, diagnosticsText.body) && readability.historyAlignment === 'left');
+        assert.ok(readability.actionFont >= diagnosticsText.action && readability.actionFont <= diagnosticsText.body + 1 && readability.actionHeight >= 38 && readability.actionHeight <= 46 && readability.actionWidth >= 200 && readability.actionGap <= 16, JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.iconGap >= 8);
+        await page.locator('.fv-recovery-snapshot-item').nth(1).focus();
+        await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');
+        assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').count(), 1);
+        assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').evaluate(node => node === document.activeElement), true);
+        await page.locator('.fv-recovery-view-all').click();
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 7);
+        await page.evaluate(() => window.recoveryFixture.selectActiveRecoveryBackup('docker-6.json'));
+        await page.evaluate(() => window.recoveryFixture.restoreSelectedActiveRecoveryBackup());
+        assert.deepEqual(await page.evaluate(() => window.recoveryActions), ['docker:docker-6.json']);
+        await page.locator('.fv-recovery-edit-settings').click();
+        assert.equal(await page.locator('#fv-recovery-policy-editor').evaluate(node => node.hidden), false);
+        assert.equal(await page.locator('[data-fv-onclick="openActiveRecoverySnapshotCompare()"]').getAttribute('aria-haspopup'), 'dialog');
+        assert.equal(await page.locator('#fv-recovery-compare-panel').count(), 0);
+        await page.evaluate(() => window.recoveryFixture.setRecoveryWorkspaceType('vm', false));
+        assert.equal(await page.locator('#recovery-backup-schedule-enabled').isChecked(), true);
+        assert.equal(await page.locator('#recovery-backup-interval-hours').inputValue(), '12');
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 2);
+        for (const width of [1440, 800, 390]) {
+            await page.setViewportSize({ width, height: 850 });
+            const layout = await page.evaluate(() => {
+                const content = document.querySelector('.fv-advanced-content');
+                const history = document.querySelector('.fv-recovery-history-stage').getBoundingClientRect();
+                const policy = document.querySelector('.fv-recovery-policy').getBoundingClientRect();
+                return { overflow: content.scrollWidth > content.clientWidth + 2, historyRight: history.right,
+                    policyLeft: policy.left, policyTop: policy.top, historyTop: history.top };
+            });
+            assert.equal(layout.overflow, false, `Recovery overflow at ${width}px`);
+            if (width === 1440) assert.ok(layout.policyLeft >= layout.historyRight, 'desktop cards should sit side by side');
+            if (width === 390) assert.ok(layout.policyTop > layout.historyTop, 'phone cards should stack');
+        }
+        await page.setViewportSize({ width: 1440, height: 850 });
+    });
+
     test('Logs show selected actions newest first, keep a bounded history, and clear it', async ({ page }) => {
         const mountLogs = async () => {
             await page.goto(`${baseUrl}/settings`);
@@ -211,7 +323,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             const result = await page.evaluate(async () => {
                 await window.recovery.exportEnvironmentSnapshot();
                 window.recovery.renderRecoveryWorkspace('docker');
-                const picker = document.getElementById('recovery-backup-entry-select');
+                const picker = document.querySelector('.fv-recovery-snapshot-item');
                 picker.focus();
                 const before = document.getElementById('fv-recovery-backup-list').textContent;
                 window.recovery.renderRecoveryWorkspace('docker');

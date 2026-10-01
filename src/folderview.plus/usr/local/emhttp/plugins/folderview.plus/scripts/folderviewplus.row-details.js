@@ -8,6 +8,10 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const createApi = (deps = {}) => {
         const swalFn = typeof deps.swal === 'function' ? deps.swal : null;
+        const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : (value) => String(value ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const translate = typeof deps.translate === 'function' ? deps.translate : ((_key, fallback, ...params) =>
+            params.reduce((text, value, index) => text.replaceAll(`$${index + 1}`, String(value)), fallback));
         const getFolderMap = typeof deps.getFolderMap === 'function' ? deps.getFolderMap : (() => ({}));
         const getEffectiveMemberSnapshot = typeof deps.getEffectiveMemberSnapshot === 'function' ? deps.getEffectiveMemberSnapshot : (() => ({}));
         const getInfoByType = typeof deps.getInfoByType === 'function' ? deps.getInfoByType : (() => ({}));
@@ -82,27 +86,36 @@
                 details.updateCount,
                 Number(healthPrefs.warnStoppedPercent) || 60
             );
+            const severity = ['good', 'warn', 'critical', 'empty'].includes(health.severity) ? health.severity : 'empty';
             const reasonLines = Array.isArray(health.reasons)
-                ? health.reasons.map((reason, index) => `${index + 1}. ${reason.label}: ${reason.message}`)
+                ? health.reasons.map((reason) => `<li><strong>${escapeHtml(reason.label)}</strong><span>${escapeHtml(reason.message)}</span></li>`)
                 : [];
-            const summaryLines = [
-                `Folder: ${details.folderName}`,
-                `Health: ${health.text} (${health.severity})`,
-                `Score: ${health.score}/100`,
-                `Members: ${details.members.length}`,
-                `${details.countsByState.started} started, ${details.countsByState.paused} paused, ${details.countsByState.stopped} stopped`,
-                `Updates: ${details.updateCount}`,
-                `Policy: ${health.policy.profile} | updates ${health.policy.updatesMode} | all-stopped ${health.policy.allStoppedMode}`,
-                `Thresholds: warn ${health.policy.warnThreshold}% (${health.policy.warnSource}), critical ${health.policy.criticalThreshold}% (${health.policy.criticalSource})`,
-                '',
-                'Reasons:',
-                ...(reasonLines.length ? reasonLines : ['- No health reasons available.'])
-            ];
+            const summaryHtml = `<div class="fv-health-details is-${severity}">
+                <div class="fv-health-details-summary">
+                    <strong class="fv-health-details-folder" data-i18n-ignore>${escapeHtml(details.folderName)}</strong>
+                    <span class="fv-health-details-status">${escapeHtml(health.text)}</span>
+                </div>
+                <dl class="fv-health-details-metrics">
+                    <div><dt>${escapeHtml(translate('legacy.surface.38e5a46cbc5ad328', 'Score'))}</dt><dd>${escapeHtml(health.score)}/100</dd></div>
+                    <div><dt>Members</dt><dd>${details.members.length}</dd></div>
+                    <div><dt>Updates</dt><dd>${details.updateCount}</dd></div>
+                </dl>
+                <div class="fv-health-details-runtime">${escapeHtml(translate('legacy.surface.4af78f5cb7bc5532', '$1 started, $2 paused, $3 stopped', details.countsByState.started, details.countsByState.paused, details.countsByState.stopped))}</div>
+                <div class="fv-health-details-policy">
+                    <div>${escapeHtml(translate('legacy.surface.ee9ed7a51cff434e', 'Policy: $1 | updates $2 | all-stopped $3', health.policy.profile, health.policy.updatesMode, health.policy.allStoppedMode))}</div>
+                    <div>${escapeHtml(translate('legacy.surface.7f7bdce0e22a9f0a', 'Thresholds: warn $1% ($2), critical $3% ($4)', health.policy.warnThreshold, health.policy.warnSource, health.policy.criticalThreshold, health.policy.criticalSource))}</div>
+                </div>
+                <div class="fv-health-details-reasons">
+                    <strong>${escapeHtml(translate('legacy.surface.72ed245d2cf11822', 'Reasons'))}</strong>
+                    <ul>${reasonLines.length ? reasonLines.join('') : `<li>${escapeHtml('- No health reasons available.')}</li>`}</ul>
+                </div>
+            </div>`;
 
             swalFn({
                 title: 'Health details',
-                text: summaryLines.join('\n'),
-                type: health.severity === 'critical' ? 'error' : (health.severity === 'warn' ? 'warning' : 'info'),
+                text: summaryHtml,
+                html: true,
+                customClass: 'fv-health-details-modal',
                 showCancelButton: true,
                 confirmButtonText: `Filter ${health.text}`,
                 cancelButtonText: 'Close'

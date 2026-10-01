@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostikk",
     "diagnostics.workspace.description": "Overvåk plugin-helsen, feilsøk problemer og del støttedata.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Ingen aktivitet ennå",
     "diagnostics.activity.empty-description": "Mappeendringer, sikkerhetskopiering, import og gjenopprettingshandlinger vises her.",
     "diagnostics.activity.ready": "Klar",
-    "diagnostics.history.refresh-description": "Oppdater loggen etter en lagring, import, gjenoppretting eller angre for å se de siste gjenopprettingssikre hendelsene.",
-    "diagnostics.history.empty-title": "Ingen tidslinjeoppføringer ennå.",
-    "diagnostics.history.empty-description": "Nylig endringskort vises her for den valgte gjenopprettingskilden.",
     "diagnostics.cards.technical-details": "Tekniske detaljer",
     "diagnostics.actions.retry": "Prøv på nytt",
     "diagnostics.capture.age-unknown": "alder ukjent",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 slettet, $2 mislyktes",
     "diagnostics.activity.detail.action": "Handling: $1",
     "diagnostics.activity.exported": "Støttepakke eksportert",
-    "diagnostics.history.members-reconciled": "Medlemsreferanser synkronisert",
     "diagnostics.history.backup-restored": "Sikkerhetskopien gjenopprettet",
-    "diagnostics.history.backup-deleted": "Sikkerhetskopien slettet",
-    "diagnostics.history.backup-download": "Forespurt sikkerhetskopiering",
-    "diagnostics.history.preferences-saved": "Preferansene er lagret",
-    "diagnostics.history.event-details": "Hendelsesdetaljer"
+    "diagnostics.history.backup-deleted": "Sikkerhetskopien slettet"
 }

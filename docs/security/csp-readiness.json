@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 254,
+    "scannedFiles": 255,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -27,10 +27,10 @@
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 43
+    "htmlStringSinks": 41
   },
   "sinkControlSummary": {
-    "controlled": 43,
+    "controlled": 41,
     "review-required": 0
   },
   "readiness": {
@@ -232,7 +232,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
-      "line": 1263,
+      "line": 1261,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -242,33 +242,13 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
-      "line": 1271,
+      "line": 1269,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js",
-      "line": 689,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "The sink only clears existing plugin-owned markup."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js",
-      "line": 691,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "The empty-filter state contains plugin-authored static markup only."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js",
@@ -332,7 +312,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6172,
+      "line": 6147,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -342,7 +322,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 7968,
+      "line": 7946,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -684,18 +664,6 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js",
-      "inlineEventAttributes": 0,
-      "inlineScriptBlocks": 0,
-      "externalScriptTags": 0,
-      "inlineStyleBlocks": 0,
-      "inlineStyleAttributes": 0,
-      "evalCalls": 0,
-      "functionConstructors": 0,
-      "dynamicScriptCreation": 0,
-      "htmlStringSinks": 2
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
       "externalScriptTags": 0,

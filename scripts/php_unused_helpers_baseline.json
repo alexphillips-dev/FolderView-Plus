@@ -1,6 +1,12 @@
 {
     "version": 1,
     "scope": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/**/*.{php,page}",
-    "generatedAt": "2026-03-30T23:57:47+00:00",
-    "findings": []
+    "generatedAt": "2026-09-29T20:14:31+00:00",
+    "findings": [
+        {
+            "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.backup-snapshots.php",
+            "symbol": "createCoalescedPrefsBackupSnapshot",
+            "line": 166
+        }
+    ]
 }

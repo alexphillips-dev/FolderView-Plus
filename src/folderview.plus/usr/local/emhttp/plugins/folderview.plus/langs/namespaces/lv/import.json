@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "import",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Izvēlieties, kā rīkoties ar esošajām mapēm. Nekas nemainās, kamēr nav atlasīta opcija Lietot importēšanu.",
     "import.behavior.question": "Kā rīkoties ar esošajām mapēm?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "Importēt VM mapes",
     "import.actions.apply": "Lietot importēšanu",
     "import.folderview3.preview-title": "FolderView3 migrācijas priekšskatījums",
-    "import.folderview3.preview-help": "Atklājiet instalēto FolderView3 konfigurāciju vai pārbaudiet pilna eksporta JSON. Atklāšana un priekšskatījums ir tikai lasāmi; Vietējie organizatora ieraksti un Docker automātiskās palaišanas mutācijas paliek izslēgti, ja vien vēlākā pieteikumā tie nav skaidri iekļauti.",
     "import.folderview3.read-only-title": "FolderView3 migrācija ir tikai lasāma, līdz apstiprināsiet pieteikuma plānu.",
-    "import.folderview3.read-only-help": "Atklājiet instalētu konfigurāciju vai priekšskatiet FolderView3 eksportu, nerakstot spraudni vai Unraid stāvokli.",
     "import.folderview3.read-only-preview-help": "Atklājiet instalēto FolderView3 konfigurāciju vai priekšskatiet FolderView3 eksportu. Priekšskatīšanā nekad netiek ierakstīts spraudnis vai Unraid konfigurācija.",
     "import.folderview3.not-detected": "Nav atrasta neviena instalēta FolderView3 konfigurācija.",
     "import.folderview3.preview-export-help": "Joprojām varat priekšskatīt FolderView3 pilna eksporta JSON no cita servera.",

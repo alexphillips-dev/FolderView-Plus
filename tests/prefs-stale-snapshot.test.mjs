@@ -38,7 +38,7 @@ for (const type of ['docker', 'vm']) {
             coordinator.reconcile(type, newerCoordinator ? server : original);
             const context = vm.createContext({
                 diagnosticsPrefsStoreModule: store, diagnosticsPrefsCoordinator: coordinator,
-                prefsByType: { [type]: original }, latestPrefsBackupByType: {}, utils: { normalizePrefs: value => value }
+                prefsByType: { [type]: original }, utils: { normalizePrefs: value => value }
             });
             vm.runInContext(`${extract(diagnostics, 'protectDashboardLayoutFromBroadPrefsWrite')}\n${extract(diagnostics, 'postPrefs')}\nthis.save = postPrefs;`, context);
             const next = { ...original, backupSchedule: { ...original.backupSchedule, retention: 12 } };
@@ -70,7 +70,7 @@ test('delayed saves use the original baseline while explicit partial saves prese
     const context = vm.createContext({
         diagnosticsPrefsStoreModule: store,
         diagnosticsPrefsCoordinator: { save: async (_type, patch) => { writes.push(plain(patch)); return patch; }, getSnapshot: () => ({}) },
-        prefsByType: { docker: { ...original, hiddenFolderIds: ['new'] } }, latestPrefsBackupByType: {}, utils: { normalizePrefs: value => value }
+        prefsByType: { docker: { ...original, hiddenFolderIds: ['new'] } }, utils: { normalizePrefs: value => value }
     });
     vm.runInContext(`${extract(diagnostics, 'protectDashboardLayoutFromBroadPrefsWrite')}\n${extract(diagnostics, 'postPrefs')}\nthis.save = postPrefs;`, context);
     await context.save('docker', { ...original, pinnedFolderIds: ['pinned'] }, { baselinePrefs: original });

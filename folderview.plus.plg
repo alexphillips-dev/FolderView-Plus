@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.09">
-<!ENTITY md5 "8d0fbaf8369a4e9d6ff68118c8174e28">
-<!ENTITY sha256 "4a638700b2dc595181e18bf56527bc66799ac541bb3c59a34cb663bea31eb218">
+<!ENTITY version "2026.10.01.10">
+<!ENTITY md5 "aa9eba5488d65a03dc9e7fea67af543e">
+<!ENTITY sha256 "147036af107ef533f38094221ae02e603d8415e13872cadd3ab4e114cf0e8db5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.10
+- UI/UX: Bulk assignment now follows Recovery's compact mobile heading and summary-icon sizes, keeping both Settings workspaces consistent on phones.
+- Quality: Rechecked Recovery and Docker/VM bulk moves together across desktop, phone, light/dark themes, translated controls, RTL, and reduced motion.
+
 
 ###2026.10.01.09
 - UI/UX: Recovery headings and metric icons now use compact mobile sizes consistent with Diagnostics, while retaining the desktop layout.

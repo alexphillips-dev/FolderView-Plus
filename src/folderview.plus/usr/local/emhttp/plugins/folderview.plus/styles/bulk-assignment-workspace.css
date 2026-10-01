@@ -105,6 +105,10 @@
     #fv-settings-root .fv-bulk-workspace .bulk-step-strip { padding-inline: 0; }
     #fv-settings-root .fv-bulk-workspace .bulk-step-pill:not(:last-child)::after { display: none; }
 }
+@media (max-width: 760px) {
+    #fv-settings-root #fv-bulk-title { font-size: 1.5rem; }
+    #fv-settings-root .fv-bulk-workspace .bulk-summary-card > i:first-child { font-size: 1.6rem; }
+}
 @media (max-width: 640px) {
     #fv-settings-root .fv-bulk-hero { flex-wrap: wrap; }
     #fv-settings-root .fv-bulk-hero > a { margin-inline-start: 0; }

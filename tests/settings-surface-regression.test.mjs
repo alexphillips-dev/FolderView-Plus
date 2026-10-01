@@ -389,7 +389,9 @@ test('recovery tab presents restore, history, policy, and environment actions in
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
     assert.match(settingsPage, /id="fv-recovery-policy-details"/);
     assert.match(settingsPage, /id="fv-recovery-policy-editor"/);
-    assert.match(settingsPage, /id="fv-recovery-compare-panel"/);
+    assert.match(settingsPage, /id="backup-compare-picker"/);
+    assert.match(settingsPage, /data-fv-onclick="openActiveRecoverySnapshotCompare\(\)" aria-haspopup="dialog"/);
+    assert.doesNotMatch(settingsPage, /id="fv-recovery-compare-panel"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.doesNotMatch(settingsPage, /data-fv-section="change-history"/);
     assert.match(settingsPage, /data-fv-section="logs"[\s\S]*id="fv-activity-feed-list"/);

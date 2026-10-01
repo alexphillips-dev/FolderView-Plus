@@ -32,6 +32,7 @@
             "runtime snapshot": "snímek běhového prostředí"
         },
         "hu": {
+            "Preferences": "Beállítások",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Kezdő mappák: $1 (kijelölve: $2; meglévők kihagyva: $3; automatikusan hozzárendelt egyezések: $4; ellenőrzésre vár: $5; nincs egyezés: $6)",
             "$1 refs": "Hivatkozások: $1",
             "FolderView Plus Export": "FolderView Plus-export"
@@ -66,6 +67,7 @@
             "Manual $1": "Assignació manual: $1"
         },
         "sv": {
+            "Read-only comparison": "Jämförelse utan ändringar",
             "FolderView3 export": "FolderView3-export",
             "Open WebUI profile": "Öppna webbgränssnittsprofil",
             "Manage WebUI profiles": "Hantera webbgränssnittsprofiler",
@@ -180,6 +182,9 @@
             "VMs: $1": "Máquinas virtuais: $1"
         },
         "uk": {
+            "Choose a snapshot and a comparison target. No changes will be saved.": "Виберіть знімок і джерело для порівняння. Жодні зміни не буде збережено.",
+            "Folders: $1": "Папки: $1",
+            "Preference changes: $1": "Зміни налаштувань: $1",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Діагностика запуску редактора папок FolderView Plus"
         }
     }

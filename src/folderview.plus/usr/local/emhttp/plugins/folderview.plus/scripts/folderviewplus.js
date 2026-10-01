@@ -2465,12 +2465,6 @@ const initSettingsControls = () => {
             updateBulkResultActions(type);
             updateBulkPreviewPanel(type);
         });
-    $(document)
-        .off('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs')
-        .on('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs', () => {
-            syncHiddenRecoveryCompareControls(getActiveRecoveryWorkspaceType());
-        });
-
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-settings-search-scope').val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
     renderOperationsWorkspace();
@@ -4274,6 +4268,7 @@ const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi
 const deleteAllActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().deleteAllActiveRecoveryBackups(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
+const openActiveRecoverySnapshotCompare = () => openBackupComparePicker(getActiveRecoveryWorkspaceType());
 const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
 const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
@@ -11238,6 +11233,7 @@ settingsActionSupportModule.registerActions(window, {
     deleteAllActiveRecoveryBackups,
     compareBackupSnapshots,
     compareActiveRecoverySnapshots,
+    openActiveRecoverySnapshotCompare,
     restoreBackupEntry,
     downloadBackupEntry,
     deleteBackupEntry,

@@ -567,7 +567,7 @@
                     const button = event.target?.closest?.('[data-fv-recovery-disclosure], [data-fv-recovery-action]');
                     if (!button?.closest?.('.fv-recovery-module-wrap')) return;
                     const disclosure = button.getAttribute('data-fv-recovery-disclosure');
-                    if (disclosure === 'fv-recovery-compare-panel' || disclosure === 'fv-recovery-policy-editor') {
+                    if (disclosure === 'fv-recovery-policy-editor') {
                         toggleRecoveryDisclosure(disclosure);
                     } else if (button.getAttribute('data-fv-recovery-action') === 'delete-all') {
                         deleteAllActiveRecoveryBackups();
@@ -621,7 +621,7 @@
 
         const toggleRecoveryDisclosure = (id) => {
             const target = documentRef?.getElementById(id);
-            if (!target || !['fv-recovery-compare-panel', 'fv-recovery-policy-editor'].includes(id)) return;
+            if (!target || id !== 'fv-recovery-policy-editor') return;
             target.hidden = !target.hidden;
             documentRef.querySelectorAll(`[data-fv-recovery-disclosure="${id}"]`).forEach((button) => {
                 button.setAttribute('aria-expanded', target.hidden ? 'false' : 'true');

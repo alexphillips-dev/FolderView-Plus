@@ -141,6 +141,10 @@ Open `Advanced -> Recovery` to:
 - Delete old snapshots.
 - Undo a recent destructive operation when an undo-capable safety snapshot exists.
 
+Choose **Compare Snapshots** to open the snapshot chooser for the selected Docker or VM source. Select the **From snapshot** and **Compare with** targets; the second target can be another snapshot or **Current live folders**. Leave **Include preference changes** enabled to compare saved preferences as well.
+
+The results show the two sources, folder totals, and **Added**, **Changed**, **Removed**, and **Unchanged** counts. Folder changes are shown from the first source to the second. Expand **View changed values** to inspect a changed folder's values, and review preference differences in their own section. **Compare again** returns to the chooser with your selections. Comparison is a preview and does not restore or save configuration.
+
 Safety backups are created before supported imports, restores, bulk changes, and other destructive workflows. Keep an external export before uninstalling or replacing the USB configuration because plugin-local backups live under the plugin configuration directory.
 
 ## Docker start order

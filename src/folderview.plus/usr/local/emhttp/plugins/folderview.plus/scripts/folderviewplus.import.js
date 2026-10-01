@@ -931,6 +931,78 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     });
 };
 
+let backupCompareRequestId = 0;
+
+const openSnapshotCompareDialog = (dialog, options) => {
+    const syncTheme = () => {
+        const root = document.getElementById('fv-settings-root');
+        if (!root) return;
+        const theme = window.getComputedStyle(root);
+        const widget = dialog.dialog('widget')[0];
+        for (const name of Array.from(theme).filter(name => name.startsWith('--fvplus-settings-'))) {
+            widget.style.setProperty(name, theme.getPropertyValue(name));
+        }
+    };
+    const fit = () => {
+        syncTheme();
+        dialog.dialog('option', 'width', Math.min(options.width, Math.max(280, window.innerWidth - 24)));
+        dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+    };
+    dialog.dialog({
+        ...options, modal: true, resizable: false, height: 'auto',
+        closeText: importT('common.close', 'Close'),
+        width: Math.min(options.width, Math.max(280, window.innerWidth - 24)),
+        dialogClass: `fv-snapshot-compare-modal ${options.dialogClass}`,
+        open() { dialog.dialog('widget').css('display', 'flex'); syncTheme(); window.FolderViewPlusI18n?.translate?.(dialog.dialog('widget')[0]); },
+        close() { $(window).off('resize.fvsnapshotcompare'); options.close?.(); }
+    });
+    $(window).off('resize.fvsnapshotcompare').on('resize.fvsnapshotcompare', fit);
+};
+
+const openBackupComparePicker = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const picker = $('#backup-compare-picker');
+    if (!picker.length) return;
+    const requestId = ++backupCompareRequestId;
+    renderBackupCompareControls(resolvedType);
+    syncVisibleRecoveryCompareControls(resolvedType);
+    const controls = picker.find('select, input');
+    const canCompare = Boolean($(`#${resolvedType}-backup-compare-left`).val());
+    $('#backup-compare-picker-status').prop('hidden', canCompare).text(importT('legacy.surface.dd7814b11ac52481', 'Create at least one backup snapshot first.'));
+    utils.bindEventOnce(controls, 'change.fvrecoverycompare', () => {
+        syncHiddenRecoveryCompareControls(resolvedType);
+        syncVisibleRecoveryCompareControls(resolvedType);
+    });
+    openSnapshotCompareDialog(picker, {
+        title: importT('legacy.surface.37fa840aca750d15', 'Compare $1 snapshots', resolvedType === 'docker' ? 'Docker' : 'VM'),
+        width: 700, dialogClass: 'fv-backup-compare-picker-modal',
+        buttons: [
+            { text: importT('common.cancel', 'Cancel'), click() { picker.dialog('close'); } },
+            { text: importT('legacy.surface.d45a249749981e95', 'Compare Snapshots'), class: 'fv-compare-primary', disabled: !canCompare,
+                async click() {
+                    const button = picker.dialog('widget').find('.fv-compare-primary');
+                    if (button.prop('disabled')) return;
+                    syncHiddenRecoveryCompareControls(resolvedType);
+                    button.prop('disabled', true).text(importT('legacy.surface.f18373e70c67be46', 'Comparing snapshots...'));
+                    controls.prop('disabled', true);
+                    try {
+                        await compareBackupSnapshots(resolvedType, {
+                            isActive: () => requestId === backupCompareRequestId && picker[0].isConnected && picker.dialog('isOpen'),
+                            beforeRender: () => picker.dialog('close')
+                        });
+                    } finally {
+                        if (requestId === backupCompareRequestId) {
+                            controls.prop('disabled', false);
+                            button.prop('disabled', false).text(importT('legacy.surface.d45a249749981e95', 'Compare Snapshots'));
+                        }
+                    }
+                }
+            }
+        ],
+        close() { backupCompareRequestId += 1; }
+    });
+};
+
 const getBackupCompareOptionLabel = (backup) => {
     const created = formatTimestamp(backup?.createdAt || '');
     const reason = String(backup?.reason || '').trim();
@@ -1045,7 +1117,7 @@ const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
                 id,
                 beforeName: '-',
                 afterName: String(after.name || id),
-                fields: ['folder']
+                fields: ['folder'], before, after
             });
             continue;
         }
@@ -1056,7 +1128,7 @@ const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
                 id,
                 beforeName: String(before.name || id),
                 afterName: '-',
-                fields: ['folder']
+                fields: ['folder'], before, after
             });
             continue;
         }
@@ -1071,7 +1143,7 @@ const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
             id,
             beforeName: String(before?.name || id),
             afterName: String(after?.name || id),
-            fields
+            fields, before, after
         });
     }
 
@@ -1082,18 +1154,6 @@ const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
         leftCount: Object.keys(left).length,
         rightCount: Object.keys(right).length
     };
-};
-
-const getObjectValueByPath = (source, path) => {
-    const segments = String(path || '').split('.').filter((segment) => segment !== '');
-    let cursor = source;
-    for (const segment of segments) {
-        if (!cursor || typeof cursor !== 'object' || !Object.prototype.hasOwnProperty.call(cursor, segment)) {
-            return undefined;
-        }
-        cursor = cursor[segment];
-    }
-    return cursor;
 };
 
 const serializePrefsDiffValue = (value) => {
@@ -1138,8 +1198,8 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
     ];
     const rows = [];
     for (const descriptor of descriptors) {
-        const before = getObjectValueByPath(left, descriptor.key);
-        const after = getObjectValueByPath(right, descriptor.key);
+        const before = left[descriptor.key];
+        const after = right[descriptor.key];
         if (JSON.stringify(before) === JSON.stringify(after)) {
             continue;
         }
@@ -1155,6 +1215,13 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
         comparedCount: descriptors.length
     };
 };
+
+const getBackupCompareActionLabels = () => ({
+    create: importT('legacy.surface.6b02e0d363a4af1c', 'Added'),
+    update: importT('legacy.surface.2a6141e43be0c212', 'Changed'),
+    delete: importT('legacy.surface.4118fb4fed0ecec9', 'Removed'),
+    unchanged: importT('legacy.surface.88b6f7429ce74e85', 'Unchanged')
+});
 
 const renderBackupCompareDiffTable = (rows, options = {}) => {
     const container = $('#backup-compare-diff');
@@ -1173,28 +1240,27 @@ const renderBackupCompareDiffTable = (rows, options = {}) => {
     backupCompareDiffPagingState.page = Math.max(1, Math.min(totalPages, Number(backupCompareDiffPagingState.page) || 1));
     const start = (backupCompareDiffPagingState.page - 1) * backupCompareDiffPagingState.pageSize;
     const pageRows = effectiveRows.slice(start, start + backupCompareDiffPagingState.pageSize);
-    const body = pageRows.map((row) => (
-        `<tr>
-            <td>${escapeHtml(String(row.action || '').toUpperCase())}</td>
-            <td>${escapeHtml(String(row.id || '-'))}</td>
-            <td>${escapeHtml(String(row.beforeName || '-'))}</td>
-            <td>${escapeHtml(String(row.afterName || '-'))}</td>
-            <td>${escapeHtml(Array.isArray(row.fields) ? row.fields.join(', ') : '-')}</td>
-        </tr>`
-    )).join('');
+    const fieldLabels = Object.fromEntries([
+        { key: 'name', label: 'Folder name' }, { key: 'icon', label: 'Icon' }, { key: 'regex', label: 'Matching rule' },
+        { key: 'parent', label: 'Parent folder' }, { key: 'settings', label: 'Folder settings' },
+        { key: 'actions', label: 'Folder actions' }, { key: 'members', label: 'Members' }
+    ].map(({ key, label }) => [key, window.FolderViewPlusI18n?.message?.(label) || label]));
+    const fieldValue = (folder, field) => serializePrefsDiffValue(folder?.[field === 'parent' ? 'parentId' : field === 'members' ? 'containers' : field]);
+    const actionLabels = getBackupCompareActionLabels();
+    const body = pageRows.map((row) => {
+        const action = ['create', 'update', 'delete'].includes(row.action) ? row.action : 'update';
+        const fields = Array.isArray(row.fields) ? row.fields : [];
+        return `<article class="fv-compare-change">
+            <header><span class="fv-compare-badge is-${action}">${escapeHtml(actionLabels[action])}</span><strong data-i18n-ignore>${escapeHtml(action === 'delete' ? row.beforeName : row.afterName)}</strong></header>
+            ${renderBackupCompareValuePair(row.beforeName, row.afterName)}
+            ${action === 'update' ? `<p class="fv-compare-field-list">${escapeHtml(fields.map(field => fieldLabels[field] || field).join(', '))}</p>
+                <details class="fv-compare-values"><summary>${escapeHtml(importT('legacy.surface.5c5a02c738dfc24e', 'View changed values'))}</summary>
+                    ${fields.map(field => `<div><strong>${escapeHtml(fieldLabels[field] || field)}</strong>${renderBackupCompareValuePair(fieldValue(row.before, field), fieldValue(row.after, field))}</div>`).join('')}
+                </details>` : ''}
+        </article>`;
+    }).join('');
     container.html(`
-        <table>
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>ID</th>
-                    <th>Before</th>
-                    <th>After</th>
-                    <th>Changed fields</th>
-                </tr>
-            </thead>
-            <tbody>${body}</tbody>
-        </table>
+        <div class="fv-compare-changes">${body}</div>
         <div class="fv-table-pager">
             <button type="button" class="fv-backup-diff-prev" ${backupCompareDiffPagingState.page <= 1 ? 'disabled' : ''}>Prev</button>
             <span class="fv-table-pager-info">Page ${backupCompareDiffPagingState.page} / ${totalPages}</span>
@@ -1232,27 +1298,20 @@ const renderBackupComparePrefsDiff = ({ includePrefs, prefsDiff, prefsAvailable 
         container.html('<div class="backup-compare-prefs-empty">No preference differences detected.</div>');
         return;
     }
-    const body = prefsDiff.rows.map((row) => (
-        `<tr>
-            <td>${escapeHtml(String(row.label || row.key || '-'))}</td>
-            <td>${escapeHtml(serializePrefsDiffValue(row.before))}</td>
-            <td>${escapeHtml(serializePrefsDiffValue(row.after))}</td>
-        </tr>`
-    )).join('');
+    const body = prefsDiff.rows.map((row) => `<article class="fv-compare-change">
+        <header><strong>${escapeHtml(window.FolderViewPlusI18n?.message?.(row.label) || row.label || row.key || '-')}</strong></header>
+        ${renderBackupCompareValuePair(serializePrefsDiffValue(row.before), serializePrefsDiffValue(row.after))}
+    </article>`).join('');
     container.html(`
-        <p class="backup-compare-prefs-title">Preference changes (${prefsDiff.rows.length})</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Field</th>
-                    <th>Before</th>
-                    <th>After</th>
-                </tr>
-            </thead>
-            <tbody>${body}</tbody>
-        </table>
+        <p class="backup-compare-prefs-title">${escapeHtml(importT('legacy.surface.83026f419d9a7e18', 'Preference changes: $1', prefsDiff.rows.length))}</p>
+        <div class="fv-compare-changes">${body}</div>
     `);
 };
+
+const renderBackupCompareValuePair = (before, after) => `<div class="fv-compare-value-pair">
+    <div><span>${escapeHtml(importT('legacy.surface.218197693424e015', 'From'))}</span><strong data-i18n-ignore>${escapeHtml(before)}</strong></div>
+    <div><span>${escapeHtml(importT('import.compare.to', 'To'))}</span><strong data-i18n-ignore>${escapeHtml(after)}</strong></div>
+</div>`;
 
 const renderBackupCompareDialog = ({ type, leftSnapshot, rightSnapshot, diff, includePrefs, prefsDiff, prefsAvailable }) => {
     const dialog = $('#backup-compare-dialog');
@@ -1262,41 +1321,27 @@ const renderBackupCompareDialog = ({ type, leftSnapshot, rightSnapshot, diff, in
         return;
     }
 
-    const metaItems = [
-        { label: importT('legacy.surface.baaddf70fb5d432b', 'Type'), value: type === 'vm' ? 'VM' : 'Docker' },
-        { label: importT('legacy.surface.218197693424e015', 'From'), value: leftSnapshot.label },
-        { label: importT('import.compare.to', 'To'), value: rightSnapshot.label },
-        { label: importT('legacy.surface.86fd278fc95cd01c', 'From folders'), value: diff.leftCount },
-        { label: importT('legacy.surface.260d414db3236cdc', 'To folders'), value: diff.rightCount }
-    ];
-    meta.html(metaItems.map((item) => (
-        `<span class="preview-meta-item"><strong>${escapeHtml(window.FolderViewPlusI18n?.message?.(item.label) || item.label)}:</strong> <span data-i18n-ignore>${escapeHtml(String(item.value))}</span></span>`
-    )).join(''));
-
-    counts.html(`
-        <span class="import-count-chip is-create">${escapeHtml(importT('legacy.surface.4759498ac2a719c6', 'Create'))}: ${diff.counts.create}</span>
-        <span class="import-count-chip is-update">${escapeHtml(importT('legacy.surface.c1c1009d3f37ec05', 'Update'))}: ${diff.counts.update}</span>
-        <span class="import-count-chip is-delete">${escapeHtml(importT('legacy.surface.e2d0a54968ead24e', 'Delete'))}: ${diff.counts.delete}</span>
-        <span class="import-count-chip is-selected">${escapeHtml(importT('legacy.surface.88b6f7429ce74e85', 'Unchanged'))}: ${diff.counts.unchanged}</span>
-        <span class="import-count-chip is-dryrun">${escapeHtml(importT('legacy.surface.e0d37fd3fb9505d1', 'Prefs changed: $1', includePrefs && prefsAvailable ? (prefsDiff?.rows?.length || 0) : '—'))}</span>
-    `);
+    meta.html([
+        { title: importT('legacy.surface.218197693424e015', 'From'), snapshot: leftSnapshot, count: diff.leftCount },
+        { title: importT('import.compare.to', 'To'), snapshot: rightSnapshot, count: diff.rightCount }
+    ].map(item => `<div class="fv-compare-source-card"><span>${escapeHtml(item.title)}</span>
+        <strong data-i18n-ignore>${escapeHtml(item.snapshot.targetId === '__current__' ? importT('legacy.surface.294586e0b56aff59', 'Current live folders') : item.snapshot.label)}</strong>
+        ${item.snapshot.targetId !== '__current__' ? `<small data-i18n-ignore>${escapeHtml(item.snapshot.targetId)}</small>` : ''}
+        <span>${escapeHtml(importT('legacy.surface.be10533dd25b7919', 'Folders: $1', item.count))}</span></div>`).join(''));
+    counts.html(Object.entries(getBackupCompareActionLabels()).map(([action, label]) => `<div class="fv-compare-count is-${action}"><strong>${diff.counts[action]}</strong><span>${escapeHtml(label)}</span></div>`).join(''));
 
     renderBackupCompareDiffTable(diff.rows, { resetPage: true });
     renderBackupComparePrefsDiff({ includePrefs, prefsDiff, prefsAvailable });
 
     window.FolderViewPlusI18n?.translate?.(dialog[0]);
-    const modalWidth = Math.min(980, Math.max(280, window.innerWidth - 24));
-    dialog.dialog({
+    openSnapshotCompareDialog(dialog, {
         title: importT('legacy.surface.37fa840aca750d15', 'Compare $1 snapshots', type === 'docker' ? 'Docker' : 'VM'),
-        resizable: false,
-        width: modalWidth,
-        modal: true,
+        width: 980,
         dialogClass: 'fv-backup-compare-modal',
-        buttons: {
-            [importT('common.close', 'Close')]: function() {
-                $(this).dialog('close');
-            }
-        }
+        buttons: [
+            { text: importT('legacy.surface.502f6dbd6eb1f20f', 'Compare again'), click() { dialog.dialog('close'); openBackupComparePicker(type); } },
+            { text: importT('common.close', 'Close'), class: 'fv-compare-primary', click() { dialog.dialog('close'); } }
+        ]
     });
 };
 
@@ -1329,7 +1374,7 @@ const resolveBackupCompareSnapshot = async (type, target) => {
     };
 };
 
-const compareBackupSnapshots = async (type) => {
+const compareBackupSnapshots = async (type, options = {}) => {
     let resolvedType;
     try {
         resolvedType = normalizeManagedType(type);
@@ -1363,11 +1408,13 @@ const compareBackupSnapshots = async (type) => {
             resolveBackupCompareSnapshot(resolvedType, leftTarget),
             resolveBackupCompareSnapshot(resolvedType, rightTarget)
         ]);
+        if (options.isActive && !options.isActive()) return;
         const diff = buildBackupSnapshotDiff(leftSnapshot.folders, rightSnapshot.folders);
         const prefsAvailable = leftSnapshot.prefs !== null && rightSnapshot.prefs !== null;
         const prefsDiff = includePrefs && prefsAvailable
             ? buildBackupPrefsDiff(leftSnapshot.prefs, rightSnapshot.prefs)
             : { rows: [], comparedCount: 0 };
+        options.beforeRender?.();
         renderBackupCompareDialog({
             type: resolvedType,
             leftSnapshot,
@@ -1378,6 +1425,7 @@ const compareBackupSnapshots = async (type) => {
             prefsAvailable
         });
     } catch (error) {
+        if (options.isActive && !options.isActive()) return;
         showError(importT("common.repair.compare-failed-fd89d7", "Compare failed"), error);
     }
 };

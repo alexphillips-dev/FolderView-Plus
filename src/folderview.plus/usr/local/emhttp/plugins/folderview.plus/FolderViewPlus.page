@@ -1436,7 +1436,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="fv-recovery-primary-actions">
                     <button id="fv-recovery-restore-latest" type="button" class="fv-recovery-primary-restore" data-fv-onclick="restoreLatestActiveRecoveryBackup()" disabled><i class="fa fa-history" aria-hidden="true"></i> Restore Latest Backup</button>
                     <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera" aria-hidden="true"></i> Create Backup Now</button>
-                    <button type="button" data-fv-recovery-disclosure="fv-recovery-compare-panel" aria-controls="fv-recovery-compare-panel" aria-expanded="false"><i class="fa fa-exchange" aria-hidden="true"></i> Compare Snapshots</button>
+                    <button type="button" data-fv-onclick="openActiveRecoverySnapshotCompare()" aria-haspopup="dialog"><i class="fa fa-exchange" aria-hidden="true"></i> Compare Snapshots</button>
                 </div>
                 <details class="fv-recovery-more-actions">
                     <summary><i class="fa fa-ellipsis-v" aria-hidden="true"></i> More actions <i class="fa fa-angle-down" aria-hidden="true"></i></summary>
@@ -1447,19 +1447,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </details>
             </div>
-            <div id="fv-recovery-compare-panel" class="fv-recovery-inline-panel" hidden>
-                <strong>Compare snapshots</strong>
-                <p>Preview folder and preference differences before restoring anything.</p>
-                    <div class="backup-compare-row fv-recovery-compare-row">
-                        <label for="recovery-backup-compare-left">Snapshot</label>
-                        <select id="recovery-backup-compare-left"></select>
-                        <span class="backup-compare-sep">vs</span>
-                        <label for="recovery-backup-compare-right" class="fv-sr-only">Compare with</label><select id="recovery-backup-compare-right"></select>
-                        <label class="backup-compare-prefs-toggle"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-                        <button type="button" data-fv-onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
-                    </div>
-            </div>
-
             <div class="fv-recovery-stage-grid">
                 <section class="fv-recovery-stage fv-recovery-history-stage">
                     <div class="fv-recovery-stage-head"><i class="fa fa-database" aria-hidden="true"></i><div><strong>Backup history</strong><span id="fv-recovery-history-summary" class="rules-help">Choose a snapshot to restore, download, or delete.</span></div></div>
@@ -1637,15 +1624,31 @@ if (!empty($fvplusRuntimeConflicts)) {
         <label id="import-review-ack-row" class="import-review-ack" data-fvplus-style="fv-u-xcjvns"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
     </div>
 </div>
+<div id="backup-compare-picker" data-fvplus-style="fv-u-xcjvns">
+    <p class="fv-compare-intro">Choose a snapshot and a comparison target. No changes will be saved.</p>
+    <div class="fv-compare-source-grid">
+        <div class="fv-compare-source-card">
+            <label for="recovery-backup-compare-left">From snapshot</label>
+            <select id="recovery-backup-compare-left"></select>
+        </div>
+        <div class="fv-compare-source-card">
+            <label for="recovery-backup-compare-right">Compare with</label>
+            <select id="recovery-backup-compare-right"></select>
+        </div>
+    </div>
+    <label class="backup-compare-prefs-toggle fv-compare-prefs-option"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
+    <p id="backup-compare-picker-status" class="fv-compare-notice" role="status" hidden></p>
+</div>
 <div id="backup-compare-dialog" data-fvplus-style="fv-u-xcjvns">
     <div class="backup-compare-head">
-        <p class="import-preview-title">Snapshot comparison</p>
-        <p class="import-preview-subtitle">Review exactly what changed between two configuration snapshots.</p>
+        <p class="fv-compare-kicker">Read-only comparison</p>
+        <h3>Snapshot comparison</h3>
+        <p class="fv-compare-intro">Review exactly what changed between two configuration snapshots.</p>
     </div>
-    <div id="backup-compare-meta" class="preview-meta"></div>
-    <div id="backup-compare-counts" class="import-preview-counts"></div>
-    <div id="backup-compare-diff" class="backup-compare-diff"></div>
-    <div id="backup-compare-prefs" class="backup-compare-prefs"></div>
+    <div id="backup-compare-meta" class="fv-compare-source-grid"></div>
+    <div id="backup-compare-counts" class="fv-compare-counts"></div>
+    <section class="fv-compare-section"><h3>Folder changes</h3><div id="backup-compare-diff" class="backup-compare-diff"></div></section>
+    <section class="fv-compare-section"><h3>Preferences</h3><div id="backup-compare-prefs" class="backup-compare-prefs"></div></section>
 </div>
 
 <div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>

@@ -91,8 +91,8 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.deepEqual(await page.evaluate(() => window.recoveryActions), ['docker:docker-6.json']);
         await page.locator('.fv-recovery-edit-settings').click();
         assert.equal(await page.locator('#fv-recovery-policy-editor').evaluate(node => node.hidden), false);
-        await page.locator('[data-fv-recovery-disclosure="fv-recovery-compare-panel"]').click();
-        assert.equal(await page.locator('#fv-recovery-compare-panel').evaluate(node => node.hidden), false);
+        assert.equal(await page.locator('[data-fv-onclick="openActiveRecoverySnapshotCompare()"]').getAttribute('aria-haspopup'), 'dialog');
+        assert.equal(await page.locator('#fv-recovery-compare-panel').count(), 0);
         await page.evaluate(() => window.recoveryFixture.setRecoveryWorkspaceType('vm', false));
         assert.equal(await page.locator('#recovery-backup-schedule-enabled').isChecked(), true);
         assert.equal(await page.locator('#recovery-backup-interval-hours').inputValue(), '12');

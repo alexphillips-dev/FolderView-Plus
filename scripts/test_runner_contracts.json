@@ -58,6 +58,7 @@
     { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
+    { "file": "tests/browser/cases/snapshot-compare.mjs", "limit": 125, "owner": "fixture snapshot comparison dialogs and lifecycle" },
     { "file": "tests/browser/cases/folder-render-recovery.mjs", "limit": 40, "owner": "fixture native row rollback and render recovery" }
   ],
   "intent": {
@@ -81,6 +82,7 @@
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
+        "tests/browser/cases/snapshot-compare.mjs",
         "tests/browser/cases/import.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
         "tests/browser/cases/forum-reports.mjs",
@@ -97,10 +99,10 @@
         "tests/browser/helpers/advanced-title-badges.mjs",
         "tests/browser/helpers/settings-alerts-health-layout.mjs"
       ],
-      "testCount": 67,
-      "assertionCount": 780,
-      "pageEvaluateCount": 197,
-      "orderedTitleSha256": "17528692666d8fe7096655d4b3f463ce4205bf164aa800ae0a31419d24fd916b"
+      "testCount": 69,
+      "assertionCount": 807,
+      "pageEvaluateCount": 208,
+      "orderedTitleSha256": "0d1be6ec97adbf01914a2240ec3c7e39ed047d765bfee590ee7b97abd9f9692a"
     }
   }
 }

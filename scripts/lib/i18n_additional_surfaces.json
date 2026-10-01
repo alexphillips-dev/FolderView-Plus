@@ -8352,11 +8352,11 @@
     ]
   },
   {
-    "phrase": "Preference changes ($1)",
+    "phrase": "Preference changes: $1",
     "locations": [
       {
         "file": "scripts/folderviewplus.import.js",
-        "anchor": "Preference changes ("
+        "anchor": "Preference changes:"
       }
     ]
   },
@@ -8420,15 +8420,6 @@
       {
         "file": "scripts/runtime.preflight-bootstrap.js",
         "anchor": "'Preflight warnings detected'"
-      }
-    ]
-  },
-  {
-    "phrase": "Prefs changed: $1",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.import.js",
-        "anchor": "Prefs changed:"
       }
     ]
   },

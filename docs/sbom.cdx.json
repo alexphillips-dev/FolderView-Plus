@@ -323,7 +323,7 @@
     {
       "type": "library",
       "name": "brace-expansion",
-      "version": "5.0.9",
+      "version": "5.0.12",
       "scope": "optional",
       "licenses": [
         {
@@ -332,7 +332,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@5.0.9"
+      "purl": "pkg:npm/brace-expansion@5.0.12"
     },
     {
       "type": "library",

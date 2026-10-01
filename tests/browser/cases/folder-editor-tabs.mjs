@@ -11,6 +11,7 @@ export const registerFolderEditorTabCases = ({ test, baseUrl }) => {
         for (const theme of ['black', 'white']) for (const width of [1180, 390]) {
             await page.setViewportSize({ width, height: 800 });
             await page.evaluate(theme => document.documentElement.setAttribute('data-fvplus-host-theme', theme), theme);
+            await page.waitForFunction(() => [...document.querySelectorAll('.fv-section-nav > button')].every(button => button.getAnimations().length === 0));
             const result = await page.locator('.fv-section-nav').evaluate(nav => {
                 const active = getComputedStyle(nav.children[0]), normal = getComputedStyle(nav.children[1]);
                 return { font: parseFloat(active.fontSize), rem: parseFloat(getComputedStyle(document.documentElement).fontSize),

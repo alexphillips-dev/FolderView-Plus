@@ -84,7 +84,8 @@ export const registerSnapshotCompareCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('#backup-compare-picker-status').isVisible(), true);
         await page.locator('.fv-backup-compare-picker-modal').press('Escape');
         await page.evaluate(() => { window.fixtureCompare.defer = true; window.fixtureCompare.reset(); });
-        await page.locator('#compare-open').click();
+        await page.locator('#compare-open').focus();
+        await page.locator('#compare-open').press('Enter');
         await page.locator('.fv-backup-compare-picker-modal .fv-compare-primary').click();
         assert.equal(await page.locator('.fv-backup-compare-picker-modal .fv-compare-primary').isDisabled(), true);
         await page.locator('.fv-backup-compare-picker-modal').press('Escape');

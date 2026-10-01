@@ -27,7 +27,7 @@ If FolderView Plus starts with empty or missing current configuration, its compa
 
 ## FolderView3 environment preview
 
-**Current stable UI limitation (2026.10.01.09):** the redesigned Recovery workspace no longer exposes Detect installed FolderView3 or Preview FolderView3 export. For current folder migration, use Basic's Docker/VM Import or the Setup Assistant with matching per-type exports. Those paths do not promise the complete coordinated conversion of start order and appearance described below. Preserve the full legacy directory and review those settings separately; ask for maintainer guidance if a full-environment conversion is required. Do not downgrade or invoke endpoints manually to bypass preview safeguards.
+**Current stable UI limitation (2026.10.01.10):** the redesigned Recovery workspace no longer exposes Detect installed FolderView3 or Preview FolderView3 export. For current folder migration, use Basic's Docker/VM Import or the Setup Assistant with matching per-type exports. Those paths do not promise the complete coordinated conversion of start order and appearance described below. Preserve the full legacy directory and review those settings separately; ask for maintainer guidance if a full-environment conversion is required. Do not downgrade or invoke endpoints manually to bypass preview safeguards.
 
 The following describes the dedicated preview available in older versions, for historical migration/support reference:
 

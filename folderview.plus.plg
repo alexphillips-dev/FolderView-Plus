@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.08">
-<!ENTITY md5 "4e772579a97bcc612672491a9253ada9">
-<!ENTITY sha256 "6db942fa80b8e7b63e8bfa19cc3992b832f97dc5941dbfeb553512181ef60e93">
+<!ENTITY version "2026.10.01.09">
+<!ENTITY md5 "8d0fbaf8369a4e9d6ff68118c8174e28">
+<!ENTITY sha256 "4a638700b2dc595181e18bf56527bc66799ac541bb3c59a34cb663bea31eb218">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.09
+- UI/UX: Recovery headings and metric icons now use compact mobile sizes consistent with Diagnostics, while retaining the desktop layout.
+- Quality: Recovery layout checks validate button spacing for both stacked phone actions and side-by-side desktop actions across Chrome, Firefox, and Safari fixtures.
+
 
 ###2026.10.01.08
 - Fix: Removed obsolete Recovery styling and unused translations left behind by the recent Settings redesigns.

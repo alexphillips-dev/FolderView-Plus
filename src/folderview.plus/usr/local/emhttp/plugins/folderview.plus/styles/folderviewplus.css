@@ -5772,6 +5772,14 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 @media (max-width: 760px) {
+    .fv-recovery-panel .fv-recovery-headline {
+        font-size: 1.5rem;
+    }
+
+    .fv-recovery-panel .fv-recovery-stat-card > .fa {
+        font-size: 1.6rem;
+    }
+
     .fv-recovery-intro {
         flex-direction: column;
         align-items: stretch;

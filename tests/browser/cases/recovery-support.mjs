@@ -69,7 +69,9 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 actionFont: parseFloat(style('.fv-recovery-primary-actions button').fontSize),
                 actionHeight: actions[0].height,
                 actionWidth: actions[0].width,
-                actionGap: actions[1].left - actions[0].right,
+                actionGap: actions[1].top >= actions[0].bottom - 1
+                    ? actions[1].top - actions[0].bottom
+                    : actions[1].left - actions[0].right,
                 iconGap: parseFloat(style('.fv-recovery-primary-actions button > .fa').marginInlineEnd)
             };
         });
@@ -78,7 +80,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.ok(readability.metricIcon >= diagnosticsText.body && readability.metricIcon <= diagnosticsText.headline + 2 && closeTo(readability.metricValue, diagnosticsText.metric));
         assert.ok(closeTo(readability.sourceFont, diagnosticsText.body) && closeTo(readability.stageHeading, diagnosticsText.section) && closeTo(readability.stageDescription, diagnosticsText.caption));
         assert.ok(closeTo(readability.historyDate, diagnosticsText.body) && readability.historyAlignment === 'left');
-        assert.ok(readability.actionFont >= diagnosticsText.action && readability.actionFont <= diagnosticsText.body + 1 && readability.actionHeight >= 38 && readability.actionHeight <= 46 && readability.actionWidth >= 200 && readability.actionGap <= 16, JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.actionFont >= diagnosticsText.action && readability.actionFont <= diagnosticsText.body + 1 && readability.actionHeight >= 38 && readability.actionHeight <= 46 && readability.actionWidth >= 200 && readability.actionGap >= 0 && readability.actionGap <= 16, JSON.stringify({ readability, diagnosticsText }));
         assert.ok(readability.iconGap >= 8);
         await page.locator('.fv-recovery-snapshot-item').nth(1).focus();
         await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');

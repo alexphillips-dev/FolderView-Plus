@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "import",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Виберіть, як обробляти існуючі папки. Нічого не змінюється, поки ви не натиснете Застосувати імпорт.",
     "import.behavior.question": "Як слід обробляти існуючі папки?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "Імпорт VM папок",
     "import.actions.apply": "Застосувати імпорт",
     "import.folderview3.preview-title": "Попередній перегляд міграції FolderView3",
-    "import.folderview3.preview-help": "Знайдіть встановлену конфігурацію FolderView3 або перевірте повний експорт JSON. Виявлення та попередній перегляд доступні лише для читання; рідні записи органайзера та мутації автозапуску Docker залишаються виключеними, якщо їх явно не включає пізніша заявка.",
     "import.folderview3.read-only-title": "Перенесення FolderView3 доступне лише для читання, доки ви не схвалите план застосування.",
-    "import.folderview3.read-only-help": "Виявлення встановленої конфігурації або попередній перегляд експорту FolderView3 без написання плагіна чи стану Unraid.",
     "import.folderview3.read-only-preview-help": "Виявлення встановленої конфігурації FolderView3 або попередній перегляд експорту FolderView3. Попередній перегляд ніколи не записує плагін або конфігурацію Unraid.",
     "import.folderview3.not-detected": "Не виявлено встановленої конфігурації FolderView3.",
     "import.folderview3.preview-export-help": "Ви все ще можете попередньо переглянути повний експорт FolderView3 JSON з іншого сервера.",

@@ -288,12 +288,7 @@
             const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
             const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                invalidateFolderRuntimePreview(resolvedType, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to preview.</span>
-            </div>
-        `);
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Select a folder and action first.</strong><span>Pick the target folder and the runtime action you want to preview.</span></div>');
                 return;
             }
             const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
@@ -312,12 +307,7 @@
             const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
             const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                invalidateFolderRuntimePreview(resolvedType, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to apply.</span>
-            </div>
-        `);
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Select a folder and action first.</strong><span>Pick the target folder and the runtime action you want to apply.</span></div>');
                 return;
             }
             const preview = runtimePreviewByType[resolvedType];
@@ -327,12 +317,7 @@
             }
             const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
             if (!plan || runtimePlanSignature(plan) !== preview.signature) {
-                invalidateFolderRuntimePreview(resolvedType, `
-            <div class="fv-recovery-empty-state">
-                <strong>Folder state changed.</strong>
-                <span>Preview the action again before applying it.</span>
-            </div>
-        `);
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Folder state changed.</strong><span>Preview the action again before applying it.</span></div>');
                 return;
             }
             if (!plan.eligible.length) {

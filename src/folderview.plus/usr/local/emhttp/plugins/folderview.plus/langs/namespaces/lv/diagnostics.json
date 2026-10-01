@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Pārraugiet spraudņa stāvokli, novērsiet problēmas un kopīgojiet atbalsta datus.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Vēl nav aktivitāšu",
     "diagnostics.activity.empty-description": "Šeit tiks parādītas mapju izmaiņas, dublējumkopijas, importēšana un atkopšanas darbības.",
     "diagnostics.activity.ready": "Gatavs",
-    "diagnostics.history.refresh-description": "Atsvaidziniet vēsturi pēc saglabāšanas, importēšanas, atjaunošanas vai atsaukšanas, lai pārskatītu jaunākos atkopšanas drošus notikumus.",
-    "diagnostics.history.empty-title": "Laika skalas ierakstu vēl nav.",
-    "diagnostics.history.empty-description": "Šeit tiks parādītas atlasītā atkopšanas avota nesen veikto izmaiņu kartītes.",
     "diagnostics.cards.technical-details": "Tehniskās detaļas",
     "diagnostics.actions.retry": "Mēģiniet vēlreiz",
     "diagnostics.capture.age-unknown": "vecums nav zināms",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 dzēsts, $2 neizdevās",
     "diagnostics.activity.detail.action": "Darbība: $1",
     "diagnostics.activity.exported": "Atbalsta komplekts ir eksportēts",
-    "diagnostics.history.members-reconciled": "Dalībnieku atsauces ir sinhronizētas",
     "diagnostics.history.backup-restored": "Dublējums ir atjaunots",
-    "diagnostics.history.backup-deleted": "Dublējums izdzēsts",
-    "diagnostics.history.backup-download": "Pieprasīta dublējuma lejupielāde",
-    "diagnostics.history.preferences-saved": "Preferences saglabātas",
-    "diagnostics.history.event-details": "Notikuma informācija"
+    "diagnostics.history.backup-deleted": "Dublējums izdzēsts"
 }

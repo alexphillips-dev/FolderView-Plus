@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnose",
     "diagnostics.workspace.description": "Überwachen Sie den Plugin-Zustand, beheben Sie Probleme und teilen Sie Supportdaten.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Noch keine Aktivität",
     "diagnostics.activity.empty-description": "Hier werden Ordneränderungen, Sicherungen, Importe und Wiederherstellungsaktionen angezeigt.",
     "diagnostics.activity.ready": "Bereit",
-    "diagnostics.history.refresh-description": "Aktualisieren Sie den Verlauf nach dem Speichern, Importieren, Wiederherstellen oder Rückgängigmachen, um die neuesten wiederherstellungssicheren Ereignisse zu überprüfen.",
-    "diagnostics.history.empty-title": "Noch keine Timeline-Einträge.",
-    "diagnostics.history.empty-description": "Hier werden die Karten mit den letzten Änderungen für die ausgewählte Wiederherstellungsquelle angezeigt.",
     "diagnostics.cards.technical-details": "Technische Details",
     "diagnostics.actions.retry": "Versuchen Sie es noch einmal",
     "diagnostics.capture.age-unknown": "Alter unbekannt",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 gelöscht, $2 fehlgeschlagen",
     "diagnostics.activity.detail.action": "Aktion: $1",
     "diagnostics.activity.exported": "Supportpaket exportiert",
-    "diagnostics.history.members-reconciled": "Mitgliedsreferenzen synchronisiert",
     "diagnostics.history.backup-restored": "Sicherung wiederhergestellt",
-    "diagnostics.history.backup-deleted": "Sicherung gelöscht",
-    "diagnostics.history.backup-download": "Backup-Download angefordert",
-    "diagnostics.history.preferences-saved": "Einstellungen gespeichert",
-    "diagnostics.history.event-details": "Ereignisdetails"
+    "diagnostics.history.backup-deleted": "Sicherung gelöscht"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostik",
     "diagnostics.workspace.description": "Övervaka plugin-tillståndet, felsök problem och dela supportdata.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Ingen aktivitet ännu",
     "diagnostics.activity.empty-description": "Mappändringar, säkerhetskopior, importer och återställningsåtgärder kommer att visas här.",
     "diagnostics.activity.ready": "Klar",
-    "diagnostics.history.refresh-description": "Uppdatera historiken efter en sparning, import, återställning eller ångra för att granska de senaste återställningssäkra händelserna.",
-    "diagnostics.history.empty-title": "Inga tidslinjeinlägg ännu.",
-    "diagnostics.history.empty-description": "Nyligen ändrade kort kommer att visas här för den valda återställningskällan.",
     "diagnostics.cards.technical-details": "Tekniska detaljer",
     "diagnostics.actions.retry": "Försök igen",
     "diagnostics.capture.age-unknown": "ålder okänd",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 raderade, $2 misslyckades",
     "diagnostics.activity.detail.action": "Åtgärd: $1",
     "diagnostics.activity.exported": "Supportpaket har exporterats",
-    "diagnostics.history.members-reconciled": "Medlemsreferenser synkroniserade",
     "diagnostics.history.backup-restored": "Säkerhetskopieringen återställd",
-    "diagnostics.history.backup-deleted": "Säkerhetskopiering raderad",
-    "diagnostics.history.backup-download": "Säkerhetskopiering har begärts",
-    "diagnostics.history.preferences-saved": "Inställningar sparade",
-    "diagnostics.history.event-details": "Händelsedetaljer"
+    "diagnostics.history.backup-deleted": "Säkerhetskopiering raderad"
 }

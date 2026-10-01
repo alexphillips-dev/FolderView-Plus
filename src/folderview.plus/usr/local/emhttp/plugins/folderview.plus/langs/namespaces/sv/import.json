@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "import",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Välj hur befintliga mappar ska hanteras. Inget ändras förrän du väljer Använd import.",
     "import.behavior.question": "Hur ska befintliga mappar hanteras?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "Importera VM mappar",
     "import.actions.apply": "Tillämpa import",
     "import.folderview3.preview-title": "FolderView3 migreringsförhandsgranskning",
-    "import.folderview3.preview-help": "Upptäck en installerad FolderView3-konfiguration eller inspektera en fullständig exporterad JSON. Detektering och förhandsgranskning är skrivskyddad; inbyggda arrangörsposter och Docker autostartmutationer förblir uteslutna om inte en senare tillämpning uttryckligen inkluderar dem.",
     "import.folderview3.read-only-title": "FolderView3-migrering är skrivskyddad tills du godkänner en ansökningsplan.",
-    "import.folderview3.read-only-help": "Upptäck en installerad konfiguration eller förhandsgranska en FolderView3-export utan att skriva något plugin eller Unraid-tillstånd.",
     "import.folderview3.read-only-preview-help": "Upptäck en installerad FolderView3-konfiguration eller förhandsgranska en FolderView3-export. Förhandsgranskning skriver aldrig plugin eller Unraid-konfiguration.",
     "import.folderview3.not-detected": "Ingen installerad FolderView3-konfiguration upptäcktes.",
     "import.folderview3.preview-export-help": "Du kan fortfarande förhandsgranska en FolderView3 full-export JSON från en annan server.",

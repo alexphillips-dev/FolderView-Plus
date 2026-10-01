@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostica",
     "diagnostics.workspace.description": "Monitora lo stato dei plugin, risolvi i problemi e condividi i dati di supporto.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Nessuna attività ancora",
     "diagnostics.activity.empty-description": "Le modifiche alle cartelle, i backup, le importazioni e le azioni di recupero appariranno qui.",
     "diagnostics.activity.ready": "Pronto",
-    "diagnostics.history.refresh-description": "Aggiorna la cronologia dopo un salvataggio, importazione, ripristino o annullamento per rivedere gli ultimi eventi sicuri per il recupero.",
-    "diagnostics.history.empty-title": "Nessuna voce della timeline ancora.",
-    "diagnostics.history.empty-description": "Le schede delle modifiche recenti appariranno qui per la sorgente di recupero selezionata.",
     "diagnostics.cards.technical-details": "Dettagli tecnici",
     "diagnostics.actions.retry": "Riprova",
     "diagnostics.capture.age-unknown": "età sconosciuta",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 eliminato, $2 non riuscito",
     "diagnostics.activity.detail.action": "Azione: $1",
     "diagnostics.activity.exported": "Pacchetto di supporto esportato",
-    "diagnostics.history.members-reconciled": "Riferimenti ai membri sincronizzati",
     "diagnostics.history.backup-restored": "Backup ripristinato",
-    "diagnostics.history.backup-deleted": "Backup eliminato",
-    "diagnostics.history.backup-download": "È stato richiesto il download del backup",
-    "diagnostics.history.preferences-saved": "Preferenze salvate",
-    "diagnostics.history.event-details": "Dettagli dell’evento"
+    "diagnostics.history.backup-deleted": "Backup eliminato"
 }

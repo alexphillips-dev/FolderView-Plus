@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Dijagnostika",
     "diagnostics.workspace.description": "Pratite stanje dodataka, rješavajte probleme i dijelite podatke podrške.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Još nema aktivnosti",
     "diagnostics.activity.empty-description": "Ovdje će se pojaviti promjene mapa, sigurnosne kopije, uvozi i radnje oporavka.",
     "diagnostics.activity.ready": "spreman",
-    "diagnostics.history.refresh-description": "Osvježite povijest nakon spremanja, uvoza, vraćanja ili poništavanja za pregled najnovijih događaja sigurnih za oporavak.",
-    "diagnostics.history.empty-title": "Još nema unosa vremenske trake.",
-    "diagnostics.history.empty-description": "Ovdje će se pojaviti kartice nedavnih promjena za odabrani izvor oporavka.",
     "diagnostics.cards.technical-details": "Tehnički detalji",
     "diagnostics.actions.retry": "Pokušaj ponovo",
     "diagnostics.capture.age-unknown": "dob nepoznata",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 izbrisano, $2 nije uspjelo",
     "diagnostics.activity.detail.action": "Radnja: $1",
     "diagnostics.activity.exported": "Paket podrške je izvezen",
-    "diagnostics.history.members-reconciled": "Reference članova sinkronizirane",
     "diagnostics.history.backup-restored": "Sigurnosna kopija vraćena",
-    "diagnostics.history.backup-deleted": "Sigurnosna kopija izbrisana",
-    "diagnostics.history.backup-download": "Zatraženo preuzimanje sigurnosne kopije",
-    "diagnostics.history.preferences-saved": "Postavke spremljene",
-    "diagnostics.history.event-details": "Detalji događaja"
+    "diagnostics.history.backup-deleted": "Sigurnosna kopija izbrisana"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "import",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Wybierz, jak obsługiwać istniejące foldery. Nic się nie zmieni, dopóki nie wybierzesz Zastosuj import.",
     "import.behavior.question": "Jak należy obsługiwać istniejące foldery?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "Import VM folderów",
     "import.actions.apply": "Zastosuj import",
     "import.folderview3.preview-title": "Podgląd migracji FolderView3",
-    "import.folderview3.preview-help": "Odkryj zainstalowaną konfigurację FolderView3 lub sprawdź pełny eksport JSON. Wykrywanie i podgląd są tylko do odczytu; natywne rekordy organizatora i mutacje autostartu Dockera pozostają wykluczone, chyba że późniejsze zastosowanie wyraźnie je uwzględni.",
     "import.folderview3.read-only-title": "Migracja FolderView3 jest dostępna tylko do odczytu, dopóki nie zatwierdzisz planu zastosowania.",
-    "import.folderview3.read-only-help": "Wykryj zainstalowaną konfigurację lub wyświetl podgląd eksportu FolderView3 bez zapisywania wtyczki lub stanu Unraid.",
     "import.folderview3.read-only-preview-help": "Wykryj zainstalowaną konfigurację FolderView3 lub wyświetl podgląd eksportu FolderView3. Podgląd nigdy nie zapisuje konfiguracji wtyczki ani Unraid.",
     "import.folderview3.not-detected": "Nie wykryto zainstalowanej konfiguracji FolderView3.",
     "import.folderview3.preview-export-help": "Nadal możesz wyświetlić podgląd pełnego eksportu JSON FolderView3 z innego serwera.",

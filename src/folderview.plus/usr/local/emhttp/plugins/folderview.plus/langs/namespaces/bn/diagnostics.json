@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "ডায়াগনস্টিকস",
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "এখনো কোনো কার্যকলাপ নেই",
     "diagnostics.activity.empty-description": "ফোল্ডার পরিবর্তন, ব্যাকআপ, আমদানি এবং পুনরুদ্ধারের ক্রিয়াগুলি এখানে প্রদর্শিত হবে৷",
     "diagnostics.activity.ready": "প্রস্তুত",
-    "diagnostics.history.refresh-description": "সাম্প্রতিক পুনরুদ্ধার-নিরাপদ ইভেন্টগুলি পর্যালোচনা করতে একটি সংরক্ষণ, আমদানি, পুনরুদ্ধার বা পূর্বাবস্থার পরে ইতিহাস রিফ্রেশ করুন৷",
-    "diagnostics.history.empty-title": "এখনও কোন টাইমলাইন এন্ট্রি.",
-    "diagnostics.history.empty-description": "নির্বাচিত পুনরুদ্ধার উত্সের জন্য সাম্প্রতিক পরিবর্তন কার্ডগুলি এখানে উপস্থিত হবে৷",
     "diagnostics.cards.technical-details": "প্রযুক্তিগত বিবরণ",
     "diagnostics.actions.retry": "আবার চেষ্টা করুন",
     "diagnostics.capture.age-unknown": "বয়স অজানা",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 মোছা হয়েছে, $2 ব্যর্থ হয়েছে৷",
     "diagnostics.activity.detail.action": "কর্ম: $1",
     "diagnostics.activity.exported": "সমর্থন বান্ডিল রপ্তানি করা হয়েছে",
-    "diagnostics.history.members-reconciled": "সদস্য রেফারেন্স সিঙ্ক্রোনাইজ করা হয়েছে",
     "diagnostics.history.backup-restored": "ব্যাকআপ পুনরুদ্ধার করা হয়েছে",
-    "diagnostics.history.backup-deleted": "ব্যাকআপ মুছে ফেলা হয়েছে",
-    "diagnostics.history.backup-download": "ব্যাকআপ ডাউনলোড অনুরোধ করা হয়েছে",
-    "diagnostics.history.preferences-saved": "পছন্দ সংরক্ষিত",
-    "diagnostics.history.event-details": "ঘটনার বিবরণ"
+    "diagnostics.history.backup-deleted": "ব্যাকআপ মুছে ফেলা হয়েছে"
 }

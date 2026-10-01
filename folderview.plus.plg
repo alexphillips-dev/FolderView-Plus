@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.07">
-<!ENTITY md5 "9edb3d6e8a71d16e325af941cd3ec134">
-<!ENTITY sha256 "6c9b0c407e58da9cbfeb93bc9ae81396d4300c46affb176768d5300df8554e15">
+<!ENTITY version "2026.10.01.08">
+<!ENTITY md5 "4e772579a97bcc612672491a9253ada9">
+<!ENTITY sha256 "6db942fa80b8e7b63e8bfa19cc3992b832f97dc5941dbfeb553512181ef60e93">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.08
+- Fix: Removed obsolete Recovery styling and unused translations left behind by the recent Settings redesigns.
+- Compatibility: Reduced the size of folder-action preview assets while preserving their messages and confirmation behavior.
+
 
 ###2026.10.01.07
 - UI/UX: Made Advanced → Bulk assignment more compact, matching Recovery's typography, section headings, summary values, icons, and panel spacing. Reduced the destination control, source tabs, move button, table height, and footer sizing while preserving usable controls on phones.

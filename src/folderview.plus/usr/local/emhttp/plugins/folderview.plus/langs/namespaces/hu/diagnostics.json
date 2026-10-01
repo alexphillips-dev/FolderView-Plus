@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnosztika",
     "diagnostics.workspace.description": "Figyelemmel kísérheti a beépülő modulok állapotát, elháríthatja a problémákat, és megoszthatja a támogatási adatokat.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Még nincs tevékenység",
     "diagnostics.activity.empty-description": "Itt jelennek meg a mappa módosításai, biztonsági mentések, importálások és helyreállítási műveletek.",
     "diagnostics.activity.ready": "Kész",
-    "diagnostics.history.refresh-description": "Frissítse az előzményeket mentés, importálás, visszaállítás vagy visszavonás után, hogy megtekinthesse a legújabb helyreállítási biztonságos eseményeket.",
-    "diagnostics.history.empty-title": "Még nincsenek idővonal-bejegyzések.",
-    "diagnostics.history.empty-description": "Itt jelennek meg a legutóbbi módosítások kártyái a kiválasztott helyreállítási forráshoz.",
     "diagnostics.cards.technical-details": "Műszaki részletek",
     "diagnostics.actions.retry": "Próbálja újra",
     "diagnostics.capture.age-unknown": "kora ismeretlen",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 törölve, $2 sikertelen",
     "diagnostics.activity.detail.action": "Művelet: $1",
     "diagnostics.activity.exported": "Támogatási csomag exportálva",
-    "diagnostics.history.members-reconciled": "Taghivatkozások szinkronizálva",
     "diagnostics.history.backup-restored": "A biztonsági mentés visszaállítva",
-    "diagnostics.history.backup-deleted": "Biztonsági másolat törölve",
-    "diagnostics.history.backup-download": "Biztonsági másolat letöltése kérve",
-    "diagnostics.history.preferences-saved": "A beállítások mentve",
-    "diagnostics.history.event-details": "Esemény részletei"
+    "diagnostics.history.backup-deleted": "Biztonsági másolat törölve"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "import",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "選擇如何處理現有資料夾。在您選擇“套用匯入”之前，不會發生任何變化。",
     "import.behavior.question": "現有的資料夾應該如何處理？",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "匯入虛擬機器資料夾",
     "import.actions.apply": "申請匯入",
     "import.folderview3.preview-title": "FolderView3 遷移預覽",
-    "import.folderview3.preview-help": "發現已安裝的FolderView3配置或檢查完整導出的JSON。偵測和預覽是唯讀的；本機組織者記錄和 Docker 自動啟動突變仍然被排除，除非稍後應用明確包含它們。",
     "import.folderview3.read-only-title": "在您批准應用程式計劃之前，FolderView3 遷移是唯讀的。",
-    "import.folderview3.read-only-help": "偵測已安裝的設定或預覽FolderView3匯出，無需編寫任何外掛程式或Unraid狀態。",
     "import.folderview3.read-only-preview-help": "偵測已安裝的FolderView3配置或預覽FolderView3匯出。預覽永遠不會寫入外掛或 Unraid 配置。",
     "import.folderview3.not-detected": "未偵測到已安裝的FolderView3 配置。",
     "import.folderview3.preview-export-help": "您仍然可以從另一臺伺服器預覽FolderView3完全匯出的JSON。",

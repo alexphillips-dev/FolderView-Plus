@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnòstics",
     "diagnostics.workspace.description": "Superviseu l'estat dels connectors, solucioneu problemes i compartiu dades d'assistència.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Encara no hi ha activitat",
     "diagnostics.activity.empty-description": "Els canvis de carpetes, les còpies de seguretat, les importacions i les accions de recuperació apareixeran aquí.",
     "diagnostics.activity.ready": "A punt",
-    "diagnostics.history.refresh-description": "Actualitza l'historial després de desar, importar, restaurar o desfer per revisar els últims esdeveniments segurs per a la recuperació.",
-    "diagnostics.history.empty-title": "Encara no hi ha entrades de cronologia.",
-    "diagnostics.history.empty-description": "Les targetes de canvis recents apareixeran aquí per a la font de recuperació seleccionada.",
     "diagnostics.cards.technical-details": "Detalls tècnics",
     "diagnostics.actions.retry": "Torna-ho a provar",
     "diagnostics.capture.age-unknown": "edat desconeguda",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 s'ha suprimit, $2 ha fallat",
     "diagnostics.activity.detail.action": "Acció: $1",
     "diagnostics.activity.exported": "Paquet de suport exportat",
-    "diagnostics.history.members-reconciled": "Referències de membres sincronitzades",
     "diagnostics.history.backup-restored": "S'ha restaurat la còpia de seguretat",
-    "diagnostics.history.backup-deleted": "S'ha suprimit la còpia de seguretat",
-    "diagnostics.history.backup-download": "S'ha sol·licitat una descàrrega de còpia de seguretat",
-    "diagnostics.history.preferences-saved": "S'han desat les preferències",
-    "diagnostics.history.event-details": "Detalls de l’esdeveniment"
+    "diagnostics.history.backup-deleted": "S'ha suprimit la còpia de seguretat"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostics",
     "diagnostics.workspace.description": "Monitor plugin health, troubleshoot issues, and share support data.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "No activity yet",
     "diagnostics.activity.empty-description": "Folder changes, backups, imports, and recovery actions will appear here.",
     "diagnostics.activity.ready": "Ready",
-    "diagnostics.history.refresh-description": "Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.",
-    "diagnostics.history.empty-title": "No timeline entries yet.",
-    "diagnostics.history.empty-description": "Recent change cards will appear here for the selected recovery source.",
     "diagnostics.cards.technical-details": "Technical details",
     "diagnostics.actions.retry": "Retry",
     "diagnostics.capture.age-unknown": "age unknown",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 deleted, $2 failed",
     "diagnostics.activity.detail.action": "Action: $1",
     "diagnostics.activity.exported": "Support bundle exported",
-    "diagnostics.history.members-reconciled": "Member references synchronized",
     "diagnostics.history.backup-restored": "Backup restored",
-    "diagnostics.history.backup-deleted": "Backup deleted",
-    "diagnostics.history.backup-download": "Backup download requested",
-    "diagnostics.history.preferences-saved": "Preferences saved",
-    "diagnostics.history.event-details": "Event details"
+    "diagnostics.history.backup-deleted": "Backup deleted"
 }

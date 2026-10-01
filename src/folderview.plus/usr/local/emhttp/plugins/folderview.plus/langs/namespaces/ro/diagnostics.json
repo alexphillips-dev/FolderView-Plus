@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Monitorizați starea pluginului, remediați problemele și partajați date de asistență.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Nicio activitate până acum",
     "diagnostics.activity.empty-description": "Modificările folderelor, copiile de rezervă, importurile și acțiunile de recuperare vor apărea aici.",
     "diagnostics.activity.ready": "Gata",
-    "diagnostics.history.refresh-description": "Actualizează istoricul după salvare, import, restaurare sau anulare pentru a revizui cele mai recente evenimente sigure de recuperare.",
-    "diagnostics.history.empty-title": "Nicio intrare în cronologie până acum.",
-    "diagnostics.history.empty-description": "Cardurile cu modificări recente vor apărea aici pentru sursa de recuperare selectată.",
     "diagnostics.cards.technical-details": "Detalii tehnice",
     "diagnostics.actions.retry": "Încearcă din nou",
     "diagnostics.capture.age-unknown": "vârstă necunoscută",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 a fost șters, $2 a eșuat",
     "diagnostics.activity.detail.action": "Acțiune: $1",
     "diagnostics.activity.exported": "Pachetul de asistență exportat",
-    "diagnostics.history.members-reconciled": "Referințele membrilor sincronizate",
     "diagnostics.history.backup-restored": "Backup restaurat",
-    "diagnostics.history.backup-deleted": "Backup șters",
-    "diagnostics.history.backup-download": "A fost solicitată descărcarea de rezervă",
-    "diagnostics.history.preferences-saved": "Preferințe salvate",
-    "diagnostics.history.event-details": "Detalii despre eveniment"
+    "diagnostics.history.backup-deleted": "Backup șters"
 }

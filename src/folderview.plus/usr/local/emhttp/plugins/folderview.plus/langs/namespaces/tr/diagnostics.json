@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Teşhis",
     "diagnostics.workspace.description": "Eklenti sağlığını izleyin, sorunları giderin ve destek verilerini paylaşın.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Henüz etkinlik yok",
     "diagnostics.activity.empty-description": "Klasör değişiklikleri, yedeklemeler, içe aktarmalar ve kurtarma işlemleri burada görünecektir.",
     "diagnostics.activity.ready": "Hazır",
-    "diagnostics.history.refresh-description": "En son kurtarma güvenli olayları gözden geçirmek için kaydetme, içe aktarma, geri yükleme veya geri alma işleminden sonra geçmişi yenileyin.",
-    "diagnostics.history.empty-title": "Henüz zaman çizelgesi girdisi yok.",
-    "diagnostics.history.empty-description": "Seçilen kurtarma kaynağı için son değişiklik kartları burada görünecektir.",
     "diagnostics.cards.technical-details": "Teknik detaylar",
     "diagnostics.actions.retry": "Yeniden dene",
     "diagnostics.capture.age-unknown": "yaşı bilinmiyor",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 silindi, $2 başarısız oldu",
     "diagnostics.activity.detail.action": "İşlem: $1",
     "diagnostics.activity.exported": "Destek paketi dışa aktarıldı",
-    "diagnostics.history.members-reconciled": "Üye referansları senkronize edildi",
     "diagnostics.history.backup-restored": "Yedekleme geri yüklendi",
-    "diagnostics.history.backup-deleted": "Yedekleme silindi",
-    "diagnostics.history.backup-download": "Yedek indirme istendi",
-    "diagnostics.history.preferences-saved": "Tercihler kaydedildi",
-    "diagnostics.history.event-details": "Olay ayrıntıları"
+    "diagnostics.history.backup-deleted": "Yedekleme silindi"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Диагностика",
     "diagnostics.workspace.description": "Отслеживайте состояние плагина, устраняйте неполадки и делитесь данными поддержки.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Пока нет активности",
     "diagnostics.activity.empty-description": "Изменения папок, резервные копии, импорты и действия по восстановлению будут отображаться здесь.",
     "diagnostics.activity.ready": "Готово",
-    "diagnostics.history.refresh-description": "Обновите историю после сохранения, импорта, восстановления или отмены, чтобы просмотреть последние события, безопасные для восстановления.",
-    "diagnostics.history.empty-title": "Записей в временной шкале пока нет.",
-    "diagnostics.history.empty-description": "Недавние карточки изменений будут отображаться здесь для выбранного источника восстановления.",
     "diagnostics.cards.technical-details": "Технические детали",
     "diagnostics.actions.retry": "Повторить",
     "diagnostics.capture.age-unknown": "возраст неизвестен",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 удален, $2 не выполнен.",
     "diagnostics.activity.detail.action": "Действие: $1",
     "diagnostics.activity.exported": "Пакет поддержки экспортирован.",
-    "diagnostics.history.members-reconciled": "Ссылки на участников синхронизированы",
     "diagnostics.history.backup-restored": "Резервная копия восстановлена",
-    "diagnostics.history.backup-deleted": "Резервная копия удалена.",
-    "diagnostics.history.backup-download": "Запрошена загрузка резервной копии",
-    "diagnostics.history.preferences-saved": "Настройки сохранены.",
-    "diagnostics.history.event-details": "Сведения о событии"
+    "diagnostics.history.backup-deleted": "Резервная копия удалена."
 }

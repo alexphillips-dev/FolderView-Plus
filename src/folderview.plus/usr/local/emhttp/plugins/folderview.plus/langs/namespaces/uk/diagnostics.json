@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Діагностика",
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Ще немає активності",
     "diagnostics.activity.empty-description": "Зміни в папках, резервне копіювання, імпорт та дії з відновлення з’являтимуться тут.",
     "diagnostics.activity.ready": "Готово",
-    "diagnostics.history.refresh-description": "Оновіть історію після збереження, імпорту, відновлення або скасування, щоб переглянути останні безпечні для відновлення події.",
-    "diagnostics.history.empty-title": "Ще немає записів у хронології.",
-    "diagnostics.history.empty-description": "Карти останніх змін з’являться тут для вибраного джерела відновлення.",
     "diagnostics.cards.technical-details": "Технічні деталі",
     "diagnostics.actions.retry": "Спробувати ще раз",
     "diagnostics.capture.age-unknown": "вік невідомий",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 видалено, $2 не вдалося",
     "diagnostics.activity.detail.action": "Дія: $1",
     "diagnostics.activity.exported": "Пакет підтримки експортовано",
-    "diagnostics.history.members-reconciled": "Посилання на учасників синхронізовано",
     "diagnostics.history.backup-restored": "Резервну копію відновлено",
-    "diagnostics.history.backup-deleted": "Резервну копію видалено",
-    "diagnostics.history.backup-download": "Надіслано запит на завантаження резервної копії",
-    "diagnostics.history.preferences-saved": "Налаштування збережено",
-    "diagnostics.history.event-details": "Відомості про подію"
+    "diagnostics.history.backup-deleted": "Резервну копію видалено"
 }

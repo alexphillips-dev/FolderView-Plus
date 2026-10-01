@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics",
-        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "Nog geen activiteit",
     "diagnostics.activity.empty-description": "Mapwijzigingen, back-ups, imports en herstelacties verschijnen hier.",
     "diagnostics.activity.ready": "Klaar",
-    "diagnostics.history.refresh-description": "Ververs de geschiedenis na een opslaan, import, herstel of ongedaan maken om de nieuwste herstel-veilige gebeurtenissen te bekijken.",
-    "diagnostics.history.empty-title": "Nog geen tijdlijnitems.",
-    "diagnostics.history.empty-description": "Recente wijzigingskaarten verschijnen hier voor de geselecteerde herstelbron.",
     "diagnostics.cards.technical-details": "Technische details",
     "diagnostics.actions.retry": "Opnieuw proberen",
     "diagnostics.capture.age-unknown": "leeftijd onbekend",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 verwijderd, $2 mislukt",
     "diagnostics.activity.detail.action": "Actie: $1",
     "diagnostics.activity.exported": "Ondersteuningsbundel geëxporteerd",
-    "diagnostics.history.members-reconciled": "Lidreferenties gesynchroniseerd",
     "diagnostics.history.backup-restored": "Back-up hersteld",
-    "diagnostics.history.backup-deleted": "Back-up verwijderd",
-    "diagnostics.history.backup-download": "Back-updownload aangevraagd",
-    "diagnostics.history.preferences-saved": "Voorkeuren opgeslagen",
-    "diagnostics.history.event-details": "Gebeurtenisdetails"
+    "diagnostics.history.backup-deleted": "Back-up verwijderd"
 }

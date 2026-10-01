@@ -27,6 +27,10 @@ If FolderView Plus starts with empty or missing current configuration, its compa
 
 ## FolderView3 environment preview
 
+**Current stable UI limitation (2026.10.01.09):** the redesigned Recovery workspace no longer exposes Detect installed FolderView3 or Preview FolderView3 export. For current folder migration, use Basic's Docker/VM Import or the Setup Assistant with matching per-type exports. Those paths do not promise the complete coordinated conversion of start order and appearance described below. Preserve the full legacy directory and review those settings separately; ask for maintainer guidance if a full-environment conversion is required. Do not downgrade or invoke endpoints manually to bypass preview safeguards.
+
+The following describes the dedicated preview available in older versions, for historical migration/support reference:
+
 In Advanced Settings, open Recovery and use the FolderView3 migration preview to inspect an installed configuration or a full environment export. The preview reports Docker and VM folder order separately. Saved `order-docker.json` and `order-vm.json` snapshots take priority over the order of folder records; missing or invalid snapshots fall back to configuration order. Duplicate and unknown references are skipped with warnings. Positions of unassigned containers or VMs among folders on the native Unraid page are not imported.
 
 Appearance imports preserve the Docker, VM, and Dashboard scopes named in custom CSS filenames, including files targeting multiple pages. Styles under `.disabled` directories become separate inactive appearance profiles, so they cannot be activated with the main imported profile by accident. Unscoped CSS and generated theme files are excluded. Theme source metadata is reported but does not enable managed updates automatically; scan the original source in Appearance to manage future updates.

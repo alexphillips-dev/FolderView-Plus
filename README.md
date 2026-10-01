@@ -43,7 +43,7 @@ Quick links: [Install](#install) | [Update and Uninstall](#update-and-uninstall)
 
 | Setup Assistant | Advanced tools |
 |---|---|
-| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.png" alt="Advanced settings workspace" /> |
+| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | Screenshot placeholder: grouped Advanced navigation and mobile section picker. |
 
 | Folder editor | Docker start order |
 |---|---|
@@ -51,7 +51,7 @@ Quick links: [Install](#install) | [Update and Uninstall](#update-and-uninstall)
 
 | Recovery workspace |
 |---|
-| <img src="docs/images/screenshots/advanced-recovery.png" alt="Backup and recovery workspace" /> |
+| Screenshot placeholder: current Recovery readiness, snapshot history, and comparison dialogs. |
 
 ## Why FolderView Plus
 
@@ -72,7 +72,7 @@ Unraid's Docker and VM pages can become difficult to scan as your server grows. 
 | Docker start order | Backup and recovery |
 |---|---|
 | Control Docker autostart order from FolderView Plus. Follow your Docker page folder order or define custom startup batches with exact folder/container groups, delays, preview, and sync tools. | Create manual backups, enable scheduled backups, compare snapshots, restore the latest backup, restore a selected snapshot, delete old backups, and undo recent destructive actions. |
-| <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order tools" /> | <img src="docs/images/screenshots/advanced-recovery.png" alt="Recovery workspace" /> |
+| <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order tools" /> | Screenshot placeholder: current Recovery and snapshot comparison. |
 
 | Diagnostics and activity | Theme and UI integration |
 |---|---|

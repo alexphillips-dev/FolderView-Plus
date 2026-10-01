@@ -6,6 +6,12 @@ const mountBulk = async (page, baseUrl) => {
         const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(response => response.text()), 'text/html');
         const root = document.getElementById('fv-settings-root'); root.replaceChildren(parsed.querySelector('.fv-bulk-hero'), parsed.querySelector('.fv-bulk-workspace'));
         root.dataset.fvThemeClass = document.body.dataset.fvThemeClass;
+        // Measure the actual Recovery surface in the same root and theme, without exposing duplicate controls.
+        const recovery = parsed.querySelector('.fv-recovery-module-wrap');
+        recovery.inert = true; recovery.setAttribute('aria-hidden', 'true');
+        recovery.style.cssText = 'position:fixed;left:0;top:0;width:900px;visibility:hidden;pointer-events:none';
+        recovery.querySelector('#fv-recovery-overview').innerHTML = '<div class="fv-recovery-headline">Recovery</div><div class="fv-recovery-stat-card"><i class="fa fa-folder-o"></i><div><strong>5</strong><span>folders</span></div></div>';
+        root.append(recovery);
         // Use the production runtime normalizer, including nested Docker state and VM pause semantics.
         const source = await fetch('/plugin/scripts/folderviewplus.js').then(response => response.text());
         const helper = source.slice(source.indexOf('const getItemRuntimeStateKind ='), source.indexOf('const valueIsTruthy ='));
@@ -22,10 +28,17 @@ const verifyLayout = async page => {
     const metrics = await page.evaluate(() => {
         const panel = document.querySelector('.bulk-module:not([hidden])');
         const rect = node => node.getBoundingClientRect();
+        const style = selector => getComputedStyle(document.querySelector(selector));
+        const matches = (bulk, recovery, property = 'fontSize') => Math.abs(parseFloat(style(bulk)[property]) - parseFloat(style(recovery)[property])) < 0.1;
+        const recoveryScale = matches('.bulk-item-name', '.fv-recovery-intro span') && matches('#fv-bulk-title', '.fv-recovery-headline')
+            && matches('.bulk-source-switch button', '.fv-recovery-source-switch button') && matches('.bulk-move-button', '.fv-recovery-primary-actions button')
+            && matches('.bulk-stage-heading strong', '.fv-recovery-stage-head > div > strong') && matches('.bulk-stage-heading span', '.fv-recovery-stage-head > div > span')
+            && matches('.bulk-summary-value', '.fv-recovery-stat-card strong') && matches('.bulk-summary-label', '.fv-recovery-stat-card span')
+            && matches('.bulk-summary-card > i', '.fv-recovery-stat-card > i') && matches('.bulk-stage', '.fv-recovery-stage', 'paddingTop');
         const footer = rect(panel.querySelector('.bulk-stage-review')); const body = rect(panel.querySelector('.bulk-workspace-body'));
         return { overflow: document.documentElement.scrollWidth > innerWidth + 1, columns: getComputedStyle(panel.querySelector('.bulk-workspace-body')).gridTemplateColumns.split(' ').length,
             summaryColumns: getComputedStyle(panel.querySelector('.bulk-summary-grid')).gridTemplateColumns.split(' ').length,
-            footerBelow: footer.top >= body.bottom - 1, readable: parseFloat(getComputedStyle(panel.querySelector('.bulk-item-name')).fontSize) >= 14,
+            footerBelow: footer.top >= body.bottom - 1, readable: recoveryScale,
             destinationTextClear: parseFloat(getComputedStyle(panel.querySelector('.bulk-select-wrap select')).paddingInlineStart) >= rect(panel.querySelector('.bulk-select-wrap > i')).width + 18,
             controls: [...panel.querySelectorAll('.bulk-workspace-actions button, .bulk-move-button')].map(button => ({ width: rect(button).width, height: rect(button).height, top: rect(button).top, bottom: rect(button).bottom })),
             inside: [...panel.querySelectorAll('.bulk-stage')].every(node => rect(node).left >= 0 && rect(node).right <= innerWidth + 1),
@@ -33,7 +46,7 @@ const verifyLayout = async page => {
     });
     assert.equal(metrics.overflow, false, JSON.stringify(metrics));
     assert.equal(metrics.inside, true, JSON.stringify(metrics));
-    assert.equal(metrics.readable, true);
+    assert.equal(metrics.readable, true, 'Bulk typography, icons, and panel padding must match Recovery in the same rendered root');
     assert.equal(metrics.destinationTextClear, true, 'the destination icon must not cover its text');
     assert.equal(metrics.sourceCount, 1);
     assert.ok(metrics.controls.every(control => control.width >= 44 && control.height >= 40), JSON.stringify(metrics));

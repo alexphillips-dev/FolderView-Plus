@@ -468,8 +468,8 @@ test('Docker start order lives in its own startup advanced tab', () => {
 test('bulk assignment provides a scrolling table with a destination sidebar and responsive footer', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);
-    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*max-height: 410px; overflow: auto/);
-    assert.match(settingsCss, /\.bulk-workspace-body \{[^}]*grid-template-columns: minmax\(270px, 26%\) minmax\(0, 1fr\)/);
+    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*max-height: 350px; overflow: auto/);
+    assert.match(settingsCss, /\.bulk-workspace-body \{[^}]*grid-template-columns: minmax\(240px, 24%\) minmax\(0, 1fr\)/);
     assert.match(settingsCss, /\.bulk-stage-review \{ position: static; grid-template-columns: minmax\(0, 1fr\)/);
 });
 

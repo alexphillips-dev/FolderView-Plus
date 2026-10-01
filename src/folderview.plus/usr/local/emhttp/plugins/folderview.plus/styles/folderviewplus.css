@@ -2628,13 +2628,13 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-table table td.signals-cell {
-    text-align: left;
+    text-align: center;
 }
 
 .signals-cell-content {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.28rem;
     flex-wrap: nowrap;
     max-width: 100%;
@@ -2709,7 +2709,9 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     margin: 0 !important;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -50%) !important;
-    padding: 20px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.35;
     background: var(--fvplus-ui-panel);
     color: var(--fvplus-ui-text-primary);
     border: 1px solid var(--fvplus-ui-border-subtle);
@@ -2717,10 +2719,10 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .sweet-alert.fv-health-details-modal h2 {
-    margin: 0 0 14px;
+    margin: 0 0 10px;
     text-align: start;
     color: var(--fvplus-ui-text-primary);
-    font-size: 1.6rem;
+    font-size: 22px;
     line-height: 1.25;
 }
 
@@ -2732,13 +2734,17 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     padding: 0 2px;
     color: inherit;
     text-align: start;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: normal;
 }
 
 .fv-health-details {
     --fv-health-tone: var(--fvplus-ui-text-muted);
     text-align: start;
-    font-size: 1rem;
-    line-height: 1.45;
+    font-size: inherit;
+    line-height: 1.35;
+    white-space: normal;
     overflow-wrap: anywhere;
 }
 
@@ -2750,11 +2756,11 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin: 0 0 10px;
 }
 
-.fv-health-details-folder { min-width: 0; font-size: 1.15rem; }
+.fv-health-details-folder { min-width: 0; font-size: 1.14em; }
 .fv-health-details-status {
     flex-shrink: 0;
     padding: 4px 10px;
@@ -2772,33 +2778,65 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-health-details-metrics > div {
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: 1px solid var(--fvplus-ui-border-subtle);
     border-radius: 8px;
     background: var(--fvplus-ui-card);
 }
 
-.fv-health-details-metrics dt { color: var(--fvplus-ui-text-muted); }
-.fv-health-details-metrics dd { margin: 4px 0 0; font-size: 1.5rem; font-weight: 700; }
-.fv-health-details-metrics small { font-size: 0.85rem; font-weight: 400; }
+.sweet-alert.fv-health-details-modal .fv-health-details-metrics :is(dt, dd) {
+    float: none;
+    width: auto;
+    height: auto;
+    padding: 0;
+    text-align: start;
+    line-height: 1.25;
+}
+
+.sweet-alert.fv-health-details-modal .fv-health-details-metrics dt {
+    margin: 0;
+    font-size: inherit;
+    color: var(--fvplus-ui-text-muted);
+}
+
+.sweet-alert.fv-health-details-modal .fv-health-details-metrics dd {
+    display: flex;
+    align-items: baseline;
+    direction: ltr;
+    margin: 4px 0 0;
+    font-size: 1.4em;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sweet-alert.fv-health-details-modal .fv-health-details-score-total {
+    display: inline;
+    float: none;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+}
 .fv-health-details-metrics > div:first-child dd { color: var(--fv-health-tone); }
-.fv-health-details-runtime { margin-bottom: 14px; }
+.fv-health-details-runtime { margin: 0 0 10px; }
 .fv-health-details-policy {
     display: grid;
-    gap: 6px;
-    padding: 12px;
+    gap: 4px;
+    padding: 8px 10px;
     border: 1px solid var(--fvplus-ui-border-subtle);
     border-radius: 8px;
     color: var(--fvplus-ui-text-muted);
-    font-size: 0.92rem;
+    font-size: inherit;
 }
 
-.fv-health-details-reasons { margin-top: 16px; }
-.fv-health-details-reasons ul { margin: 8px 0 0; padding-inline-start: 20px; }
-.fv-health-details-reasons li { margin: 8px 0; padding-inline-start: 4px; }
+.fv-health-details-reasons { margin: 10px 0 0; }
+.fv-health-details-reasons ul { margin: 6px 0 0; padding-inline-start: 20px; }
+.fv-health-details-reasons li { margin: 4px 0; padding-inline-start: 4px; }
 .fv-health-details-reasons li::marker { color: var(--fv-health-tone); }
 .fv-health-details-reasons li strong { display: block; }
 .fv-health-details-reasons li span { color: var(--fvplus-ui-text-muted); }
+
+.sweet-alert.fv-health-details-modal .sa-button-container { margin-top: 10px; }
+.sweet-alert.fv-health-details-modal .sa-button-container button { font-size: inherit; }
 
 @media (max-width: 480px) {
     .sweet-alert.fv-health-details-modal { padding: 14px; }

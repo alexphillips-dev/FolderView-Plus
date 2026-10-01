@@ -166,6 +166,7 @@
             "$1 refs": "Referanser: $1"
         },
         "nl": {
+            "Score": "Score",
             "type mismatch": "typen komen niet overeen",
             "Containers: $1": "Docker-containers: $1"
         },

@@ -3448,6 +3448,8 @@ const getRowDetailsApi = (() => {
         }
         cachedApi = rowDetailsModule.createApi({
             swal,
+            escapeHtml,
+            translate: surfaceT,
             getFolderMap: (type) => getFolderMap(type),
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -6685,8 +6687,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 ? 'Click to show all folders.'
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
+            const updateButtonHtml = updateCount > 0
+                ? `<button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" data-fv-onclick="toggleDockerUpdatesFilter(true)"><i class="fa ${updateIcon}" aria-hidden="true"></i></button>`
+                : '';
             typeSpecificColumns = ''
-                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" data-fv-onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" data-fv-onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" data-fv-onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content">${updateButtonHtml}<button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" data-fv-onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat" aria-hidden="true"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" data-fv-onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
                 + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);

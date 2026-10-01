@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "legacy-surface",
-        "translation-context-revision": "6a697ca4df9faf63f9cb65f8685ae051a00705fad153c1d5ededc877fd7362e9"
+        "translation-context-revision": "69e97a12bed4b7073a7eb6845fb2ecccf3a1ec773b19959971f1609270cab70a"
     },
     "legacy.surface.0008eb7acd3f7a56": "বাল্ক সরানো অনুপলব্ধ",
     "legacy.surface.0012950979762d8c": "পুনরুদ্ধার করতে, ডাউনলোড করতে বা মুছতে একটি স্ন্যাপশট বেছে নিন।",
@@ -692,6 +692,7 @@
     "legacy.surface.383efa96431be7e4": "GitHub থেকে আমদানি করুন",
     "legacy.surface.386830be917cb3db": "অবৈধ regex",
     "legacy.surface.38b9fa5deec04acd": "FolderView Plus অনুরোধ URL নির্মাতা অনুপলব্ধ।",
+    "legacy.surface.38e5a46cbc5ad328": "স্কোর",
     "legacy.surface.3901268c90ad6b13": "এই ফোল্ডারে কোন আপডেট নেই",
     "legacy.surface.3907fa7f80722a6f": "চেহারা",
     "legacy.surface.391065e4dc23592a": "রপ্তানি হয়েছে",
@@ -1337,6 +1338,7 @@
     "legacy.surface.728d7c1bd5897c06": "অনুপলব্ধ আবেদন",
     "legacy.surface.72ccc6bc8b697c02": "$1 $2 ফোল্ডার $3 পিন করা এলাকা।",
     "legacy.surface.72d61ceeaaed2263": "থিম স্বাস্থ্যকর দেখায়",
+    "legacy.surface.72ed245d2cf11822": "কারণ",
     "legacy.surface.730d8d40b5cf8ad9": "ডকার ভিউ পছন্দগুলি সংরক্ষণ করতে ব্যর্থ হয়েছে৷",
     "legacy.surface.73358d4dbf54ab93": "মিডিয়া-কেন্দ্রিক বাছাই এবং থ্রেশহোল্ডের সাথে সুষম রানটাইম ডিফল্ট।",
     "legacy.surface.73508fef96b08cf4": "শুরু এবং বন্ধ স্ট্যাটাস টোকেন একই মান সমাধান করে।",

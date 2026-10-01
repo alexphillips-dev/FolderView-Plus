@@ -44,6 +44,7 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
     { "file": "tests/browser/cases/settings-overflow-guard.mjs", "limit": 65, "owner": "fixture Settings host clipping regression", "requiredImports": ["./settings-visibility.mjs"] },
     { "file": "tests/browser/cases/settings-visibility.mjs", "limit": 55, "owner": "fixture Settings clipped-content detection" },
     { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 120, "owner": "fixture Advanced Settings navigation layout and focus" },
@@ -70,6 +71,7 @@
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
+        "tests/browser/cases/settings-alerts-health.mjs",
         "tests/browser/cases/settings-overflow-guard.mjs",
         "tests/browser/cases/settings-visibility.mjs",
         "tests/browser/cases/settings-advanced-navigation.mjs",
@@ -93,10 +95,10 @@
         "tests/browser/helpers/advanced-workspace-layout.mjs",
         "tests/browser/helpers/advanced-title-badges.mjs"
       ],
-      "testCount": 66,
-      "assertionCount": 759,
-      "pageEvaluateCount": 192,
-      "orderedTitleSha256": "108867b23842b26657ea2ea5bfcc9c87c37645c5bb21068f016b71e14cdca723"
+      "testCount": 67,
+      "assertionCount": 772,
+      "pageEvaluateCount": 196,
+      "orderedTitleSha256": "17528692666d8fe7096655d4b3f463ce4205bf164aa800ae0a31419d24fd916b"
     }
   }
 }

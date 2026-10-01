@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "6a697ca4df9faf63f9cb65f8685ae051a00705fad153c1d5ededc877fd7362e9"
+        "translation-context-revision": "69e97a12bed4b7073a7eb6845fb2ecccf3a1ec773b19959971f1609270cab70a"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -2042,6 +2042,7 @@
     "legacy.surface.4eea75266dac7200": "Ready to preview",
     "legacy.surface.5e372ca235eea211": "Ready to run rule test.",
     "legacy.surface.71b2e8d085cdca1e": "Ready: all checks passed.",
+    "legacy.surface.72ed245d2cf11822": "Reasons",
     "legacy.surface.690dbe9dc0993c42": "Recent",
     "legacy.surface.b3312b99f1da39d6": "Recent UI timings are within budget.",
     "legacy.surface.5c79d33c34432bfa": "Recently changed",
@@ -2334,6 +2335,7 @@
     "legacy.surface.88d824e908a2beff": "Scope: recent",
     "legacy.surface.be95f4a3a996dfc4": "Scope: selected pack",
     "legacy.surface.cdffd4598825a18c": "Scope: suggested",
+    "legacy.surface.38e5a46cbc5ad328": "Score",
     "legacy.surface.45032e95e2ac4cb4": "Scoring preset",
     "legacy.surface.a98c87d6b46f1b6f": "Script actions",
     "legacy.surface.422c8c0d8d6589f5": "Scrollable panel",

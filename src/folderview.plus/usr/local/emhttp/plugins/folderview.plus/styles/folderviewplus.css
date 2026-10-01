@@ -2671,10 +2671,139 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .health-breakdown-btn:hover {
-    border: 0 !important;
+    border: 0;
     background: transparent !important;
-    box-shadow: none !important;
+    box-shadow: none;
     color: var(--fvplus-settings-text-primary) !important;
+}
+
+#fv-settings-root .signals-cell-content :is(.updates-chip, .health-breakdown-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 22px;
+    min-height: 22px;
+    max-height: 22px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    letter-spacing: 0;
+    text-indent: 0;
+}
+
+#fv-settings-root .signals-cell-content :is(.updates-chip, .health-breakdown-btn) > i {
+    display: block;
+    width: 1em;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    text-align: center;
+    letter-spacing: 0;
+}
+
+.sweet-alert.fv-health-details-modal {
+    box-sizing: border-box;
+    width: min(620px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: 0 !important;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%) !important;
+    padding: 20px;
+    background: var(--fvplus-ui-panel);
+    color: var(--fvplus-ui-text-primary);
+    border: 1px solid var(--fvplus-ui-border-subtle);
+    border-radius: 12px;
+}
+
+.sweet-alert.fv-health-details-modal h2 {
+    margin: 0 0 14px;
+    text-align: start;
+    color: var(--fvplus-ui-text-primary);
+    font-size: 1.6rem;
+    line-height: 1.25;
+}
+
+.sweet-alert.fv-health-details-modal > p {
+    max-height: calc(100vh - 190px);
+    max-height: calc(100dvh - 190px);
+    overflow-y: auto;
+    margin: 0;
+    padding: 0 2px;
+    color: inherit;
+    text-align: start;
+}
+
+.fv-health-details {
+    --fv-health-tone: var(--fvplus-ui-text-muted);
+    text-align: start;
+    font-size: 1rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.fv-health-details.is-good { --fv-health-tone: var(--fvplus-settings-chip-success); }
+.fv-health-details.is-warn { --fv-health-tone: var(--fvplus-settings-chip-warning); }
+.fv-health-details.is-critical { --fv-health-tone: var(--fvplus-settings-chip-danger); }
+
+.fv-health-details-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.fv-health-details-folder { min-width: 0; font-size: 1.15rem; }
+.fv-health-details-status {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border: 1px solid var(--fv-health-tone);
+    border-radius: 6px;
+    color: var(--fv-health-tone);
+    font-weight: 700;
+}
+
+.fv-health-details-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.fv-health-details-metrics > div {
+    padding: 10px 12px;
+    border: 1px solid var(--fvplus-ui-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-ui-card);
+}
+
+.fv-health-details-metrics dt { color: var(--fvplus-ui-text-muted); }
+.fv-health-details-metrics dd { margin: 4px 0 0; font-size: 1.5rem; font-weight: 700; }
+.fv-health-details-metrics small { font-size: 0.85rem; font-weight: 400; }
+.fv-health-details-metrics > div:first-child dd { color: var(--fv-health-tone); }
+.fv-health-details-runtime { margin-bottom: 14px; }
+.fv-health-details-policy {
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--fvplus-ui-border-subtle);
+    border-radius: 8px;
+    color: var(--fvplus-ui-text-muted);
+    font-size: 0.92rem;
+}
+
+.fv-health-details-reasons { margin-top: 16px; }
+.fv-health-details-reasons ul { margin: 8px 0 0; padding-inline-start: 20px; }
+.fv-health-details-reasons li { margin: 8px 0; padding-inline-start: 4px; }
+.fv-health-details-reasons li::marker { color: var(--fv-health-tone); }
+.fv-health-details-reasons li strong { display: block; }
+.fv-health-details-reasons li span { color: var(--fvplus-ui-text-muted); }
+
+@media (max-width: 480px) {
+    .sweet-alert.fv-health-details-modal { padding: 14px; }
+    .fv-health-details-summary { align-items: flex-start; flex-direction: column; }
+    .fv-health-details-metrics > div { padding: 8px; }
 }
 
 .health-chip.is-filter-active {

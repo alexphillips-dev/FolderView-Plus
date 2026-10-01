@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "diagnostics",
-        "translation-context-revision": "6a697ca4df9faf63f9cb65f8685ae051a00705fad153c1d5ededc877fd7362e9"
+        "translation-context-revision": "69e97a12bed4b7073a7eb6845fb2ecccf3a1ec773b19959971f1609270cab70a"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.workspace.description": "Supervise el estado de los complementos, solucione problemas y comparta datos de soporte.",

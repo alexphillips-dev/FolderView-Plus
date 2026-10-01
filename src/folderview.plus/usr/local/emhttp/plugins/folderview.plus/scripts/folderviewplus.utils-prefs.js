@@ -49,8 +49,8 @@
         const manualOrder = Array.isArray(incoming.manualOrder) ? incoming.manualOrder.filter((id) => typeof id === 'string' && id !== '') : [];
         const autoRulesRaw = Array.isArray(incoming.autoRules) ? incoming.autoRules : [];
         const defaultSchedule = {
-            enabled: false,
-            intervalHours: 24,
+            enabled: true,
+            intervalHours: 1,
             retention: 25,
             lastRunAt: ''
         };
@@ -75,7 +75,7 @@
         };
         const backupScheduleRaw = isPlainObject(incoming.backupSchedule) ? incoming.backupSchedule : {};
         const backupSchedule = {
-            enabled: backupScheduleRaw.enabled === true,
+            enabled: !Object.prototype.hasOwnProperty.call(backupScheduleRaw, 'enabled') || backupScheduleRaw.enabled === true,
             intervalHours: clampNumber(backupScheduleRaw.intervalHours, 1, 168, defaultSchedule.intervalHours),
             retention: clampNumber(backupScheduleRaw.retention, 1, 200, defaultSchedule.retention),
             lastRunAt: typeof backupScheduleRaw.lastRunAt === 'string' ? backupScheduleRaw.lastRunAt : ''

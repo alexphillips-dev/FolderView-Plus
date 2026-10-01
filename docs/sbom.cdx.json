@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b3f021f3-3237-8bc4-8b5e-448cea6bcf71",
+  "serialNumber": "urn:uuid:eea773c6-a93c-8a09-b4a0-72547557f2f1",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.09.25.02",
+      "version": "2026.10.01.08",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -323,7 +323,7 @@
     {
       "type": "library",
       "name": "brace-expansion",
-      "version": "5.0.9",
+      "version": "5.0.12",
       "scope": "optional",
       "licenses": [
         {
@@ -332,7 +332,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@5.0.9"
+      "purl": "pkg:npm/brace-expansion@5.0.12"
     },
     {
       "type": "library",
@@ -572,7 +572,7 @@
     {
       "type": "library",
       "name": "fast-check",
-      "version": "4.10.1",
+      "version": "4.10.2",
       "scope": "optional",
       "licenses": [
         {
@@ -581,7 +581,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fast-check@4.10.1"
+      "purl": "pkg:npm/fast-check@4.10.2"
     },
     {
       "type": "library",

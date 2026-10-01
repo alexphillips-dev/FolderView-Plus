@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "诊断",
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "尚无活动",
     "diagnostics.activity.empty-description": "文件夹更改、备份、导入和恢复操作将显示在此处。",
     "diagnostics.activity.ready": "就绪",
-    "diagnostics.history.refresh-description": "保存、导入、恢复或撤销后刷新历史记录，以查看最新的安全恢复事件。",
-    "diagnostics.history.empty-title": "尚无时间线条目。",
-    "diagnostics.history.empty-description": "所选恢复源的最近更改卡将显示在此处。",
     "diagnostics.cards.technical-details": "技术细节",
     "diagnostics.actions.retry": "重试",
     "diagnostics.capture.age-unknown": "年龄未知",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 已删除，$2 失败",
     "diagnostics.activity.detail.action": "操作：$1",
     "diagnostics.activity.exported": "支持捆绑导出",
-    "diagnostics.history.members-reconciled": "会员参考已同步",
     "diagnostics.history.backup-restored": "备份已恢复",
-    "diagnostics.history.backup-deleted": "备份已删除",
-    "diagnostics.history.backup-download": "请求备份下载",
-    "diagnostics.history.preferences-saved": "已保存偏好设置",
-    "diagnostics.history.event-details": "事件详情"
+    "diagnostics.history.backup-deleted": "备份已删除"
 }

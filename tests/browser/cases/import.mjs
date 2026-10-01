@@ -1,6 +1,6 @@
-import assert from 'node:assert/strict';
+import assert from 'node:assert/strict'; import { registerSnapshotCompareCases } from './snapshot-compare.mjs';
 
-export const registerImportFixtureCases = ({ test, baseUrl }) => {
+export const registerImportFixtureCases = ({ test, baseUrl }) => { registerSnapshotCompareCases({ test, baseUrl });
 test('Import selection applies group choices without mutating unrelated operations', async ({ page }) => {
     await page.goto(`${baseUrl}/import`, { waitUntil: 'load' });
     const operations = {

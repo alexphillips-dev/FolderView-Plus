@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "import",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Válassza ki a meglévő mappák kezelésének módját. Semmi sem változik, amíg ki nem választja az Importálás alkalmazása lehetőséget.",
     "import.behavior.question": "Hogyan kell kezelni a meglévő mappákat?",
@@ -44,9 +44,7 @@
     "import.dialog.vm-title": "VM-mappák importálása",
     "import.actions.apply": "Importálás alkalmazása",
     "import.folderview3.preview-title": "FolderView3 migrációs előnézet",
-    "import.folderview3.preview-help": "Fedezze fel a telepített FolderView3 konfigurációt, vagy nézzen meg egy teljes exportálású JSON-t. Az észlelés és az előnézet csak olvasható; A natív szervezőrekordok és a Docker automatikus indítási mutációi kizárva maradnak, hacsak egy későbbi alkalmazás kifejezetten nem tartalmazza őket.",
     "import.folderview3.read-only-title": "A FolderView3 migráció írásvédett, amíg jóvá nem hagyja az alkalmazási tervet.",
-    "import.folderview3.read-only-help": "Érzékelhet egy telepített konfigurációt, vagy tekinthet meg egy FolderView3 exportot anélkül, hogy bármilyen bővítményt vagy Unraid állapotot írna.",
     "import.folderview3.read-only-preview-help": "Keressen egy telepített FolderView3 konfigurációt, vagy tekintse meg a FolderView3 exportálás előnézetét. Az előnézet soha nem írja be a bővítményt vagy az Unraid konfigurációt.",
     "import.folderview3.not-detected": "Nem észlelhető telepített FolderView3 konfiguráció.",
     "import.folderview3.preview-export-help": "Továbbra is megtekintheti a FolderView3 teljes exportálású JSON előnézetét egy másik szerverről.",

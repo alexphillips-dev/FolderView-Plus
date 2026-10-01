@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "診断",
     "diagnostics.workspace.description": "プラグインの状態を監視し、問題のトラブルシューティングを行い、サポート データを共有します。",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "まだアクティビティはありません",
     "diagnostics.activity.empty-description": "フォルダの変更、バックアップ、インポート、復元の操作はここに表示されます。",
     "diagnostics.activity.ready": "準備完了",
-    "diagnostics.history.refresh-description": "保存、インポート、復元、または元に戻す操作の後に履歴を更新して、最新の復元可能なイベントを確認してください。",
-    "diagnostics.history.empty-title": "タイムラインのエントリーはまだありません。",
-    "diagnostics.history.empty-description": "選択した復元元の最近の変更カードはここに表示されます。",
     "diagnostics.cards.technical-details": "技術的詳細",
     "diagnostics.actions.retry": "再試行",
     "diagnostics.capture.age-unknown": "年齢不詳",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 は削除されましたが、$2 は失敗しました",
     "diagnostics.activity.detail.action": "アクション: $1",
     "diagnostics.activity.exported": "サポート バンドルがエクスポートされました",
-    "diagnostics.history.members-reconciled": "メンバー参照が同期されました",
     "diagnostics.history.backup-restored": "バックアップが復元されました",
-    "diagnostics.history.backup-deleted": "バックアップが削除されました",
-    "diagnostics.history.backup-download": "バックアップのダウンロードが要求されました",
-    "diagnostics.history.preferences-saved": "設定が保存されました",
-    "diagnostics.history.event-details": "イベントの詳細"
+    "diagnostics.history.backup-deleted": "バックアップが削除されました"
 }

@@ -640,6 +640,19 @@
   ],
   "moduleContracts": [
     {
+      "file": "scripts/folderviewplus.bulk-assignment.view.js",
+      "owner": "settings-bulk-move-workspace",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.safe-dom.js", "scripts/folderviewplus.bulk-assignment.shared.js"],
+      "compatibilityGlobals": ["FolderViewPlusBulkAssignmentView", "FolderViewPlusBulkAssignmentViewModuleLoaded"],
+      "global": "FolderViewPlusBulkAssignmentView",
+      "moduleLoaded": "FolderViewPlusBulkAssignmentViewModuleLoaded",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["createApi"]
+    },
+    {
       "file": "scripts/folderviewplus.environment.js",
       "owner": "settings-environment-export",
       "consumers": ["settings"],

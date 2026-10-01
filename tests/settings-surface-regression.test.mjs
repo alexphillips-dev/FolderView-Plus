@@ -12,6 +12,7 @@ const settingsWatchdogJs = read('src/folderview.plus/usr/local/emhttp/plugins/fo
 const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/operations-workspace.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/bulk-assignment-workspace.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.diagnostics.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
 ].map((relativePath) => read(relativePath)).join('\n');
@@ -326,7 +327,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     vm.runInNewContext(settingsSectionsJs, { window });
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
-    assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
+    assert.match(settingsPage, /<h2 id="fv-bulk-title" data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk Move Containers<\/h2>/);
     assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'\];/);
     assert.equal(window.ADVANCED_GROUP_LABELS.rules, 'Rules');
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
@@ -334,7 +335,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
     const autoAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>');
     const conflictInspectorIndex = settingsPage.indexOf('<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting</h2>');
-    const bulkAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>');
+    const bulkAssignmentIndex = settingsPage.indexOf('<h2 id="fv-bulk-title" data-fv-section="bulk-assignment"');
     assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
     assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
@@ -369,7 +370,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsCss, /\.fv-theme-workspace-entry-actions > button,/);
 });
 
-test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {
+test('rules and bulk assignment use source-switched workspaces', () => {
     assert.match(settingsPage, /class="fv-rules-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-status"[\s\S]*id="docker-rules-selection-summary"[\s\S]*id="docker-rules"/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-status"[\s\S]*id="vm-rules-selection-summary"[\s\S]*id="vm-rules"/);
@@ -378,15 +379,21 @@ test('rules tab uses a source-switched workspace and bulk assignment keeps the t
     assert.match(settingsJs, /const normalizeRulesWorkspaceType = \(value\) =>/);
     assert.match(settingsJs, /const setRulesWorkspaceType = \(type, persist = true\) =>/);
     assert.match(settingsJs, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(localStorage\.getItem\(RULES_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(settingsCss, /@media \(min-width: 1080px\) \{\s*\.bulk-assign-grid \{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\) !important;/);
+    assert.match(settingsPage, /data-fv-bulk-source="docker" aria-pressed="true"[\s\S]*data-fv-bulk-source="vm" aria-pressed="false"/);
+    assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="vm" hidden/);
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });
 
-test('recovery tab keeps undo with restore controls and merges server changes into Logs', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace<\/h2>/);
+test('recovery tab presents restore, history, policy, and environment actions in one workspace', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Restore and Backup Snapshots<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-recovery-source-switch"[\s\S]*setRecoveryWorkspaceType\('docker'\)[\s\S]*setRecoveryWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /id="fv-recovery-overview"/);
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-details"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-editor"/);
+    assert.match(settingsPage, /id="backup-compare-picker"/);
+    assert.match(settingsPage, /data-fv-onclick="openActiveRecoverySnapshotCompare\(\)" aria-haspopup="dialog"/);
+    assert.doesNotMatch(settingsPage, /id="fv-recovery-compare-panel"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.doesNotMatch(settingsPage, /data-fv-section="change-history"/);
     assert.match(settingsPage, /data-fv-section="logs"[\s\S]*id="fv-activity-feed-list"/);
@@ -397,11 +404,13 @@ test('recovery tab keeps undo with restore controls and merges server changes in
     assert.match(settingsPage, /data-fv-onclick="exportEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
-    assert.match(settingsPage, /class="backup-actions fv-recovery-primary-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsPage, /class="fv-recovery-more-menu backup-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.doesNotMatch(settingsPage, /data-fv-folderview3-action="(?:detect|preview-export)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
-    assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
+    assert.match(settingsJs, /class="fv-recovery-snapshot-row\$\{activeClass\}"/);
+    assert.match(settingsJs, /toggleAllRecoverySnapshots/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(diagnosticsJs, /const renderChangeHistory = \(diagnostics = lastDiagnostics\) =>/);
@@ -412,7 +421,7 @@ test('recovery tab keeps undo with restore controls and merges server changes in
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
     assert.match(settingsCss, /\.fv-recovery-environment-meta/);
-    assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
+    assert.match(settingsCss, /\.fv-recovery-policy-row/);
     assert.match(settingsCss, /\.fv-recovery-history-list\s*\{/);
     assert.doesNotMatch(settingsCss, /\.fv-recovery-timeline-card/);
 });
@@ -456,10 +465,12 @@ test('Docker start order lives in its own startup advanced tab', () => {
     assert.doesNotMatch(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-start-order-workspace"[\s\S]*data-fv-operations-panel="vm"/);
 });
 
-test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {
+test('bulk assignment provides a scrolling table with a destination sidebar and responsive footer', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);
-    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*grid-auto-rows:\s*max-content;[\s\S]*align-content:\s*start;[\s\S]*min-height:\s*210px;[\s\S]*max-height:\s*210px;/);
+    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*max-height: 350px; overflow: auto/);
+    assert.match(settingsCss, /\.bulk-workspace-body \{[^}]*grid-template-columns: minmax\(240px, 24%\) minmax\(0, 1fr\)/);
+    assert.match(settingsCss, /\.bulk-stage-review \{ position: static; grid-template-columns: minmax\(0, 1fr\)/);
 });
 
 test('bulk assignment uses staged workflow cards with summary metrics and hidden retry actions by default', () => {
@@ -475,7 +486,7 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
     assert.match(settingsCss, /\.rules-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
     assert.match(settingsCss, /\.rules-help\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
     assert.match(settingsCss, /\.bulk-summary-card\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-faint\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
-    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*border: 1px solid var\(--fvplus-settings-border-subtle\)/);
     assert.match(settingsCss, /\.bulk-preview-panel,\s*\.bulk-result-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
 });
 

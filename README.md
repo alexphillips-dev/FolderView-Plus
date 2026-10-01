@@ -159,7 +159,7 @@ Legacy CSS/JS migration and stable selector policy are documented in [docs/SUPPO
 
 ## Backups and Recovery
 
-Use the Recovery workspace before large reorganizations, imports, rule changes, or bulk assignments. FolderView Plus can create manual backups, scheduled backups, safety snapshots before destructive actions, compare two snapshots, restore the latest safe backup, restore a selected snapshot, and delete old backups when they are no longer needed.
+New setups schedule a backup every hour by default; change or disable the interval in Advanced > Recovery. Existing saved schedules keep their chosen settings. Routine folder moves and reorders save immediately and use in-memory Undo/Redo without adding backup files. Manual backups and safety snapshots before destructive actions, imports, and bulk changes remain available, along with snapshot comparison and restore.
 
 Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. Advanced > Logs records recent backup, folder, import, and other meaningful Settings actions for quick review during the current session.
 

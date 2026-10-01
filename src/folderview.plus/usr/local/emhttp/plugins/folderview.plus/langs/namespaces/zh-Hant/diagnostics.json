@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "516f4b58af451d4a5b58e9824f5a7a2dab88caa48f4f1dabaaf928e406902d81"
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "diagnostics.title": "診斷",
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",
@@ -75,9 +75,6 @@
     "diagnostics.activity.empty-title": "還沒有活動",
     "diagnostics.activity.empty-description": "資料夾變更、備份、匯入和還原作業將顯示在此。",
     "diagnostics.activity.ready": "準備好",
-    "diagnostics.history.refresh-description": "儲存、匯入、還原或撤銷後重新整理歷史記錄，以檢視最新的復原安全事件。",
-    "diagnostics.history.empty-title": "還沒有時間軸條目。",
-    "diagnostics.history.empty-description": "此處將顯示所選恢復來源的最近變更卡。",
     "diagnostics.cards.technical-details": "技術細節",
     "diagnostics.actions.retry": "重試",
     "diagnostics.capture.age-unknown": "年齡未知",
@@ -255,10 +252,6 @@
     "diagnostics.activity.detail.deleted": "$1 已刪除，$2 失敗",
     "diagnostics.activity.detail.action": "操作：$1",
     "diagnostics.activity.exported": "支援捆綁匯出",
-    "diagnostics.history.members-reconciled": "會員參考已同步",
     "diagnostics.history.backup-restored": "備份已恢復",
-    "diagnostics.history.backup-deleted": "備份已刪除",
-    "diagnostics.history.backup-download": "請求備份下載",
-    "diagnostics.history.preferences-saved": "已儲存偏好設定",
-    "diagnostics.history.event-details": "事件詳情"
+    "diagnostics.history.backup-deleted": "備份已刪除"
 }

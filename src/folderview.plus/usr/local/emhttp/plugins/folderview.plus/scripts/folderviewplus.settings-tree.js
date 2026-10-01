@@ -5,14 +5,12 @@ const createFolderReorderQueueState = () => ({
     active: false,
     debounceTimer: null,
     inFlight: false,
-    backupPromise: null,
-    beforeBackupName: '',
     baselinePrefs: null,
+    baselineOrder: [],
     latestOrder: [],
     latestFocusFolderId: '',
     latestErrorFolderId: '',
     latestActivityMessage: '',
-    latestBackupReason: '',
     changedFolderIds: new Set(),
     revision: 0,
     flushedRevision: 0
@@ -322,16 +320,6 @@ const flushQueuedFolderReorderPersist = async (type) => {
     const errorFolderId = String(session.latestErrorFolderId || focusFolderId).trim();
 
     try {
-        if (!session.backupPromise) {
-            const backupReason = String(session.latestBackupReason || `before-reorder-${focusFolderId || Date.now()}`).trim();
-            session.backupPromise = createBackup(resolvedType, backupReason)
-                .then((backup) => {
-                    session.beforeBackupName = String(backup?.name || '').trim();
-                    return backup;
-                });
-        }
-
-        await session.backupPromise;
         await persistManualOrder(resolvedType, orderToPersist, { refresh: false });
         session.flushedRevision = targetRevision;
         session.inFlight = false;
@@ -345,27 +333,17 @@ const flushQueuedFolderReorderPersist = async (type) => {
             return;
         }
 
-        if (session.beforeBackupName) {
-            await recordTreeMoveHistoryFromBackup(
-                resolvedType,
-                session.beforeBackupName,
-                'Reorder folders',
-                focusFolderId
-            );
-        }
+        pushTreeMoveHistoryEntry(resolvedType, {
+            kind: 'order', beforeOrder: session.baselineOrder, afterOrder: orderToPersist,
+            actionLabel: 'Reorder folders', focusFolderId
+        });
         addActivityEntry(summarizeFolderReorderActivity(session), 'success');
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
         resetFolderReorderQueueState(resolvedType);
     } catch (error) {
         session.inFlight = false;
         const baselinePrefs = utils.normalizePrefs(session.baselinePrefs || {});
         prefsByType[resolvedType] = baselinePrefs;
         renderTable(resolvedType);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
         resetFolderReorderQueueState(resolvedType);
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, errorFolderId, error?.message || 'Order save failed.');
@@ -389,10 +367,10 @@ const scheduleQueuedFolderReorderPersist = (type, delayMs = FOLDER_REORDER_PERSI
 const queueFolderReorderPersist = (type, {
     order,
     previousPrefs = null,
+    previousOrder = [],
     focusFolderId = '',
     errorFolderId = '',
     activityMessage = '',
-    backupReason = '',
     changedFolderId = ''
 } = {}) => {
     const resolvedType = normalizeManagedType(type);
@@ -400,6 +378,7 @@ const queueFolderReorderPersist = (type, {
     if (!session.active) {
         session.active = true;
         session.baselinePrefs = utils.normalizePrefs(previousPrefs || prefsByType[resolvedType] || {});
+        session.baselineOrder = Array.isArray(previousOrder) ? previousOrder.slice() : [];
         session.flushedRevision = 0;
         session.revision = 0;
         session.changedFolderIds = new Set();
@@ -408,9 +387,6 @@ const queueFolderReorderPersist = (type, {
     session.latestFocusFolderId = String(focusFolderId || '').trim();
     session.latestErrorFolderId = String(errorFolderId || focusFolderId || '').trim();
     session.latestActivityMessage = String(activityMessage || '').trim();
-    if (!session.backupPromise) {
-        session.latestBackupReason = String(backupReason || `before-reorder-${session.latestFocusFolderId || Date.now()}`).trim();
-    }
     if (changedFolderId) {
         session.changedFolderIds.add(String(changedFolderId).trim());
     }
@@ -591,16 +567,16 @@ const moveFolderRow = async (type, folderId, direction) => {
     const previousPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
     clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
     applyOptimisticManualOrder(resolvedType, nextOrder);
-    focusFolderRow(resolvedType, safeFolderId);
+    focusFolderRow(resolvedType, safeFolderId, { scroll: false });
     const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
     const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
     queueFolderReorderPersist(resolvedType, {
         order: nextOrder,
         previousPrefs,
+        previousOrder: fullOrder,
         focusFolderId: safeFolderId,
         errorFolderId: safeFolderId,
         activityMessage: `Reordered folder: ${sourceName} ${direction < 0 ? 'before' : 'after'} ${targetName}.`,
-        backupReason: `before-reorder-${safeFolderId}`,
         changedFolderId: safeFolderId
     });
 };
@@ -671,16 +647,16 @@ const moveFolderRowBesideSibling = async (type, folderId, targetSiblingId, place
     const previousPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
     clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
     applyOptimisticManualOrder(resolvedType, nextOrder);
-    focusFolderRow(resolvedType, safeFolderId);
+    focusFolderRow(resolvedType, safeFolderId, { scroll: false });
     const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
     const targetName = String(folders[safeTargetSiblingId]?.name || safeTargetSiblingId);
     queueFolderReorderPersist(resolvedType, {
         order: nextOrder,
         previousPrefs,
+        previousOrder: fullOrder,
         focusFolderId: safeFolderId,
         errorFolderId: safeFolderId,
         activityMessage: `Reordered folder: ${sourceName} ${normalizedPlacement} ${targetName}.`,
-        backupReason: `before-reorder-${safeFolderId}`,
         changedFolderId: safeFolderId
     });
 };

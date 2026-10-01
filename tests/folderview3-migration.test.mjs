@@ -90,12 +90,12 @@ const runPhpPlan = (bundle) => {
     }
 };
 
-test('FolderView3 preview actions remain read-only endpoint contracts', () => {
+test('FolderView3 preview endpoints remain read-only while Recovery omits migration controls', () => {
     assert.match(endpointSource, /if \(\$action === 'detect_folderview3'\)/);
     assert.match(endpointSource, /if \(\$action === 'preview_folderview3'\)/);
     assert.match(endpointSource, /\$mutatingActions\s*=\s*\['apply', 'apply_folderview3'\]/);
-    assert.match(pageSource, /data-fv-folderview3-action="detect"/);
-    assert.match(pageSource, /data-fv-folderview3-action="preview-export"/);
+    assert.doesNotMatch(pageSource, /data-fv-folderview3-action="detect"/);
+    assert.doesNotMatch(pageSource, /data-fv-folderview3-action="preview-export"/);
 });
 
 test('FolderView3 conversion preserves folders, rules, defaults, start order, and inactive appearance', () => {

@@ -35,6 +35,14 @@ test('folder actions require a current eligible preview before opening confirmat
         }
     });
 
+    values.set('#docker-runtime-folder', '');
+    api.previewFolderRuntimeAction('docker');
+    assert.match(outputs.at(-1), /Select a folder and action first/);
+    assert.match(outputs.at(-1), /want to preview/);
+    api.applyFolderRuntimeAction('docker');
+    assert.match(outputs.at(-1), /want to apply/);
+    assert.equal(dialogs.length, 0);
+    values.set('#docker-runtime-folder', 'media');
     api.applyFolderRuntimeAction('docker');
     assert.equal(dialogs.length, 0);
     assert.match(outputs.at(-1), /Preview this action/);

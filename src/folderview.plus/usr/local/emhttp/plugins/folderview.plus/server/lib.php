@@ -2255,7 +2255,6 @@
 
     function readFolder(string $type) : string {
         $type = ensureType($type);
-        maybeRunScheduledBackup($type);
         $folders = readRawFolderMap($type);
         syncManualOrderWithFolders($type, $folders);
         $ordered = reorderFolderMapByPrefs($type, $folders);

@@ -5984,53 +5984,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     flex: 1 1 220px;
 }
 
-.bulk-target-row {
-    align-items: stretch;
-}
-
-.bulk-target-row > label {
-    flex: 0 0 auto;
-    font-size: 1.03rem;
-    font-weight: 600;
-    color: var(--fvplus-settings-text-primary);
-    opacity: 1;
-}
-
-.bulk-target-row > select {
-    flex: 2 1 260px;
-}
-
-.bulk-target-row > button {
-    flex: 0 0 auto;
-    min-width: 184px;
-}
-
-.bulk-filter-row {
-    align-items: stretch;
-}
-
-.bulk-filter-row > input[type="text"] {
-    flex: 2 1 260px;
-    min-height: 34px;
-}
-
-.bulk-selection-actions {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.45rem;
-    flex: 1 1 auto;
-}
-
-.bulk-selection-actions > button {
-    min-width: 0 !important;
-}
-
-.bulk-meta-row {
-    justify-content: space-between;
-    gap: 0.45rem 0.8rem;
-}
-
 .bulk-selected-count {
     display: inline-flex;
     align-items: center;
@@ -6055,47 +6008,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: none !important;
 }
 
-.bulk-items-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-auto-rows: max-content;
-    align-content: start;
-    gap: 0.34rem;
-    min-height: 210px;
-    max-height: 210px;
-    overflow: auto;
-    padding: 0.45rem;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
-    background: var(--fvplus-settings-surface-strong);
-}
-
-.bulk-items-empty {
-    color: var(--fvplus-settings-text-muted);
-    font-size: 1.03rem;
-}
-
-.bulk-item-row {
-    display: flex;
-    align-items: center;
-    gap: 0.48rem;
-    padding: 0.18rem 0.22rem;
-    border-radius: 6px;
-    transition: background-color 0.14s ease;
-}
-
 .bulk-item-row:hover {
     background: var(--fvplus-settings-accent-soft);
-}
-
-.bulk-item-checkbox {
-    margin: 0;
-}
-
-.bulk-item-name {
-    font-size: 1.03rem;
-    color: var(--fvplus-settings-text-primary);
-    word-break: break-word;
 }
 
 .bulk-preview-panel,
@@ -6304,12 +6218,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .bulk-summary-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .bulk-target-row > button,
-    .bulk-filter-row > input[type="text"],
-    .bulk-selection-actions {
-        flex: 1 1 100%;
     }
 
     .bulk-result-line {
@@ -14117,10 +14025,6 @@ body.fv-folder-action-sheet-open {
 }
 
 @media (min-width: 1080px) {
-    .bulk-assign-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
     .backup-grid,
     .template-grid {
         grid-template-columns: minmax(0, 1fr) !important;

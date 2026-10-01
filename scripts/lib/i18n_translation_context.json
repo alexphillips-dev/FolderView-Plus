@@ -56,7 +56,10 @@
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
         },
         "bn": {
-            "VMs: $1": "ভার্চুয়াল মেশিন: $1"
+            "VMs: $1": "ভার্চুয়াল মেশিন: $1",
+            "Choose the containers you want to move.": "আপনি যে কনটেইনারগুলি সরাতে চান সেগুলি বেছে নিন।",
+            "Choose the containers you want to move to $1.": "আপনি যে কনটেইনারগুলি $1-এ সরাতে চান সেগুলি বেছে নিন।",
+            "Select the folder that will receive the containers.": "কনটেইনারগুলি যে ফোল্ডারে যাবে সেটি বেছে নিন।"
         },
         "ca": {
             "VMs: $1": "Màquines virtuals: $1",
@@ -92,7 +95,9 @@
         },
         "zh-Hant": {
             "Disabled": "已停用",
-            "Container": "容器"
+            "Container": "容器",
+            "Move VMs ($1)": "移動虛擬機器 ($1)",
+            "Move VMs (0)": "移動虛擬機器 (0)"
         },
         "da": {
             "Browser Quick Guide": "Hurtig vejledning til browseren",

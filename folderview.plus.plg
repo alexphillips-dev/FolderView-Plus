@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.05">
-<!ENTITY md5 "c26f0b12debfa82c3f4db2cc46d6440f">
-<!ENTITY sha256 "58f6edc572b0d22bcc1aaec3e41b92ef025eed478d7acb7d6790d250e333006a">
+<!ENTITY version "2026.10.01.06">
+<!ENTITY md5 "2ceed76861ae25f7dcbec681ca992347">
+<!ENTITY sha256 "b1f3a2382c5bd917d12ed74764d86ecaaee7a016662ceab9872c9c3ae05672b4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.06
+- UI/UX: Redesigned Advanced → Bulk assignment around a single Docker or VM workspace, with a destination sidebar, readable member table, summary cards, and a clear move footer.
+- Feature: Added current-folder and runtime-status filters, synchronized name searches, sortable columns, and selection controls for the displayed members. Selections hidden by filters remain selected and are identified in the footer.
+- UI/UX: Added a detailed plan that expands on demand, accurate counts that exclude members already in the destination, and responsive layouts for desktop and phones.
+- Compatibility: Updated translations for the new workspace and retained the existing confirmation, safety snapshot, atomic save, failed-member retry, and undo workflows. Hard-refresh the webGUI after updating.
+- Fix: Prevented duplicate bulk-move confirmations and changes to the destination, selection, or source while confirming or saving a move.
+
 
 ###2026.10.01.05
 - Fix: Snapshot comparison popups now retain their intended layout on newer Unraid dialog libraries, with a full-width title above the content and action buttons in the footer.

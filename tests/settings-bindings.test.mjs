@@ -650,8 +650,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(page, /id="vm-bulk-filter"/);
     assert.match(page, /id="docker-bulk-folder" data-fv-track-save="0"/);
     assert.match(page, /id="vm-bulk-folder" data-fv-track-save="0"/);
-    assert.match(page, /id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0"/);
-    assert.match(page, /id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0"/);
+    assert.match(page, /id="docker-bulk-filter" type="search" placeholder="Search containers\.\.\." data-fv-track-save="0"/);
+    assert.match(page, /id="vm-bulk-filter" type="search" placeholder="Search VMs\.\.\." data-fv-track-save="0"/);
     assert.match(page, /id="docker-bulk-selected-count"/);
     assert.match(page, /id="vm-bulk-selected-count"/);
     assert.match(page, /id="docker-bulk-items-list"/);

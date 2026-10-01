@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "docker",
-        "translation-context-revision": "9596358b17eeab5a8f346f9f281fe3bd263b428f60c879861fd2bf3c0100982d"
+        "translation-context-revision": "20521b52a09719b96defac371af5b41d30c84fdd5d435ce17ff3bc14d9f3ee08"
     },
     "docker.actions.label": "Действия FolderView",
     "docker.actions.add-folder": "Добавить папку",

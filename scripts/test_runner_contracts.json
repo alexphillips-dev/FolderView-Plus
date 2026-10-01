@@ -45,6 +45,7 @@
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
     { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
+    { "file": "tests/browser/cases/settings-bulk-assignment.mjs", "limit": 155, "owner": "fixture bulk move layout, filtering, selection and atomic mutation" },
     { "file": "tests/browser/helpers/settings-alerts-health-layout.mjs", "limit": 45, "owner": "fixture Alerts centering and compact health dialog assertions" },
     { "file": "tests/browser/cases/settings-overflow-guard.mjs", "limit": 65, "owner": "fixture Settings host clipping regression", "requiredImports": ["./settings-visibility.mjs"] },
     { "file": "tests/browser/cases/settings-visibility.mjs", "limit": 55, "owner": "fixture Settings clipped-content detection" },
@@ -74,6 +75,7 @@
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-alerts-health.mjs",
+        "tests/browser/cases/settings-bulk-assignment.mjs",
         "tests/browser/cases/settings-overflow-guard.mjs",
         "tests/browser/cases/settings-visibility.mjs",
         "tests/browser/cases/settings-advanced-navigation.mjs",
@@ -99,10 +101,10 @@
         "tests/browser/helpers/advanced-title-badges.mjs",
         "tests/browser/helpers/settings-alerts-health-layout.mjs"
       ],
-      "testCount": 69,
-      "assertionCount": 808,
-      "pageEvaluateCount": 208,
-      "orderedTitleSha256": "0d1be6ec97adbf01914a2240ec3c7e39ed047d765bfee590ee7b97abd9f9692a"
+      "testCount": 73,
+      "assertionCount": 875,
+      "pageEvaluateCount": 226,
+      "orderedTitleSha256": "aeadc4ad6e67de3709ed8c6239c285ae6f75e5d5707f5a0ca37aaa15e0589964"
     }
   }
 }

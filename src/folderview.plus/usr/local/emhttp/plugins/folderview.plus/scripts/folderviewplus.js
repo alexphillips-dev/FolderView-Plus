@@ -508,6 +508,12 @@ if (!bulkAssignmentModule || window.FolderViewPlusBulkAssignmentModuleLoaded !==
 } else {
     setFatalBannerModuleStatus('folderviewplus.bulk-assignment.js', 'ok', 'bulk assignment api ready');
 }
+if (window.FolderViewPlusBulkAssignmentViewModuleLoaded !== true || typeof window.FolderViewPlusBulkAssignmentView?.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.bulk-assignment.view.js');
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.view.js', 'missing', 'bulk move view unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.view.js', 'ok', 'bulk move view ready');
+}
 if (!settingsRuntimeActionsModule || window.FolderViewPlusSettingsRuntimeActionsModuleLoaded !== true || typeof settingsRuntimeActionsModule.createApi !== 'function') {
     bootstrapMissingModules.push('folderviewplus.runtime-actions.js');
     setFatalBannerModuleStatus('folderviewplus.runtime-actions.js', 'missing', 'settings runtime action api unavailable');
@@ -3606,6 +3612,7 @@ const getBulkAssignmentApi = (() => {
             filtersByType,
             persistTableUiState,
             apiPostJson,
+            getItemRuntimeStateKind,
             assertRuntimeConflictActionAllowed,
             createBackup,
             refreshType,

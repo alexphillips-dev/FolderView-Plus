@@ -40,6 +40,8 @@ The six-dot handles in Basic settings reorder folders when manual ordering is ac
 
 Automatic sort modes can order by name or timestamp. Pinned folders are resolved before the selected sort mode. Switch back to manual ordering before expecting a drag operation to define the complete order.
 
+For tree moves, drop a folder on **Before**, **Inside**, or **After**, or use **Move folder** with the keyboard. The row moves immediately while saving; a failed save restores its previous position. Before/After moves select Manual sorting, while Inside/root moves keep the current sort mode. Move and reorder Undo/Redo belongs to the current browser session and does not create a backup for every adjustment.
+
 ## Configure collapsed previews
 
 The Preview tab controls what is shown while a runtime folder is collapsed.
@@ -126,6 +128,8 @@ A safety snapshot is created before saving. The results identify failed members 
 
 Templates save reusable folder settings. Review member-bound custom actions when copying or applying a template because actions that depend on unavailable members are disabled for safety.
 
+In **Advanced -> Operations**, choose Docker or VM, a folder, and an action, then **Preview**. **Apply action** requires a current preview with eligible members. Changing the folder, action, or plan requires another preview. The separate template library supports name search and saving settings from a folder.
+
 ## Import and export
 
 The import dialog begins with one behavior decision:
@@ -146,6 +150,8 @@ Open `Advanced -> Recovery` to:
 - Restore the latest non-empty snapshot or a selected snapshot.
 - Delete old snapshots.
 - Undo a recent destructive operation when an undo-capable safety snapshot exists.
+
+The Recovery summary shows readiness and policy for the selected source. Select a history row to restore, download, or delete that snapshot. New setups enable scheduled backups every hour with retention of 25 snapshots; existing saved schedules retain their settings. Interval accepts 1–168 hours and retention 1–200. Routine moves, reorders, preference changes, and pins do not create individual snapshots. Restore recovers preferences alongside folders when present; older folder-only snapshots keep current preferences.
 
 Choose **Compare Snapshots** to open the snapshot chooser for the selected Docker or VM source. Select the **From snapshot** and **Compare with** targets; the second target can be another snapshot or **Current live folders**. Leave **Include preference changes** enabled to compare saved preferences as well.
 
@@ -173,6 +179,10 @@ The Docker-page Privacy toggle hides selected values without changing the stored
 
 ## Diagnostics and support
 
+**Advanced -> Logs** shows completed actions, issues, and selected recovery events in a compact newest-first feed. The current browser keeps up to 100 entries for 30 days. **Clear** removes the saved feed and prevents cleared server events from reappearing; it does not undo configuration changes. Routine background diagnostic successes are omitted.
+
 Open `Advanced -> Diagnostics` to run health checks, inspect core and advisory results, copy an issue report, and preview or export a support bundle. Use a sanitized bundle for public reports unless raw values are explicitly required.
+
+**Backup readiness** checks snapshot metadata and age without performing a restore. **Live runtime connectivity** reflects the latest health check of enabled Docker/VM services. Disabled services and insufficient evidence are informational. Docker startup diagnostics include aggregate stage timings without workload identities.
 
 When a runtime page shows an error banner, copy its diagnostics before refreshing. See [Troubleshooting](TROUBLESHOOTING.md) for targeted checks and [Compatibility](COMPATIBILITY.md) for supported environments.

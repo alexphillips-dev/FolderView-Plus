@@ -46,7 +46,7 @@ $.fn.dialog = function(action, ...args) {
     }
     if (!state) {
         const content = this;
-        const widget = $('<div class="ui-dialog" role="dialog" aria-modal="true"></div>').css({ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1100 }).appendTo('body');
+        const widget = $('<div class="ui-dialog" role="dialog" aria-modal="true" tabindex="-1"></div>').css({ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1100 }).appendTo('body');
         const head = $('<div class="ui-dialog-titlebar"><span class="ui-dialog-title"></span><button class="ui-dialog-titlebar-close" type="button" aria-label="Close">×</button></div>').appendTo(widget);
         content.addClass('ui-dialog-content').appendTo(widget);
         const footer = $('<div class="ui-dialog-buttonpane"><div class="ui-dialog-buttonset"></div></div>').appendTo(widget);

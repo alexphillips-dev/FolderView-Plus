@@ -29,6 +29,7 @@ test('health dialog escapes folder and reason content and preserves its filter a
     api.showFolderHealthBreakdown('docker', 'folder');
     assert.equal(dialog.html, true);
     assert.equal(dialog.customClass, 'fv-health-details-modal');
+    assert.match(dialog.text, /<dd>75\/100<\/dd>/);
     assert.match(dialog.text, /is-warn/);
     assert.match(dialog.text, /&lt;img/);
     assert.match(dialog.text, /&lt;script&gt;/);

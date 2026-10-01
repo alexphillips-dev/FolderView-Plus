@@ -2800,8 +2800,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .sweet-alert.fv-health-details-modal .fv-health-details-metrics dd {
-    display: flex;
-    align-items: baseline;
+    display: block;
     direction: ltr;
     margin: 4px 0 0;
     font-size: 1.4em;
@@ -2809,13 +2808,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     white-space: nowrap;
 }
 
-.sweet-alert.fv-health-details-modal .fv-health-details-score-total {
-    display: inline;
-    float: none;
-    margin: 0;
-    padding: 0;
-    font: inherit;
-}
 .fv-health-details-metrics > div:first-child dd { color: var(--fv-health-tone); }
 .fv-health-details-runtime { margin: 0 0 10px; }
 .fv-health-details-policy {

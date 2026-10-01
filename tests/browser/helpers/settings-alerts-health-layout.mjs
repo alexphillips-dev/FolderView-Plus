@@ -13,16 +13,17 @@ export const verifyCompactHealthDetails = async (page) => {
     const layout = await page.locator('.fv-health-details-modal').evaluate((modal) => {
         const details = modal.querySelector('.fv-health-details');
         const score = modal.querySelector('.fv-health-details-metrics dd');
-        const total = score.querySelector('.fv-health-details-score-total');
-        const rectForText = (node) => { const range = document.createRange(); range.selectNodeContents(node); return range.getBoundingClientRect(); };
-        const scoreRect = rectForText(score.firstChild);
-        const totalRect = rectForText(total);
+        const text = score.firstChild;
+        const split = text.textContent.indexOf('/');
+        const rectForText = (start, end) => { const range = document.createRange(); range.setStart(text, start); range.setEnd(text, end); return range.getBoundingClientRect(); };
+        const scoreRect = rectForText(0, split);
+        const totalRect = rectForText(split, text.textContent.length);
         const sections = ['summary', 'metrics', 'runtime', 'policy', 'reasons'].map((name) => modal.querySelector(`.fv-health-details-${name}`).getBoundingClientRect());
         return {
             bodySize: parseFloat(getComputedStyle(details).fontSize),
             policySize: parseFloat(getComputedStyle(modal.querySelector('.fv-health-details-policy')).fontSize),
-            scoreSize: getComputedStyle(score).fontSize,
-            totalSize: getComputedStyle(total).fontSize,
+            singleText: score.childNodes.length === 1 && text.nodeType === 3 && score.textContent === '85/100',
+            scoreHeight: scoreRect.height, totalHeight: totalRect.height,
             scoreTop: scoreRect.top, totalTop: totalRect.top,
             scoreRight: scoreRect.right, totalLeft: totalRect.left,
             gaps: sections.slice(1).map((section, index) => section.top - sections[index].bottom),
@@ -32,7 +33,7 @@ export const verifyCompactHealthDetails = async (page) => {
         };
     });
     assert.ok(layout.bodySize >= 14 && layout.policySize >= 14, 'dialog copy must stay readable with a small host root font');
-    assert.equal(layout.scoreSize, layout.totalSize, 'score and /100 must use the same text size');
+    assert.ok(layout.singleText && layout.scoreHeight === layout.totalHeight, 'score and /100 must be one text value at the same size');
     assert.ok(Math.abs(layout.scoreTop - layout.totalTop) < 1 && Math.abs(layout.totalLeft - layout.scoreRight) < 1, `score must read inline as 85/100: ${JSON.stringify(layout)}`);
     assert.ok(layout.gaps.every((gap) => gap >= -1 && gap <= 12), `sections must stay compact: ${layout.gaps}`);
     assert.equal(layout.float, 'none', 'host definition-list floats must not move card labels');

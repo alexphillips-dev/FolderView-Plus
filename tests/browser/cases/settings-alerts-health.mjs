@@ -13,7 +13,7 @@ export const registerSettingsAlertsHealthCase = ({ test, baseUrl }) => {
         await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.row-details.js` });
         await page.addStyleTag({ content: '.sweet-alert { position: fixed; text-align: center; } .sweet-alert p { text-align: center; } button { letter-spacing: 2px; } button i { margin-right: 5px; } .fa-heartbeat::before { content: "♥"; } .fa-exclamation-circle::before { content: "!"; } .sa-button-container { margin-top: 14px; }' });
-        await page.addStyleTag({ content: 'html { font-size: 10px; } .sweet-alert p { white-space: pre-line; } .sweet-alert dt { float: right; text-align: right; } .sweet-alert dd { float: left; margin-left: 40px; } .sweet-alert small { display: block; } .signals-cell { width: 240px; }' });
+        await page.addStyleTag({ content: 'html { font-size: 10px; } .sweet-alert p { white-space: pre-line; } .sweet-alert dt { float: right; text-align: right; } .sweet-alert dd { float: left; margin-left: 40px; flex-direction: column; } .sweet-alert small { display: block; } .signals-cell { width: 240px; }' });
         await page.evaluate((source) => {
             const theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             document.body.dataset.fvThemeClass = theme;

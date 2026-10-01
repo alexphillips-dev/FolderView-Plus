@@ -96,7 +96,7 @@
                     <span class="fv-health-details-status">${escapeHtml(health.text)}</span>
                 </div>
                 <dl class="fv-health-details-metrics">
-                    <div><dt>${escapeHtml(translate('legacy.surface.38e5a46cbc5ad328', 'Score'))}</dt><dd>${escapeHtml(health.score)}<span class="fv-health-details-score-total">/100</span></dd></div>
+                    <div><dt>${escapeHtml(translate('legacy.surface.38e5a46cbc5ad328', 'Score'))}</dt><dd>${escapeHtml(health.score)}/100</dd></div>
                     <div><dt>Members</dt><dd>${details.members.length}</dd></div>
                     <div><dt>Updates</dt><dd>${details.updateCount}</dd></div>
                 </dl>

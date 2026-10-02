@@ -218,14 +218,16 @@ if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/.test(scorecardWorkflow)
     || !/id-token:\s*write/.test(scorecardWorkflow)) {
   fail('OpenSSF Scorecard must publish signed results to GitHub code scanning with pinned actions.');
 }
-if (!/schedule:/.test(dependencyVulnerabilityScanWorkflow)
+if (!/push:\s*\n\s*branches:\s*\n\s*- main/.test(dependencyVulnerabilityScanWorkflow)
+    || !/paths:[\s\S]*docs\/sbom\.cdx\.json/.test(dependencyVulnerabilityScanWorkflow)
+    || !/schedule:/.test(dependencyVulnerabilityScanWorkflow)
     || !/workflow_dispatch:/.test(dependencyVulnerabilityScanWorkflow)
     || !/google\/osv-scanner-action\/osv-scanner-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/.test(dependencyVulnerabilityScanWorkflow)
     || !/google\/osv-scanner-action\/osv-reporter-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+/.test(dependencyVulnerabilityScanWorkflow)
     || !/--sbom=docs\/sbom\.cdx\.json/.test(dependencyVulnerabilityScanWorkflow)
     || !/--fail-on-vuln=true/.test(dependencyVulnerabilityScanWorkflow)
     || !/github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/.test(dependencyVulnerabilityScanWorkflow)) {
-  fail('Dependency vulnerability scanning must use pinned OSV actions, scan the generated SBOM, fail on vulnerabilities, and publish SARIF.');
+  fail('Dependency vulnerability scanning must refresh on main inventory updates, use pinned OSV actions, scan the generated SBOM, fail on vulnerabilities, and publish SARIF.');
 }
 if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g) || []).length !== 2 ||
     !/Attest release archive provenance/.test(releaseOnMainWorkflow) ||

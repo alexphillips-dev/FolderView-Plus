@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.01.10">
-<!ENTITY md5 "aa9eba5488d65a03dc9e7fea67af543e">
-<!ENTITY sha256 "147036af107ef533f38094221ae02e603d8415e13872cadd3ab4e114cf0e8db5">
+<!ENTITY version "2026.10.02.02">
+<!ENTITY md5 "f05466097ff77f6de3ec6f639d6b19ad">
+<!ENTITY sha256 "3d471b668c2bc5333ec43deeda488ab84d7b3ae2f507ba75838d0015f88e201e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.02.02
+- Security: Updated the bundled Moment.js date library to 2.31.0, resolving CVE-2026-17495 and preventing prototype locale names from corrupting date handling. Docker and Dashboard chart date parsing remains compatible. The advisory's filesystem-loading attack concerns server-side usage; FolderView Plus loads this library in the browser.
+- Security: Refreshed the software inventory to identify and verify the patched runtime library, and corrected npm package names and scoped identifiers so vulnerability scanning includes those dependencies accurately. The previously patched brace-expansion development dependency remains at 5.0.12, covering all three reported denial-of-service advisories.
+- Reliability: Dependency vulnerability scanning now refreshes automatically when main's software inventory or dependency metadata changes, alongside its scheduled and manual scans, so published dependency fixes receive current scanning results.
+- Reliability: Automated release validation keeps the development channel correct when stable changes are synchronized back to dev.
+
 
 ###2026.10.01.10
 - UI/UX: Bulk assignment now follows Recovery's compact mobile heading and summary-icon sizes, keeping both Settings workspaces consistent on phones.

@@ -151,10 +151,37 @@ test('runtime component inventory covers every shipped include file', () => {
     assert.ok(inventory.hostProvidedComponents.length >= 4);
 });
 
-test('SBOM purl normalization replaces every encoded scope marker', () => {
-    const generator = read('scripts/generate_sbom.mjs');
-    assert.match(generator, /encodeURIComponent\(name\)\.replaceAll\('%40', '@'\)/);
-    assert.doesNotMatch(generator, /encodeURIComponent\(name\)\.replace\('%40', '@'\)/);
+test('SBOM npm package URLs preserve registry names and scoped namespace separators', () => {
+    const sbom = JSON.parse(read('docs/sbom.cdx.json'));
+    const npmPackages = sbom.components.filter((component) => component.scope === 'optional' && component.purl?.startsWith('pkg:npm/'));
+    for (const component of npmPackages) {
+        assert.match(component.name, /^(?:@[^/]+\/)?[^/]+$/);
+        const [, packageName, version] = component.purl.match(/^pkg:npm\/(.+)@([^@]+)$/);
+        assert.equal(decodeURIComponent(packageName), component.name);
+        assert.equal(decodeURIComponent(version), component.version);
+    }
+    const scopedPackages = sbom.components.filter((component) => component.name.startsWith('@') && component.scope === 'optional');
+    assert.ok(scopedPackages.length > 0);
+    for (const component of scopedPackages) {
+        assert.match(component.purl, /^pkg:npm\/%40[^/@]+\/[^/@]+@[^/]+$/);
+        const [, encodedScope, encodedName, encodedVersion] = component.purl.match(/^pkg:npm\/([^/]+)\/([^@]+)@(.+)$/);
+        assert.equal(`${decodeURIComponent(encodedScope)}/${decodeURIComponent(encodedName)}`, component.name);
+        assert.equal(decodeURIComponent(encodedVersion), component.version);
+    }
+    const unscopedPackage = sbom.components.find((component) => component.name === 'brace-expansion');
+    assert.equal(unscopedPackage.purl, `pkg:npm/brace-expansion@${unscopedPackage.version}`);
+});
+
+test('SBOM runtime npm components use package registry names for vulnerability queries', () => {
+    const sbom = JSON.parse(read('docs/sbom.cdx.json'));
+    const runtimeNpm = sbom.components.filter((component) => component.scope === 'required' && component.purl?.startsWith('pkg:npm/'));
+    assert.ok(runtimeNpm.some((component) => component.name === 'moment'));
+    assert.ok(runtimeNpm.some((component) => component.name === 'chart.js'));
+    for (const component of runtimeNpm) {
+        const [, packageName, version] = component.purl.match(/^pkg:npm\/(.+)@([^@]+)$/);
+        assert.equal(decodeURIComponent(packageName), component.name);
+        assert.equal(decodeURIComponent(version), component.version);
+    }
 });
 
 test('SBOM inventories nested GitHub Actions by repository and pinned revision', () => {

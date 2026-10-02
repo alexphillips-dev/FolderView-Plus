@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { createProductionPerfFixture } from '../scripts/lib/production-perf-fixture.mjs';
+import { readProductionBaseline } from '../scripts/production_performance_benchmarks.mjs';
 import { median, checkMetric, dockerStartupStages, dockerStartupMetrics, checkDockerMembership } from '../scripts/lib/production-perf-metrics.mjs';
 import { classifyPaths } from '../scripts/classify_ci_changes.mjs';
 
@@ -14,6 +17,47 @@ test('production benchmark rejects missing samples and enforces absolute and bas
     assert.equal(checkMetric(121, 200, 100, policy).passed, false);
     assert.equal(checkMetric(201, 200, undefined, policy).passed, false);
     assert.throws(() => checkMetric(undefined, 200, 100, policy));
+});
+
+test('baseline reads distinguish a missing file from invalid data and other read errors', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-baseline-read-'));
+    const file = path.join(root, 'baseline.json');
+    try {
+        assert.equal(readProductionBaseline(file), null);
+        fs.writeFileSync(file, JSON.stringify({ version: 1, cases: {} }));
+        assert.deepEqual(readProductionBaseline(file), { version: 1, cases: {} });
+        fs.writeFileSync(file, 'invalid JSON');
+        assert.throws(() => readProductionBaseline(file), SyntaxError);
+        assert.throws(() => readProductionBaseline(root));
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('production fixture returns 404 for missing, removed, and directory assets and stays usable', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-fixture-assets-'));
+    const pluginPath = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
+    const plugin = path.join(root, pluginPath);
+    fs.mkdirSync(plugin, { recursive: true });
+    fs.copyFileSync(path.join(process.cwd(), pluginPath, 'FolderViewPlus.page'), path.join(plugin, 'FolderViewPlus.page'));
+    const file = path.join(plugin, 'fixture.js');
+    fs.writeFileSync(file, 'fixture asset');
+    fs.mkdirSync(path.join(plugin, 'directory.json'));
+    const fixture = createProductionPerfFixture(root, { folders: 1, members: 1 });
+    await new Promise(resolve => fixture.server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${fixture.server.address().port}/plugins/folderview.plus/`;
+    try {
+        const response = await fetch(origin + 'fixture.js');
+        assert.equal(response.status, 200);
+        assert.equal(await response.text(), 'fixture asset');
+        fs.rmSync(file);
+        for (const name of ['fixture.js', 'missing.js', 'directory.json', 'missing/child.js']) {
+            assert.equal((await fetch(origin + name)).status, 404, name);
+        }
+        fs.writeFileSync(file, 'replacement asset');
+        assert.equal(await fetch(origin + 'fixture.js').then(result => result.text()), 'replacement asset');
+    } finally {
+        await new Promise(resolve => fixture.server.close(resolve));
+        fs.rmSync(root, { recursive: true });
+    }
 });
 
 test('Docker timings fail closed and the representative workload preserves nesting and ownership', () => {

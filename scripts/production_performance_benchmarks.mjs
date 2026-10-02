@@ -5,12 +5,20 @@ import { chromium } from 'playwright';
 import { createProductionPerfFixture } from './lib/production-perf-fixture.mjs';
 import { median, checkMetric, observeProductionStartup, dockerStartupMetrics, checkDockerMembership } from './lib/production-perf-metrics.mjs';
 
+export const readProductionBaseline = baselinePath => {
+    try { return JSON.parse(fs.readFileSync(baselinePath, 'utf8')); }
+    catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+        return null;
+    }
+};
+
 export const runProductionPerformance = async ({ updateBaseline = false, scenarioName = '' } = {}) => {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
     const config = JSON.parse(fs.readFileSync(path.join(root, 'scripts/production_perf_budgets.json')));
     if (scenarioName && !config.scenarios[scenarioName]) throw new Error(`Unknown scenario: ${scenarioName}`);
     const baselinePath = path.join(root, 'scripts/production_perf_baseline.json');
-    const baseline = fs.existsSync(baselinePath) ? JSON.parse(fs.readFileSync(baselinePath)) : null;
+    const baseline = readProductionBaseline(baselinePath);
     if (!baseline && !updateBaseline) throw new Error('Production startup baseline is missing');
     const report = { version: 1, generatedAt: new Date().toISOString(), measuredRuns: config.measuredRuns,
         limitations: 'Synthetic Unraid host and APIs; shipped plugin JavaScript, CSS, markup and locale catalogs. Host widget stubs do not model Unraid server execution time.',

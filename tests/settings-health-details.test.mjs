@@ -22,7 +22,7 @@ test('health dialog escapes folder and reason content and preserves its filter a
             assert.equal(updates, 1);
             return { text: 'Warning', severity: 'warn', filterSeverity: 'warn', score: 75,
                 policy: { profile: 'balanced', updatesMode: 'maintenance', allStoppedMode: 'critical', warnThreshold: 60, criticalThreshold: 90 },
-                reasons: [{ label: '<b>Paused</b>', message: '<script>alert(1)</script>' }] };
+                reasons: [{ label: '<b>Paused</b>', message: '<script>alert(1)</script><ScRiPt>alert(2)</ScRiPt>' }] };
         },
         toggleHealthSeverityFilter: (...args) => { filtered = args; }
     });
@@ -33,7 +33,8 @@ test('health dialog escapes folder and reason content and preserves its filter a
     assert.match(dialog.text, /is-warn/);
     assert.match(dialog.text, /&lt;img/);
     assert.match(dialog.text, /&lt;script&gt;/);
-    assert.doesNotMatch(dialog.text, /<img|<script|<b>/);
+    assert.match(dialog.text, /&lt;ScRiPt&gt;/);
+    assert.doesNotMatch(dialog.text, /<img|<script|<b>/i);
     confirm(false);
     assert.equal(filtered, undefined);
     confirm(true);

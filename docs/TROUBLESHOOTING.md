@@ -14,7 +14,7 @@ If you want to return to the CA-listed stable channel, follow [Move from a manua
 
 ### Backup Download Fails with HTTP 200 and `[object Blob]`
 
-This error occurs when the browser treats the JSON backup attachment as a JSON API response instead of a downloadable file. It can affect desktop and mobile browsers. Stable `2026.10.01.11` includes the repair first tested in dev `2026.09.18.01`. Update to the latest stable release, then hard-refresh before retrying **Recovery > Download** for a Docker or VM snapshot.
+This error occurs when the browser treats the JSON backup attachment as a JSON API response instead of a downloadable file. It can affect desktop and mobile browsers. Stable `2026.10.02.01` includes the repair first tested in dev `2026.09.18.01`. Update to the latest stable release, then hard-refresh before retrying **Recovery > Download** for a Docker or VM snapshot.
 
 Verify that a file was actually saved and contains the expected backup JSON. A successful server response or a dispatched browser download alone cannot confirm that the file reached your device. If downloading still fails, include the error text, browser, and a sanitized support bundle; do not restore or delete the snapshot as a download workaround.
 

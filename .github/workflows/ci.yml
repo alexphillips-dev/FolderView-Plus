@@ -17,6 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Dispatched synchronization branches retain a dev package; their branch name is not a release channel.
+  FVPLUS_EXPECT_PLUGIN_BRANCH: ${{ github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'backmerge/') && 'dev' || '' }}
   FVPLUS_I18N_STRICT: '1'
   FVPLUS_DEAD_CODE_STRICT: '1'
   FVPLUS_REQUIRE_PERF_BASELINE: '1'

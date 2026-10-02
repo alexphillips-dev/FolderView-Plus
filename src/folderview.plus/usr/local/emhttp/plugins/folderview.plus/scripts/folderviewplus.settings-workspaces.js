@@ -1,12 +1,14 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.environment.js'));
         return;
     }
-    root.FolderViewPlusSettingsWorkspaces = factory();
+    root.FolderViewPlusSettingsWorkspaces = factory(root.FolderViewPlusFoundationModules?.environment);
     root.FolderViewPlusSettingsWorkspacesModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(environmentModule) {
+    const boundRecoveryDocuments = new WeakSet();
     const createApi = (deps = {}) => {
+    const repairT710d5dec = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const windowRef = deps.window || (typeof window !== 'undefined' ? window : null);
         const documentRef = deps.document || windowRef?.document || null;
         const $ = deps.$ || windowRef?.jQuery || windowRef?.$ || null;
@@ -31,6 +33,7 @@
         const getActiveRecoveryWorkspaceTypeValue = typeof deps.getActiveRecoveryWorkspaceTypeValue === 'function' ? deps.getActiveRecoveryWorkspaceTypeValue : (() => 'docker');
         const setActiveRecoveryWorkspaceTypeValue = typeof deps.setActiveRecoveryWorkspaceTypeValue === 'function' ? deps.setActiveRecoveryWorkspaceTypeValue : (() => {});
         const recoverySelectedBackupByType = deps.recoverySelectedBackupByType || { docker: '', vm: '' };
+        const recoveryShowAllByType = { docker: false, vm: false };
         const filtersByType = deps.filtersByType || { docker: {}, vm: {} };
         const persistTableUiState = typeof deps.persistTableUiState === 'function' ? deps.persistTableUiState : (() => {});
         const renderBackupRows = typeof deps.renderBackupRows === 'function' ? deps.renderBackupRows : (() => {});
@@ -57,8 +60,9 @@
         const toPrettyJson = typeof deps.toPrettyJson === 'function' ? deps.toPrettyJson : ((value) => JSON.stringify(value, null, 2));
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
         const swal = typeof deps.swal === 'function' ? deps.swal : windowRef?.swal || null;
-        const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : (async () => ({}));
-        const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : (async () => ({}));
+        const unavailableRequest = async () => { throw new Error(translate('settings.environment.client-unavailable', 'The environment request client is unavailable. Refresh the page and try again.')); };
+        const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : unavailableRequest;
+        const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : unavailableRequest;
         const selectJsonFile = typeof deps.selectJsonFile === 'function' ? deps.selectJsonFile : (async () => null);
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
         const claimAdvancedOperationLock = typeof deps.claimAdvancedOperationLock === 'function' ? deps.claimAdvancedOperationLock : (() => true);
@@ -70,7 +74,6 @@
         const updateImportApplyProgressDialog = typeof deps.updateImportApplyProgressDialog === 'function' ? deps.updateImportApplyProgressDialog : (() => {});
         const closeImportApplyProgressDialog = typeof deps.closeImportApplyProgressDialog === 'function' ? deps.closeImportApplyProgressDialog : (() => {});
         const ensureRuntimeConflictActionAllowed = typeof deps.ensureRuntimeConflictActionAllowed === 'function' ? deps.ensureRuntimeConflictActionAllowed : (() => true);
-
         let recoveryEnvironmentSummary = null;
         let recoveryEnvironmentMode = 'idle';
 
@@ -114,30 +117,25 @@
 
         const getRecoveryEnvironmentModeLabel = (mode) => {
             if (mode === 'export') {
-                return 'Export ready';
+                return translate('legacy.surface.6d2b3b0b56fe2760', 'Export ready');
             }
             if (mode === 'preview') {
-                return 'Preview ready';
+                return translate('legacy.surface.954fcf76ac50e19a', 'Preview ready');
             }
             if (mode === 'import') {
-                return 'Imported';
+                return translate('import.folderview3.order-imported', 'Imported');
             }
-            return 'Portable backup';
+            return translate('legacy.surface.df5ddf26cf00e6be', 'Portable backup');
         };
-
+        const environmentSortLabel = (mode) => environmentModule.sortModeLabel(mode, translate);
         const buildRecoveryEnvironmentSummaryHtml = () => {
             if (!recoveryEnvironmentSummary) {
-                return `
-                    <div class="fv-recovery-empty-state">
-                        <strong>Export a full-environment JSON or import one from another install.</strong>
-                        <span>Environment snapshots include Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
-                    </div>
-                `;
+                return '';
             }
 
             const summary = recoveryEnvironmentSummary;
-            const themeLabel = summary.themeWorkspace.activeThemeName || summary.themeWorkspace.activeThemeId || 'No active managed theme';
-            const exportedAt = summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown export time';
+            const themeLabel = summary.themeWorkspace.activeThemeName || summary.themeWorkspace.activeThemeId || translate('legacy.surface.be30919530bc7097', 'No active managed theme');
+            const exportedAt = summary.exportedAt ? formatTimestamp(summary.exportedAt) : translate('legacy.surface.a00372c6eccfb986', 'Unknown export time');
             const warningHtml = summary.warnings.map((warning) => (
                 `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`
             )).join('');
@@ -147,22 +145,22 @@
                     <div class="fv-recovery-history-head">
                         <div>
                             <div class="fv-recovery-history-title">${escapeHtml(getRecoveryEnvironmentModeLabel(recoveryEnvironmentMode))}</div>
-                            <div class="fv-recovery-history-copy">${escapeHtml(summary.sourceName || 'FolderView Plus Environment snapshot')}</div>
+                            <div class="fv-recovery-history-copy" data-i18n-ignore>${escapeHtml(summary.sourceName || translate('legacy.surface.288a085ed7ff8e0f', 'FolderView Plus Environment snapshot'))}</div>
                         </div>
-                        <span class="fv-recovery-history-badge">${escapeHtml(summary.kind || 'environment')}</span>
+                        <span class="fv-recovery-history-badge">${escapeHtml(translate('settings.environment.badge', 'Environment'))}</span>
                     </div>
                     <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(`Exported ${exportedAt}`)}</span>
-                        <span>${escapeHtml(`Snapshot plugin ${summary.pluginVersion || 'unknown'}`)}</span>
-                        <span>${escapeHtml(`Docker ${summary.docker.folderCount} folder${summary.docker.folderCount === 1 ? '' : 's'}`)}</span>
-                        <span>${escapeHtml(`VM ${summary.vm.folderCount} folder${summary.vm.folderCount === 1 ? '' : 's'}`)}</span>
-                        <span>${escapeHtml(`${summary.themeWorkspace.managedThemeCount} managed theme${summary.themeWorkspace.managedThemeCount === 1 ? '' : 's'}`)}</span>
+                        <span>${escapeHtml(translate('legacy.surface.6a38c3740360964f', 'Exported $1', exportedAt))}</span>
+                        <span>${escapeHtml(translate('legacy.surface.e6613a7c1200cead', 'Snapshot plugin $1', summary.pluginVersion || translate('common.runtime.unknown', 'Unknown')))}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.docker-folders-1-41f18c", "Docker folders: $1", summary.docker.folderCount))}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.vm-folders-1-e73ec2", "VM folders: $1", summary.vm.folderCount))}</span>
+                        <span>${escapeHtml(repairT710d5dec("common.repair.managed-themes-1-91e84d", "Managed themes: $1", summary.themeWorkspace.managedThemeCount))}</span>
                     </div>
                     <div class="fv-recovery-environment-meta">
-                        <span>${escapeHtml(`Docker sort: ${summary.docker.sortMode || 'created'}`)}</span>
-                        <span>${escapeHtml(`VM sort: ${summary.vm.sortMode || 'created'}`)}</span>
-                        <span>${escapeHtml(`Theme: ${themeLabel}`)}</span>
-                        <span>${escapeHtml(`Custom CSS ${summary.themeWorkspace.customCssBytes} bytes`)}</span>
+                        <span>${escapeHtml(translate('legacy.surface.40dab9de15aeeaf8', 'Docker sort: $1', environmentSortLabel(summary.docker.sortMode)))}</span>
+                        <span>${escapeHtml(translate('legacy.surface.edff718d85e25ea9', 'VM sort: $1', environmentSortLabel(summary.vm.sortMode)))}</span>
+                        <span>${escapeHtml(translate('diagnostics.cards.theme', 'Theme'))}: <span data-i18n-ignore>${escapeHtml(themeLabel)}</span></span>
+                        <span>${escapeHtml(translate('legacy.surface.8a36f1c826a82414', 'Custom CSS $1 bytes', summary.themeWorkspace.customCssBytes))}</span>
                     </div>
                     ${warningHtml}
                 </article>
@@ -194,12 +192,12 @@
 
         const buildRecoveryEnvironmentConfirmHtml = (summary) => `
             <div class="preview-meta-grid">
-                <div class="preview-meta-item"><span>Docker folders</span><strong>${escapeHtml(String(summary.docker.folderCount))}</strong></div>
-                <div class="preview-meta-item"><span>VM folders</span><strong>${escapeHtml(String(summary.vm.folderCount))}</strong></div>
-                <div class="preview-meta-item"><span>Managed themes</span><strong>${escapeHtml(String(summary.themeWorkspace.managedThemeCount))}</strong></div>
-                <div class="preview-meta-item"><span>Exported</span><strong>${escapeHtml(summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown')}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.f4185ed93100719d", "Docker folders"))}</span><strong>${escapeHtml(String(summary.docker.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.50a1502d1a6beddb", "VM folders"))}</span><strong>${escapeHtml(String(summary.vm.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("settings.theme.managed-themes", "Managed themes"))}</span><strong>${escapeHtml(String(summary.themeWorkspace.managedThemeCount))}</strong></div>
+                <div class="preview-meta-item"><span>${escapeHtml(translate("legacy.surface.391065e4dc23592a", "Exported"))}</span><strong>${escapeHtml(summary.exportedAt ? formatTimestamp(summary.exportedAt) : translate('common.runtime.unknown', 'Unknown'))}</strong></div>
             </div>
-            <p class="rules-help">This replaces Docker folders, VM folders, preferences, folder defaults, and Theme Workspace on this install. A rollback checkpoint plus fresh Docker and VM safety backups are created first.</p>
+            <p class="rules-help">${escapeHtml(translate("legacy.surface.0f7ba62a28a752d6", "This replaces Docker folders, VM folders, preferences, folder defaults, and Theme Workspace on this install. A rollback checkpoint plus fresh Docker and VM safety backups are created first."))}</p>
             ${summary.warnings.map((warning) => `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`).join('')}
         `;
 
@@ -241,19 +239,19 @@
                 });
                 const importResult = response.import || {};
                 const importedSummary = setRecoveryEnvironmentSummary(importResult.summary || previewSummary || {}, 'import');
-                setProgress(1, 'Environment snapshot applied.');
+                setProgress(1, translate("common.audit.environment-applied", "Environment snapshot applied."));
 
                 await refreshType('docker');
-                setProgress(2, 'Refreshed Docker folders and preferences.');
+                setProgress(2, translate("common.audit.folders-refreshed", "Refreshed Docker folders and preferences."));
 
                 await refreshType('vm');
-                setProgress(3, 'Refreshed VM folders and preferences.');
+                setProgress(3, repairT710d5dec("common.repair.refreshed-vm-folders-and-preferences-6f71bb", "Refreshed VM folders and preferences."));
 
                 await refreshBackups('docker', { quiet: true });
-                setProgress(4, 'Refreshed Docker safety backups.');
+                setProgress(4, repairT710d5dec("common.repair.refreshed-docker-safety-backups-18b9f0", "Refreshed Docker safety backups."));
 
                 await refreshBackups('vm', { quiet: true });
-                setProgress(5, 'Refreshed VM safety backups.');
+                setProgress(5, repairT710d5dec("common.repair.refreshed-vm-safety-backups-a21bd9", "Refreshed VM safety backups."));
 
                 let themeRefreshMessage = 'Refreshed Theme Workspace.';
                 try {
@@ -263,7 +261,7 @@
                 }
                 setProgress(6, themeRefreshMessage);
 
-                setProgress(progressTotal, 'Environment import complete.');
+                setProgress(progressTotal, translate("common.audit.environment-complete", "Environment import complete."));
                 await new Promise((resolve) => {
                     const timer = windowRef?.setTimeout || setTimeout;
                     timer(resolve, 180);
@@ -275,7 +273,7 @@
                 const title = 'Environment imported';
                 const text = rollbackName
                     ? `Environment snapshot applied. Rollback checkpoint: ${rollbackName}.`
-                    : 'Environment snapshot applied.';
+                    : translate("common.audit.environment-applied", "Environment snapshot applied.");
                 if (swal) {
                     swal({ title, text, type: 'success' });
                 }
@@ -292,30 +290,15 @@
                 if (progressOpen) {
                     closeImportApplyProgressDialog();
                 }
-                showError('Environment import failed', error);
+                showError(repairT710d5dec("common.repair.environment-import-failed-9e80d3", "Environment import failed"), error);
                 throw error;
             }
         });
 
-        const exportEnvironmentSnapshot = async () => {
-            try {
-                const response = await apiGetJson('/plugins/folderview.plus/server/environment_snapshot.php', {
-                    data: { action: 'export' }
-                });
-                const summary = setRecoveryEnvironmentSummary(response.summary || {}, 'export');
-                downloadFile(buildEnvironmentSnapshotFileName(summary), toPrettyJson(response.snapshot || {}));
-                showToastMessage({
-                    title: 'Environment exported',
-                    message: 'Portable environment snapshot downloaded.',
-                    level: 'success',
-                    durationMs: 3600
-                });
-                return summary;
-            } catch (error) {
-                showError('Environment export failed', error);
-                throw error;
-            }
-        };
+        const exportEnvironmentSnapshot = () => environmentModule.exportSnapshot({
+            apiGetJson, setRecoveryEnvironmentSummary, downloadFile, buildEnvironmentSnapshotFileName,
+            toPrettyJson, showToastMessage, showError, translate
+        });
 
         const importEnvironmentSnapshot = async () => {
             if (!ensureRuntimeConflictActionAllowed('Import full FolderView Plus environment')) {
@@ -326,7 +309,7 @@
             try {
                 selected = await selectJsonFile();
             } catch (error) {
-                showError('Environment snapshot selection failed', error);
+                showError(repairT710d5dec("common.repair.environment-snapshot-selection-failed-d3345b", "Environment snapshot selection failed"), error);
                 return;
             }
             if (!selected) {
@@ -343,7 +326,7 @@
                 const previewHtml = buildRecoveryEnvironmentConfirmHtml(summary);
 
                 if (!swal) {
-                    const confirmed = windowRef?.confirm('Import this environment snapshot?');
+                    const confirmed = windowRef?.confirm(translate("legacy.surface.ffc450f2a4795269", "Import environment snapshot?"));
                     if (confirmed) {
                         await applyEnvironmentSnapshotSelection(selected, summary);
                     }
@@ -366,7 +349,7 @@
                     await applyEnvironmentSnapshotSelection(selected, summary);
                 });
             } catch (error) {
-                showError('Environment snapshot preview failed', error);
+                showError(repairT710d5dec("common.repair.environment-snapshot-preview-failed-c3759a", "Environment snapshot preview failed"), error);
             }
         };
 
@@ -411,20 +394,11 @@
             const latest = backups[0] || null;
             const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const backupCount = backups.length;
-            const emptyCount = backups.filter(isRecoveryBackupEmpty).length;
             const scheduleEnabled = schedule.enabled === true;
-            const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
-            const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
+            const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 1;
             const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : translate("settings.recovery.not-created", "Not created yet");
             const latestRestorableCreated = latestRestorable?.createdAt ? formatTimestamp(latestRestorable.createdAt) : translate("settings.recovery.none-available", "None available");
-            const latestRestorableReason = latestRestorable ? formatRecoveryReasonLabel(latestRestorable.reason) : translate("settings.recovery.create-after-folders", "Create a backup after folders exist");
             const folderCount = Object.keys(folders || {}).length;
-            const statusClass = latestRestorable
-                ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
-                : 'is-warning';
-            const statusLabel = latestRestorable
-                ? (scheduleEnabled ? translate("common.state.ready", "Ready") : translate("settings.recovery.manual-backups", "Manual backups"))
-                : translate("settings.recovery.no-backup", "No backup yet");
             const headline = latestRestorable
                 ? translate("settings.recovery.ready", "$1 recovery is ready.", title)
                 : translate("settings.recovery.no-restorable", "No restorable $1 backup is available yet.", title);
@@ -433,60 +407,18 @@
                 : (latest
                     ? translate("settings.recovery.only-empty", "Only empty snapshots were found. Restore Latest skips empty backups so it does not roll you back to no folders.")
                     : translate("settings.recovery.create-first", "Create a manual backup before making larger changes so you have a safe rollback point."));
-            const scheduleCopy = scheduleEnabled
-                ? translate("settings.recovery.schedule-summary", "Runs every $1 h and keeps $2 snapshots.", interval, retention)
-                : translate("settings.recovery.manual-help", "Manual only. Enable scheduled backups if you want automatic recovery points.");
-            const latestRawCopy = latest
-                ? `${escapeHtml(latestCreated)} (${escapeHtml(formatRecoveryBackupFolderCount(latest))})`
-                : escapeHtml(translate("settings.recovery.no-snapshots", "No snapshots yet"));
-
             return `
                 <div class="fv-recovery-hero">
-                    <div class="fv-recovery-overview-head">
-                        <div>
-                            <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
-                            <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
-                            <div class="fv-recovery-copy">${escapeHtml(copy)}</div>
-                        </div>
-                        <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
+                    <div class="fv-recovery-hero-status ${latestRestorable ? 'is-ready' : 'is-warning'}" aria-hidden="true">${latestRestorable ? '&#10003;' : '!'}</div>
+                    <div class="fv-recovery-hero-copy">
+                        <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
+                        <div class="fv-recovery-copy">${escapeHtml(copy)}</div>
                     </div>
-                    <div class="fv-recovery-chip-row">
-                        <span class="fv-recovery-chip">${escapeHtml(translate("settings.recovery.live-count", "Current folders: $1", folderCount))}</span>
-                        <span class="fv-recovery-chip">${escapeHtml(translate("settings.recovery.snapshot-count", "Snapshots: $1", backupCount))}</span>
-                        ${emptyCount > 0 ? `<span class="fv-recovery-chip is-warning">${escapeHtml(translate("settings.recovery.empty-count", "Empty snapshots skipped by Restore Latest: $1", emptyCount))}</span>` : ''}
-                        <span class="fv-recovery-chip ${scheduleEnabled ? 'is-success' : ''}">${escapeHtml(scheduleEnabled ? translate("settings.recovery.scheduled-every", "Scheduled every $1 h", interval) : translate("settings.recovery.manual-backups", "Manual backups"))}</span>
-                    </div>
-                </div>
-                <div class="fv-recovery-stat-grid">
-                    <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Restore Latest uses</span>
-                        <strong>${escapeHtml(latestRestorableCreated)}</strong>
-                        <span>${escapeHtml(latestRestorableReason)}</span>
-                    </div>
-                    <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Newest snapshot</span>
-                        <strong>${escapeHtml(latestCreated)}</strong>
-                        <span>${latestRawCopy}</span>
-                    </div>
-                    <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Backup policy</span>
-                        <strong>${escapeHtml(scheduleEnabled ? translate("settings.recovery.every-hours", "Every $1 h", interval) : translate("settings.recovery.manual-only", "Manual only"))}</strong>
-                        <span>${escapeHtml(schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : scheduleCopy)}</span>
-                    </div>
-                    <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">What is protected</span>
-                        <strong>FolderView setup</strong>
-                        <span>Folders, rules, preferences, defaults, and workspace settings. Container data and VM disks are not included.</span>
-                    </div>
-                </div>
-                <div class="fv-recovery-explainer-grid">
-                    <div class="fv-recovery-explainer-card">
-                        <strong>Restore safely</strong>
-                        <span>Restores create a fresh checkpoint first when there are folders to protect.</span>
-                    </div>
-                    <div class="fv-recovery-explainer-card">
-                        <strong>Compare before restoring</strong>
-                        <span>Use Compare Snapshots to inspect preference and folder differences before applying a restore.</span>
+                    <div class="fv-recovery-stat-grid">
+                        <div class="fv-recovery-stat-card"><i class="fa fa-folder-o" aria-hidden="true"></i><div><strong>${escapeHtml(folderCount)}</strong><span>${escapeHtml(translate('settings.recovery.folders-label', 'folders'))}</span></div></div>
+                        <div class="fv-recovery-stat-card"><i class="fa fa-database" aria-hidden="true"></i><div><strong>${escapeHtml(backupCount)}</strong><span>${escapeHtml(translate('settings.recovery.snapshots-label', 'snapshots'))}</span></div></div>
+                        <div class="fv-recovery-stat-card"><i class="fa fa-calendar" aria-hidden="true"></i><div><strong>${escapeHtml(latestCreated)}</strong><span>${escapeHtml(translate('settings.recovery.latest-snapshot', 'latest snapshot'))}</span></div></div>
+                        <div class="fv-recovery-stat-card"><i class="fa fa-file-text-o" aria-hidden="true"></i><div><strong>${escapeHtml(scheduleEnabled ? translate("settings.recovery.every-hours", "Every $1 h", interval) : translate("settings.recovery.manual-only", "Manual only"))}</strong><span>${escapeHtml(translate("legacy.surface.d18859e1983720b1", "Backup policy"))}</span></div></div>
                     </div>
                 </div>
             `;
@@ -503,7 +435,7 @@
                 return `
                     <div class="fv-recovery-empty-state">
                         <strong>${escapeHtml(translate("settings.recovery.none-for-type", "No $1 backups yet.", title))}</strong>
-                        <span>Create a manual backup or run the scheduler to build recovery history.</span>
+                        <span>${escapeHtml(translate("legacy.surface.0ca3fb7e46a9d1d6", "Create a manual backup or run the scheduler to build recovery history."))}</span>
                     </div>
                 `;
             }
@@ -512,78 +444,33 @@
             const selectedBackup = backups.find((backup) => String(backup?.name || '').trim() === selectedName) || backups[0];
             const resolvedSelectedName = String(selectedBackup?.name || '').trim();
             recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
-            const created = formatTimestamp(selectedBackup?.createdAt || '');
-            const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
-            const countLabel = formatRecoveryBackupFolderCount(selectedBackup);
-            const isEmpty = isRecoveryBackupEmpty(selectedBackup);
-            const latestName = String(backups[0]?.name || '').trim();
-            const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
-            const emptyBadge = isEmpty ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : '';
-            const optionsHtml = backups.map((backup, index) => {
-                const name = String(backup?.name || '').trim();
-                const emptyLabel = isRecoveryBackupEmpty(backup) ? translate("settings.recovery.empty-suffix", " - empty") : '';
-                const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? translate("settings.recovery.latest-suffix", " (latest)") : ''}${emptyLabel}`;
-                const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
-                return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
-            }).join('');
-            const recentHtml = backups.slice(0, 5).map((backup, index) => {
+            const visibleBackups = recoveryShowAllByType[resolvedType] ? backups : backups.slice(0, 5);
+            const recentHtml = visibleBackups.map((backup, index) => {
                 const name = String(backup?.name || '').trim();
                 const activeClass = name === resolvedSelectedName ? ' is-active' : '';
-                const backupCountLabel = formatRecoveryBackupFolderCount(backup);
-                const backupReason = formatRecoveryReasonLabel(backup?.reason);
                 const backupCreated = formatTimestamp(backup?.createdAt || '');
-                const backupBadges = [
-                    index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '',
-                    isRecoveryBackupEmpty(backup) ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : ''
-                ].join('');
+                const isSelected = name === resolvedSelectedName;
                 return `
-                    <button type="button" class="fv-recovery-snapshot-item${activeClass}" data-fv-onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
-                        <span>
+                    <div class="fv-recovery-snapshot-row${activeClass}">
+                        <button type="button" class="fv-recovery-snapshot-item" data-fv-onclick="selectActiveRecoveryBackup('${escapeHtml(escapeJsString(name))}')" aria-pressed="${isSelected}">
                             <strong>${escapeHtml(backupCreated)}</strong>
-                            <small>${escapeHtml(`${backupReason} - ${backupCountLabel}`)}</small>
-                        </span>
-                        <span class="fv-recovery-history-badges">${backupBadges}</span>
-                    </button>
+                            <small>${escapeHtml(formatRecoveryReasonLabel(backup?.reason))} · ${escapeHtml(formatRecoveryBackupFolderCount(backup))}</small>
+                            <span class="fv-recovery-snapshot-filename" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+                        </button>
+                        <span class="fv-recovery-history-badges">${index === 0 ? `<span class="fv-recovery-history-badge">${escapeHtml(translate("legacy.surface.8730d3c2022abf1f", "Latest"))}</span>` : ''}${isRecoveryBackupEmpty(backup) ? `<span class="fv-recovery-history-badge is-warning">${escapeHtml(translate("legacy.surface.c6c094bc0054f9cb", "Empty"))}</span>` : ''}</span>
+                        ${isSelected ? `<div class="fv-recovery-history-actions-row">
+                            <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.a76e13b9839270eb", "Restore"))}</button>
+                            <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.d6eafe8235910042", "Download"))}</button>
+                            <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>
+                        </div>` : `<i class="fa fa-chevron-right fv-recovery-row-chevron" aria-hidden="true"></i>`}
+                    </div>
                 `;
             }).join('');
 
             summaryEl.text(translate("settings.recovery.history-summary", "Snapshots available: $1. Empty snapshots remain in the history but Restore Latest skips them.", backups.length));
             return `
-                <div class="fv-recovery-history-picker-row">
-                    <label for="recovery-backup-entry-select">Choose snapshot</label>
-                    <select id="recovery-backup-entry-select" data-fv-onchange="selectActiveRecoveryBackup(this.value)">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <article class="fv-recovery-history-card fv-recovery-history-selection">
-                    <div class="fv-recovery-history-head">
-                        <div>
-                            <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
-                            <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
-                        </div>
-                        <div class="fv-recovery-history-badges">${latestBadge}${emptyBadge}</div>
-                    </div>
-                    <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(countLabel)}</span>
-                        <span>${escapeHtml(resolvedSelectedName)}</span>
-                    </div>
-                    ${isEmpty ? '<div class="fv-recovery-history-callout">This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it.</div>' : ''}
-                    <div class="backup-actions fv-recovery-history-actions-row">
-                        <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
-                        <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
-                        <button type="button" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
-                        <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
-                    </div>
-                </article>
-                <div class="fv-recovery-snapshot-list">
-                    <div class="fv-recovery-snapshot-list-head">
-                        <strong>Recent snapshots</strong>
-                        <span>Click a snapshot to inspect or restore it.</span>
-                    </div>
-                    <div class="fv-recovery-snapshot-items">
-                        ${recentHtml}
-                    </div>
-                </div>
+                <div class="fv-recovery-snapshot-items">${recentHtml}</div>
+                ${backups.length > 5 ? `<button type="button" class="fv-recovery-view-all" data-fv-onclick="toggleAllRecoverySnapshots()">${escapeHtml(recoveryShowAllByType[resolvedType] ? translate('settings.recovery.show-recent', 'Show recent snapshots') : translate('settings.recovery.view-all', 'View all snapshots'))} <i class="fa fa-arrow-right" aria-hidden="true"></i></button>` : ''}
             `;
         };
 
@@ -625,40 +512,69 @@
             sourcePrefs.triggerHandler('change');
         };
 
+        const recoveryMarkup = new WeakMap();
+        const updateRecoveryHtml = (host, html) => {
+            const node = host[0];
+            if (node && recoveryMarkup.get(node) === html) return;
+            host.html(html);
+            if (node) recoveryMarkup.set(node, html);
+        };
         const renderRecoveryWorkspace = (type = getActiveRecoveryWorkspaceType()) => {
             const resolvedType = normalizeRecoveryWorkspaceType(type);
             const overviewHost = $('#fv-recovery-overview');
             const listHost = $('#fv-recovery-backup-list');
             const policySummary = $('#fv-recovery-policy-summary');
-            const safetyNote = $('#fv-recovery-safety-note');
             if (!overviewHost.length || !listHost.length) {
                 return;
             }
 
             setActiveRecoveryWorkspaceTypeValue(resolvedType);
-            const backups = getSortedBackupsForType(resolvedType);
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsByType[resolvedType]) : (prefsByType[resolvedType] || {});
             const schedule = prefs.backupSchedule || {};
-            const latest = backups[0] || null;
-            const latestRestorable = getLatestRestorableRecoveryBackup(backups);
-            const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+            const latestRestorable = getLatestRestorableRecoveryBackup(getSortedBackupsForType(resolvedType));
 
-            overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
-            listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
+            $('#fv-recovery-restore-latest').prop('disabled', !latestRestorable);
+            updateRecoveryHtml(overviewHost, buildRecoveryOverviewHtml(resolvedType));
+            updateRecoveryHtml(listHost, buildRecoveryBackupHistoryHtml(resolvedType));
             renderRecoveryEnvironmentSummary();
-            safetyNote.text(latestRestorable
-                ? translate("settings.recovery.restore-summary", "Restore Latest will use $1 and create a fresh safety backup first when folders exist.", formatTimestamp(latestRestorable.createdAt || ''))
-                : (latest
-                    ? translate("settings.recovery.empty-for-type", "Only empty $1 snapshots are available. Create a new backup after folders exist before using Restore Latest.", title)
-                    : translate("settings.recovery.create-for-type", "No $1 backup exists yet. Create one before making larger changes.", title)));
             policySummary.text(schedule.enabled === true
-                ? translate("settings.recovery.policy-summary", "Every $1 h; retain $2; $3.", schedule.intervalHours || 24, schedule.retention || 25, schedule.lastRunAt ? translate("settings.recovery.last-run", "Last run: $1", formatTimestamp(schedule.lastRunAt)) : translate("settings.recovery.waiting", "Waiting for first run"))
-                : translate("settings.recovery.manual-help", "Manual only. Enable scheduled backups if you want automatic recovery points."));
+                ? translate("settings.recovery.every-hours", "Every $1 h", schedule.intervalHours || 1)
+                : translate("settings.recovery.manual-only", "Manual only"));
+            const policyDetails = $('#fv-recovery-policy-details');
+            if (policyDetails.length) {
+                const scheduleEnabled = schedule.enabled === true;
+                const interval = Number(schedule.intervalHours) || 1;
+                const retention = Number(schedule.retention) || 25;
+                const detailRows = [
+                    ['fa-clock-o', translate('settings.recovery.scheduled-backups', 'Scheduled backups'), scheduleEnabled ? translate('settings.recovery.enabled', 'Enabled') : translate('settings.recovery.disabled', 'Disabled')],
+                    ['fa-clock-o', translate('settings.recovery.interval', 'Interval'), translate('settings.recovery.every-hours', 'Every $1 h', interval)],
+                    ['fa-database', translate('settings.recovery.retention', 'Retention (snapshots)'), retention],
+                    ['fa-calendar', translate('settings.recovery.last-scheduled-label', 'Last scheduled run'), schedule.lastRunAt ? formatTimestamp(schedule.lastRunAt) : translate('settings.recovery.never', 'Never')],
+                    ['fa-shield', translate('settings.recovery.protected-items', 'Protected items'), translate('legacy.surface.630ecf9943abba05', 'Folders, rules, preferences, defaults, and workspace settings. Container data and VM disks are not included.')]
+                ];
+                updateRecoveryHtml(policyDetails, detailRows.map(([icon, label, value]) => `<div class="fv-recovery-policy-row"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join(''));
+            }
+            $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);
+            $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 1));
+            $('#recovery-backup-retention').val(String(schedule.retention || 25));
+            $('#recovery-backup-last-run').text(schedule.lastRunAt ? translate('settings.recovery.last-run', 'Last run: $1', formatTimestamp(schedule.lastRunAt)) : translate('settings.recovery.never-scheduled', 'Last scheduled run: never'));
             syncVisibleRecoveryCompareControls(resolvedType);
-            windowRef?.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
         };
 
         const syncRecoveryWorkspaceUi = () => {
+            if (documentRef?.addEventListener && !boundRecoveryDocuments.has(documentRef)) {
+                documentRef.addEventListener('click', (event) => {
+                    const button = event.target?.closest?.('[data-fv-recovery-disclosure], [data-fv-recovery-action]');
+                    if (!button?.closest?.('.fv-recovery-module-wrap')) return;
+                    const disclosure = button.getAttribute('data-fv-recovery-disclosure');
+                    if (disclosure === 'fv-recovery-policy-editor') {
+                        toggleRecoveryDisclosure(disclosure);
+                    } else if (button.getAttribute('data-fv-recovery-action') === 'delete-all') {
+                        deleteAllActiveRecoveryBackups();
+                    }
+                });
+                boundRecoveryDocuments.add(documentRef);
+            }
             const activeType = normalizeRecoveryWorkspaceType(getActiveRecoveryWorkspaceTypeValue());
             documentRef?.querySelectorAll('[data-fv-recovery-source-toggle]').forEach((button) => {
                 if (!(button instanceof windowRef.HTMLButtonElement)) {
@@ -683,8 +599,33 @@
 
         const selectActiveRecoveryBackup = (name = '') => {
             const resolvedType = getActiveRecoveryWorkspaceType();
+            const keepFocus = documentRef?.activeElement?.classList?.contains('fv-recovery-snapshot-item') === true;
             recoverySelectedBackupByType[resolvedType] = String(name || '').trim();
             renderRecoveryWorkspace(resolvedType);
+            if (keepFocus) documentRef.querySelector('.fv-recovery-snapshot-item[aria-pressed="true"]')?.focus({ preventScroll: true });
+        };
+
+        const toggleAllRecoverySnapshots = () => {
+            const type = getActiveRecoveryWorkspaceType();
+            const keepFocus = documentRef?.activeElement?.classList?.contains('fv-recovery-view-all') === true;
+            recoveryShowAllByType[type] = !recoveryShowAllByType[type];
+            if (!recoveryShowAllByType[type]) {
+                const recent = getSortedBackupsForType(type).slice(0, 5);
+                if (!recent.some((backup) => String(backup?.name || '').trim() === recoverySelectedBackupByType[type])) {
+                    recoverySelectedBackupByType[type] = String(recent[0]?.name || '').trim();
+                }
+            }
+            renderRecoveryWorkspace(type);
+            if (keepFocus) documentRef.querySelector('.fv-recovery-view-all')?.focus({ preventScroll: true });
+        };
+
+        const toggleRecoveryDisclosure = (id) => {
+            const target = documentRef?.getElementById(id);
+            if (!target || id !== 'fv-recovery-policy-editor') return;
+            target.hidden = !target.hidden;
+            documentRef.querySelectorAll(`[data-fv-recovery-disclosure="${id}"]`).forEach((button) => {
+                button.setAttribute('aria-expanded', target.hidden ? 'false' : 'true');
+            });
         };
 
         const filterActiveRecoveryBackups = (value = '') => {
@@ -704,7 +645,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Restore failed', new Error('Select a backup first.'));
+                showError(repairT710d5dec("common.repair.restore-failed-b8476c", "Restore failed"), new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             restoreBackupEntry(resolvedType, selectedName);
@@ -713,7 +654,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Download failed', new Error('Select a backup first.'));
+                showError('Download failed', new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             downloadBackupEntry(resolvedType, selectedName);
@@ -722,7 +663,7 @@
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
-                showError('Delete failed', new Error('Select a backup first.'));
+                showError(repairT710d5dec("common.repair.delete-failed-8727e2", "Delete failed"), new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
             deleteBackupEntry(resolvedType, selectedName);
@@ -779,84 +720,13 @@
             String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
         );
 
-        const getLatestTemplateForType = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-            if (!templates.length) {
-                return null;
-            }
-            return [...templates].sort((left, right) => {
-                const leftTime = Date.parse(String(left?.updatedAt || left?.createdAt || 0));
-                const rightTime = Date.parse(String(right?.updatedAt || right?.createdAt || 0));
-                return rightTime - leftTime;
-            })[0] || null;
-        };
-
-        const buildOperationsOverviewHtml = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-            const folders = Object.keys(getFolderMap(resolvedType));
-            const folderCount = folders.length;
-            const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-            const templateCount = templates.length;
-            const latestTemplate = getLatestTemplateForType(resolvedType);
-            const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : translate("settings.operations.not-saved", "Not saved yet");
-            const headline = templateCount
-                ? translate("settings.operations.summary", "Saved templates: $1. Available folders: $2.", templateCount, folderCount)
-                : translate("settings.operations.no-templates", "No saved $1 templates yet.", title);
-            const copy = folderCount
-                ? translate("settings.operations.available-help", "Run folder actions or reuse templates here. Available $1 folders: $2.", title, folderCount)
-                : translate("settings.operations.create-first", "Create your first $1 folder to use folder actions and reusable templates here.", title);
-            return `
-                <div class="fv-operations-overview-head">
-                    <div>
-                        <span class="fv-operations-source-label">${escapeHtml(title)}</span>
-                        <div class="fv-operations-headline">${escapeHtml(headline)}</div>
-                        <div class="fv-operations-copy">${escapeHtml(copy)}</div>
-                    </div>
-                    <span class="fv-recovery-history-badge">${escapeHtml(templateCount > 0 ? translate("common.state.ready", "Ready") : translate("settings.operations.needs-template", "Needs first template"))}</span>
-                </div>
-                <div class="fv-operations-stat-grid">
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Folders</span>
-                        <strong>${escapeHtml(String(folderCount))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.folders-available", "$1 folders available", title))}</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Templates</span>
-                        <strong>${escapeHtml(String(templateCount))}</strong>
-                        <span>${escapeHtml(translate("settings.operations.presets-ready", "Saved presets ready"))}</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Live actions</span>
-                        <strong>4</strong>
-                        <span>Start, stop, pause, resume</span>
-                    </div>
-                    <div class="fv-operations-stat-card">
-                        <span class="fv-operations-stat-label">Latest template</span>
-                        <strong>${escapeHtml(latestLabel)}</strong>
-                        <span ${latestTemplate?.name ? 'data-fvplus-user-content' : ''}>${escapeHtml(latestTemplate?.name || translate("settings.operations.save-help", "Save one from a folder"))}</span>
-                    </div>
-                </div>
-            `;
-        };
-
-        const renderOperationsOverview = (type) => {
-            const resolvedType = normalizeOperationsWorkspaceType(type);
-            const host = $(`#${resolvedType}-operations-overview`);
-            if (!host.length) {
-                return;
-            }
-            host.html(buildOperationsOverviewHtml(resolvedType));
-        };
-
         const buildRuntimePreviewHtml = (type, folderId, action, plan, result = null) => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             if (!plan) {
                 return `
                     <div class="fv-recovery-empty-state">
-                        <strong>No runtime action preview yet.</strong>
-                        <span>${escapeHtml(translate("settings.operations.preview-help", "Select a $1 folder and action, then preview the plan before applying it.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</span>
+                        <strong>${escapeHtml(translate("settings.operations.preview-unavailable", "Unable to preview this action."))}</strong>
+                        <span>${escapeHtml(translate("settings.operations.preview-retry", "Refresh the folder data and try again."))}</span>
                     </div>
                 `;
             }
@@ -867,7 +737,7 @@
             const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
             const resultCopy = result
                 ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
-                : `Preview which ${resolvedType === 'docker' ? 'containers' : 'VMs'} will change before applying ${action}.`;
+                : translate("settings.operations.plan-summary", "$1 eligible, $2 skipped", plan.eligible.length, plan.skipped.length);
             return `
                 <div class="fv-operations-runtime-summary">
                     <div class="fv-operations-runtime-head">
@@ -877,63 +747,70 @@
                         </div>
                         ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
                     </div>
-                    <div class="fv-operations-stat-grid fv-operations-runtime-stats">
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Requested</span>
-                            <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
-                            <span>Items in folder</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Eligible</span>
-                            <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
-                            <span>Can change now</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">Skipped</span>
-                            <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
-                            <span>Already in desired state</span>
-                        </div>
-                        <div class="fv-operations-stat-card">
-                            <span class="fv-operations-stat-label">State mix</span>
-                            <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
-                            <span>started / paused / stopped</span>
-                        </div>
-                    </div>
                     <div class="fv-operations-runtime-columns">
                         <div class="fv-operations-runtime-list">
-                            <strong>Will change</strong>
+                            <strong>${escapeHtml(translate("legacy.surface.de1b6744e82ff61e", "Will change"))}</strong>
                             ${eligiblePreview.length ? `
                                 <ul>
                                     ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
                                 </ul>
                                 ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
-                            ` : '<div class="fv-operations-runtime-empty">No eligible items for this action.</div>'}
+                            ` : `<div class="fv-operations-runtime-empty">${escapeHtml(translate("legacy.surface.85e2efe37bad1a44", "No eligible items for this action."))}</div>`}
                         </div>
                         <div class="fv-operations-runtime-list">
-                            <strong>Skipped</strong>
+                            <strong>${escapeHtml(translate("legacy.surface.12698ce1ea5cd4ab", "Skipped"))}</strong>
                             ${skippedPreview.length ? `
                                 <ul>
                                     ${skippedPreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.reason || row.state || 'skipped')}</span></li>`).join('')}
                                 </ul>
                                 ${skippedOverflow > 0 ? `<div class="fv-operations-runtime-more">+${skippedOverflow} more skipped item(s)</div>` : ''}
-                            ` : '<div class="fv-operations-runtime-empty">Nothing is being skipped.</div>'}
+                            ` : `<div class="fv-operations-runtime-empty">${escapeHtml(translate("legacy.surface.fdb7e1bfcb00e684", "Nothing is being skipped."))}</div>`}
                         </div>
                     </div>
                 </div>
             `;
         };
 
-        const setRuntimePreviewOutput = (type, html) => {
+        const setRuntimePreviewOutput = (type, html, status = '') => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             const host = $(`#${resolvedType}-runtime-preview-output`);
             if (!host.length) {
                 return;
             }
-            host.html(String(html || ''));
+            const content = String(html || '');
+            host.html(content || `
+                <div class="fv-operations-empty">
+                    <i class="fa fa-file-text-o" aria-hidden="true"></i>
+                    <strong>${escapeHtml(translate('settings.operations.preview-empty', 'No runtime action preview yet.'))}</strong>
+                    <span>${escapeHtml(translate('settings.operations.preview-empty-help', 'Select a folder and action, then click Preview to see the planned changes before applying them.'))}</span>
+                </div>
+            `).prop('hidden', false);
+            $(`#${resolvedType}-runtime-preview-status`).text(status || (content
+                ? translate('settings.operations.preview-needed', 'Preview needed')
+                : translate('settings.operations.no-action-selected', 'No action selected')));
         };
 
         const renderOperationsWorkspace = () => {
             const activeType = normalizeOperationsWorkspaceType(getActiveOperationsWorkspaceTypeValue());
+            documentRef?.querySelectorAll('[data-fv-operations-template-search]').forEach((input) => {
+                if (input.dataset.fvOperationsSearchBound === '1') {
+                    return;
+                }
+                input.dataset.fvOperationsSearchBound = '1';
+                input.addEventListener('input', () => filterOperationsTemplates(input.getAttribute('data-fv-operations-template-search')));
+            });
+            documentRef?.querySelectorAll('.fv-operations-template-library').forEach((library) => {
+                if (library.dataset.fvOperationsCreateBound === '1') {
+                    return;
+                }
+                library.dataset.fvOperationsCreateBound = '1';
+                library.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-fv-operations-create-cta]');
+                    if (button && library.contains(button)) {
+                        documentRef.getElementById(`${normalizeOperationsWorkspaceType(button.getAttribute('data-fv-operations-create-cta'))}-template-name`)?.focus();
+                    }
+                });
+            });
             documentRef?.querySelectorAll('[data-fv-operations-source-toggle]').forEach((button) => {
                 if (!(button instanceof windowRef.HTMLButtonElement)) {
                     return;
@@ -969,6 +846,10 @@
             renderTemplateRows(resolvedType);
         };
 
+        const filterOperationsTemplates = (type) => {
+            renderTemplateRows(normalizeOperationsWorkspaceType(type));
+        };
+
         const exportTemplateEntry = (type, templateId) => {
             const resolvedType = normalizeOperationsWorkspaceType(type);
             const template = (templatesByType[resolvedType] || []).find((entry) => String(entry?.id || '') === String(templateId || ''));
@@ -993,6 +874,10 @@
                 return;
             }
             const allTemplates = templatesByType[resolvedType] || [];
+            const query = String($(`#${resolvedType}-operations-template-search`).val() || '').trim().toLocaleLowerCase();
+            const visibleTemplates = query
+                ? allTemplates.filter((template) => String(template?.name || '').toLocaleLowerCase().includes(query))
+                : allTemplates;
             const folders = getFolderMap(resolvedType);
             const folderOptions = Object.entries(folders).map(([id, folder]) => (
                 `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
@@ -1001,19 +886,26 @@
             if (!allTemplates.length) {
                 selectedOperationsTemplateIdByType[resolvedType] = '';
                 host.html(`
-                    <div class="fv-recovery-empty-state">
+                    <div class="fv-operations-empty">
+                        <i class="fa fa-file-text-o" aria-hidden="true"></i>
                         <strong>${escapeHtml(translate("settings.operations.no-templates", "No saved $1 templates yet.", resolvedType === 'docker' ? 'Docker' : 'VM'))}</strong>
-                        <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
+                        <span>${escapeHtml(translate("settings.operations.empty-help-template", "Save a template from an existing folder to reuse its structure, settings, actions, and matching rules later."))}</span>
+                        <button type="button" class="fv-operations-create-cta" data-fv-operations-create-cta="${resolvedType}"><i class="fa fa-plus" aria-hidden="true"></i> ${escapeHtml(translate('settings.operations.create-first-template', 'Create your first template'))}</button>
                     </div>
                 `);
                 return;
             }
 
+            if (!visibleTemplates.length) {
+                host.html(`<div class="fv-operations-empty"><i class="fa fa-search" aria-hidden="true"></i><strong>${escapeHtml(translate('settings.operations.no-search-results', 'No matching templates'))}</strong><span>${escapeHtml(translate('settings.operations.search-help', 'Try another search term or save a new template from a folder.'))}</span></div>`);
+                return;
+            }
+
             const selectedTemplateId = String(selectedOperationsTemplateIdByType[resolvedType] || '').trim();
-            const selectedTemplate = allTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || allTemplates[0];
+            const selectedTemplate = visibleTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || visibleTemplates[0];
             const resolvedTemplateId = String(selectedTemplate?.id || '').trim();
             selectedOperationsTemplateIdByType[resolvedType] = resolvedTemplateId;
-            const templateSelectOptions = allTemplates.map((template) => {
+            const templateSelectOptions = visibleTemplates.map((template) => {
                 const templateId = String(template?.id || '');
                 const templateName = String(template?.name || templateId);
                 const updated = formatTimestamp(template?.updatedAt || template?.createdAt || '');
@@ -1027,7 +919,7 @@
             const folderCount = Object.keys(folders).length;
             host.html(`
                 <div class="fv-operations-template-picker-row">
-                    <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
+                    <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">${escapeHtml(translate("legacy.surface.45f95a450344da81", "Saved template"))}</label>
                     <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" data-fv-onchange="selectOperationsTemplate('${resolvedType}', this.value)">
                         ${templateSelectOptions}
                     </select>
@@ -1036,18 +928,18 @@
                     <div class="fv-operations-template-head">
                         <div>
                             <div class="fv-operations-template-title" data-fvplus-user-content>${escapeHtml(templateName)}</div>
-                            <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
+                            <div class="fv-operations-template-copy">${escapeHtml(repairT710d5dec("common.repair.updated-1-ready-to-apply-to-folders-count-2-e1356a", "Updated: $1. Ready to apply to folders (count: $2).", templateUpdated, folderCount))}</div>
                         </div>
                         <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
                     </div>
                     <div class="fv-operations-template-target-row">
-                        <label for="${escapeHtml(targetSelectId)}">Apply to folder</label>
+                        <label for="${escapeHtml(targetSelectId)}">${escapeHtml(translate("legacy.surface.e3248784451162bb", "Apply to folder"))}</label>
                         <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
                     </div>
                     <div class="backup-actions fv-operations-template-actions">
-                        <button type="button" data-fv-onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
-                        <button type="button" data-fv-onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
-                        <button type="button" data-fv-onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" data-fv-onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> ${escapeHtml(translate("legacy.surface.e3248784451162bb", "Apply to folder"))}</button>
+                        <button type="button" data-fv-onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> ${escapeHtml(translate("legacy.surface.3664895579f0a7e6", "Export"))}</button>
+                        <button type="button" data-fv-onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>
                     </div>
                 </div>
             `);
@@ -1064,6 +956,8 @@
             syncRecoveryWorkspaceUi,
             setRecoveryWorkspaceType,
             selectActiveRecoveryBackup,
+            toggleAllRecoverySnapshots,
+            toggleRecoveryDisclosure,
             filterActiveRecoveryBackups,
             createActiveRecoveryBackup,
             restoreLatestActiveRecoveryBackup,
@@ -1082,13 +976,12 @@
             syncRulesWorkspaceUi,
             setRulesWorkspaceType,
             normalizeOperationsWorkspaceType,
-            buildOperationsOverviewHtml,
-            renderOperationsOverview,
             buildRuntimePreviewHtml,
             setRuntimePreviewOutput,
             renderOperationsWorkspace,
             setOperationsWorkspaceType,
             selectOperationsTemplate,
+            filterOperationsTemplates,
             exportTemplateEntry,
             renderTemplateRows
         });

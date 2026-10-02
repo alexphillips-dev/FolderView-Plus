@@ -16,6 +16,8 @@
     const CARD_CONFIG = Object.freeze({
         docker: Object.freeze({ icon: 'boxes' }),
         vm: Object.freeze({ icon: 'monitor' }),
+        backup_readiness: Object.freeze({ icon: 'clock' }),
+        runtime_connectivity: Object.freeze({ icon: 'activity' }),
         storage: Object.freeze({ icon: 'folder' }),
         custom_icons: Object.freeze({ icon: 'image' }),
         update: Object.freeze({ icon: 'upload' }),

@@ -36,7 +36,7 @@ const parseSectionHeadings = () => {
         .filter((heading) => heading.key !== '');
 };
 
-test('advanced section metadata remains complete for mobile-aware section toggles', () => {
+test('advanced section metadata remains complete for tab navigation', () => {
     const headings = parseSectionHeadings();
     assert.ok(headings.length > 0, 'Expected at least one settings section heading');
     const advanced = headings.filter((heading) => heading.advanced);
@@ -51,20 +51,16 @@ test('advanced section metadata remains complete for mobile-aware section toggle
     }
 });
 
-test('settings runtime keeps generic mobile/advanced heading tap handling', () => {
+test('settings runtime uses tabs without heading collapse handlers', () => {
     assert.match(settingsJs, /querySelectorAll\('h2\[data-fv-section\]'\)/);
-    assert.match(settingsJs, /const toggleAdvancedSectionByKey = \(sectionKey\) =>/);
-    assert.match(settingsJs, /click\.fvsectionheader/);
-    assert.match(settingsJs, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
-    assert.match(settingsJs, /shouldUseMobileSectionToggle/);
+    assert.match(settingsJs, /click\.fvtab/);
+    assert.doesNotMatch(settingsJs, /click\.fvsectionheader|click\.fvsectiontoggle|click\.fvcompact/);
 });
 
-test('settings stylesheet keeps required mobile advanced accordion rules', () => {
+test('settings stylesheet keeps mobile advanced tabs without section toggles', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
-    assert.match(settingsCss, /\.fv-section-toggle::before/);
-    assert.match(settingsCss, /\.fv-section-toggle\.is-collapsed::before/);
     assert.match(settingsCss, /\.fv-advanced-tabs/);
+    assert.doesNotMatch(settingsCss, /\.fv-section-toggle|\.fv-advanced-compact/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*width:\s*100dvw/);
     assert.match(settingsCss, /\.fv-setup-step-list\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto\s*auto/);

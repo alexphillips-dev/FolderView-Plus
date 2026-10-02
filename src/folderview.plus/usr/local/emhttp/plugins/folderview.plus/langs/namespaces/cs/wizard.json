@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "wizard.title": "Setup Assistant",
     "wizard.welcome.kicker": "FolderView Plus Asistent nastavení",
@@ -24,8 +25,8 @@
     "wizard.navigation.show-details": "Zobrazit podrobnosti",
     "wizard.navigation.hide-details": "Skrýt detaily",
     "wizard.navigation.close": "Zavřít",
-    "wizard.navigation.review": "Recenze",
+    "wizard.navigation.review": "Zkontrolovat",
     "wizard.navigation.go-to": "Přejít na $1",
     "wizard.progress.step": "Krok $1 z $2",
-    "wizard.impact.live": "Live impact for this step"
+    "wizard.impact.live": "Průběžný dopad tohoto kroku"
 }

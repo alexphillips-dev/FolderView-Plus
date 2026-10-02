@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "フォルダビューの操作",
     "docker.actions.add-folder": "フォルダを追加",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "ツール",
     "docker.actions.show-empty": "空のフォルダを表示",
     "docker.actions.hide-empty": "空のフォルダーを非表示にする",
-    "docker.actions.clear-focus": "フォルダのフォーカスをクリア",
+    "docker.actions.clear-focus": "フォルダーの絞り込みを解除",
     "docker.actions.refresh-state": "フォルダ状態を更新",
     "docker.actions.bulk-assignment": "一括割り当て",
     "docker.actions.rules-workspace": "ルール作業スペース",

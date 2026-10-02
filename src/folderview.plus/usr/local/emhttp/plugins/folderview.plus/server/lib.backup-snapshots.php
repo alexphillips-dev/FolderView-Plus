@@ -8,7 +8,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         return getBackupsDirPath() . "/$safeName";
     }
 
-    function pruneBackupSnapshots(string $type, int $keep = 25): array {
+    function pruneBackupSnapshots(string $type, int $keep = 25, array $protectedNames = []): array {
         $type = ensureType($type);
         $keep = max(1, $keep);
         $snapshots = listBackupSnapshots($type);
@@ -16,7 +16,9 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (count($snapshots) <= $keep) {
             return $removed;
         }
-        $toRemove = array_slice($snapshots, $keep);
+        $protected = array_filter($snapshots, static fn($entry): bool => in_array($entry['name'], $protectedNames, true));
+        $unprotected = array_values(array_filter($snapshots, static fn($entry): bool => !in_array($entry['name'], $protectedNames, true)));
+        $toRemove = array_slice($unprotected, max(0, $keep - count($protected)));
         foreach ($toRemove as $snapshot) {
             try {
                 $path = getBackupSnapshotPath($type, (string)$snapshot['name']);
@@ -56,7 +58,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         return null;
     }
 
-    function createBackupSnapshot(string $type, string $reason = 'manual'): array {
+    function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true): array {
         $type = ensureType($type);
         $folders = readRawFolderMap($type);
         $folderCount = count($folders);
@@ -105,7 +107,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
             'prefs' => $prefs
         ];
         writeJsonObjectAtomic("$backupDir/$filename", $payload);
-        $pruned = pruneBackupSnapshots($type, getTypeBackupRetention($type));
+        $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type)) : [];
         try {
             appendDiagnosticsHistoryEvent('backup_create', $type, [
                 'reason' => $reason,
@@ -242,6 +244,9 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (!is_array($folders)) {
             $folders = [];
         }
+        if (array_key_exists('prefs', $decoded) && !is_array($decoded['prefs'])) {
+            throw new RuntimeException('Invalid prefs payload: expected JSON object.');
+        }
         $prefs = is_array($decoded['prefs'] ?? null) ? normalizeTypePrefs($decoded['prefs']) : null;
 
         return [
@@ -326,6 +331,9 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (array_key_exists('folders', $decoded) && is_array($decoded['folders'])) {
             return $decoded['folders'];
         }
+        if (array_key_exists('folders', $decoded) || array_key_exists('schemaVersion', $decoded) || array_key_exists('prefs', $decoded)) {
+            throw new RuntimeException('Backup payload is not a JSON object.');
+        }
         return $decoded;
     }
 
@@ -343,73 +351,4 @@ function getBackupSnapshotPath(string $type, string $name): string {
         }
     }
 
-    function restoreBackupSnapshot(string $type, string $name): array {
-        $type = ensureType($type);
-        $path = getBackupSnapshotPath($type, $name);
-        $safeName = basename($path);
-        if (!file_exists($path)) {
-            throw new RuntimeException('Backup file not found.');
-        }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        if (is_array($decoded)) {
-            validateBackupPayloadType($decoded, $type);
-        }
-        $folders = normalizeImportedFoldersPayload($decoded);
-        writeRawFolderMap($type, is_array($folders) ? $folders : []);
-        syncManualOrderWithFolders($type, is_array($folders) ? $folders : []);
-        if ($type === 'docker') {
-            syncContainerOrder('docker');
-        }
-        try {
-            appendDiagnosticsHistoryEvent('backup_restore', $type, [
-                'name' => $safeName,
-                'folderCount' => count(is_array($folders) ? $folders : [])
-            ], 'ok', 'server');
-        } catch (Throwable $err) {
-            // Non-fatal.
-        }
-        return [
-            'name' => $safeName,
-            'restoredAt' => gmdate('c'),
-            'count' => count(is_array($folders) ? $folders : [])
-        ];
-    }
-
-    function restoreLatestBackupSnapshot(string $type): array {
-        $snapshots = listBackupSnapshots($type);
-        if (empty($snapshots)) {
-            throw new RuntimeException('No backups available.');
-        }
-        foreach ($snapshots as $snapshot) {
-            $count = $snapshot['count'] ?? null;
-            if ($count !== null && (int)$count <= 0) {
-                continue;
-            }
-            return restoreBackupSnapshot($type, (string)$snapshot['name']);
-        }
-        throw new RuntimeException('No non-empty backups available.');
-    }
-
-    function isUndoBackupReason(string $reason): bool {
-        $normalized = strtolower(trim($reason));
-        if ($normalized === '') {
-            return false;
-        }
-        return strpos($normalized, 'before-') === 0
-            || strpos($normalized, 'pre-') === 0
-            || strpos($normalized, 'undo-') === 0
-            || strpos($normalized, 'transaction-') === 0;
-    }
-
-    function restoreLatestUndoBackupSnapshot(string $type): array {
-        $type = ensureType($type);
-        $snapshots = listBackupSnapshots($type);
-        foreach ($snapshots as $snapshot) {
-            $reason = (string)($snapshot['reason'] ?? '');
-            if (!isUndoBackupReason($reason)) {
-                continue;
-            }
-            return restoreBackupSnapshot($type, (string)$snapshot['name']);
-        }
-        throw new RuntimeException('No undo-capable backups found.');
-    }
+    require_once __DIR__ . '/lib.backup-restore.php';

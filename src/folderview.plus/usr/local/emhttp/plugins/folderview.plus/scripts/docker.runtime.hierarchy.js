@@ -1,42 +1,27 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.utils.js'));
         return;
     }
-    root.FolderViewPlusDockerRuntimeHierarchy = factory();
+    root.FolderViewPlusDockerRuntimeHierarchy = factory(root.FolderViewPlusUtils || root.FolderViewPlusFoundationModules?.utilityHierarchy);
     root.FolderViewPlusDockerRuntimeHierarchyModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(sharedUtils) {
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
 
-    const fallbackBuildFolderHierarchy = (
-        folders,
-        normalizeParentId = ((value) => String(value || '').trim())
-    ) => {
-        const source = folders && typeof folders === 'object' ? folders : {};
-        const ids = Object.keys(source);
-        const idSet = new Set(ids);
-        const parentById = {};
-        const childrenById = {};
-        ids.forEach((id) => {
-            childrenById[id] = [];
-        });
-        for (const id of ids) {
-            const rawParent = normalizeParentId(source[id]?.parentId || source[id]?.parent_id || '');
-            const parentId = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
-            parentById[id] = parentId;
-            if (parentId) {
-                childrenById[parentId].push(id);
-            }
-        }
-        return { ids, parentById, childrenById };
-    };
-
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const jq = deps.$ || win?.jQuery || win?.$;
+        if (typeof sharedUtils?.buildFolderHierarchyModel !== 'function') {
+            throw new Error('Shared folder hierarchy model is unavailable.');
+        }
+        const translate = (key, fallback, ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params)
+            || fallback.replace(/\$(\d+)/g, (token, number) => String(params[Number(number) - 1] ?? token));
+        const expandedNestedPreviewIds = new Set();
+        const COLLAPSED_PREVIEW_ITEM_LIMIT = 24;
+        const COLLAPSED_PREVIEW_FOLDER_LIMIT = 12;
         const getGlobalFolders = typeof deps.getGlobalFolders === 'function' ? deps.getGlobalFolders : (() => ({}));
         const getDockerFolderHierarchy = typeof deps.getDockerFolderHierarchy === 'function'
             ? deps.getDockerFolderHierarchy
@@ -44,9 +29,6 @@
         const setDockerFolderHierarchy = typeof deps.setDockerFolderHierarchy === 'function'
             ? deps.setDockerFolderHierarchy
             : (() => {});
-        const normalizeFolderParentId = typeof deps.normalizeFolderParentId === 'function'
-            ? deps.normalizeFolderParentId
-            : ((value) => String(value || '').trim());
         const folderEvents = deps.folderEvents && typeof deps.folderEvents.dispatchEvent === 'function'
             ? deps.folderEvents
             : { dispatchEvent: () => {} };
@@ -153,7 +135,7 @@
             }
         };
 
-        const buildFolderHierarchy = (folders) => fallbackBuildFolderHierarchy(folders, normalizeFolderParentId);
+        const buildFolderHierarchy = (folders) => sharedUtils.buildFolderHierarchyModel(folders, { includeDescendants: false });
 
         const normalizeChildFolderOrder = (value) => {
             const source = Array.isArray(value) ? value : [];
@@ -554,12 +536,14 @@
             const entries = Object.values(includeChildFolders
                 ? buildRuntimeContainerMapForFolder(id, false)
                 : (runtimeContainers || {}));
+            const isLimited = options?.collapsed === true && !expandedNestedPreviewIds.has(String(id));
+            const visibleEntries = isLimited ? entries.slice(0, COLLAPSED_PREVIEW_ITEM_LIMIT) : entries;
             const quickActionPrefs = folder?.settings || {};
             const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
             const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
             const allowLogsQuickAction = quickActionPrefs.preview_logs === true;
             $preview.empty();
-            for (const entry of entries) {
+            for (const entry of visibleEntries) {
                 const { $item: item, $tooltipTrigger } = buildDockerPreviewItem({
                     entry,
                     settings: folder?.settings || {},
@@ -587,10 +571,16 @@
                 $preview.append(item);
                 bindDockerNestedPreviewContext(item, $tooltipTrigger, entry, folder, id);
             }
+            let descendantCount = 0;
+            let visibleDescendantCount = 0;
             if (includeChildFolders) {
                 const folders = getGlobalFolders();
                 const depthLimit = normalizeChildFolderPreviewDepth(folder?.settings || {});
-                for (const descendant of getFolderPreviewDescendants(id, depthLimit)) {
+                const descendants = getFolderPreviewDescendants(id, depthLimit);
+                descendantCount = descendants.length;
+                const visibleDescendants = isLimited ? descendants.slice(0, COLLAPSED_PREVIEW_FOLDER_LIMIT) : descendants;
+                visibleDescendantCount = visibleDescendants.length;
+                for (const descendant of visibleDescendants) {
                     const childId = String(descendant?.id || '').trim();
                     const childFolder = folders?.[childId];
                     if (!childFolder || typeof childFolder !== 'object') {
@@ -604,6 +594,19 @@
             layoutFolderPreviewRows($preview, folder?.settings || {});
             auditDockerPreviewContextBridges($preview, folder?.settings || {});
             $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
+            const omittedCount = (entries.length - visibleEntries.length) + (descendantCount - visibleDescendantCount);
+            if (omittedCount > 0) {
+                const label = translate('common.repair.preview-show-more', 'Show more ($1)', omittedCount);
+                jq('<button type="button" class="fv-preview-show-more"></button>')
+                    .text(label)
+                    .on('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        expandedNestedPreviewIds.add(String(id));
+                        renderNestedAggregatePreview(id, folder, runtimeContainers, options);
+                    })
+                    .appendTo($preview);
+            }
         };
 
         const syncParentFolderVisualState = (id, expanded) => {
@@ -625,7 +628,8 @@
             } else {
                 const runtimeContainers = folder?.runtimeContainers || {};
                 renderNestedAggregatePreview(id, folder, runtimeContainers, {
-                    includeChildFolders: shouldHideNestedPreviewItems(folder?.settings || {})
+                    includeChildFolders: shouldHideNestedPreviewItems(folder?.settings || {}),
+                    collapsed: true
                 });
             }
             const previewNode = $row.find('div.folder-preview').get(0);

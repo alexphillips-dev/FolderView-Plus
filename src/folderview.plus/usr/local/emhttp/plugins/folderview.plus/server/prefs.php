@@ -33,15 +33,9 @@ fvplus_json_try(function (): array {
 
     $current = readTypePrefs($type);
     $next = normalizeTypePrefs(mergeTypePrefsPatch($current, $decoded));
-    $backup = null;
     $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
     $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
     $configChanged = $currentJson !== $nextJson;
-    $backupRequired = $configChanged && prefsPatchRequiresSafetyBackup($decoded, $current, $next);
-    if ($backupRequired) {
-        $backup = createCoalescedPrefsBackupSnapshot($type);
-    }
-
     $saved = $configChanged ? writeTypePrefs($type, $next) : normalizeTypePrefs($current);
     $orderPrefsChanged = $configChanged && (
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
@@ -63,17 +57,24 @@ fvplus_json_try(function (): array {
     if ($dockerOrderChanged) {
         syncContainerOrder('docker');
     }
+    $auditRelevant = $orderPrefsChanged || $dockerOrderChanged;
+    foreach (['autoRules', 'backupSchedule', 'folderDefaults', 'importPresets'] as $key) {
+        if (array_key_exists($key, $decoded) && json_encode($current[$key] ?? null) !== json_encode($saved[$key] ?? null)) {
+            $auditRelevant = true;
+            break;
+        }
+    }
     $auditRecorded = false;
-    if ($configChanged && ($backupRequired || $orderPrefsChanged || $dockerOrderChanged)) {
+    if ($configChanged && $auditRelevant) {
         try {
             appendDiagnosticsHistoryEvent('prefs_update', $type, [
                 'traceId' => getRequestTraceId(),
                 'clientMutationId' => $clientMutationId,
                 'patchFieldCount' => count($decoded),
                 'configChanged' => true,
-                'backupRequired' => $backupRequired,
-                'backupCreated' => is_array($backup) && !($backup['coalesced'] ?? false),
-                'backupCoalesced' => (bool)($backup['coalesced'] ?? false),
+                'backupRequired' => false,
+                'backupCreated' => false,
+                'backupCoalesced' => false,
                 'sortMode' => (string)($saved['sortMode'] ?? 'created'),
                 'ruleCount' => count($saved['autoRules'] ?? []),
                 'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? []),
@@ -87,12 +88,12 @@ fvplus_json_try(function (): array {
 
     return [
         'prefs' => $saved,
-        'backup' => $backup,
+        'backup' => null,
         'metadata' => $metadata,
         'clientMutationId' => $clientMutationId,
         'configChanged' => $configChanged,
-        'backupRequired' => $backupRequired,
+        'backupRequired' => false,
         'auditRecorded' => $auditRecorded,
-        'backupCoalesced' => (bool)($backup['coalesced'] ?? false)
+        'backupCoalesced' => false
     ];
 });

@@ -80,6 +80,37 @@
                 detail: count > 0 ? review() : (typeData ? translate('diagnostics.cards.config-counts', 'Folders: $1. Rules: $2. Backups: $3.',
                     typeData.folderCount || 0, typeData.ruleCount || 0, typeData.backupCount || 0) : card.detail)
             };
+        } else if (card.key === 'backup_readiness') {
+            const describe = (type) => {
+                const entry = card.states?.[type] || {};
+                if (entry.state === 'ready') return translate('diagnostics.cards.backup-last-hours', 'Last backup: $1 h ago', Math.max(0, Number(entry.ageHours || 0)));
+                if (entry.state === 'missing') return translate('diagnostics.cards.backup-missing', 'No backup found');
+                if (entry.state === 'invalid') return translate('diagnostics.cards.backup-invalid', 'Latest backup needs review');
+                if (entry.state === 'overdue') return translate('diagnostics.cards.backup-overdue', 'Scheduled backup is overdue');
+                return translate('diagnostics.cards.backup-empty', 'No folders to back up');
+            };
+            localized = {
+                label: translate('diagnostics.cards.backup-readiness', 'Backup readiness'),
+                headline: card.status === 'warning' ? translate('diagnostics.cards.backup-warning', 'Backups need attention.')
+                    : (card.status === 'healthy' ? translate('diagnostics.cards.backup-healthy', 'Backup snapshots are available.')
+                        : translate('diagnostics.cards.backup-none', 'No folders to back up.')),
+                detail: `Docker: ${describe('docker')} · VMs: ${describe('vm')}`
+            };
+        } else if (card.key === 'runtime_connectivity') {
+            const describe = (type) => {
+                const state = card.states?.[type];
+                if (state === 'ready') return translate('diagnostics.cards.runtime-ready', 'Connected');
+                if (state === 'disabled') return translate('diagnostics.cards.runtime-disabled', 'Disabled in Unraid');
+                if (state === 'unavailable') return translate('diagnostics.cards.runtime-unavailable', 'Connection failed');
+                return translate('diagnostics.cards.runtime-unknown', 'Not checked');
+            };
+            localized = {
+                label: translate('diagnostics.cards.runtime-connectivity', 'Live runtime connectivity'),
+                headline: card.status === 'warning' ? translate('diagnostics.cards.runtime-warning', 'A runtime is unavailable.')
+                    : (card.status === 'healthy' ? translate('diagnostics.cards.runtime-healthy', 'Runtime connection succeeded.')
+                        : translate('diagnostics.cards.runtime-info', 'Review Docker and VM runtime status.')),
+                detail: `Docker: ${describe('docker')} · VMs: ${describe('vm')}`
+            };
         } else if (card.key === 'storage') {
             localized = {
                 label: translate('diagnostics.cards.storage', 'Storage and paths'),
@@ -214,6 +245,14 @@
                 label: translate('diagnostics.status.advisories', 'Healthy with advisories'),
                 headline: translate('diagnostics.overall.advisories', 'Core plugin health is good.'),
                 detail: translate('diagnostics.overall.advisories-detail', 'An advisory needs follow-up, but core operation is healthy.')
+            });
+        }
+        if (countByStatus(coreCards, ['info']) > 0) {
+            return Object.freeze({
+                status: 'info',
+                label: translate('diagnostics.status.notice', 'Notice'),
+                headline: translate('diagnostics.overall.informational', 'Some results are informational.'),
+                detail: translate('diagnostics.overall.informational-detail', 'Review the cards below for empty folders, disabled services, or unavailable runtime data.')
             });
         }
         return Object.freeze({

@@ -4,8 +4,8 @@ function getTypeBackupSchedule(string $type): array {
         $prefs = readTypePrefs($type);
         $schedule = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
         return [
-            'enabled' => normalizeBool($schedule['enabled'] ?? false, false),
-            'intervalHours' => normalizeIntInRange($schedule['intervalHours'] ?? 24, 1, 168, 24),
+            'enabled' => normalizeBool($schedule['enabled'] ?? true, true),
+            'intervalHours' => normalizeIntInRange($schedule['intervalHours'] ?? 1, 1, 168, 1),
             'retention' => normalizeIntInRange($schedule['retention'] ?? 25, 1, 200, 25),
             'lastRunAt' => is_string($schedule['lastRunAt'] ?? null) ? (string)$schedule['lastRunAt'] : ''
         ];
@@ -29,7 +29,7 @@ function getTypeBackupSchedule(string $type): array {
             if (($schedule['enabled'] ?? false) !== true) {
                 return;
             }
-            $intervalHours = normalizeIntInRange($schedule['intervalHours'] ?? 24, 1, 168, 24);
+            $intervalHours = normalizeIntInRange($schedule['intervalHours'] ?? 1, 1, 168, 1);
             $now = time();
             $lastRun = 0;
             if (!empty($schedule['lastRunAt'])) {

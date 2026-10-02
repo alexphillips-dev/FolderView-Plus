@@ -1,3 +1,4 @@
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
@@ -507,6 +508,12 @@ if (!bulkAssignmentModule || window.FolderViewPlusBulkAssignmentModuleLoaded !==
 } else {
     setFatalBannerModuleStatus('folderviewplus.bulk-assignment.js', 'ok', 'bulk assignment api ready');
 }
+if (window.FolderViewPlusBulkAssignmentViewModuleLoaded !== true || typeof window.FolderViewPlusBulkAssignmentView?.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.bulk-assignment.view.js');
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.view.js', 'missing', 'bulk move view unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.view.js', 'ok', 'bulk move view ready');
+}
 if (!settingsRuntimeActionsModule || window.FolderViewPlusSettingsRuntimeActionsModuleLoaded !== true || typeof settingsRuntimeActionsModule.createApi !== 'function') {
     bootstrapMissingModules.push('folderviewplus.runtime-actions.js');
     setFatalBannerModuleStatus('folderviewplus.runtime-actions.js', 'missing', 'settings runtime action api unavailable');
@@ -699,6 +706,7 @@ const treeMoveHistoryByType = {
         redoStack: []
     }
 };
+const treeMoveHistoryBusyByType = { docker: false, vm: false };
 const TREE_MOVE_HISTORY_LIMIT = 20;
 const TREE_INTEGRITY_DEPTH_WARN_LEVEL = 4;
 let mobileTreeReorderModeByType = {
@@ -745,10 +753,6 @@ let backupCompareDiffPagingState = {
 };
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
-let latestPrefsBackupByType = {
-    docker: null,
-    vm: null
-};
 let backupCompareSelectionByType = {
     docker: {
         left: '',
@@ -822,19 +826,17 @@ const settingsUiState = {
     sections: [],
     baselineByInputId: new Map(),
     activeSectionKey: '',
-    advancedTab: 'automation',
+    advancedTab: 'operations',
     advancedSearchByTab: {
         automation: '',
         rules: '',
         recovery: '',
         operations: '',
-        diagnostics: ''
+        diagnostics: '',
+        logs: ''
     },
     searchAllAdvanced: false,
     searchDebounceTimer: null,
-    expandedAdvancedSections: new Set(),
-    knownAdvancedSections: new Set(),
-    hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
 const SETTINGS_SEARCH_ALIASES_BY_SECTION = window.FolderViewPlusSettingsSections?.SETTINGS_SEARCH_ALIASES_BY_SECTION
@@ -955,7 +957,6 @@ let settingsThemeReflowBound = false;
 let settingsThemeReflowObserver = null;
 let settingsThemeReflowTimer = null;
 let lastThemeResolverSnapshot = null;
-const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
 const MOBILE_LAYOUT_COARSE_BREAKPOINT_PX = 1600;
 
@@ -968,19 +969,6 @@ const getEffectiveThemeCompatibilityMode = () => {
         ? dockerMode
         : vmMode;
 };
-
-const supportsTouchInput = () => (
-    ('ontouchstart' in window)
-    || (navigator.maxTouchPoints > 0)
-    || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
-);
-
-const isMobileSettingsViewport = () => (
-    window.matchMedia
-    && window.matchMedia(`(max-width: ${MOBILE_SETTINGS_BREAKPOINT_PX}px)`).matches
-);
-
-const shouldUseMobileSectionToggle = () => supportsTouchInput() && isMobileSettingsViewport();
 
 const getViewportWidth = () => {
     const visualWidth = Number(window?.visualViewport?.width || 0);
@@ -1366,97 +1354,6 @@ const getRequestedAdvancedModuleKeys = ({
     return getAdvancedModulesForTab(targetTab, includeSearchAll);
 };
 
-const persistExpandedAdvancedSections = () => {
-    const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
-    settingsUiState.hasExpandedAdvancedPreference = true;
-    writeSettingsStorage(ADVANCED_EXPANDED_STORAGE_KEY, payload, { delayMs: 70, idle: true });
-};
-
-const persistKnownAdvancedSections = () => {
-    const payload = JSON.stringify(Array.from(settingsUiState.knownAdvancedSections || []));
-    writeSettingsStorage(ADVANCED_KNOWN_STORAGE_KEY, payload, { delayMs: 70, idle: true });
-};
-
-const setsEqual = (a, b) => {
-    if (a.size !== b.size) {
-        return false;
-    }
-    for (const item of a) {
-        if (!b.has(item)) {
-            return false;
-        }
-    }
-    return true;
-};
-
-const normalizeExpandedAdvancedSections = () => {
-    const advancedKeys = settingsUiState.sections
-        .filter((section) => section.advanced)
-        .map((section) => section.key);
-    const knownKeys = new Set(advancedKeys);
-    const priorExpanded = new Set(settingsUiState.expandedAdvancedSections || []);
-    let knownAdvanced = new Set(
-        Array.from(settingsUiState.knownAdvancedSections || [])
-            .map((key) => String(key || '').trim())
-            .filter((key) => key !== '' && knownKeys.has(key))
-    );
-
-    // Guard for old installs: if we had expansion prefs but no known-section list,
-    // treat legacy sections as known so newly added sections auto-expand once.
-    if (settingsUiState.hasExpandedAdvancedPreference && knownAdvanced.size === 0) {
-        knownAdvanced = new Set(
-            LEGACY_ADVANCED_SECTION_KEYS.filter((key) => knownKeys.has(key))
-        );
-    }
-
-    const normalized = new Set(
-        Array.from(settingsUiState.expandedAdvancedSections || [])
-            .map((key) => String(key || '').trim())
-            .filter((key) => key !== '' && knownKeys.has(key))
-    );
-    if (!settingsUiState.hasExpandedAdvancedPreference) {
-        // New defaults: start less cluttered by expanding only the first section
-        // in each advanced tab. Users can still expand all via the tab compact toggle.
-        for (const group of ADVANCED_GROUPS) {
-            const firstInGroup = settingsUiState.sections.find((section) => (
-                section.advanced === true && section.advancedGroup === group
-            ));
-            if (firstInGroup?.key) {
-                normalized.add(firstInGroup.key);
-            }
-        }
-        if (normalized.size === 0 && advancedKeys.length > 0) {
-            normalized.add(advancedKeys[0]);
-        }
-        settingsUiState.expandedAdvancedSections = normalized;
-        if (advancedKeys.length > 0) {
-            persistExpandedAdvancedSections();
-        }
-        settingsUiState.knownAdvancedSections = new Set(advancedKeys);
-        persistKnownAdvancedSections();
-        return;
-    }
-
-    for (const key of advancedKeys) {
-        if (!knownAdvanced.has(key)) {
-            normalized.add(key);
-        }
-    }
-
-    const changedByCleanup = !setsEqual(normalized, priorExpanded);
-    settingsUiState.expandedAdvancedSections = normalized;
-    if (changedByCleanup) {
-        persistExpandedAdvancedSections();
-    }
-
-    const nextKnown = new Set(advancedKeys);
-    const knownChanged = !setsEqual(nextKnown, settingsUiState.knownAdvancedSections);
-    settingsUiState.knownAdvancedSections = nextKnown;
-    if (knownChanged) {
-        persistKnownAdvancedSections();
-    }
-};
-
 const persistActiveAdvancedSection = (sectionKey) => {
     const key = String(sectionKey || '').trim();
     if (!key) {
@@ -1595,7 +1492,6 @@ const buildSettingsSections = (options = {}) => {
                 && (
                     node.classList.contains('fv-section-badge')
                     || node.classList.contains('fv-section-mode')
-                    || node.classList.contains('fv-section-toggle')
                 )
             ))
             .map((node) => node.textContent || '')
@@ -1629,31 +1525,25 @@ const buildSettingsSections = (options = {}) => {
         heading.dataset.fvAdvanced = advanced ? '1' : '0';
 
         let badge = heading.querySelector('.fv-section-badge');
-        if (!badge) {
+        if (advanced) {
+            badge?.remove();
+            badge = null;
+        } else if (!badge) {
             badge = document.createElement('span');
             badge.className = 'fv-section-badge is-ok';
             heading.appendChild(badge);
         }
 
         let modeBadge = heading.querySelector('.fv-section-mode');
-        if (!modeBadge) {
+        if (advanced) {
+            modeBadge?.remove();
+            modeBadge = null;
+        } else if (!modeBadge) {
             modeBadge = document.createElement('span');
             modeBadge.className = 'fv-section-mode is-instant';
             modeBadge.textContent = 'Applies instantly';
             heading.appendChild(modeBadge);
         }
-
-        let toggle = heading.querySelector('.fv-section-toggle');
-        if (advanced && !toggle) {
-            toggle = document.createElement('button');
-            toggle.type = 'button';
-            toggle.className = 'fv-section-toggle';
-            toggle.dataset.sectionToggle = key;
-            toggle.setAttribute('aria-label', `Toggle ${title || key}`);
-            heading.appendChild(toggle);
-        }
-
-        const contentNodes = nodes.filter((node) => node !== sectionStartNode);
 
         sections.push({
             key,
@@ -1663,9 +1553,7 @@ const buildSettingsSections = (options = {}) => {
             heading,
             badge,
             modeBadge,
-            toggle,
-            nodes,
-            contentNodes
+            nodes
         });
     }
 
@@ -1828,131 +1716,79 @@ const renderAdvancedNav = () => {
         return;
     }
     if (settingsUiState.mode !== 'advanced') {
-        container.hide().empty();
+        container.hide();
         return;
     }
 
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (!advancedSections.length) {
-        container.hide().empty();
+        container.hide();
         return;
     }
 
-    const groups = ADVANCED_GROUPS
-        .map((group) => ({
-            group,
-            count: advancedSections.filter((section) => section.advancedGroup === group).length
-        }))
-        .filter((entry) => entry.count > 0);
-    const tabsHtml = groups
-        .map((entry) => {
-            const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
-            const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
-            const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
-            const icons = {
-                automation: 'fa-magic',
-                rules: 'fa-balance-scale',
-                recovery: 'fa-history',
-                operations: 'fa-bolt',
-                startup: 'fa-sort-amount-asc',
-                appearance: 'fa-paint-brush',
-                diagnostics: 'fa-stethoscope'
-            };
-            const icon = icons[entry.group] || 'fa-sliders';
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span></button>`;
-        })
-        .join('');
-    const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);
-    const allExpandedInTab = activeTabSections.length > 0
-        && activeTabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
-    const compactLabel = allExpandedInTab ? 'Compact tab' : 'Expand tab';
-    const compactIcon = allExpandedInTab ? 'fa-compress' : 'fa-expand';
-
-    container.html(`
-        <div class="fv-advanced-nav-inner">
-            <div class="fv-advanced-controls">
-                <div class="fv-advanced-tabs">${tabsHtml}</div>
-                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact" title="${escapeHtml(compactLabel)}" aria-label="${escapeHtml(compactLabel)}"><i class="fa ${compactIcon}" aria-hidden="true"></i></button>
+    const available = new Set(advancedSections.map((section) => section.advancedGroup));
+    const navigationGroups = [
+        { key: 'workflows', label: surfaceT('settings.navigation.workflows', 'Workflows'), tabs: ['operations', 'automation', 'rules', 'startup'] },
+        { key: 'appearance', label: surfaceT('settings.navigation.appearance', 'Appearance'), tabs: ['appearance'] },
+        { key: 'support', label: surfaceT('settings.navigation.support', 'Support'), tabs: ['recovery', 'diagnostics', 'logs'] }
+    ].map((group) => ({ ...group, tabs: group.tabs.filter((tab) => available.has(tab)) }))
+        .filter((group) => group.tabs.length > 0);
+    const labels = Object.fromEntries(ADVANCED_GROUPS.map((group) => [group, ADVANCED_GROUP_LABELS[group] || group]));
+    const signature = JSON.stringify(navigationGroups.map((group) => [
+        group.key, group.label, ...group.tabs.map((tab) => `${tab}:${labels[tab]}`)
+    ]));
+    if (container.data('fvNavSignature') !== signature) {
+        const icons = {
+            automation: 'fa-tasks', rules: 'fa-balance-scale', recovery: 'fa-history',
+            operations: 'fa-bolt', startup: 'fa-sort-amount-asc', appearance: 'fa-paint-brush',
+            diagnostics: 'fa-stethoscope', logs: 'fa-list-alt'
+        };
+        const groupsHtml = navigationGroups.map((group) => `
+            <div class="fv-advanced-nav-group" role="group" aria-labelledby="fv-advanced-group-${group.key}">
+                <div id="fv-advanced-group-${group.key}" class="fv-advanced-nav-label">${escapeHtml(group.label)}</div>
+                <div class="fv-advanced-tabs">${group.tabs.map((tab) => `
+                    <button type="button" class="fv-advanced-tab" data-fv-advanced-tab="${tab}" aria-controls="fv-advanced-content"><i class="fa ${icons[tab]}" aria-hidden="true"></i><span>${escapeHtml(labels[tab])}</span></button>
+                `).join('')}</div>
             </div>
-        </div>
-    `).show();
-};
-
-const toggleAdvancedTabCompactState = () => {
-    const tabSections = settingsUiState.sections.filter((section) => (
-        section.advanced && section.advancedGroup === settingsUiState.advancedTab
-    ));
-    if (!tabSections.length) {
-        return;
+        `).join('');
+        const optionsHtml = navigationGroups.map((group) => `
+            <optgroup label="${escapeHtml(group.label)}">${group.tabs.map((tab) => `
+                <option value="${tab}">${escapeHtml(labels[tab])}</option>
+            `).join('')}</optgroup>
+        `).join('');
+        const pickerLabel = surfaceT('settings.navigation.sections', 'Advanced sections');
+        container.html(`
+            <div class="fv-advanced-nav-groups">${groupsHtml}</div>
+            <label class="fv-advanced-mobile-picker" for="fv-advanced-section-picker">
+                <span>${escapeHtml(pickerLabel)}</span>
+                <select id="fv-advanced-section-picker" aria-controls="fv-advanced-content">${optionsHtml}</select>
+            </label>
+        `).data('fvNavSignature', signature);
     }
-    const shouldCompact = tabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
-    for (const section of tabSections) {
-        if (shouldCompact) {
-            settingsUiState.expandedAdvancedSections.delete(section.key);
-        } else {
-            settingsUiState.expandedAdvancedSections.add(section.key);
-        }
-    }
-    persistExpandedAdvancedSections();
-    applySettingsSectionVisibility();
-    syncSectionJumpOptions();
-    refreshSectionHealthBadges();
-};
-
-const toggleAdvancedSectionByKey = (sectionKey) => {
-    const key = String(sectionKey || '').trim();
-    if (!key) {
-        return false;
-    }
-    const section = settingsUiState.sections.find((entry) => entry.key === key);
-    if (!section || !section.advanced) {
-        return false;
-    }
-
-    if (settingsUiState.expandedAdvancedSections.has(key)) {
-        settingsUiState.expandedAdvancedSections.delete(key);
-    } else {
-        settingsUiState.expandedAdvancedSections.add(key);
-        settingsUiState.activeSectionKey = key;
-        persistActiveAdvancedSection(key);
-        setAdvancedTab(section.advancedGroup);
-    }
-    persistExpandedAdvancedSections();
-    applySettingsSectionVisibility();
-    syncSectionJumpOptions();
-    refreshSectionHealthBadges();
-    return true;
+    container.find('.fv-advanced-tab').each((_, button) => {
+        const active = button.dataset.fvAdvancedTab === settingsUiState.advancedTab;
+        button.classList.toggle('is-active', active);
+        if (active) button.setAttribute('aria-current', 'true');
+        else button.removeAttribute('aria-current');
+    });
+    container.find('#fv-advanced-section-picker').val(settingsUiState.advancedTab);
+    container.show();
 };
 
 const applySettingsSectionVisibility = () => {
+    $('#fv-settings-root').toggleClass('fv-advanced-mode', settingsUiState.mode === 'advanced');
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
     if (!visibleKeys.size && settingsUiState.mode === 'basic' && !settingsUiState.query) {
         for (const section of getBasicWorkspaceSections()) {
             visibleKeys.add(section.key);
         }
     }
-    const forceExpandForQuery = Boolean(settingsUiState.query);
-
     for (const section of settingsUiState.sections) {
         const visible = visibleKeys.has(section.key);
-        const expanded = !section.advanced
-            || settingsUiState.expandedAdvancedSections.has(section.key)
-            || forceExpandForQuery;
         for (const node of section.nodes) {
             node.classList.toggle('fv-section-hidden', !visible);
         }
-        for (const node of section.contentNodes || []) {
-            node.classList.toggle('fv-section-content-hidden', visible && !expanded);
-        }
-        if (section.toggle) {
-            const toggleLabel = expanded ? 'Compact section' : 'Expand section';
-            section.toggle.title = toggleLabel;
-            section.toggle.setAttribute('aria-label', `${toggleLabel}: ${section.title || section.key}`);
-            section.toggle.classList.toggle('is-expanded', expanded);
-            section.toggle.classList.toggle('is-collapsed', !expanded);
-        }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
-        section.heading.classList.toggle('fv-section-collapsed', visible && section.advanced && !expanded);
     }
 
     renderAdvancedNav();
@@ -2148,6 +1984,9 @@ const setSearchAllAdvanced = (enabled) => {
 
 const refreshSectionHealthBadges = () => {
     for (const section of settingsUiState.sections) {
+        if (!section.badge) {
+            continue;
+        }
         const inputs = [];
         for (const node of section.nodes) {
             if (!(node instanceof HTMLElement)) {
@@ -2218,7 +2057,7 @@ const applyRegexPreset = (type, preset) => {
     if (!input.length) {
         return;
     }
-    const plainText = window.prompt('Enter plain text for this preset:');
+    const plainText = window.prompt(surfaceT("common.dialogs.plain-text", "Enter plain text for this preset:"));
     if (plainText === null) {
         return;
     }
@@ -2487,10 +2326,6 @@ const initSettingsControls = () => {
         });
     }
 
-    if (!$('#fv-advanced-nav').length) {
-        $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" data-fvplus-style="fv-u-uydnfn"></div>');
-    }
-
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode, { persistServer: true });
@@ -2559,13 +2394,28 @@ const initSettingsControls = () => {
         applyRegexPreset(type, preset);
     });
 
-    $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
-        const tab = String($(event.currentTarget).attr('data-fv-advanced-tab') || '');
+    const activateAdvancedTab = (tab) => {
+        if (!ADVANCED_GROUPS.includes(tab)) return;
         setAdvancedTab(tab);
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshSectionHealthBadges();
         scheduleActiveAdvancedSecondarySurfaces();
+    };
+    $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
+        activateAdvancedTab(String($(event.currentTarget).attr('data-fv-advanced-tab') || ''));
+    });
+    $(document).off('change.fvtab', '#fv-advanced-section-picker').on('change.fvtab', '#fv-advanced-section-picker', (event) => {
+        activateAdvancedTab(String(event.currentTarget.value || ''));
+    });
+    $(document).off('keydown.fvtab', '.fv-advanced-tab').on('keydown.fvtab', '.fv-advanced-tab', (event) => {
+        const buttons = [...document.querySelectorAll('#fv-advanced-nav .fv-advanced-tab')];
+        const index = buttons.indexOf(event.currentTarget);
+        if (index < 0) return;
+        const nextIndex = ({ ArrowDown: index + 1, ArrowUp: index - 1, Home: 0, End: buttons.length - 1 })[event.key];
+        if (nextIndex === undefined) return;
+        event.preventDefault();
+        buttons[Math.max(0, Math.min(buttons.length - 1, nextIndex))]?.focus();
     });
     $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
         event.preventDefault();
@@ -2579,30 +2429,6 @@ const initSettingsControls = () => {
             quiet: false
         });
     });
-    $(document).off('click.fvcompact', '#fv-advanced-compact').on('click.fvcompact', '#fv-advanced-compact', (event) => {
-        event.preventDefault();
-        toggleAdvancedTabCompactState();
-    });
-
-    $(document).off('click.fvsectiontoggle', '.fv-section-toggle').on('click.fvsectiontoggle', '.fv-section-toggle', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const key = String($(event.currentTarget).attr('data-section-toggle') || '').trim();
-        toggleAdvancedSectionByKey(key);
-    });
-
-    $(document).off('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]').on('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]', (event) => {
-        if (!shouldUseMobileSectionToggle()) {
-            return;
-        }
-        const target = event.target instanceof Element ? event.target : null;
-        if (target && target.closest('.fv-section-toggle, button, a, input, select, textarea, label')) {
-            return;
-        }
-        const key = String($(event.currentTarget).attr('data-fv-section') || '').trim();
-        toggleAdvancedSectionByKey(key);
-    });
-
     $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')
         .off('input.fvlivematch change.fvlivematch')
         .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('docker'));
@@ -2645,12 +2471,6 @@ const initSettingsControls = () => {
             updateBulkResultActions(type);
             updateBulkPreviewPanel(type);
         });
-    $(document)
-        .off('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs')
-        .on('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs', () => {
-            syncHiddenRecoveryCompareControls(getActiveRecoveryWorkspaceType());
-        });
-
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-settings-search-scope').val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
     renderOperationsWorkspace();
@@ -2675,9 +2495,6 @@ const refreshSettingsUx = (options = {}) => {
     }
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
-    if (sectionsRebuilt || options.normalizeSections === true) {
-        normalizeExpandedAdvancedSections();
-    }
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
         const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -2706,15 +2523,7 @@ const refreshSettingsUx = (options = {}) => {
 };
 
 const isVisibleSettingsElement = (node) => {
-    if (!(node instanceof HTMLElement)) {
-        return false;
-    }
-    const style = typeof window.getComputedStyle === 'function' ? window.getComputedStyle(node) : null;
-    if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) {
-        return false;
-    }
-    const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-    return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
+    return window.FolderViewPlusSettingsIsVisible?.(node) === true;
 };
 
 const hasVisibleSettingsSurface = () => {
@@ -2724,8 +2533,8 @@ const hasVisibleSettingsSurface = () => {
     }
     const selectors = [
         '#fvplus-fatal-banner',
-        '#fv-settings-topbar > *',
-        'h2[data-fv-section]:not(.fv-section-hidden)',
+        'h2[data-fv-advanced="1"]:not(.fv-section-hidden)',
+        '.settings-mini-card:not(.fv-section-hidden)',
         '.folder-table:not(.fv-section-hidden)',
         'tbody#docker tr:not(.fv-section-hidden)',
         'tbody#vms tr:not(.fv-section-hidden)',
@@ -2771,7 +2580,6 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
         buildSettingsSections({ force: true });
-        normalizeExpandedAdvancedSections();
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshInputInvalidStyles();
@@ -3125,7 +2933,7 @@ const buildFolderDefaultsSummary = (type) => {
     }
     const actionCount = Array.isArray(defaults.profile.actions) ? defaults.profile.actions.length : 0;
     if (actionCount > 0) {
-        parts.push(`${actionCount} script action${actionCount === 1 ? '' : 's'}`);
+        parts.push(surfaceT("common.repair.script-actions-1-379e3d", "Script actions: $1", actionCount));
     }
     const sourceLabel = defaults.sourceName || defaults.sourceId || 'saved profile';
     return `Saved from "${sourceLabel}". Applies ${parts.join(', ')}.`;
@@ -3204,7 +3012,7 @@ const saveFolderDefaultsFromSelection = async (type) => {
         });
         return true;
     } catch (error) {
-        showError('Folder defaults save failed', error);
+        showError(surfaceT("common.repair.folder-defaults-save-failed-3f6e03", "Folder defaults save failed"), error);
         return false;
     }
 };
@@ -3226,7 +3034,7 @@ const clearFolderDefaults = async (type) => {
         });
         return true;
     } catch (error) {
-        showError('Folder defaults reset failed', error);
+        showError(surfaceT("common.repair.folder-defaults-reset-failed-a1e07f", "Folder defaults reset failed"), error);
         return false;
     }
 };
@@ -3266,12 +3074,12 @@ const applySavedFolderDefaultsToAll = async (type) => {
         ]);
         showToastMessage({
             title: 'Defaults applied',
-            message: `Applied the saved profile to ${Number(result.updatedCount) || targetIds.length} folder${targetIds.length === 1 ? '' : 's'}.`,
+            message: surfaceT("common.counts.profile-applied", "Saved profile applied. Folders updated: $1.", Number(result.updatedCount) || targetIds.length),
             level: 'success'
         });
         return true;
     } catch (error) {
-        showError('Apply defaults to all failed', error);
+        showError(surfaceT("common.repair.apply-defaults-to-all-failed-742c8f", "Apply defaults to all failed"), error);
         return false;
     }
 };
@@ -3510,7 +3318,7 @@ const statusClassForKey = (statusKey) => {
 
 const statusLabelForKey = (statusKey) => {
     if (statusKey === 'started') {
-        return 'Started';
+        return surfaceT('started', 'Running');
     }
     if (statusKey === 'paused') {
         return 'Paused';
@@ -3640,6 +3448,8 @@ const getRowDetailsApi = (() => {
         }
         cachedApi = rowDetailsModule.createApi({
             swal,
+            escapeHtml,
+            translate: surfaceT,
             getFolderMap: (type) => getFolderMap(type),
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -3699,7 +3509,8 @@ const getThemeWorkspaceApi = (() => {
             escapeHtml,
             apiGetJson,
             apiPostJson,
-            showError
+            showError,
+            recordActivity: (message) => addActivityEntry(message, 'success')
         });
         return cachedApi;
     };
@@ -3759,7 +3570,21 @@ const getSettingsWorkspacesApi = (() => {
             selectedOperationsTemplateIdByType,
             downloadFile,
             toPrettyJson,
-            showError
+            showError,
+            swal,
+            apiGetJson,
+            apiPostJson,
+            selectJsonFile,
+            showToastMessage,
+            claimAdvancedOperationLock,
+            releaseAdvancedOperationLock,
+            refreshType,
+            refreshBackups,
+            refreshThemeWorkspace: () => getThemeWorkspaceApi().readWorkspace(),
+            openImportApplyProgressDialog,
+            updateImportApplyProgressDialog,
+            closeImportApplyProgressDialog,
+            ensureRuntimeConflictActionAllowed
         });
         return cachedApi;
     };
@@ -3787,6 +3612,7 @@ const getBulkAssignmentApi = (() => {
             filtersByType,
             persistTableUiState,
             apiPostJson,
+            getItemRuntimeStateKind,
             assertRuntimeConflictActionAllowed,
             createBackup,
             refreshType,
@@ -3910,7 +3736,7 @@ const promptStarterFolderName = async (type, suggestedName) => {
     const folderTypeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
     const initialValue = String(suggestedName || '').trim() || `New ${folderTypeLabel} Folder`;
     if (typeof window.swal !== 'function') {
-        const fallback = window.prompt(`Create ${folderTypeLabel} folder`, initialValue);
+        const fallback = window.prompt(surfaceT("legacy.surface.cb9eb0da18927732", "Create $1 folder", folderTypeLabel), initialValue);
         return String(fallback || '').trim();
     }
     return new Promise((resolve) => {
@@ -3931,7 +3757,7 @@ const promptStarterFolderName = async (type, suggestedName) => {
             const name = String(value || '').trim();
             if (!name) {
                 if (typeof swal.showInputError === 'function') {
-                    swal.showInputError('Folder name is required.');
+                    swal.showInputError(surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
                 }
                 return false;
             }
@@ -4363,7 +4189,7 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
         renderColumnVisibilityControls(resolvedType);
         applyColumnVisibility(resolvedType);
         applyColumnWidths(resolvedType);
-        showError('Settings table preferences save failed', error);
+        showError(surfaceT("common.repair.settings-table-preferences-save-failed-5207c3", "Settings table preferences save failed"), error);
     }
 };
 
@@ -4438,6 +4264,8 @@ const renderRecoveryWorkspace = (...args) => getSettingsWorkspacesApi().renderRe
 const syncRecoveryWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRecoveryWorkspaceUi(...args);
 const setRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().setRecoveryWorkspaceType(...args);
 const selectActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().selectActiveRecoveryBackup(...args);
+const toggleAllRecoverySnapshots = (...args) => getSettingsWorkspacesApi().toggleAllRecoverySnapshots(...args);
+const toggleRecoveryDisclosure = (...args) => getSettingsWorkspacesApi().toggleRecoveryDisclosure(...args);
 const filterActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().filterActiveRecoveryBackups(...args);
 const createActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().createActiveRecoveryBackup(...args);
 const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreLatestActiveRecoveryBackup(...args);
@@ -4447,6 +4275,7 @@ const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi
 const deleteAllActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().deleteAllActiveRecoveryBackups(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
+const openActiveRecoverySnapshotCompare = () => openBackupComparePicker(getActiveRecoveryWorkspaceType());
 const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
 const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
@@ -4766,14 +4595,14 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
     if (paused > 0) {
         reasons.push(makeHealthReason(
             'PAUSED_MEMBERS',
-            `${paused} member${paused === 1 ? '' : 's'} paused.`,
+            surfaceT("common.repair.paused-members-1-9c89f8", "Paused members: $1.", paused),
             'warning'
         ));
     }
     if (hasUpdates && policy.updatesMode !== 'ignore') {
         reasons.push(makeHealthReason(
             updateCount >= 10 ? 'UPDATE_SURGE' : 'UPDATES_PENDING',
-            `${updateCount} update${updateCount === 1 ? '' : 's'} available.`,
+            surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount),
             updateMaintenance ? 'maintenance' : (updateCritical ? 'critical' : 'warning')
         ));
     }
@@ -4816,7 +4645,7 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
     const details = [
         `Score: ${score}/100.`,
         `${started} started, ${paused} paused, ${stopped} stopped (${stoppedPercent}% stopped).`,
-        hasUpdates ? `${updateCount} update${updateCount === 1 ? '' : 's'} available.` : 'No updates available.',
+        hasUpdates ? surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount) : 'No updates available.',
         `Policy: ${policy.profile} | updates ${policy.updatesMode} | all-stopped ${policy.allStoppedMode}.`,
         `Thresholds: warn ${warnThreshold}% (${policy.warnSource}), critical ${criticalThreshold}% (${policy.criticalSource}).`,
         ...reasons.map((reason) => `${reason.label}: ${reason.message}`)
@@ -5012,7 +4841,11 @@ const requestFolderBatchMutation = async (type, operations, options = {}) => {
         operations: JSON.stringify({
             deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
             upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
-            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : []
+            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : [],
+            ...(Array.isArray(safeOperations.manualOrder) ? {
+                manualOrder: safeOperations.manualOrder,
+                expectedPrefsRevision: safeOperations.expectedPrefsRevision
+            } : {})
         })
     };
     if (options?.expectedRevision !== null && options?.expectedRevision !== undefined && options?.expectedRevision !== '') {
@@ -5474,13 +5307,14 @@ const fetchBackupSnapshot = async (type, name) => {
     return response.snapshot || {};
 };
 
-const restoreBackupByName = async (type, name) => {
+const restoreBackupByName = async (type, name, createSafetyBackup = false) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore',
-        name
+        name, createSafetyBackup
     });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
@@ -5577,6 +5411,9 @@ const showToastMessage = ({
     message = '',
     level = 'info'
 } = {}) => {
+    if (['warning', 'error', 'danger'].includes(level) && (title || message)) {
+        addActivityEntry([title, message].filter(Boolean).join(': '), level);
+    }
     if (window.FolderViewPlusUI?.announce) {
         return window.FolderViewPlusUI.announce({
             title,
@@ -5590,13 +5427,13 @@ const showToastMessage = ({
 
 const formatTimestamp = (isoString) => {
     if (!isoString) {
-        return 'Unknown';
+        return surfaceT("common.runtime.unknown", "Unknown");
     }
     const date = new Date(isoString);
     if (Number.isNaN(date.getTime())) {
         return String(isoString);
     }
-    return date.toLocaleString();
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { dateStyle: 'short', timeStyle: 'medium' }) || date.toLocaleString('en'));
 };
 
 const buildModuleEmptyTableRow = (title, help, colspan = 1) => (
@@ -5655,7 +5492,7 @@ const expandAncestorChainForFolder = (type, folderId) => {
     return changed;
 };
 
-const focusFolderRow = (type, folderId) => {
+const focusFolderRow = (type, folderId, { scroll = true } = {}) => {
     const target = normalizeFocusableFolderId(type, folderId);
     if (!target) {
         return false;
@@ -5668,8 +5505,6 @@ const focusFolderRow = (type, folderId) => {
     if (!row.length) {
         return false;
     }
-    updateMobileTreePathHint(target.type, target.id);
-
     const tbody = row.closest('tbody');
     tbody.find('tr.fv-row-focus').removeClass('fv-row-focus');
     row.addClass('fv-row-focus');
@@ -5682,7 +5517,7 @@ const focusFolderRow = (type, folderId) => {
     }, ROW_FOCUS_HIGHLIGHT_MS);
 
     const element = row.get(0);
-    if (element && typeof element.scrollIntoView === 'function') {
+    if (scroll && element && typeof element.scrollIntoView === 'function') {
         element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     }
     return true;
@@ -5817,7 +5652,7 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
 };
 
 const showError = (title, error) => {
-    const message = error?.message || String(error);
+    const message = window.FolderViewPlusI18n?.serverMessage?.(error?.response || error?.message || String(error), error?.message || String(error)) || error?.message || String(error);
     const safeTitle = String(title || 'Error');
     recordFatalBannerAction(`Error: ${safeTitle}`);
     annotateFatalBannerError(error, {
@@ -5845,18 +5680,6 @@ const setImportantStyle = (element, property, value) => {
 };
 
 const enforceNoHorizontalOverflow = () => {
-    const rootTargets = [
-        document.documentElement,
-        document.body,
-        document.querySelector('.canvas'),
-        document.querySelector('#content'),
-        document.querySelector('#canvas')
-    ].filter(Boolean);
-
-    for (const target of rootTargets) {
-        setImportantStyle(target, 'overflow-x', 'hidden');
-    }
-
     const compact = shouldUseCompactMobileLayout();
     const tableTargets = document.querySelectorAll('.folder-table .table-wrap');
     tableTargets.forEach((target) => {
@@ -5906,23 +5729,26 @@ const getTreeMoveHistoryState = (type) => {
 const pushTreeMoveHistoryEntry = (type, entry) => {
     const resolvedType = normalizeManagedType(type);
     const state = getTreeMoveHistoryState(resolvedType);
-    const beforeBackupName = String(entry?.beforeBackupName || '').trim();
-    const afterBackupName = String(entry?.afterBackupName || '').trim();
-    if (!beforeBackupName || !afterBackupName) {
-        return;
-    }
     const nextEntry = {
-        beforeBackupName,
-        afterBackupName,
+        kind: entry?.kind === 'order' ? 'order' : 'parent',
+        folderId: String(entry?.folderId || '').trim(),
+        beforeParentId: String(entry?.beforeParentId || '').trim(),
+        afterParentId: String(entry?.afterParentId || '').trim(),
+        beforeOrder: Array.isArray(entry?.beforeOrder) ? entry.beforeOrder.slice() : null,
+        afterOrder: Array.isArray(entry?.afterOrder) ? entry.afterOrder.slice() : null,
         actionLabel: String(entry?.actionLabel || 'Tree move').trim(),
         focusFolderId: String(entry?.focusFolderId || '').trim(),
         createdAt: Date.now()
     };
+    if (nextEntry.kind === 'order' && (!nextEntry.beforeOrder || !nextEntry.afterOrder)) return;
+    if (nextEntry.kind === 'parent' && !nextEntry.folderId) return;
     state.undoStack.push(nextEntry);
     while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
         state.undoStack.shift();
     }
     state.redoStack = [];
+    queueTreeMoveUndoBanner(resolvedType, nextEntry);
+    updateTreeMoveHistoryButtons(resolvedType);
 };
 
 const getTreeMoveHistoryDepth = (type) => {
@@ -5974,13 +5800,12 @@ const renderTreeMoveUndoBanner = (type) => {
     }
     const notice = treeMoveUndoNoticeByType[resolvedType];
     const historyDepth = getTreeMoveHistoryDepth(resolvedType);
-    if (!notice || !notice.backupName) {
+    if (!notice || !notice.entry) {
         host.addClass('is-hidden').empty();
         updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const actionLabel = String(notice.actionLabel || 'Tree change').trim();
-    const backupName = String(notice.backupName || '').trim();
     const expiresAt = Number(notice.expiresAt || 0);
     const remainingMs = Number.isFinite(expiresAt) ? Math.max(0, expiresAt - Date.now()) : 0;
     if (remainingMs <= 0) {
@@ -6032,21 +5857,18 @@ const renderTreeMoveUndoBanner = (type) => {
             }
             dismissTreeMoveUndoBanner(targetType);
         });
-    host.attr('title', backupName);
+    host.attr('title', actionLabel);
     updateTreeMoveHistoryButtons(resolvedType);
 };
 
-const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = '') => {
+const queueTreeMoveUndoBanner = (type, entry) => {
     const resolvedType = normalizeManagedType(type);
-    const safeBackupName = String(backupName || '').trim();
-    if (!safeBackupName) {
-        return;
-    }
+    if (!entry) return;
     clearTreeMoveUndoTimer(resolvedType);
     treeMoveUndoNoticeByType[resolvedType] = {
-        backupName: safeBackupName,
-        actionLabel: String(actionLabel || 'Tree change').trim(),
-        focusFolderId: String(focusFolderId || '').trim(),
+        entry,
+        actionLabel: String(entry.actionLabel || 'Tree change').trim(),
+        focusFolderId: String(entry.focusFolderId || '').trim(),
         expiresAt: Date.now() + UNDO_WINDOW_MS
     };
     treeMoveUndoTimersByType[resolvedType] = window.setTimeout(() => {
@@ -6055,40 +5877,38 @@ const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = 
     renderTreeMoveUndoBanner(resolvedType);
 };
 
-const recordTreeMoveHistoryFromBackup = async (type, beforeBackupName, actionLabel, focusFolderId = '') => {
+const applyTreeMoveHistoryEntry = async (type, entry, direction) => {
     const resolvedType = normalizeManagedType(type);
-    const safeBeforeBackupName = String(beforeBackupName || '').trim();
-    if (!safeBeforeBackupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
+    const restoringBefore = direction === 'undo';
+    const order = restoringBefore ? entry.beforeOrder : entry.afterOrder;
+    if (entry.kind === 'order') {
+        applyOptimisticManualOrder(resolvedType, order);
+        await persistManualOrder(resolvedType, order, { refresh: false });
+    } else {
+        const folderId = String(entry.folderId || '').trim();
+        const folders = getFolderMap(resolvedType);
+        const folder = folders[folderId];
+        if (!folder) throw new Error(surfaceT('legacy.surface.f5800c37a77aca60', 'Folder no longer exists.'));
+        const parentId = restoringBefore ? entry.beforeParentId : entry.afterParentId;
+        const expectedRevision = readFolderConfigurationRevision(resolvedType);
+        const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
+        if (expectedRevision === null || (order && !Number.isInteger(expectedPrefsRevision))) {
+            throw new Error(surfaceT('legacy.surface.84d5e5d264943e57', 'Unable to verify the current folder configuration revision. Refresh and try again.'));
+        }
+        setTypeFolders(resolvedType, { ...folders, [folderId]: { ...folder, parentId } });
+        if (order) applyOptimisticManualOrder(resolvedType, order); else renderTable(resolvedType);
+        const result = await requestFolderBatchMutation(resolvedType, {
+            deletes: [], upserts: [{ id: folderId, folder: { ...folder, parentId } }], creates: [],
+            ...(order ? { manualOrder: order, expectedPrefsRevision } : {})
+        }, { expectedRevision });
+        if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
     }
-    let afterBackupName = '';
-    try {
-        const slug = String(actionLabel || 'tree-change')
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, 32) || 'tree-change';
-        const postBackup = await createBackup(resolvedType, `after-${slug}-${Date.now()}`);
-        afterBackupName = String(postBackup?.name || '').trim();
-    } catch (_error) {
-        // Keep undo banner even if post-action snapshot cannot be captured.
-    }
-    if (afterBackupName) {
-        pushTreeMoveHistoryEntry(resolvedType, {
-            beforeBackupName: safeBeforeBackupName,
-            afterBackupName,
-            actionLabel: String(actionLabel || 'Tree change').trim() || 'Tree change',
-            focusFolderId
-        });
-    }
-    queueTreeMoveUndoBanner(resolvedType, safeBeforeBackupName, actionLabel, focusFolderId);
-    updateTreeMoveHistoryButtons(resolvedType);
+    await refreshType(resolvedType, { configOnly: true, render: false });
 };
 
 const applyTreeMoveUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    if (treeMoveHistoryBusyByType[resolvedType] || folderReorderQueueByType[resolvedType]?.active || pendingTreeMoveTypes.has(resolvedType)) return;
     const state = getTreeMoveHistoryState(resolvedType);
     if (!Array.isArray(state.undoStack) || state.undoStack.length <= 0) {
         dismissTreeMoveUndoBanner(resolvedType);
@@ -6096,43 +5916,28 @@ const applyTreeMoveUndo = async (type) => {
         return;
     }
     const entry = state.undoStack.pop();
-    const backupName = String(entry?.beforeBackupName || '').trim();
-    const focusFolderId = String(entry?.focusFolderId || '').trim();
-    if (!backupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
-    }
+    treeMoveHistoryBusyByType[resolvedType] = true;
     try {
-        await restoreBackupByName(resolvedType, backupName);
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
+        await applyTreeMoveHistoryEntry(resolvedType, entry, 'undo');
+        state.redoStack.push(entry);
+        while (state.redoStack.length > TREE_MOVE_HISTORY_LIMIT) {
+            state.redoStack.shift();
         }
-        if (entry?.afterBackupName) {
-            state.redoStack.push(entry);
-            while (state.redoStack.length > TREE_MOVE_HISTORY_LIMIT) {
-                state.redoStack.shift();
-            }
-        }
-        addActivityEntry(`Undo complete: restored ${backupName}.`, 'success');
         showToastMessage({
             title: 'Undo complete',
-            message: `Restored ${backupName}`,
+            message: entry.actionLabel,
             level: 'success',
             durationMs: 3200
         });
     } catch (error) {
         state.undoStack.push(entry);
+        try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
         showError('Undo failed', error);
     } finally {
+        treeMoveHistoryBusyByType[resolvedType] = false;
         const latestUndo = state.undoStack[state.undoStack.length - 1];
-        if (latestUndo?.beforeBackupName) {
-            queueTreeMoveUndoBanner(
-                resolvedType,
-                latestUndo.beforeBackupName,
-                latestUndo.actionLabel || 'Tree change',
-                latestUndo.focusFolderId || ''
-            );
+        if (latestUndo) {
+            queueTreeMoveUndoBanner(resolvedType, latestUndo);
         } else {
             dismissTreeMoveUndoBanner(resolvedType);
         }
@@ -6142,47 +5947,35 @@ const applyTreeMoveUndo = async (type) => {
 
 const applyTreeMoveRedo = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    if (treeMoveHistoryBusyByType[resolvedType] || folderReorderQueueByType[resolvedType]?.active || pendingTreeMoveTypes.has(resolvedType)) return;
     const state = getTreeMoveHistoryState(resolvedType);
     if (!Array.isArray(state.redoStack) || state.redoStack.length <= 0) {
         updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const entry = state.redoStack.pop();
-    const backupName = String(entry?.afterBackupName || '').trim();
-    const focusFolderId = String(entry?.focusFolderId || '').trim();
-    if (!backupName) {
-        updateTreeMoveHistoryButtons(resolvedType);
-        return;
-    }
+    treeMoveHistoryBusyByType[resolvedType] = true;
     try {
-        await restoreBackupByName(resolvedType, backupName);
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
+        await applyTreeMoveHistoryEntry(resolvedType, entry, 'redo');
         state.undoStack.push(entry);
         while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
             state.undoStack.shift();
         }
-        addActivityEntry(`Redo complete: restored ${backupName}.`, 'success');
         showToastMessage({
             title: 'Redo complete',
-            message: `Restored ${backupName}`,
+            message: entry.actionLabel,
             level: 'success',
             durationMs: 3200
         });
     } catch (error) {
         state.redoStack.push(entry);
-        showError('Redo failed', error);
+        try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
+        showError(surfaceT("common.repair.redo-failed-37647f", "Redo failed"), error);
     } finally {
+        treeMoveHistoryBusyByType[resolvedType] = false;
         const latestUndo = state.undoStack[state.undoStack.length - 1];
-        if (latestUndo?.beforeBackupName) {
-            queueTreeMoveUndoBanner(
-                resolvedType,
-                latestUndo.beforeBackupName,
-                latestUndo.actionLabel || 'Tree change',
-                latestUndo.focusFolderId || ''
-            );
+        if (latestUndo) {
+            queueTreeMoveUndoBanner(resolvedType, latestUndo);
         } else {
             dismissTreeMoveUndoBanner(resolvedType);
         }
@@ -6313,15 +6106,6 @@ const highlightSearchText = (text, query) => {
     return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
 };
 
-const toggleBasicSettingsPanel = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const panel = document.getElementById(`${resolvedType}-view-settings`);
-    if (!panel) {
-        return;
-    }
-    panel.open = !panel.open;
-};
-
 const formatBasicSummaryPercent = (count, total) => {
     const safeTotal = Math.max(0, Number(total) || 0);
     if (safeTotal <= 0) {
@@ -6415,8 +6199,9 @@ const removeBasicFolderDragImage = () => {
 };
 
 const clearBasicFolderDragState = () => {
-    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
-        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after', 'fv-row-drag-source');
+    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-inside, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
+        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after', 'fv-row-drag-source');
+        row.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
     });
     removeBasicFolderDragImage();
     basicFolderDragState = null;
@@ -6442,7 +6227,7 @@ const createBasicFolderDragImage = (row) => {
     clonedRow.removeAttribute('id');
     clonedRow.removeAttribute('tabindex');
     clonedRow.removeAttribute('onkeydown');
-    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-after');
+    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
     const sourceCells = Array.from(row.children || []);
     Array.from(clonedRow.children || []).forEach((cell, index) => {
         const sourceCellRect = sourceCells[index]?.getBoundingClientRect?.();
@@ -6455,6 +6240,12 @@ const createBasicFolderDragImage = (row) => {
     ghost.appendChild(table);
     document.body.appendChild(ghost);
     return ghost;
+};
+
+const resolveBasicFolderDropPlacement = (row, clientY) => {
+    const rect = row.getBoundingClientRect();
+    const fraction = rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5;
+    return fraction < 0.3 ? 'before' : (fraction > 0.7 ? 'after' : 'inside');
 };
 
 const bindBasicFolderDragHandles = (type) => {
@@ -6474,7 +6265,7 @@ const bindBasicFolderDragHandles = (type) => {
             basicFolderDragState = {
                 type: resolvedType,
                 folderId,
-                parentId: String(row.getAttribute('data-folder-parent') || '')
+                blockedIds: new Set([folderId, ...(buildFolderHierarchyMeta(getFolderMap(resolvedType)).descendantsById[folderId] || [])])
             };
             row.classList.add('fv-row-drag-source');
             if (event.dataTransfer) {
@@ -6500,46 +6291,68 @@ const bindBasicFolderDragHandles = (type) => {
                 return;
             }
             const targetId = String(row.getAttribute('data-folder-id') || '').trim();
-            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
-            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+            if (!targetId || basicFolderDragState.blockedIds.has(targetId)) {
                 return;
             }
             event.preventDefault();
             if (event.dataTransfer) {
                 event.dataTransfer.dropEffect = 'move';
             }
-            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after').forEach((activeRow) => {
+            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-inside, .fv-row-drag-over-after').forEach((activeRow) => {
                 if (activeRow !== row) {
-                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
+                    activeRow.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
                 }
             });
-            const rect = row.getBoundingClientRect();
-            const after = event.clientY > rect.top + (rect.height / 2);
-            row.classList.toggle('fv-row-drag-over-before', !after);
-            row.classList.toggle('fv-row-drag-over-after', after);
+            const placement = resolveBasicFolderDropPlacement(row, event.clientY);
+            row.classList.toggle('fv-row-drag-over-before', placement === 'before');
+            row.classList.toggle('fv-row-drag-over-inside', placement === 'inside');
+            row.classList.toggle('fv-row-drag-over-after', placement === 'after');
+            row.querySelector('td:first-child')?.setAttribute('data-fv-drop-label', placement === 'inside'
+                ? surfaceT('common.repair.drop-inside-this-folder', 'Inside this folder')
+                : (placement === 'before'
+                    ? surfaceT('common.repair.drop-before-this-folder', 'Before this folder')
+                    : surfaceT('common.repair.drop-after-this-folder', 'After this folder')));
         });
         row.addEventListener('dragleave', () => {
-            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-inside', 'fv-row-drag-over-after');
+            row.querySelector('td:first-child')?.removeAttribute('data-fv-drop-label');
         });
         row.addEventListener('drop', (event) => {
             if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
                 return;
             }
             const targetId = String(row.getAttribute('data-folder-id') || '').trim();
-            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
-            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+            if (!targetId || basicFolderDragState.blockedIds.has(targetId)) {
                 clearBasicFolderDragState();
                 return;
             }
             event.preventDefault();
-            const placement = row.classList.contains('fv-row-drag-over-after') ? 'after' : 'before';
+            const placement = resolveBasicFolderDropPlacement(row, event.clientY);
             const draggedId = basicFolderDragState.folderId;
             clearBasicFolderDragState();
-            if (typeof moveFolderRowBesideSibling === 'function') {
-                void moveFolderRowBesideSibling(resolvedType, draggedId, targetId, placement);
+            if (typeof applyFolderTreeMove === 'function') {
+                void applyFolderTreeMove(resolvedType, draggedId, targetId, placement);
             }
         });
     });
+};
+
+const NAME_CELL_METRIC_ICONS = Object.freeze({
+    docker: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13h15.3c1.5 0 2.7-.5 3.7-1.6-.2 4.3-3.4 7.1-8 7.1H8.4c-3.1 0-5.4-2.1-5.9-5.5zM18 11c.5-1.1 1.5-1.8 2.6-1.8"/><path d="M5 10h3v3H5zM8 10h3v3H8zM11 10h3v3h-3zM8 7h3v3H8zM11 7h3v3h-3z"/></svg>',
+    vm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M9 21h6M12 18v3"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
+});
+
+const buildNameCellMetricsHtml = (type, memberCount, subfolderCount, membersTitle) => {
+    const memberLabel = type === 'docker'
+        ? surfaceT('common.repair.folder-containers-1', 'Containers: $1', memberCount)
+        : surfaceT('common.repair.folder-vms-1', 'VMs: $1', memberCount);
+    const memberIcon = type === 'docker' ? NAME_CELL_METRIC_ICONS.docker : NAME_CELL_METRIC_ICONS.vm;
+    const subfolderHtml = subfolderCount > 0
+        ? `<span class="name-cell-members-meta is-subfolder-count">${NAME_CELL_METRIC_ICONS.folder}<span>${escapeHtml(surfaceT('common.repair.folder-subfolders-1', 'Sub-folders: $1', subfolderCount))}</span></span>`
+        : '';
+    return `<span class="name-cell-metrics"><span class="name-cell-members-meta is-member-count" title="${escapeHtml(membersTitle)}">${memberIcon}<span>${escapeHtml(memberLabel)}</span></span>${subfolderHtml}</span>`;
 };
 
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
@@ -6683,11 +6496,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? String(folders[parentFolderId]?.name || parentFolderId)
             : '';
         const nestedMetaTitleRaw = folderDepth > 0
-            ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
-            : 'Root folder';
+            ? (parentFolderNameRaw ? surfaceT('common.repair.nested-under', 'Nested level $1 under $2', folderDepth, parentFolderNameRaw) : surfaceT('common.repair.nested-level', 'Nested level $1', folderDepth))
+            : surfaceT("common.runtime.root-folder", "Root folder");
         const nestedMetaTextRaw = parentFolderNameRaw
             ? `Nested under ${parentFolderNameRaw}`
-            : `Nested level ${folderDepth}`;
+            : surfaceT('common.repair.nested-level', 'Nested level $1', folderDepth);
         const nestedMetaHtml = folderDepth > 0
             ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
             : '';
@@ -6771,7 +6584,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 key: 'started',
                 count: Number(countsByState.started || 0),
                 icon: 'fa-play',
-                label: 'Started'
+                label: surfaceT('started', 'Running')
             },
             {
                 key: 'paused',
@@ -6797,7 +6610,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusBreakdownHtml = !runtimeReady || statusDisplayMode === 'simple'
             ? ''
             : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
-                const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
+                const title = surfaceT("common.repair.1-items-2-818040", "$1 � items: $2", entry.label, entry.count);
                 return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span></span>`;
             }).join('')}</span>`;
         const statusDisplayClass = `is-${statusDisplayMode}`;
@@ -6831,7 +6644,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             }
         }
         const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
-        const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
+        const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : surfaceT("common.runtime.unknown", "Unknown");
         const pinnedText = pinned ? 'Pinned' : 'Not pinned';
         const pinnedClass = pinned ? 'is-pinned' : '';
 
@@ -6859,7 +6672,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const updatePreview = updateNames.slice(0, 5).join(', ');
             const updateExtra = updateNames.length > 5 ? ` (+${updateNames.length - 5} more)` : '';
             const updateTitle = updateNames.length
-                ? `Containers with updates: ${updatePreview}${updateExtra}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`
+                ? (dockerUpdatesOnlyFilter ? surfaceT('common.repair.updates-show-all', 'Containers with updates: $1. Click to show all folders.', updatePreview + updateExtra) : surfaceT('common.repair.updates-show-matching', 'Containers with updates: $1. Click to show folders with updates only.', updatePreview + updateExtra))
                 : `${members.length > 0 ? 'No updates in this folder' : 'Folder has no members'}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`;
             const healthStatus = evaluateDockerFolderHealth(
                 folder,
@@ -6876,8 +6689,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 ? 'Click to show all folders.'
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
+            const updateButtonHtml = updateCount > 0
+                ? `<button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" data-fv-onclick="toggleDockerUpdatesFilter(true)"><i class="fa ${updateIcon}" aria-hidden="true"></i></button>`
+                : '';
             typeSpecificColumns = ''
-                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" data-fv-onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" data-fv-onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" data-fv-onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content">${updateButtonHtml}<button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" data-fv-onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat" aria-hidden="true"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" data-fv-onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
                 + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);
@@ -6911,7 +6727,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : [
                     `Autostart enabled: ${autostartCount}/${membersCount}`,
                     autostartMembers.length > 0
-                        ? `Autostart VMs: ${autostartMembersPreview}${autostartMembersExtra}`
+                        ? surfaceT('common.repair.autostart-vms', 'Autostart VMs: $1', autostartMembersPreview + autostartMembersExtra)
                         : 'Autostart VMs: none'
                 ].join('\n');
             const vmHealthPrefs = normalizeHealthPrefs('vm');
@@ -6923,7 +6739,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const avgVcpus = membersCount > 0 ? (vcpusTotal / membersCount) : 0;
             const avgMemoryKiB = membersCount > 0 ? Math.round(memoryKiBTotal / membersCount) : 0;
             const avgStorageBytes = membersCount > 0 ? Math.round(storageBytesTotal / membersCount) : 0;
-            const avgVcpusText = Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1);
+            const avgVcpusText = (globalThis.FolderViewPlusI18n?.formatNumber?.(avgVcpus, { maximumFractionDigits: 1 }) || (Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1)));
             const avgMemoryText = formatGiBFromKiB(avgMemoryKiB);
             const avgStorageText = formatBytesShort(avgStorageBytes) || '0 B';
             const resourcesTitle = membersCount <= 0
@@ -6943,8 +6759,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const membersCellHtml = totalMemberCount > directMemberCount
             ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
-        const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
-        const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
+        const membersMetaHtml = buildNameCellMetricsHtml(type, directMemberCount, childFolderIds.length, membersTitle);
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
         const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;
@@ -6961,7 +6776,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : '';
         const dragHandleHtml = (hideOrderControls || mobileTreeReorderMode)
             ? ''
-            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
+            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to move or reorder" aria-label="Drag ${safeNameText} to move or reorder"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
@@ -7204,17 +7019,19 @@ const renderPerformancePolicySummary = (type, prefs) => {
     const minimumSeconds = Number(runtimePolicy?.minLiveRefreshSeconds || (mode === 'maximum' ? 45 : (strict ? 30 : (mode === 'adaptive' ? 20 : 0))));
     const effectiveSeconds = Math.max(requestedSeconds, minimumSeconds);
     const expansionBudget = runtimePolicy?.expandRestoreLimit ?? (mode === 'maximum' ? 6 : (strict ? 8 : (mode === 'adaptive' ? 12 : null)));
-    const label = mode === 'maximum' ? 'Maximum performance' : (mode === 'adaptive' ? 'Adaptive' : 'Standard');
+    const label = mode === 'maximum' ? surfaceT("legacy.surface.6ae0aec4c1075dbd", 'Maximum performance')
+        : (mode === 'adaptive' ? surfaceT('settings.performance.adaptive', 'Adaptive') : surfaceT("legacy.surface.ef6691545d2c5523", 'Standard'));
     const runtimeReason = String(runtimePolicy?.reason || '');
     const reason = runtimeReason === 'measured-render-cost'
-        ? `measured render cost (${Math.round(Number(runtimePolicy?.renderMs || 0))}ms)`
-        : (mode === 'maximum' ? 'fixed maximum limits' : (strict ? 'large library profile' : `${folderCount} folders / ${itemCount} items`));
+        ? surfaceT('settings.performance.measured', 'Measured render cost: $1 ms', Math.round(Number(runtimePolicy?.renderMs || 0)))
+        : (mode === 'maximum' ? surfaceT('settings.performance.fixed', 'Fixed maximum limits')
+            : (strict ? surfaceT('settings.performance.large', 'Large library profile') : surfaceT("legacy.surface.63c4cf97dc3a36aa", '$1 folders / $2 items', folderCount, itemCount)));
     const parts = [`${label}: ${reason}`];
-    if (normalized.liveRefreshEnabled === true) parts.push(`${effectiveSeconds}s effective refresh`);
-    if (expansionBudget !== null) parts.push(`restore up to ${expansionBudget} expanded folders`);
+    if (normalized.liveRefreshEnabled === true) parts.push(surfaceT('settings.performance.refresh', 'Effective refresh: $1 s', effectiveSeconds));
+    if (expansionBudget !== null) parts.push(surfaceT('settings.performance.restore', 'Restore up to $1 expanded folders', expansionBudget));
     parts.push(normalized.lazyPreviewEnabled === true || strict
-        ? `defer previews at ${normalized.lazyPreviewThreshold}+ members${strict && normalized.lazyPreviewEnabled !== true ? ' automatically' : ''}`
-        : 'previews render immediately');
+        ? surfaceT('settings.performance.defer', 'Defer previews with $1 or more members', normalized.lazyPreviewThreshold)
+        : surfaceT('settings.performance.immediate', 'Previews render immediately'));
     $(`#${type}-performance-policy-summary`).text(parts.join(' · '));
 };
 
@@ -7328,13 +7145,13 @@ const renderBackupScheduleControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     const schedule = prefs.backupSchedule || {};
     $(`#${type}-backup-schedule-enabled`).prop('checked', schedule.enabled === true);
-    $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 24));
+    $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 1));
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
     const lastRunText = schedule.lastRunAt ? translateSettingsText("settings.recovery.last-scheduled", "Last scheduled run: $1", formatTimestamp(schedule.lastRunAt)) : translateSettingsText("settings.recovery.never-scheduled", "Last scheduled run: never");
     $(`#${type}-backup-last-run`).text(lastRunText);
     if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
         $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);
-        $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 24));
+        $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 1));
         $('#recovery-backup-retention').val(String(schedule.retention || 25));
         $('#recovery-backup-last-run').text(lastRunText);
     }
@@ -7384,7 +7201,7 @@ const VIEW_ORGANIZATION_SORT_DETAILS = Object.freeze({
         description: 'Folders with the newest saved changes move toward the top.'
     },
     manual: {
-        label: 'Manual',
+        label: surfaceT("common.actions.manual-sort", "Manual order"),
         title: 'Manual order is active',
         description: 'Use the up, down, and tree-move controls in the Order column to place folders exactly where you want them.'
     },
@@ -7457,12 +7274,8 @@ const ensureExternalFolderFilterStrip = (type, details, searchInput, quickFilter
                 <div class="fv-folder-filter-quick"></div>
             </div>
         `);
-        const pathHint = $(`#${resolvedType}-tree-path-hint`);
-        if (pathHint.length) {
-            pathHint.replaceWith(strip);
-        } else {
-            details.after(strip);
-        }
+        const undoBanner = $(`#${resolvedType}-tree-undo-banner`);
+        (undoBanner.length ? undoBanner : details).after(strip);
     }
 
     const searchHost = strip.find('.fv-folder-filter-search');
@@ -7683,38 +7496,38 @@ const buildRuleSummaryCopy = (type, rule, folderName) => {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         const qualifier = rule?.labelValue ? `equals "${rule.labelValue}"` : 'exists';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} ${qualifier}`,
+            summary: surfaceT("legacy.surface.f576d04517525a87", "$1 $2 when label $3 $4", effect, targetLabel, labelKey, qualifier),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'label_contains') {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} contains "${String(rule?.labelValue || '').trim()}"`,
+            summary: surfaceT("legacy.surface.1d1c4838aa8f4657", "$1 $2 when label $3 contains \"$4\"", effect, targetLabel, labelKey, String(rule?.labelValue || '').trim()),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'label_starts_with') {
         const labelKey = String(rule?.labelKey || '').trim() || '(missing key)';
         return {
-            summary: `${effect} ${targetLabel} when label ${labelKey} starts with "${String(rule?.labelValue || '').trim()}"`,
+            summary: surfaceT("legacy.surface.3f5ddc07a8175c9e", "$1 $2 when label $3 starts with \"$4\"", effect, targetLabel, labelKey, String(rule?.labelValue || '').trim()),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'image_regex') {
         return {
-            summary: `${effect} ${targetLabel} when image matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+            summary: surfaceT("legacy.surface.aed5ef27f201c1d1", "$1 $2 when image matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
             detail: `Target folder: ${folderName}`
         };
     }
     if (kind === 'compose_project_regex') {
         return {
-            summary: `${effect} ${targetLabel} when compose project matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+            summary: surfaceT("legacy.surface.7c6eb147454e21bf", "$1 $2 when compose project matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
             detail: `Target folder: ${folderName}`
         };
     }
     return {
-        summary: `${effect} ${targetLabel} when name matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
+        summary: surfaceT("legacy.surface.fcd15b6a2b5624e5", "$1 $2 when name matches $3", effect, targetLabel, String(rule?.pattern || '(empty)').trim() || '(empty)'),
         detail: `Target folder: ${folderName}`
     };
 };
@@ -7937,7 +7750,7 @@ const renderSmartRuleSuggestions = (type, suggestions = null) => {
                 <span>${escapeHtml(suggestion.detail)}</span>
                 <small>${escapeHtml(suggestion.source)} | ${escapeHtml(suggestion.matches.slice(0, 5).join(', '))}${suggestion.matches.length > 5 ? escapeHtml(` + ${suggestion.matches.length - 5} more`) : ''}</small>
             </span>
-            <span class="fv-rule-suggestion-count">${escapeHtml(String(suggestion.matches.length))} match${suggestion.matches.length === 1 ? '' : 'es'}</span>
+            <span class="fv-rule-suggestion-count">${escapeHtml(surfaceT("common.runtime.matches-1", "Matches: $1", suggestion.matches.length))}</span>
         </label>
     `).join(''));
 };
@@ -7947,7 +7760,7 @@ const scanSmartRuleSuggestions = (type) => {
     const suggestions = generateSmartRuleSuggestions(resolvedType);
     smartRuleSuggestionCacheByType[resolvedType] = suggestions;
     renderSmartRuleSuggestions(resolvedType, suggestions);
-    addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule scan found ${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'}.`, suggestions.length ? 'info' : 'warning');
+    addActivityEntry(surfaceT("common.repair.1-smart-rule-scan-suggestions-found-2-f5de01", "$1 smart rule scan � suggestions found: $2.", resolvedType === "docker" ? "Docker" : "VM", suggestions.length), suggestions.length ? 'info' : 'warning');
 };
 
 const saveSelectedSmartRuleSuggestions = async (type) => {
@@ -7979,9 +7792,9 @@ const saveSelectedSmartRuleSuggestions = async (type) => {
         smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
         renderSmartRuleSuggestions(resolvedType);
         renderRulesTable(resolvedType);
-        addActivityEntry(`Saved ${nextRules.length} ${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule suggestion${nextRules.length === 1 ? '' : 's'}.`, 'success');
+        addActivityEntry(surfaceT("common.repair.2-smart-rule-suggestions-saved-1-24da17", "$2 smart rule suggestions saved: $1.", nextRules.length, resolvedType === "docker" ? "Docker" : "VM"), 'success');
     } catch (error) {
-        showError('Smart suggestion save failed', error);
+        showError(surfaceT("common.repair.smart-suggestion-save-failed-dcdef2", "Smart suggestion save failed"), error);
     }
 };
 
@@ -8087,7 +7900,7 @@ const renderRulesOverview = (type, rules, filteredRules) => {
 
     let statusText = 'No rules yet';
     let headlineText = `No ${type === 'docker' ? 'Docker' : 'VM'} rules yet.`;
-    let detailText = `Create your first ${type === 'docker' ? 'Docker container' : 'VM'} rule to automatically sort new items into the right folder.`;
+    let detailText = type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first Docker container rule to automatically sort new items into the right folder.") : surfaceT("common.runtime.create-your-first-vm-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first VM rule to automatically sort new items into the right folder.");
 
     if (totalCount > 0 && invalidCount > 0) {
         statusText = 'Needs review';
@@ -8115,7 +7928,7 @@ const renderRulesOverview = (type, rules, filteredRules) => {
     if (detailEl instanceof HTMLElement) {
         const filteredCount = Array.isArray(filteredRules) ? filteredRules.length : 0;
         detailEl.textContent = filteredCount !== totalCount && totalCount > 0
-            ? `${detailText} Showing ${filteredCount} of ${totalCount} rule${totalCount === 1 ? '' : 's'} from the current filter.`
+            ? surfaceT("common.repair.1-rules-matching-the-current-filter-2-of-3-061470", "$1 Rules matching the current filter: $2 of $3.", detailText, filteredCount, totalCount)
             : detailText;
     }
 
@@ -8198,7 +8011,7 @@ const renderRulesTable = (type) => {
         } else if (selectedShownCount > 0) {
             selectionSummary.textContent = `${selectedShownCount} selected of ${filteredRules.length} shown. Use the bulk actions above to update them together.`;
         } else if (filter) {
-            selectionSummary.textContent = `Showing ${filteredRules.length} matching rule${filteredRules.length === 1 ? '' : 's'}.`;
+            selectionSummary.textContent = surfaceT("common.repair.matching-rules-shown-1-0b0157", "Matching rules shown: $1.", filteredRules.length);
         } else {
             selectionSummary.textContent = `Review the priority order below. The first matching rule wins.`;
         }
@@ -8206,10 +8019,10 @@ const renderRulesTable = (type) => {
 
     if (!filteredRules.length) {
         const hasFilter = filter.length > 0;
-        const title = hasFilter ? 'No rules match your search.' : 'No rules defined yet.';
+        const title = hasFilter ? surfaceT("common.runtime.no-rules-match-your-search", "No rules match your search.") : surfaceT("common.runtime.no-rules-defined-yet", "No rules defined yet.");
         const help = hasFilter
             ? 'Try a different search term or clear the rule filter.'
-            : `Create your first ${type === 'docker' ? 'Docker container' : 'VM'} rule above.`;
+            : (type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-above", "Create your first Docker container rule above.") : surfaceT("common.runtime.create-your-first-vm-rule-above", "Create your first VM rule above."));
         rulesBody.html(`<div class="fv-rule-list-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(help)}</span></div>`);
         return;
     }
@@ -8281,8 +8094,6 @@ const renderBackupRows = (type) => {
 // folderviewplus.import.js provides backup comparison helpers.
 
 const normalizeOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeOperationsWorkspaceType(...args);
-const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buildOperationsOverviewHtml(...args);
-const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
 const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
 const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
 const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
@@ -8383,13 +8194,13 @@ const persistQueuedDockerStartOrderPrefs = () => {
     dockerStartOrderQueuedPrefs = null;
     dockerStartOrderSaveChain = dockerStartOrderSaveChain
         .then(async () => {
-            const savedPrefs = await postPrefs('docker', nextPrefs);
+            const savedPrefs = await postPrefs('docker', nextPrefs, { currentPrefs: prefsByType.docker });
             if (!dockerStartOrderQueuedPrefs) {
                 prefsByType.docker = savedPrefs;
             }
         })
         .catch((error) => {
-            showError('Docker start order save failed', error);
+            showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
         });
     return dockerStartOrderSaveChain;
 };
@@ -8404,7 +8215,7 @@ const flushDockerStartOrderSaveQueue = async () => {
 };
 
 const queueDockerStartOrderPrefsSave = (nextPrefs) => {
-    dockerStartOrderQueuedPrefs = nextPrefs;
+    dockerStartOrderQueuedPrefs = prefsStoreModule.mergePatch(dockerStartOrderQueuedPrefs || {}, nextPrefs);
     if (dockerStartOrderSaveTimer) {
         window.clearTimeout(dockerStartOrderSaveTimer);
     }
@@ -8438,7 +8249,7 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     });
     prefsByType.docker = nextPrefs;
     renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
-    queueDockerStartOrderPrefsSave(nextPrefs);
+    queueDockerStartOrderPrefsSave({ dockerStartOrder: Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]])) });
     if (options.refreshPreview === true) {
         scheduleDockerStartOrderPreviewRefresh();
     }
@@ -8449,7 +8260,7 @@ const updateDockerStartOrderMode = async (mode) => {
     try {
         await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start order save failed', error);
+        showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
     }
 };
 
@@ -8458,7 +8269,7 @@ const updateDockerStartOrderRemaining = async (value) => {
     try {
         await saveDockerStartOrderPlan({ remaining: normalized }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start order save failed', error);
+        showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
     }
 };
 
@@ -8479,7 +8290,7 @@ const addDockerStartOrderBatch = async () => {
     try {
         await saveDockerStartOrderPlan({ mode: 'custom-batches', batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch add failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-add-failed-29b120", "Docker start batch add failed"), error);
     }
 };
 
@@ -8507,7 +8318,7 @@ const updateDockerStartOrderBatch = async (batchId, key, value) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch save failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-save-failed-9c32df", "Docker start batch save failed"), error);
     }
 };
 
@@ -8523,7 +8334,7 @@ const moveDockerStartOrderBatch = async (batchId, direction) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch move failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-move-failed-647a75", "Docker start batch move failed"), error);
     }
 };
 
@@ -8533,7 +8344,7 @@ const removeDockerStartOrderBatch = async (batchId) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start batch remove failed', error);
+        showError(surfaceT("common.repair.docker-start-batch-remove-failed-110848", "Docker start batch remove failed"), error);
     }
 };
 
@@ -8568,7 +8379,7 @@ const addDockerStartOrderItem = async (batchId, itemType) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item add failed', error);
+        showError(surfaceT("common.repair.docker-start-item-add-failed-6dbbd5", "Docker start item add failed"), error);
     }
 };
 
@@ -8590,7 +8401,7 @@ const moveDockerStartOrderItem = async (batchId, itemIndex, direction) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item move failed', error);
+        showError(surfaceT("common.repair.docker-start-item-move-failed-fea5a2", "Docker start item move failed"), error);
     }
 };
 
@@ -8607,7 +8418,7 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
     try {
         await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
-        showError('Docker start item remove failed', error);
+        showError(surfaceT("common.repair.docker-start-item-remove-failed-8277f0", "Docker start item remove failed"), error);
     }
 };
 
@@ -8675,9 +8486,9 @@ const syncDockerStartOrderNow = async () => {
             action: 'sync'
         });
         renderDockerStartOrderPreview(response?.preview || {});
-        setUpdateStatus('Docker start order synced.');
+        setUpdateStatus(surfaceT("common.repair.docker-start-order-synced-f11013", "Docker start order synced."));
     } catch (error) {
-        showError('Docker start order sync failed', error);
+        showError(surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed"), error);
     }
 };
 
@@ -8708,7 +8519,6 @@ const renderSettingsSecondarySurfaces = (type) => {
         syncRecoveryWorkspaceUi();
     }
     if (shouldRefreshSecondaryAdvancedGroup('operations')) {
-        renderOperationsOverview(resolvedType);
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
     }
@@ -8746,8 +8556,6 @@ const renderActiveAdvancedSecondarySurfaces = () => {
         syncRecoveryWorkspaceUi();
     }
     if (shouldRefreshSecondaryAdvancedGroup('operations')) {
-        renderOperationsOverview('docker');
-        renderOperationsOverview('vm');
         renderTemplateRows('docker');
         renderTemplateRows('vm');
         renderOperationsWorkspace();
@@ -8868,12 +8676,11 @@ const renderTable = (type) => {
     applyColumnWidths(type);
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
-    updateMobileTreePathHint(type);
     scheduleSettingsSecondarySurfaces(type, { immediate: settingsUiState.initialized !== true });
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {
-    const prefix = `${String(type || '').toUpperCase()} ${String(area || '').trim()} failed to load`;
+    const prefix = surfaceT("legacy.surface.a68d30b6fd7a95b3", "$1 $2 failed to load", String(type || '').toUpperCase(), String(area || '').trim());
     const message = trimFatalBannerDiagnosticString(error?.message || error);
     return message ? `${prefix}: ${message}` : prefix;
 };
@@ -8923,6 +8730,7 @@ const fetchSettingsCombinedConfigSnapshots = async () => {
 
 const refreshType = async (type, options = {}) => {
     const startedAt = perfNowMs();
+    const coldLoad = settingsUiState.initialized !== true;
     const render = options?.render !== false;
     const configOnly = options?.configOnly === true;
     recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
@@ -9018,7 +8826,8 @@ const refreshType = async (type, options = {}) => {
         recordPerformanceDiagnosticsSample('runtimeHydration', type, perfNowMs() - startedAt, {
             folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
             infoCount: Object.keys(info || {}).length,
-            coldLoad: settingsUiState.initialized !== true,
+            coldLoad,
+            classificationVersion: 2,
             dataSource,
             requestCount
         });
@@ -9072,18 +8881,22 @@ const isAdvancedModuleStale = (moduleKey, force = false) => {
     return !Number.isFinite(age) || age >= ADVANCED_MODULE_STALE_MS;
 };
 
+const backupRefreshSequence = { docker: 0, vm: 0 };
 const refreshBackups = async (type, { quiet = false } = {}) => {
     const resolvedType = normalizeManagedType(type);
+    const sequence = ++backupRefreshSequence[resolvedType];
     const moduleKey = `${resolvedType}_backups`;
     setAdvancedModuleStatus(moduleKey, 'loading');
     try {
-        backupsByType[resolvedType] = await fetchBackups(resolvedType);
+        const backups = await fetchBackups(resolvedType);
+        if (sequence !== backupRefreshSequence[resolvedType]) return false;
+        backupsByType[resolvedType] = backups;
         markAdvancedModuleLoadSuccess(moduleKey);
     } catch (error) {
-        backupsByType[resolvedType] = [];
+        if (sequence !== backupRefreshSequence[resolvedType]) return false;
         markAdvancedModuleLoadError(moduleKey, error);
         if (!quiet) {
-            showError(`Failed to load ${resolvedType.toUpperCase()} backups`, error);
+            showError(surfaceT("legacy.surface.e383df7f2914879e", 'Failed to load $1 backups', resolvedType === 'docker' ? 'Docker' : 'VM'), error);
         }
         renderBackupRows(resolvedType);
         renderBackupScheduleControls(resolvedType);
@@ -9109,13 +8922,11 @@ const refreshTemplates = async (type, { quiet = false } = {}) => {
         if (!quiet) {
             showError(`Failed to load ${resolvedType.toUpperCase()} templates`, error);
         }
-        renderOperationsOverview(resolvedType);
         renderTemplateRows(resolvedType);
         renderOperationsWorkspace();
         refreshSettingsUx();
         return false;
     }
-    renderOperationsOverview(resolvedType);
     renderTemplateRows(resolvedType);
     renderOperationsWorkspace();
     refreshSettingsUx();
@@ -9343,7 +9154,7 @@ const downloadType = async (type, id) => {
                 folderCount: 1,
                 schemaVersion: utils.EXPORT_SCHEMA_VERSION
             });
-            setProgress(progressTotal, 'Export download requested.');
+            setProgress(progressTotal, surfaceT("common.repair.export-download-requested-0c4d2a", "Export download requested."));
             await trackDiagnosticsEvent({
                 eventType: 'export',
                 type: resolvedType,
@@ -9376,7 +9187,7 @@ const downloadType = async (type, id) => {
             folderCount: Object.keys(folders).length,
             schemaVersion: utils.EXPORT_SCHEMA_VERSION
         });
-        setProgress(progressTotal, 'Export download requested.');
+        setProgress(progressTotal, surfaceT("common.repair.export-download-requested-0c4d2a", "Export download requested."));
         await trackDiagnosticsEvent({
             eventType: 'export',
             type: resolvedType,
@@ -9400,7 +9211,7 @@ const downloadType = async (type, id) => {
                 status: 'error',
                 details: buildDownloadDiagnosticsEventDetails(error.fvplusDownloadAttempt)
             });
-            renderDownloadAttemptStatus(error.fvplusDownloadAttempt);
+            window.FolderViewPlusFoundationModules.downloadStatus.render(error.fvplusDownloadAttempt);
         }
         showError('Export failed', error);
     } finally {
@@ -9502,19 +9313,19 @@ const importType = async (type) => {
     try {
         openImportApplyProgressDialog(resolvedType, progressTotal);
         progressOpen = true;
-        setProgress(0, 'Creating safety backup...');
+        setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
         transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
         setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
 
         await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
             const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
-            setProgress(batchComplete ? 2 : 1, label || 'Applying import transaction...');
+            setProgress(batchComplete ? 2 : 1, label || surfaceT("common.repair.applying-import-transaction-464c56", "Applying import transaction..."));
         });
 
         setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        setProgress(progressTotal, 'Import complete.');
+        setProgress(progressTotal, surfaceT("common.repair.import-complete-80e3a5", "Import complete."));
         closeImportApplyProgressDialog();
         progressOpen = false;
 
@@ -9530,9 +9341,9 @@ const importType = async (type) => {
         });
         const affectedFolderIds = resolveAffectedFolderIdsFromOperations(resolvedType, operations);
         const summaryBits = [
-            `${operations.creates.length} create${operations.creates.length === 1 ? '' : 's'}`,
-            `${operations.upserts.length} update${operations.upserts.length === 1 ? '' : 's'}`,
-            `${operations.deletes.length} delete${operations.deletes.length === 1 ? '' : 's'}`
+            surfaceT("common.repair.creates-1-353b67", "Creates: $1", operations.creates.length),
+            surfaceT("common.repair.updates-1-27085d", "Updates: $1", operations.upserts.length),
+            surfaceT("common.repair.deletes-1-a0fb91", "Deletes: $1", operations.deletes.length)
         ];
         showActionSummaryToast({
             title: `${resolvedType === 'docker' ? 'Docker' : 'VM'} import applied`,
@@ -9626,16 +9437,16 @@ const clearType = (type, id) => {
                     : 'Do not close this page until all folders are cleared.'
             });
             progressOpen = true;
-            setProgress(0, 'Creating safety backup...', {
-                current: 'Creating a rollback point before deleting anything.',
+            setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."), {
+                current: surfaceT("common.repair.creating-a-rollback-point-before-deleting-anything-affbe8", "Creating a rollback point before deleting anything."),
                 deletedCount: 0
             });
 
             const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
             const backupSkipped = backup?.skipped === true;
-            setProgress(1, backupSkipped ? 'Safety backup skipped: no folders to protect.' : `Safety backup created: ${backup?.name || 'ready'}`, {
+            setProgress(1, backupSkipped ? surfaceT("common.repair.safety-backup-skipped-no-folders-to-protect-044e05", "Safety backup skipped: no folders to protect.") : `Safety backup created: ${backup?.name || 'ready'}`, {
                 current: backupSkipped
-                    ? 'No backup file was created because the folder map is empty.'
+                    ? surfaceT("common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a", "No backup file was created because the folder map is empty.")
                     : `Backup ready: ${backup?.name || 'rollback point created'}`,
                 deletedCount: 0
             });
@@ -9667,17 +9478,17 @@ const clearType = (type, id) => {
             }
 
             setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
-                current: 'Refreshing settings table and backups.',
+                current: surfaceT("common.repair.refreshing-settings-table-and-backups-e72473", "Refreshing settings table and backups."),
                 deletedCount
             });
             await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.', {
-                current: id ? 'Cleanup complete.' : `${deletedCount} folders removed. Settings table refreshed.`,
+            setProgress(progressTotal, id ? surfaceT("common.repair.folder-deleted-048562", "Folder deleted.") : surfaceT("common.repair.all-folders-cleared-a7b85c", "All folders cleared."), {
+                current: id ? surfaceT("common.repair.cleanup-complete-922445", "Cleanup complete.") : `${deletedCount} folders removed. Settings table refreshed.`,
                 state: 'success',
                 deletedCount,
                 completedLabel: deletedCount,
                 remainingLabel: 0,
-                note: 'Cleanup complete. The settings view has been refreshed.'
+                note: surfaceT("common.repair.cleanup-complete-the-settings-view-has-been-refreshed-be91cd", "Cleanup complete. The settings view has been refreshed.")
             });
             closeImportApplyProgressDialog();
             progressOpen = false;
@@ -9694,7 +9505,7 @@ const clearType = (type, id) => {
                 title: id ? 'Folder deleted' : 'Folders cleared',
                 message: id
                     ? `Deleted ${folderName || id}.`
-                    : `Deleted ${deleteIds.length} folder${deleteIds.length === 1 ? '' : 's'}.`,
+                    : surfaceT("common.repair.folders-deleted-1-846e55", "Folders deleted: $1.", deleteIds.length),
                 level: 'success'
             });
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
@@ -9794,7 +9605,7 @@ const changeSortMode = async (type, mode) => {
             render: () => renderTable(resolvedType)
         });
     } catch (error) {
-        showError('Sort mode save failed', error);
+        showError(surfaceT("common.repair.sort-mode-save-failed-048126", "Sort mode save failed"), error);
     }
 };
 
@@ -9812,7 +9623,7 @@ const saveCurrentFolderOrderAsManual = async (type) => {
         await persistManualOrder(resolvedType, order);
         addActivityEntry(`Saved current ${resolvedType === 'vm' ? 'VM' : 'Docker'} folder order as Manual.`, 'success');
     } catch (error) {
-        showError('Manual order save failed', error);
+        showError(surfaceT("common.repair.manual-order-save-failed-dbf01d", "Manual order save failed"), error);
     }
 };
 
@@ -9836,7 +9647,7 @@ const changeBadgePref = async (type, badgeKey, checked) => {
             render: () => renderBadgeToggles(resolvedType)
         });
     } catch (error) {
-        showError('Badge preferences save failed', error);
+        showError(surfaceT("common.repair.badge-preferences-save-failed-a772c1", "Badge preferences save failed"), error);
     }
 };
 
@@ -9864,7 +9675,7 @@ const changeVisibilityPref = async (type, key, value) => {
         });
     } catch (error) {
         renderVisibilityControls(resolvedType);
-        showError('Visibility preference save failed', error);
+        showError(surfaceT("common.repair.visibility-preference-save-failed-5393c7", "Visibility preference save failed"), error);
     }
 };
 
@@ -9903,7 +9714,7 @@ const changeStatusPref = async (type, key, value) => {
         });
     } catch (error) {
         renderStatusControls(resolvedType);
-        showError('Status preferences save failed', error);
+        showError(surfaceT("common.repair.status-preferences-save-failed-ca7385", "Status preferences save failed"), error);
     }
 };
 
@@ -10045,7 +9856,7 @@ const changeHealthPref = async (type, key, value) => {
         });
     } catch (error) {
         renderHealthControls(resolvedType);
-        showError('Health preferences save failed', error);
+        showError(surfaceT("common.repair.health-preferences-save-failed-675fe9", "Health preferences save failed"), error);
     }
 };
 
@@ -10075,12 +9886,8 @@ const toggleFolderPin = async (type, folderId) => {
                 timestamp: Date.now()
             })
         });
-        const backup = latestPrefsBackupByType[resolvedType];
-        if (backup?.name) {
-            await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
-        }
     } catch (error) {
-        showError('Pin update failed', error);
+        showError(surfaceT("common.repair.pin-update-failed-cd5726", "Pin update failed"), error);
     }
 };
 
@@ -10131,7 +9938,7 @@ const changeRuntimePref = async (type, key, value) => {
             }
         });
     } catch (error) {
-        showError('Runtime preference sync pending', error);
+        showError(surfaceT("common.repair.runtime-preference-sync-pending-fa357c", "Runtime preference sync pending"), error);
     }
 };
 
@@ -10214,7 +10021,7 @@ const changeDashboardPref = async (type, key, value) => {
             });
         }
         renderDashboardControls(resolvedType);
-        showError('Dashboard preference save failed', error);
+        showError(surfaceT("common.repair.dashboard-preference-save-failed-1749a1", "Dashboard preference save failed"), error);
     }
 };
 
@@ -10228,7 +10035,7 @@ const changeBackupSchedulePref = async (type, key, value) => {
         schedule.enabled = value === true;
     } else if (key === 'intervalHours') {
         const parsed = Number(value);
-        schedule.intervalHours = Number.isFinite(parsed) ? Math.min(168, Math.max(1, Math.round(parsed))) : schedule.intervalHours || 24;
+        schedule.intervalHours = Number.isFinite(parsed) ? Math.min(168, Math.max(1, Math.round(parsed))) : schedule.intervalHours || 1;
     } else if (key === 'retention') {
         const parsed = Number(value);
         schedule.retention = Number.isFinite(parsed) ? Math.min(200, Math.max(1, Math.round(parsed))) : schedule.retention || 25;
@@ -10246,7 +10053,7 @@ const changeBackupSchedulePref = async (type, key, value) => {
             renderRecoveryWorkspace(type);
         }
     } catch (error) {
-        showError('Backup schedule save failed', error);
+        showError(surfaceT("common.repair.backup-schedule-save-failed-c985ba", "Backup schedule save failed"), error);
     }
 };
 
@@ -10318,7 +10125,7 @@ const addAutoRule = async (type) => {
         $(`#${type}-rule-effect`).val('include');
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule save failed', error);
+        showError(surfaceT("common.repair.rule-save-failed-a631c5", "Rule save failed"), error);
     }
 };
 
@@ -10341,7 +10148,7 @@ const toggleAutoRule = async (type, ruleId) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule update failed', error);
+        showError(surfaceT("common.repair.rule-update-failed-787ca0", "Rule update failed"), error);
     }
 };
 
@@ -10354,7 +10161,7 @@ const deleteAutoRule = async (type, ruleId) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule delete failed', error);
+        showError(surfaceT("common.repair.rule-delete-failed-c92311", "Rule delete failed"), error);
     }
 };
 
@@ -10381,7 +10188,7 @@ const moveAutoRule = async (type, ruleId, direction) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule reorder failed', error);
+        showError(surfaceT("common.repair.rule-reorder-failed-a25aec", "Rule reorder failed"), error);
     }
 };
 
@@ -10392,7 +10199,7 @@ const toggleRuleKindFields = (type) => {
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
     const simpleKinds = ['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals'];
     const placeholderByKind = {
-        name_contains: 'Text in the name (example: arr)',
+        name_contains: surfaceT("common.runtime.text-in-the-name-example-arr", "Text in the name (example: arr)"),
         name_starts_with: 'Text at the start of the name (example: prod-)',
         image_contains: 'Text in the image (example: linuxserver/sonarr)',
         compose_project_equals: 'Compose project name (example: media)',
@@ -10576,6 +10383,7 @@ const assignSelectedItems = (...args) => getBulkAssignmentApi().assignSelectedIt
 
 const previewFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().previewFolderRuntimeAction(...args);
 const applyFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().applyFolderRuntimeAction(...args);
+const invalidateFolderRuntimePreview = (...args) => getSettingsRuntimeActionsApi().invalidateFolderRuntimePreview(...args);
 
 const undoLatestChange = (type) => {
     let resolvedType;
@@ -10619,7 +10427,7 @@ const createManualBackup = async (type) => {
     try {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
-        showError('Backup failed', error);
+        showError(surfaceT("common.repair.backup-failed-0e7112", "Backup failed"), error);
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
@@ -10642,8 +10450,9 @@ const createManualBackup = async (type) => {
                 text: backup?.name || 'Backup ready.',
                 type: 'success'
             });
+            addActivityEntry(surfaceT('settings.activity.backup-created', '$1 backup created.', resolvedType === 'docker' ? 'Docker' : 'VM'), 'success');
         } catch (error) {
-            showError('Backup failed', error);
+            showError(surfaceT("common.repair.backup-failed-0e7112", "Backup failed"), error);
         }
     });
 };
@@ -10661,7 +10470,7 @@ const restoreBackupEntry = (type, name) => {
     }
     swal({
         title: 'Restore this backup?',
-        text: `This will overwrite current ${resolvedType} folders.`,
+        text: surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -10673,10 +10482,9 @@ const restoreBackupEntry = (type, name) => {
         }
         await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup restore`, async () => {
             try {
-                const undoBackup = await createBackup(resolvedType, `before-restore-${name}`);
-                await restoreBackupByName(resolvedType, name);
+                const restore = await restoreBackupByName(resolvedType, name, true);
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-                await offerUndoAction(resolvedType, undoBackup, 'Backup restore');
+                await offerUndoAction(resolvedType, restore.backup, 'Backup restore');
             } catch (error) {
                 showError('Restore failed', error);
             }
@@ -10697,7 +10505,7 @@ const restoreLatestBackup = (type) => {
     }
     swal({
         title: 'Restore latest backup?',
-        text: `This will overwrite current ${resolvedType} folders with the latest backup snapshot.`,
+        text: surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -10720,17 +10528,16 @@ const restoreLatestBackup = (type) => {
             try {
                 openImportApplyProgressDialog(resolvedType, progressTotal);
                 progressOpen = true;
-                setProgress(0, 'Creating safety backup...');
+                setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
-                const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
+                const restore = await restoreLatest(resolvedType), undoBackup = restore.backup;
                 setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
 
-                await restoreLatest(resolvedType);
                 setProgress(2, 'Restored latest backup snapshot.');
 
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
                 setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
-                setProgress(progressTotal, 'Restore complete.');
+                setProgress(progressTotal, surfaceT("common.repair.restore-complete-8f83d9", "Restore complete."));
                 await new Promise((resolve) => setTimeout(resolve, 180));
                 closeImportApplyProgressDialog();
                 progressOpen = false;
@@ -10756,12 +10563,12 @@ const downloadBackupEntry = async (type, name) => {
     }
     const resolvedName = String(name || '').trim();
     if (!resolvedName) {
-        showError('Download failed', new Error('Backup name is required.'));
+        showError('Download failed', new Error(surfaceT("common.repair.backup-name-is-required-eefae5", "Backup name is required.")));
         return;
     }
 
     if (!requestClient || typeof requestClient.postBlob !== 'function') {
-        showError('Download failed', new Error('The secured download client is unavailable. Refresh the page and try again.'));
+        showError('Download failed', new Error(surfaceT("common.repair.the-secured-download-client-is-unavailable-refresh-the-page-and-t-e1ff23", "The secured download client is unavailable. Refresh the page and try again.")));
         return;
     }
     try {
@@ -10780,7 +10587,8 @@ const downloadBackupEntry = async (type, name) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(objectUrl);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        addActivityEntry(surfaceT('settings.activity.backup-download', '$1 backup download started. Check your browser downloads for the saved file.', resolvedType === 'docker' ? 'Docker' : 'VM'), 'success');
     } catch (error) {
         showError('Download failed', error);
     }
@@ -10813,6 +10621,7 @@ const deleteBackupEntry = (type, name) => {
             try {
                 backupsByType[resolvedType] = await deleteBackupByName(resolvedType, name);
                 renderBackupRows(resolvedType);
+                addActivityEntry(surfaceT('diagnostics.history.backup-deleted', 'Backup deleted'), 'success');
             } catch (error) {
                 showError('Delete failed', error);
             }
@@ -10825,21 +10634,21 @@ const deleteAllBackupEntries = (type) => {
     try {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
-        showError('Delete all backups failed', error);
+        showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), error);
         return;
     }
     const label = resolvedType === 'docker' ? 'Docker' : 'VM';
     const count = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].length : 0;
     if (count < 1) {
-        showError('Delete all backups failed', new Error(`No ${label} backups are available to delete.`));
+        showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), new Error(surfaceT("common.server.no-backups", "No backups available.")));
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Delete all ${label} backups`)) {
         return;
     }
     swal({
-        title: `Delete all ${label} backups?`,
-        text: `This will permanently delete ${count} ${label} backup snapshot${count === 1 ? '' : 's'}. This cannot be undone.`,
+        title: surfaceT("legacy.surface.8c3bcd3c9e28bb6f", "Delete all $1 backups?", label),
+        text: surfaceT("common.counts.delete-backups", "Permanently delete $1 backup snapshots (count: $2)? This cannot be undone.", label, count),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Continue',
@@ -10850,7 +10659,7 @@ const deleteAllBackupEntries = (type) => {
         }
         swal({
             title: 'Confirm delete all',
-            text: `Are you sure you want to delete every ${label} backup snapshot?`,
+            text: surfaceT("legacy.surface.1e98433fc8e58ec2", "Are you sure you want to delete every $1 backup snapshot?", label),
             type: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete all',
@@ -10866,10 +10675,10 @@ const deleteAllBackupEntries = (type) => {
                     backupsByType[resolvedType] = response.backups;
                     const deletedCount = Number(response.result?.deletedCount || 0);
                     const failedCount = Number(response.result?.failedCount || 0);
-                    addActivityEntry(`Deleted ${deletedCount} ${label} backup snapshot${deletedCount === 1 ? '' : 's'}${failedCount > 0 ? `; ${failedCount} failed` : ''}.`, failedCount > 0 ? 'warning' : 'success');
+                    addActivityEntry(surfaceT("common.counts.backups-deleted", "Backup deletion ($1): deleted $2; failed $3.", label, deletedCount, failedCount), failedCount > 0 ? 'warning' : 'success');
                     renderBackupRows(resolvedType);
                 } catch (error) {
-                    showError('Delete all backups failed', error);
+                    showError(surfaceT("common.repair.delete-all-backups-failed-0c0f29", "Delete all backups failed"), error);
                 }
             });
         });
@@ -10918,14 +10727,15 @@ const createTemplateFromFolder = async (type) => {
             templatesByType[type] = await createTemplate(type, folderId, templateName);
             markAdvancedModuleLoadSuccess(`${type}_templates`);
             $(`#${type}-template-name`).val('');
+            $(`#${type}-operations-template-search`).val('');
+            selectedOperationsTemplateIdByType[type] = String(templatesByType[type][templatesByType[type].length - 1]?.id || '');
             setInlineValidationHint(`${type}-template-validation`, '', 'info');
-            renderOperationsOverview(type);
             renderTemplateRows(type);
             renderOperationsWorkspace();
             swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
         } catch (error) {
             markAdvancedModuleLoadError(`${type}_templates`, error);
-            showError('Template create failed', error);
+            showError(surfaceT("common.repair.template-create-failed-408a7a", "Template create failed"), error);
         }
     });
 };
@@ -10944,7 +10754,7 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
         text: 'This overwrites icon/settings/actions/regex on the target folder.',
         type: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Apply',
+        confirmButtonText: surfaceT("common.actions.apply", "Apply"),
         cancelButtonText: 'Cancel',
         showLoaderOnConfirm: true
     }, async (confirmed) => {
@@ -10966,7 +10776,7 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
                 });
                 await offerUndoAction(type, backup, 'Template apply');
             } catch (error) {
-                showError('Template apply failed', error);
+                showError(surfaceT("common.repair.template-apply-failed-e0f788", "Template apply failed"), error);
             }
         });
     });
@@ -10992,12 +10802,11 @@ const deleteTemplateEntry = (type, templateId) => {
             try {
                 templatesByType[type] = await deleteTemplate(type, templateId);
                 markAdvancedModuleLoadSuccess(`${type}_templates`);
-                renderOperationsOverview(type);
                 renderTemplateRows(type);
                 renderOperationsWorkspace();
             } catch (error) {
                 markAdvancedModuleLoadError(`${type}_templates`, error);
-                showError('Template delete failed', error);
+                showError(surfaceT("common.repair.template-delete-failed-06bfa7", "Template delete failed"), error);
             }
         });
     });
@@ -11077,7 +10886,7 @@ const bulkRuleAction = async (type, action) => {
                 selectedRuleIdsByType[type] = new Set();
                 renderRulesTable(type);
             } catch (error) {
-                showError('Rule delete failed', error);
+                showError(surfaceT("common.repair.rule-delete-failed-c92311", "Rule delete failed"), error);
             }
         });
         return;
@@ -11096,7 +10905,7 @@ const bulkRuleAction = async (type, action) => {
         });
         renderRulesTable(type);
     } catch (error) {
-        showError('Rule bulk update failed', error);
+        showError(surfaceT("common.repair.rule-bulk-update-failed-7a7db9", "Rule bulk update failed"), error);
     }
 };
 
@@ -11150,7 +10959,7 @@ const applyRuleSimulatorAssignments = (type) => {
 
     swal({
         title: 'Apply previewed assignments?',
-        text: `This will assign ${targetRows.length} ${resolvedType === 'docker' ? 'container' : 'VM'}${targetRows.length === 1 ? '' : 's'} across ${byFolder.size} folder${byFolder.size === 1 ? '' : 's'}. A backup will be created first.`,
+        text: surfaceT("common.counts.assign-folders", "Items to assign: $1. Destination folders: $2. A backup will be created first.", targetRows.length, byFolder.size),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Apply assignments',
@@ -11205,7 +11014,7 @@ const applyRuleSimulatorAssignments = (type) => {
                     level: failedCount > 0 ? 'warning' : 'success',
                     type: resolvedType
                 });
-                addActivityEntry(`Applied ${assignedCount} ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignment${assignedCount === 1 ? '' : 's'}.`, failedCount > 0 ? 'warning' : 'success');
+                addActivityEntry(surfaceT("common.repair.2-rule-preview-assignments-applied-1-91085b", "$2 rule preview assignments applied: $1.", assignedCount, resolvedType === "docker" ? "Docker" : "VM"), failedCount > 0 ? 'warning' : 'success');
                 await trackDiagnosticsEvent({
                     eventType: 'rule_preview_apply',
                     type: resolvedType,
@@ -11219,7 +11028,7 @@ const applyRuleSimulatorAssignments = (type) => {
                 });
                 await offerUndoAction(resolvedType, backup, 'Rule preview assignment');
             } catch (error) {
-                showError('Rule preview assignment failed', error);
+                showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"), error);
             }
         });
     });
@@ -11301,7 +11110,7 @@ const bulkTemplateAction = (type, action) => {
                 renderTemplateRows(type);
             } catch (error) {
                 markAdvancedModuleLoadError(`${type}_templates`, error);
-                showError('Template bulk delete failed', error);
+                showError(surfaceT("common.repair.template-bulk-delete-failed-23b335", "Template bulk delete failed"), error);
             }
         });
     });
@@ -11378,7 +11187,6 @@ settingsActionSupportModule.registerActions(window, {
     importVm,
     clearDocker,
     clearVm,
-    toggleBasicSettingsPanel,
     fileManager,
     createRollbackCheckpoint,
     rollbackLatestCheckpoint,
@@ -11424,18 +11232,22 @@ settingsActionSupportModule.registerActions(window, {
     restoreLatestBackup,
     restoreLatestActiveRecoveryBackup,
     selectActiveRecoveryBackup,
+    toggleAllRecoverySnapshots,
+    toggleRecoveryDisclosure,
     restoreSelectedActiveRecoveryBackup,
     downloadSelectedActiveRecoveryBackup,
     deleteSelectedActiveRecoveryBackup,
     deleteAllActiveRecoveryBackups,
     compareBackupSnapshots,
     compareActiveRecoverySnapshots,
+    openActiveRecoverySnapshotCompare,
     restoreBackupEntry,
     downloadBackupEntry,
     deleteBackupEntry,
     deleteAllBackupEntries,
     previewFolderRuntimeAction,
     applyFolderRuntimeAction,
+    invalidateFolderRuntimePreview,
     refreshChangeHistory,
     undoLatestChange,
     undoActiveRecoveryChange,
@@ -11539,37 +11351,11 @@ if (window.FolderViewPlusUI?.registerAction) {
             activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(localStorage.getItem(OPERATIONS_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRulesWorkspaceType = normalizeRulesWorkspaceType(localStorage.getItem(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(localStorage.getItem(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
-            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
+            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'operations', false);
             settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
             settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
-            const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
-            const knownRaw = localStorage.getItem(ADVANCED_KNOWN_STORAGE_KEY);
-            settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
-            if (expandedRaw !== null) {
-                try {
-                    const expanded = JSON.parse(expandedRaw);
-                    settingsUiState.expandedAdvancedSections = new Set(
-                        Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                    );
-                } catch (_error) {
-                    settingsUiState.hasExpandedAdvancedPreference = false;
-                    settingsUiState.expandedAdvancedSections = new Set();
-                }
-            } else {
-                settingsUiState.expandedAdvancedSections = new Set();
-            }
-            if (knownRaw !== null) {
-                try {
-                    const known = JSON.parse(knownRaw);
-                    settingsUiState.knownAdvancedSections = new Set(
-                        Array.isArray(known) ? known.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                    );
-                } catch (_error) {
-                    settingsUiState.knownAdvancedSections = new Set();
-                }
-            } else {
-                settingsUiState.knownAdvancedSections = new Set();
-            }
+            removeSettingsStorage('fv.settings.advancedExpanded.v2');
+            removeSettingsStorage('fv.settings.advancedKnown.v1');
             restoreTableUiState();
             applySettingsLaunchOverrides({ persist: false });
         });
@@ -11626,7 +11412,7 @@ if (window.FolderViewPlusUI?.registerAction) {
                 lastAction: 'Initial Settings data load failed',
                 lastStep: 'Settings page kept visible after data load failure'
             });
-            showError('Initial data load failed', error);
+            showError(surfaceT("common.repair.initial-data-load-failed-dbf943", "Initial data load failed"), error);
         }
         await withFatalBannerPhase({
             phase: 'finalize',
@@ -11673,6 +11459,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
+        window.FolderViewPlusDiagnostics?.initialize?.();
         revealSettingsBootstrapSurface();
         void refreshPluginUpdateIndicator();
         hydrateActiveDiagnosticsPreview();
@@ -11732,6 +11519,6 @@ if (window.FolderViewPlusUI?.registerAction) {
                 category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
             });
         }
-        showError('Initialization failed', error);
+        showError(surfaceT("common.repair.initialization-failed-8dc5f7", "Initialization failed"), error);
     }
 })();

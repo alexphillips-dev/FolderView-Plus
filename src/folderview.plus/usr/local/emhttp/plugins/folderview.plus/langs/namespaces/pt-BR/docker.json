@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Ações do FolderView",
     "docker.actions.add-folder": "Adicionar Pasta",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Ferramentas",
     "docker.actions.show-empty": "Mostrar pastas vazias",
     "docker.actions.hide-empty": "Ocultar pastas vazias",
-    "docker.actions.clear-focus": "Limpar foco da pasta",
+    "docker.actions.clear-focus": "Limpar o filtro de foco da pasta",
     "docker.actions.refresh-state": "Atualizar estado da pasta",
     "docker.actions.bulk-assignment": "Atribuição em massa",
     "docker.actions.rules-workspace": "Espaço de trabalho de regras",
@@ -28,7 +29,7 @@
     "docker.preview.view-logs": "Ver registros",
     "docker.provider.hybrid-label": "WebGUI Unraid legado com dados GraphQL",
     "docker.health.api-summary": "API Docker: atualizações: $1, pronto para reconstruir: $2, órfão: $3, conflitos de porta: $4",
-    "docker.views.folderview": "FolderView",
+    "docker.views.folderview": "Visualização de pasta",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",
     "docker.privacy.label": "Privacidade",

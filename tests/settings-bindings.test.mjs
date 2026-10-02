@@ -53,6 +53,7 @@ const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const treeMoveCss = fs.readFileSync(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.tree-move.css'), 'utf8');
 const settingsChrome = fs.readFileSync(settingsChromePath, 'utf8');
 
 test('settings topbar keeps search adjacent to mode controls without a save-status badge', () => {
@@ -181,7 +182,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
     assert.match(script, /const patch = key === 'performanceProfile'[\s\S]*\? \{ performanceProfile: next\.performanceProfile, performanceMode: next\.performanceMode \}[\s\S]*: \{ \[key\]: next\[key\] \};/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{/);
-    assert.match(script, /showError\('Runtime preference sync pending', error\);/);
+    assert.match(script, /showError\(surfaceT\("common\.repair\.runtime-preference-sync-pending-fa357c", "Runtime preference sync pending"\), error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
     assert.doesNotMatch(script, /requestRevision !== runtimeSaveState\.revision/);
@@ -328,8 +329,7 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /const selectOperationsTemplate = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.selectOperationsTemplate\(\.\.\.args\);/);
     assert.match(script, /const exportTemplateEntry = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.exportTemplateEntry\(\.\.\.args\);/);
     assert.match(script, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
-    assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
-    assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
+    assert.match(script, /const invalidateFolderRuntimePreview = \(\.\.\.args\) => getSettingsRuntimeActionsApi\(\)\.invalidateFolderRuntimePreview\(\.\.\.args\);/);
     assert.match(script, /registerActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry/);
 });
 
@@ -353,7 +353,7 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /const clearType = \(type, id\) =>/);
     assert.match(script, /const restoreLatestBackup = \(type\) =>/);
     assert.match(script, /openImportApplyProgressDialog\(resolvedType, progressTotal\);/);
-    assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
+    assert.match(script, /setProgress\(0, surfaceT\("common\.repair\.creating-safety-backup-99eaaf", "Creating safety backup\.\.\."\)\);/);
 });
 
 test('basic folder pin toggle persists quickly and broadcasts runtime refresh', () => {
@@ -365,7 +365,8 @@ test('basic folder pin toggle persists quickly and broadcasts runtime refresh', 
     assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);
     assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(eventPayload\)\);/);
-    assert.match(script, /const backup = latestPrefsBackupByType\[resolvedType\];/);
+    assert.doesNotMatch(script, /latestPrefsBackupByType/);
+    assert.doesNotMatch(script, /before-pin-branch-|before-unpin-branch-/);
     assert.doesNotMatch(script, /backup = await createBackup\(resolvedType, exists \? `before-unpin-\$\{id\}` : `before-pin-\$\{id\}`\);/);
 });
 
@@ -388,7 +389,7 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
     assert.match(script, /if \(!visibleKeys\.size && settingsUiState\.mode === 'basic' && !settingsUiState\.query\) \{/);
     assert.match(script, /for \(const section of getBasicWorkspaceSections\(\)\) \{/);
     assert.match(script, /visibleKeys\.add\(section\.key\);/);
-    assert.match(script, /showError\('Initial data load failed', error\);/);
+    assert.match(script, /showError\(surfaceT\("common\.repair\.initial-data-load-failed-dbf943", "Initial data load failed"\), error\);/);
 });
 
 test('settings blank watchdog reports silent startup failures with diagnostics', () => {
@@ -448,7 +449,7 @@ test('empty-state actions are delegated and create-folder uses modal input inste
     assert.match(script, /fv-starter-template-checkbox/);
     assert.match(script, /data-fv-starter-template-index/);
     assert.match(script, /confirmButtonText:\s*'Create selected'/);
-    assert.match(script, /swal\.showInputError\('Select at least one template\.'\)/);
+    assert.match(script, /swal\.showInputError\(starterTemplateT\("common\.audit\.select-template"/);
     assert.match(script, /data-fv-empty-action="create"/);
     assert.match(script, /data-fv-empty-action="templates"/);
     assert.match(script, /data-fv-empty-action="import"/);
@@ -479,8 +480,7 @@ test('nested tree settings expose collapse controls and inline undo hosts', () =
     assert.match(page, /id="vm-tree-history-redo"/);
     assert.match(page, /id="docker-tree-reorder-toggle"/);
     assert.match(page, /id="vm-tree-reorder-toggle"/);
-    assert.match(page, /id="docker-tree-path-hint"/);
-    assert.match(page, /id="vm-tree-path-hint"/);
+    assert.doesNotMatch(page, /id="(?:docker|vm)-tree-path-hint"/);
     assert.match(page, /runTreeIntegrityCheck\('docker'/);
     assert.match(page, /runTreeIntegrityCheck\('vm'/);
 });
@@ -494,14 +494,14 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /const queueFolderReorderPersist = \(type, \{/);
     assert.match(script, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
     assert.match(script, /registerActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode/);
-    assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
+    assert.match(script, /const applyTreeMoveHistoryEntry = async \(type, entry, direction\) =>/);
     assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
     assert.match(script, /History: \$\{historyDepth\.undo\} undo \/ \$\{historyDepth\.redo\} redo\./);
     assert.doesNotMatch(script, /<td class="parent-cell">/);
-    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
-    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
+    assert.match(script, /actionLabel: 'Tree move', focusFolderId: sourceId/);
+    assert.match(script, /activityMessage: `Folder moved to root:/);
     assert.match(script, /queueFolderReorderPersist\(resolvedType, \{/);
-    assert.match(script, /await recordTreeMoveHistoryFromBackup\([\s\S]*'Reorder folders'[\s\S]*focusFolderId/);
+    assert.match(script, /actionLabel: 'Reorder folders', focusFolderId/);
 });
 
 test('basic folder drag uses a full-row drag image', () => {
@@ -510,6 +510,21 @@ test('basic folder drag uses a full-row drag image', () => {
     assert.match(script, /event\.dataTransfer\.setDragImage\(dragImage, offsetX, offsetY\);/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image\s*\{[\s\S]*filter:\s*drop-shadow/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});
+
+test('folder drag offers three drop zones and applies the highlighted move directly', () => {
+    const helper = script.match(/const resolveBasicFolderDropPlacement = \(row, clientY\) => \{[\s\S]*?\n\};/)?.[0];
+    assert.ok(helper);
+    const placement = Function(`${helper}\nreturn resolveBasicFolderDropPlacement;`)();
+    const row = { getBoundingClientRect: () => ({ top: 100, height: 100 }) };
+    assert.equal(placement(row, 105), 'before');
+    assert.equal(placement(row, 150), 'inside');
+    assert.equal(placement(row, 195), 'after');
+    assert.match(script, /void applyFolderTreeMove\(resolvedType, draggedId, targetId, placement\)/);
+    assert.doesNotMatch(script, /openFolderTreeMoveDialog\(resolvedType, draggedId, \{ targetId, placement \}\)/);
+    assert.match(script, /blockedIds\.has\(targetId\)/);
+    assert.match(treeMoveCss, /\.fv-row-drag-over-inside > td\s*\{\s*border-color: var\(--fvplus-settings-accent\);/);
+    assert.doesNotMatch(treeMoveCss, /fv-row-drag-over-inside > td\s*\{\s*box-shadow:/);
 });
 
 test('basic folder drag handle renders a compact six-dot grip', () => {
@@ -635,8 +650,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(page, /id="vm-bulk-filter"/);
     assert.match(page, /id="docker-bulk-folder" data-fv-track-save="0"/);
     assert.match(page, /id="vm-bulk-folder" data-fv-track-save="0"/);
-    assert.match(page, /id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0"/);
-    assert.match(page, /id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0"/);
+    assert.match(page, /id="docker-bulk-filter" type="search" placeholder="Search containers\.\.\." data-fv-track-save="0"/);
+    assert.match(page, /id="vm-bulk-filter" type="search" placeholder="Search VMs\.\.\." data-fv-track-save="0"/);
     assert.match(page, /id="docker-bulk-selected-count"/);
     assert.match(page, /id="vm-bulk-selected-count"/);
     assert.match(page, /id="docker-bulk-items-list"/);

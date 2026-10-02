@@ -2,11 +2,12 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "dashboard"
+        "namespace": "dashboard",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "dashboard.folder.toggle-members": "Alternar miembros de la carpeta",
-    "dashboard.widget.docker": "Docker",
-    "dashboard.widget.vm": "VM",
+    "dashboard.widget.docker": "acoplador",
+    "dashboard.widget.vm": "máquina virtual",
     "dashboard.quick.view-options-title": "$1 ver opciones",
     "dashboard.quick.view-options-help": "Personalice este widget del Panel de control.",
     "dashboard.quick.layout": "Diseño",

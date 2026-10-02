@@ -246,7 +246,7 @@ test('lib.php diagnostics include user-facing summary cards and recommended acti
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildRecommendedActions\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildOverviewSummary\s*\(/);
     assert.match(libDiagnosticsPhp, /'recommendedActions'\s*=>\s*diagnosticsBuildRecommendedActions\(\$typesData, \$customIcons\)/);
-    assert.match(libDiagnosticsPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update, \$runtimeIntegrity, \$securityAudit\)/);
+    assert.match(libDiagnosticsPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update, \$runtimeIntegrity, \$securityAudit, \$runtimeConnectivity\)/);
     assert.match(libDiagnosticsPhp, /foreach\s*\(\['docker'\s*=>\s*'Docker config',\s*'vm'\s*=>\s*'VM config'\]/);
     assert.match(libDiagnosticsPhp, /'Storage and paths'/);
     assert.match(libDiagnosticsPhp, /'Custom icons'/);

@@ -76,21 +76,17 @@ test('docker and vm styles include responsive touch/mobile fallbacks', () => {
     assert.match(vmCss, /@media \(max-width: 980px\)/);
 });
 
-test('settings advanced sections include mobile-safe expand/collapse handlers', () => {
-    assert.match(settingsJs, /const shouldUseMobileSectionToggle = \(\) =>/);
-    assert.match(settingsJs, /const toggleAdvancedSectionByKey = \(sectionKey\) =>/);
-    assert.match(settingsJs, /click\.fvsectionheader/);
-    assert.match(settingsJs, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
+test('settings advanced tabs stay mobile-safe without section collapse handlers', () => {
+    assert.match(settingsJs, /click\.fvtab/);
+    assert.doesNotMatch(settingsJs, /click\.fvsectionheader|click\.fvsectiontoggle|click\.fvcompact/);
     assert.match(settingsRuntime, /mobileSidebarSummaryOpen/);
     assert.match(settingsRuntime, /fv-setup-sidebar-toggle/);
 });
 
-test('settings styles include responsive advanced accordion controls on mobile', () => {
-    assert.match(settingsCss, /\.fv-section-toggle::before/);
-    assert.match(settingsCss, /\.fv-section-toggle\.is-collapsed::before/);
+test('settings styles include responsive advanced tabs on mobile', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
     assert.match(settingsCss, /\.fv-advanced-tabs/);
+    assert.doesNotMatch(settingsCss, /\.fv-section-toggle|\.fv-advanced-compact/);
     assert.match(settingsCss, /\.fv-settings-search-wrap/);
     assert.match(settingsCss, /\.fv-setup-sidebar-toggle/);
     assert.match(settingsCss, /\[data-fv-mobile-summary-open="0"\] \.fv-setup-sidebar-summary/);

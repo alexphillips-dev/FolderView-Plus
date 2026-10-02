@@ -208,35 +208,24 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.doesNotMatch(settingsPage, /Use new folder settings page/);
 });
 
-test('settings activity center replaces plain recent activity feed', () => {
-    assert.match(settingsPage, /Activity Center/);
-    assert.match(settingsPage, /id="fv-activity-center-status"/);
+test('advanced Logs owns the live activity list without a Basic activity bar', () => {
+    assert.match(settingsPage, /data-fv-section="logs" data-fv-advanced="1" data-fv-advanced-group="logs"/);
+    assert.ok(settingsPage.indexOf('id="fv-activity-feed-panel"') > settingsPage.indexOf('data-fv-section="logs"'));
+    assert.ok(settingsPage.indexOf('id="fv-activity-feed-panel"') < settingsPage.indexOf('data-fv-section="diagnostics"'));
     assert.match(settingsPage, /id="fv-activity-center-summary"/);
-    assert.match(settingsPage, /id="fv-activity-center-toggle"/);
     assert.match(settingsPage, /id="fv-activity-center-clear"/);
-    assert.match(settingsPage, /data-fv-onclick="toggleActivityCenterHistory\(\)"/);
-    assert.match(settingsPage, /id="fv-activity-center-latest"/);
-    assert.match(settingsPage, /No activity yet/);
-    assert.doesNotMatch(settingsPage, /id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;"/);
+    assert.match(settingsPage, /id="fv-activity-feed-list"/);
+    assert.doesNotMatch(settingsPage, /Activity Center|fv-activity-center-latest|fv-activity-center-toggle/);
+    assert.match(settingsJs, /const ADVANCED_GROUPS = \[[^\]]*'logs'/);
+    assert.match(settingsJs, /get logs\(\) \{ return translate\('logs', 'Logs'\)/);
     assert.match(settingsCss, /\.fv-activity-center-head\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-kicker\s*\{[^}]*font-size:\s*1\.1rem;/s);
-    assert.match(settingsCss, /\.fv-activity-center-latest\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-latest\.is-empty\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-latest\.is-fresh\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-latest-icon\.is-error\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-latest-icon\.is-info\s*\{/);
-    assert.match(settingsCss, /\.fv-activity-center-actions > button\.is-expanded\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-feed-list\s*\{[^}]*max-height:/s);
     assert.match(settingsCss, /\.fv-activity-level\s*\{/);
     assert.match(settingsCss, /\.fv-activity-center-actions > button,/);
-    assert.doesNotMatch(settingsCss, /\.fv-activity-feed-head > button/);
     assert.match(settingsJs, /const normalizeActivityLevel = \(level\) =>/);
     assert.match(settingsJs, /const summarizeActivityFeed = \(\) =>/);
-    assert.match(settingsJs, /const isActivityEntryFresh = \(entry\) =>/);
-    assert.match(settingsJs, /panel\.show\(\);[\s\S]*return;/);
-    assert.match(settingsJs, /list\.toggle\(activityCenterHistoryExpanded\)/);
-    assert.doesNotMatch(settingsJs, /activityFeedEntries = \[\];[\s\S]*renderActivityFeed\(\);[\s\S]*}, ACTIVITY_FEED_AUTO_CLEAR_MS\)/);
-    assert.match(settingsJs, /const toggleActivityCenterHistory = \(\) =>/);
-    assert.match(settingsJs, /toggleActivityCenterHistory,/);
+    assert.match(settingsJs, /const ACTIVITY_FEED_MAX_ENTRIES = 100;/);
+    assert.doesNotMatch(settingsJs, /toggleActivityCenterHistory|ACTIVITY_FEED_AUTO_CLEAR_MS/);
 });
 
 test('folder page ships the modern editor runtime only', () => {
@@ -501,10 +490,10 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /health_updates_mode/);
     assert.match(folderJs, /health_all_stopped_mode/);
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
-    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder\.';/);
+    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = surfaceT\("common\.audit\.no-members"/);
     assert.doesNotMatch(folderJs, /Regex is empty, so only manual assignment will be used for this folder\./);
     assert.match(folderJs, /summary\.removeClass\('invalid warning info ready'\)/);
-    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
+    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(surfaceT\("common\.counts\.notes", "Informational notes: \$1\.", infoWarnings\.length\)/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
@@ -620,7 +609,7 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /const targetsValid = mode !== 0 \|\| \(targetSelect\.val\(\) \|\| \[\]\)\.length > 0;/);
     assert.match(folderJs, /const scriptValid = mode !== 1 \|\| String\(scriptInput\.val\(\) \|\| ''\)\.trim\(\) !== '';/);
     assert.match(folderJs, /primaryButton\.prop\('disabled', !valid\)/);
-    assert.match(folderJs, /const targetSubject = type === 'vm' \? 'VMs' : 'Containers';/);
+    assert.match(folderJs, /const targetSubject = type === 'vm' \? surfaceT\([^;]+VMs[^;]+Containers[^;]+;/);
     assert.match(folderJs, /normalizePreviewIconClass\(iconInput\.val\(\), cfg\.type\)/);
     assert.match(folderJs, /open: \(\) => window\.setTimeout\(\(\) => nameInput\.trigger\('focus'\), 0\)/);
     assert.match(folderCss, /\.ui-multiselect-menu\.multiselect-container\s*\{[\s\S]*?background:\s*var\(--fv-editor-panel\);/);
@@ -702,7 +691,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/migrate_legacy_regex\.php'/);
-    assert.match(folderRulesJs, /The converted include rule will be appended after existing advanced rules so current advanced policy keeps priority\./);
+    assert.match(folderRulesJs, /Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored\./);
     assert.match(folderRulesJs, /panel\.hidden = pattern === '';/);
     assert.match(folderRulesJs, /Convert to Auto-Rule/);
     assert.match(folderRuntimeBootstrapJs, /folder\.editor\.rules\.js/);
@@ -894,7 +883,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const advancedDataLoadState = \{/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
-    assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
+    assert.match(settingsJs, /const focusFolderRow = \(type, folderId, \{ scroll = true \} = \{\}\) =>/);
     assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
     assert.doesNotMatch(settingsJs, /setActionDockExpanded/);
     assert.doesNotMatch(settingsJs, /setActionDockMoreOpen/);
@@ -973,11 +962,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const showFolderHealthBreakdown = \(\.\.\.args\) => getRowDetailsApi\(\)\.showFolderHealthBreakdown\(\.\.\.args\);/);
     assert.match(settingsJs, /registerActions\(window,\s*\{[\s\S]*showFolderHealthBreakdown/);
     assert.match(settingsJs, /class="health-breakdown-btn"/);
-    assert.doesNotMatch(settingsJs, /Advanced sections/);
-    assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
+    assert.match(settingsJs, /surfaceT\('settings\.navigation\.sections', 'Advanced sections'\)/);
+    assert.doesNotMatch(settingsJs, /fv-advanced-compact|fv-section-toggle|expandedAdvancedSections/);
     assert.doesNotMatch(settingsJs, /toggle\.textContent = 'Compact';/);
-    assert.match(settingsJs, /const toggleLabel = expanded \? 'Compact section' : 'Expand section';/);
-    assert.match(settingsJs, /section\.toggle\.setAttribute\('aria-label', `\$\{toggleLabel\}: \$\{section\.title \|\| section\.key\}`\);/);
+    assert.match(settingsJs, /for \(const node of section\.nodes\) \{\s*node\.classList\.toggle\('fv-section-hidden', !visible\);/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
     assert.match(settingsJs, /const applyColumnVisibility = \(type\) =>/);
     assert.match(settingsJs, /const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object\.freeze\(/);
@@ -1052,7 +1040,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-legacy\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-untrusted\s*\{/);
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-advanced-tab,[\s\S]*background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);
-    assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
+    assert.doesNotMatch(settingsCss, /\.fv-advanced-compact|\.fv-section-toggle/);
     assert.match(settingsCss, /#fv-setup-assistant-overlay\s*\{/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{/);
     assert.match(settingsCss, /\.fv-setup-assistant-shell\s*\{/);
@@ -1095,13 +1083,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-quick-preset\s*\{[\s\S]*white-space:\s*normal/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
-    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*display:\s*inline-flex/);
-    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*width:\s*auto/);
-    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*24px/);
-    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*font-size:\s*0/);
-    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*width:\s*24px/);
-    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*font-size:\s*0/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-section-toggle,[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-advanced-mode \.fv-advanced-workspace\s*\{[^}]*display:\s*grid/);
+    assert.match(settingsCss, /\.fv-advanced-tabs\s*\{[^}]*display:\s*grid/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.folder-table table td\.status-cell\s*\{[\s\S]*text-align:\s*left/);
     assert.match(settingsCss, /\.folder-table table th\.fv-col-hidden,\s*[\s\S]*\.folder-table table td\.fv-col-hidden\s*\{[\s\S]*display:\s*none !important/);

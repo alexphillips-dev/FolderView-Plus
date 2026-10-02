@@ -34,6 +34,89 @@ const drainTimers = async (scheduled) => {
     }
 };
 
+const makeSurface = () => {
+    const attributes = new Map([['class', 'fa fa-play'], ['style', 'color:green']]);
+    const icon = { hasAttribute: key => attributes.has(key), getAttribute: key => attributes.get(key),
+        setAttribute: (key, value) => attributes.set(key, value), removeAttribute: key => attributes.delete(key),
+        classList: { remove() {} } };
+    return { icon, querySelectorAll: () => [icon] };
+};
+
+for (const sameVm of [false, true]) {
+    for (const rejected of [false, true]) {
+        test(`superseded ${sameVm ? 'same' : 'different'} VM request cleans owned surfaces after a delayed ${rejected ? 'failure' : 'success'}`, async () => {
+            const scheduled = [], fallback = [];
+            const surfaces = { first: makeSurface(), second: makeSurface() };
+            let complete;
+            let calls = 0;
+            const api = lifecycleModule.createApi({
+                window: { setTimeout: handler => scheduled.push({ handler }) }, delaysMs: [0],
+                getSurfaces: request => [surfaces[request.uuid]],
+                getRuntimeEntry: () => ({ state: 'running' }),
+                refreshRuntimeStateInPlace: () => ++calls === 1 ? new Promise((resolve, reject) => {
+                    complete = () => rejected ? reject(new Error('Delayed failure')) : resolve(true);
+                }) : Promise.resolve(true),
+                queueNativeRefresh: () => fallback.push(true)
+            });
+            const old = api.run({ action: 'domain-start', uuid: 'first' });
+            scheduled.shift().handler();
+            const currentId = sameVm ? 'first' : 'second';
+            const current = api.run({ action: 'domain-start', uuid: currentId });
+            assert.equal(surfaces.first.icon.hasAttribute('aria-busy'), sameVm);
+            assert.equal(surfaces[currentId].icon.hasAttribute('aria-busy'), true);
+            complete();
+            await flushPromises();
+            assert.equal((await old).canceled, true);
+            assert.equal(surfaces[currentId].icon.hasAttribute('aria-busy'), true, 'old completion cleared newer busy indicator');
+            await drainTimers(scheduled);
+            assert.equal((await current).settled, true);
+            for (const surface of Object.values(surfaces)) {
+                assert.equal(surface.icon.hasAttribute('aria-busy'), false);
+                assert.equal(surface.icon.getAttribute('class'), 'fa fa-play');
+                assert.equal(surface.icon.getAttribute('style'), 'color:green');
+            }
+            assert.equal(fallback.length, 0);
+        });
+    }
+}
+
+test('queued native action retains its busy indicator until its own callback settles', async () => {
+    const scheduled = [], surface = makeSurface();
+    const api = lifecycleModule.createApi({
+        window: { setTimeout: handler => scheduled.push({ handler }) }, delaysMs: [0],
+        getSurfaces: () => [surface], getRuntimeEntry: () => ({ state: 'running' }),
+        refreshRuntimeStateInPlace: async () => true, shouldTrackRequest: () => true
+    });
+    const first = api.run({ action: 'domain-start', uuid: 'first' });
+    api.enqueueNativeRequest({ action: 'domain-start', uuid: 'first' });
+    await drainTimers(scheduled);
+    await first;
+    assert.equal(surface.icon.hasAttribute('aria-busy'), true);
+    const queued = api.handleNativeCallback();
+    await drainTimers(scheduled);
+    await queued;
+    assert.equal(surface.icon.hasAttribute('aria-busy'), false);
+});
+
+test('a superseded deferred fallback cannot reload over a newer VM action', async () => {
+    const scheduled = [], fallback = [];
+    const runtime = { state: 'shutoff' };
+    const api = lifecycleModule.createApi({
+        window: { setTimeout: handler => scheduled.push({ handler }) }, delaysMs: [0],
+        getRuntimeEntry: () => runtime, refreshRuntimeStateInPlace: async () => true,
+        queueNativeRefresh: () => fallback.push(true)
+    });
+    const first = api.run({ action: 'domain-start', uuid: 'first' });
+    scheduled.shift().handler();
+    await flushPromises();
+    assert.equal((await first).settled, false);
+    runtime.state = 'running';
+    const next = api.run({ action: 'domain-start', uuid: 'second' });
+    await drainTimers(scheduled);
+    assert.equal((await next).settled, true);
+    assert.equal(fallback.length, 0);
+});
+
 test('VM lifecycle replaces native loadlist with incremental stop and patches context state', async () => {
     const scheduled = [];
     const hostCalls = [];

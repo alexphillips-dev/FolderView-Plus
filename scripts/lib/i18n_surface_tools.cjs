@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const AUTO_KEY_PREFIX = 'legacy.surface.';
-const TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
+const TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title', 'value']);
 const EXCLUDED_TAGS = new Set(['script', 'style', 'code', 'pre', 'svg', 'path']);
 
 const decodeEntities = (value) => String(value || '')
@@ -70,11 +70,12 @@ const extractFileCandidates = (source, relativePath = '') => {
         rows.push({ value: phrase, kind, attribute, file: relativePath, line: lineNumberAt(source, index) });
     };
 
-    const attributeRegex = /\b(placeholder|aria-label|title)\s*=\s*["']([^"'<>]*[A-Za-z][^"'<>]*)["']/gi;
+    const attributeRegex = /\b(placeholder|aria-label|title|value)\s*=\s*["']([^"'<>]*[A-Za-z][^"'<>]*)["']/gi;
     let match;
     while ((match = attributeRegex.exec(source)) !== null) {
         const tag = parseOpeningTag(source, match.index);
         if (!tag || EXCLUDED_TAGS.has(tag.tag) || /\b(?:data-i18n|data-i18n-ignore)\b/.test(tag.source)) continue;
+        if (match[1].toLowerCase() === 'value' && (tag.tag !== 'input' || !/\btype\s*=\s*["'](?:button|submit|reset)["']/i.test(tag.source))) continue;
         add(match[2], 'attribute', match.index, match[1].toLowerCase());
     }
 
@@ -110,6 +111,14 @@ const extractFileCandidates = (source, relativePath = '') => {
     }
     const propertyTemplateRegex = /\b(?:title|text|label|description|message|placeholder|ariaLabel|confirmButtonText|cancelButtonText)\s*:\s*`([^`]*)`/g;
     while ((match = propertyTemplateRegex.exec(source)) !== null) add(match[1], 'template', match.index);
+    // Explicit runtime bindings cover conditional labels and helper arguments without
+    // treating arbitrary code strings or user-provided values as translatable text.
+    const surfaceBindingRegex = /\b(?:surfaceT|starterTemplateT|importT|diagnosticsT|translateVmText|translate)\(\s*["'](legacy\.surface\.[a-f0-9]{16})["']\s*,\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g;
+    while ((match = surfaceBindingRegex.exec(source)) !== null) {
+        const phrase = match[2][0] === '"' ? JSON.parse(match[2]) : decodeJavascriptText(match[2].slice(1, -1));
+        if (match[1] !== keyForPhrase(phrase)) throw new Error(`Invalid surface binding in ${relativePath}:${lineNumberAt(source, match.index)}`);
+        add(phrase, 'binding', match.index);
+    }
     return rows;
 };
 
@@ -141,6 +150,18 @@ const collectSurfaceCandidates = (pluginDir) => {
         for (const row of rows) {
             if (!byPhrase.has(row.value)) byPhrase.set(row.value, []);
             byPhrase.get(row.value).push(row);
+        }
+    }
+    // Reviewed conditional UI/error surfaces supplement markup extraction. Each
+    // entry remains anchored to shipped source, so deleting a call site cannot
+    // silently leave an apparently complete catalog behind.
+    const reviewed = JSON.parse(fs.readFileSync(path.join(__dirname, 'i18n_additional_surfaces.json'), 'utf8'));
+    for (const entry of reviewed) {
+        for (const location of entry.locations) {
+            const source = fs.readFileSync(path.join(pluginDir, location.file), 'utf8');
+            if (!source.includes(location.anchor)) throw new Error(`Stale reviewed UI surface: ${location.file}: ${entry.phrase}`);
+            if (!byPhrase.has(entry.phrase)) byPhrase.set(entry.phrase, []);
+            byPhrase.get(entry.phrase).push({ value: entry.phrase, kind: 'reviewed-ui', file: location.file, line: lineNumberAt(source, source.indexOf(location.anchor)) });
         }
     }
     return { byPhrase, fileCounts };

@@ -10,7 +10,7 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const $ = deps.$ || win?.jQuery || win?.$ || null;
@@ -72,6 +72,17 @@
         const executeFolderRuntimeAction = typeof deps.executeFolderRuntimeAction === 'function'
             ? deps.executeFolderRuntimeAction
             : (async () => ({}));
+        const runtimePreviewByType = { docker: null, vm: null };
+        const runtimePlanSignature = (plan) => JSON.stringify({
+            requestedCount: plan.requestedCount,
+            eligible: plan.eligible.map((item) => [item.name, item.state]),
+            skipped: plan.skipped.map((item) => [item.name, item.state, item.reason])
+        });
+        const invalidateFolderRuntimePreview = (type, html = '') => {
+            const resolvedType = normalizeManagedType(type);
+            runtimePreviewByType[resolvedType] = null;
+            setRuntimePreviewOutput(resolvedType, html);
+        };
         const treeIntegrityApi = deps.treeIntegrityApi
             || (deps.treeIntegrityModule && typeof deps.treeIntegrityModule.createApi === 'function'
                 ? deps.treeIntegrityModule.createApi(deps)
@@ -100,15 +111,10 @@
                 ...current,
                 pinnedFolderIds: Array.from(pinnedSet)
             };
-            const branchLabel = `${branchIds.length} folder${branchIds.length === 1 ? '' : 's'}`;
-            let backup = null;
+            const branchLabel = surfaceT("common.runtime.folders-1", "Folders: $1", branchIds.length);
             try {
-                backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
-                prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+                prefsByType[resolvedType] = await postPrefs(resolvedType, next, { baselinePrefs: current });
                 await refreshType(resolvedType);
-                if (backup?.name) {
-                    await offerUndoAction(resolvedType, backup, pinned ? 'Pin branch' : 'Unpin branch');
-                }
                 showToastMessage({
                     title: pinned ? 'Branch pinned' : 'Branch unpinned',
                     message: `${branchLabel} updated.`,
@@ -116,7 +122,7 @@
                     durationMs: 3200
                 });
             } catch (error) {
-                showError('Branch pin update failed', error);
+                showError(surfaceT("common.repair.branch-pin-update-failed-a2d9f2", "Branch pin update failed"), error);
             }
         };
 
@@ -268,55 +274,54 @@
                 await offerUndoAction(resolvedType, backup, 'Branch import');
                 showToastMessage({
                     title: 'Branch imported',
-                    message: `Imported ${upserts.length} folder${upserts.length === 1 ? '' : 's'} under ${folders[targetId]?.name || targetId}.`,
+                    message: surfaceT("common.counts.folders-imported", "Folders imported: $1. Parent: $2.", upserts.length, folders[targetId]?.name || targetId),
                     level: 'success',
                     durationMs: 4200
                 });
             } catch (error) {
-                showError('Branch import failed', error);
+                showError(surfaceT("common.repair.branch-import-failed-a0d261", "Branch import failed"), error);
             }
         };
 
         const previewFolderRuntimeAction = (type) => {
-            const folderId = String($(`#${type}-runtime-folder`).val() || '');
-            const action = String($(`#${type}-runtime-action`).val() || '');
+            const resolvedType = normalizeManagedType(type);
+            const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
+            const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to preview.</span>
-            </div>
-        `);
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Select a folder and action first.</strong><span>Pick the target folder and the runtime action you want to preview.</span></div>');
                 return;
             }
-            const plan = getRuntimePlanForFolder(type, folderId, action);
-            setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
+            const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
+            if (!plan) {
+                invalidateFolderRuntimePreview(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, null));
+                return;
+            }
+            runtimePreviewByType[resolvedType] = { folderId, action, signature: runtimePlanSignature(plan) };
+            const eligibleCount = plan.eligible.length;
+            setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan),
+                eligibleCount ? surfaceT('settings.operations.ready-to-apply', 'Ready to apply') : surfaceT('settings.operations.no-eligible', 'No eligible items'));
         };
 
         const applyFolderRuntimeAction = (type) => {
-            const folderId = String($(`#${type}-runtime-folder`).val() || '');
-            const action = String($(`#${type}-runtime-action`).val() || '');
+            const resolvedType = normalizeManagedType(type);
+            const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
+            const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
-                setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to apply.</span>
-            </div>
-        `);
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Select a folder and action first.</strong><span>Pick the target folder and the runtime action you want to apply.</span></div>');
                 return;
             }
-            const plan = getRuntimePlanForFolder(type, folderId, action);
-            if (!plan) {
-                setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>No valid action plan was generated.</strong>
-                <span>Refresh the source data and try the preview again.</span>
-            </div>
-        `);
+            const preview = runtimePreviewByType[resolvedType];
+            if (!preview || preview.folderId !== folderId || preview.action !== action) {
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state">Preview this action before applying it.</div>');
+                return;
+            }
+            const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
+            if (!plan || runtimePlanSignature(plan) !== preview.signature) {
+                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Folder state changed.</strong><span>Preview the action again before applying it.</span></div>');
                 return;
             }
             if (!plan.eligible.length) {
-                setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
+                invalidateFolderRuntimePreview(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan));
                 swal({
                     title: 'Nothing to apply',
                     text: 'No eligible items were found for this action.',
@@ -325,26 +330,28 @@
                 return;
             }
 
-            const folderName = getFolderNameForId(type, folderId);
+            const folderName = getFolderNameForId(resolvedType, folderId);
             swal({
                 title: 'Apply folder action?',
                 text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Apply',
+                confirmButtonText: surfaceT("common.actions.apply", "Apply"),
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true
             }, async (confirmed) => {
                 if (!confirmed) {
                     return;
                 }
+                invalidateFolderRuntimePreview(resolvedType);
                 try {
-                    const result = await executeFolderRuntimeAction(type, action, plan.eligible.map((row) => row.name));
-                    await refreshType(type);
-                    setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan, result));
+                    const result = await executeFolderRuntimeAction(resolvedType, action, plan.eligible.map((row) => row.name));
+                    await refreshType(resolvedType);
+                    setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, result),
+                        surfaceT('settings.operations.action-complete', 'Action complete'));
                     await trackDiagnosticsEvent({
                         eventType: 'runtime_bulk_action',
-                        type,
+                        type: resolvedType,
                         details: {
                             action,
                             folderId,
@@ -360,7 +367,7 @@
                         type: (result.failed || 0) > 0 ? 'warning' : 'success'
                     });
                 } catch (error) {
-                    showError('Folder runtime action failed', error);
+                    showError(surfaceT("common.repair.folder-runtime-action-failed-8cc3b7", "Folder runtime action failed"), error);
                 }
             });
         };
@@ -370,6 +377,7 @@
             exportFolderBranch,
             importFolderBranch,
             runTreeIntegrityCheck,
+            invalidateFolderRuntimePreview,
             previewFolderRuntimeAction,
             applyFolderRuntimeAction
         });

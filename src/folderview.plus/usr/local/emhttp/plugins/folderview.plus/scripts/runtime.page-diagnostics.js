@@ -175,13 +175,14 @@
     };
 
     const captureAndAnnounce = (options = {}) => {
+    const repairT5561b52f = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const snapshot = capture(options);
         const surface = normalizeEnum(options.surface, SURFACES, 'docker');
         const label = surface === 'vm' ? 'VM' : (surface === 'dashboard' ? 'Dashboard' : 'Docker');
         const win = options.window || defaultWindow;
         win?.FolderViewPlusUI?.announce?.({
             title: snapshot ? `${label} diagnostics captured` : `${label} diagnostics unavailable`,
-            message: snapshot ? 'The sanitized snapshot is ready for the next support bundle.' : `The ${label} page was not ready to capture.`
+            message: snapshot ? repairT5561b52f("common.repair.the-sanitized-snapshot-is-ready-for-the-next-support-bundle-4912e0", "The sanitized snapshot is ready for the next support bundle.") : `The ${label} page was not ready to capture.`
         });
         return snapshot;
     };

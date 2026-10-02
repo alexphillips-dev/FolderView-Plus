@@ -1,4 +1,5 @@
 (function folderEditorChromeBootstrap(root) {
+    const surfaceT = (key, fallback, ...params) => (globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token))).replace(/[&<>"']/g, value => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[value]);
     const editorPageMode = 'modern';
     const editorRuntimePerformanceTelemetry = root.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('folder-editor', {
         window: root,
@@ -113,7 +114,6 @@
         });
         return merged;
     };
-
     const setBootstrapSurfaceState = ({
         summary = '',
         details = '',
@@ -147,7 +147,6 @@
             }
         }
     };
-
     root.FolderViewPlusReportFolderEditorBootstrap = ({
         summary = '',
         details = '',
@@ -390,7 +389,7 @@
                     <div class="fv-live-chip-panel">
                         <div class="fv-live-chip-panel-head">Status colors</div>
                         <div class="fv-live-swatches">
-                            <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                            <span class="fv-swatch-item"><em>Running</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
@@ -562,6 +561,7 @@
     const syncActionLaunchPlacement = (form) => {
         const actionsRow = form.querySelector('.basic.custom-action-wrapper-parent');
         const actionsList = actionsRow?.querySelector('.custom-action-wrapper');
+        actionsList?.setAttribute('data-empty-message', globalThis.FolderViewPlusI18n?.t?.("common.repair.no-custom-actions-added-yet-257d51", 'No custom actions added yet.') || 'No custom actions added yet.');
         const actionsValueCell = actionsRow?.querySelector('dl > dd');
         const launchRow = findActionLaunchRow(form);
         const launchButton = launchRow?.querySelector('button.custom-action')
@@ -683,7 +683,7 @@
                             <div class="fv-section-heading-copy">
                                 <div class="fv-section-heading-kicker">
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
-                                    <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
+                                    <span>${meta.advanced ? surfaceT("common.runtime.advanced-section", "Advanced section") : surfaceT("common.runtime.core-section", "Core section")}</span>
                                 </div>
                                 <h3 data-fvplus-style="fv-u-1g8734m">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>

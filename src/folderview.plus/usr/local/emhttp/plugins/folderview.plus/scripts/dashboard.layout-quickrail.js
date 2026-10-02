@@ -10,14 +10,15 @@
         maxFolderColumns: 3,
         minFolderWidth: 360,
         minMemberWidth: 220,
+        panelInsets: 22, // Two 10px paddings and two 1px borders.
         gap: 8
     });
 
     const normalizeDashboardType = (type) => (type === 'vm' ? 'vm' : 'docker');
 
-    const deriveCompactMatrixLayout = ({ containerWidth = 0, folderCount = 0 } = {}) => {
+    const deriveCompactMatrixLayout = ({ containerWidth = 0, folderCount = 0, itemCount = folderCount } = {}) => {
         const width = Math.max(0, Math.floor(Number(containerWidth) || 0));
-        const count = Math.max(0, Math.floor(Number(folderCount) || 0));
+        const count = Math.max(0, Math.floor(Number(itemCount) || 0));
         const availableFolderColumns = Math.max(
             1,
             Math.floor((width + COMPACT_MATRIX_LAYOUT.gap) / (COMPACT_MATRIX_LAYOUT.minFolderWidth + COMPACT_MATRIX_LAYOUT.gap))
@@ -32,23 +33,21 @@
             0,
             Math.floor((width - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, folderColumns - 1))) / folderColumns)
         );
+        const panelWidth = Math.max(0, estimatedFolderWidth - COMPACT_MATRIX_LAYOUT.panelInsets);
         const memberColumns = Math.max(
             1,
-            Math.floor(
-                (estimatedFolderWidth + COMPACT_MATRIX_LAYOUT.gap)
-                / (COMPACT_MATRIX_LAYOUT.minMemberWidth + COMPACT_MATRIX_LAYOUT.gap)
-            )
+            Math.floor((panelWidth + COMPACT_MATRIX_LAYOUT.gap) / (COMPACT_MATRIX_LAYOUT.minMemberWidth + COMPACT_MATRIX_LAYOUT.gap))
         );
         const estimatedMemberWidth = Math.max(
             0,
             Math.floor(
-                (estimatedFolderWidth - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, memberColumns - 1)))
+                (panelWidth - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, memberColumns - 1)))
                 / memberColumns
             )
         );
         return Object.freeze({
             containerWidth: width,
-            folderCount: count,
+            folderCount: Math.max(0, Math.floor(Number(folderCount) || 0)),
             folderColumns,
             folderRows,
             estimatedFolderWidth,
@@ -205,6 +204,7 @@
                 }
             });
 
+            scheduleDashboardCompactMatrixSyncForType(resolvedType, 'started-only-filter');
             return {
                 enabled,
                 members: $members.length,
@@ -365,7 +365,6 @@
             if (layout !== 'compactmatrix') {
                 state.compactMatrixMetricsByType[resolvedType] = null;
                 $container.css('--fv-dashboard-compactmatrix-columns', '');
-                $container.css('--fv-dashboard-compactmatrix-rows', '');
                 $container.css('--fv-dashboard-compactmatrix-member-columns', '');
                 $container.removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
                 deps.onVisualDiagnostics?.(resolvedType, {
@@ -374,13 +373,14 @@
                 });
                 return;
             }
-            const directCardCount = $container.children('.folder-showcase-outer').length;
+            const $visibleItems = $container.children('.folder-showcase-outer, span.outer')
+                .filter((_, node) => isDashboardNodeVisible(node));
             const metrics = deriveCompactMatrixLayout({
                 containerWidth: measureDashboardContainerWidth($container.get(0)),
-                folderCount: directCardCount
+                folderCount: $visibleItems.filter('.folder-showcase-outer').length,
+                itemCount: $visibleItems.length
             });
             $container.css('--fv-dashboard-compactmatrix-columns', String(metrics.folderColumns));
-            $container.css('--fv-dashboard-compactmatrix-rows', String(metrics.folderRows));
             $container.css('--fv-dashboard-compactmatrix-member-columns', String(metrics.memberColumns));
             $container.attr('data-fv-compactmatrix-folder-columns', String(metrics.folderColumns));
             $container.attr('data-fv-compactmatrix-member-columns', String(metrics.memberColumns));

@@ -43,15 +43,15 @@ Quick links: [Install](#install) | [Update and Uninstall](#update-and-uninstall)
 
 | Setup Assistant | Advanced tools |
 |---|---|
-| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.png" alt="Advanced settings workspace" /> |
+| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | Screenshot placeholder: grouped Advanced navigation and mobile section picker. |
 
 | Folder editor | Docker start order |
 |---|---|
 | <img src="docs/images/screenshots/folder-editor-general.png" alt="Modern folder editor general tab" /> | <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order workspace" /> |
 
-| Recovery workspace | Activity Center |
-|---|---|
-| <img src="docs/images/screenshots/advanced-recovery.png" alt="Backup and recovery workspace" /> | <img src="docs/images/screenshots/activity-center.png" alt="Activity Center" /> |
+| Recovery workspace |
+|---|
+| Screenshot placeholder: current Recovery readiness, snapshot history, and comparison dialogs. |
 
 ## Why FolderView Plus
 
@@ -72,12 +72,12 @@ Unraid's Docker and VM pages can become difficult to scan as your server grows. 
 | Docker start order | Backup and recovery |
 |---|---|
 | Control Docker autostart order from FolderView Plus. Follow your Docker page folder order or define custom startup batches with exact folder/container groups, delays, preview, and sync tools. | Create manual backups, enable scheduled backups, compare snapshots, restore the latest backup, restore a selected snapshot, delete old backups, and undo recent destructive actions. |
-| <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order tools" /> | <img src="docs/images/screenshots/advanced-recovery.png" alt="Recovery workspace" /> |
+| <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order tools" /> | Screenshot placeholder: current Recovery and snapshot comparison. |
 
 | Diagnostics and activity | Theme and UI integration |
 |---|---|
-| Use the Activity Center, Settings diagnostics, runtime banners, folder editor bootstrap diagnostics, and sanitized support bundles to understand what happened and share useful reports. | Uses shared dark/light theme tokens, modernized Settings and editor surfaces, runtime-safe menu styling, and compatibility guards for Unraid themes and legacy installs. |
-| <img src="docs/images/screenshots/activity-center.png" alt="Activity Center" /> | <img src="docs/images/screenshots/theme-dark-mode.png" alt="Dark mode UI" /> |
+| Use Advanced > Logs for recent Settings actions and issues, plus Settings diagnostics, runtime banners, folder editor bootstrap diagnostics, and sanitized support bundles for support reports. | Uses shared dark/light theme tokens, modernized Settings and editor surfaces, runtime-safe menu styling, and compatibility guards for Unraid themes and legacy installs. |
+| Logs screenshot pending. | <img src="docs/images/screenshots/theme-dark-mode.png" alt="Dark mode UI" /> |
 
 ### Custom WebUI profiles
 
@@ -138,19 +138,20 @@ Recommended first setup:
 
 | Tool | What it is for |
 |---|---|
-| Automation | Bulk assignment workflows for moving many Docker containers or VMs at once. |
-| Rules | Ordered assignment rules with testing, matching, and conflict review. |
-| Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
 | Operations | Runtime actions, reusable templates, imports, and exports. |
-| Start Order | Docker autostart order from folder order or custom startup batches. |
+| Bulk assignment | Move many Docker containers or VMs at once. |
+| Rules | Ordered assignment rules with testing, matching, and conflict review. |
+| Docker start order | Set Docker autostart order from folder order or custom startup batches. |
 | Appearance | Theme and display controls for the plugin experience. |
+| Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
 | Diagnostics | Health checks, support reports, runtime diagnostics, and troubleshooting helpers. |
+| Logs | Recent Settings actions and issues, newest first, with a Clear control. |
 
 ## Settings Overview
 
-FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, and diagnostics.
+FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, diagnostics, and Logs.
 
-Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use the Activity Center, restore controls, and backups to confirm what changed and recover when needed.
+Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step. Use Advanced > Logs, restore controls, and backups to confirm what changed and recover when needed. Logs keep up to 100 useful entries in this browser for 30 days, with the newest at the top. Clear removes the saved history; clearing browser site data also removes it. Entries can include folder names or error details, so use Clear on a shared browser.
 
 The diagnostics workspace includes health checks, a copyable issue report, and a v2 support bundle export preview. Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default so reports can be shared without exposing unnecessary personal details.
 
@@ -158,9 +159,9 @@ Legacy CSS/JS migration and stable selector policy are documented in [docs/SUPPO
 
 ## Backups and Recovery
 
-Use the Recovery workspace before large reorganizations, imports, rule changes, or bulk assignments. FolderView Plus can create manual backups, scheduled backups, safety snapshots before destructive actions, compare two snapshots, restore the latest safe backup, restore a selected snapshot, and delete old backups when they are no longer needed.
+New setups schedule a backup every hour by default; change or disable the interval in Advanced > Recovery. Existing saved schedules keep their chosen settings. Routine folder moves and reorders save immediately and use in-memory Undo/Redo without adding backup files. Manual backups and safety snapshots before destructive actions, imports, and bulk changes remain available, along with snapshot comparison and restore.
 
-Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. The Activity Center records backup, restore, import, export, clear, and undo activity so recent maintenance actions are easy to review.
+Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. Advanced > Logs records recent backup, folder, import, and other meaningful Settings actions for quick review during the current session.
 
 ## Troubleshooting
 

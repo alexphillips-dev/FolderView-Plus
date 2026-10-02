@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Odaberite način rukovanja postojećim mapama. Ništa se ne mijenja dok ne odaberete Primijeni uvoz.",
     "import.behavior.question": "Kako treba postupati s postojećim mapama?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Zamijenite točno",
     "import.mode.replace.description": "Uskladite izvoz. Mape kojih nema mogu se izbrisati.",
     "import.review.title": "Pregledajte planirane promjene",
-    "import.review.count": "Pregledajte {{PLURAL:$1|jednu planiranu promjenu|$1 planirane promjene|$1 planiranih promjena}}",
+    "import.review.count": "Pregledajte {{PLURAL:$1|$1 planiranu promjenu|$1 planirane promjene|$1 planiranih promjena}}",
     "import.review.folders-fields": "Mape i polja",
     "import.review.choose": "Odaberite koje promjene želite uključiti",
     "import.safety.title": "Sigurnosne mogućnosti",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Pregledao sam ovaj uvoz",
     "import.acknowledge.description": "Ponašanje i odabrane promjene su ispravne.",
     "import.progress.preparing": "Priprema operacije",
-    "import.progress.running": "Trčanje",
+    "import.progress.running": "Pokrenuto",
     "import.summary.folder-change": "{{PLURAL:$1|promjena mape|promjene mape|promjena mapa}}",
     "import.summary.planned-change": "{{PLURAL:$1|planirana promjena|planirane promjene|planiranih promjena}} u pregledu",
     "import.summary.new": "$1 novo",
-    "import.summary.update": "{{PLURAL:$1|jedno ažuriranje|$1 ažuriranja|$1 ažuriranja}}",
-    "import.summary.delete": "{{PLURAL:$1|jedno brisanje|$1 brisanja|$1 brisanja}}",
+    "import.summary.update": "{{PLURAL:$1|$1 ažuriranje|$1 ažuriranja|$1 ažuriranja}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 brisanje|$1 brisanja|$1 brisanja}}",
     "import.kind.docker-folder": "Mapa Docker",
     "import.kind.vm-folder": "VM mapa",
     "import.dialog.docker-title": "Uvoz Docker mapa",
     "import.dialog.vm-title": "Uvoz VM mapa",
     "import.actions.apply": "Primijeni uvoz",
     "import.folderview3.preview-title": "FolderView3 pregled migracije",
-    "import.folderview3.preview-help": "Otkrijte instaliranu konfiguraciju FolderView3 ili pregledajte potpuno izvezeni JSON. Otkrivanje i pregled su samo za čitanje; izvorni zapisi organizatora i Docker autostart mutacije ostaju isključeni osim ako ih kasnija primjena eksplicitno ne uključuje.",
     "import.folderview3.read-only-title": "Migracija FolderView3 samo je za čitanje dok ne odobrite plan primjene.",
-    "import.folderview3.read-only-help": "Otkrijte instaliranu konfiguraciju ili pregledajte izvoz FolderView3 bez pisanja bilo kakvog dodatka ili stanja Unraid.",
     "import.folderview3.read-only-preview-help": "Otkrijte instaliranu FolderView3 konfiguraciju ili pregledajte FolderView3 izvoz. Pregled nikad ne zapisuje konfiguraciju dodatka ili Unraid.",
     "import.folderview3.not-detected": "Nije otkrivena instalirana konfiguracija FolderView3.",
     "import.folderview3.preview-export-help": "Još uvijek možete pregledati FolderView3 puni izvoz JSON-a s drugog poslužitelja.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Nevažeća snimka; redoslijed konfiguracije",
     "import.folderview3.appearance-profiles": "Dodajte neaktivne profile izgleda FolderView3",
     "import.folderview3.order-summary": "Redoslijed spremljenih mapa: Docker $1; VM-ovi $2.",
-    "import.folderview3.disabled-profile-count": "Odvojeni profili za onemogućene teme: $1."
+    "import.folderview3.disabled-profile-count": "Odvojeni profili za onemogućene teme: $1.",
+    "import.compare.to": "U"
 }

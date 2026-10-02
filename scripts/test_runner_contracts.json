@@ -18,15 +18,19 @@
         "../tests/browser/cases/settings.mjs",
         "../tests/browser/cases/settings-start-order.mjs",
         "../tests/browser/cases/folder-editor.mjs",
+        "../tests/browser/cases/folder-editor-tabs.mjs",
         "../tests/browser/cases/folder-webui-profiles.mjs",
         "../tests/browser/cases/folder-webui-profile-theme.mjs",
         "../tests/browser/cases/import.mjs",
         "../tests/browser/cases/folder-render-recovery.mjs",
-        "../tests/browser/cases/forum-reports.mjs"
+        "../tests/browser/cases/forum-reports.mjs",
+        "../tests/browser/cases/download-notice.mjs"
       ]
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
+    { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
     { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
@@ -34,17 +38,28 @@
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
+    { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
-    { "file": "tests/browser/cases/settings.mjs", "limit": 610, "owner": "fixture Settings cases" },
-    { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases" },
+    { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
+    { "file": "tests/browser/cases/settings-bulk-assignment.mjs", "limit": 155, "owner": "fixture bulk move layout, filtering, selection and atomic mutation" },
+    { "file": "tests/browser/helpers/settings-alerts-health-layout.mjs", "limit": 45, "owner": "fixture Alerts centering and compact health dialog assertions" },
+    { "file": "tests/browser/cases/settings-overflow-guard.mjs", "limit": 65, "owner": "fixture Settings host clipping regression", "requiredImports": ["./settings-visibility.mjs"] },
+    { "file": "tests/browser/cases/settings-visibility.mjs", "limit": 55, "owner": "fixture Settings clipped-content detection" },
+    { "file": "tests/browser/cases/settings-advanced-navigation.mjs", "limit": 120, "owner": "fixture Advanced Settings navigation layout and focus" },
+    { "file": "tests/browser/helpers/advanced-workspace-layout.mjs", "limit": 64, "owner": "fixture Advanced Settings section heading and content alignment" },
+    { "file": "tests/browser/helpers/advanced-title-badges.mjs", "limit": 46, "owner": "fixture Advanced Settings title badge removal" },
+    { "file": "tests/browser/cases/localization-workspaces.mjs", "limit": 220, "owner": "fixture localization loading and workspace layout cases", "requiredImports": ["./settings-startup-repair.mjs"] },
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
+    { "file": "tests/browser/cases/folder-editor-tabs.mjs", "limit": 32, "owner": "fixture editor tab themes and focus" },
     { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
+    { "file": "tests/browser/cases/snapshot-compare.mjs", "limit": 125, "owner": "fixture snapshot comparison dialogs and lifecycle" },
     { "file": "tests/browser/cases/folder-render-recovery.mjs", "limit": 40, "owner": "fixture native row rollback and render recovery" }
   ],
   "intent": {
@@ -56,27 +71,40 @@
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
+        "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
+        "tests/browser/cases/settings-alerts-health.mjs",
+        "tests/browser/cases/settings-bulk-assignment.mjs",
+        "tests/browser/cases/settings-overflow-guard.mjs",
+        "tests/browser/cases/settings-visibility.mjs",
+        "tests/browser/cases/settings-advanced-navigation.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
+        "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
+        "tests/browser/cases/snapshot-compare.mjs",
         "tests/browser/cases/import.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
-        "tests/browser/cases/forum-reports.mjs"
+        "tests/browser/cases/forum-reports.mjs",
+        "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
         "scripts/fixture_browser_tests.mjs",
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs",
         "tests/browser/helpers/docker-preview-context.mjs",
-        "tests/browser/helpers/docker-hidden-folder-context.mjs"
+        "tests/browser/helpers/docker-hidden-folder-context.mjs",
+        "tests/browser/helpers/vm-lifecycle.mjs",
+        "tests/browser/helpers/advanced-workspace-layout.mjs",
+        "tests/browser/helpers/advanced-title-badges.mjs",
+        "tests/browser/helpers/settings-alerts-health-layout.mjs"
       ],
-      "testCount": 55,
-      "assertionCount": 674,
-      "pageEvaluateCount": 148,
-      "orderedTitleSha256": "b8e781cf5afde50742ea9bcb89d744abc98a12d9c6e6f2ad3c45ca09db3e8ee1"
+      "testCount": 73,
+      "assertionCount": 875,
+      "pageEvaluateCount": 226,
+      "orderedTitleSha256": "aeadc4ad6e67de3709ed8c6239c285ae6f75e5d5707f5a0ca37aaa15e0589964"
     }
   }
 }

@@ -7,10 +7,10 @@
     root.FolderViewPlusFolderEditorIcons = factory();
     root.FolderViewPlusFolderEditorIconsModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
     const fallbackAsArray = (value) => (Array.isArray(value) ? value : []);
     const fallbackEscapeHtml = (value) => String(value ?? '');
     const THIRD_PARTY_ICON_LABELS = Object.freeze({
@@ -168,10 +168,10 @@
             }
             const safeBytes = Math.max(0, Number(bytes || 0));
             if (safeBytes >= 1024 * 1024) {
-                return `${(safeBytes / (1024 * 1024)).toFixed(1)} MiB`;
+                return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(safeBytes / (1024 * 1024), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || (safeBytes / (1024 * 1024)).toFixed(1))} MiB`;
             }
             if (safeBytes >= 1024) {
-                return `${(safeBytes / 1024).toFixed(1)} KiB`;
+                return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(safeBytes / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || (safeBytes / 1024).toFixed(1))} KiB`;
             }
             return `${Math.round(safeBytes)} B`;
         };
@@ -296,7 +296,7 @@
             if (Number.isNaN(date.getTime())) {
                 return '';
             }
-            return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) || date.toLocaleString('en'));
         };
 
         const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
@@ -355,8 +355,8 @@
             const maxBytes = Number(stats.maxTotalBytes || 0);
             const inUse = Number(stats.inUseIconCount || 0);
             const warnings = asArray(stats.warnings).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
-            const summary = `${count.toLocaleString()} / ${Math.max(0, maxFiles).toLocaleString()} files | ${formatByteCount(totalBytes)} / ${formatByteCount(maxBytes)} | in use ${inUse.toLocaleString()}`;
-            const healthText = health ? (health.writable === true ? 'Writable' : 'Read-only') : 'Directory status unknown';
+            const summary = surfaceT("common.runtime.files-1-2-3-4-in-use-5", "Files: $1 / $2 | $3 / $4 | In use: $5", (globalThis.FolderViewPlusI18n?.formatNumber?.(count) || count.toLocaleString('en')), (globalThis.FolderViewPlusI18n?.formatNumber?.(Math.max(0, maxFiles)) || Math.max(0, maxFiles).toLocaleString('en')), formatByteCount(totalBytes), formatByteCount(maxBytes), (globalThis.FolderViewPlusI18n?.formatNumber?.(inUse) || inUse.toLocaleString('en')));
+            const healthText = health ? (health.writable === true ? surfaceT("common.runtime.writable", "Writable") : surfaceT("common.runtime.read-only", "Read-only")) : surfaceT("common.runtime.directory-status-unknown", "Directory status unknown");
             const healthHint = (health && health.writable !== true && String(health.repairHint || '').trim() !== '')
                 ? ` | fix: ${String(health.repairHint || '').trim()}`
                 : '';
@@ -509,10 +509,10 @@
                         }
                         const rowsHtml = refs
                             .slice(0, 80)
-                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || 'Unknown'))}</li>`)
+                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || surfaceT("common.runtime.unknown", "Unknown")))}</li>`)
                             .join('');
                         const html = `<div class="fv-custom-icon-ref-list"><ul>${rowsHtml}</ul></div>`;
-                        swal({ title: `In use by ${refs.length} folder${refs.length === 1 ? '' : 's'}`, text: html, html: true, confirmButtonText: 'Close' });
+                        swal({ title: surfaceT("common.counts.icon-references", "Folders using this icon: $1.", refs.length), text: html, html: true, confirmButtonText: 'Close' });
                     } catch (error) {
                         setCustomIconStatus(String(error?.message || 'Failed to load references.'), true);
                     }
@@ -520,7 +520,7 @@
                 }
 
                 if (action === 'rename') {
-                    const proposal = win && typeof win.prompt === 'function' ? win.prompt('Rename custom icon', String(name || '')) : '';
+                    const proposal = win && typeof win.prompt === 'function' ? win.prompt(surfaceT("legacy.surface.8679e3348696181e", "Rename icon"), String(name || '')) : '';
                     const nextName = String(proposal || '').trim();
                     if (!nextName || nextName === name) {
                         return;
@@ -538,7 +538,7 @@
                 if (action === 'delete') {
                     const usageCount = Math.max(0, Number(icon?.usageCount || 0));
                     if (usageCount > 0) {
-                        setCustomIconStatus(`"${name}" is in use by ${usageCount} folder${usageCount === 1 ? '' : 's'}. Remove references before deleting.`, true);
+                        setCustomIconStatus(surfaceT("common.repair.folders-using-1-2-remove-references-before-deleting-this-icon-0ae767", "Folders using \"$1\": $2. Remove references before deleting this icon.", name, usageCount), true);
                         return;
                     }
                     swal({
@@ -563,7 +563,7 @@
                 }
             });
         };
-
+        const builtInName = (name) => ({ "Default Folder": () => surfaceT("common.icons.default-folder", "Default Folder"), "Networking": () => surfaceT("common.icons.networking", "Networking"), "Home Automation": () => surfaceT("common.icons.home-automation", "Home Automation"), "Tools": () => surfaceT("common.icons.tools", "Tools"), "Development": () => surfaceT("common.icons.development", "Development") })[name]?.() || name;
         const renderBuiltInIconPicker = () => {
             if (!$) {
                 return;
@@ -620,7 +620,7 @@
             const rows = paged.items.map((icon) => {
                 const selected = currentValue === icon.path;
                 const safePath = escapeHtml(icon.path);
-                const safeName = escapeHtml(icon.name);
+                const safeName = escapeHtml(builtInName(icon.name));
                 return `
                     <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
                         <img src="${safePath}" alt="${safeName}" data-fv-onerror="this.src='${iconFallbackPath}';">
@@ -1380,19 +1380,19 @@
                 return;
             }
             const modeLabelMap = {
-                folder: 'selected pack',
-                all: 'all packs',
-                favorites: 'favorites',
-                recent: 'recent',
-                suggested: 'suggested',
-                duplicates: 'duplicates'
+                folder: surfaceT("common.runtime.selected-pack", "selected pack"),
+                all: surfaceT("common.runtime.all-packs", "all packs"),
+                favorites: surfaceT("legacy.surface.7a1f2a83aca9a081", "Favorites"),
+                recent: surfaceT("legacy.surface.690dbe9dc0993c42", "Recent"),
+                suggested: surfaceT("common.runtime.suggested", "Suggested"),
+                duplicates: surfaceT("legacy.surface.93c28c39252a5670", "Duplicates")
             };
-            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'folder').trim()] || 'selected pack';
+            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'folder').trim()] || surfaceT("common.runtime.selected-pack", "selected pack");
             const filterCount = getThirdPartyActiveFilterCount();
-            const filterText = filterCount > 0 ? `${filterCount} active` : 'none';
-            const packText = thirdPartySelectedFolder || 'none';
-            const resultText = Number.isFinite(Number(totalMatches)) ? ` | Results: ${Math.max(0, Number(totalMatches || 0))}` : '';
-            line.text(`Pack: ${packText} | Scope: ${scopeText} | Filters: ${filterText}${resultText}`);
+            const filterText = filterCount > 0 ? surfaceT("common.runtime.active-filters-1", "Active filters: $1", filterCount) : surfaceT("legacy.surface.dc937b59892604f5", "None");
+            const packText = thirdPartySelectedFolder || surfaceT("legacy.surface.dc937b59892604f5", "None");
+            const resultText = Number.isFinite(Number(totalMatches)) ? surfaceT("common.runtime.results-1", " | Results: $1", Math.max(0, Number(totalMatches || 0))) : '';
+            line.text(surfaceT("common.runtime.icon-pack-1-scope-2-filters-3-4", "Icon pack: $1 | Scope: $2 | Filters: $3$4", packText, scopeText, filterText, resultText));
         };
 
         const setThirdPartyFilterSheetOpen = (open) => {
@@ -1423,8 +1423,8 @@
                 return;
             }
             const activeCount = getThirdPartyActiveFilterCount();
-            const filterLabel = activeCount > 0 ? `Filters (${activeCount})` : 'Filters';
-            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${filterLabel}`);
+            const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : 'Filters';
+            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)}`);
             $('#fv-third-party-filter-clear-all').prop('disabled', activeCount === 0);
         };
 
@@ -1475,7 +1475,7 @@
             const folders = getThirdPartyVisibleFolders();
             if (!folders.length) {
                 packSelect.html('<option value="">No packs available</option>').prop('disabled', true);
-                setThirdPartyStatus('No packs available. Try clearing filters or enabling hidden packs in Pack actions.');
+                setThirdPartyStatus(surfaceT("common.audit.no-icon-packs", "No packs available. Try clearing filters or enabling hidden packs in Pack actions."));
                 renderThirdPartyPackMenu();
                 renderThirdPartyContextLine(0);
                 return;
@@ -1496,7 +1496,7 @@
             renderThirdPartyPackMenu();
             $('#fv-third-party-show-hidden')
                 .toggleClass('is-active', thirdPartyShowHiddenFolders)
-                .text(thirdPartyShowHiddenFolders ? 'Hide hidden' : 'Show hidden');
+                .text(thirdPartyShowHiddenFolders ? surfaceT("common.runtime.hide-hidden", "Hide hidden") : surfaceT("legacy.surface.88ee90bc2e344724", "Show hidden"));
             renderThirdPartyFilterUiState();
         };
 
@@ -1525,8 +1525,8 @@
             };
 
             header.text(thirdPartySelectedFolder
-                ? `Step 1 complete: pack "${thirdPartySelectedFolder}" selected. Step 2: choose an icon.`
-                : 'Step 1: pick a pack. Step 2: choose an icon.');
+                ? surfaceT("common.runtime.icon-pack-1-selected-next-choose-an-icon", "Icon pack \"$1\" selected. Next, choose an icon.", thirdPartySelectedFolder)
+                : surfaceT("common.runtime.first-choose-an-icon-pack-then-choose-an-icon", "First choose an icon pack, then choose an icon."));
 
             const filteredIcons = getThirdPartyVisibleIcons();
             const paged = paginateItems(filteredIcons, thirdPartyIconPage, iconPickerPageSize);
@@ -1554,7 +1554,7 @@
             if (!filteredIcons.length) {
                 thirdPartyRenderedIconMap = new Map();
                 grid.html('<div class="fv-icon-picker-empty">No icons matched. Try "Clear all filters", switch Scope, or pick a different pack.</div>');
-                setThirdPartyStatus('No matching icons. Try clearing filters or switching scope.');
+                setThirdPartyStatus(surfaceT("common.audit.no-icons", "No matching icons. Try clearing filters or switching scope."));
                 renderThirdPartyPreview();
                 renderThirdPartyContextLine(0);
                 return;
@@ -1578,7 +1578,7 @@
                 }
                 const chunk = paged.items.slice(offset, offset + thirdPartyGridChunkSize);
                 if (!chunk.length) {
-                    setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+                    setThirdPartyStatus(surfaceT("common.runtime.showing-icons-1-2-of-3", "Showing icons $1\u2013$2 of $3.", paged.startIndex + 1, paged.endIndex, filteredIcons.length));
                     if (!thirdPartyPreviewIconUrl) {
                         renderThirdPartyPreview(paged.items[0] || null);
                     }
@@ -1663,7 +1663,7 @@
                         setTimeout(appendChunk, 16);
                     }
                 } else {
-                    setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+                    setThirdPartyStatus(surfaceT("common.runtime.showing-icons-1-2-of-3", "Showing icons $1\u2013$2 of $3.", paged.startIndex + 1, paged.endIndex, filteredIcons.length));
                 }
             };
             appendChunk();
@@ -1736,7 +1736,7 @@
 
         const refreshThirdPartyIconPicker = async () => {
             ensureThirdPartyPreferencesLoaded();
-            setThirdPartyStatus('Refreshing third-party icon folders...');
+            setThirdPartyStatus(surfaceT("common.audit.refreshing-icons", "Refreshing third-party icon folders..."));
             try {
                 await loadThirdPartyFolders();
                 try {

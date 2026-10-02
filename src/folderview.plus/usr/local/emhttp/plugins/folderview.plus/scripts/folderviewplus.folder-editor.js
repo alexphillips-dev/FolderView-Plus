@@ -1,4 +1,5 @@
-/* Folder row editor and tree-move helpers extracted from folderviewplus.js. */
+
+    const repairTaa339208 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));/* Folder row editor and tree-move helpers extracted from folderviewplus.js. */
 const buildFolderQuickActionSummary = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
     const folderMap = getFolderMap(resolvedType);
@@ -6,7 +7,6 @@ const buildFolderQuickActionSummary = (type, folderId) => {
     if (!folder) {
         return null;
     }
-
     const memberSnapshot = getEffectiveMemberSnapshot(resolvedType, folderMap);
     const members = Array.isArray(memberSnapshot[folderId]?.members) ? memberSnapshot[folderId].members : [];
     const infoByName = infoByType[resolvedType] || {};
@@ -143,8 +143,8 @@ const buildFolderActionRegistry = ({
                     id: 'export',
                     label: isBranch ? 'Export branch...' : 'Export folder...',
                     description: isBranch
-                        ? `Download this folder and its ${branchSize - 1} nested folder${branchSize === 2 ? '' : 's'}.`
-                        : 'Download this folder configuration.',
+                        ? repairTaa339208("common.repair.download-this-folder-and-its-nested-folders-nested-count-1-a2922e", "Download this folder and its nested folders (nested count: $1).", branchSize - 1)
+                        : repairTaa339208("common.repair.download-this-folder-configuration-4c9266", "Download this folder configuration."),
                     icon: 'fa-download',
                     run: () => (
                         isBranch
@@ -326,7 +326,7 @@ const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
                     <button type="button" class="fv-folder-action-sheet-close fv-ui-button fv-ui-icon-button" data-close-folder-actions aria-label="Close folder actions"><i class="fa fa-times" aria-hidden="true"></i></button>
                 </header>
                 <div class="fv-folder-action-sheet-status" aria-label="Folder status">
-                    <span>${summary.membersCount} member${summary.membersCount === 1 ? '' : 's'}</span>
+                    <span>${escapeHtml(repairTaa339208("common.repair.members-1-85e5cc", "Members: $1", summary.membersCount))}</span>
                     <span class="is-started"><i class="fa fa-play" aria-hidden="true"></i>${status.started}</span>
                     ${status.paused > 0 ? `<span class="is-paused"><i class="fa fa-pause" aria-hidden="true"></i>${status.paused}</span>` : ''}
                     <span class="is-stopped"><i class="fa fa-stop" aria-hidden="true"></i>${status.stopped}</span>
@@ -413,7 +413,7 @@ const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
             try {
                 await Promise.resolve(action.run());
             } catch (error) {
-                showError('Action failed', error);
+                showError(repairTaa339208("common.repair.action-failed-6e1704", "Action failed"), error);
             }
         });
     });
@@ -505,21 +505,6 @@ const bindRowTouchQuickActions = (type) => {
         }
         showFolderRowQuickActions(resolvedType, folderId, { trigger: event.currentTarget });
     });
-    $(document).on(`mouseenter${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
-        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
-        if (!folderId) {
-            return;
-        }
-        updateMobileTreePathHint(resolvedType, folderId);
-    });
-    $(document).on(`focusin${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
-        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
-        if (!folderId) {
-            return;
-        }
-        updateMobileTreePathHint(resolvedType, folderId);
-    });
-
     $(document).on(`click${namespace}`, overflowSelector, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -600,7 +585,7 @@ const ensureFolderSortModeManual = async (type) => {
     return sortMode === 'manual';
 };
 
-const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null) => {
+const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null, preferredTargetId = '') => {
     const resolvedType = normalizeManagedType(type);
     const folders = getFolderMap(resolvedType);
     const sourceId = String(sourceFolderId || '').trim();
@@ -616,9 +601,48 @@ const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null) 
         const depth = Math.max(0, Number(meta.depthById[id] || 0));
         const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(10, depth) * 3) : '';
         const prefix = depth > 0 ? '&#8627;&nbsp;' : '';
-        options.push(`<option value="${escapeHtml(id)}">${indent}${prefix}${escapeHtml(folderName)}</option>`);
+        options.push(`<option value="${escapeHtml(id)}"${id === preferredTargetId ? ' selected' : ''}>${indent}${prefix}${escapeHtml(folderName)}</option>`);
     }
     return options.join('');
+};
+
+const pendingTreeMoveTypes = new Set();
+const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextParentId, nextOrder, positionalMove, activityMessage, errorTitle = '' }) => {
+    const repairTac0a8e31 = (key, fallback) => globalThis.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
+    const resolvedType = normalizeManagedType(type);
+    if (pendingTreeMoveTypes.has(resolvedType)) return setFolderTreeMoveError(resolvedType, sourceId, repairTac0a8e31('common.repair.wait-for-tree-move', 'Wait for the current folder move to finish.'));
+    const expectedRevision = readFolderConfigurationRevision(resolvedType);
+    const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
+    if (expectedRevision === null || (positionalMove && !Number.isInteger(expectedPrefsRevision))) return setFolderTreeMoveError(resolvedType, sourceId, 'Current folder or preference revision is unavailable. Refresh and try again.');
+    const previousFolders = typeFolders(resolvedType);
+    const previousPrefs = prefsByType[resolvedType];
+    const previousOrder = positionalMove ? getOrderedFolderIdsForTreeOps(resolvedType) : null;
+    pendingTreeMoveTypes.add(resolvedType);
+    let committed = false;
+    try {
+        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
+        setTypeFolders(resolvedType, { ...previousFolders, [sourceId]: { ...sourceFolder, parentId: nextParentId } });
+        if (positionalMove) applyOptimisticManualOrder(resolvedType, nextOrder); else renderTable(resolvedType);
+        focusFolderRow(resolvedType, sourceId, { scroll: false });
+        const result = await requestFolderBatchMutation(resolvedType, {
+            deletes: [], upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: nextParentId } }], creates: [],
+            ...(positionalMove ? { manualOrder: nextOrder, expectedPrefsRevision } : {})
+        }, { expectedRevision });
+        committed = true;
+        if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
+        pushTreeMoveHistoryEntry(resolvedType, {
+            kind: 'parent', folderId: sourceId,
+            beforeParentId: String(sourceFolder.parentId || '').trim(), afterParentId: nextParentId,
+            beforeOrder: previousOrder, afterOrder: positionalMove ? nextOrder : null,
+            actionLabel: 'Tree move', focusFolderId: sourceId
+        });
+        addActivityEntry(activityMessage, 'success');
+    } catch (error) {
+        if (!committed) { setTypeFolders(resolvedType, previousFolders); prefsByType[resolvedType] = previousPrefs; renderTable(resolvedType); }
+        if (!committed) try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
+        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
+        showError(errorTitle || repairTac0a8e31('common.repair.tree-move-failed-6ad607', 'Tree move failed'), error);
+    } finally { pendingTreeMoveTypes.delete(resolvedType); }
 };
 
 const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placement) => {
@@ -673,7 +697,9 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
     }
 
     const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
-    const orderWithoutSource = fullOrder.filter((id) => id !== sourceId);
+    const sourceSubtreeIds = fullOrder.filter((id) => id === sourceId || descendants.includes(id));
+    const sourceSubtreeSet = new Set(sourceSubtreeIds);
+    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(id));
     let insertIndex;
     if (mode === 'before') {
         const targetIndex = orderWithoutSource.indexOf(targetId);
@@ -689,48 +715,20 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
     }
 
     const nextOrder = orderWithoutSource.slice();
-    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, sourceId);
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
     const parentChanged = nextParentId !== existingParentId;
-    const orderChanged = nextOrder.some((id, index) => id !== fullOrder[index]);
+    const positionalMove = mode === 'before' || mode === 'after';
+    const orderChanged = positionalMove && nextOrder.some((id, index) => id !== fullOrder[index]);
     if (!parentChanged && !orderChanged) {
         setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already in that position.');
         return;
     }
 
-    let backup = null;
-    try {
-        const manualReady = await ensureFolderSortModeManual(resolvedType);
-        if (!manualReady) {
-            throw new Error('Manual sort mode is required for tree move.');
-        }
-        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
-        backup = await createBackup(resolvedType, `before-tree-move-${sourceId}`);
-        if (parentChanged) {
-            const nextFolder = {
-                ...sourceFolder,
-                parentId: nextParentId
-            };
-            await saveFolderRecord(resolvedType, sourceId, nextFolder);
-        }
-        if (orderChanged) {
-            await persistManualOrder(resolvedType, nextOrder, { refresh: false });
-        }
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Tree move', sourceId);
-        }
-        focusFolderRow(resolvedType, sourceId);
-        const destinationText = mode === 'inside'
-            ? `inside ${folders[targetId]?.name || targetId}`
-            : (mode === 'before'
-                ? `before ${folders[targetId]?.name || targetId}`
-                : `after ${folders[targetId]?.name || targetId}`);
-        addActivityEntry(`Tree move complete: ${(sourceFolder?.name || sourceId)} -> ${destinationText}.`, 'success');
-    } catch (error) {
-        await refreshType(resolvedType);
-        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
-        showError('Tree move failed', error);
-    }
+    const targetName = folders[targetId]?.name || targetId;
+    const activityMessage = `Tree move complete: ${sourceFolder?.name || sourceId} -> ${mode} ${targetName}.`;
+    await persistOptimisticTreeMove(resolvedType, {
+        sourceId, sourceFolder, nextParentId, nextOrder, positionalMove, activityMessage
+    });
 };
 
 const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
@@ -746,7 +744,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
     }
     const hierarchyMeta = buildFolderHierarchyMeta(folders);
     const hasParent = Boolean(String(hierarchyMeta.parentById?.[sourceId] || '').trim());
-    const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta);
+    const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta, String(options?.targetId || '').trim());
     const modeInsideOnly = options?.modeInsideOnly === true;
     if ((!targetOptions && !hasParent) || (modeInsideOnly && !targetOptions)) {
         setFolderTreeMoveError(resolvedType, sourceId, 'No valid folder locations are available.');
@@ -764,6 +762,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
                <option value="before"${preferredPlacement === 'before' ? ' selected' : ''}>Before target</option>
                <option value="after"${preferredPlacement === 'after' ? ' selected' : ''}>After target</option>
              </select>
+             <p id="fv-tree-move-sort-note" class="fv-tree-move-note">${escapeHtml(repairTaa339208('common.repair.position-changes-manual-sort', 'Before or After placement changes the sort mode to Manual.'))}</p>
            </div>`;
     const sourceName = escapeHtml(String(folder.name || sourceId));
     const targetLabel = modeInsideOnly ? 'Move under folder' : 'Destination';
@@ -778,6 +777,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
                 <label class="fv-tree-move-field-label" for="fv-tree-move-target">${targetLabel}</label>
                 <select id="fv-tree-move-target">${rootOption}${targetOptions}</select>
                 ${placementSelectHtml}
+                <p id="fv-tree-move-preview" class="fv-tree-move-preview" role="status" aria-live="polite"></p>
             </div>
         `,
         html: true,
@@ -800,20 +800,7 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
             : normalizeTreeMovePlacement($('#fv-tree-move-placement').val() || preferredPlacement);
         void applyFolderTreeMove(resolvedType, sourceId, targetId, placement);
     });
-    if (!modeInsideOnly) {
-        window.setTimeout(() => {
-            const target = document.querySelector('#fv-tree-move-target');
-            const placementField = document.querySelector('#fv-tree-move-placement-field');
-            if (!(target instanceof HTMLSelectElement) || !(placementField instanceof HTMLElement)) {
-                return;
-            }
-            const syncPlacementVisibility = () => {
-                placementField.hidden = target.value === '__root__';
-            };
-            target.addEventListener('change', syncPlacementVisibility);
-            syncPlacementVisibility();
-        }, 0);
-    }
+    bindTreeMoveDialogPreview(resolvedType, sourceId, folders, hierarchyMeta, modeInsideOnly, repairTaa339208);
 };
 
 const moveFolderToRootQuick = async (type, folderId) => {
@@ -833,29 +820,11 @@ const moveFolderToRootQuick = async (type, folderId) => {
         setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already at root level.');
         return;
     }
-    let backup = null;
-    try {
-        const manualReady = await ensureFolderSortModeManual(resolvedType);
-        if (!manualReady) {
-            throw new Error('Manual sort mode is required for root move.');
-        }
-        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
-        backup = await createBackup(resolvedType, `before-root-move-${sourceId}`);
-        await saveFolderRecord(resolvedType, sourceId, {
-            ...sourceFolder,
-            parentId: ''
-        });
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Move to root', sourceId);
-        }
-        focusFolderRow(resolvedType, sourceId);
-        addActivityEntry(`Folder moved to root: ${sourceFolder.name || sourceId}.`, 'success');
-    } catch (error) {
-        await refreshType(resolvedType);
-        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Move to root failed.');
-        showError('Move to root failed', error);
-    }
+    await persistOptimisticTreeMove(resolvedType, {
+        sourceId, sourceFolder, nextParentId: '', nextOrder: [], positionalMove: false,
+        activityMessage: `Folder moved to root: ${sourceFolder.name || sourceId}.`,
+        errorTitle: repairTaa339208("common.repair.move-to-root-failed-755799", "Move to root failed")
+    });
 };
 
 Object.assign(window, {

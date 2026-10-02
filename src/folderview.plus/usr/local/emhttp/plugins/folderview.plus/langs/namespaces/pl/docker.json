@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Akcje widoku folderów",
     "docker.actions.add-folder": "Dodaj folder",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Narzędzia",
     "docker.actions.show-empty": "Pokaż puste foldery",
     "docker.actions.hide-empty": "Ukryj puste foldery",
-    "docker.actions.clear-focus": "Wyczyść fokus folderu",
+    "docker.actions.clear-focus": "Usuń filtr wybranego folderu",
     "docker.actions.refresh-state": "Odśwież stan folderu",
     "docker.actions.bulk-assignment": "Masowe przypisywanie",
     "docker.actions.rules-workspace": "Obszar roboczy reguł",

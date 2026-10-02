@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "Adicionar uma ação personalizada",
     "editor.actions.standard": "Padrão",
@@ -35,7 +36,7 @@
     "editor.webui-profiles.empty": "Ainda não há perfis WebUI personalizados.",
     "editor.webui-profiles.name": "Nome do perfil",
     "editor.webui-profiles.duplicate": "Duplicar",
-    "editor.webui-profiles.move-up": "Subir",
+    "editor.webui-profiles.move-up": "Mover para cima",
     "editor.webui-profiles.move-down": "Mover para baixo",
     "editor.webui-profiles.delete": "Excluir",
     "editor.webui-profiles.search": "Pesquisar membros da pasta",

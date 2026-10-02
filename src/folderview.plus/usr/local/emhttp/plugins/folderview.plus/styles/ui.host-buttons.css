@@ -1,0 +1,62 @@
+/* Fallback skins outrank native element selectors without outranking the
+   plugin's component classes. Preserve component typography and geometry. */
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)),
+html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):where(
+    [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
+    background-color: var(--fv-button-bg, var(--fvplus-ui-control)) !important;
+    border: 1px solid var(--fv-button-border, var(--fvplus-ui-border-subtle)) !important;
+    border-radius: var(--fv-ui-radius-sm) !important;
+    color: var(--fv-button-fg, var(--fvplus-ui-text-primary)) !important;
+    box-sizing: border-box;
+    font-family: inherit !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
+    cursor: pointer;
+}
+
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)),
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
+    background-color: var(--fvplus-ui-control-hover) !important;
+    border-color: var(--fvplus-ui-border-strong) !important;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):focus-visible,
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):focus-visible {
+    outline: 2px solid var(--fv-ui-info) !important;
+    outline-offset: 2px;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"]):disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
+    button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-section-nav > button)) {
+    border-color: var(--fv-button-border, var(--fvplus-theme-accent, var(--fv-ui-info))) !important;
+    background-color: var(--fv-button-bg, color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control))) !important;
+}
+html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
+    :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button),
+html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):is(
+    [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]),
+html body button:is(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn) {
+    appearance: none !important;
+    clip-path: none !important;
+    background-image: none !important;
+}
+html body .fv-ui-modal-close,
+html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar-close {
+    width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 4px !important;
+    flex: 0 0 32px;
+}
+html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar {
+    min-height: 36px;
+    padding-inline-end: 44px;
+}

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Choose how to handle existing folders. Nothing changes until you select Apply import.",
     "import.behavior.question": "How should existing folders be handled?",
@@ -43,9 +44,7 @@
     "import.dialog.vm-title": "Import VM Folders",
     "import.actions.apply": "Apply import",
     "import.folderview3.preview-title": "FolderView3 migration preview",
-    "import.folderview3.preview-help": "Discover an installed FolderView3 configuration or inspect a full-export JSON. Detection and preview are read-only; native organizer records and Docker autostart mutations remain excluded unless a later apply explicitly includes them.",
     "import.folderview3.read-only-title": "FolderView3 migration is read-only until you approve an apply plan.",
-    "import.folderview3.read-only-help": "Detect an installed configuration or preview a FolderView3 export without writing any plugin or Unraid state.",
     "import.folderview3.read-only-preview-help": "Detect an installed FolderView3 configuration or preview a FolderView3 export. Previewing never writes plugin or Unraid configuration.",
     "import.folderview3.not-detected": "No installed FolderView3 configuration detected.",
     "import.folderview3.preview-export-help": "You can still preview a FolderView3 full-export JSON from another server.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Invalid snapshot; configuration order",
     "import.folderview3.appearance-profiles": "Add inactive FolderView3 appearance profiles",
     "import.folderview3.order-summary": "Saved folder order: Docker $1; VMs $2.",
-    "import.folderview3.disabled-profile-count": "Separate profiles for disabled themes: $1."
+    "import.folderview3.disabled-profile-count": "Separate profiles for disabled themes: $1.",
+    "import.compare.to": "To"
 }

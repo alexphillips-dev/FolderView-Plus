@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "Agregar una acción personalizada",
     "editor.actions.standard": "Estándar",
@@ -13,8 +14,8 @@
     "editor.members.visible": "Visible",
     "editor.members.auto-included": "Incluido automáticamente por regex o etiqueta",
     "editor.members.drag-reorder": "Arrastrar para reordenar",
-    "editor.members.move-up": "Mover hacia arriba",
-    "editor.members.move-down": "Mover hacia abajo",
+    "editor.members.move-up": "Mover arriba",
+    "editor.members.move-down": "Mover abajo",
     "editor.rules.templates.title": "Plantillas de reglas",
     "editor.rules.templates.help": "Cree una regla compatible, obtenga una vista previa de su efecto actual o agregue una regla general final. Los miembros de la carpeta manual nunca se modifican.",
     "editor.rules.templates.template-label": "Plantilla",
@@ -35,8 +36,8 @@
     "editor.webui-profiles.empty": "Aún no hay perfiles WebUI personalizados.",
     "editor.webui-profiles.name": "Nombre del perfil",
     "editor.webui-profiles.duplicate": "Duplicar",
-    "editor.webui-profiles.move-up": "Subir",
-    "editor.webui-profiles.move-down": "Bajar",
+    "editor.webui-profiles.move-up": "Mover arriba",
+    "editor.webui-profiles.move-down": "Mover abajo",
     "editor.webui-profiles.delete": "Eliminar",
     "editor.webui-profiles.search": "Buscar miembros de la carpeta",
     "editor.webui-profiles.select-webui": "Seleccionar todo con WebUI",

@@ -43,6 +43,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js')?>"></script>
@@ -114,7 +115,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script defer src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.bootstrap.js')?>"></script>
 
 <link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
-<link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>"><link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.host-buttons.css')?>">
 <link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.command-view.css')?>">

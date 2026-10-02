@@ -7,6 +7,8 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "server/lib.i18n.php": { "limit": 22, "target": 22, "history": [22] },
+      "server/lib.i18n-response.php": { "limit": 24, "target": 24, "history": [24] },
       "server/lib.folderview3-order.php": { "limit": 42, "target": 42, "history": [42] },
       "server/lib.folderview3-appearance.php": { "limit": 102, "target": 102, "history": [102] },
       "server/lib.theme-profile-create.php": { "limit": 27, "target": 27, "history": [27] },
@@ -23,6 +25,7 @@
       "server/lib.diagnostics.php": { "limit": 257, "target": 250, "history": [2923, 257] },
       "scripts/folderviewplus.utils.js": { "limit": 88, "target": 88, "history": [2346, 2054, 88] },
       "scripts/folderviewplus.utils-normalization.js": { "limit": 443, "target": 400, "history": [452, 443] },
+      "scripts/folderviewplus.utils-hierarchy.js": { "limit": 95, "target": 95, "history": [95] },
       "scripts/folderviewplus.utils-prefs.js": { "limit": 383, "target": 380, "history": [448, 383] },
       "scripts/folder.webui-profiles.js": { "limit": 447, "target": 400, "history": [447] },
       "scripts/folderviewplus.utils-ordering.js": { "limit": 185, "target": 180, "history": [270, 185] },
@@ -46,6 +49,7 @@
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
+      "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
       "server/lib.custom-icon-actions.php": { "limit": 448, "target": 380, "history": [448] },
       "server/lib.custom-icon-endpoint-foundation.php": { "limit": 513, "target": 420, "history": [513] },
       "server/lib.custom-icon-storage.php": { "limit": 499, "target": 420, "history": [499] },
@@ -53,6 +57,7 @@
       "server/lib.diagnostics-integrity.php": { "limit": 741, "target": 400, "history": [741] },
       "server/lib.diagnostics-redaction.php": { "limit": 495, "target": 400, "history": [495] },
       "server/lib.diagnostics-summary.php": { "limit": 785, "target": 400, "history": [785] },
+      "server/lib.diagnostics-health-cards.php": { "limit": 120, "target": 90, "history": [120] },
       "server/lib.webui-profiles.php": { "limit": 128, "target": 120, "history": [128] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
@@ -62,6 +67,7 @@
       "server/lib.folderview3-migration.php": { "limit": 462, "target": 400, "history": [462] },
       "server/lib.folderview3-apply.php": { "limit": 76, "target": 75, "history": [76] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
+      "server/lib.folder-batch-order.php": { "limit": 37, "target": 37, "history": [37] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
       "server/lib.release-notes.php": { "limit": 464, "target": 400, "history": [464] },
       "server/lib.update-channel.php": { "limit": 22, "target": 22, "history": [22] },
@@ -116,6 +122,7 @@
       "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
       "styles/folderviewplus.css": { "limit": 14477, "target": 14477, "history": [14489, 14477] },
+      "styles/folderviewplus.tree-move.css": { "limit": 45, "target": 45, "history": [45] },
       "styles/folderviewplus.bootstrap.css": { "limit": 59, "target": 59, "history": [59] },
       "FolderViewPlus.page": { "limit": 1822, "target": 1600, "history": [1822] }
     },
@@ -203,7 +210,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.i18n.php", "server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-batch-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -213,7 +220,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-support-bundle.php"],
+      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-health-cards.php", "server/lib.diagnostics-support-bundle.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -229,6 +236,26 @@
     }
   ],
   "serverModuleContracts": [
+    {
+      "file": "server/lib.i18n-response.php",
+      "owner": "server-response-localization",
+      "consumers": ["server-endpoints"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.i18n.php",
+      "functionInventory": { "count": 1, "sha256": "f47e3e2e4c1ca7a8dc340437e61c60eba29472e27975d06720e33d63e2aced75" }
+    },
+    {
+      "file": "server/lib.i18n.php",
+      "owner": "server-response-localization",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.i18n-response.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 1, "sha256": "ec6b8725525a7571c0f20913ce29cab43b8d64c27b3781cc51dea0ba3f6bee34" }
+    },
     {
       "file": "server/lib.folderview3-order.php",
       "owner": "server-folderview3-order",
@@ -445,10 +472,20 @@
       "owner": "server-backup-snapshots",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.backup-schedule.php", "server/lib.storage.php", "server/lib.prefs.php"],
+      "dependsOn": ["server/lib.backup-schedule.php", "server/lib.storage.php", "server/lib.prefs.php", "server/lib.backup-restore.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 17, "sha256": "a549ee92cf8e9602672a84d5717be08a1ec974f480daa06a8e00d32cfa61c8cd" }
+      "functionInventory": { "count": 13, "sha256": "1d72df9d3e97fc6a9446563e3b0e20869027b27ef7006a4ce2d534eaafe3dd9a" }
+    },
+    {
+      "file": "server/lib.backup-restore.php",
+      "owner": "server-backup-restore",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.backup-snapshots.php", "server/lib.storage.php", "server/lib.prefs.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.backup-snapshots.php",
+      "functionInventory": { "count": 4, "sha256": "a57424ba21dcd1537f13e00a2bb886d8a64f3ff07dfa776627470b28b92cb13c" }
     },
     {
       "file": "server/lib.folder-rules.php",
@@ -481,11 +518,21 @@
       "functionInventory": { "count": 14, "sha256": "b3528416cb8b15ba5915ec62ca817f16b607a346bf511a352bab9de38ff576c6" }
     },
     {
+      "file": "server/lib.folder-batch-order.php",
+      "owner": "server-folder-batch-order",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 4, "sha256": "f7a01455a0a3d6540cbb2f5596eda8734ce0a8f5ad9a407527cf72bcd020b254" }
+    },
+    {
       "file": "server/lib.folder-mutations.php",
       "owner": "server-folder-mutations",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.backup-snapshots.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.backup-snapshots.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.folder-batch-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 7, "sha256": "ed85e1dd77855f1a445e2029e0c581c3fbf55df7477571e4538614bcac35824f" }
@@ -541,6 +588,16 @@
       "functionInventory": { "count": 12, "sha256": "a58ee2ba2b616c31d868a9736a527f2647589af5bee06c91bcd231e6010fe9d7" }
     },
     {
+      "file": "server/lib.diagnostics-health-cards.php",
+      "owner": "server-diagnostics-health-cards",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.diagnostics-summary.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.diagnostics.php",
+      "functionInventory": { "count": 5, "sha256": "ea126dc663b380946522e9e3372740bbcc651e00dd9e461cf1c7a801d7418043" }
+    },
+    {
       "file": "server/lib.diagnostics-support-bundle.php",
       "owner": "server-diagnostics-support-bundle",
       "consumers": ["server-endpoints"],
@@ -582,6 +639,45 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/folderviewplus.bulk-assignment.view.js",
+      "owner": "settings-bulk-move-workspace",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.safe-dom.js", "scripts/folderviewplus.bulk-assignment.shared.js"],
+      "compatibilityGlobals": ["FolderViewPlusBulkAssignmentView", "FolderViewPlusBulkAssignmentViewModuleLoaded"],
+      "global": "FolderViewPlusBulkAssignmentView",
+      "moduleLoaded": "FolderViewPlusBulkAssignmentViewModuleLoaded",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["createApi"]
+    },
+    {
+      "file": "scripts/folderviewplus.environment.js",
+      "owner": "settings-environment-export",
+      "consumers": ["settings"],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "environment",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["exportSnapshot", "sortModeLabel"]
+    },
+    {
+      "file": "scripts/folderviewplus.download-status.js",
+      "owner": "settings-download-status",
+      "consumers": ["settings"],
+      "stateModel": "entrypoint-owned",
+      "dependsOn": ["scripts/folderviewplus.import.js", "scripts/folderviewplus.download-diagnostics.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "downloadStatus",
+      "loader": "window",
+      "typeChecked": false,
+      "exports": ["render"]
+    },
     {
       "file": "scripts/folder.editor.defaults.js",
       "owner": "folder-defaults-editor",
@@ -671,6 +767,18 @@
       "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "getFolderStatusColors", "normalizeFolderMembers", "normalizeFolderMap", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile"]
     },
     {
+      "file": "scripts/folderviewplus.utils-hierarchy.js",
+      "owner": "shared-utility-hierarchy",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "utilityHierarchy",
+      "loader": "commonjs",
+      "exports": ["buildFolderHierarchyModel", "buildNestedFolderOrderIdsFromMap"]
+    },
+    {
       "file": "scripts/folderviewplus.utils-prefs.js",
       "owner": "shared-utility-preferences",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
@@ -687,7 +795,7 @@
       "owner": "shared-utility-ordering",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
       "stateModel": "pure",
-      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-prefs.js"],
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-prefs.js", "scripts/folderviewplus.utils-hierarchy.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityOrdering",
@@ -723,11 +831,11 @@
       "owner": "shared-utility-facade",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
       "stateModel": "pure",
-      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-prefs.js", "scripts/folderviewplus.utils-ordering.js", "scripts/folderviewplus.utils-transfer.js", "scripts/folderviewplus.utils-rules.js"],
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-hierarchy.js", "scripts/folderviewplus.utils-prefs.js", "scripts/folderviewplus.utils-ordering.js", "scripts/folderviewplus.utils-transfer.js", "scripts/folderviewplus.utils-rules.js"],
       "compatibilityGlobals": ["FolderViewPlusUtils"],
       "global": "FolderViewPlusUtils",
       "loader": "commonjs",
-      "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "bindEventOnce", "createFrameScheduler", "createIdleTaskQueue", "createBatchedStorageWriter", "createSecureRuntimeId", "escapeHtml", "sanitizeImageUrl", "sanitizeImageSrc", "normalizeFolderId", "normalizeFolderMap", "normalizeFolderMembers", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile", "normalizePrefs", "orderFoldersByPrefs", "getFolderStatusColors", "buildFullExportPayload", "buildSingleExportPayload", "parseImportPayload", "summarizeImport", "buildImportOperations", "buildImportDiffRows", "diffFolderFields", "ruleMatchesItem", "getAutoRuleDecision", "getAutoRuleMatches", "getAutoRuleFirstMatch", "getEffectiveFolderMembers", "planFolderRuntimeAction", "getFolderLabelValue", "getComposeProjectFromLabels", "isComposeManagedFromLabels", "getConflictReport"]
+      "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "bindEventOnce", "createFrameScheduler", "createIdleTaskQueue", "createBatchedStorageWriter", "createSecureRuntimeId", "escapeHtml", "sanitizeImageUrl", "sanitizeImageSrc", "normalizeFolderId", "normalizeFolderMap", "buildFolderHierarchyModel", "normalizeFolderMembers", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile", "normalizePrefs", "orderFoldersByPrefs", "getFolderStatusColors", "buildFullExportPayload", "buildSingleExportPayload", "parseImportPayload", "summarizeImport", "buildImportOperations", "buildImportDiffRows", "diffFolderFields", "ruleMatchesItem", "getAutoRuleDecision", "getAutoRuleMatches", "getAutoRuleFirstMatch", "getEffectiveFolderMembers", "planFolderRuntimeAction", "getFolderLabelValue", "getComposeProjectFromLabels", "isComposeManagedFromLabels", "getConflictReport"]
     },
     {
       "file": "scripts/runtime.transport.core.js",
@@ -1342,6 +1450,17 @@
       "lifecycleFactories": [
         { "name": "createBinding", "exports": ["bind", "runApply", "queueApply", "disconnect"] }
       ]
+    },
+    {
+      "file": "scripts/folderviewplus.activity-detail.js",
+      "owner": "settings-activity-detail",
+      "consumers": ["settings"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "global": "FolderViewPlusActivityDetail",
+      "loader": "commonjs",
+      "exports": ["buildActivityEventDetail"]
     },
     {
       "file": "scripts/folderviewplus.diagnostics-actions.js",

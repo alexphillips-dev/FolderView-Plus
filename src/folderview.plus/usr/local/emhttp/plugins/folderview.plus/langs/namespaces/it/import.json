@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "it",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Scegli come gestire le cartelle esistenti. Nulla cambia finché non selezioni Applica importazione.",
     "import.behavior.question": "Come devono essere gestite le cartelle esistenti?",
@@ -31,7 +32,7 @@
     "import.acknowledge.title": "Ho rivisto questa importazione",
     "import.acknowledge.description": "Il comportamento e le modifiche selezionate sono corretti.",
     "import.progress.preparing": "Preparazione dell'operazione",
-    "import.progress.running": "Esecuzione",
+    "import.progress.running": "In esecuzione",
     "import.summary.folder-change": "{{PLURAL:$1|modifica della cartella|modifiche delle cartelle}}",
     "import.summary.planned-change": "{{PLURAL:$1|modifica pianificata|modifiche pianificate}} in anteprima",
     "import.summary.new": "$1 nuovo",
@@ -43,9 +44,7 @@
     "import.dialog.vm-title": "Importa VM cartelle",
     "import.actions.apply": "Applica importazione",
     "import.folderview3.preview-title": "Anteprima della migrazione di FolderView3",
-    "import.folderview3.preview-help": "Scopri una configurazione di FolderView3 installata o esamina un JSON di esportazione completa. Il rilevamento e l'anteprima sono di sola lettura; I record dell'organizzatore nativo e le mutazioni di avvio automatico di Docker rimangono esclusi a meno che un'applicazione successiva non li includa esplicitamente.",
     "import.folderview3.read-only-title": "La migrazione di FolderView3 è di sola lettura finché non approvi un piano di applicazione.",
-    "import.folderview3.read-only-help": "Rileva una configurazione installata o visualizza in anteprima un'esportazione di FolderView3 senza scrivere alcun plug-in o stato Unraid.",
     "import.folderview3.read-only-preview-help": "Rileva una configurazione di FolderView3 installata o visualizza l'anteprima di un'esportazione di FolderView3. L'anteprima non scrive mai il plugin o la configurazione Unraid.",
     "import.folderview3.not-detected": "Nessuna configurazione FolderView3 installata rilevata.",
     "import.folderview3.preview-export-help": "È comunque possibile visualizzare in anteprima un JSON di esportazione completa di FolderView3 da un altro server.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Istantanea non valida; ordine di configurazione",
     "import.folderview3.appearance-profiles": "Aggiungi profili di aspetto FolderView3 inattivi",
     "import.folderview3.order-summary": "Ordine delle cartelle salvate: Docker $1; Macchine virtuali $2.",
-    "import.folderview3.disabled-profile-count": "Profili separati per temi disabilitati: $1."
+    "import.folderview3.disabled-profile-count": "Profili separati per temi disabilitati: $1.",
+    "import.compare.to": "A"
 }

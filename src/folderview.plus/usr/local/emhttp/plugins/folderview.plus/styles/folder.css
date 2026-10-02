@@ -1441,7 +1441,13 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-third-party-icon-controls {
-    grid-template-columns: minmax(0, 1fr) 30px minmax(138px, 180px) minmax(120px, 160px) auto;
+    grid-template-columns: minmax(0, 1fr) 30px;
+}
+.fv-third-party-icon-controls > select,
+.fv-third-party-icon-controls > #fv-third-party-filter-toggle {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
 }
 
 .fv-third-party-pack-primary {
@@ -3942,7 +3948,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-modern-field-row.is-actions-list-row .custom-action-wrapper:empty::before {
-    content: 'No custom actions added yet.';
+    content: attr(data-empty-message);
     color: var(--fv-editor-muted);
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -4597,6 +4603,9 @@ table.sortable td:nth-child(4) {
 .fv-action-type-option > span {
     display: grid;
     gap: 0.08em;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .fv-action-type-option small,
@@ -5598,25 +5607,25 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 
 /* Final folder editor tab-state override. Keep this after shared button rules. */
 .fv-section-nav > button {
+    --fv-editor-button-bg-top: var(--fvplus-ui-control);
+    --fv-editor-button-fg: var(--fvplus-ui-text-primary);
     position: relative;
     overflow: hidden;
-    font-size: 1.08rem !important;
+    font-size: 1.3rem !important;
     font-weight: 900 !important;
     letter-spacing: 0 !important;
+    text-transform: none;
 }
 
-.fv-section-nav > button.is-active,
-.fv-section-nav > button[data-active="true"],
-.fv-section-nav > button[aria-current="page"] {
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target].is-active,
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target][data-active="true"],
+html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-target][aria-current="page"] {
     border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 88%, white 12%) !important;
-    outline: 2px solid color-mix(in srgb, var(--fv-editor-accent) 54%, transparent) !important;
+    outline: revert !important;
     outline-offset: 0 !important;
-    background: color-mix(in srgb, var(--fv-editor-accent) 62%, #1d1d1f 38%) !important;
-    color: #ffffff !important;
-    box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 86%, white 14%),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 8px 18px rgba(0, 0, 0, 0.32) !important;
+    background: var(--fvplus-ui-control) !important;
+    color: var(--fvplus-ui-text-primary) !important;
+    box-shadow: none !important;
 }
 
 .fv-section-nav > button.is-active > i,

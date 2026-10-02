@@ -113,13 +113,14 @@ try {
 <link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
-<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>"><link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.host-buttons.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js')?>"></script>
@@ -889,7 +890,7 @@ try {
                     <div class="fv-inline-control-row">
                         <div class="folder-status-colors">
                             <label class="folder-status-color-item">
-                                <span>Started</span>
+                        <span>Running</span>
                                 <input type="color" name="status_color_started" data-fvplus-style="fv-u-88tzw1">
                             </label>
                             <label class="folder-status-color-item">
@@ -1214,9 +1215,9 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
-        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
-        <input class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
-        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
+        <input data-i18n="[value]common.runtime.apply-to-folders" class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
+        <input data-i18n="[value]common.runtime.save-as-copy" class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
+        <input data-i18n="[value]common.runtime.reset-unsaved-changes" class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" data-fv-onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" data-fvplus-style="fv-u-xcjvns">Unsaved changes</span>
         <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
@@ -1350,7 +1351,7 @@ try {
                     </select>
                 </label>
                 <label class="fv-action-dialog-field set" constraint="action-standard-1" data-fvplus-style="fv-u-xcjvns">
-                    <span data-i18n="custom-actions-states">States:</span>
+                    <span data-i18n="custom-actions-states">Target state:</span>
                     <select name="action_set">
                         <option value="0" data-i18n="custom-actions-set-0">Start</option>
                         <option value="1" data-i18n="custom-actions-set-1">Stop</option>

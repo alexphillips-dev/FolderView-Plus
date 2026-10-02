@@ -7,7 +7,7 @@ This guide covers the normal FolderView Plus workflow after installation. Start 
 Open `Settings -> FolderView Plus`.
 
 - **Basic** contains everyday folder creation, ordering, membership, visibility, and display controls.
-- **Advanced** contains Automation, Rules, Recovery, Operations, Start Order, Appearance, and Diagnostics.
+- **Advanced** groups Operations, Bulk assignment, Rules, and Docker start order under Workflows; Appearance in its own group; and Recovery, Diagnostics, and Logs under Support. On desktop, choose a section from the left rail. On a phone, use the section picker above the content.
 - **Setup Assistant** provides a guided first-run or migration flow. It previews the planned changes and does not require an import file for a fresh setup.
 
 Settings search matches labels and common aliases. Change its scope when you want to search only the current mode or include all Advanced workspaces.
@@ -39,6 +39,8 @@ Use shallow hierarchies first. Deep trees are supported, but a small number of m
 The six-dot handles in Basic settings reorder folders when manual ordering is active. The same handle is available for members in the modern folder editor. Arrow controls remain available where a precise one-step move is useful.
 
 Automatic sort modes can order by name or timestamp. Pinned folders are resolved before the selected sort mode. Switch back to manual ordering before expecting a drag operation to define the complete order.
+
+For tree moves, drop a folder on **Before**, **Inside**, or **After**, or use **Move folder** with the keyboard. The row moves immediately while saving; a failed save restores its previous position. Before/After moves select Manual sorting, while Inside/root moves keep the current sort mode. Move and reorder Undo/Redo belongs to the current browser session and does not create a backup for every adjustment.
 
 ## Configure collapsed previews
 
@@ -116,9 +118,17 @@ Legacy folder regex remains compatible for imports and existing installations, b
 
 ## Bulk assignment and templates
 
-Use `Advanced -> Automation` when many members need to move at once. Bulk plans are validated as one operation and committed atomically, so an invalid target blocks the complete batch instead of leaving a partial move.
+Use `Advanced -> Bulk assignment` when many members need to move at once. Bulk plans are validated as one operation and committed atomically, so an invalid target blocks the complete batch instead of leaving a partial move.
+
+1. Choose **Docker** or **VM**, then select the destination folder in the sidebar.
+2. Select members in the table. Search by name or filter by current folder and status; click a column heading to sort. Both search boxes control the same search. **Select all**, **Clear**, and **Invert** affect the rows currently shown. Selections hidden by filters remain selected and are counted in the footer; clear the filters to review them.
+3. Check the selected count, destination, and planned moves in the footer. Members already in the destination are counted as selected but do not add a move. Expand **Review planned changes** for the detailed plan, then click **Move containers** or **Move VMs** and confirm.
+
+A safety snapshot is created before saving. The results identify failed members and offer **Retry failed** when needed; the existing undo action restores the safety snapshot. Switching Docker/VM preserves each source's destination and selection during the current page visit. The table shows **Unknown** when a saved member has no available runtime inventory entry. On phones, the destination and filters appear above the table and the move button spans the footer.
 
 Templates save reusable folder settings. Review member-bound custom actions when copying or applying a template because actions that depend on unavailable members are disabled for safety.
+
+In **Advanced -> Operations**, choose Docker or VM, a folder, and an action, then **Preview**. **Apply action** requires a current preview with eligible members. Changing the folder, action, or plan requires another preview. The separate template library supports name search and saving settings from a folder.
 
 ## Import and export
 
@@ -141,11 +151,17 @@ Open `Advanced -> Recovery` to:
 - Delete old snapshots.
 - Undo a recent destructive operation when an undo-capable safety snapshot exists.
 
+The Recovery summary shows readiness and policy for the selected source. Select a history row to restore, download, or delete that snapshot. New setups enable scheduled backups every hour with retention of 25 snapshots; existing saved schedules retain their settings. Interval accepts 1–168 hours and retention 1–200. Routine moves, reorders, preference changes, and pins do not create individual snapshots. Restore recovers preferences alongside folders when present; older folder-only snapshots keep current preferences.
+
+Choose **Compare Snapshots** to open the snapshot chooser for the selected Docker or VM source. Select the **From snapshot** and **Compare with** targets; the second target can be another snapshot or **Current live folders**. Leave **Include preference changes** enabled to compare saved preferences as well.
+
+The results show the two sources, folder totals, and **Added**, **Changed**, **Removed**, and **Unchanged** counts. Folder changes are shown from the first source to the second. Expand **View changed values** to inspect a changed folder's values, and review preference differences in their own section. **Compare again** returns to the chooser with your selections. Comparison is a preview and does not restore or save configuration.
+
 Safety backups are created before supported imports, restores, bulk changes, and other destructive workflows. Keep an external export before uninstalling or replacing the USB configuration because plugin-local backups live under the plugin configuration directory.
 
 ## Docker start order
 
-`Advanced -> Start Order` can follow the Docker page folder order or define custom startup batches. Custom plans can specify groups, members, and delays. Always preview and validate a changed plan before syncing it to the host.
+`Advanced -> Docker start order` can follow the Docker page folder order or define custom startup batches. Custom plans can specify groups, members, and delays. Always preview and validate a changed plan before syncing it to the host.
 
 ## Performance profiles
 
@@ -163,6 +179,10 @@ The Docker-page Privacy toggle hides selected values without changing the stored
 
 ## Diagnostics and support
 
+**Advanced -> Logs** shows completed actions, issues, and selected recovery events in a compact newest-first feed. The current browser keeps up to 100 entries for 30 days. **Clear** removes the saved feed and prevents cleared server events from reappearing; it does not undo configuration changes. Routine background diagnostic successes are omitted.
+
 Open `Advanced -> Diagnostics` to run health checks, inspect core and advisory results, copy an issue report, and preview or export a support bundle. Use a sanitized bundle for public reports unless raw values are explicitly required.
+
+**Backup readiness** checks snapshot metadata and age without performing a restore. **Live runtime connectivity** reflects the latest health check of enabled Docker/VM services. Disabled services and insufficient evidence are informational. Docker startup diagnostics include aggregate stage timings without workload identities.
 
 When a runtime page shows an error banner, copy its diagnostics before refreshing. See [Troubleshooting](TROUBLESHOOTING.md) for targeted checks and [Compatibility](COMPATIBILITY.md) for supported environments.

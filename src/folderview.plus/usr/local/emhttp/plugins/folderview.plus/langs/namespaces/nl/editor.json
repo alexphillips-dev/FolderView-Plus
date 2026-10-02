@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "Een aangepaste actie toevoegen",
     "editor.actions.standard": "Standaard",
@@ -35,12 +36,12 @@
     "editor.webui-profiles.empty": "Nog geen aangepaste WebUI-profielen.",
     "editor.webui-profiles.name": "Profielnaam",
     "editor.webui-profiles.duplicate": "Duplicaat",
-    "editor.webui-profiles.move-up": "Ga omhoog",
-    "editor.webui-profiles.move-down": "Ga naar beneden",
+    "editor.webui-profiles.move-up": "Omhoog verplaatsen",
+    "editor.webui-profiles.move-down": "Omlaag verplaatsen",
     "editor.webui-profiles.delete": "Verwijderen",
     "editor.webui-profiles.search": "Zoek mapleden",
     "editor.webui-profiles.select-webui": "Selecteer alles met WebUI",
-    "editor.webui-profiles.clear": "Duidelijke selectie",
+    "editor.webui-profiles.clear": "Selectie wissen",
     "editor.webui-profiles.webui-ready": "WebUI geconfigureerd",
     "editor.webui-profiles.webui-runtime": "WebUI gecontroleerd bij opstarten",
     "editor.webui-profiles.unavailable": "Niet beschikbaar in deze map",

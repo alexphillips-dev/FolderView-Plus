@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Izvēlieties, kā rīkoties ar esošajām mapēm. Nekas nemainās, kamēr nav atlasīta opcija Lietot importēšanu.",
     "import.behavior.question": "Kā rīkoties ar esošajām mapēm?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Nomainiet precīzi",
     "import.mode.replace.description": "Saskaņojiet eksportu. Mapes, kas tajā nav, var tikt izdzēstas.",
     "import.review.title": "Pārskatiet plānotās izmaiņas",
-    "import.review.count": "Pārskatīt {{PLURAL:$1|$1 plānoto izmaiņu|vienu plānoto izmaiņu|$1 plānotās izmaiņas}}",
+    "import.review.count": "Pārskatīt {{PLURAL:$1|$1 plānoto izmaiņu|$1 plānoto izmaiņu|$1 plānotās izmaiņas}}",
     "import.review.folders-fields": "Mapes un lauki",
     "import.review.choose": "Izvēlieties, kuras izmaiņas iekļaut",
     "import.safety.title": "Drošības iespējas",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Es pārskatīju šo importu",
     "import.acknowledge.description": "Uzvedība un izvēlētās izmaiņas ir pareizas.",
     "import.progress.preparing": "Gatavošanās operācijai",
-    "import.progress.running": "Skriešana",
-    "import.summary.folder-change": "{{PLURAL:$1|$1 mapju izmaiņu|mapes izmaiņa|$1 mapju izmaiņas}}",
-    "import.summary.planned-change": "{{PLURAL:$1|$1 plānoto izmaiņu|plānota izmaiņa|$1 plānotās izmaiņas}} priekšskatījumā",
+    "import.progress.running": "Darbojas",
+    "import.summary.folder-change": "{{PLURAL:$1|mapju izmaiņu|mapes izmaiņa|mapju izmaiņas}}",
+    "import.summary.planned-change": "{{PLURAL:$1|plānoto izmaiņu|plānota izmaiņa|plānotās izmaiņas}} priekšskatījumā",
     "import.summary.new": "$1 jauns",
-    "import.summary.update": "{{PLURAL:$1|$1 atjauninājumu|viens atjauninājums|$1 atjauninājumi}}",
-    "import.summary.delete": "{{PLURAL:$1|$1 dzēšanu|viena dzēšana|$1 dzēšanas}}",
+    "import.summary.update": "{{PLURAL:$1|$1 atjauninājumu|$1 atjauninājums|$1 atjauninājumi}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 dzēšanu|$1 dzēšana|$1 dzēšanas}}",
     "import.kind.docker-folder": "Docker mape",
     "import.kind.vm-folder": "VM mape",
     "import.dialog.docker-title": "Importējiet Docker mapes",
     "import.dialog.vm-title": "Importēt VM mapes",
     "import.actions.apply": "Lietot importēšanu",
     "import.folderview3.preview-title": "FolderView3 migrācijas priekšskatījums",
-    "import.folderview3.preview-help": "Atklājiet instalēto FolderView3 konfigurāciju vai pārbaudiet pilna eksporta JSON. Atklāšana un priekšskatījums ir tikai lasāmi; Vietējie organizatora ieraksti un Docker automātiskās palaišanas mutācijas paliek izslēgti, ja vien vēlākā pieteikumā tie nav skaidri iekļauti.",
     "import.folderview3.read-only-title": "FolderView3 migrācija ir tikai lasāma, līdz apstiprināsiet pieteikuma plānu.",
-    "import.folderview3.read-only-help": "Atklājiet instalētu konfigurāciju vai priekšskatiet FolderView3 eksportu, nerakstot spraudni vai Unraid stāvokli.",
     "import.folderview3.read-only-preview-help": "Atklājiet instalēto FolderView3 konfigurāciju vai priekšskatiet FolderView3 eksportu. Priekšskatīšanā nekad netiek ierakstīts spraudnis vai Unraid konfigurācija.",
     "import.folderview3.not-detected": "Nav atrasta neviena instalēta FolderView3 konfigurācija.",
     "import.folderview3.preview-export-help": "Joprojām varat priekšskatīt FolderView3 pilna eksporta JSON no cita servera.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Nederīgs momentuzņēmums; konfigurācijas secība",
     "import.folderview3.appearance-profiles": "Pievienojiet neaktīvus FolderView3 izskatu profilus",
     "import.folderview3.order-summary": "Saglabātā mapju secība: Docker $1; Virtuālās mašīnas $2.",
-    "import.folderview3.disabled-profile-count": "Atsevišķi profili atspējotajiem motīviem: $1."
+    "import.folderview3.disabled-profile-count": "Atsevišķi profili atspējotajiem motīviem: $1.",
+    "import.compare.to": "Uz"
 }

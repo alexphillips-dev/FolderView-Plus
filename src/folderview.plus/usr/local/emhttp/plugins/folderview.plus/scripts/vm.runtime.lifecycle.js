@@ -213,10 +213,12 @@
             if (requestGeneration !== activeGeneration || requestGeneration === finalizedGeneration) return false;
             finalizedGeneration = requestGeneration;
             pending = [];
-            requests.forEach((request) => restoreSurface(request));
+            requests.filter((request) => !requestQueue.some((queued) => queued.uuid === request.uuid)).forEach(restoreSurface);
             if (outcome.settled !== true) {
                 fallbackCount += 1;
-                schedule(() => queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests }), 0);
+                schedule(() => {
+                    if (requestGeneration === activeGeneration) queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests });
+                }, 0);
                 emit('lifecycleNativeRefreshFallback', {
                     generation: requestGeneration,
                     requestCount: requests.length,
@@ -241,6 +243,8 @@
         const run = (requests, options = {}) => {
             const normalized = normalizeRequests(requests);
             if (normalized.length === 0) return Promise.resolve({ settled: false, skipped: true });
+            const ownedUuids = new Set([...normalized, ...requestQueue].map((request) => request.uuid));
+            pending.filter((request) => !ownedUuids.has(request.uuid)).forEach(restoreSurface);
             const requestGeneration = ++generation;
             activeGeneration = requestGeneration;
             finalizedGeneration = 0;
@@ -254,26 +258,24 @@
                 attempts: delaysMs.length
             });
             return new Promise((resolve) => {
+                const cancelIfSuperseded = (attemptIndex) => {
+                    if (requestGeneration === activeGeneration) return false;
+                    staleGenerationCount += 1;
+                    emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
+                    resolve({ settled: false, canceled: true });
+                    return true;
+                };
                 const attempt = (attemptIndex) => {
-                    if (requestGeneration !== activeGeneration) {
-                        staleGenerationCount += 1;
-                        emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
-                        resolve({ settled: false, canceled: true });
-                        return;
-                    }
+                    if (cancelIfSuperseded(attemptIndex)) return;
                     const delayMs = delaysMs[attemptIndex] ?? 0;
                     schedule(() => {
-                        if (requestGeneration !== activeGeneration) {
-                            staleGenerationCount += 1;
-                            emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
-                            resolve({ settled: false, canceled: true });
-                            return;
-                        }
+                        if (cancelIfSuperseded(attemptIndex)) return;
                         Promise.resolve(refreshRuntimeStateInPlace({
                             preserveGroupedDom: true,
                             lifecycle: true,
                             requests: normalized
                         })).then((success) => {
+                            if (cancelIfSuperseded(attemptIndex)) return;
                             const settled = success === true && normalized.every((request) => isSettled(request, getRuntimeEntry(request.uuid)) === true);
                             emit('lifecycleRefreshResult', {
                                 generation: requestGeneration,
@@ -296,6 +298,7 @@
                             }
                             attempt(attemptIndex + 1);
                         }).catch((error) => {
+                            if (cancelIfSuperseded(attemptIndex)) return;
                             emit('lifecycleRefreshResult', {
                                 generation: requestGeneration,
                                 requestCount: normalized.length,

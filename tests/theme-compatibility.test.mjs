@@ -136,7 +136,8 @@ test('theme compatibility: advanced automation, rules, recovery, and operations 
 });
 
 test('settings shared button system covers basic and advanced workspace actions', () => {
-    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-basic-control-btn,[\s\S]*\.fv-basic-add-btn,[\s\S]*\.fv-basic-sort,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-basic-add-btn,[\s\S]*\.fv-basic-sort,/);
+    assert.doesNotMatch(settingsCss, /\.fv-basic-control-btn/);
     assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-theme-token-reset,/);
     assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-rule-builder-actions > button,[\s\S]*\.fv-rule-selection-actions > button,[\s\S]*\.fv-rule-card-actions > button,[\s\S]*\.fv-rule-test-actions > button,/);
     assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\[data-fv-rules-source-toggle\],[\s\S]*\[data-fv-operations-source-toggle\],/);

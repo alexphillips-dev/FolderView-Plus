@@ -1,6 +1,6 @@
 (() => {
     const DEFAULT_MANIFEST_URL = 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg';
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const buildForceRefreshInstallScript = ({
         manifestUrl = DEFAULT_MANIFEST_URL,
         cacheBust = Date.now(),
@@ -25,7 +25,7 @@
         swalFn = window.swal
     }) => {
         if (typeof setUpdateStatus === 'function') {
-            setUpdateStatus('Checking for updates...');
+            setUpdateStatus(surfaceT("common.audit.checking-updates", "Checking for updates..."));
         }
         try {
             const response = await apiGetJson('/plugins/folderview.plus/server/update_check.php');
@@ -80,7 +80,7 @@
         swalFn = window.swal
     }) => {
         if (typeof setUpdateStatus === 'function') {
-            setUpdateStatus('Preparing force-refresh helper...');
+            setUpdateStatus(surfaceT("common.repair.preparing-force-refresh-helper-d4997a", "Preparing force-refresh helper..."));
         }
         try {
             const [updateCheck, localVersionRaw] = await Promise.all([
@@ -107,8 +107,8 @@
 
             if (typeof setUpdateStatus === 'function') {
                 setUpdateStatus(copied
-                    ? 'Force-refresh helper copied to clipboard.'
-                    : 'Force-refresh helper ready (copy from dialog).');
+                    ? surfaceT("common.audit.helper-copied", "Force-refresh helper copied to clipboard.")
+                    : surfaceT("common.repair.force-refresh-helper-ready-copy-from-dialog-15af4f", "Force-refresh helper ready (copy from dialog)."));
             }
             if (typeof swalFn === 'function') {
                 const messageLines = [
@@ -135,10 +135,10 @@
             };
         } catch (error) {
             if (typeof setUpdateStatus === 'function') {
-                setUpdateStatus('Force-refresh helper failed.');
+                setUpdateStatus(surfaceT("common.repair.force-refresh-helper-failed-2bb06e", "Force-refresh helper failed."));
             }
             if (typeof showError === 'function') {
-                showError('Force-refresh helper failed', error);
+                showError(surfaceT("common.repair.force-refresh-helper-failed-86dd15", "Force-refresh helper failed"), error);
                 return null;
             }
             throw error;

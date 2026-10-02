@@ -2,20 +2,7 @@
 (() => {
 const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
-const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
-const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
-
-const LEGACY_ADVANCED_SECTION_KEYS = [
-    'auto-assignment',
-    'bulk-assignment',
-    'runtime-actions',
-    'backups',
-    'folder-templates',
-    'change-history',
-    'diagnostics',
-    'conflict-inspector'
-];
 const ADVANCED_SECTION_KEYS = new Set([
     'theme-workspace',
     'auto-assignment',
@@ -23,20 +10,21 @@ const ADVANCED_SECTION_KEYS = new Set([
     'runtime-actions',
     'docker-start-order',
     'backups',
-    'change-history',
+    'logs',
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'];
 const translate = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
 const ADVANCED_GROUP_LABELS = {
-    get automation() { return translate("settings.navigation.automation", "Automation"); },
+    get automation() { return translate("settings.navigation.bulk-assignment", "Bulk assignment"); },
     get rules() { return translate("settings.navigation.rules", "Rules"); },
     get recovery() { return translate("settings.navigation.recovery", "Recovery"); },
     get operations() { return translate("settings.navigation.operations", "Operations"); },
-    get startup() { return translate("settings.navigation.startup", "Start Order"); },
+    get startup() { return translate("settings.navigation.docker-start-order", "Docker start order"); },
     get appearance() { return translate("settings.navigation.appearance", "Appearance"); },
-    get diagnostics() { return translate("diagnostics.title", "Diagnostics"); }
+    get diagnostics() { return translate("diagnostics.title", "Diagnostics"); },
+    get logs() { return translate('logs', 'Logs'); }
 };
 const SECTION_APPLY_BEHAVIOR = Object.freeze({
     customizations: 'instant',
@@ -49,7 +37,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'runtime-actions': 'instant',
     'docker-start-order': 'instant',
     backups: 'instant',
-    'change-history': 'instant',
+    logs: 'instant',
     diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
@@ -58,9 +46,9 @@ const ADVANCED_GROUP_BY_SECTION = {
     'bulk-assignment': 'automation',
     'conflict-inspector': 'rules',
     'backups': 'recovery',
-    'change-history': 'recovery',
     'runtime-actions': 'operations',
     'docker-start-order': 'startup',
+    logs: 'logs',
     'diagnostics': 'diagnostics'
 };
 const ADVANCED_MODULE_STALE_MS = 1000 * 60 * 2;
@@ -74,11 +62,12 @@ const ADVANCED_MODULE_KEYS = Object.freeze([
 const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     automation: Object.freeze([]),
     rules: Object.freeze([]),
-    recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
+    recovery: Object.freeze(['docker_backups', 'vm_backups']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
     startup: Object.freeze([]),
     appearance: Object.freeze([]),
-    diagnostics: Object.freeze(['change_history'])
+    diagnostics: Object.freeze(['change_history']),
+    logs: Object.freeze(['change_history'])
 });
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
@@ -141,10 +130,7 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
 Object.assign(window, {
     ADVANCED_TAB_STORAGE_KEY,
     ADVANCED_SECTION_STORAGE_KEY,
-    ADVANCED_EXPANDED_STORAGE_KEY,
-    ADVANCED_KNOWN_STORAGE_KEY,
     SEARCH_ALL_ADVANCED_STORAGE_KEY,
-    LEGACY_ADVANCED_SECTION_KEYS,
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,
@@ -160,10 +146,7 @@ Object.assign(window, {
 window.FolderViewPlusSettingsSections = Object.freeze({
     ADVANCED_TAB_STORAGE_KEY,
     ADVANCED_SECTION_STORAGE_KEY,
-    ADVANCED_EXPANDED_STORAGE_KEY,
-    ADVANCED_KNOWN_STORAGE_KEY,
     SEARCH_ALL_ADVANCED_STORAGE_KEY,
-    LEGACY_ADVANCED_SECTION_KEYS,
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,

@@ -4,6 +4,20 @@ Use this when the root README quick fixes are not enough.
 
 ## Common Issues
 
+### Persistent Installation Warnings
+
+Record the exact warning text and whether it appears in **Apps**, **Plugins**, **Fix Common Problems**, or **FolderView Plus**. Include the installed version and update channel. A green FolderView Plus health summary only covers the plugin checks shown there; it does not prove that an external application's warning is resolved.
+
+For a warning about an unknown plugin or an installation source, compare the installed manifest URL in `bundleMeta.buildIdentity.manifestUrl` with the [CA template](https://raw.githubusercontent.com/alexphillips-dev/unraid-ca-templates/main/folderview.plus.xml). The CA listing uses `main`; directed test installations use `dev`. A channel difference is evidence to investigate, not proof that every warning is harmless.
+
+If you want to return to the CA-listed stable channel, follow [Move from a manual or dev install to Community Applications](INSTALLATION_AND_UPGRADES.md#move-from-a-manual-or-dev-install-to-community-applications). Do not uninstall or modify installed version files just to clear a warning. After the verified change, refresh Apps and rerun the original warning check. If the warning persists, share its exact text, location, and a new sanitized support bundle; do not assume that refreshing plugin health has dismissed it.
+
+### Backup Download Fails with HTTP 200 and `[object Blob]`
+
+This error occurs when the browser treats the JSON backup attachment as a JSON API response instead of a downloadable file. It can affect desktop and mobile browsers. Stable `2026.10.02.01` includes the repair first tested in dev `2026.09.18.01`. Update to the latest stable release, then hard-refresh before retrying **Recovery > Download** for a Docker or VM snapshot.
+
+Verify that a file was actually saved and contains the expected backup JSON. A successful server response or a dispatched browser download alone cannot confirm that the file reached your device. If downloading still fails, include the error text, browser, and a sanitized support bundle; do not restore or delete the snapshot as a download workaround.
+
 ### Some Folders Could Not Be Displayed
 
 If an individual folder fails while rendering, FolderView Plus restores its native container or VM rows and continues displaying healthy folders. On the Dashboard, healthy child folders can appear at the top level when their parent cannot be displayed.
@@ -230,7 +244,7 @@ Runtime privacy masking and support-bundle sanitization are separate systems. En
 - For an advanced Docker popup on hover, set **Preview Context -> Advanced** and **Activation mode -> Hover**. **Show preview only on hover** is a separate visibility setting. Mouse hover remains available on touchscreen computers with a fine pointer; touch-only devices use click/tap.
 - To gray only stopped Docker member icons, choose **Preview status -> Grayscale stopped icons** and leave **Preview icon grayscale** off. Both **Icon and label** and **Only icon (clean)** previews support status-based grayscale.
 - Mixed Docker folder/container positions should survive refresh. Folder sorting changes folders within their saved slots; new folders initially appear at the top until positioned. FolderView3 migration does not import unassigned native-item positions.
-- Fullwidth, Accordion, Inset, and Embossed Dashboard cards fill the available widget width; Compact Matrix cards fill their grid slots. Classic and Legacy retain native tile presentation. Capture layout diagnostics on the affected page before exporting a sanitized bundle.
+- Classic, Fullwidth, Inset, and Embossed arrange collapsed Dashboard folders and ungrouped items across the widget, wrapping onto additional rows. Expanded folders span the row with responsive member columns. Accordion retains stacked headers and uses responsive member columns. Compact Matrix stacks cards independently in up to three columns, avoiding shared row-height gaps. Nested folders stay inside their parent panel; Legacy retains its existing presentation. Hard-refresh after updating, and check both wide and narrow widgets: columns follow the widget width. Capture layout diagnostics on the affected page before exporting a sanitized bundle.
 - An empty JSON response during custom-icon upload triggers one attempt through the supported inline upload path. If recovery also fails, record the exact error and HTTP response status for `upload_custom_icon.php`, and export a sanitized bundle. Do not include cookies or authentication headers.
 
 ## Paths

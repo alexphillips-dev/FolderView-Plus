@@ -367,6 +367,7 @@
         };
 
         const refreshSupportBundlePreview = async ({ privacy = 'sanitized', quiet = true } = {}) => {
+            const repairTe94da7ac = (key, fallback) => globalThis.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
             try {
                 const bundle = await getSupportBundlePreview(privacy);
                 lastSupportBundlePreview = await enrichSupportBundlePreview(bundle);
@@ -374,7 +375,7 @@
                 return lastSupportBundlePreview;
             } catch (error) {
                 if (!quiet) {
-                    showError('Support bundle preview failed', error);
+                    showError(repairTe94da7ac("common.repair.support-bundle-preview-failed-17d6f8", "Support bundle preview failed"), error);
                 }
                 if (lastSupportBundlePreview) {
                     renderSupportBundlePreview(lastSupportBundlePreview);

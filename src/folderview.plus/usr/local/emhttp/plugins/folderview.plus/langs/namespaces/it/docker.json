@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "it",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Azioni della Vista Cartella",
     "docker.actions.add-folder": "Aggiungi cartella",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Strumenti",
     "docker.actions.show-empty": "Mostra cartelle vuote",
     "docker.actions.hide-empty": "Nascondi cartelle vuote",
-    "docker.actions.clear-focus": "Cancella focus della cartella",
+    "docker.actions.clear-focus": "Rimuovi il filtro della cartella attiva",
     "docker.actions.refresh-state": "Aggiorna stato della cartella",
     "docker.actions.bulk-assignment": "Assegnazione collettiva",
     "docker.actions.rules-workspace": "Area di lavoro Regole",

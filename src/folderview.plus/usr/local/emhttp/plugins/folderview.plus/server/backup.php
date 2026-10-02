@@ -102,7 +102,9 @@ fvplus_json_try(function (): array {
     if ($action === 'restore') {
         $name = (string)($_POST['name'] ?? '');
         return [
-            'restore' => restoreBackupSnapshot($type, $name)
+            'restore' => restoreBackupSnapshot($type, $name, [
+                'createSafetyBackup' => normalizeBool($_POST['createSafetyBackup'] ?? false)
+            ])
         ];
     }
 

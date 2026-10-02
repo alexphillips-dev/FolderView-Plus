@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -182,6 +183,17 @@ jobs:
             echo
             echo "${PR_URL}"
           } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Request CI and CodeQL for back-merge commit
+        if: steps.push_backmerge.outputs.updated == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Explicit dispatch also works for branches and PRs created by GITHUB_TOKEN.
+          gh workflow run ci.yml --repo "${GITHUB_REPOSITORY}" --ref "${BACKMERGE_BRANCH}"
+          gh workflow run codeql.yml --repo "${GITHUB_REPOSITORY}" --ref "${BACKMERGE_BRANCH}"
+          echo "CI and CodeQL requested for ${BACKMERGE_BRANCH}. Wait for both checks to pass before merging." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Collect back-merge debug artifacts on failure
         if: failure()

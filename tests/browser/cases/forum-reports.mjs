@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { registerBackupMobileReportCases } from './backup-mobile-report.mjs';
 
 export const registerForumReportFixtureCases = ({ test, baseUrl }) => {
+registerBackupMobileReportCases({ test, baseUrl });
 test('Dashboard card layouts fill the widget despite fixed-width host tiles', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
     await page.addStyleTag({ content: '.folder-showcase-outer { display: inline-block; width: 180px; } span.outer { width: 180px; display: inline-block; }' });
@@ -14,12 +16,12 @@ test('Dashboard card layouts fill the widget despite fixed-width host tiles', as
                 fixture.controller.applyDashboardLayoutStateForType('docker');
                 const host = document.querySelector('#fixture-dashboard-host');
                 const cards = [...host.querySelectorAll(':scope > .folder-showcase-outer')];
-                return { host: host.clientWidth, cards: cards.map((card) => ({ width: card.clientWidth, tile: card.querySelector(':scope > span.outer').clientWidth })), overflow: document.documentElement.scrollWidth > innerWidth };
+                return { host: host.clientWidth, cards: cards.map((card) => ({ expanded: card.getAttribute('expanded') === 'true', width: card.clientWidth, tile: card.querySelector(':scope > span.outer').clientWidth })), overflow: document.documentElement.scrollWidth > innerWidth };
             }, { layout, width });
             assert.equal(geometry.overflow, false, `${layout} at ${width}`);
             for (const card of geometry.cards) {
                 assert.ok(card.tile >= card.width - 14, `${layout} card tile should fill its slot including inset padding`);
-                if (layout !== 'compactmatrix') assert.ok(card.width >= geometry.host - 40, `${layout} should fill the widget`);
+                if (layout === 'accordion' || (layout !== 'compactmatrix' && card.expanded)) assert.ok(card.width >= geometry.host - 40, `${layout} expanded panel should fill the widget`);
             }
         }
     }

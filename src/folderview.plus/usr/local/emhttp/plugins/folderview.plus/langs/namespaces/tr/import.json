@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Mevcut klasörleri nasıl yöneteceğinizi seçin. Uygula içe aktarılmasını seçene kadar hiçbir şey değişmez.",
     "import.behavior.question": "Mevcut klasörler nasıl yönetilmeli?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Tam olarak değiştir",
     "import.mode.replace.description": "Dışa aktarımı eşleştir. Ondan bulunmayan klasörler silinebilir.",
     "import.review.title": "Planlanan değişiklikleri gözden geçir",
-    "import.review.count": "{{PLURAL:$1|bir planlanan değişiklik|$1 planlanan değişiklikler}} gözden geçir",
+    "import.review.count": "{{PLURAL:$1|$1 planlanan değişikliği|$1 planlanan değişikliği}} gözden geçir",
     "import.review.folders-fields": "Klasörler ve alanlar",
     "import.review.choose": "Hangi değişikliklerin dahil edileceğini seç",
     "import.safety.title": "Güvenlik seçenekleri",
@@ -35,17 +36,15 @@
     "import.summary.folder-change": "{{PLURAL:$1|klasör değişikliği|klasör değişiklikleri}}",
     "import.summary.planned-change": "Önizlemede {{PLURAL:$1|planlanan değişiklik|planlanan değişiklikler}}",
     "import.summary.new": "$1 yeni",
-    "import.summary.update": "{{PLURAL:$1|bir güncelleme|$1 güncellemeler}}",
-    "import.summary.delete": "{{PLURAL:$1|bir silme|$1 silmeler}}",
+    "import.summary.update": "{{PLURAL:$1|$1 güncelleme|$1 güncelleme}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 silme işlemi|$1 silme işlemi}}",
     "import.kind.docker-folder": "Docker klasör",
     "import.kind.vm-folder": "VM klasör",
     "import.dialog.docker-title": "Docker Klasör Aktar",
     "import.dialog.vm-title": "VM Klasör Aktar",
     "import.actions.apply": "Aktarımı uygula",
     "import.folderview3.preview-title": "FolderView3 geçiş önizlemesi",
-    "import.folderview3.preview-help": "Yüklü bir FolderView3 yapılandırmasını keşfedin veya tam dışa aktarılan bir JSON'u inceleyin. Algılama ve önizleme salt okunurdur; yerel düzenleyici kayıtları ve Docker otomatik başlatma mutasyonları, daha sonraki bir başvuruda açıkça yer almadığı sürece hariç tutulur.",
     "import.folderview3.read-only-title": "FolderView3 geçişi, siz bir uygulama planını onaylayana kadar salt okunurdur.",
-    "import.folderview3.read-only-help": "Yüklü bir yapılandırmayı tespit edin veya herhangi bir eklenti veya Unraid durumu yazmadan FolderView3 dışa aktarımının önizlemesini yapın.",
     "import.folderview3.read-only-preview-help": "Yüklü bir FolderView3 yapılandırmasını algılayın veya bir FolderView3 dışa aktarımının önizlemesini yapın. Önizleme hiçbir zaman eklentiyi veya Unraid yapılandırmasını yazmaz.",
     "import.folderview3.not-detected": "Yüklü FolderView3 yapılandırması algılanmadı.",
     "import.folderview3.preview-export-help": "FolderView3'ün tam dışa aktarılan JSON'unu başka bir sunucudan önizlemeye devam edebilirsiniz.",
@@ -71,11 +70,12 @@
     "import.folderview3.theme-unscoped": "Tanınmış bir FolderView3 sayfa kapsamı olmayan özel stiller hariç tutuldu.",
     "import.folderview3.theme-disabled": "Devre dışı bırakılan temalar ayrı etkin olmayan görünüm profilleri olarak korundu; içe aktarılan ana profile dahil edilmezler.",
     "import.folderview3.theme-compatibility": "İçe aktarılan CSS, FolderView3 seçicilerini veya FolderView Plus'ta farklılık gösteren değişkenleri kullanabilir. Etkinleştirmeden önce her görünüm profilini önizleyin.",
-    "import.folderview3.order-imported": "İthal",
+    "import.folderview3.order-imported": "İçe aktarıldı",
     "import.folderview3.order-fallback": "Yapılandırma sırası",
     "import.folderview3.order-empty": "Kayıtlı sipariş yok",
     "import.folderview3.order-invalid-status": "Geçersiz anlık görüntü; konfigürasyon sırası",
     "import.folderview3.appearance-profiles": "Etkin olmayan FolderView3 görünüm profillerini ekleme",
     "import.folderview3.order-summary": "Kaydedilen klasör sırası: Docker $1; VM'ler $2.",
-    "import.folderview3.disabled-profile-count": "Devre dışı bırakılan temalar için ayrı profiller: $1."
+    "import.folderview3.disabled-profile-count": "Devre dışı bırakılan temalar için ayrı profiller: $1.",
+    "import.compare.to": "Hedef"
 }

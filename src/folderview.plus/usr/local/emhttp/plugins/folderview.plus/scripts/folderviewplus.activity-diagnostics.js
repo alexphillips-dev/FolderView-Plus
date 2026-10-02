@@ -16,7 +16,7 @@ const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry
 const diagnosticsViewModelModule = window.FolderViewPlusDiagnosticsViewModel || null;
 const diagnosticsViewModule = window.FolderViewPlusDiagnosticsView || null;
 const diagnosticsT = (key, fallback = '', ...params) => (
-    window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
+    window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token))
 );
 const diagnosticsSwal = typeof window.swal === 'function'
     ? window.swal.bind(window)
@@ -24,7 +24,7 @@ const diagnosticsSwal = typeof window.swal === 'function'
         const title = String(options?.title || 'FolderView Plus').trim();
         const text = String(options?.text || '').trim();
         if (typeof window.alert === 'function') {
-            window.alert(text ? `${title}\n\n${text}` : title);
+        window.alert(window.FolderViewPlusI18n?.message?.(text ? `${title}\n\n${text}` : title) || (text ? `${title}\n\n${text}` : title));
         }
     });
 const diagnosticsShowToastMessage = (options = {}) => {
@@ -102,10 +102,17 @@ let supportBundlePreviewApi = null;
 let supportBundleTelemetryApi = null;
 let diagnosticsViewApi = null;
 let diagnosticsRunState = Object.freeze({ running: false, errorMessage: '' });
-const ACTIVITY_FEED_MAX_ENTRIES = 12;
-const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
-let activityFeedAutoClearTimer = null;
-let activityCenterHistoryExpanded = false;
+const ACTIVITY_FEED_MAX_ENTRIES = 100;
+const ACTIVITY_FEED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const ACTIVITY_FEED_STORAGE_KEY = 'fv.settings.logs.v1';
+const ACTIVITY_FEED_MAX_MESSAGE_LENGTH = 4096;
+let activityFeedRestored = false;
+let activityFeedClearedAt = 0;
+let activityFeedClearedServerKeys = [];
+const LOGGED_DIAGNOSTIC_EVENTS = new Set([
+    'import', 'delete_folder', 'clear_folders', 'runtime_bulk_action', 'bulk_assign',
+    'diagnostics_export', 'support_bundle_export'
+]);
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 24 * 60 * 60 * 1000;
 const PERF_DIAGNOSTICS_EVALUATION_WINDOW_MS = 30 * 60 * 1000;
@@ -149,7 +156,7 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
         return null;
     }
 };
-
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const getPerformanceDiagnosticsSeries = () => ([
     performanceDiagnosticsState.refresh.docker,
     performanceDiagnosticsState.refresh.vm,
@@ -190,17 +197,18 @@ const restorePerformanceDiagnosticsHistory = () => {
         return;
     }
     const now = Date.now();
-    const copySeries = (target, source) => {
+    const copySeries = (target, source, classificationVersion = 0) => {
         const restored = (Array.isArray(source) ? source : [])
             .map((sample) => sanitizePersistedPerformanceSample(sample, now))
             .filter(Boolean)
+            .filter((sample) => !classificationVersion || sample.details.classificationVersion === classificationVersion)
             .slice(-PERF_DIAGNOSTICS_SAMPLE_LIMIT);
         target.splice(0, target.length, ...restored);
     };
     copySeries(performanceDiagnosticsState.refresh.docker, stored.state.refresh?.docker);
     copySeries(performanceDiagnosticsState.refresh.vm, stored.state.refresh?.vm);
-    copySeries(performanceDiagnosticsState.runtimeHydration.docker, stored.state.runtimeHydration?.docker);
-    copySeries(performanceDiagnosticsState.runtimeHydration.vm, stored.state.runtimeHydration?.vm);
+    copySeries(performanceDiagnosticsState.runtimeHydration.docker, stored.state.runtimeHydration?.docker, 2);
+    copySeries(performanceDiagnosticsState.runtimeHydration.vm, stored.state.runtimeHydration?.vm, 2);
     copySeries(performanceDiagnosticsState.import.docker, stored.state.import?.docker);
     copySeries(performanceDiagnosticsState.import.vm, stored.state.import?.vm);
     copySeries(performanceDiagnosticsState.wizard.apply, stored.state.wizard?.apply);
@@ -560,7 +568,7 @@ const renderPerformanceDiagnostics = () => {
     ].join('');
     const runtimeSnapshot = getRuntimePerfTelemetrySnapshot();
     const updatedAt = performanceDiagnosticsState.updatedAt > 0
-        ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
+        ? (globalThis.FolderViewPlusI18n?.formatDate?.(performanceDiagnosticsState.updatedAt, { dateStyle: 'short', timeStyle: 'medium' }) || new Date(performanceDiagnosticsState.updatedAt).toLocaleString('en'))
         : 'Not yet sampled';
     host.html(`
         <div class="fv-perf-summary-note">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.note', 'Rolling UI timings are retained for 24 hours across refreshes; health evaluation uses the most recent 30 minutes. Cold loads are observed but do not trigger a warning by themselves.'))}</div>
@@ -784,8 +792,8 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
     }
     const statusValue = String(status || 'ok');
     const activityMessage = describeTrackedEvent(eventType, type, details);
-    if (activityMessage) {
-        addActivityEntry(activityMessage, statusValue === 'ok' ? 'info' : 'error');
+    if (activityMessage && (statusValue !== 'ok' || LOGGED_DIAGNOSTIC_EVENTS.has(String(eventType)))) {
+        addActivityEntry(activityMessage, statusValue === 'ok' ? 'success' : 'error');
         if (statusValue === 'ok' && ['import', 'clear_folders', 'delete_folder', 'runtime_bulk_action', 'bulk_assign'].includes(String(eventType))) {
             diagnosticsShowToastMessage({
                 title: 'Action completed',
@@ -868,13 +876,14 @@ const protectDashboardLayoutFromBroadPrefsWrite = (prefs, options = {}) => {
 };
 
 const postPrefs = async (type, prefs, options = {}) => {
-    const protectedPrefs = protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
+    const protectedPrefs = diagnosticsPrefsStoreModule?.cleanPatch(
+        protectDashboardLayoutFromBroadPrefsWrite(prefs, options), options.baselinePrefs || (options.currentPrefs ? null : prefsByType?.[type])
+    ) || protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
     if (diagnosticsPrefsCoordinator) {
         const savedPrefs = await diagnosticsPrefsCoordinator.save(type, protectedPrefs, {
             currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
             immediate: options.immediate === true
         });
-        latestPrefsBackupByType[type] = diagnosticsPrefsCoordinator.getSnapshot(type)?.lastBackup || null;
         return utils.normalizePrefs(savedPrefs);
     }
     const expectedRevision = Math.max(
@@ -898,7 +907,6 @@ const postPrefs = async (type, prefs, options = {}) => {
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
-    latestPrefsBackupByType[type] = response.backup || null;
     const fallbackPrefs = typeof diagnosticsPrefsStoreModule?.mergePatch === 'function'
         ? diagnosticsPrefsStoreModule.mergePatch(prefsByType?.[type] || {}, protectedPrefs || {})
         : { ...(prefsByType?.[type] || {}), ...(protectedPrefs || {}) };
@@ -948,10 +956,8 @@ const restorePreviousGlobalRollbackCheckpointApi = async () => {
 const restoreLatest = async (type) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        type: resolvedType,
-        action: 'restore_latest'
-    });
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest' });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
     }
@@ -961,10 +967,8 @@ const restoreLatest = async (type) => {
 const restoreLatestUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Undo latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} restore`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        type: resolvedType,
-        action: 'restore_latest_undo'
-    });
+    await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest_undo' });
     if (!response.ok) {
         throw new Error(response.error || 'Undo restore failed.');
     }
@@ -1006,25 +1010,93 @@ const setRollbackStatus = (text) => {
 };
 
 const formatActivityTimestamp = (at) => {
-    const date = new Date(Number(at) || Date.now());
+    if (at === null || at === undefined || at === '') return '';
+    const numeric = typeof at === 'number' || /^\d+$/.test(String(at));
+    const date = new Date(numeric ? Number(at) : at);
     if (Number.isNaN(date.getTime())) {
         return '';
     }
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const options = numeric ? { hour: '2-digit', minute: '2-digit' }
+        : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, options) || date.toLocaleString('en', options));
 };
 
 const normalizeActivityLevel = (level) => {
     const normalized = String(level || 'info').trim().toLowerCase();
-    if (normalized === 'error' || normalized === 'danger') {
+    if (['error', 'danger', 'failed', 'fatal'].includes(normalized)) {
         return 'error';
     }
     if (normalized === 'success' || normalized === 'ok') {
         return 'success';
     }
-    if (normalized === 'warning' || normalized === 'warn') {
+    if (['warning', 'warn', 'degraded', 'partial'].includes(normalized)) {
         return 'warning';
     }
     return 'info';
+};
+
+const normalizeActivityClearedAt = (value, now = Date.now()) => {
+    const at = Number(value);
+    return Number.isSafeInteger(at) && at > now - ACTIVITY_FEED_RETENTION_MS && at <= now ? at : 0;
+};
+
+const normalizeActivityClearedServerKeys = (value) => (Array.isArray(value) ? value : [])
+    .filter((key) => typeof key === 'string' && /^s:[a-zA-Z0-9_-]{1,48}$/.test(key))
+    .slice(0, 80);
+
+const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entries) ? entries : [])
+    .map((entry) => {
+        const at = Number(entry?.at);
+        const message = typeof entry?.message === 'string' ? entry.message.trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH) : '';
+        const detail = typeof entry?.detail === 'string' ? entry.detail.trim().slice(0, 256) : '';
+        if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || !message) {
+            return null;
+        }
+        const serverKey = typeof entry.serverKey === 'string' && /^s:[a-zA-Z0-9_-]{1,48}$/.test(entry.serverKey)
+            ? entry.serverKey : '';
+        return { at, level: normalizeActivityLevel(entry.level), message, ...(detail ? { detail } : {}), ...(serverKey ? { serverKey } : {}) };
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.at - left.at)
+    .slice(0, ACTIVITY_FEED_MAX_ENTRIES);
+
+const persistActivityFeed = () => {
+    try {
+        activityFeedClearedAt = normalizeActivityClearedAt(activityFeedClearedAt);
+        if (!activityFeedEntries.length && !activityFeedClearedAt) {
+            localStorage.removeItem(ACTIVITY_FEED_STORAGE_KEY);
+            return;
+        }
+        localStorage.setItem(ACTIVITY_FEED_STORAGE_KEY, JSON.stringify({
+            schemaVersion: 1,
+            clearedAt: activityFeedClearedAt,
+            clearedServerKeys: activityFeedClearedAt ? activityFeedClearedServerKeys : [],
+            entries: activityFeedEntries
+        }));
+    } catch (_error) {
+        // Browser storage is optional; the in-memory feed remains usable.
+    }
+};
+
+const restoreActivityFeed = () => {
+    if (activityFeedRestored) return;
+    activityFeedRestored = true;
+    const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
+    const entries = Number(stored?.schemaVersion) === 1 ? stored.entries : [];
+    activityFeedClearedAt = normalizeActivityClearedAt(stored?.clearedAt);
+    activityFeedClearedServerKeys = activityFeedClearedAt ? normalizeActivityClearedServerKeys(stored?.clearedServerKeys) : [];
+    activityFeedEntries = retainActivityEntries([...activityFeedEntries, ...(Array.isArray(entries) ? entries : [])]);
+    persistActivityFeed();
+};
+
+const syncActivityFeedFromStorage = (event) => {
+    if (event.key !== ACTIVITY_FEED_STORAGE_KEY && event.key !== null) return;
+    activityFeedRestored = true;
+    const stored = readClientDiagnosticsStorageRecord(ACTIVITY_FEED_STORAGE_KEY);
+    activityFeedClearedAt = normalizeActivityClearedAt(stored?.clearedAt);
+    activityFeedClearedServerKeys = activityFeedClearedAt ? normalizeActivityClearedServerKeys(stored?.clearedServerKeys) : [];
+    activityFeedEntries = retainActivityEntries(Number(stored?.schemaVersion) === 1 ? stored.entries : []);
+    renderActivityFeed();
 };
 
 const getActivityLevelMeta = (level) => {
@@ -1041,11 +1113,6 @@ const getActivityLevelMeta = (level) => {
     }
 };
 
-const isActivityEntryFresh = (entry) => {
-    const at = Number(entry?.at || 0);
-    return at > 0 && Date.now() - at < ACTIVITY_FEED_AUTO_CLEAR_MS;
-};
-
 const summarizeActivityFeed = () => {
     const counts = activityFeedEntries.reduce((acc, entry) => {
         const level = normalizeActivityLevel(entry?.level);
@@ -1060,7 +1127,7 @@ const summarizeActivityFeed = () => {
         return diagnosticsT("diagnostics.activity.errors", "Issues needing attention: $1.", counts.error);
     }
     if (counts.warning > 0) {
-        return diagnosticsT("diagnostics.activity.warnings", "Items needing review: $1.", counts.warning);
+        return `${surfaceT('common.audit.review-action', 'Review recent action')} · ${diagnosticsT('diagnostics.activity.warnings', 'Items needing review: $1.', counts.warning)}`;
     }
     if (counts.success > 0) {
         return diagnosticsT("diagnostics.activity.successes", "Completed actions: $1.", counts.success);
@@ -1071,92 +1138,37 @@ const summarizeActivityFeed = () => {
 const renderActivityFeed = () => {
     const panel = $('#fv-activity-feed-panel');
     const list = $('#fv-activity-feed-list');
-    const latest = $('#fv-activity-center-latest');
-    const status = $('#fv-activity-center-status');
     const summary = $('#fv-activity-center-summary');
-    const toggle = $('#fv-activity-center-toggle');
     const clear = $('#fv-activity-center-clear');
     if (!panel.length || !list.length) {
         return;
     }
+    restoreActivityFeed();
+    const retained = retainActivityEntries(activityFeedEntries);
+    if (retained.length !== activityFeedEntries.length) {
+        activityFeedEntries = retained;
+        persistActivityFeed();
+    }
+    summary.text(summarizeActivityFeed());
     if (!activityFeedEntries.length) {
-        status.text('Recent activity');
-        summary.text('Actions you run here will appear in this session history.');
-        list.empty();
-        list.hide();
-        toggle.attr('aria-expanded', 'false');
-        toggle.toggleClass('is-expanded', false);
-        toggle.prop('disabled', true);
-        clear.prop('disabled', true);
-        latest.html(`
-            <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
-            <div class="fv-activity-latest-copy">
-                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-title', 'No activity yet'))}</strong>
-                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-description', 'Folder changes, backups, imports, and recovery actions will appear here.'))}</span>
-            </div>
-            <span class="fv-activity-latest-time">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.ready', 'Ready'))}</span>
-        `);
-        latest.addClass('is-empty').removeClass('is-fresh is-error is-warning is-success is-info');
-        panel.show();
+        list.html(`<li class="fv-activity-empty"><strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.ready', 'Ready'))}</strong><span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-description', 'Folder changes, backups, imports, and recovery actions will appear here.'))}</span></li>`);
+        clear.prop('disabled', true).attr('title', diagnosticsT('diagnostics.activity.empty-title', 'No activity yet'));
         return;
     }
-    const first = activityFeedEntries[0];
-    const firstLevel = normalizeActivityLevel(first?.level);
-    const firstMeta = getActivityLevelMeta(firstLevel);
-    const firstFresh = firstLevel !== 'error' && isActivityEntryFresh(first);
-    status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? 'Review recent action' : 'Recent activity');
-    summary.text(summarizeActivityFeed());
-    latest
-        .removeClass('is-empty is-error is-warning is-success is-info is-fresh')
-        .addClass(`is-${firstLevel}`)
-        .toggleClass('is-fresh', firstFresh);
-    latest.html(`
-        <div class="fv-activity-latest-icon is-${diagnosticsEscapeHtml(firstLevel)}"><i class="fa ${diagnosticsEscapeHtml(firstMeta.icon)}" aria-hidden="true"></i></div>
-        <div class="fv-activity-latest-copy">
-            <strong>${diagnosticsEscapeHtml(firstMeta.label)}</strong>
-            <span>${diagnosticsEscapeHtml(String(first?.message || 'Activity recorded.'))}</span>
-        </div>
-        <span class="fv-activity-latest-time">${diagnosticsEscapeHtml(formatActivityTimestamp(first?.at))}</span>
-    `);
+    clear.removeAttr('title');
     const rows = activityFeedEntries.map((entry) => {
         const level = normalizeActivityLevel(entry?.level);
         const meta = getActivityLevelMeta(level);
-        const freshClass = level !== 'error' && isActivityEntryFresh(entry) ? ' is-fresh' : '';
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}${freshClass}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
+        const detail = entry.detail ? `<span class="fv-activity-detail"> — ${diagnosticsEscapeHtml(entry.detail)}</span>` : '';
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}${detail}</span></li>`;
     }).join('');
     list.html(rows);
-    list.toggle(activityCenterHistoryExpanded);
-    toggle.attr('aria-expanded', activityCenterHistoryExpanded ? 'true' : 'false');
-    toggle.toggleClass('is-expanded', activityCenterHistoryExpanded);
-    toggle.prop('disabled', false);
     clear.prop('disabled', false);
-    panel.show();
-};
-
-const cancelActivityFeedAutoClear = () => {
-    if (activityFeedAutoClearTimer) {
-        window.clearTimeout(activityFeedAutoClearTimer);
-        activityFeedAutoClearTimer = null;
-    }
-};
-
-const scheduleActivityFeedAutoClear = () => {
-    cancelActivityFeedAutoClear();
-    const freshEntries = activityFeedEntries.filter((entry) => normalizeActivityLevel(entry?.level) !== 'error' && isActivityEntryFresh(entry));
-    if (!freshEntries.length) {
-        return;
-    }
-    const oldestFreshAt = Math.min(...freshEntries.map((entry) => Number(entry?.at || Date.now())));
-    const delay = Math.max(0, ACTIVITY_FEED_AUTO_CLEAR_MS - (Date.now() - oldestFreshAt) + 50);
-    activityFeedAutoClearTimer = window.setTimeout(() => {
-        activityFeedAutoClearTimer = null;
-        renderActivityFeed();
-        scheduleActivityFeedAutoClear();
-    }, delay);
 };
 
 const addActivityEntry = (message, level = 'info') => {
-    const text = String(message || '').trim();
+    restoreActivityFeed();
+    const text = String(message || '').trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH);
     if (!text) {
         return;
     }
@@ -1165,22 +1177,23 @@ const addActivityEntry = (message, level = 'info') => {
         level: String(level || 'info'),
         message: text
     });
-    if (activityFeedEntries.length > ACTIVITY_FEED_MAX_ENTRIES) {
-        activityFeedEntries = activityFeedEntries.slice(0, ACTIVITY_FEED_MAX_ENTRIES);
-    }
+    activityFeedEntries = retainActivityEntries(activityFeedEntries);
+    persistActivityFeed();
     renderActivityFeed();
-    scheduleActivityFeedAutoClear();
 };
 
 const clearActivityFeed = () => {
-    cancelActivityFeedAutoClear();
-    activityCenterHistoryExpanded = false;
+    activityFeedRestored = true;
+    const boundary = Math.floor(Date.now() / 1000) * 1000;
+    const serverEvents = Array.isArray(lastDiagnostics?.importExportHistory?.events)
+        ? lastDiagnostics.importExportHistory.events : [];
+    activityFeedClearedServerKeys = normalizeActivityClearedServerKeys([
+        ...activityFeedEntries.filter((entry) => entry.at === boundary).map((entry) => entry.serverKey),
+        ...serverEvents.filter((row) => Date.parse(String(row?.timestamp || '')) === boundary).map(serverActivityKey)
+    ]);
     activityFeedEntries = [];
-    renderActivityFeed();
-};
-
-const toggleActivityCenterHistory = () => {
-    activityCenterHistoryExpanded = !activityCenterHistoryExpanded;
+    activityFeedClearedAt = boundary;
+    persistActivityFeed();
     renderActivityFeed();
 };
 
@@ -1202,8 +1215,8 @@ const ADVANCED_MODULE_STATUS_CONFIG = Object.freeze({
         label: 'VM templates'
     }),
     change_history: Object.freeze({
-        anchorSelector: '#change-history-output',
-        label: 'Change history'
+        anchorSelector: '#fv-activity-feed-list',
+        label: 'Logs'
     })
 });
 
@@ -1225,7 +1238,7 @@ const ensureAdvancedModuleStatusHost = (moduleKey) => {
         host = document.createElement('div');
         host.className = 'inline-validation-hint fv-advanced-module-status';
         host.setAttribute('data-fv-advanced-module-status', moduleKey);
-        const header = panel.querySelector('.rules-header');
+        const header = panel.querySelector('.rules-header, .fv-activity-center-head');
         if (header instanceof HTMLElement) {
             header.insertAdjacentElement('afterend', host);
         } else {
@@ -1314,107 +1327,105 @@ const withAdvancedOperationLock = async (type, scope, actionLabel, callback) => 
 
 const getCachedDiagnostics = () => lastDiagnostics;
 
-const getRecoveryTimelineStatusClass = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    if (normalized === 'error' || normalized === 'failed' || normalized === 'fatal') {
-        return 'is-danger';
+const serverActivityLabel = (action) => {
+    switch (String(action || '')) {
+        case 'backup_create': return diagnosticsT('legacy.surface.ebc91c7ac728323f', 'Backup created');
+        case 'backup_restore': return diagnosticsT('diagnostics.history.backup-restored', 'Backup restored');
+        case 'backup_delete': return diagnosticsT('diagnostics.history.backup-deleted', 'Backup deleted');
+        case 'backup_delete_all': return diagnosticsT('legacy.surface.477235d571fd27bc', 'Backups deleted');
+        case 'rollback_create': return diagnosticsT('legacy.surface.488de119a17f3cb0', 'Rollback checkpoint created');
+        case 'rollback_restore': return diagnosticsT('legacy.surface.4a326363548eeb45', 'Rollback restored');
+        case 'environment_export': return diagnosticsT('legacy.surface.eae1fdd133376e8b', 'Environment exported');
+        case 'environment_import': return diagnosticsT('legacy.surface.6f50d668c818bd67', 'Environment imported');
+        case 'folder_create': return diagnosticsT('legacy.surface.b1dfe0e9670cba07', 'Folder created');
+        case 'folder_update': return diagnosticsT('legacy.surface.1bafabfde564c2ff', 'Folder updated');
+        case 'folder_delete':
+        case 'delete_folder': return diagnosticsT('legacy.surface.796dc50ba898b20e', 'Folder deleted');
+        case 'folder_batch_mutation': return diagnosticsT('legacy.surface.3b82ea5d8d562750', 'Folders changed');
+        case 'folder_settings_apply': return diagnosticsT('legacy.surface.30eeaf5fbcbf6551', 'Folder settings applied');
+        case 'folder_batch_assignment':
+        case 'bulk_assign': return diagnosticsT('legacy.surface.108df9023de0f1ef', 'Folders assigned');
+        case 'reorder': return diagnosticsT('legacy.surface.9932c276701d61cb', 'Folder order changed');
+        case 'runtime_bulk_action': return diagnosticsT('legacy.surface.0f26990ce5039407', 'Runtime action completed');
+        case 'template_create': return diagnosticsT('legacy.surface.1b34f8ff69d42e9b', 'Template saved');
+        case 'template_delete': return diagnosticsT('legacy.surface.8fa9d4a8b8272f35', 'Template deleted');
+        case 'template_apply': return diagnosticsT('legacy.surface.d71a690c533f0773', 'Template applied');
+        case 'import': return diagnosticsT('legacy.surface.fbf4233b76201b64', 'Import applied');
+        case 'clear_folders': return diagnosticsT('legacy.surface.4831800dd74859de', 'Folders cleared');
+        default: return '';
     }
-    if (normalized === 'warning' || normalized === 'degraded' || normalized === 'partial') {
-        return 'is-warning';
-    }
-    return 'is-healthy';
 };
 
-const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostics) => {
-    const summaryHost = $('#fv-recovery-change-history-summary');
-    const listHost = $('#recovery-change-history-list');
-    if (!summaryHost.length || !listHost.length) {
-        return;
+const serverActivityFailureLabel = (action) => {
+    const name = String(action || '');
+    if (name.startsWith('backup_')) return diagnosticsT('common.repair.backup-failed-0e7112', 'Backup failed');
+    if (name === 'import' || name === 'environment_import') return diagnosticsT('legacy.surface.0a26f41abd00f95e', 'Import failed');
+    if (name === 'environment_export') return diagnosticsT('legacy.surface.e94d3ee06ecf6aac', 'Export failed');
+    if (name.startsWith('folder_') || ['delete_folder', 'clear_folders', 'bulk_assign', 'reorder'].includes(name)) {
+        return diagnosticsT('legacy.surface.5ea309a60ed8fe70', 'Folder change failed');
     }
-
-    const activeType = window.FolderViewPlusCspEvents?.getAction('getActiveRecoveryWorkspaceType')?.() === 'vm'
-        ? 'vm'
-        : 'docker';
-    const typeLabel = activeType === 'docker' ? 'Docker' : 'VM';
-    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
-    const filteredTimeline = timeline.filter((row) => {
-        const rowType = String(row?.type || '').trim().toLowerCase();
-        return !rowType || rowType === activeType;
-    });
-
-    if (!filteredTimeline.length) {
-        summaryHost.html(`
-            <div class="fv-recovery-empty-state">
-                <strong>No recent ${diagnosticsEscapeHtml(typeLabel)} changes found.</strong>
-                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.refresh-description', 'Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.'))}</span>
-            </div>
-        `);
-        listHost.html(`
-            <div class="fv-recovery-empty-state">
-                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.empty-title', 'No timeline entries yet.'))}</strong>
-                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.empty-description', 'Recent change cards will appear here for the selected recovery source.'))}</span>
-            </div>
-        `);
-        return;
-    }
-
-    const latest = filteredTimeline[0] || {};
-    const latestStatus = String(latest.status || 'ok').trim() || 'ok';
-    const latestAction = String(latest.action || 'Recent change').trim() || 'Recent change';
-    const latestSummary = String(latest.summary || '').trim();
-    summaryHost.html(`
-        <div class="fv-recovery-undo-head">
-            <div>
-                <div class="fv-recovery-undo-title">Latest ${diagnosticsEscapeHtml(typeLabel)} change</div>
-                <div class="fv-recovery-undo-copy">${diagnosticsEscapeHtml(latestAction)}${latestSummary ? ` - ${diagnosticsEscapeHtml(latestSummary)}` : ''}</div>
-            </div>
-            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${diagnosticsEscapeHtml(latestStatus)}</span>
-        </div>
-        <div class="fv-recovery-undo-meta">
-            <span>${diagnosticsEscapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
-            <span>Undo latest change restores the newest undo-safe backup for ${diagnosticsEscapeHtml(typeLabel)}.</span>
-        </div>
-    `);
-
-    listHost.html(filteredTimeline.slice(0, 12).map((row) => {
-        const status = String(row?.status || 'ok').trim() || 'ok';
-        const action = String(row?.action || 'Recent change').trim() || 'Recent change';
-        const summary = String(row?.summary || '').trim();
-        const timestamp = formatActivityTimestamp(row?.timestamp || '');
-        return `
-            <article class="fv-recovery-timeline-card">
-                <div class="fv-recovery-timeline-head">
-                    <div class="fv-recovery-timeline-title">${diagnosticsEscapeHtml(action)}</div>
-                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(status)}</span>
-                </div>
-                <div class="fv-recovery-timeline-meta">${diagnosticsEscapeHtml(timestamp)}</div>
-                <div class="fv-recovery-timeline-copy">${diagnosticsEscapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
-            </article>
-        `;
-    }).join(''));
+    if (name === 'runtime_bulk_action') return diagnosticsT('legacy.surface.138dfeb0adcc5e76', 'Runtime action failed');
+    if (name.startsWith('template_')) return diagnosticsT('legacy.surface.775c54cd56850c18', 'Template action failed');
+    if (name.startsWith('rollback_')) return diagnosticsT('legacy.surface.07d59065ece38c26', 'Recovery action failed');
+    return diagnosticsT('legacy.surface.2ead3b8f92a1292d', 'Server action failed');
 };
 
-const renderChangeHistory = (diagnostics) => {
-    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
-    if ($('#change-history-output').length) {
-        if (!timeline.length) {
-            $('#change-history-output').text('No recent changes found.');
-        } else {
-            const lines = [];
-            lines.push(`Recent events: ${timeline.length}`);
-            lines.push('');
-            for (const row of timeline.slice(0, 40)) {
-                const ts = row.timestamp || '';
-                const action = row.action || '';
-                const type = row.type || '-';
-                const status = row.status || 'ok';
-                const summary = row.summary ? ` | ${row.summary}` : '';
-                lines.push(`${ts} | ${action} | ${type} | ${status}${summary}`);
+const serverActivityKey = (row) => {
+    const id = String(row?.id || '');
+    if (/^[a-zA-Z0-9_-]{1,48}$/.test(id)) return 's:' + id;
+    const signature = [row?.timestamp, row?.type, row?.action, row?.status, row?.summary].join('|');
+    let hash = 2166136261;
+    for (let index = 0; index < signature.length; index++) {
+        hash = Math.imul(hash ^ signature.charCodeAt(index), 16777619);
+    }
+    return 's:' + (hash >>> 0).toString(16);
+};
+
+const renderChangeHistory = (diagnostics = lastDiagnostics) => {
+    if (!document.getElementById('fv-activity-feed-panel')) return;
+    restoreActivityFeed();
+    const events = Array.isArray(diagnostics?.importExportHistory?.events)
+        ? diagnostics.importExportHistory.events
+        : (Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : []);
+    const knownEntries = new Map(activityFeedEntries.filter((entry) => entry.serverKey).map((entry) => [entry.serverKey, entry]));
+    const now = Date.now();
+    let added = false;
+    for (const row of events) {
+        const at = Date.parse(String(row?.timestamp || ''));
+        if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || at < activityFeedClearedAt) continue;
+        const level = normalizeActivityLevel(row?.status || 'ok');
+        const action = serverActivityLabel(row?.action);
+        if (!action && level !== 'warning' && level !== 'error') continue;
+        const serverKey = serverActivityKey(row);
+        const detail = window.FolderViewPlusActivityDetail?.buildActivityEventDetail?.(row, diagnosticsT) || '';
+        const existing = knownEntries.get(serverKey);
+        if (existing) {
+            if (!existing.detail && detail) {
+                existing.detail = detail;
+                added = true;
             }
-            $('#change-history-output').text(`${lines.join('\n')}\n`);
+            continue;
         }
+        if (at === activityFeedClearedAt && activityFeedClearedServerKeys.includes(serverKey)) continue;
+        const source = String(row?.type || '').toLowerCase();
+        const sourceLabel = source === 'docker' ? 'Docker' : (source === 'vm' ? 'VM' : '');
+        const label = level === 'error' ? serverActivityFailureLabel(row?.action)
+            : (level === 'warning' ? diagnosticsT('legacy.surface.c7ca4f1d51295f49', 'Server warning') : action);
+        activityFeedEntries.push({
+            at,
+            level,
+            message: sourceLabel ? sourceLabel + ' · ' + label : label,
+            ...(detail ? { detail } : {}),
+            serverKey
+        });
+        knownEntries.set(serverKey, activityFeedEntries[activityFeedEntries.length - 1]);
+        added = true;
     }
-    renderRecoveryChangeHistoryFromDiagnostics(diagnostics);
+    if (added) {
+        activityFeedEntries = retainActivityEntries(activityFeedEntries);
+        persistActivityFeed();
+    }
+    renderActivityFeed();
 };
 
 const refreshChangeHistory = async ({ quiet = false } = {}) => {
@@ -1432,7 +1443,7 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     } catch (error) {
         markAdvancedModuleLoadError('change_history', error);
         if (!quiet) {
-            diagnosticsShowError('Change history refresh failed', error);
+            diagnosticsShowError('Logs refresh failed', error);
         }
         return false;
     }
@@ -1444,7 +1455,7 @@ const formatCheckedAtLabel = (value) => {
     if (Number.isNaN(date.getTime())) {
         return diagnosticsT('diagnostics.value.just-now', 'just now');
     }
-    return date.toLocaleString();
+    return (globalThis.FolderViewPlusI18n?.formatDate?.(date, { dateStyle: 'short', timeStyle: 'medium' }) || date.toLocaleString('en'));
 };
 
 const buildThemeDiagnosticsSummaryCard = () => {
@@ -1497,7 +1508,7 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         const budgetLabel = Number.isFinite(Number(summary.budgetMs)) ? `${Number(summary.budgetMs).toFixed(0)}ms target` : 'no target';
         const recentLabel = summary.recentSampleCount > 0
             ? `${summary.recentOverBudgetCount}/${summary.recentSampleCount} recent warm samples over target`
-            : `${summary.coldLoadCount || 0} cold-load sample${summary.coldLoadCount === 1 ? '' : 's'}`;
+            : surfaceT("common.repair.cold-load-samples-1-983e40", "Cold-load samples: $1", summary.coldLoadCount || 0);
         return `${entry.label}: ${Number(summary.lastMs).toFixed(0)}ms latest, ${averageLabel}, ${budgetLabel}, ${recentLabel}.`;
     });
     const hasWarning = advisoryGroups.size > 0;
@@ -1510,7 +1521,7 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         status: hasWarning ? 'warning' : (hasObservation ? 'info' : 'healthy'),
         badgeLabel: hasObservation && !hasWarning ? 'Observed' : '',
         headline: hasWarning
-            ? `${advisoryGroups.size} repeated performance ${advisoryGroups.size === 1 ? 'advisory needs' : 'advisories need'} follow-up.`
+            ? surfaceT('common.startup.performance-followup', 'Repeated performance warnings requiring follow-up: $1.', advisoryGroups.size)
             : (hasObservation
                 ? 'A cold or isolated slow sample was observed.'
                 : 'Recent UI timings are within budget.'),
@@ -1738,7 +1749,7 @@ const repairDiagnostics = async (action, type = '') => {
                 ? (type === 'docker'
                     ? diagnosticsT('diagnostics.repair.done-docker', 'Removed $1 missing Docker references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0)
                     : diagnosticsT('diagnostics.repair.done-vm', 'Removed $1 missing VM references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0))
-                : diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.'),
+                : (window.FolderViewPlusI18n?.serverMessage?.(response) || diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.')),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
@@ -2186,7 +2197,6 @@ const runThemeSelfHeal = async () => {
 Object.assign(window, {
     lastDiagnostics,
     ACTIVITY_FEED_MAX_ENTRIES,
-    ACTIVITY_FEED_AUTO_CLEAR_MS,
     PERF_DIAGNOSTICS_SAMPLE_LIMIT,
     performanceDiagnosticsState,
     perfNowMs,
@@ -2217,7 +2227,6 @@ Object.assign(window, {
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
-    toggleActivityCenterHistory,
     ADVANCED_MODULE_STATUS_CONFIG,
     ensureAdvancedModuleStatusHost,
     renderAdvancedModuleStatus,
@@ -2226,7 +2235,6 @@ Object.assign(window, {
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
-    renderRecoveryChangeHistoryFromDiagnostics,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
@@ -2251,6 +2259,7 @@ Object.assign(window, {
 });
 
 window.FolderViewPlusDiagnostics = Object.freeze({
+    initialize: () => initializeActivityDiagnosticsRuntime(),
     getDiagnostics,
     getSupportBundle,
     runDiagnosticAction,
@@ -2258,13 +2267,11 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
-    toggleActivityCenterHistory,
     setAdvancedModuleStatus,
     claimAdvancedOperationLock,
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
-    renderRecoveryChangeHistoryFromDiagnostics,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
@@ -2296,7 +2303,14 @@ window.FolderViewPlusDiagnostics = Object.freeze({
 });
 window.FolderViewPlusDiagnosticsModuleLoaded = true;
 
+let activityDiagnosticsInitialized = false;
 const initializeActivityDiagnosticsRuntime = () => {
+    if (activityDiagnosticsInitialized) return;
+    activityDiagnosticsInitialized = true;
+    window.addEventListener?.('storage', syncActivityFeedFromStorage);
+    document.addEventListener?.('visibilitychange', () => {
+        if (!document.hidden) renderActivityFeed();
+    });
     const startupActions = [
         ['activity feed', renderActivityFeed],
         ['theme diagnostics', runThemeDiagnostics],
@@ -2316,9 +2330,4 @@ const initializeActivityDiagnosticsRuntime = () => {
     }
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeActivityDiagnosticsRuntime, { once: true });
-} else {
-    initializeActivityDiagnosticsRuntime();
-}
 })(window, document);

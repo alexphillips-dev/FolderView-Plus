@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Actions de la vue Dossier",
     "docker.actions.add-folder": "Ajouter un dossier",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Outils",
     "docker.actions.show-empty": "Afficher les dossiers vides",
     "docker.actions.hide-empty": "Masquer les dossiers vides",
-    "docker.actions.clear-focus": "Effacer le focus du dossier",
+    "docker.actions.clear-focus": "Effacer le filtre de ciblage du dossier",
     "docker.actions.refresh-state": "Actualiser l'état du dossier",
     "docker.actions.bulk-assignment": "Affectation en masse",
     "docker.actions.rules-workspace": "Espace de travail des règles",

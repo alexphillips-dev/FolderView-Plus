@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {
     exerciseChildFolderPreviewContext,
-    exerciseDockerPreviewContextDiagnostics
+    exerciseDockerPreviewContextDiagnostics,
+    exerciseLargeCollapsedPreview
 } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
@@ -85,6 +86,10 @@ test('Docker multi-row previews bridge native context without cloned handlers or
 
 test('Docker child-folder preview chip opens its action menu after multi-row reflow', async ({ page }) => {
     await exerciseChildFolderPreviewContext({ page, baseUrl });
+});
+
+test('large collapsed Docker previews reveal hidden items on demand', async ({ page }) => {
+    await exerciseLargeCollapsedPreview({ page, baseUrl });
 });
 
 test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {

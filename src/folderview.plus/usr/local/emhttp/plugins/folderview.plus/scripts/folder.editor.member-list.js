@@ -9,7 +9,6 @@
     root.FolderViewPlusFoundationModules = modules;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     'use strict';
-
     const normalizeChildFolderOrder = (value) => {
         const seen = new Set();
         const result = [];
@@ -188,6 +187,7 @@
         };
 
         const renderFolderMembersSection = () => {
+    const repairT5751d6dd = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
             const section = jq('#fvFolderMembersSection');
             const body = jq('#fvFolderMembersBody');
             const empty = jq('#fvFolderMembersEmpty');
@@ -196,7 +196,7 @@
                 return;
             }
             const entries = sortChildFolderEntries(getDirectChildFolderEntries());
-            const countLabel = `${entries.length} folder${entries.length === 1 ? '' : 's'}`;
+            const countLabel = repairT5751d6dd("common.runtime.folders-1", "Folders: $1", entries.length);
             summary.text(countLabel);
             section.prop('hidden', entries.length === 0);
             body.empty();
@@ -207,7 +207,7 @@
             const rows = entries.map((entry) => `
                 <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
                     <td class="order-col"><div class="order-buttons"><button type="button" class="folder-member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td>
-                    <td class="fv-folder-member-name"><img src="${escapeHtml(entry.icon)}" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"><span>${escapeHtml(entry.name)}</span><small>${entry.memberCount} item${entry.memberCount === 1 ? '' : 's'}</small></td>
+                    <td class="fv-folder-member-name"><img src="${escapeHtml(entry.icon)}" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"><span>${escapeHtml(entry.name)}</span><small>${escapeHtml(repairT5751d6dd("common.repair.items-1-e8a685", "Items: $1", entry.memberCount))}</small></td>
                 </tr>
             `).join('');
             body.append(jq(rows));

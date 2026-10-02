@@ -1,7 +1,8 @@
-import assert from 'node:assert/strict';
-import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs';
-export const registerSettingsFixtureCases = ({ test, baseUrl }) => {
-registerLocalizationWorkspaceFixtureCases({ test, baseUrl });
+import assert from 'node:assert/strict'; import { registerSettingsAlertsHealthCase } from './settings-alerts-health.mjs';
+import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs'; import { registerBulkAssignmentCases } from './settings-bulk-assignment.mjs';
+import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs'; import { registerSettingsAdvancedNavigationCase } from './settings-advanced-navigation.mjs'; import { registerSettingsOperationsCase } from './settings-operations.mjs'; import { registerSettingsOverflowGuardCase } from './settings-overflow-guard.mjs';
+export const registerSettingsFixtureCases = ({ test, baseUrl }) => { registerSettingsAlertsHealthCase({ test, baseUrl }); registerBulkAssignmentCases({ test, baseUrl });
+registerLocalizationWorkspaceFixtureCases({ test, baseUrl }); registerSettingsAdvancedNavigationCase({ test, baseUrl }); registerSettingsOperationsCase({ test, baseUrl }); registerSettingsOverflowGuardCase({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1180, height: 720 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
@@ -28,6 +29,8 @@ test('Settings chrome keeps search and mode controls aligned without clipping', 
     await page.locator('#fv-settings-clear-search').evaluate((button) => { button.hidden = false; });
     const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
     assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
+    await verifySettingsSearchAlignment(page);
+    await verifyBasicToolbarLayout(page);
 });
 test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
     const readLayout = async () => page.evaluate(async () => {
@@ -326,7 +329,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.setViewportSize({ width: 1700, height: 1100 });
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readDiagnosticsLayout();
-    assert.equal(layout.coreCards, 6);
+    assert.equal(layout.coreCards, 8);
     assert.equal(layout.additionalSectionVisible, false);
     assert.equal(layout.secondaryHealthCardsVisible, false);
     assert.equal(layout.technicalDetailsCount, 0);
@@ -341,7 +344,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
     assert.equal(layout.metricTextIsCentered, true);
-    assert.equal(layout.systemSvgIcons, 6);
+    assert.equal(layout.systemSvgIcons, 8);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.ok(
@@ -606,5 +609,27 @@ test('Mobile reorder persists click state and isolates Docker and VM controls', 
     assert.equal(state.dockerCell, 'none');
     assert.equal(state.vmCell, 'table-cell');
     assert.deepEqual(state.calls, { persists: 3, renders: ['docker', 'vm', 'docker'] });
+});
+
+test('Inside drop highlights only the outside edges of a folder row', async ({ page }) => {
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    const edges = await page.evaluate(() => {
+        const host = document.createElement('div');
+        host.className = 'folder-table';
+        host.innerHTML = '<table><tbody><tr class="fv-row-drag-over-inside"><td>First</td><td>Middle</td><td>Last</td></tr></tbody></table>';
+        document.getElementById('fv-settings-root').appendChild(host);
+        return [...host.querySelectorAll('td')].map((cell) => {
+            const style = getComputedStyle(cell);
+            return { top: style.borderTopColor, bottom: style.borderBottomColor,
+                left: style.borderLeftColor, right: style.borderRightColor,
+                leftWidth: style.borderLeftWidth, rightWidth: style.borderRightWidth,
+                shadow: style.boxShadow };
+        });
+    });
+    assert.ok(edges.every((edge) => edge.top === edge.bottom && edge.shadow === 'none'));
+    assert.equal(edges[0].left, edges[0].top);
+    assert.equal(edges[2].right, edges[2].top);
+    assert.equal(edges[1].leftWidth, '0px');
+    assert.equal(edges[1].rightWidth, '0px');
 });
 };

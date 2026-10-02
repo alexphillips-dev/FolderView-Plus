@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até selecionar Aplicar importação.",
     "import.behavior.question": "Como devem ser tratadas as pastas existentes?",
@@ -31,7 +32,7 @@
     "import.acknowledge.title": "Revisei esta importação",
     "import.acknowledge.description": "O comportamento e as alterações selecionadas estão corretos.",
     "import.progress.preparing": "A preparar operação",
-    "import.progress.running": "A correr",
+    "import.progress.running": "Em execução",
     "import.summary.folder-change": "{{PLURAL:$1|alteração de pasta|alterações de pasta}}",
     "import.summary.planned-change": "{{PLURAL:$1|alteração planeada|alterações planeadas}} em pré-visualização",
     "import.summary.new": "$1 novo",
@@ -43,9 +44,7 @@
     "import.dialog.vm-title": "Importar VM Pastas",
     "import.actions.apply": "Aplicar importação",
     "import.folderview3.preview-title": "Visualização da migração do FolderView3",
-    "import.folderview3.preview-help": "Descubra uma configuração FolderView3 instalada ou inspecione um JSON de exportação completo. A detecção e a visualização são somente leitura; os registros do organizador nativo e as mutações de inicialização automática do Docker permanecem excluídos, a menos que uma aplicação posterior os inclua explicitamente.",
     "import.folderview3.read-only-title": "A migração do FolderView3 é somente leitura até que você aprove um plano de aplicação.",
-    "import.folderview3.read-only-help": "Detecte uma configuração instalada ou visualize uma exportação do FolderView3 sem gravar nenhum plugin ou estado Unraid.",
     "import.folderview3.read-only-preview-help": "Detecte uma configuração do FolderView3 instalada ou visualize uma exportação do FolderView3. A visualização nunca grava o plugin ou a configuração do Unraid.",
     "import.folderview3.not-detected": "Nenhuma configuração instalada do FolderView3 foi detectada.",
     "import.folderview3.preview-export-help": "Você ainda pode visualizar um JSON de exportação completa do FolderView3 de outro servidor.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Instantâneo inválido; ordem de configuração",
     "import.folderview3.appearance-profiles": "Adicionar perfis de aparência FolderView3 inativos",
     "import.folderview3.order-summary": "Ordem das pastas salvas: Docker $1; VMs $2.",
-    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1."
+    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1.",
+    "import.compare.to": "Para"
 }

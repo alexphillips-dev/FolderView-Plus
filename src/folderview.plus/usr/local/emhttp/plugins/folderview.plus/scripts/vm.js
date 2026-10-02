@@ -1250,7 +1250,7 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     } else if (pausedFolders > 0) {
         badge.classList.add('is-warning');
     }
-    badge.textContent = translateVmText("common.health.folder-summary", "Folder health: $1 started | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
+    badge.textContent = translateVmText("common.health.folder-summary", "Folder health: $1 running | $2 paused | $3 stopped", startedFolders, pausedFolders, stoppedFolders);
 };
 
 const showVmRuntimeLoadingRow = () => {
@@ -2704,7 +2704,7 @@ const cloneVmFolderFromMenu = async (id) => {
             return;
         }
         const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
-        const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
+        const nextName = String(window.prompt(translateVmText("legacy.surface.ed8d02ead698dc52", "Clone folder"), defaultName) || '').trim();
         if (!nextName) {
             return;
         }
@@ -2744,7 +2744,7 @@ const buildVmFolderSettingsSummaryHtml = (entry) => {
     };
     const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(translateVmText("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
@@ -3394,7 +3394,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
         .addClass(`fa ${aggregate.icon} ${aggregate.className} ${aggregateColorClass} folder-load-status`)
         .removeAttr('aria-busy');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
-        .text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`)
+        .text(aggregate.key === 'started' ? translateVmText("common.runtime.1-2-started", "$1/$2 Running", aggregate.count, total) : aggregate.key === 'paused' ? translateVmText("common.runtime.1-2-paused", "$1/$2 paused", aggregate.count, total) : translateVmText("common.runtime.1-2-stopped", "$1/$2 stopped", aggregate.count, total))
         .addClass(`fv-folder-state-${aggregate.className}`);
     $folderRow.removeClass('no-autostart autostart-off autostart-partial autostart-full');
     if (autostart === 0) $folderRow.addClass('no-autostart');

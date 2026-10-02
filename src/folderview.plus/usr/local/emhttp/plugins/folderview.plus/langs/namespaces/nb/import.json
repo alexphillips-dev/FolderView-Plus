@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Velg hvordan eksisterende mapper skal håndteres. Ingenting endres før du velger Bruk import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Jeg vurderte denne importen",
     "import.acknowledge.description": "Atferden og valgte endringer er korrekte.",
     "import.progress.preparing": "Forbereder operasjon",
-    "import.progress.running": "Løper",
+    "import.progress.running": "Kjører",
     "import.summary.folder-change": "{{PLURAL:$1|mappeendring|mappeendringer}}",
     "import.summary.planned-change": "{{PLURAL:$1|planlagt endring|planlagte endringer}} i forhåndsvisning",
     "import.summary.new": "$1 ny",
     "import.summary.update": "{{PLURAL:$1|én oppdatering|$1 oppdateringer}}",
-    "import.summary.delete": "{{PLURAL:$1|én sletting|$1 sletter}}",
+    "import.summary.delete": "{{PLURAL:$1|én sletting|$1 slettinger}}",
     "import.kind.docker-folder": "Docker-mappe",
     "import.kind.vm-folder": "VM-mappen",
     "import.dialog.docker-title": "Importer Docker-mapper",
     "import.dialog.vm-title": "Importer VM-mapper",
     "import.actions.apply": "Bruk import",
     "import.folderview3.preview-title": "FolderView3 migrering forhåndsvisning",
-    "import.folderview3.preview-help": "Oppdag en installert FolderView3-konfigurasjon eller inspiser en full-eksport JSON. Deteksjon og forhåndsvisning er skrivebeskyttet; opprinnelige arrangørposter og Docker autostart-mutasjoner forblir ekskludert med mindre en senere søknad eksplisitt inkluderer dem.",
     "import.folderview3.read-only-title": "FolderView3-migrering er skrivebeskyttet til du godkjenner en søknadsplan.",
-    "import.folderview3.read-only-help": "Oppdag en installert konfigurasjon eller forhåndsvis en FolderView3-eksport uten å skrive noen plugin eller Unraid-tilstand.",
     "import.folderview3.read-only-preview-help": "Finn en installert FolderView3-konfigurasjon eller forhåndsvis en FolderView3-eksport. Forhåndsvisning skriver aldri plugin- eller Unraid-konfigurasjon.",
     "import.folderview3.not-detected": "Ingen installert FolderView3-konfigurasjon oppdaget.",
     "import.folderview3.preview-export-help": "Du kan fortsatt forhåndsvise en FolderView3 full-eksport JSON fra en annen server.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Ugyldig øyeblikksbilde; konfigurasjonsrekkefølge",
     "import.folderview3.appearance-profiles": "Legg til inaktive FolderView3-utseendeprofiler",
     "import.folderview3.order-summary": "Lagret mapperekkefølge: Docker $1; VM-er $2.",
-    "import.folderview3.disabled-profile-count": "Separate profiler for deaktiverte temaer: $1."
+    "import.folderview3.disabled-profile-count": "Separate profiler for deaktiverte temaer: $1.",
+    "import.compare.to": "Til"
 }

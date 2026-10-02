@@ -229,14 +229,14 @@ test('support bundle telemetry exports the normalized download-attempt summary',
 
 test('settings exports expose an inline missing-download recovery surface', () => {
     const page = fs.readFileSync(path.join(pluginRoot, 'FolderViewPlus.page'), 'utf8');
-    const importScript = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.import.js'), 'utf8');
+    const importScript = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.download-status.js'), 'utf8');
     const runtime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.js'), 'utf8');
     const branchRuntime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.runtime-actions.js'), 'utf8');
 
     assert.match(page, /folderviewplus\.download-diagnostics\.(?:css|js)/);
     assert.match(importScript, /h2\[data-fv-section=/);
     assert.match(importScript, /role="status" aria-live="polite"/);
-    assert.match(importScript, /Download didn’t start/);
+    assert.match(importScript, /File missing\? Get help/);
     assert.match(importScript, /reportMissing\(attempt\.attemptId\)/);
     assert.match(importScript, /retry\(attempt\.attemptId\)/);
     assert.match(runtime, /Export download requested\./);

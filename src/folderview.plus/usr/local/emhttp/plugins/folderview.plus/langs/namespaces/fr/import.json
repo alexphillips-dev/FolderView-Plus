@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Choisissez comment gérer les dossiers existants. Rien ne change tant que vous n'avez pas sélectionné Appliquer l'importation.",
     "import.behavior.question": "Comment les dossiers existants doivent-ils être gérés ?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Remplacer exactement",
     "import.mode.replace.description": "Faire correspondre l'exportation. Les dossiers absents de celle-ci peuvent être supprimés.",
     "import.review.title": "Examiner les modifications prévues",
-    "import.review.count": "Examiner {{PLURAL:$1|une modification prévue|$1 modifications prévues}}",
+    "import.review.count": "Examiner {{PLURAL:$1|$1 modification prévue|$1 modifications prévues}}",
     "import.review.folders-fields": "Dossiers et champs",
     "import.review.choose": "Choisissez quelles modifications inclure",
     "import.safety.title": "Options de sécurité",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "J'ai examiné cette importation",
     "import.acknowledge.description": "Le comportement et les modifications sélectionnées sont corrects.",
     "import.progress.preparing": "Préparation de l'opération",
-    "import.progress.running": "Course",
+    "import.progress.running": "En cours d’exécution",
     "import.summary.folder-change": "{{PLURAL:$1|modification de dossier|modifications de dossier}}",
     "import.summary.planned-change": "{{PLURAL:$1|modification prévue|modifications prévues}} dans l'aperçu",
     "import.summary.new": "$1 nouveau",
-    "import.summary.update": "{{PLURAL:$1|une mise à jour|$1 mises à jour}}",
-    "import.summary.delete": "{{PLURAL:$1|une suppression|$1 suppressions}}",
+    "import.summary.update": "{{PLURAL:$1|$1 mise à jour|$1 mises à jour}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 suppression|$1 suppressions}}",
     "import.kind.docker-folder": "dossier Docker",
     "import.kind.vm-folder": "dossier VM",
     "import.dialog.docker-title": "Importer Docker dossiers",
     "import.dialog.vm-title": "Importer VM dossiers",
     "import.actions.apply": "Appliquer l'importation",
     "import.folderview3.preview-title": "Aperçu de la migration FolderView3",
-    "import.folderview3.preview-help": "Découvrez une configuration FolderView3 installée ou inspectez un JSON d’exportation complète. La détection et l'aperçu sont en lecture seule ; Les enregistrements d'organisateur natifs et les mutations de démarrage automatique de Docker restent exclus, sauf si une application ultérieure les inclut explicitement.",
     "import.folderview3.read-only-title": "La migration FolderView3 est en lecture seule jusqu'à ce que vous approuviez un plan d'application.",
-    "import.folderview3.read-only-help": "Détectez une configuration installée ou prévisualisez une exportation FolderView3 sans écrire de plugin ni d'état Unraid.",
     "import.folderview3.read-only-preview-help": "Détectez une configuration FolderView3 installée ou prévisualisez une exportation FolderView3. La prévisualisation n'écrit jamais la configuration du plugin ou d'Unraid.",
     "import.folderview3.not-detected": "Aucune configuration FolderView3 installée détectée.",
     "import.folderview3.preview-export-help": "Vous pouvez toujours prévisualiser un JSON d’exportation complète FolderView3 à partir d’un autre serveur.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Instantané invalide ; ordre de configuration",
     "import.folderview3.appearance-profiles": "Ajouter des profils d'apparence FolderView3 inactifs",
     "import.folderview3.order-summary": "Ordre des dossiers enregistrés : Docker $1 ; Machines virtuelles $2.",
-    "import.folderview3.disabled-profile-count": "Profils séparés pour les thèmes désactivés : $1."
+    "import.folderview3.disabled-profile-count": "Profils séparés pour les thèmes désactivés : $1.",
+    "import.compare.to": "Vers"
 }

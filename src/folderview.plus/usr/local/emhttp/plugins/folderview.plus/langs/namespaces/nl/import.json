@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Kies hoe bestaande mappen moeten worden behandeld. Er verandert niets totdat u Toepassen import selecteert.",
     "import.behavior.question": "Hoe moeten bestaande mappen worden behandeld?",
@@ -31,8 +32,8 @@
     "import.acknowledge.title": "Ik heb deze import beoordeeld",
     "import.acknowledge.description": "Het gedrag en de geselecteerde wijzigingen zijn correct.",
     "import.progress.preparing": "Voorbereiden van operatie",
-    "import.progress.running": "Wordt uitgevoerd",
-    "import.summary.folder-change": "{{PLURAL:$1|map wijziging|map wijzigingen}}",
+    "import.progress.running": "Actief",
+    "import.summary.folder-change": "{{PLURAL:$1|mapwijziging|mapwijzigingen}}",
     "import.summary.planned-change": "{{PLURAL:$1|geplande wijziging|geplande wijzigingen}} in een voorbeeldweergave",
     "import.summary.new": "$1 nieuw",
     "import.summary.update": "{{PLURAL:$1|één update|$1 updates}}",
@@ -43,9 +44,7 @@
     "import.dialog.vm-title": "Importeer VM mappen",
     "import.actions.apply": "Import toepassen",
     "import.folderview3.preview-title": "FolderView3 migratievoorbeeld",
-    "import.folderview3.preview-help": "Ontdek een geïnstalleerde FolderView3-configuratie of inspecteer een JSON met volledige export. Detectie en preview zijn alleen-lezen; eigen organisatorrecords en Docker autostart-mutaties blijven uitgesloten, tenzij een latere toepassing deze expliciet omvat.",
     "import.folderview3.read-only-title": "FolderView3-migratie is alleen-lezen totdat u een toepassingsplan goedkeurt.",
-    "import.folderview3.read-only-help": "Detecteer een geïnstalleerde configuratie of bekijk een preview van een FolderView3-export zonder een plug-in of Unraid-status te schrijven.",
     "import.folderview3.read-only-preview-help": "Detecteer een geïnstalleerde FolderView3-configuratie of bekijk een voorbeeld van een FolderView3-export. Bij het bekijken van voorbeelden wordt nooit een plug-in of Unraid-configuratie geschreven.",
     "import.folderview3.not-detected": "Geen geïnstalleerde FolderView3-configuratie gedetecteerd.",
     "import.folderview3.preview-export-help": "U kunt nog steeds een voorbeeld bekijken van een volledige FolderView3-JSON-export vanaf een andere server.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Ongeldige momentopname; configuratievolgorde",
     "import.folderview3.appearance-profiles": "Voeg inactieve FolderView3-weergaveprofielen toe",
     "import.folderview3.order-summary": "Volgorde van opgeslagen mappen: Docker $1; VM's $2.",
-    "import.folderview3.disabled-profile-count": "Afzonderlijke profielen voor uitgeschakelde thema's: $1."
+    "import.folderview3.disabled-profile-count": "Afzonderlijke profielen voor uitgeschakelde thema's: $1.",
+    "import.compare.to": "Naar"
 }

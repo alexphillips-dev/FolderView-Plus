@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Выберите, как обрабатывать существующие папки. Ничего не изменится, пока вы не выберете Применить импорт.",
     "import.behavior.question": "Как следует обрабатывать существующие папки?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Точное замещение",
     "import.mode.replace.description": "Соответствовать экспорту. Папки, отсутствующие в экспорте, могут быть удалены.",
     "import.review.title": "Просмотреть запланированные изменения",
-    "import.review.count": "Просмотрите {{PLURAL:$1|одно запланированное изменение|$1 запланированных изменения|$1 запланированных изменений}}",
+    "import.review.count": "Просмотрите {{PLURAL:$1|$1 запланированное изменение|$1 запланированных изменения|$1 запланированных изменений}}",
     "import.review.folders-fields": "Папки и поля",
     "import.review.choose": "Выберите, какие изменения включить",
     "import.safety.title": "Параметры безопасности",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Я проверил этот импорт",
     "import.acknowledge.description": "Поведение и выбранные изменения правильные.",
     "import.progress.preparing": "Подготовка операции",
-    "import.progress.running": "Выполняется",
+    "import.progress.running": "Работает",
     "import.summary.folder-change": "{{PLURAL:$1|изменение папки|изменения папок|изменений папок}}",
     "import.summary.planned-change": "{{PLURAL:$1|запланированное изменение|запланированных изменения|запланированных изменений}} в предварительном просмотре",
     "import.summary.new": "$1 новый",
-    "import.summary.update": "{{PLURAL:$1|одно обновление|$1 обновления|$1 обновлений}}",
-    "import.summary.delete": "{{PLURAL:$1|одно удаление|$1 удаления|$1 удалений}}",
+    "import.summary.update": "{{PLURAL:$1|$1 обновление|$1 обновления|$1 обновлений}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 удаление|$1 удаления|$1 удалений}}",
     "import.kind.docker-folder": "Docker папка",
     "import.kind.vm-folder": "VM папка",
     "import.dialog.docker-title": "Импортировать Docker папок",
     "import.dialog.vm-title": "Импортировать VM папок",
     "import.actions.apply": "Применить импорт",
     "import.folderview3.preview-title": "Предварительный просмотр миграции FolderView3",
-    "import.folderview3.preview-help": "Найдите установленную конфигурацию FolderView3 или проверьте полностью экспортированный JSON. Обнаружение и предварительный просмотр доступны только для чтения; Записи собственного органайзера и мутации автозапуска Docker остаются исключенными, если они не будут явно включены в более позднее применение.",
     "import.folderview3.read-only-title": "Миграция FolderView3 доступна только для чтения, пока вы не одобрите план применения.",
-    "import.folderview3.read-only-help": "Обнаружение установленной конфигурации или предварительный просмотр экспорта FolderView3 без записи какого-либо плагина или состояния Unraid.",
     "import.folderview3.read-only-preview-help": "Обнаружьте установленную конфигурацию FolderView3 или просмотрите экспортируемый FolderView3. Предварительный просмотр никогда не записывает плагин или конфигурацию Unraid.",
     "import.folderview3.not-detected": "Установленная конфигурация FolderView3 не обнаружена.",
     "import.folderview3.preview-export-help": "Вы по-прежнему можете предварительно просмотреть JSON полного экспорта FolderView3 с другого сервера.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Неверный снимок; порядок конфигурации",
     "import.folderview3.appearance-profiles": "Добавить неактивные профили внешнего вида FolderView3",
     "import.folderview3.order-summary": "Сохраненный порядок папок: Docker $1; ВМ $2.",
-    "import.folderview3.disabled-profile-count": "Отдельные профили для отключенных тем: $1."
+    "import.folderview3.disabled-profile-count": "Отдельные профили для отключенных тем: $1.",
+    "import.compare.to": "В"
 }

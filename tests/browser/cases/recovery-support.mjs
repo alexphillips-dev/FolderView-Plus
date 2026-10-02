@@ -1,0 +1,500 @@
+import assert from 'node:assert/strict';
+
+export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
+    test('Recovery mockup layout keeps history, policy, and actions usable for Docker and VMs', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        const diagnosticsText = await page.evaluate(() => {
+            const workspace = document.querySelector('.fv-diagnostics-workspace');
+            const probe = document.createElement('div');
+            probe.innerHTML = '<div class="fv-diagnostics-overall"><h3>Health</h3></div><div class="fv-diagnostics-section-heading"><h3>System health</h3></div><div class="fv-diagnostics-metrics"><div><dd>6</dd><small>checks</small></div></div>';
+            workspace.appendChild(probe);
+            const size = selector => parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
+            const sizes = {
+                body: size('.fv-diagnostics-workspace'),
+                headline: size('.fv-diagnostics-overall h3'),
+                section: size('.fv-diagnostics-section-heading h3'),
+                metric: size('.fv-diagnostics-metrics dd'),
+                caption: size('.fv-diagnostics-metrics small'),
+                action: size('.fv-diagnostics-toolbar > .fv-ui-button')
+            };
+            probe.remove();
+            return sizes;
+        });
+        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.environment.js` });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-workspaces.js` });
+        await page.evaluate(async () => {
+            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+            const root = document.getElementById('fv-settings-root');
+            root.classList.add('fv-advanced-mode');
+            root.innerHTML = `<div class="fv-advanced-content">${parsed.querySelector('[data-fv-section="backups"]').outerHTML}${parsed.querySelector('.fv-recovery-module-wrap').outerHTML}</div>`;
+            const snapshots = type => Array.from({ length: type === 'docker' ? 7 : 2 }, (_, index) => ({
+                name: `${type}-${index}.json`, count: 2, reason: 'manual', createdAt: `2026-09-${29 - index}T12:00:00Z`
+            }));
+            let activeType = 'docker';
+            window.recoveryActions = [];
+            window.recoveryFixture = window.FolderViewPlusSettingsWorkspaces.createApi({ window, document, $: window.jQuery,
+                escapeHtml: value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;'),
+                getFolderMap: type => type === 'docker' ? { one: {}, two: {} } : { one: {} },
+                getSortedBackupsForType: snapshots,
+                prefsByType: { docker: { backupSchedule: { enabled: false, intervalHours: 24, retention: 25 } },
+                    vm: { backupSchedule: { enabled: true, intervalHours: 12, retention: 10 } } },
+                getActiveRecoveryWorkspaceTypeValue: () => activeType,
+                setActiveRecoveryWorkspaceTypeValue: value => { activeType = value; },
+                formatTimestamp: value => value,
+                restoreBackupEntry: (type, name) => window.recoveryActions.push(`${type}:${name}`) });
+            window.FolderViewPlusCspEvents.registerActions({
+                selectActiveRecoveryBackup: window.recoveryFixture.selectActiveRecoveryBackup,
+                toggleAllRecoverySnapshots: window.recoveryFixture.toggleAllRecoverySnapshots
+            }, { owner: 'recovery-fixture' });
+            window.recoveryFixture.syncRecoveryWorkspaceUi();
+        });
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 5);
+        assert.equal(await page.locator('#fv-recovery-restore-latest').isDisabled(), false);
+        const readability = await page.evaluate(() => {
+            const style = selector => getComputedStyle(document.querySelector(selector));
+            const actions = Array.from(document.querySelectorAll('.fv-recovery-primary-actions button'), button => button.getBoundingClientRect());
+            return {
+                intro: parseFloat(style('.fv-recovery-intro span').fontSize),
+                headline: parseFloat(style('.fv-recovery-headline').fontSize),
+                summary: parseFloat(style('.fv-recovery-copy').fontSize),
+                metricIcon: parseFloat(style('.fv-recovery-stat-card > .fa').fontSize),
+                metricValue: parseFloat(style('.fv-recovery-stat-card strong').fontSize),
+                sourceFont: parseFloat(style('.fv-recovery-source-switch .fv-rules-source-btn').fontSize),
+                stageHeading: parseFloat(style('.fv-recovery-stage-head > div > strong').fontSize),
+                stageDescription: parseFloat(style('.fv-recovery-stage-head > div > span').fontSize),
+                historyDate: parseFloat(style('.fv-recovery-snapshot-item > strong').fontSize),
+                historyAlignment: style('.fv-recovery-snapshot-item').textAlign,
+                actionFont: parseFloat(style('.fv-recovery-primary-actions button').fontSize),
+                actionHeight: actions[0].height,
+                actionWidth: actions[0].width,
+                actionGap: actions[1].top >= actions[0].bottom - 1
+                    ? actions[1].top - actions[0].bottom
+                    : actions[1].left - actions[0].right,
+                iconGap: parseFloat(style('.fv-recovery-primary-actions button > .fa').marginInlineEnd)
+            };
+        });
+        const closeTo = (actual, expected, tolerance = 1) => Math.abs(actual - expected) <= tolerance;
+        assert.ok(closeTo(readability.intro, diagnosticsText.body) && closeTo(readability.headline, diagnosticsText.headline) && closeTo(readability.summary, diagnosticsText.body), JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.metricIcon >= diagnosticsText.body && readability.metricIcon <= diagnosticsText.headline + 2 && closeTo(readability.metricValue, diagnosticsText.metric));
+        assert.ok(closeTo(readability.sourceFont, diagnosticsText.body) && closeTo(readability.stageHeading, diagnosticsText.section) && closeTo(readability.stageDescription, diagnosticsText.caption));
+        assert.ok(closeTo(readability.historyDate, diagnosticsText.body) && readability.historyAlignment === 'left');
+        assert.ok(readability.actionFont >= diagnosticsText.action && readability.actionFont <= diagnosticsText.body + 1 && readability.actionHeight >= 38 && readability.actionHeight <= 46 && readability.actionWidth >= 200 && readability.actionGap >= 0 && readability.actionGap <= 16, JSON.stringify({ readability, diagnosticsText }));
+        assert.ok(readability.iconGap >= 8);
+        await page.locator('.fv-recovery-snapshot-item').nth(1).focus();
+        await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');
+        assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').count(), 1);
+        assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').evaluate(node => node === document.activeElement), true);
+        await page.locator('.fv-recovery-view-all').click();
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 7);
+        await page.evaluate(() => window.recoveryFixture.selectActiveRecoveryBackup('docker-6.json'));
+        await page.evaluate(() => window.recoveryFixture.restoreSelectedActiveRecoveryBackup());
+        assert.deepEqual(await page.evaluate(() => window.recoveryActions), ['docker:docker-6.json']);
+        await page.locator('.fv-recovery-edit-settings').click();
+        assert.equal(await page.locator('#fv-recovery-policy-editor').evaluate(node => node.hidden), false);
+        assert.equal(await page.locator('[data-fv-onclick="openActiveRecoverySnapshotCompare()"]').getAttribute('aria-haspopup'), 'dialog');
+        assert.equal(await page.locator('#fv-recovery-compare-panel').count(), 0);
+        await page.evaluate(() => window.recoveryFixture.setRecoveryWorkspaceType('vm', false));
+        assert.equal(await page.locator('#recovery-backup-schedule-enabled').isChecked(), true);
+        assert.equal(await page.locator('#recovery-backup-interval-hours').inputValue(), '12');
+        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 2);
+        for (const width of [1440, 800, 390]) {
+            await page.setViewportSize({ width, height: 850 });
+            const layout = await page.evaluate(() => {
+                const content = document.querySelector('.fv-advanced-content');
+                const history = document.querySelector('.fv-recovery-history-stage').getBoundingClientRect();
+                const policy = document.querySelector('.fv-recovery-policy').getBoundingClientRect();
+                return { overflow: content.scrollWidth > content.clientWidth + 2, historyRight: history.right,
+                    policyLeft: policy.left, policyTop: policy.top, historyTop: history.top };
+            });
+            assert.equal(layout.overflow, false, `Recovery overflow at ${width}px`);
+            if (width === 1440) assert.ok(layout.policyLeft >= layout.historyRight, 'desktop cards should sit side by side');
+            if (width === 390) assert.ok(layout.policyTop > layout.historyTop, 'phone cards should stack');
+        }
+        await page.setViewportSize({ width: 1440, height: 850 });
+    });
+
+    test('Logs show selected actions newest first, keep a bounded history, and clear it', async ({ page }) => {
+        const mountLogs = async () => {
+            await page.goto(`${baseUrl}/settings`);
+            await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+            await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folderviewplus.css` });
+            await page.evaluate(async () => {
+                const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+                document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
+                window.activityFeedEntries = [];
+                window.describeTrackedEvent = eventType => `Tracked ${eventType}`;
+                Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
+            });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.diagnostics-view-model.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-detail.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+            await page.evaluate(() => {
+                delete document.readyState;
+                const api = window.FolderViewPlusDiagnostics;
+                window.FolderViewPlusCspEvents.registerActions({ clearActivityFeed: api.clearActivityFeed }, { owner: 'activity-fixture' });
+                api.renderActivityFeed();
+            });
+        };
+        await mountLogs();
+        const clear = page.locator('#fv-activity-center-clear');
+        assert.equal(await clear.isDisabled(), true);
+        await page.evaluate(async () => {
+            const api = window.FolderViewPlusDiagnostics;
+            api.addActivityEntry('Backup created', 'success');
+            api.addActivityEntry('Folder move failed', 'error');
+            await api.trackDiagnosticsEvent({ eventType: 'conflict_scan' });
+            await api.trackDiagnosticsEvent({ eventType: 'diagnostics_export' });
+            api.addActivityEntry('Review needed', 'warning');
+            api.addActivityEntry('Helpful detail', 'info');
+        });
+        assert.equal(await clear.isDisabled(), false);
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Helpful detail', 'Review needed', 'Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        const readPalette = () => page.evaluate(() => Object.fromEntries(
+            [...document.querySelectorAll('.fv-activity-item')].map(item => {
+                const level = [...item.classList].find(name => name.startsWith('is-')).slice(3);
+                const style = getComputedStyle(item);
+                return [level, {
+                    border: style.borderTopColor,
+                    background: style.backgroundColor,
+                    text: getComputedStyle(item.querySelector('.fv-activity-text')).color,
+                    label: getComputedStyle(item.querySelector('.fv-activity-level')).color
+                }];
+            })
+        ));
+        const darkPalette = await readPalette();
+        assert.deepEqual(Object.keys(darkPalette).sort(), ['error', 'info', 'success', 'warning']);
+        for (const property of ['border', 'background', 'text']) {
+            assert.equal(new Set(Object.values(darkPalette).map(value => value[property])).size, 1);
+        }
+        assert.equal(new Set(Object.values(darkPalette).map(value => value.label)).size, 4);
+        assert.notEqual(darkPalette.success.label, darkPalette.success.text);
+        await page.locator('#fv-settings-root').evaluate(root => root.dataset.fvThemeClass = 'light');
+        const lightPalette = await readPalette();
+        for (const property of ['border', 'background', 'text']) {
+            assert.equal(new Set(Object.values(lightPalette).map(value => value[property])).size, 1);
+        }
+        assert.equal(new Set(Object.values(lightPalette).map(value => value.label)).size, 4);
+        assert.notEqual(lightPalette.success.label, darkPalette.success.label);
+        await page.setViewportSize({ width: 390, height: 800 });
+        assert.equal(new Set(Object.values(await readPalette()).map(value => value.background)).size, 1);
+        await page.goto(`${baseUrl}/dashboard-layout`);
+        await mountLogs();
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Helpful detail', 'Review needed', 'Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        await page.evaluate(() => {
+            const key = 'fv.settings.logs.v1';
+            const saved = JSON.parse(localStorage.getItem(key));
+            const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            saved.entries.push({ at: cutoff + 60000, level: 'warning', message: 'Within retention' });
+            saved.entries.push({ at: cutoff - 1000, level: 'error', message: 'Expired issue' });
+            localStorage.setItem(key, JSON.stringify(saved));
+        });
+        await mountLogs();
+        assert.equal(await page.locator('.fv-activity-text').last().textContent(), 'Within retention');
+        assert.equal(await page.getByText('Expired issue').count(), 0);
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('fv.settings.logs.v1')).entries.length), 6);
+        await page.evaluate(() => {
+            for (let index = 0; index < 105; index++) window.FolderViewPlusDiagnostics.addActivityEntry(`Action ${index}`, 'success');
+        });
+        assert.equal(await page.locator('.fv-activity-item').count(), 100);
+        assert.equal(await page.locator('.fv-activity-text').first().textContent(), 'Action 104');
+        await clear.click();
+        assert.equal(await clear.isDisabled(), true);
+        assert.equal(await page.locator('.fv-activity-item').count(), 0);
+        assert.deepEqual(await page.evaluate(() => {
+            const saved = JSON.parse(localStorage.getItem('fv.settings.logs.v1'));
+            return { entries: saved.entries, hasClearTime: saved.clearedAt > 0 };
+        }), { entries: [], hasClearTime: true });
+        await mountLogs();
+        assert.equal(await page.locator('.fv-activity-item').count(), 0);
+    });
+
+    test('Logs merge useful server events into one-line rows and do not replay cleared events', async ({ page }) => {
+        const mountLogs = async () => {
+            await page.goto(`${baseUrl}/settings`);
+            await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+            await page.evaluate(async () => {
+                const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+                if (parsed.getElementById('recovery-change-history-list')) throw new Error('Recovery timeline still present');
+                document.getElementById('fv-settings-root').innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML;
+                window.activityFeedEntries = [];
+                Object.defineProperty(document, 'readyState', { configurable: true, get: () => 'loading' });
+            });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.diagnostics-view-model.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-detail.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.activity-diagnostics.js` });
+            await page.evaluate(() => {
+                delete document.readyState;
+                window.FolderViewPlusCspEvents.registerActions({
+                    clearActivityFeed: window.FolderViewPlusDiagnostics.clearActivityFeed
+                }, { owner: 'activity-fixture' });
+            });
+        };
+        await mountLogs();
+        await page.evaluate(() => {
+            const api = window.FolderViewPlusDiagnostics;
+            const now = Date.now();
+            const events = [
+                { id: 'vmbackup', timestamp: new Date(now - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok', details: { name: 'Private VM', folderCount: 3 } },
+                { id: 'dockerimport', timestamp: new Date(now - 2000).toISOString(), type: 'docker', action: 'import', status: 'failed', details: { name: '<unsafe>' } },
+                { id: 'serverwarning', timestamp: new Date(now - 3000).toISOString(), action: 'unknown_action', status: 'warning', summary: '<unsafe> failed' },
+                { id: 'batch', timestamp: new Date(now - 3500).toISOString(), type: 'docker', action: 'folder_batch_mutation', status: 'ok', details: { createdCount: 1, updatedCount: 2, deletedCount: 0, folderCount: 23, folderId: '<private>' } },
+                { id: 'backup', timestamp: new Date(now - 3750).toISOString(), type: 'docker', action: 'backup_create', status: 'ok', details: { folderCount: 23, reason: 'before-tree-move-private-id', name: '<private>' } },
+                { id: 'routine', timestamp: new Date(now - 4000).toISOString(), type: 'docker', action: 'member_identity_reconcile', status: 'ok' }
+            ];
+            api.addActivityEntry('Browser action', 'success');
+            api.renderChangeHistory({ importExportHistory: { events } });
+            api.renderChangeHistory({ importExportHistory: { events } });
+        });
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
+            ['Browser action', 'VM · Backup restored — 3 folders restored', 'Docker · Import failed — Action: import',
+                'Server warning — Action: unknown action', 'Docker · Folders changed — 1 created, 2 updated, 0 deleted',
+                'Docker · Backup created — 23 folders saved · before a folder move']);
+        assert.deepEqual(await page.locator('.fv-activity-item').evaluateAll(rows =>
+            rows.map(row => [...row.classList].find(name => name.startsWith('is-')))),
+        ['is-success', 'is-success', 'is-error', 'is-warning', 'is-success', 'is-success']);
+        assert.equal(await page.locator('.fv-recovery-timeline-card').count(), 0);
+        assert.equal(await page.locator('.fv-activity-item details').count(), 0);
+        assert.equal(await page.evaluate(() => ['Private VM', '<unsafe>', '<private>', 'private-id'].some(value =>
+            localStorage.getItem('fv.settings.logs.v1').includes(value))), false);
+        assert.equal(await page.locator('.fv-activity-detail').count(), 5);
+        await page.locator('#fv-activity-center-clear').click();
+        await mountLogs();
+        await page.evaluate(() => {
+            const boundary = JSON.parse(localStorage.getItem('fv.settings.logs.v1')).clearedAt;
+            window.FolderViewPlusDiagnostics.renderChangeHistory({ importExportHistory: { events: [
+                { id: 'vmbackup', timestamp: new Date(boundary - 1000).toISOString(), type: 'vm', action: 'backup_restore', status: 'ok' },
+                { id: 'newbackup', timestamp: new Date(boundary).toISOString(), type: 'docker', action: 'backup_create', status: 'ok' }
+            ] } });
+        });
+        assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(), ['Docker · Backup created']);
+    });
+
+    test('German Dashboard options wrap inside a narrow widget and member icons retain padding', async ({ page }) => {
+        await page.goto(`${baseUrl}/dashboard-layout`);
+        await loadI18n(page, baseUrl);
+        await page.addStyleTag({ content: 'body button{white-space:nowrap;letter-spacing:2px;text-transform:uppercase}' });
+        await page.evaluate(async () => {
+            await window.FolderViewPlusI18n.configure({ requestedLocale: 'de', resolvedLocale: 'de', fallbackChain: ['de', 'en'],
+                namespaces: ['common', 'dashboard', 'legacy-surface'], assets: ['en', 'de'].flatMap(locale =>
+                    ['common', 'dashboard', 'legacy-surface'].map(namespace => ({ locale, namespace, url: `/plugin/langs/namespaces/${locale}/${namespace}.json` }))) });
+            window.fixtureDashboardLayout.resize(440);
+        });
+        await page.locator('[data-fv-quick-action="view-options"]').first().click();
+        const popover = page.locator('.fv-dashboard-view-popover-shell');
+        await popover.waitFor();
+        for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            const overflow = await popover.locator('button').evaluateAll(buttons => buttons.some(button => button.scrollWidth > button.clientWidth + 2));
+            assert.equal(overflow, false);
+        }
+        await page.keyboard.press('Escape');
+        const padding = await page.locator('#fixture-running-member').evaluate(member => {
+            const outer = member.getBoundingClientRect(), icon = member.querySelector('.img').getBoundingClientRect();
+            return { left: icon.left - outer.left, top: icon.top - outer.top };
+        });
+        assert.ok(padding.left >= 5 && padding.top >= 5, JSON.stringify(padding));
+    });
+
+    for (const locale of ['de', 'fr', 'ar', 'ja']) {
+        test(`${locale} Recovery renders translated controls immediately and preserves focus on refresh`, async ({ page }) => {
+            await page.goto(`${baseUrl}/settings`);
+            await loadI18n(page, baseUrl);
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.environment.js` });
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-workspaces.js` });
+            await page.evaluate(async locale => {
+                const namespaces = ['common', 'settings', 'diagnostics', 'import', 'legacy-surface'];
+                document.getElementById('fv-settings-root').replaceChildren();
+                await window.FolderViewPlusI18n.configure({ requestedLocale: locale, resolvedLocale: locale,
+                    fallbackChain: [locale, 'en'], namespaces,
+                    assets: ['en', locale].flatMap(language => [{ locale: language, namespace: 'legacy', url: `/plugin/langs/${language}.json` }, ...namespaces.map(namespace => ({
+                        locale: language, namespace, url: `/plugin/langs/namespaces/${language}/${namespace}.json`
+                    }))]) });
+                const root = document.getElementById('fv-settings-root');
+                root.innerHTML = '<div id="fv-recovery-overview"></div><div id="fv-recovery-backup-list"></div><p id="fv-recovery-history-summary"></p><div id="fv-recovery-environment-summary"></div>';
+                const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
+                window.recovery = window.FolderViewPlusSettingsWorkspaces.createApi({ window, document, $: window.jQuery, escapeHtml,
+                    apiGetJson: async () => ({ snapshot: { kind: 'environment_snapshot', schemaVersion: 1, types: { docker: { folders: {}, prefs: {} }, vm: { folders: {}, prefs: {} } }, themeWorkspace: {} },
+                        summary: { exportedAt: '2026-09-18T05:18:26Z', pluginVersion: 'fixture', themeWorkspace: { activeThemeName: 'User theme' } } }),
+                    getSortedBackupsForType: () => [{ name: 'fixture.json', count: 2, reason: 'manual', createdAt: '2026-09-18T05:18:26Z' }],
+                    getFolderMap: () => ({ one: {}, two: {} }), formatTimestamp: value => window.FolderViewPlusI18n.formatDate(value) });
+            }, locale);
+            const result = await page.evaluate(async () => {
+                await window.recovery.exportEnvironmentSnapshot();
+                window.recovery.renderRecoveryWorkspace('docker');
+                const picker = document.querySelector('.fv-recovery-snapshot-item');
+                picker.focus();
+                const before = document.getElementById('fv-recovery-backup-list').textContent;
+                window.recovery.renderRecoveryWorkspace('docker');
+                return { before, after: document.getElementById('fv-recovery-backup-list').textContent,
+                    environment: document.getElementById('fv-recovery-environment-summary').textContent,
+                    preserved: document.activeElement === picker && picker.isConnected,
+                    missing: window.FolderViewPlusI18n.snapshot().recentMissingKeys };
+            });
+            assert.doesNotMatch(result.before, /Choose snapshot|Recent snapshots|Delete all backups/);
+            assert.doesNotMatch(result.environment, /Export ready|FolderView Plus Environment snapshot|Theme:|\bcreated\b/);
+            assert.match(result.environment, /User theme/);
+            assert.equal(result.before, result.after);
+            assert.equal(result.preserved, true);
+            assert.deepEqual(result.missing, []);
+        });
+    }
+
+    test('plugin button themes resist native skins while native controls remain unchanged', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await loadI18n(page, baseUrl);
+        await page.addStyleTag({ content: `body button, body input[type=submit] {
+            background: linear-gradient(red, blue) !important; color: red !important;
+            border: 3px double red !important; letter-spacing: 3px !important;
+            text-transform: uppercase !important; white-space: nowrap !important;
+            clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+        }` });
+        await page.evaluate(async () => {
+            const root = document.getElementById('fv-settings-root');
+            const parsed = new DOMParser().parseFromString(await fetch('/plugin/FolderViewPlus.page').then(r => r.text()), 'text/html');
+            root.innerHTML = parsed.getElementById('fv-activity-feed-panel').outerHTML
+                + '<button type="button">Lange übersetzte Schaltfläche zur Wiederherstellung</button><input type="submit" value="Speichern">'
+                + '<button id="selected-fixture" class="is-selected">Selected</button><button id="danger-fixture" class="fv-ui-button is-danger">Delete</button>';
+            document.body.insertAdjacentHTML('beforeend', '<button id="native-sentinel">Native host</button>');
+            window.FolderViewPlusUI.openModal({ title: 'Theme fixture', content: '<p>Modal controls</p>',
+                actions: window.FolderViewPlusUI.button({ label: 'Wiederherstellung überprüfen und bestätigen' }) });
+        });
+        for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            const styles = await page.evaluate(() => ({
+                native: getComputedStyle(document.getElementById('native-sentinel')).backgroundImage,
+                buttons: [...document.querySelectorAll('#fv-settings-root button, #fv-settings-root input[type=submit], .fv-ui-modal button')]
+                    .filter(button => button.getClientRects().length).map(button => {
+                        const style = getComputedStyle(button);
+                        return { image: style.backgroundImage,
+                            clip: style.clipPath, overflow: button.scrollWidth > button.clientWidth + 2 };
+                    }),
+                close: document.querySelector('.fv-ui-modal-close').getBoundingClientRect().width,
+                selected: getComputedStyle(document.getElementById('selected-fixture')).backgroundColor,
+                normal: getComputedStyle(document.querySelector('#fv-settings-root input')).backgroundColor,
+                danger: getComputedStyle(document.getElementById('danger-fixture')).color,
+                normalText: getComputedStyle(document.getElementById('selected-fixture')).color
+            }));
+            assert.match(styles.native, /gradient/);
+            for (const button of styles.buttons) assert.deepEqual(button, { image: 'none', clip: 'none', overflow: false });
+            assert.equal(styles.close, 32);
+            assert.notEqual(styles.selected, styles.normal);
+            assert.notEqual(styles.danger, styles.normalText);
+        }
+        await page.keyboard.press('Escape');
+    });
+
+    test('button fallback preserves main typography and component skins across themes and narrow layouts', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/folder.css` });
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/dashboard.css` });
+        await page.addStyleTag({ content: '#fv-settings-root button { transition: none !important; animation: none !important; }' });
+        await page.evaluate(() => {
+            document.getElementById('fv-settings-root').innerHTML = `
+                <button class="fv-ui-button">Restore latest backup</button>
+                <button class="fv-ui-button is-primary">Restore</button>
+                <div class="backup-actions"><button>Download</button></div>
+                <div class="fv-diagnostics-toolbar"><button class="fv-ui-button">Run health check</button></div>
+                <div class="fv-dashboard-view-popover"><button class="fv-dashboard-view-option is-active"><i></i><span><strong>Running only</strong></span><i></i></button></div>
+                <form id="fvFolderEditorForm" class="folder-editor-form"><button class="fv-webui-profile-button">Add profile</button></form>`;
+        });
+        const capture = () => page.locator('#fv-settings-root button').evaluateAll(buttons => buttons.map(button => {
+            const s = getComputedStyle(button), box = button.getBoundingClientRect();
+            return { font: s.fontSize, weight: s.fontWeight, transform: s.textTransform, spacing: s.letterSpacing,
+                line: s.lineHeight, padding: s.padding, color: s.color, background: s.backgroundColor,
+                border: s.border, radius: s.borderRadius, shadow: s.boxShadow, width: box.width, height: box.height };
+        }));
+        for (const theme of ['black', 'white']) for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            await page.evaluate(theme => {
+                document.documentElement.dataset.fvplusHostTheme = theme;
+                document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true;
+            }, theme);
+            const baseline = await capture();
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = false; });
+            const styled = await capture();
+            assert.deepEqual(styled, baseline);
+            assert.equal(styled[0].transform, 'uppercase');
+            assert.ok(Math.abs(parseFloat(styled[0].spacing) - parseFloat(styled[0].font) * 0.05) < 0.01);
+            assert.ok(styled[0].height >= 34);
+            assert.ok(styled[3].height >= 36);
+            await page.locator('.backup-actions button').hover();
+            const hovered = await capture();
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true; });
+            assert.deepEqual(await capture(), hovered);
+            await page.mouse.move(0, 0);
+        }
+    });
+
+    test('component button skins preserve minimal chevrons, semantic status colors and unboxed pin switches', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.addStyleTag({ url: `${baseUrl}/plugin/styles/runtime.shared.css` });
+        await page.evaluate(() => {
+            document.getElementById('fv-settings-root').innerHTML = `
+                <button class="folder-dropdown" data-fv-onclick="fixture" aria-label="Expand folder"
+                    style="--fvplus-folder-dropdown-border-width:0px;--fvplus-folder-dropdown-border-color:transparent;
+                    --fvplus-folder-dropdown-bg:transparent;--fvplus-folder-dropdown-shadow:none;
+                    --fvplus-folder-dropdown-color:#12ab34;--fvplus-folder-dropdown-hover-color:#12ab34;
+                    --fvplus-folder-dropdown-hover-border-color:transparent;--fvplus-folder-dropdown-hover-bg:transparent;
+                    --fvplus-folder-dropdown-hover-shadow:none">⌄</button>
+                <button class="folder-runtime-status status-chip is-started">Running</button>
+                <button class="folder-runtime-status status-chip is-stopped">Stopped</button>
+                <button class="folder-runtime-status status-chip is-mixed">Mixed</button>
+                <button class="folder-metric-chip health-chip is-ok">Healthy</button>
+                <button class="folder-metric-chip health-chip is-danger">Critical</button>
+                <button class="folder-pin-switch" role="switch" aria-checked="false" aria-label="Pin folder">
+                    <span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span>
+                </button>`;
+        });
+        const capture = () => page.locator('#fv-settings-root button').evaluateAll(buttons => buttons.map(button => {
+            const style = getComputedStyle(button);
+            return { color: style.color, background: style.backgroundColor, border: style.borderTopWidth,
+                borderColor: style.borderTopColor, radius: style.borderRadius, padding: style.padding, shadow: style.boxShadow };
+        }));
+        for (const width of [1180, 390]) {
+            await page.setViewportSize({ width, height: 800 });
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = true; });
+            const componentStyles = await capture();
+            assert.equal(componentStyles[0].color, 'rgb(18, 171, 52)');
+            assert.equal(componentStyles[0].border, '0px');
+            assert.notEqual(componentStyles[1].color, componentStyles[2].color);
+            assert.notEqual(componentStyles[3].color, componentStyles[1].color);
+            assert.notEqual(componentStyles[4].color, componentStyles[5].color);
+            assert.equal(componentStyles[6].border, '0px');
+            await page.evaluate(() => { document.querySelector('link[href$="ui.host-buttons.css"]').disabled = false; });
+            assert.deepEqual(await capture(), componentStyles);
+            await page.locator('.folder-dropdown').hover();
+            assert.equal((await capture())[0].color, 'rgb(18, 171, 52)');
+            assert.equal((await capture())[0].background, 'rgba(0, 0, 0, 0)');
+            await page.locator('.folder-pin-switch').hover();
+            assert.equal((await capture())[6].border, '0px');
+            assert.equal((await capture())[6].background, 'rgba(0, 0, 0, 0)');
+            await page.mouse.move(0, 0);
+        }
+        await page.locator('.folder-pin-switch').focus();
+        assert.notEqual(await page.locator('.folder-pin-switch').evaluate(button => getComputedStyle(button).outlineStyle), 'none');
+    });
+
+    test('theme update with no available updates makes no mutation request', async ({ page }) => {
+        await page.goto(`${baseUrl}/settings`);
+        await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        for (const script of ['folderviewplus.theme-profiles', 'folderviewplus.theme-workspace']) {
+            await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${script}.js` });
+        }
+        await page.evaluate(() => {
+            const root = document.getElementById('fv-settings-root');
+            root.innerHTML = '<button id="fv-theme-update-available">Update</button><p id="fv-theme-workspace-status"></p>';
+            window.themeRequests = [];
+            window.theme = window.FolderViewPlusThemeWorkspace.createApi({ document, $: window.jQuery,
+                apiPostJson: async (_url, payload) => { window.themeRequests.push(payload); return {}; } });
+            window.theme.bindEvents(); window.theme.setWorkspace({ themes: [] });
+            window.jQuery('#fv-theme-update-available').triggerHandler('click');
+        });
+        assert.equal(await page.locator('#fv-theme-update-available').isDisabled(), true);
+        assert.equal(await page.evaluate(() => window.themeRequests.length), 0);
+    });
+};

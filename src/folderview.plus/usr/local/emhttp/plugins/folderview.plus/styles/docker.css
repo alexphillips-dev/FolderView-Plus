@@ -908,6 +908,23 @@ tr.folder.fv-parent-expanded div.folder-preview {
     white-space: nowrap;
 }
 
+.folder-preview .fv-preview-show-more {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.25rem;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.folder-preview .fv-preview-show-more:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
 .fv-folder-preview-context-menu {
     position: fixed;
     z-index: 10050;

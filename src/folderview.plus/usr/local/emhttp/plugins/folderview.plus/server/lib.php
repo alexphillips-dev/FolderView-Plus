@@ -920,7 +920,7 @@
         if (!array_key_exists('transactionId', $payload)) {
             $payload['transactionId'] = getRequestTransactionId();
         }
-        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        require_once __DIR__ . '/lib.i18n.php'; $encoded = json_encode(fvplus_localize_response_keys($payload), JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
             http_response_code(500);
             echo '{"ok":false,"error":"JSON encoding failed."}';
@@ -2255,7 +2255,6 @@
 
     function readFolder(string $type) : string {
         $type = ensureType($type);
-        maybeRunScheduledBackup($type);
         $folders = readRawFolderMap($type);
         syncManualOrderWithFolders($type, $folders);
         $ordered = reorderFolderMapByPrefs($type, $folders);
@@ -2574,6 +2573,7 @@
     require_once(__DIR__ . '/lib.folder-rules.php'); require_once(__DIR__ . '/lib.docker-start-order-sequence.php');
     require_once(__DIR__ . '/lib.docker-order.php');
 
+    require_once(__DIR__ . '/lib.folder-batch-order.php');
     require_once(__DIR__ . '/lib.folder-mutations.php');
 
     require_once(__DIR__ . '/lib.custom-icon-storage.php');

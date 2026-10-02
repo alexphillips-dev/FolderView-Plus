@@ -11,6 +11,8 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const settingsWatchdogJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-watchdog.js');
 const settingsCss = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/operations-workspace.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/bulk-assignment-workspace.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.diagnostics.css',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
 ].map((relativePath) => read(relativePath)).join('\n');
@@ -35,6 +37,30 @@ const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
+
+test('Advanced navigation groups sections and preserves focus when switching', () => {
+    assert.match(settingsPage, /id="fv-advanced-workspace"[\s\S]*id="fv-advanced-nav"[\s\S]*id="fv-advanced-content"/);
+    assert.match(settingsJs, /tabs: \['operations', 'automation', 'rules', 'startup'\]/);
+    assert.match(settingsJs, /tabs: \['appearance'\]/);
+    assert.match(settingsJs, /tabs: \['recovery', 'diagnostics', 'logs'\]/);
+    assert.match(settingsPage, /class="fv-advanced-sidebar"[\s\S]*class="fv-advanced-sidebar-title"[\s\S]*id="fv-advanced-nav"/);
+    assert.match(settingsCss, /\.fv-advanced-nav-group \+ \.fv-advanced-nav-group \{[\s\S]*border-top:/);
+    assert.match(settingsJs, /if \(container\.data\('fvNavSignature'\) !== signature\) \{[\s\S]*container\.html\(/);
+    assert.match(settingsJs, /button\.classList\.toggle\('is-active', active\)/);
+    assert.match(settingsJs, /button\.setAttribute\('aria-current', 'true'\)/);
+    assert.match(settingsJs, /id="fv-advanced-section-picker"/);
+    assert.match(settingsJs, /\.on\('change\.fvtab', '#fv-advanced-section-picker',/);
+    assert.match(settingsJs, /ArrowDown: index \+ 1, ArrowUp: index - 1, Home: 0, End: buttons\.length - 1/);
+    assert.match(settingsCss, /@media \(max-width: 960px\) \{[\s\S]*\.fv-advanced-mobile-picker \{[\s\S]*display: grid/);
+    assert.match(settingsSectionsJs, /"settings\.navigation\.bulk-assignment", "Bulk assignment"/);
+    assert.match(settingsSectionsJs, /"settings\.navigation\.docker-start-order", "Docker start order"/);
+    assert.match(settingsJs, /node\.classList\.toggle\('fv-section-hidden', !visible\)/);
+    assert.doesNotMatch(settingsJs, /fv-advanced-compact|fv-section-toggle|fv-section-content-hidden|expandedAdvancedSections/);
+    assert.doesNotMatch(settingsCss, /\.fv-advanced-compact|\.fv-section-toggle|\.fv-section-content-hidden/);
+    assert.doesNotMatch(settingsSectionsJs, /ADVANCED_EXPANDED_STORAGE_KEY|ADVANCED_KNOWN_STORAGE_KEY/);
+    assert.match(settingsJs, /removeSettingsStorage\('fv\.settings\.advancedExpanded\.v2'\)/);
+    assert.match(settingsJs, /removeSettingsStorage\('fv\.settings\.advancedKnown\.v1'\)/);
+});
 const themeWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
@@ -48,7 +74,7 @@ test('settings first paint is cloaked until config-only folder data is ready', (
 
 test('settings loading shell avoids false blank alarms and bootstrap request storms', () => {
     assert.match(settingsPage, /folderviewplus\.settings-watchdog\.js/);
-    assert.match(settingsWatchdogJs, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
+    assert.match(settingsWatchdogJs, /loading && reason !== 'watchdog-deadline'/);
     assert.match(settingsJs, /configureThemeResolverRuntimeApi\(\{\s*getMode: getEffectiveThemeCompatibilityMode,[\s\S]*trackEvent: null/);
     assert.doesNotMatch(settingsJs, /eventType: 'theme_reflow'/);
     const initializeBlock = diagnosticsJs.match(/const initializeClientDiagnosticsPanels = \(\) => \{[\s\S]*?\n\};/)?.[0] || '';
@@ -301,15 +327,15 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     vm.runInNewContext(settingsSectionsJs, { window });
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
-    assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'\];/);
+    assert.match(settingsPage, /<h2 id="fv-bulk-title" data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk Move Containers<\/h2>/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'\];/);
     assert.equal(window.ADVANCED_GROUP_LABELS.rules, 'Rules');
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
     assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
     const autoAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>');
     const conflictInspectorIndex = settingsPage.indexOf('<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting</h2>');
-    const bulkAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>');
+    const bulkAssignmentIndex = settingsPage.indexOf('<h2 id="fv-bulk-title" data-fv-section="bulk-assignment"');
     assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
     assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
@@ -344,7 +370,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsCss, /\.fv-theme-workspace-entry-actions > button,/);
 });
 
-test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {
+test('rules and bulk assignment use source-switched workspaces', () => {
     assert.match(settingsPage, /class="fv-rules-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-status"[\s\S]*id="docker-rules-selection-summary"[\s\S]*id="docker-rules"/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-status"[\s\S]*id="vm-rules-selection-summary"[\s\S]*id="vm-rules"/);
@@ -353,51 +379,71 @@ test('rules tab uses a source-switched workspace and bulk assignment keeps the t
     assert.match(settingsJs, /const normalizeRulesWorkspaceType = \(value\) =>/);
     assert.match(settingsJs, /const setRulesWorkspaceType = \(type, persist = true\) =>/);
     assert.match(settingsJs, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(localStorage\.getItem\(RULES_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(settingsCss, /@media \(min-width: 1080px\) \{\s*\.bulk-assign-grid \{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\) !important;/);
+    assert.match(settingsPage, /data-fv-bulk-source="docker" aria-pressed="true"[\s\S]*data-fv-bulk-source="vm" aria-pressed="false"/);
+    assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="vm" hidden/);
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });
 
-test('recovery tab uses a source-switched workspace with overview cards, snapshot history, and undo timeline', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace<\/h2>/);
+test('recovery tab presents restore, history, policy, and environment actions in one workspace', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Restore and Backup Snapshots<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-recovery-source-switch"[\s\S]*setRecoveryWorkspaceType\('docker'\)[\s\S]*setRecoveryWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /id="fv-recovery-overview"/);
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-details"/);
+    assert.match(settingsPage, /id="fv-recovery-policy-editor"/);
+    assert.match(settingsPage, /id="backup-compare-picker"/);
+    assert.match(settingsPage, /data-fv-onclick="openActiveRecoverySnapshotCompare\(\)" aria-haspopup="dialog"/);
+    assert.doesNotMatch(settingsPage, /id="fv-recovery-compare-panel"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
-    assert.match(settingsPage, /id="recovery-change-history-list"/);
+    assert.doesNotMatch(settingsPage, /data-fv-section="change-history"/);
+    assert.match(settingsPage, /data-fv-section="logs"[\s\S]*id="fv-activity-feed-list"/);
+    assert.doesNotMatch(settingsPage, /Recent recovery timeline|recovery-change-history-list/);
     assert.match(settingsPage, /data-fv-onclick="restoreLatestActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="createActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="runActiveRecoveryScheduler\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="exportEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
-    assert.match(settingsPage, /data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsPage, /class="fv-recovery-more-menu backup-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
+    assert.doesNotMatch(settingsPage, /data-fv-folderview3-action="(?:detect|preview-export)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
-    assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
+    assert.match(settingsJs, /class="fv-recovery-snapshot-row\$\{activeClass\}"/);
+    assert.match(settingsJs, /toggleAllRecoverySnapshots/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(diagnosticsJs, /const renderRecoveryChangeHistoryFromDiagnostics = \(diagnostics = lastDiagnostics\) =>/);
+    assert.match(diagnosticsJs, /const renderChangeHistory = \(diagnostics = lastDiagnostics\) =>/);
+    assert.match(diagnosticsJs, /const events = Array\.isArray\(diagnostics\?\.importExportHistory\?\.events\)/);
+    assert.doesNotMatch(diagnosticsJs, /renderServerChangeHistory|fv-recovery-timeline-card/);
+    assert.match(settingsSectionsJs, /logs: Object\.freeze\(\['change_history'\]\)/);
     assert.match(settingsCss, /\.fv-recovery-source-switch/);
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
     assert.match(settingsCss, /\.fv-recovery-environment-meta/);
-    assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
-    assert.match(settingsCss, /\.fv-recovery-history-list,\s*\.fv-recovery-change-history-list/);
-    assert.match(settingsCss, /\.fv-recovery-timeline-card/);
+    assert.match(settingsCss, /\.fv-recovery-policy-row/);
+    assert.match(settingsCss, /\.fv-recovery-history-list\s*\{/);
+    assert.doesNotMatch(settingsCss, /\.fv-recovery-timeline-card/);
 });
 
-test('operations tab uses one source-switched workspace for runtime actions and templates', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace<\/h2>/);
+test('operations tab shows the reference action and template workflows for both sources', () => {
+    assert.match(settingsPage, /<h2 data-i18n="settings.navigation.operations" data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
-    assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-operations-overview"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
-    assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-operations-overview"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
+    assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
+    assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
+    assert.doesNotMatch(settingsPage, /id="(?:docker|vm)-operations-overview"/);
+    assert.match(settingsPage, /<label for="docker-runtime-folder">[\s\S]*Folder<\/label>[\s\S]*<label for="docker-runtime-action">[\s\S]*Action<\/label>/);
+    assert.match(settingsPage, /id="docker-runtime-apply"[^>]*class="fv-operations-apply"/);
+    assert.match(settingsPage, /id="docker-runtime-preview-output"[^>]*role="status"/);
+    assert.match(settingsPage, /id="docker-operations-template-create" class="fv-operations-template-create"/);
+    assert.match(settingsPage, /id="docker-operations-template-search"[^>]*data-fv-operations-template-search="docker"/);
+    assert.match(settingsPage, /class="fv-operations-create-cta"/);
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
-    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.buildOperationsOverviewHtml\(\.\.\.args\);/);
     assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
     assert.match(settingsJs, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
+    assert.match(settingsJs, /const invalidateFolderRuntimePreview = \(\.\.\.args\) => getSettingsRuntimeActionsApi\(\)\.invalidateFolderRuntimePreview\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);
     assert.match(settingsJs, /exportTemplateEntry\('/);
     assert.match(settingsCss, /\.fv-operations-source-switch/);
@@ -412,17 +458,19 @@ test('operations tab uses one source-switched workspace for runtime actions and 
 test('Docker start order lives in its own startup advanced tab', () => {
     const window = {};
     vm.runInNewContext(settingsSectionsJs, { window });
-    assert.equal(window.ADVANCED_GROUP_LABELS.startup, 'Start Order');
+    assert.equal(window.ADVANCED_GROUP_LABELS.startup, 'Docker start order');
     assert.match(settingsSectionsJs, /'docker-start-order':\s*'startup'/);
     assert.match(settingsPage, /<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order<\/h2>/);
     assert.match(settingsPage, /id="docker-start-order-workspace"/);
     assert.doesNotMatch(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-start-order-workspace"[\s\S]*data-fv-operations-panel="vm"/);
 });
 
-test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {
+test('bulk assignment provides a scrolling table with a destination sidebar and responsive footer', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);
-    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*grid-auto-rows:\s*max-content;[\s\S]*align-content:\s*start;[\s\S]*min-height:\s*210px;[\s\S]*max-height:\s*210px;/);
+    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*max-height: 350px; overflow: auto/);
+    assert.match(settingsCss, /\.bulk-workspace-body \{[^}]*grid-template-columns: minmax\(240px, 24%\) minmax\(0, 1fr\)/);
+    assert.match(settingsCss, /\.bulk-stage-review \{ position: static; grid-template-columns: minmax\(0, 1fr\)/);
 });
 
 test('bulk assignment uses staged workflow cards with summary metrics and hidden retry actions by default', () => {
@@ -438,7 +486,7 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
     assert.match(settingsCss, /\.rules-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
     assert.match(settingsCss, /\.rules-help\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
     assert.match(settingsCss, /\.bulk-summary-card\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-faint\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
-    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.bulk-table-scroll \{[^}]*border: 1px solid var\(--fvplus-settings-border-subtle\)/);
     assert.match(settingsCss, /\.bulk-preview-panel,\s*\.bulk-result-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
 });
 
@@ -454,7 +502,8 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.ok(shareWithSupportIndex > diagnosticsSummaryIndex, 'share with support should remain below the health summary');
     assert.doesNotMatch(settingsPage, /Suggested fixes|fv-diagnostics-actions|diagnostics\.fixes\./);
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
-    assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-advanced-mode \.fv-advanced-content\s*\{[^}]*padding-inline:\s*var\(--fv-advanced-side-padding\);/);
+    assert.doesNotMatch(settingsCss, /\.fv-diagnostics-workspace\s*\{[^}]*margin-inline:/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics\s*\{[\s\S]*align-self:\s*center;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[^}]*border-color:\s*var\(--fvplus-settings-border-subtle\)[^}]*color:\s*var\(--fvplus-settings-button-fg\)/);

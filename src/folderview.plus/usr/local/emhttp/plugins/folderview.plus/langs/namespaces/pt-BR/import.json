@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até você selecionar Aplicar importação.",
     "import.behavior.question": "Como as pastas existentes devem ser tratadas?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "Substituir exatamente",
     "import.mode.replace.description": "Correspondência com a exportação. Pastas ausentes podem ser deletadas.",
     "import.review.title": "Revisar alterações planejadas",
-    "import.review.count": "Revisar {{PLURAL:$1|uma alteração planejada|$1 alterações planejadas}}",
+    "import.review.count": "Revisar {{PLURAL:$1|$1 alteração planejada|$1 alterações planejadas}}",
     "import.review.folders-fields": "Pastas e campos",
     "import.review.choose": "Escolha quais alterações incluir",
     "import.safety.title": "Opções de segurança",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Eu revisei esta importação",
     "import.acknowledge.description": "O comportamento e as alterações selecionadas estão corretos.",
     "import.progress.preparing": "Preparando operação",
-    "import.progress.running": "Executando",
+    "import.progress.running": "Em execução",
     "import.summary.folder-change": "{{PLURAL:$1|alteração de pasta|alterações de pasta}}",
     "import.summary.planned-change": "{{PLURAL:$1|alteração planejada|alterações planejadas}} na visualização",
     "import.summary.new": "$1 novo",
-    "import.summary.update": "{{PLURAL:$1|uma atualização|$1 atualizações}}",
-    "import.summary.delete": "{{PLURAL:$1|uma exclusão|$1 exclusões}}",
+    "import.summary.update": "{{PLURAL:$1|$1 atualização|$1 atualizações}}",
+    "import.summary.delete": "{{PLURAL:$1|$1 exclusão|$1 exclusões}}",
     "import.kind.docker-folder": "Docker pasta",
     "import.kind.vm-folder": "VM pasta",
     "import.dialog.docker-title": "Importar Docker Pastas",
     "import.dialog.vm-title": "Importar VM Pastas",
     "import.actions.apply": "Aplicar importação",
     "import.folderview3.preview-title": "Visualização da migração do FolderView3",
-    "import.folderview3.preview-help": "Descubra uma configuração FolderView3 instalada ou inspecione um JSON de exportação completo. A detecção e a visualização são somente leitura; os registros do organizador nativo e as mutações de inicialização automática do Docker permanecem excluídos, a menos que uma aplicação posterior os inclua explicitamente.",
     "import.folderview3.read-only-title": "A migração do FolderView3 é somente leitura até que você aprove um plano de aplicação.",
-    "import.folderview3.read-only-help": "Detecte uma configuração instalada ou visualize uma exportação do FolderView3 sem gravar nenhum plugin ou estado Unraid.",
     "import.folderview3.read-only-preview-help": "Detecte uma configuração do FolderView3 instalada ou visualize uma exportação do FolderView3. A visualização nunca grava o plugin ou a configuração do Unraid.",
     "import.folderview3.not-detected": "Nenhuma configuração instalada do FolderView3 foi detectada.",
     "import.folderview3.preview-export-help": "Você ainda pode visualizar um JSON de exportação completa do FolderView3 de outro servidor.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Instantâneo inválido; ordem de configuração",
     "import.folderview3.appearance-profiles": "Adicionar perfis de aparência FolderView3 inativos",
     "import.folderview3.order-summary": "Ordem das pastas salvas: Docker $1; VMs $2.",
-    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1."
+    "import.folderview3.disabled-profile-count": "Perfis separados para temas desativados: $1.",
+    "import.compare.to": "Para"
 }

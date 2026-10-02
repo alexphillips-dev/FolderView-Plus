@@ -1,0 +1,32 @@
+{
+  "keys": ["sent", "check", "help"],
+  "en": ["Export sent to your browser", "Check your Downloads folder.", "File missing? Get help"],
+  "locales": {
+    "ar": ["تم إرسال ملف التصدير إلى متصفحك", "تحقق من مجلد التنزيلات.", "لم تجد الملف؟ احصل على المساعدة"],
+    "bn": ["রপ্তানি করা ফাইলটি আপনার ব্রাউজারে পাঠানো হয়েছে", "আপনার ডাউনলোড ফোল্ডার দেখুন।", "ফাইলটি খুঁজে পাচ্ছেন না? সহায়তা নিন"],
+    "ca": ["L’exportació s’ha enviat al navegador", "Comproveu la carpeta de baixades.", "No trobeu el fitxer? Obteniu ajuda"],
+    "cs": ["Export byl odeslán do prohlížeče", "Zkontrolujte složku Stažené soubory.", "Soubor chybí? Získat pomoc"],
+    "da": ["Eksporten er sendt til din browser", "Se i mappen Overførsler.", "Mangler filen? Få hjælp"],
+    "de": ["Export an Ihren Browser gesendet", "Prüfen Sie Ihren Download-Ordner.", "Datei fehlt? Hilfe erhalten"],
+    "es": ["Exportación enviada al navegador", "Compruebe la carpeta Descargas.", "¿Falta el archivo? Obtener ayuda"],
+    "fr": ["Export envoyé à votre navigateur", "Vérifiez votre dossier Téléchargements.", "Fichier introuvable ? Obtenir de l’aide"],
+    "hr": ["Izvoz je poslan vašem pregledniku", "Provjerite mapu Preuzimanja.", "Datoteka nedostaje? Potražite pomoć"],
+    "hu": ["Az exportált fájl elküldve a böngészőnek", "Ellenőrizze a Letöltések mappát.", "Hiányzik a fájl? Segítség kérése"],
+    "it": ["Esportazione inviata al browser", "Controlla la cartella Download.", "File non trovato? Ricevi assistenza"],
+    "ja": ["エクスポートファイルをブラウザーに送信しました", "ダウンロードフォルダーを確認してください。", "ファイルが見つかりませんか？ ヘルプを表示"],
+    "ko": ["내보낸 파일을 브라우저로 전송했습니다", "다운로드 폴더를 확인하세요.", "파일이 없나요? 도움말 보기"],
+    "lv": ["Eksports nosūtīts jūsu pārlūkam", "Pārbaudiet mapi Lejupielādes.", "Fails nav atrodams? Saņemt palīdzību"],
+    "nb": ["Eksporten er sendt til nettleseren", "Se i mappen Nedlastinger.", "Mangler filen? Få hjelp"],
+    "nl": ["Export naar uw browser verzonden", "Controleer uw map Downloads.", "Bestand niet gevonden? Hulp krijgen"],
+    "pl": ["Eksport został wysłany do przeglądarki", "Sprawdź folder Pobrane.", "Brakuje pliku? Uzyskaj pomoc"],
+    "pt-BR": ["Exportação enviada ao navegador", "Verifique a pasta Downloads.", "Não encontrou o arquivo? Obter ajuda"],
+    "pt-PT": ["Exportação enviada para o navegador", "Verifique a pasta Transferências.", "Não encontra o ficheiro? Obter ajuda"],
+    "ro": ["Exportul a fost trimis către browser", "Verificați dosarul Descărcări.", "Fișierul lipsește? Obțineți ajutor"],
+    "ru": ["Файл экспорта передан браузеру", "Проверьте папку «Загрузки».", "Файл не найден? Получить помощь"],
+    "sv": ["Exporten har skickats till webbläsaren", "Kontrollera mappen Hämtade filer.", "Saknas filen? Få hjälp"],
+    "tr": ["Dışa aktarılan dosya tarayıcınıza gönderildi", "İndirilenler klasörünüzü kontrol edin.", "Dosyayı bulamadınız mı? Yardım alın"],
+    "uk": ["Файл експорту передано браузеру", "Перевірте теку «Завантаження».", "Файл не знайдено? Отримати допомогу"],
+    "zh-Hans": ["已将导出文件发送到浏览器", "请检查“下载”文件夹。", "找不到文件？获取帮助"],
+    "zh-Hant": ["已將匯出檔案傳送至瀏覽器", "請檢查「下載項目」資料夾。", "找不到檔案？取得協助"]
+  }
+}

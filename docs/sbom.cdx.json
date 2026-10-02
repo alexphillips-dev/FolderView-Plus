@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:a0d5001e-b7aa-871e-b1d1-4d5429d044b2",
+  "serialNumber": "urn:uuid:986e6501-dbab-8389-b097-19d7cb0cb65b",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.09.17.03",
+      "version": "2026.10.01.10",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "b96794f015dfd88f77b49b1c93e0fa7110f94c63",
+      "version": "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@b96794f015dfd88f77b49b1c93e0fa7110f94c63",
+      "purl": "pkg:github/github/codeql-action@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "8e5cf47b818121e8b405931c82126c2630b0b20d",
+      "version": "8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@8e5cf47b818121e8b405931c82126c2630b0b20d",
+      "purl": "pkg:github/google/osv-scanner-action@8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -323,7 +323,7 @@
     {
       "type": "library",
       "name": "brace-expansion",
-      "version": "5.0.9",
+      "version": "5.0.12",
       "scope": "optional",
       "licenses": [
         {
@@ -332,7 +332,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@5.0.9"
+      "purl": "pkg:npm/brace-expansion@5.0.12"
     },
     {
       "type": "library",
@@ -572,7 +572,7 @@
     {
       "type": "library",
       "name": "fast-check",
-      "version": "4.9.0",
+      "version": "4.10.2",
       "scope": "optional",
       "licenses": [
         {
@@ -581,7 +581,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fast-check@4.9.0"
+      "purl": "pkg:npm/fast-check@4.10.2"
     },
     {
       "type": "library",

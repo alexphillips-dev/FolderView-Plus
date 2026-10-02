@@ -47,6 +47,21 @@ test('write-capable workflows keep top-level permissions read-only and scope wri
     }
 });
 
+test('automated back-merges request CI and CodeQL on their own branch', () => {
+    const workflow = read('.github/workflows/backmerge-main-to-dev.yml');
+    const dispatch = workflow.split('- name: Request CI and CodeQL for back-merge commit')[1]?.split('\n      - name:')[0] || '';
+    assert.match(workflow, /pull-requests: write\s+actions: write/);
+    assert.match(dispatch, /if: steps\.push_backmerge\.outputs\.updated == '1'/);
+    assert.match(dispatch, /GH_TOKEN: \$\{\{ github\.token \}\}/);
+    assert.match(dispatch, /set -euo pipefail/);
+    for (const file of ['ci.yml', 'codeql.yml']) {
+        assert.ok(dispatch.includes(`gh workflow run ${file} --repo "\${GITHUB_REPOSITORY}" --ref "\${BACKMERGE_BRANCH}"`));
+        assert.match(read(`.github/workflows/${file}`), /workflow_dispatch:/);
+    }
+    assert.ok(workflow.indexOf('- name: Request CI and CodeQL') > workflow.indexOf('- name: Create or update back-merge PR'));
+    assert.doesNotMatch(dispatch, /\|\| true/);
+});
+
 test('clone traffic credential is isolated from metrics branch publication', () => {
     const workflow = read('.github/workflows/clone-traffic-badge.yml');
     const collectJob = workflow.match(/^  collect:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';

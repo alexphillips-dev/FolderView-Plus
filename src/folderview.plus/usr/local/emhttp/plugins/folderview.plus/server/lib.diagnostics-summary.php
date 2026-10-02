@@ -340,7 +340,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
         return array_merge([
             'key' => $key,
             'label' => $label,
-            'status' => in_array($status, ['healthy', 'warning', 'error'], true) ? $status : 'healthy',
+            'status' => in_array($status, ['healthy', 'info', 'warning', 'error'], true) ? $status : 'healthy',
             'headline' => $headline,
             'detail' => $detail
         ], $extra);
@@ -650,7 +650,8 @@ function diagnosticsStateKindForDockerItem(array $item): string {
         array $customIcons,
         array $update,
         array $runtimeIntegrity = [],
-        array $securityAudit = []
+        array $securityAudit = [],
+        array $runtimeConnectivity = []
     ): array {
         $cards = [];
         $errorCount = 0;
@@ -686,6 +687,12 @@ function diagnosticsStateKindForDockerItem(array $item): string {
                 ['count' => $issueCount]
             );
         }
+
+        $backupCard = diagnosticsBuildBackupReadinessCard($typesData);
+        $runtimeCard = diagnosticsBuildRuntimeConnectivityCard($runtimeConnectivity);
+        $cards[] = $backupCard;
+        $cards[] = $runtimeCard;
+        $warningCount += (int)($backupCard['status'] === 'warning') + (int)($runtimeCard['status'] === 'warning');
 
         if (($runtimeIntegrity['status'] ?? 'unavailable') === 'critical') {
             $pathIssues[] = (string)($runtimeIntegrity['reason'] ?? 'Installed runtime integrity verification failed.');
@@ -759,22 +766,8 @@ function diagnosticsStateKindForDockerItem(array $item): string {
             ['count' => $updateAvailable ? 1 : 0]
         );
 
-        $status = diagnosticsSummaryStatusFromCounts($errorCount, $warningCount);
-        $headline = $totalIssues > 0
-            ? sprintf('Detected %d issue(s) that may affect FolderView Plus.', $totalIssues)
-            : ($warningCount > 0
-                ? 'Plugin is healthy, but there are a few follow-up items.'
-                : 'No major plugin health issues detected.');
-        $detail = $totalIssues > 0
-            ? 'Start with the suggested fixes below. If the problem continues, copy the issue report or export a support bundle.'
-            : ($warningCount > 0
-                ? 'Review the warning cards below, then decide if any follow-up is needed.'
-                : 'Use support exports only if you need to share diagnostics with someone else.');
-
-        return [
-            'status' => $status,
-            'headline' => $headline,
-            'detail' => $detail,
+        return diagnosticsBuildSummaryOutcome($errorCount, $warningCount, $totalIssues,
+            $backupCard['status'] === 'info' || $runtimeCard['status'] === 'info') + [
             'errorCount' => $errorCount,
             'warningCount' => $warningCount,
             'totalIssues' => $totalIssues,

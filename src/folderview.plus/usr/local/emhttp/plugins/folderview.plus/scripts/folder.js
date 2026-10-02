@@ -8,6 +8,7 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 let hiddenPreviewMembers = new Set();
+const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
 const folderEditorT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
 );
@@ -296,7 +297,7 @@ const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || O
 const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
     ? folderContract.isFolderAccentEnabled
     : ((settings) => settings?.folder_accent_enabled === true);
-const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
+const NO_MEMBERS_SELECTED_INFO = surfaceT("common.audit.no-members", "No members are currently selected in this folder.");
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = folderEditorSchema?.PREVIEW_MODE_LABELS || Object.freeze({
@@ -365,7 +366,7 @@ const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1'
 const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const MEMBER_BULK_SCOPE_OPTIONS = Object.freeze([
-    { value: 'shown', label: 'Move shown' },
+    { value: 'shown', label: surfaceT("common.actions.move-shown", "Move shown") },
     { value: 'included_shown', label: 'Move included shown' },
     { value: 'excluded_shown', label: 'Move excluded shown' },
     { value: 'all_included', label: 'Move all included' }
@@ -1118,7 +1119,7 @@ const extractAjaxErrorMessage = (error, context = 'request') => {
     if (responseText) {
         try {
             const payload = parseJsonPayload(responseText, context);
-            const serverMessage = String(payload?.error || '').trim();
+            const serverMessage = String(window.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || '').trim();
             if (serverMessage) {
                 return serverMessage;
             }
@@ -1130,7 +1131,7 @@ const extractAjaxErrorMessage = (error, context = 'request') => {
     const status = Number(error?.jqXHR?.status || error?.status || 0);
     if (status > 0) {
         const statusText = String(error?.jqXHR?.statusText || error?.statusText || '').trim();
-        return statusText ? `Request failed. HTTP ${status} ${statusText}.` : `Request failed. HTTP ${status}.`;
+        return statusText ? surfaceT("legacy.surface.504281998c4409ad", "Request failed. HTTP $1 $2.", status, statusText) : `Request failed. HTTP ${status}.`;
     }
 
     const textStatus = String(error?.textStatus || '').trim();
@@ -1851,7 +1852,7 @@ const validateNameField = () => {
     const value = (form.name.value || '').trim();
 
     if (!value) {
-        setFieldError('name', 'Folder name is required.');
+        setFieldError('name', surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
         return false;
     }
 
@@ -2287,11 +2288,11 @@ const validateForm = () => {
     if (summary.length) {
         summary.removeClass('invalid warning info ready');
         if (!valid) {
-            summary.addClass('invalid').text(`Blocked: fix ${blockedCount} field issue${blockedCount === 1 ? '' : 's'} before saving.`);
+            summary.addClass('invalid').text(surfaceT("common.runtime.cannot-save-fields-to-correct-1", "Cannot save. Fields to correct: $1.", blockedCount));
         } else if (advisoryWarnings.length > 0) {
-            summary.addClass('warning').text(`Warning: ${advisoryWarnings.length} recommendation${advisoryWarnings.length === 1 ? '' : 's'} available.`);
+            summary.addClass('warning').text(surfaceT("common.counts.recommendations", "Recommendations: $1.", advisoryWarnings.length));
         } else if (infoWarnings.length > 0) {
-            summary.addClass('info').text(`Info: ${infoWarnings.length} note${infoWarnings.length === 1 ? '' : 's'} available.`);
+            summary.addClass('info').text(surfaceT("common.counts.notes", "Informational notes: $1.", infoWarnings.length));
         } else {
             summary.addClass('ready').text('Ready: all checks passed.');
         }
@@ -2301,7 +2302,7 @@ const validateForm = () => {
             details
                 .removeClass('warning info ready')
                 .addClass('invalid')
-                .text('Resolve highlighted field errors, then try saving again.');
+                .text(surfaceT("legacy.surface.6737eda0fa90b3e7", "Resolve highlighted field errors, then try saving again."));
         } else if (advisoryWarnings.length > 0) {
             const rendered = advisoryWarnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
             details
@@ -2348,7 +2349,7 @@ const updateMemberStats = () => {
     const previewShown = rows.find('input.container-switch:checked').filter((_, input) => (
         $(input).closest('tr').find('input.member-preview-switch').prop('checked') === true
     )).length;
-    const text = `${included}/${total} included (${previewShown} in preview)` + (visible !== total ? ` · ${visible} filtered` : '');
+    const text = surfaceT("common.runtime.included-1-2-in-preview-3", "Included: $1/$2 (in preview: $3)", included, total, previewShown) + (visible !== total ? surfaceT("common.runtime.filtered-1", " \u00b7 Filtered: $1", visible) : '');
     $('#fvMemberStats').text(text);
     $('#fvLiveMembers').text(text);
     $('#fvHeroMembers').text(text);
@@ -2948,7 +2949,7 @@ const initEditorChrome = () => {
                             <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
                         </div>
                         <div class="fv-live-swatches">
-                            <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                            <span class="fv-swatch-item"><em>Running</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span><span class="fv-swatch-item"><em>Text</em><i id="fvSwatchText"></i></span>
                             <span id="fvAccentSwatchItem" class="fv-swatch-item" data-fvplus-style="fv-u-xcjvns"><em>Accent</em><i id="fvSwatchAccent"></i></span>
@@ -3063,7 +3064,7 @@ const initEditorChrome = () => {
         resetUnsavedChanges();
     });
     $('#fvApplyPluginDefaults').off('click').on('click', () => {
-        const confirmed = confirm('Apply plugin defaults to this folder editor? This will reset preview, chevron, status, rules, and advanced overrides but will keep the folder name, icon, members, and custom actions.');
+        const confirmed = confirm(surfaceT("common.repair.apply-plugin-defaults-to-this-folder-editor-this-will-reset-previ-6d0675", "Apply plugin defaults to this folder editor? This will reset preview, chevron, status, rules, and advanced overrides but will keep the folder name, icon, members, and custom actions."));
         if (!confirmed) {
             return;
         }
@@ -3353,7 +3354,7 @@ const startFolderEditorRuntime = async () => {
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
             refreshParentFolderChooser(folders, '', new Set());
-            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+            setParentDefaultsNote(surfaceT("common.runtime.select-a-parent-to-inherit-preview-icon-defaults-automatically", "Select a parent to inherit preview/icon defaults automatically."), 'info');
         } else {
         if (!resolvedEditFolder && bootstrapFolderRecord) {
             setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
@@ -3420,7 +3421,7 @@ const startFolderEditorRuntime = async () => {
         const appliedRequestedParent = await applyRequestedCreateParentToNewFolder(folders);
         if (!appliedRequestedParent && !appliedSavedDefaults) {
             refreshParentFolderChooser(folders, '', new Set());
-            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+            setParentDefaultsNote(surfaceT("common.runtime.select-a-parent-to-inherit-preview-icon-defaults-automatically", "Select a parent to inherit preview/icon defaults automatically."), 'info');
         }
     }
     renderMemberBulkMoveTargets();
@@ -3544,7 +3545,7 @@ const startFolderEditorRuntime = async () => {
         }
         if (fieldName === 'name') {
             if (event.type === 'input') {
-                $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
+                $('#fvLiveName').text((form.name?.value || '').trim() || surfaceT("common.runtime.unnamed", "(unnamed)"));
                 markUnsavedIndicatorDirty();
                 return;
             }
@@ -3852,7 +3853,7 @@ const buildFolderSettingsSummaryHtml = (entry) => {
         `<span data-fvplus-style="fv-u-1i4smo6">${escapeHtml(label)}</span>`
     )).join('');
     const skippedHint = summary.droppedMemberBoundActionCount > 0
-        ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(surfaceT("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
         : '';
     return [
         `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
@@ -3867,7 +3868,7 @@ const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
         const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
         const parentName = parentId && allFoldersById[parentId]
             ? String(allFoldersById[parentId]?.name || parentId).trim()
-            : 'Top level';
+            : surfaceT("common.runtime.top-level", "Top level");
         return {
             id: String(id || '').trim(),
             name: String(folder?.name || id).trim() || String(id || '').trim(),
@@ -3883,7 +3884,7 @@ function getMemberBulkMoveTargets() {
 function describeMemberBulkMoveScope(scope) {
     const normalized = String(scope || '').trim().toLowerCase();
     const match = MEMBER_BULK_SCOPE_OPTIONS.find((entry) => entry.value === normalized);
-    return match ? match.label : 'Move shown';
+    return match ? match.label : surfaceT("common.actions.move-shown", "Move shown");
 }
 
 function getCurrentMemberBulkMoveScope() {
@@ -3907,7 +3908,7 @@ function renderMemberBulkMoveTargets() {
     const targets = getMemberBulkMoveTargets();
     const options = ['<option value="">Move to folder...</option>'];
     targets.forEach((target) => {
-        const detail = target.parentName && target.parentName !== 'Top level'
+        const detail = target.parentName && target.parentName !== surfaceT("common.runtime.top-level", "Top level")
             ? `${target.name} (${target.parentName})`
             : target.name;
         options.push(`<option value="${escapeHtml(target.id)}">${escapeHtml(detail)}</option>`);
@@ -4107,7 +4108,7 @@ async function applyEditorMemberBulkMove() {
         `Move: ${plan.moves.length}`,
         `Unchanged: ${plan.unchanged.length}`,
         `Invalid: ${plan.invalidNames.length}`,
-        `Duplicates dropped: ${plan.duplicateNames.length}${regexSkipText}`
+        surfaceT('common.repair.duplicates-dropped', 'Duplicates dropped: $1', plan.duplicateNames.length) + regexSkipText
     ].join('\n');
 
     swal({
@@ -4142,7 +4143,7 @@ async function applyEditorMemberBulkMove() {
                 offerUndo: false,
                 trackDiagnostics: false,
                 onProgress: ({ chunkNumber, chunkCount, chunkSize }) => {
-                    $('#fvMemberBulkSummary').text(`Applying chunk ${chunkNumber}/${chunkCount} (${chunkSize} item${chunkSize === 1 ? '' : 's'})...`);
+                    $('#fvMemberBulkSummary').text(surfaceT("common.counts.applying-batch", "Applying batch $1/$2. Items: $3.", chunkNumber, chunkCount, chunkSize));
                     updateMemberBulkMoveUi();
                 }
             });
@@ -4153,7 +4154,7 @@ async function applyEditorMemberBulkMove() {
             }
             swal.close();
             applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
-            const successMessage = executionResult?.summary || `Moved ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'}.`;
+            const successMessage = executionResult?.summary || surfaceT("common.repair.items-moved-1-3c0fec", "Items moved: $1.", plan.actionableNames.length);
             setMemberBulkMoveUndoState(executionResult?.backup || null, successMessage);
             updateMemberBulkMoveUi();
         } catch (error) {
@@ -4236,7 +4237,7 @@ const buildFolderSettingsApplyDialogHtml = (entry, targets) => {
         '<div class="fv-folder-settings-apply-dialog" data-fvplus-style="fv-u-18w5s3q">',
         `<div data-fvplus-style="fv-u-tczc3j">${summaryHtml}</div>`,
         '<div data-fvplus-style="fv-u-k1hi7u">',
-        `<strong>Apply to ${targets.length} folder${targets.length === 1 ? '' : 's'}</strong>`,
+        `<strong>${escapeHtml(surfaceT("common.repair.apply-to-folders-count-1-245d70", "Apply to folders (count: $1)", targets.length))}</strong>`,
         '<span>',
         '<button type="button" class="btn btn-small" id="fv-folder-settings-select-all" data-fvplus-style="fv-u-1of1hjl">Select all</button>',
         '<button type="button" class="btn btn-small" id="fv-folder-settings-clear-all">Clear</button>',
@@ -4311,7 +4312,7 @@ const applyFolderSettingsToFolders = async () => {
         type: 'warning',
         html: true,
         showCancelButton: true,
-        confirmButtonText: 'Apply',
+        confirmButtonText: surfaceT("common.actions.apply", "Apply"),
         cancelButtonText: 'Cancel',
         closeOnConfirm: false,
         showLoaderOnConfirm: true
@@ -4323,7 +4324,7 @@ const applyFolderSettingsToFolders = async () => {
         const selectedIds = $('.fv-folder-settings-target:checked').map((_, node) => String($(node).val() || '').trim()).get().filter(Boolean);
         if (!selectedIds.length) {
             if (typeof swal.showInputError === 'function') {
-                swal.showInputError('Select at least one target folder.');
+                swal.showInputError(surfaceT("common.repair.select-at-least-one-target-folder-73c1c6", "Select at least one target folder."));
             }
             return false;
         }
@@ -4337,7 +4338,7 @@ const applyFolderSettingsToFolders = async () => {
             swal.close();
             swal({
                 title: 'Folder settings applied',
-                text: `Applied to ${selectedIds.length} folder${selectedIds.length === 1 ? '' : 's'}. A backup snapshot was created before the update.`,
+                text: surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", selectedIds.length),
                 type: 'success'
             });
         } catch (error) {
@@ -4367,7 +4368,7 @@ const submitForm = async (e, saveAsCopy = false) => {
         folder.name = generateCopyName(folder.name, folder.parentId);
     }
     if (!folder.name && !editingFolderDefaults) {
-        setFieldError('name', 'Folder name is required.');
+        setFieldError('name', surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
         return false;
     }
     try {
@@ -4410,7 +4411,7 @@ const submitForm = async (e, saveAsCopy = false) => {
                 type: 'error'
             });
         } else {
-            alert(message);
+        alert(window.FolderViewPlusI18n?.message?.(message) || message);
         }
         return false;
     }
@@ -4429,7 +4430,7 @@ const submitForm = async (e, saveAsCopy = false) => {
  */
 const cancelBtn = () => {
     if (updateUnsavedIndicator()) {
-        const confirmLeave = confirm('You have unsaved changes. Leave without saving?');
+        const confirmLeave = confirm(surfaceT("common.repair.you-have-unsaved-changes-leave-without-saving-a419d8", "You have unsaved changes. Leave without saving?"));
         if (!confirmLeave) {
             return;
         }
@@ -4445,7 +4446,7 @@ const resetUnsavedChanges = () => {
     if (!updateUnsavedIndicator()) {
         return;
     }
-    const confirmed = confirm('Discard all unsaved changes and reload this editor?');
+    const confirmed = confirm(surfaceT("common.repair.discard-all-unsaved-changes-and-reload-this-editor-2736c7", "Discard all unsaved changes and reload this editor?"));
     if (!confirmed) {
         return;
     }
@@ -4505,12 +4506,12 @@ const customAction = (action = undefined) => {
     const scriptInput = dialog.find('[name="action_script"]');
     const iconInput = dialog.find('[name="action_script_icon"]');
     const primaryLabel = (action !== undefined) ? $.i18n('action-edit-btn') : $.i18n('action-add-btn');
-    const targetSubject = type === 'vm' ? 'VMs' : 'Containers';
+    const targetSubject = type === 'vm' ? surfaceT("legacy.surface.ad72518f321bd308", 'VMs') : surfaceT('common.targets.containers', 'Containers');
     let primaryButton = $();
     let validationTouched = false;
 
     dialog.find('[data-fv-action-target-label]').text(`${targetSubject}:`);
-    dialog.find('[data-action-help="targets"]').text(`Only ${targetSubject.toLowerCase()} currently available to this folder are listed.`);
+    dialog.find('[data-action-help="targets"]').text(surfaceT("legacy.surface.2360b3431f8550a4", 'Only members currently available to this folder are listed.'));
     targetSelect.multiselect({
         header: false,
         noneSelectedText: "Select options",
@@ -4553,12 +4554,12 @@ const customAction = (action = undefined) => {
 
     const syncTargetSummary = () => {
         const selectedTargets = (targetSelect.val() || []).map(String);
-        dialog.find('[data-fv-action-target-count]').text(`${selectedTargets.length} selected`);
+        dialog.find('[data-fv-action-target-count]').text(surfaceT('common.targets.selected-count', 'Selected: $1', selectedTargets.length));
         const chips = dialog.find('[data-fv-action-target-chips]').empty();
         if (eligibleTargets.length === 0) {
-            chips.append($('<span class="is-empty"></span>').text(`No eligible ${targetSubject.toLowerCase()} are currently available.`));
+            chips.append($('<span class="is-empty"></span>').text(surfaceT('common.targets.none-eligible', 'No eligible members are currently available.')));
         } else if (selectedTargets.length === 0) {
-            chips.append($('<span class="is-empty"></span>').text(`No ${targetSubject.toLowerCase()} selected yet.`));
+            chips.append($('<span class="is-empty"></span>').text(surfaceT('common.targets.none-selected', 'No members selected yet.')));
         } else {
             selectedTargets.forEach((targetName) => {
                 chips.append($('<span></span>').text(targetName));

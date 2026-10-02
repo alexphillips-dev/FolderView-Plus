@@ -353,7 +353,7 @@ test('dashboard widget supports nested child folders and constrains expanded tra
     assert.match(dashboardJs, /const getDashboardCard = \(type, id\) =>/);
     assert.match(dashboardJs, /const card = getDashboardCard\(meta\.type,\s*safeId\);/);
     assert.match(dashboardCss, /\.folder-showcase\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*100%;/);
-    assert.match(dashboardCss, /\.folder-showcase-outer\[expanded="true"\] \.folder-showcase\s*\{[\s\S]*?display:\s*grid;/);
+    assert.match(dashboardCss, /\.folder-showcase-outer\[expanded="true"\] > \.folder-showcase\s*\{[\s\S]*?display:\s*grid;/);
 });
 
 test('docker and vm render paths support precomputed membership caches', () => {
@@ -498,7 +498,23 @@ test('docker post-render polish retries only when rows are still settling', () =
     assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*1000\)/);
 });
 
+test('Docker debug tracker exports only aggregate startup timings even with debug disabled', () => {
+    const window = {};
+    vm.runInNewContext(dockerModulesJs, { window });
+    const events = [];
+    const tracker = window.FolderViewDockerModules.createPerfTracker('test', false, {
+        begin: key => events.push(['begin', key]), end: key => events.push(['end', key])
+    });
+    for (const key of ['createFolders.total', 'createFolders.requests', 'createFolder.private-id', 'toString']) {
+        tracker.begin(key); tracker.end(key, { name: 'private-name' });
+    }
+    assert.deepEqual(events, [['begin', 'folderGrouping'], ['end', 'folderGrouping'], ['begin', 'renderDataWait'], ['end', 'renderDataWait']]);
+});
+
 test('docker first paint avoids repeated full-row polish and delegates support snapshot timing once', () => {
+    const rowRenderer = dockerJs.slice(dockerJs.indexOf('const renderDockerFolder ='), dockerJs.indexOf('const forceCollapseFolderRow ='));
+    assert.doesNotMatch(rowRenderer, /forceFolderRowVerticalCenter\(/);
+    assert.match(dockerJs, /rowCenteringTools\.forceAllFolderRowsVerticalCenter\?\.\(\);\s*runDockerRuntimeWidthReflow\('pre-visible-folder-commit'/);
     assert.match(dockerJs, /const scheduleDockerPostRenderPolish = \(folderIds = \[\]\) => \{/);
     assert.doesNotMatch(dockerJs, /safeFolderIds\.forEach\(\(folderId\) => forceFolderRowVerticalCenter\(folderId\)\);/);
     assert.match(dockerJs, /queueForceAllFolderRowsVerticalCenter\(\);/);
@@ -583,9 +599,9 @@ test('settings bootstrap renders core surfaces together while later refreshes ca
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*return results\.flatMap/);
     assert.match(settingsJs, /refreshSettingsUx\(\{ renderSecondaryWorkspaces: false \}\);/);
     assert.match(settingsJs, /const refreshSettingsUx = \(options = \{\}\) => \{[\s\S]*const renderSecondaryWorkspaces = options\.renderSecondaryWorkspaces !== false;[\s\S]*const sectionsRebuilt = buildSettingsSections\(\{ force: options\.rebuildSections === true \}\);/);
-    assert.match(settingsJs, /if \(sectionsRebuilt \|\| options\.normalizeSections === true\) \{\s*normalizeExpandedAdvancedSections\(\);/);
+    assert.doesNotMatch(settingsJs, /normalizeExpandedAdvancedSections\(\)/);
     assert.match(settingsJs, /buildSettingsSections\(\{ force: true \}\);/);
-    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type, \{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*?\n\};/);
+    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*scheduleSettingsSecondarySurfaces\(type, \{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*?\n\};/);
     assert.match(settingsJs, /const refreshCoreData = async \(\) => \{[\s\S]*refreshType\('docker', \{ render: false, configOnly: true \}\),[\s\S]*refreshType\('vm', \{ render: false, configOnly: true \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
     assert.match(settingsJs, /const runtimeHydrationPromise = Promise\.allSettled\(\[\s*refreshType\('docker'\),\s*refreshType\('vm'\)\s*\]\);/);
     const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Действия FolderView",
     "docker.actions.add-folder": "Добавить папку",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Инструменты",
     "docker.actions.show-empty": "Показать пустые папки",
     "docker.actions.hide-empty": "Скрыть пустые папки",
-    "docker.actions.clear-focus": "Снять фокус с папки",
+    "docker.actions.clear-focus": "Сбросить фильтр выбранной папки",
     "docker.actions.refresh-state": "Обновить состояние папки",
     "docker.actions.bulk-assignment": "Массовое назначение",
     "docker.actions.rules-workspace": "Рабочее пространство правил",
@@ -28,7 +29,7 @@
     "docker.preview.view-logs": "Просмотр журналов",
     "docker.provider.hybrid-label": "Устаревший веб-интерфейс Unraid с данными GraphQL",
     "docker.health.api-summary": "Docker API: обновления: $1, готовы к пересборке: $2, потерянный: $3, конфликты портов: $4",
-    "docker.views.folderview": "FolderView",
+    "docker.views.folderview": "Просмотр папки",
     "docker.views.host": "Список хостов",
     "docker.views.command": "Команда",
     "docker.privacy.label": "Конфиденциальность",

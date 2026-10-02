@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "wizard.title": "Beállítási asszisztens",
     "wizard.welcome.kicker": "FolderView Plus Setup Assistant",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "Részletek megjelenítése",
     "wizard.navigation.hide-details": "Részletek elrejtése",
     "wizard.navigation.close": "Bezárás",
-    "wizard.navigation.review": "Tekintse át",
+    "wizard.navigation.review": "Ellenőrzés",
     "wizard.navigation.go-to": "Ugrás ide: $1",
     "wizard.progress.step": "$2/$1. lépés",
     "wizard.impact.live": "Élő hatás ehhez a lépéshez"

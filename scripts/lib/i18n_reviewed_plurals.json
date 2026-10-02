@@ -1,0 +1,193 @@
+{
+  "en": [
+    "Review {{PLURAL:$1|one planned change|$1 planned changes}}",
+    "{{PLURAL:$1|folder change|folder changes}}",
+    "{{PLURAL:$1|planned change|planned changes}} in preview",
+    "{{PLURAL:$1|one update|$1 updates}}",
+    "{{PLURAL:$1|one delete|$1 deletes}}"
+  ],
+  "locales": {
+    "ar": [
+      "مراجعة {{PLURAL:$1|لا تغييرات مخططة|تغيير واحد مخطط|تغييران مخططان|$1 تغييرات مخططة|$1 تغييرًا مخططًا|$1 تغيير مخطط}}",
+      "{{PLURAL:$1|تغييرات في المجلد|تغيير في المجلد|تغييران في المجلد|تغييرات في المجلد|تغييرًا في المجلد|تغيير في المجلد}}",
+      "{{PLURAL:$1|تغييرات مخططة|تغيير مخطط|تغييران مخططان|تغييرات مخططة|تغييرًا مخططًا|تغيير مخطط}} في المعاينة",
+      "{{PLURAL:$1|لا تحديثات|تحديث واحد|تحديثان|$1 تحديثات|$1 تحديثًا|$1 تحديث}}",
+      "{{PLURAL:$1|لا عمليات حذف|عملية حذف واحدة|عمليتا حذف|$1 عمليات حذف|$1 عملية حذف|$1 عملية حذف}}"
+    ],
+    "bn": [
+      "পর্যালোচনা করুন {{PLURAL:$1|$1টি পরিকল্পিত পরিবর্তন|$1টি পরিকল্পিত পরিবর্তন}}",
+      "{{PLURAL:$1|ফোল্ডার পরিবর্তন|ফোল্ডার পরিবর্তন}}",
+      "প্রিভিউতে {{PLURAL:$1|পরিকল্পিত পরিবর্তন|পরিকল্পিত পরিবর্তন}}",
+      "{{PLURAL:$1|$1টি আপডেট|$1টি আপডেট}}",
+      "{{PLURAL:$1|$1টি মুছে ফেলার কাজ|$1টি মুছে ফেলার কাজ}}"
+    ],
+    "ca": [
+      "Revisa {{PLURAL:$1|un canvi previst|$1 canvis planificats}}",
+      "{{PLURAL:$1|canvi de carpeta|canvis de carpeta}}",
+      "{{PLURAL:$1|canvi previst|canvis planificats}} a la vista prèvia",
+      "{{PLURAL:$1|una actualització|$1 actualitzacions}}",
+      "{{PLURAL:$1|una eliminació|$1 eliminacions}}"
+    ],
+    "cs": [
+      "Zkontrolujte {{PLURAL:$1|jednu plánovanou změnu|$1 plánované změny|$1 plánovaných změn}}",
+      "{{PLURAL:$1|změna složky|změny složek|změn složek}}",
+      "{{PLURAL:$1|plánovaná změna|plánované změny|plánovaných změn}} v náhledu",
+      "{{PLURAL:$1|jedna aktualizace|$1 aktualizace|$1 aktualizací}}",
+      "{{PLURAL:$1|jedno smazání|$1 smazání|$1 smazání}}"
+    ],
+    "da": [
+      "Gennemgå {{PLURAL:$1|én planlagt ændring|$1 planlagte ændringer}}",
+      "{{PLURAL:$1|mappeændring|mappeændringer}}",
+      "{{PLURAL:$1|planlagt ændring|planlagte ændringer}} i forhåndsvisning",
+      "{{PLURAL:$1|én opdatering|$1 opdateringer}}",
+      "{{PLURAL:$1|én sletning|$1 sletninger}}"
+    ],
+    "de": [
+      "Überprüfen Sie {{PLURAL:$1|eine geplante Änderung|$1 geplante Änderungen}}",
+      "{{PLURAL:$1|Ordneränderung|Ordneränderungen}}",
+      "{{PLURAL:$1|geplante Änderung|geplante Änderungen}} in der Vorschau",
+      "{{PLURAL:$1|ein Update|$1 Updates}}",
+      "{{PLURAL:$1|eine Löschung|$1 Löschungen}}"
+    ],
+    "es": [
+      "Revisar {{PLURAL:$1|un cambio planificado|$1 cambios planificados}}",
+      "{{PLURAL:$1|cambio de carpeta|cambios de carpeta}}",
+      "{{PLURAL:$1|cambio planificado|cambios planificados}} en vista previa",
+      "{{PLURAL:$1|una actualización|$1 actualizaciones}}",
+      "{{PLURAL:$1|una eliminación|$1 eliminaciones}}"
+    ],
+    "fr": [
+      "Examiner {{PLURAL:$1|$1 modification prévue|$1 modifications prévues}}",
+      "{{PLURAL:$1|modification de dossier|modifications de dossier}}",
+      "{{PLURAL:$1|modification prévue|modifications prévues}} dans l'aperçu",
+      "{{PLURAL:$1|$1 mise à jour|$1 mises à jour}}",
+      "{{PLURAL:$1|$1 suppression|$1 suppressions}}"
+    ],
+    "hr": [
+      "Pregledajte {{PLURAL:$1|$1 planiranu promjenu|$1 planirane promjene|$1 planiranih promjena}}",
+      "{{PLURAL:$1|promjena mape|promjene mape|promjena mapa}}",
+      "{{PLURAL:$1|planirana promjena|planirane promjene|planiranih promjena}} u pregledu",
+      "{{PLURAL:$1|$1 ažuriranje|$1 ažuriranja|$1 ažuriranja}}",
+      "{{PLURAL:$1|$1 brisanje|$1 brisanja|$1 brisanja}}"
+    ],
+    "hu": [
+      "Tekintse át az {{PLURAL:$1|egy tervezett módosítást|$1 tervezett módosítást}}",
+      "{{PLURAL:$1|mappamódosítás|mappamódosítások}}",
+      "{{PLURAL:$1|tervezett változtatás|tervezett változtatások}} az előnézetben",
+      "{{PLURAL:$1|egy frissítés|$1 frissítés}}",
+      "{{PLURAL:$1|egy törlés|$1 törlés}}"
+    ],
+    "it": [
+      "Rivedi {{PLURAL:$1|una modifica pianificata|$1 modifiche pianificate}}",
+      "{{PLURAL:$1|modifica della cartella|modifiche delle cartelle}}",
+      "{{PLURAL:$1|modifica pianificata|modifiche pianificate}} in anteprima",
+      "{{PLURAL:$1|un aggiornamento|$1 aggiornamenti}}",
+      "{{PLURAL:$1|una cancellazione|$1 cancellazioni}}"
+    ],
+    "ja": [
+      "{{PLURAL:$1|$1 件の予定変更を確認|$1 件の予定変更を確認}}",
+      "{{PLURAL:$1|フォルダーの変更|フォルダーの変更}}",
+      "プレビュー中の{{PLURAL:$1|予定変更|予定変更}}",
+      "{{PLURAL:$1|$1 件の更新|$1 件の更新}}",
+      "{{PLURAL:$1|$1 件の削除|$1 件の削除}}"
+    ],
+    "ko": [
+      "{{PLURAL:$1|계획된 변경 사항 $1개 검토|계획된 변경 사항 $1개 검토}}",
+      "{{PLURAL:$1|폴더 변경|폴더 변경}}",
+      "미리보기의 {{PLURAL:$1|계획된 변경 사항|계획된 변경 사항들}}",
+      "{{PLURAL:$1|$1개의 업데이트|$1개의 업데이트}}",
+      "{{PLURAL:$1|$1개의 삭제|$1개의 삭제}}"
+    ],
+    "lv": [
+      "Pārskatīt {{PLURAL:$1|$1 plānoto izmaiņu|$1 plānoto izmaiņu|$1 plānotās izmaiņas}}",
+      "{{PLURAL:$1|mapju izmaiņu|mapes izmaiņa|mapju izmaiņas}}",
+      "{{PLURAL:$1|plānoto izmaiņu|plānota izmaiņa|plānotās izmaiņas}} priekšskatījumā",
+      "{{PLURAL:$1|$1 atjauninājumu|$1 atjauninājums|$1 atjauninājumi}}",
+      "{{PLURAL:$1|$1 dzēšanu|$1 dzēšana|$1 dzēšanas}}"
+    ],
+    "nb": [
+      "Se gjennom {{PLURAL:$1|én planlagt endring|$1 planlagte endringer}}",
+      "{{PLURAL:$1|mappeendring|mappeendringer}}",
+      "{{PLURAL:$1|planlagt endring|planlagte endringer}} i forhåndsvisning",
+      "{{PLURAL:$1|én oppdatering|$1 oppdateringer}}",
+      "{{PLURAL:$1|én sletting|$1 slettinger}}"
+    ],
+    "nl": [
+      "Bekijk {{PLURAL:$1|één geplande wijziging|$1 geplande wijzigingen}}",
+      "{{PLURAL:$1|mapwijziging|mapwijzigingen}}",
+      "{{PLURAL:$1|geplande wijziging|geplande wijzigingen}} in een voorbeeldweergave",
+      "{{PLURAL:$1|één update|$1 updates}}",
+      "{{PLURAL:$1|één verwijdering|$1 verwijderingen}}"
+    ],
+    "pl": [
+      "Przejrzyj {{PLURAL:$1|jedną planowaną zmianę|$1 planowane zmiany|$1 planowanych zmian}}",
+      "{{PLURAL:$1|zmiana folderu|zmiany folderów|zmian folderów}}",
+      "{{PLURAL:$1|planowana zmiana|planowane zmiany|planowanych zmian}} w podglądzie",
+      "{{PLURAL:$1|jedna aktualizacja|$1 aktualizacje|$1 aktualizacji}}",
+      "{{PLURAL:$1|jedno usunięcie|$1 usunięcia|$1 usunięć}}"
+    ],
+    "pt-BR": [
+      "Revisar {{PLURAL:$1|$1 alteração planejada|$1 alterações planejadas}}",
+      "{{PLURAL:$1|alteração de pasta|alterações de pasta}}",
+      "{{PLURAL:$1|alteração planejada|alterações planejadas}} na visualização",
+      "{{PLURAL:$1|$1 atualização|$1 atualizações}}",
+      "{{PLURAL:$1|$1 exclusão|$1 exclusões}}"
+    ],
+    "pt-PT": [
+      "Rever {{PLURAL:$1|uma alteração planeada|$1 alterações planeadas}}",
+      "{{PLURAL:$1|alteração de pasta|alterações de pasta}}",
+      "{{PLURAL:$1|alteração planeada|alterações planeadas}} em pré-visualização",
+      "{{PLURAL:$1|uma atualização|$1 atualizações}}",
+      "{{PLURAL:$1|uma eliminação|$1 eliminações}}"
+    ],
+    "ro": [
+      "Examinați {{PLURAL:$1|o modificare planificată|$1 modificări planificate|$1 de modificări planificate}}",
+      "{{PLURAL:$1|schimbare de folder|schimbări de foldere|schimbări de foldere}}",
+      "{{PLURAL:$1|modificare planificată|modificări planificate|modificări planificate}} în previzualizare",
+      "{{PLURAL:$1|o actualizare|$1 actualizări|$1 de actualizări}}",
+      "{{PLURAL:$1|o ștergere|$1 ștergeri|$1 de ștergeri}}"
+    ],
+    "ru": [
+      "Просмотрите {{PLURAL:$1|$1 запланированное изменение|$1 запланированных изменения|$1 запланированных изменений}}",
+      "{{PLURAL:$1|изменение папки|изменения папок|изменений папок}}",
+      "{{PLURAL:$1|запланированное изменение|запланированных изменения|запланированных изменений}} в предварительном просмотре",
+      "{{PLURAL:$1|$1 обновление|$1 обновления|$1 обновлений}}",
+      "{{PLURAL:$1|$1 удаление|$1 удаления|$1 удалений}}"
+    ],
+    "sv": [
+      "Granska {{PLURAL:$1|en planerad ändring|$1 planerade ändringar}}",
+      "{{PLURAL:$1|mappändring|mappändringar}}",
+      "{{PLURAL:$1|planerad ändring|planerade ändringar}} i förhandsgranskning",
+      "{{PLURAL:$1|en uppdatering|$1 uppdateringar}}",
+      "{{PLURAL:$1|en borttagning|$1 borttagningar}}"
+    ],
+    "tr": [
+      "{{PLURAL:$1|$1 planlanan değişikliği|$1 planlanan değişikliği}} gözden geçir",
+      "{{PLURAL:$1|klasör değişikliği|klasör değişiklikleri}}",
+      "Önizlemede {{PLURAL:$1|planlanan değişiklik|planlanan değişiklikler}}",
+      "{{PLURAL:$1|$1 güncelleme|$1 güncelleme}}",
+      "{{PLURAL:$1|$1 silme işlemi|$1 silme işlemi}}"
+    ],
+    "uk": [
+      "Перегляньте {{PLURAL:$1|$1 заплановану зміну|$1 заплановані зміни|$1 запланованих змін}}",
+      "{{PLURAL:$1|зміна папки|зміни папок|змін папок}}",
+      "{{PLURAL:$1|запланована зміна|заплановані зміни|запланованих змін}} у попередньому перегляді",
+      "{{PLURAL:$1|$1 оновлення|$1 оновлення|$1 оновлень}}",
+      "{{PLURAL:$1|$1 видалення|$1 видалення|$1 видалень}}"
+    ],
+    "zh-Hans": [
+      "检查 {{PLURAL:$1|$1 项计划更改|$1 项计划更改}}",
+      "{{PLURAL:$1|文件夹更改|文件夹更改}}",
+      "预览中的 {{PLURAL:$1|计划更改|计划更改}}",
+      "{{PLURAL:$1|$1 项更新|$1 项更新}}",
+      "{{PLURAL:$1|$1 项删除操作|$1 项删除操作}}"
+    ],
+    "zh-Hant": [
+      "檢視{{PLURAL:$1|$1 項計畫變更|$1 項計畫變更}}",
+      "{{PLURAL:$1|資料夾變更|資料夾變更}}",
+      "預覽中的{{PLURAL:$1|計劃更改|計劃更改}}",
+      "{{PLURAL:$1|$1 項更新|$1 項更新}}",
+      "{{PLURAL:$1|$1 項刪除操作|$1 項刪除操作}}"
+    ]
+  }
+}

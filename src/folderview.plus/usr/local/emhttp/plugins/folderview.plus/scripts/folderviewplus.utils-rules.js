@@ -16,7 +16,6 @@
         normalizePrefs,
         normalizeMemberList
     } = utilityDependencies;
-
     const regexMatches = (pattern, input) => {
         if (!pattern) {
             return false;
@@ -353,9 +352,10 @@
     };
 
     const skipReasonForAction = (action, state) => {
+    const repairT40ba899d = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const normalizedAction = String(action || '').toLowerCase();
         if (normalizedAction === 'start') {
-            return state === 'paused' ? 'Item is paused, resume instead.' : 'Item already started.';
+            return state === 'paused' ? repairT40ba899d("common.repair.item-is-paused-resume-instead-09b805", "Item is paused, resume instead.") : 'Item already started.';
         }
         if (normalizedAction === 'stop') {
             return 'Item already stopped.';

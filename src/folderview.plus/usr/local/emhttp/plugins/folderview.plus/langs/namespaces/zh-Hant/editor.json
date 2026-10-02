@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "新增自訂操作",
     "editor.actions.standard": "標準型",
@@ -13,7 +14,7 @@
     "editor.members.visible": "可見",
     "editor.members.auto-included": "通過正規表示式或標籤自動包含",
     "editor.members.drag-reorder": "拖曳以重新排序",
-    "editor.members.move-up": "向上移動",
+    "editor.members.move-up": "上移",
     "editor.members.move-down": "下移",
     "editor.rules.templates.title": "規則模板",
     "editor.rules.templates.help": "建立相容的規則，預覽其當前效果，或新增一個最終的包羅永珍的規則。手動資料夾成員永遠不會更改。",
@@ -35,12 +36,12 @@
     "editor.webui-profiles.empty": "尚無自訂 WebUI 設定檔。",
     "editor.webui-profiles.name": "個人資料名稱",
     "editor.webui-profiles.duplicate": "重複",
-    "editor.webui-profiles.move-up": "向上移動",
+    "editor.webui-profiles.move-up": "上移",
     "editor.webui-profiles.move-down": "下移",
     "editor.webui-profiles.delete": "刪除",
     "editor.webui-profiles.search": "搜尋資料夾成員",
     "editor.webui-profiles.select-webui": "使用 WebUI 選擇全部",
-    "editor.webui-profiles.clear": "清除選擇",
+    "editor.webui-profiles.clear": "清除選取",
     "editor.webui-profiles.webui-ready": "WebUI已配置",
     "editor.webui-profiles.webui-runtime": "WebUI 在啟動時檢查",
     "editor.webui-profiles.unavailable": "此資料夾中不可用",

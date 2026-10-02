@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Trieu com gestionar les carpetes existents. No canvia res fins que seleccioneu Aplica la importació.",
     "import.behavior.question": "Com s'han de gestionar les carpetes existents?",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Vaig revisar aquesta importació",
     "import.acknowledge.description": "El comportament i els canvis seleccionats són correctes.",
     "import.progress.preparing": "Operació de preparació",
-    "import.progress.running": "Córrer",
+    "import.progress.running": "En execució",
     "import.summary.folder-change": "{{PLURAL:$1|canvi de carpeta|canvis de carpeta}}",
     "import.summary.planned-change": "{{PLURAL:$1|canvi previst|canvis planificats}} a la vista prèvia",
     "import.summary.new": "$1 nou",
     "import.summary.update": "{{PLURAL:$1|una actualització|$1 actualitzacions}}",
-    "import.summary.delete": "{{PLURAL:$1|una eliminació|$1 eliminació}}",
+    "import.summary.delete": "{{PLURAL:$1|una eliminació|$1 eliminacions}}",
     "import.kind.docker-folder": "Carpeta Docker",
     "import.kind.vm-folder": "Carpeta VM",
     "import.dialog.docker-title": "Importa les carpetes Docker",
     "import.dialog.vm-title": "Importa les carpetes de VM",
     "import.actions.apply": "Aplica la importació",
     "import.folderview3.preview-title": "Vista prèvia de la migració de FolderView3",
-    "import.folderview3.preview-help": "Descobriu una configuració de FolderView3 instal·lada o inspeccioneu un JSON d'exportació completa. La detecció i la vista prèvia són només de lectura; Els registres natius de l'organitzador i les mutacions d'inici automàtic de Docker romanen exclosos tret que una aplicació posterior els inclogui explícitament.",
     "import.folderview3.read-only-title": "La migració de FolderView3 és només de lectura fins que aproveu un pla d'aplicació.",
-    "import.folderview3.read-only-help": "Detecteu una configuració instal·lada o previsualitzeu una exportació de FolderView3 sense escriure cap connector o estat Unraid.",
     "import.folderview3.read-only-preview-help": "Detecteu una configuració de FolderView3 instal·lada o previsualitzeu una exportació de FolderView3. La previsualització no escriu mai el connector o la configuració Unraid.",
     "import.folderview3.not-detected": "No s'ha detectat cap configuració de FolderView3 instal·lada.",
     "import.folderview3.preview-export-help": "Encara podeu previsualitzar un JSON d'exportació completa de FolderView3 des d'un altre servidor.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Instantània no vàlida; ordre de configuració",
     "import.folderview3.appearance-profiles": "Afegiu perfils d'aparença FolderView3 inactius",
     "import.folderview3.order-summary": "Ordre de la carpeta desada: Docker $1; VMs $2.",
-    "import.folderview3.disabled-profile-count": "Perfils separats per a temes desactivats: $1."
+    "import.folderview3.disabled-profile-count": "Perfils separats per a temes desactivats: $1.",
+    "import.compare.to": "A"
 }

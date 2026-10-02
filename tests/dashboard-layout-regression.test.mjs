@@ -385,7 +385,7 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
     assert.match(dashboardQuickRailScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
     assert.match(dashboardQuickRailScript, /return !isDashboardNodeVisible\(updatedNode\);/);
     assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout, trigger = 'layout-apply'\) =>/);
-    assert.match(dashboardQuickRailScript, /const deriveCompactMatrixLayout = \(\{ containerWidth = 0, folderCount = 0 \} = \{\}\) =>/);
+    assert.equal(typeof dashboardQuickRailModule.deriveCompactMatrixLayout, 'function');
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-columns/);
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-member-columns/);
     assert.match(dashboardQuickRailScript, /new win\.ResizeObserver/);
@@ -406,13 +406,18 @@ test('compact matrix derives folder and member columns from the widget width', (
             folderRows: 2,
             estimatedFolderWidth: 394,
             memberColumns: 1,
-            estimatedMemberWidth: 394
+            estimatedMemberWidth: 372
         }
     );
     assert.equal(derive({ containerWidth: 900, folderCount: 5 }).folderColumns, 2);
     assert.equal(derive({ containerWidth: 520, folderCount: 5 }).folderColumns, 1);
     assert.equal(derive({ containerWidth: 350, folderCount: 5 }).folderColumns, 1);
     assert.equal(derive({ containerWidth: 1080, folderCount: 2 }).memberColumns, 2);
+    assert.equal(derive({ containerWidth: 930, folderCount: 5 }).memberColumns, 1, 'panel padding must not produce a false two-column prediction');
+    assert.equal(derive({ containerWidth: 1000, folderCount: 5 }).memberColumns, 2);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 1, itemCount: 9 }).folderColumns, 3);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 0, itemCount: 8 }).folderColumns, 3);
+    assert.equal(derive({ containerWidth: 1180, folderCount: 1, itemCount: 1 }).folderColumns, 1);
 });
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
@@ -443,15 +448,15 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.doesNotMatch(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]{0,800}!important/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);
-    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-fullwidth/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-accordion/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
-    assert.match(dashboardCss, /grid-template-columns:\s*repeat\(var\(--fv-dashboard-compactmatrix-columns,\s*1\),\s*minmax\(0,\s*1fr\)\)/);
-    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows,\s*1\),\s*max-content\)/);
-    assert.match(dashboardCss, /grid-auto-flow:\s*column/);
-    assert.match(dashboardCss, /grid-template-columns:\s*repeat\(var\(--fv-dashboard-compactmatrix-member-columns,\s*1\),\s*minmax\(0,\s*1fr\)\)/);
+    assert.match(dashboardCss, /column-count:\s*var\(--fv-dashboard-compactmatrix-columns,\s*1\)/);
+    assert.match(dashboardCss, /break-inside:\s*avoid/);
+    assert.doesNotMatch(dashboardCss, /grid-auto-flow:\s*column/);
+    assert.match(dashboardCss, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*220px\),\s*1fr\)\)/);
     assert.doesNotMatch(dashboardCss, /--fv-dashboard-compactmatrix-rows-(?:desktop|tablet|mobile)/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
     assert.doesNotMatch(dashboardCss, /\.folder-hand-docker[\s\S]{0,160}display:\s*none !important/);

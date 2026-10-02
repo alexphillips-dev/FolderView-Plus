@@ -31,13 +31,13 @@
         Object.freeze({ token: '--fvplus-theme-accent', label: 'Accent', fallback: '#f0a030' }),
         Object.freeze({ token: '--fvplus-theme-surface-panel', label: 'Surface panel', fallback: '#1b1d20' }),
         Object.freeze({ token: '--fvplus-theme-border-subtle', label: 'Border subtle', fallback: '#444444' }),
-        Object.freeze({ token: '--fvplus-status-started', label: 'Status started', fallback: '#ffffff' }),
+        Object.freeze({ token: '--fvplus-status-started', label: 'Running status', fallback: '#ffffff' }),
         Object.freeze({ token: '--fvplus-status-paused', label: 'Status paused', fallback: '#b8860b' }),
         Object.freeze({ token: '--fvplus-status-stopped', label: 'Status stopped', fallback: '#ff4d4d' }),
         Object.freeze({ token: '--fvplus-graph-cpu', label: 'Graph CPU', fallback: '#5aa4ff' }),
         Object.freeze({ token: '--fvplus-graph-mem', label: 'Graph memory', fallback: '#6bd676' })
     ]);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const normalizeWorkspace = (value) => {
         const source = value && typeof value === 'object' ? value : {};
         const rawThemes = Array.isArray(source.themes) ? source.themes : [];
@@ -153,7 +153,7 @@
             if (Number.isNaN(date.getTime())) {
                 return raw;
             }
-            return date.toLocaleString(undefined, {
+            return date.toLocaleString(globalThis.FolderViewPlusI18n?.snapshot?.().resolvedLocale || 'en', {
                 month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
@@ -267,7 +267,7 @@
                     <span>${escapeHtml(theme.name || theme.id || 'Scanned theme')}</span>
                     <span class="fv-rules-status-chip ${scanResult.exists ? 'is-warning' : 'is-healthy'}">${escapeHtml(scanResult.exists ? 'Will replace existing' : 'Ready to import')}</span>
                 </div>
-                <div class="fv-theme-scan-meta">${escapeHtml(`${files.length} compatible CSS file${files.length === 1 ? '' : 's'} found`)}</div>
+                <div class="fv-theme-scan-meta">${escapeHtml(surfaceT("common.repair.compatible-css-files-found-1-46fe06", "Compatible CSS files found: $1", files.length))}</div>
                 ${warnings.map((warning) => `<div class="fv-theme-workspace-entry-warning">${escapeHtml(warning)}</div>`).join('')}
                 <ul class="fv-theme-file-list">
                     ${files.map((file) => {
@@ -326,7 +326,7 @@
             }
             host.innerHTML = workspace.themes.map((theme) => {
                 const isActive = theme.id === workspace.activeThemeId;
-                const filesSummary = `${theme.files.length} file${theme.files.length === 1 ? '' : 's'}`;
+                const filesSummary = surfaceT("common.repair.files-1-1b815e", "Files: $1", theme.files.length);
                 const sourceSummary = String(theme.source?.owner || '').trim() && String(theme.source?.repo || '').trim()
                     ? `${theme.source.owner}/${theme.source.repo}${theme.source.branch ? ` @ ${theme.source.branch}` : ''}`
                     : (theme.source?.input || 'Imported theme');
@@ -379,6 +379,12 @@
             renderVariableGrid();
             syncCustomizeFields();
             applyPreviewCss();
+            const updateButton = documentRef?.getElementById('fv-theme-update-available');
+            if (updateButton) {
+                updateButton.disabled = !workspace.themes.some((theme) => theme.updateAvailable);
+                updateButton.title = updateButton.disabled
+                    ? translate('settings.theme.no-updates', 'No managed theme updates are available.') : '';
+            }
             const activeTheme = getActiveTheme();
             setStatus(activeTheme
                 ? translate("settings.theme.active-status", "Managed theme active: $1.", activeTheme.name || activeTheme.id)
@@ -420,7 +426,7 @@
                 ...(response || {})
             };
             renderScanResult(pendingScan);
-            setStatus('Theme scan complete. Review the detected files, then import when ready.');
+            setStatus(surfaceT("common.audit.theme-scan", "Theme scan complete. Review the detected files, then import when ready."));
             return pendingScan;
         };
 
@@ -461,7 +467,7 @@
             };
             const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
             const planNode = documentRef?.getElementById('fv-theme-profile-plan');
-            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : 'No generated output changes.';
+            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : surfaceT("common.audit.no-output-changes", "No generated output changes.");
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
             return setWorkspace(response.workspace || {});
         };
@@ -536,9 +542,13 @@
 
         const updateAvailableThemes = async () => {
             const themeIds = workspace.themes.filter((theme) => theme.updateAvailable).map((theme) => theme.id);
+            if (!themeIds.length) {
+                setStatus(translate('settings.theme.no-updates', 'No managed theme updates are available.'));
+                return null;
+            }
             const payload = { themeIds: JSON.stringify(themeIds) };
             const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_theme_updates', ...payload });
-            setStatus(`Updating ${Number(preview?.plan?.updateCount) || 0} managed theme(s) atomically...`);
+            setStatus(translate('settings.theme.updating-count', 'Updating managed themes: $1…', Number(preview?.plan?.updateCount) || 0));
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'update_themes', ...payload });
             return setWorkspace(response.workspace || {});
         };
@@ -546,7 +556,7 @@
         const resetTokens = () => {
             updateEditingLayer({ variables: {} });
             renderWorkspace();
-            setStatus('Token overrides reset. Save the customization layer to apply this change.');
+            setStatus(surfaceT("common.audit.tokens-reset", "Token overrides reset. Save the customization layer to apply this change."));
             return workspace;
         };
 
@@ -612,13 +622,13 @@
             $(documentRef).off('click.fvthemeprofilecreate', '#fv-theme-profile-create').on('click.fvthemeprofilecreate', '#fv-theme-profile-create', () => {
                 const input = documentRef.getElementById('fv-theme-profile-name');
                 const name = String(input?.value || '').trim();
-                safeAction('Profile creation', () => createProfile(name), 'Appearance profile created.').then(() => { if (input) input.value = ''; }).catch(() => {});
+                safeAction('Profile creation', () => createProfile(name), surfaceT("common.audit.profile-created", "Appearance profile created.")).then(() => { if (input) input.value = ''; }).catch(() => {});
             });
             $(documentRef).off('click.fvthemeprofiledelete', '#fv-theme-profile-delete').on('click.fvthemeprofiledelete', '#fv-theme-profile-delete', () => {
                 safeAction('Profile deletion', () => deleteProfile(workspace.activeProfileId), 'Appearance profile deleted.').catch(() => {});
             });
             $(documentRef).off('click.fvthemeupdateavailable', '#fv-theme-update-available').on('click.fvthemeupdateavailable', '#fv-theme-update-available', () => {
-                safeAction('Managed theme batch update', updateAvailableThemes, 'Available managed themes updated.').catch(() => {});
+                safeAction(translate('settings.theme.batch-update', 'Managed theme update'), updateAvailableThemes, translate('settings.theme.updated', 'Available managed themes updated.')).catch(() => {});
             });
         };
 
@@ -626,13 +636,16 @@
             try {
                 setStatus(`${title}...`);
                 const result = await action();
-                if (successMessage) {
-                    setStatus(successMessage);
+                if (successMessage && result !== null) {
+                    const message = globalThis.FolderViewPlusI18n?.message?.(successMessage) || successMessage;
+                    setStatus(message);
+                    deps.recordActivity?.(message);
                 }
                 return result;
             } catch (error) {
-                setStatus(`${title} failed.`);
-                showError(`${title} failed`, error);
+                const message = translate("legacy.surface.2517b2dd9baadf0e", '$1 failed', globalThis.FolderViewPlusI18n?.message?.(title) || title);
+                setStatus(message);
+                showError(message, error);
                 throw error;
             }
         };
@@ -646,7 +659,7 @@
             readWorkspace: () => safeAction('Theme workspace load', readWorkspace, ''),
             scanGithub: (source) => safeAction('Theme scan', () => scanGithub(source), ''),
             importGithub: (source) => safeAction('Theme import', () => importGithub(source), 'Theme imported.'),
-            activateTheme: (themeId) => safeAction('Theme activation', () => activateTheme(themeId), 'Managed theme activated.'),
+            activateTheme: (themeId) => safeAction('Theme activation', () => activateTheme(themeId), surfaceT("common.audit.theme-activated", "Managed theme activated.")),
             deactivateTheme: () => safeAction('Theme deactivation', deactivateTheme, 'Managed theme disabled.'),
             deleteTheme: (themeId) => safeAction('Theme deletion', () => deleteTheme(themeId), 'Managed theme deleted.'),
             updateTheme: (themeId) => safeAction('Theme update', () => updateTheme(themeId), 'Managed theme updated.'),

@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
-        "namespace": "wizard"
+        "namespace": "wizard",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "wizard.title": "設定助手",
     "wizard.welcome.kicker": "FolderView Plus 設定助手",
@@ -24,7 +25,7 @@
     "wizard.navigation.show-details": "顯示詳情",
     "wizard.navigation.hide-details": "隱藏詳細訊息",
     "wizard.navigation.close": "關閉",
-    "wizard.navigation.review": "評論",
+    "wizard.navigation.review": "檢查",
     "wizard.navigation.go-to": "轉到$1",
     "wizard.progress.step": "$2 的步驟 $1",
     "wizard.impact.live": "此步驟的即時影響"

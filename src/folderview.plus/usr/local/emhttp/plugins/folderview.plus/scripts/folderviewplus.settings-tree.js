@@ -5,14 +5,12 @@ const createFolderReorderQueueState = () => ({
     active: false,
     debounceTimer: null,
     inFlight: false,
-    backupPromise: null,
-    beforeBackupName: '',
     baselinePrefs: null,
+    baselineOrder: [],
     latestOrder: [],
     latestFocusFolderId: '',
     latestErrorFolderId: '',
     latestActivityMessage: '',
-    latestBackupReason: '',
     changedFolderIds: new Set(),
     revision: 0,
     flushedRevision: 0
@@ -21,7 +19,6 @@ const folderReorderQueueByType = {
     docker: createFolderReorderQueueState(),
     vm: createFolderReorderQueueState()
 };
-
 const normalizeTreeMovePlacement = (value) => (
     TREE_MOVE_PLACEMENTS.has(String(value || '').trim().toLowerCase())
         ? String(value || '').trim().toLowerCase()
@@ -48,97 +45,41 @@ const buildFolderPathLabel = (type, folderId, foldersInput = null, hierarchyMeta
 };
 
 const buildFolderHierarchyMeta = (foldersInput) => {
-    const folders = utils.normalizeFolderMap(foldersInput || {});
-    const ids = Object.keys(folders);
-    const idSet = new Set(ids);
-    const parentById = {};
-    const childrenById = {};
-    const depthById = {};
-    const descendantsById = {};
-    const indexById = new Map(ids.map((id, index) => [id, index]));
+    return utils.buildFolderHierarchyModel(utils.normalizeFolderMap(foldersInput || {}));
+};
 
-    for (const id of ids) {
-        childrenById[id] = [];
-    }
-
-    for (const id of ids) {
-        const rawParent = String(folders[id]?.parentId || '').trim();
-        const safeParent = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
-        parentById[id] = safeParent;
-        if (safeParent) {
-            childrenById[safeParent].push(id);
-        }
-    }
-
-    const sortBySourceOrder = (left, right) => (
-        (indexById.get(left) || 0) - (indexById.get(right) || 0)
-    );
-    for (const children of Object.values(childrenById)) {
-        children.sort(sortBySourceOrder);
-    }
-
-    const visitedDepth = new Set();
-    const assignDepth = (id, depth, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
+const bindTreeMoveDialogPreview = (type, sourceId, folders, hierarchyMeta, modeInsideOnly, translate) => {
+    window.setTimeout(() => {
+        const target = document.querySelector('#fv-tree-move-target');
+        const placement = document.querySelector('#fv-tree-move-placement');
+        const placementField = document.querySelector('#fv-tree-move-placement-field');
+        const sortNote = document.querySelector('#fv-tree-move-sort-note');
+        const preview = document.querySelector('#fv-tree-move-preview');
+        if (!(target instanceof HTMLSelectElement) || !(placement instanceof HTMLElement) || !(preview instanceof HTMLElement)) {
             return;
         }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        if (!Object.prototype.hasOwnProperty.call(depthById, id)) {
-            depthById[id] = depth;
-        } else {
-            depthById[id] = Math.min(depthById[id], depth);
-        }
-        for (const childId of (childrenById[id] || [])) {
-            assignDepth(childId, depth + 1, nextPath);
-        }
-        visitedDepth.add(id);
-    };
-
-    const rootIds = ids.filter((id) => !parentById[id]);
-    rootIds.sort(sortBySourceOrder);
-    for (const rootId of rootIds) {
-        assignDepth(rootId, 0);
-    }
-    for (const id of ids) {
-        if (!visitedDepth.has(id)) {
-            assignDepth(id, 0);
-        }
-    }
-
-    const collectDescendants = (id, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
-            return [];
-        }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        const output = [];
-        for (const childId of (childrenById[id] || [])) {
-            if (!output.includes(childId)) {
-                output.push(childId);
+        const syncPreview = () => {
+            const root = target.value === '__root__';
+            const selectedPlacement = modeInsideOnly ? 'inside' : normalizeTreeMovePlacement(placement.value);
+            if (placementField instanceof HTMLElement) {
+                placementField.hidden = root;
             }
-            const childDescendants = collectDescendants(childId, nextPath);
-            for (const descendantId of childDescendants) {
-                if (!output.includes(descendantId)) {
-                    output.push(descendantId);
-                }
+            if (sortNote instanceof HTMLElement) {
+                sortNote.hidden = root || selectedPlacement === 'inside';
             }
-        }
-        return output;
-    };
-
-    for (const id of ids) {
-        descendantsById[id] = collectDescendants(id);
-    }
-
-    return {
-        ids,
-        idSet,
-        parentById,
-        childrenById,
-        depthById,
-        descendantsById
-    };
+            const parentId = root
+                ? ''
+                : (selectedPlacement === 'inside' ? target.value : String(hierarchyMeta.parentById?.[target.value] || '').trim());
+            const parentPath = parentId ? buildFolderPathLabel(type, parentId, folders, hierarchyMeta) : '';
+            const sourceName = String(folders[sourceId]?.name || sourceId);
+            const path = parentPath ? `${parentPath} / ${sourceName}` : sourceName;
+            const branchCount = 1 + (hierarchyMeta.descendantsById?.[sourceId]?.length || 0);
+            preview.textContent = `${translate('common.repair.move-preview-path', 'Resulting path: $1', path)} · ${translate('common.repair.move-preview-branch', 'Folders in branch: $1', branchCount)}`;
+        };
+        target.addEventListener('change', syncPreview);
+        placement.addEventListener('change', syncPreview);
+        syncPreview();
+    }, 0);
 };
 
 const areStringSetsEqual = (left, right) => {
@@ -230,33 +171,6 @@ const canFolderUseTreeMove = (type, sourceFolderId, hierarchyMeta = null) => {
         }
     }
     return false;
-};
-
-const treePathHintSelectorByType = Object.freeze({
-    docker: '#docker-tree-path-hint',
-    vm: '#vm-tree-path-hint'
-});
-
-const updateMobileTreePathHint = (type, folderId = '') => {
-    const resolvedType = normalizeManagedType(type);
-    const selector = treePathHintSelectorByType[resolvedType];
-    const host = selector ? $(selector) : $();
-    if (!host.length) {
-        return;
-    }
-    const id = String(folderId || '').trim();
-    if (!id) {
-        host.text('Path: select a folder');
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, id)) {
-        host.text('Path: folder unavailable');
-        return;
-    }
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const path = buildFolderPathLabel(resolvedType, id, folders, hierarchyMeta);
-    host.text(`Path: ${path}`);
 };
 
 const getFolderBranchIds = (type, folderId, hierarchyMeta = null) => {
@@ -391,6 +305,7 @@ const summarizeFolderReorderActivity = (session) => {
 };
 
 const flushQueuedFolderReorderPersist = async (type) => {
+    const repairTae1bd5f9 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const resolvedType = normalizeManagedType(type);
     const session = folderReorderQueueByType[resolvedType];
     if (!session?.active || session.inFlight || session.revision <= session.flushedRevision) {
@@ -405,16 +320,6 @@ const flushQueuedFolderReorderPersist = async (type) => {
     const errorFolderId = String(session.latestErrorFolderId || focusFolderId).trim();
 
     try {
-        if (!session.backupPromise) {
-            const backupReason = String(session.latestBackupReason || `before-reorder-${focusFolderId || Date.now()}`).trim();
-            session.backupPromise = createBackup(resolvedType, backupReason)
-                .then((backup) => {
-                    session.beforeBackupName = String(backup?.name || '').trim();
-                    return backup;
-                });
-        }
-
-        await session.backupPromise;
         await persistManualOrder(resolvedType, orderToPersist, { refresh: false });
         session.flushedRevision = targetRevision;
         session.inFlight = false;
@@ -428,31 +333,21 @@ const flushQueuedFolderReorderPersist = async (type) => {
             return;
         }
 
-        if (session.beforeBackupName) {
-            await recordTreeMoveHistoryFromBackup(
-                resolvedType,
-                session.beforeBackupName,
-                'Reorder folders',
-                focusFolderId
-            );
-        }
+        pushTreeMoveHistoryEntry(resolvedType, {
+            kind: 'order', beforeOrder: session.baselineOrder, afterOrder: orderToPersist,
+            actionLabel: 'Reorder folders', focusFolderId
+        });
         addActivityEntry(summarizeFolderReorderActivity(session), 'success');
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
         resetFolderReorderQueueState(resolvedType);
     } catch (error) {
         session.inFlight = false;
         const baselinePrefs = utils.normalizePrefs(session.baselinePrefs || {});
         prefsByType[resolvedType] = baselinePrefs;
         renderTable(resolvedType);
-        if (focusFolderId) {
-            focusFolderRow(resolvedType, focusFolderId);
-        }
         resetFolderReorderQueueState(resolvedType);
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, errorFolderId, error?.message || 'Order save failed.');
-        showError('Order save failed', error);
+        showError(repairTae1bd5f9("common.repair.order-save-failed-81785f", "Order save failed"), error);
     }
 };
 
@@ -472,10 +367,10 @@ const scheduleQueuedFolderReorderPersist = (type, delayMs = FOLDER_REORDER_PERSI
 const queueFolderReorderPersist = (type, {
     order,
     previousPrefs = null,
+    previousOrder = [],
     focusFolderId = '',
     errorFolderId = '',
     activityMessage = '',
-    backupReason = '',
     changedFolderId = ''
 } = {}) => {
     const resolvedType = normalizeManagedType(type);
@@ -483,6 +378,7 @@ const queueFolderReorderPersist = (type, {
     if (!session.active) {
         session.active = true;
         session.baselinePrefs = utils.normalizePrefs(previousPrefs || prefsByType[resolvedType] || {});
+        session.baselineOrder = Array.isArray(previousOrder) ? previousOrder.slice() : [];
         session.flushedRevision = 0;
         session.revision = 0;
         session.changedFolderIds = new Set();
@@ -491,9 +387,6 @@ const queueFolderReorderPersist = (type, {
     session.latestFocusFolderId = String(focusFolderId || '').trim();
     session.latestErrorFolderId = String(errorFolderId || focusFolderId || '').trim();
     session.latestActivityMessage = String(activityMessage || '').trim();
-    if (!session.backupPromise) {
-        session.latestBackupReason = String(backupReason || `before-reorder-${session.latestFocusFolderId || Date.now()}`).trim();
-    }
     if (changedFolderId) {
         session.changedFolderIds.add(String(changedFolderId).trim());
     }
@@ -674,16 +567,16 @@ const moveFolderRow = async (type, folderId, direction) => {
     const previousPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
     clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
     applyOptimisticManualOrder(resolvedType, nextOrder);
-    focusFolderRow(resolvedType, safeFolderId);
+    focusFolderRow(resolvedType, safeFolderId, { scroll: false });
     const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
     const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
     queueFolderReorderPersist(resolvedType, {
         order: nextOrder,
         previousPrefs,
+        previousOrder: fullOrder,
         focusFolderId: safeFolderId,
         errorFolderId: safeFolderId,
         activityMessage: `Reordered folder: ${sourceName} ${direction < 0 ? 'before' : 'after'} ${targetName}.`,
-        backupReason: `before-reorder-${safeFolderId}`,
         changedFolderId: safeFolderId
     });
 };
@@ -754,16 +647,16 @@ const moveFolderRowBesideSibling = async (type, folderId, targetSiblingId, place
     const previousPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
     clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
     applyOptimisticManualOrder(resolvedType, nextOrder);
-    focusFolderRow(resolvedType, safeFolderId);
+    focusFolderRow(resolvedType, safeFolderId, { scroll: false });
     const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
     const targetName = String(folders[safeTargetSiblingId]?.name || safeTargetSiblingId);
     queueFolderReorderPersist(resolvedType, {
         order: nextOrder,
         previousPrefs,
+        previousOrder: fullOrder,
         focusFolderId: safeFolderId,
         errorFolderId: safeFolderId,
         activityMessage: `Reordered folder: ${sourceName} ${normalizedPlacement} ${targetName}.`,
-        backupReason: `before-reorder-${safeFolderId}`,
         changedFolderId: safeFolderId
     });
 };
@@ -842,7 +735,6 @@ window.FolderViewPlusSettingsTree = Object.freeze({
     syncCollapsedTreeParentsForType,
     isFolderHiddenByCollapsedAncestor,
     canFolderUseTreeMove,
-    updateMobileTreePathHint,
     getFolderBranchIds,
     setFolderBranchCollapse,
     toggleFolderTreeCollapse,

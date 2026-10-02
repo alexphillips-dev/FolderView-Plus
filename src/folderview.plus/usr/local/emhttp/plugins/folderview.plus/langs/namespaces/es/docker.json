@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "es",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Acciones de Vista de Carpeta",
     "docker.actions.add-folder": "Agregar Carpeta",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Herramientas",
     "docker.actions.show-empty": "Mostrar carpetas vacías",
     "docker.actions.hide-empty": "Ocultar carpetas vacías",
-    "docker.actions.clear-focus": "Borrar enfoque de carpeta",
+    "docker.actions.clear-focus": "Quitar el filtro de enfoque de carpeta",
     "docker.actions.refresh-state": "Actualizar estado de carpeta",
     "docker.actions.bulk-assignment": "Asignación masiva",
     "docker.actions.rules-workspace": "Espacio de trabajo de reglas",

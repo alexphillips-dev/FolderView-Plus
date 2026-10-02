@@ -131,9 +131,8 @@
 
     require_once(__DIR__ . '/lib.diagnostics-redaction.php');
     require_once(__DIR__ . '/lib.diagnostics-integrity.php');
-
     require_once(__DIR__ . '/lib.diagnostics-summary.php');
-
+    require_once(__DIR__ . '/lib.diagnostics-health-cards.php');
     function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
@@ -228,6 +227,7 @@
         $customIcons = diagnosticsBuildCustomIconStorage($privacyMode);
         $update = checkRemotePluginUpdate();
         $runtimeIntegrity = fvplus_get_runtime_integrity_snapshot($privacyMode);
+        $runtimeConnectivity = diagnosticsRuntimeConnectivity();
         $securityAudit = fvplus_get_security_audit_snapshot();
         return [
             'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
@@ -248,7 +248,7 @@
             ],
             'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
             'update' => $update,
-            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit),
+            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit, $runtimeConnectivity),
             'types' => $typesData
         ];
     }

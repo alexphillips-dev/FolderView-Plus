@@ -32,7 +32,7 @@
     const translate = (key, fallback, ...params) => (
         host?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
     );
-
+    const translateMessage = value => host?.FolderViewPlusI18n?.message?.(value) || String(value ?? '');
     const SVG_ICON_PATHS = Object.freeze({
         'activity': '<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"></polyline>',
         'alert-triangle': '<path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
@@ -362,6 +362,7 @@
         title = '', message = '', detail = '', confirmLabel = '', cancelLabel = '',
         tone = 'warning', requireText = '', checkboxLabel = ''
     } = {}) => new Promise((resolve) => {
+        [title, message, detail, confirmLabel, cancelLabel, checkboxLabel] = [title, message, detail, confirmLabel, cancelLabel, checkboxLabel].map(translateMessage);
         const confirmText = confirmLabel || translate('common.confirm', 'Confirm');
         const cancelText = cancelLabel || translate('common.cancel', 'Cancel');
         const requirement = String(requireText || '');
@@ -386,6 +387,7 @@
     });
 
     const alert = ({ title = '', message = '', tone = 'info', closeLabel = '' } = {}) => new Promise((resolve) => {
+        [title, message, closeLabel] = [title, message, closeLabel].map(translateMessage);
         const actions = button({ label: closeLabel || translate('common.close', 'Close'), tone: tone === 'danger' ? 'danger' : 'primary', action: 'modal-acknowledge' });
         const modal = openModal({ title, content: `<div class="fv-ui-alert"><span class="fv-ui-confirm-icon">${iconMarkup(tone === 'danger' ? 'fa-exclamation-circle' : tone === 'success' ? 'fa-check-circle' : 'fa-info-circle')}</span><p>${escapeHtml(message)}</p></div>`, actions, tone, initialFocus: '[data-fv-ui-action="modal-acknowledge"]' });
         if (!modal) {
@@ -412,7 +414,7 @@
         const region = ensureAnnouncer();
         if (!region) return null;
         const text = [title, message]
-            .map((value) => String(value || '').trim())
+            .map((value) => translateMessage(value).trim())
             .filter(Boolean)
             .join('. ');
         region.textContent = '';

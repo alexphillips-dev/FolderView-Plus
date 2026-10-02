@@ -20,6 +20,8 @@ const uiModule = require(path.resolve(
 const healthyCoreCards = [
     { key: 'docker', label: 'Docker config', status: 'healthy', headline: 'No issues detected.' },
     { key: 'vm', label: 'VM config', status: 'healthy', headline: 'No issues detected.' },
+    { key: 'backup_readiness', label: 'Backup readiness', status: 'healthy', headline: 'Backup snapshots are available.' },
+    { key: 'runtime_connectivity', label: 'Live runtime connectivity', status: 'healthy', headline: 'Runtime connection succeeded.' },
     { key: 'storage', label: 'Storage and paths', status: 'healthy', headline: 'Paths look healthy.' },
     { key: 'custom_icons', label: 'Custom icons', status: 'healthy', headline: 'Custom icon storage looks healthy.' },
     { key: 'update', label: 'Update check', status: 'healthy', headline: 'Plugin is up to date.' },
@@ -38,7 +40,7 @@ test('unchecked diagnostics never report a partial live check as healthy', () =>
     assert.equal(model.findings.length, 0);
 });
 
-test('healthy results count six core checks and the informational notice separately', () => {
+test('healthy results count eight core checks and the informational notice separately', () => {
     const model = modelModule.buildDiagnosticsViewModel({
         hasResults: true,
         checkedAt: '2026-07-23T12:00:00Z',
@@ -54,12 +56,22 @@ test('healthy results count six core checks and the informational notice separat
 
     assert.equal(model.state, 'results');
     assert.equal(model.overall.status, 'healthy');
-    assert.equal(model.metrics.coreHealthy, 6);
-    assert.equal(model.metrics.coreTotal, 6);
+    assert.equal(model.metrics.coreHealthy, 8);
+    assert.equal(model.metrics.coreTotal, 8);
     assert.equal(model.metrics.optionalCount, 1);
     assert.equal(model.metrics.updateLabel, 'Up to date');
     assert.equal(model.findings.length, 0);
     assert.equal(model.stale, false);
+});
+
+test('disabled or unverified core checks remain neutral in the overall result', () => {
+    const model = modelModule.buildDiagnosticsViewModel({
+        hasResults: true,
+        coreCards: healthyCoreCards.map((card) => card.key === 'runtime_connectivity' ? { ...card, status: 'info' } : card)
+    });
+    assert.equal(model.overall.status, 'info');
+    assert.equal(model.metrics.coreHealthy, 7);
+    assert.equal(model.metrics.coreTotal, 8);
 });
 
 test('priority findings include core failures and performance advisories but exclude optional notices', () => {
@@ -93,7 +105,7 @@ test('failed refresh preserves prior results while exposing the failure state', 
 
     assert.equal(model.state, 'error');
     assert.equal(model.errorMessage, 'Request timed out');
-    assert.equal(model.metrics.coreTotal, 6);
+    assert.equal(model.metrics.coreTotal, 8);
 });
 
 test('diagnostics renderer provides SVG metric and card icons with a complete core progress bar', () => {
@@ -116,7 +128,7 @@ test('diagnostics renderer provides SVG metric and card icons with a complete co
     assert.match(hero, /data-fv-icon="calendar"/);
     assert.match(hero, /data-fv-icon="package"/);
     assert.match(hero, /role="progressbar"/);
-    assert.match(hero, /aria-valuenow="6"/);
+    assert.match(hero, /aria-valuenow="8"/);
     assert.match(hero, /data-fv-progress-percent="100"/);
     assert.match(card, /fv-diagnostics-health-card-icon is-docker/);
     assert.match(card, /data-fv-icon="boxes"/);

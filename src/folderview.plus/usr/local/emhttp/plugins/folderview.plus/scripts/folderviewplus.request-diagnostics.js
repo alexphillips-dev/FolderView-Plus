@@ -94,7 +94,7 @@
             const textStatus = String(error?.textStatus || '').trim();
             const statusText = String(error?.jqXHR?.statusText || '').trim();
             const errorThrown = String(error?.errorThrown || '').trim();
-            const serverDetail = extractServerErrorMessage(error);
+            const serverDetail = window.FolderViewPlusI18n?.serverMessage?.(error?.jqXHR?.responseJSON || extractServerErrorMessage(error), extractServerErrorMessage(error)) || extractServerErrorMessage(error);
             const pieces = [
                 `Request failed for ${url}.`
             ];

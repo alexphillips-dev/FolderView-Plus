@@ -7,11 +7,14 @@
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.download-diagnostics.css">
-    <style>body { background: #171717; color: #eee; font-family: Arial, sans-serif; }</style>
+    <style>body { background: #171717; color: #eee; font-family: Arial, sans-serif; } body[data-fv-theme-class="light"] { background: #fafafa; color: #222; }</style>
 </head>
 <body>
     <div id="fv-settings-root">
+        <button type="button" data-fv-onclick="downloadDocker()">Export Docker</button>
+        <button type="button" data-fv-onclick="downloadVm()">Export VM</button>
         <div id="docker-download-status" class="fv-download-status" role="status" aria-live="polite" hidden></div>
+        <div id="vm-download-status" class="fv-download-status" role="status" aria-live="polite" hidden></div>
     </div>
     <div id="import-preview-selection"></div>
     <div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>
@@ -32,8 +35,10 @@
     <script src="/vendor/jquery.js"></script>
     <script src="/fixtures/import.fixture.js"></script>
     <script src="/plugin/scripts/folderviewplus.download-diagnostics.js"></script>
+    <script src="/plugin/scripts/folderviewplus.download-status.js"></script>
     <script src="/plugin/scripts/folderviewplus.import.js"></script>
     <script>
+        document.body.dataset.fvThemeClass = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         window.fixtureDiagnosticEvents = [];
         window.trackDiagnosticsEvent = async (event) => {
             window.fixtureDiagnosticEvents.push(event);

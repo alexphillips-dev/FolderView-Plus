@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "Alegeți cum să gestionați folderele existente. Nimic nu se schimbă până când selectați Aplică importul.",
     "import.behavior.question": "Cum ar trebui gestionate folderele existente?",
@@ -31,21 +32,19 @@
     "import.acknowledge.title": "Am revizuit acest import",
     "import.acknowledge.description": "Comportamentul și schimbările selectate sunt corecte.",
     "import.progress.preparing": "Se pregătește operațiunea",
-    "import.progress.running": "Se rulează",
+    "import.progress.running": "În execuție",
     "import.summary.folder-change": "{{PLURAL:$1|schimbare de folder|schimbări de foldere|schimbări de foldere}}",
     "import.summary.planned-change": "{{PLURAL:$1|modificare planificată|modificări planificate|modificări planificate}} în previzualizare",
     "import.summary.new": "$1 nou",
     "import.summary.update": "{{PLURAL:$1|o actualizare|$1 actualizări|$1 de actualizări}}",
     "import.summary.delete": "{{PLURAL:$1|o ștergere|$1 ștergeri|$1 de ștergeri}}",
-    "import.kind.docker-folder": "Docker folder",
-    "import.kind.vm-folder": "VM folder",
+    "import.kind.docker-folder": "Dosarul Docker",
+    "import.kind.vm-folder": "folderul VM",
     "import.dialog.docker-title": "Importă Docker foldere",
     "import.dialog.vm-title": "Importă VM foldere",
     "import.actions.apply": "Aplică import",
     "import.folderview3.preview-title": "Previzualizarea migrației FolderView3",
-    "import.folderview3.preview-help": "Descoperiți o configurație FolderView3 instalată sau inspectați un JSON de export complet. Detectarea și previzualizarea sunt doar pentru citire; Înregistrările organizatorului nativ și mutațiile de pornire automată Docker rămân excluse, cu excepția cazului în care o aplicare ulterioară le include în mod explicit.",
     "import.folderview3.read-only-title": "Migrarea FolderView3 este doar în citire până când aprobați un plan de aplicare.",
-    "import.folderview3.read-only-help": "Detectați o configurație instalată sau previzualizați un export FolderView3 fără a scrie niciun plugin sau stare Unraid.",
     "import.folderview3.read-only-preview-help": "Detectați o configurație FolderView3 instalată sau previzualizați un export FolderView3. Previzualizarea nu scrie niciodată pluginul sau configurația Unraid.",
     "import.folderview3.not-detected": "Nu a fost detectată nicio configurație FolderView3 instalată.",
     "import.folderview3.preview-export-help": "Puteți previzualiza în continuare un JSON de export complet FolderView3 de pe alt server.",
@@ -77,5 +76,6 @@
     "import.folderview3.order-invalid-status": "Instantaneu nevalid; ordinea de configurare",
     "import.folderview3.appearance-profiles": "Adăugați profiluri de aspect FolderView3 inactive",
     "import.folderview3.order-summary": "Ordinea folderului salvat: Docker $1; VM-uri $2.",
-    "import.folderview3.disabled-profile-count": "Profiluri separate pentru temele dezactivate: $1."
+    "import.folderview3.disabled-profile-count": "Profiluri separate pentru temele dezactivate: $1.",
+    "import.compare.to": "La"
 }

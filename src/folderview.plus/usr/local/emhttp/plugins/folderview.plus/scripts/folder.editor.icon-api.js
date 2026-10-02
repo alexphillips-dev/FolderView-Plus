@@ -9,9 +9,9 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const surfaceT = (key, fallback, ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : ((value) => Array.isArray(value) ? value : []);
         const uploadApiPath = String(deps.iconUploadApiPath || '').trim();
         const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 4194304;
@@ -53,7 +53,7 @@
             if (responseText) {
                 try {
                     const payload = parseJsonPayload(responseText, context);
-                    const serverMessage = String(payload?.error || '').trim();
+                    const serverMessage = String(win?.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || '').trim();
                     if (serverMessage) {
                         return serverMessage;
                     }
@@ -65,7 +65,7 @@
             const status = Number(error?.jqXHR?.status || error?.status || 0);
             if (status > 0) {
                 const statusText = String(error?.jqXHR?.statusText || error?.statusText || '').trim();
-                return statusText ? `Request failed. HTTP ${status} ${statusText}.` : `Request failed. HTTP ${status}.`;
+                return statusText ? surfaceT("legacy.surface.504281998c4409ad", "Request failed. HTTP $1 $2.", status, statusText) : `Request failed. HTTP ${status}.`;
             }
 
             const textStatus = String(error?.textStatus || '').trim();
@@ -137,7 +137,7 @@
                 idx += 1;
             }
             const precision = current >= 100 || idx === 0 ? 0 : (current >= 10 ? 1 : 2);
-            return `${current.toFixed(precision)} ${units[idx]}`;
+            return `${(globalThis.FolderViewPlusI18n?.formatNumber?.(current, { minimumFractionDigits: precision, maximumFractionDigits: precision }) || current.toFixed(precision))} ${units[idx]}`;
         };
 
         const validateCustomIconFileBeforeUpload = (file) => {
@@ -251,7 +251,7 @@
             }
 
             if (!payload || payload.ok !== true) {
-                throw new Error(String(payload?.error || 'Upload failed.'));
+                throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(payload) || payload?.error || 'Upload failed.'));
             }
             const url = String(payload.url || '').trim();
             if (!url) {
@@ -277,7 +277,7 @@
             if (normalizedMethod === 'GET') {
                 const parsed = await requestClient.getJson(uploadApiPath, { data });
                 if (!parsed || parsed.ok !== true) {
-                    throw new Error(String(parsed?.error || 'Request failed.'));
+                    throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(parsed) || parsed?.error || 'Request failed.'));
                 }
                 return parsed;
             }
@@ -286,7 +286,7 @@
                 timeoutMs: 15000
             });
             if (!parsed || parsed.ok !== true) {
-                throw new Error(String(parsed?.error || 'Request failed.'));
+                throw new Error(String(win?.FolderViewPlusI18n?.serverMessage?.(parsed) || parsed?.error || 'Request failed.'));
             }
             return parsed;
         };

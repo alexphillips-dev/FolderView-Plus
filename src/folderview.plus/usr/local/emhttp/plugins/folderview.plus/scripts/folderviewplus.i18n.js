@@ -8,7 +8,7 @@
     const MAX_RECENT_MISSING_KEYS = 50;
     const MAX_DYNAMIC_ROOTS_BEFORE_FULL_SCAN = 80;
     const AUTO_KEY_PREFIX = 'legacy.surface.';
-    const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
+    const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title', 'value', 'data-empty-message']);
     const LOCALIZED_HTML_ALLOWED_TAGS = new Set(['A', 'B', 'BR', 'CODE', 'EM', 'I', 'LI', 'P', 'SPAN', 'STRONG', 'UL']);
     const AUTO_IGNORE_SELECTOR = [
         '[data-i18n-ignore]',
@@ -119,7 +119,7 @@
             localized = '';
         }
         if (!localized || localized === normalizedKey) {
-            recordMissingKey(normalizedKey);
+            if (state.initialized) recordMissingKey(normalizedKey);
             return interpolateFallback(fallback || normalizedKey, params);
         }
         return localized;
@@ -127,12 +127,35 @@
 
     const normalizeAutoPhrase = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
+    // Validate reviewed server templates against the original diagnostic text.
+    // Dynamic details stay opaque, including commands, names and private paths.
+    const serverMessage = (value, fallback = '') => {
+        const text = typeof value === 'string' ? value : String(value?.error || value?.message || fallback);
+        const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
+        const declared = value && typeof value === 'object' ? (value.errorKey || value.messageKey) : '';
+        const candidates = declared ? [String(declared)] : Object.keys(english);
+        for (const key of candidates) {
+            if (!key.startsWith('common.server.') || typeof english[key] !== 'string') continue;
+            const template = english[key];
+            if (template === text) return translate(key, text);
+            if (!template.endsWith('$1') || (template.match(/\$/g) || []).length !== 1) continue;
+            const prefix = template.slice(0, -2);
+            if (prefix && text.startsWith(prefix)) {
+                const params = declared ? (value.errorParams || value.messageParams) : [text.slice(prefix.length)];
+                if (Array.isArray(params) && params.length === 1 && prefix + params[0] === text) return translate(key, template, ...params);
+            }
+        }
+        return text;
+    };
+
+    const autoPhraseMisses = new Set();
     const rebuildAutoPhraseIndex = () => {
+        autoPhraseMisses.clear();
         const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
         autoPhraseIndex = new Map();
         autoTemplateIndex = [];
         Object.entries(english).forEach(([key, value]) => {
-            if (!String(key).startsWith(AUTO_KEY_PREFIX) || typeof value !== 'string') return;
+            if (!(String(key).startsWith(AUTO_KEY_PREFIX) || /^common\.(?:server|repair)\./.test(String(key))) || typeof value !== 'string') return;
             const phrase = normalizeAutoPhrase(value);
             if (!phrase) return;
             if (!/\$\d+/.test(phrase)) {
@@ -154,14 +177,17 @@
             pattern += `${escapeRegex(phrase.slice(cursor))}$`;
             autoTemplateIndex.push({ key, phrase, regex: new RegExp(pattern), parameterOrder });
         });
+        autoTemplateIndex.sort((left, right) => right.phrase.replace(/\$\d+|\s/g, '').length - left.phrase.replace(/\$\d+|\s/g, '').length || left.parameterOrder.length - right.parameterOrder.length);
         state.autoBoundMessageCount = autoPhraseIndex.size + autoTemplateIndex.length;
     };
 
     const resolveAutoTranslation = (phrase) => {
+        if (!phrase) return '';
         const early = earlyMessages.get(phrase);
         if (state.initialized && early) return translate(early.key, early.fallback, ...early.params);
         const exactKey = autoPhraseIndex.get(phrase);
         if (exactKey) return translate(exactKey, phrase);
+        if (autoPhraseMisses.has(phrase)) return '';
         for (const template of autoTemplateIndex) {
             const match = phrase.match(template.regex);
             if (!match) continue;
@@ -171,9 +197,13 @@
             });
             return translate(template.key, template.phrase, ...parameters);
         }
+        if (state.initialized && phrase.length <= 512) {
+            if (autoPhraseMisses.size >= 1024) autoPhraseMisses.delete(autoPhraseMisses.values().next().value);
+            autoPhraseMisses.add(phrase);
+        }
         return '';
     };
-
+    const message = value => String(value ?? '').split('\n').map(line => resolveAutoTranslation(line) || line).join('\n');
     const isAutoIgnored = (element) => {
         if (!element || typeof element.closest !== 'function') return false;
         return Boolean(element.closest(AUTO_IGNORE_SELECTOR));
@@ -201,6 +231,7 @@
         if (!element || isAutoIgnored(element)) return;
         const explicitBinding = String(element.getAttribute?.('data-i18n') || '');
         AUTO_TRANSLATABLE_ATTRIBUTES.forEach((attribute) => {
+            if (attribute === 'value' && !element.matches?.('input[type="button"], input[type="submit"], input[type="reset"]')) return;
             if (explicitBinding.includes(`[${attribute}]`)) return;
             const source = String(element.getAttribute?.(attribute) || '');
             const phrase = normalizeAutoPhrase(source);
@@ -603,6 +634,8 @@
         ready,
         configure,
         t: translate,
+        serverMessage,
+        message,
         translate: translateDom,
         formatNumber,
         formatDate,

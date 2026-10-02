@@ -1,7 +1,7 @@
 // @ts-check
 (function fvplusFolderEditorRulesScope(window) {
     'use strict';
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const RULE_KIND_LABELS = Object.freeze({
         name_regex: 'Name regex',
         image_regex: 'Image regex',
@@ -212,6 +212,7 @@
         };
 
         const saveFolderEditorPrefs = async (nextPrefs) => {
+            nextPrefs = rootWindow.FolderViewPlusPrefsStore?.cleanPatch(nextPrefs, folderEditorPrefs) || nextPrefs;
             if (preferenceCoordinator) {
                 folderEditorPrefs = normalizePrefs(await preferenceCoordinator.save(type, nextPrefs || {}, {
                     currentPrefs: folderEditorPrefs,
@@ -225,9 +226,7 @@
             }
             const payload = {
                 type,
-                prefs: JSON.stringify(Object.fromEntries(
-                    Object.entries(nextPrefs || {}).filter(([key]) => key !== '_metadata')
-                ))
+                prefs: JSON.stringify(Object.fromEntries(Object.entries(nextPrefs || {}).filter(([key]) => key !== '_metadata')))
             };
             const expectedRevision = Math.max(
                 0,
@@ -356,18 +355,18 @@
                 return;
             }
             const warningLines = [
-                `${preview.matches.length} current ${ruleSubjectLabel}${preview.matches.length === 1 ? '' : 's'} match this pattern.`,
-                'The converted include rule will be appended after existing advanced rules so current advanced policy keeps priority.'
+                surfaceT("common.dialogs.rule-matches", "Current matching items: $1.", preview.matches.length),
+                surfaceT("legacy.surface.0e8aa429d3002da9", "Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored.")
             ];
             if (preview.advancedConflicts.length > 0) {
-                warningLines.push(`${preview.advancedConflicts.length} match${preview.advancedConflicts.length === 1 ? '' : 'es'} are already controlled or blocked by an advanced rule.`);
+                warningLines.push(surfaceT("common.dialogs.rule-conflicts", "Matches already controlled or blocked by advanced rules: $1.", preview.advancedConflicts.length));
             }
             if (preview.overlappingLegacyFolders.length > 0) {
-                warningLines.push(`Overlapping legacy folders: ${preview.overlappingLegacyFolders.join(', ')}.`);
+                warningLines.push(surfaceT("common.dialogs.rule-overlaps", "Overlapping legacy folders: $1.", preview.overlappingLegacyFolders.join(', ')));
             }
             const confirmed = await new Promise((resolve) => {
                 if (typeof swal !== 'function') {
-                    resolve(rootWindow.confirm?.(`${warningLines.join('\n')}\n\nConvert this legacy rule?`) === true);
+                    resolve(rootWindow.confirm?.(`${warningLines.join('\n')}\n\n${surfaceT("legacy.surface.54605873ed16aac6", "Convert legacy regex?")}`) === true);
                     return;
                 }
                 swal({
@@ -384,7 +383,7 @@
                 return;
             }
             folderEditorRulesBusy = true;
-            setFolderEditorRulesMessage('Converting legacy regex...', 'info');
+            setFolderEditorRulesMessage(surfaceT("common.repair.converting-legacy-regex-5158f4", "Converting legacy regex..."), 'info');
             render();
             try {
                 const response = await requestClient.postJson('/plugins/folderview.plus/server/migrate_legacy_regex.php', {
@@ -397,7 +396,7 @@
                 }
                 folderEditorPrefs = normalizePrefs(response?.prefs || folderEditorPrefs);
                 folderEditorPrefsLoaded = true;
-                setFolderEditorRulesMessage('Legacy regex converted. Reloading the editor...', 'success');
+                setFolderEditorRulesMessage(surfaceT("common.repair.legacy-regex-converted-reloading-the-editor-b32128", "Legacy regex converted. Reloading the editor..."), 'success');
                 render();
                 onLegacyRegexConverted(response);
             } catch (error) {
@@ -434,9 +433,9 @@
             }
             const preview = getLegacyMigrationPreview();
             const warningChips = [
-                `<span>${escapeHtml(String(preview.matches.length))} current match${preview.matches.length === 1 ? '' : 'es'}</span>`,
-                preview.advancedConflicts.length > 0 ? `<span class="is-warning">${escapeHtml(String(preview.advancedConflicts.length))} advanced conflict${preview.advancedConflicts.length === 1 ? '' : 's'}</span>` : '',
-                preview.overlappingLegacyFolders.length > 0 ? `<span class="is-warning">${escapeHtml(String(preview.overlappingLegacyFolders.length))} legacy overlap${preview.overlappingLegacyFolders.length === 1 ? '' : 's'}</span>` : '',
+                `<span>${escapeHtml(surfaceT("common.repair.current-matches-1-611f8b", "Current matches: $1", preview.matches.length))}</span>`,
+                preview.advancedConflicts.length > 0 ? `<span class="is-warning">${escapeHtml(surfaceT("common.repair.advanced-conflicts-1-f44446", "Advanced conflicts: $1", preview.advancedConflicts.length))}</span>` : '',
+                preview.overlappingLegacyFolders.length > 0 ? `<span class="is-warning">${escapeHtml(surfaceT("common.repair.legacy-overlaps-1-eca247", "Legacy overlaps: $1", preview.overlappingLegacyFolders.length))}</span>` : '',
                 !preview.valid ? '<span class="is-error">Invalid regex</span>' : ''
             ].filter(Boolean).join('');
             card.innerHTML = `
@@ -510,13 +509,13 @@
                 );
             } else if (!activeFolderId) {
                 bodyHtml = buildFolderAutoRulesEmptyStateHtml(
-                    'Save this folder first to create advanced rules.',
-                    'Advanced auto-rules are stored in plugin settings and need a saved folder id before they can target this folder.'
+                    surfaceT("common.runtime.save-this-folder-first-to-create-advanced-rules", "Save this folder first to create advanced rules."),
+                    surfaceT("common.runtime.advanced-auto-rules-are-stored-in-plugin-settings-and-need-a-saved-folder-id-before-they-can-target-this-folder", "Advanced auto-rules are stored in plugin settings and need a saved folder id before they can target this folder.")
                 );
             } else if (folderEditorPrefsLoading && !folderEditorPrefsLoaded) {
                 bodyHtml = buildFolderAutoRulesEmptyStateHtml(
-                    'Loading advanced rules for this folder.',
-                    'Reading the existing plugin-wide rule set now.'
+                    surfaceT("common.audit.loading-folder-rules", "Loading advanced rules for this folder."),
+                    surfaceT("common.audit.reading-rules", "Reading the existing plugin-wide rule set now.")
                 );
             } else {
                 const listHtml = rules.length > 0
@@ -525,13 +524,13 @@
                         return buildFolderAutoRuleCardHtml(rule, globalIndex > -1 ? globalIndex : 0, Math.max(totalRules, 1));
                     }).join('')
                     : buildFolderAutoRulesEmptyStateHtml(
-                        'No advanced rules target this folder yet.',
+                        surfaceT("common.audit.no-folder-rules", "No advanced rules target this folder yet."),
                         'Add a regex rule below, or open the full Rules workspace for label-based rules and global reordering.'
                     );
                 bodyHtml = `
                     <div class="fv-folder-auto-rules-summary-row">
-                        <span class="fv-folder-auto-rules-summary-pill">${escapeHtml(String(rules.length))} rule${rules.length === 1 ? '' : 's'} for this folder</span>
-                        <span class="fv-folder-auto-rules-summary-pill">${escapeHtml(String(totalRules))} total plugin rule${totalRules === 1 ? '' : 's'}</span>
+                        <span class="fv-folder-auto-rules-summary-pill">${escapeHtml(surfaceT("common.repair.rules-for-this-folder-1-9530ce", "Rules for this folder: $1", rules.length))}</span>
+                        <span class="fv-folder-auto-rules-summary-pill">${escapeHtml(surfaceT("common.repair.total-plugin-rules-1-3098d6", "Total plugin rules: $1", totalRules))}</span>
                     </div>
                     ${ruleTemplateWorkspace?.buildHtml?.() || ''}
                     <div class="fv-folder-auto-rules-builder">
@@ -671,7 +670,7 @@
             }
 
             folderEditorRulesBusy = true;
-            setFolderEditorRulesMessage('Saving advanced rule...', 'info');
+            setFolderEditorRulesMessage(surfaceT("common.audit.saving-rule", "Saving advanced rule..."), 'info');
             render();
             try {
                 const nextRule = {
@@ -692,7 +691,7 @@
                 });
                 await saveFolderEditorPrefs(nextPrefs);
                 folderEditorRuleDraft.pattern = '';
-                setFolderEditorRulesMessage('Advanced rule saved for this folder.', 'success');
+                setFolderEditorRulesMessage(surfaceT("common.audit.rule-saved", "Advanced rule saved for this folder."), 'success');
             } catch (error) {
                 setFolderEditorRulesMessage(extractAjaxErrorMessage(error, 'folder advanced rule save'), 'error');
             } finally {
@@ -711,7 +710,7 @@
                 return;
             }
             folderEditorRulesBusy = true;
-            setFolderEditorRulesMessage('Updating advanced rule...', 'info');
+            setFolderEditorRulesMessage(surfaceT("common.repair.updating-advanced-rule-1ecd11", "Updating advanced rule..."), 'info');
             render();
             try {
                 rules[index] = {
@@ -736,14 +735,14 @@
                 return;
             }
             folderEditorRulesBusy = true;
-            setFolderEditorRulesMessage('Deleting advanced rule...', 'info');
+            setFolderEditorRulesMessage(surfaceT("common.repair.deleting-advanced-rule-6b3aa3", "Deleting advanced rule..."), 'info');
             render();
             try {
                 await saveFolderEditorPrefs({
                     ...folderEditorPrefs,
                     autoRules: (folderEditorPrefs.autoRules || []).filter((rule) => String(rule?.id || '') !== ruleId)
                 });
-                setFolderEditorRulesMessage('Advanced rule deleted.', 'success');
+                setFolderEditorRulesMessage(surfaceT("common.repair.advanced-rule-deleted-ce5ec9", "Advanced rule deleted."), 'success');
             } catch (error) {
                 setFolderEditorRulesMessage(extractAjaxErrorMessage(error, 'folder advanced rule delete'), 'error');
             } finally {

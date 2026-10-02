@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
-        "namespace": "docker"
+        "namespace": "docker",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "docker.actions.label": "Åtgärder i mappvy",
     "docker.actions.add-folder": "Lägg till mapp",
@@ -17,7 +18,7 @@
     "docker.actions.tools": "Verktyg",
     "docker.actions.show-empty": "Visa tomma mappar",
     "docker.actions.hide-empty": "Dölj tomma mappar",
-    "docker.actions.clear-focus": "Rensa mappfokus",
+    "docker.actions.clear-focus": "Rensa mappfokusfiltret",
     "docker.actions.refresh-state": "Uppdatera mappstatus",
     "docker.actions.bulk-assignment": "Massuppdrag",
     "docker.actions.rules-workspace": "Regelarbetsyta",
@@ -60,9 +61,9 @@
     "docker.visibility.all-hidden-title": "Alla mapprader är dolda.",
     "docker.visibility.all-hidden-help": "Visa dem tillfälligt eller återställ alla dolda mappar.",
     "docker.visibility.show-hidden": "Visa dolda mappar",
-    "docker.webui-profiles.open": "Open WebUI profile",
+    "docker.webui-profiles.open": "Öppna webbgränssnittsprofil",
     "docker.webui-profiles.ready": "$1 ($2 av $3 redo)",
-    "docker.webui-profiles.manage": "Manage WebUI profiles",
-    "docker.webui-profiles.none-title": "No WebUIs ready",
+    "docker.webui-profiles.manage": "Hantera webbgränssnittsprofiler",
+    "docker.webui-profiles.none-title": "Inga webbgränssnitt är redo",
     "docker.webui-profiles.none-body": "Ingen av de valda behållarna körs med ett tillgängligt WebUI."
 }

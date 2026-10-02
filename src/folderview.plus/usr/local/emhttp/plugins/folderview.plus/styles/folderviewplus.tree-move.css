@@ -1,0 +1,33 @@
+.folder-table table tbody tr.fv-row-drag-over-before > td {
+    border-top-color: var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-after > td {
+    border-bottom-color: var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-inside > td {
+    border-color: var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-before > td:first-child,
+.folder-table table tbody tr.fv-row-drag-over-inside > td:first-child,
+.folder-table table tbody tr.fv-row-drag-over-after > td:first-child {
+    position: relative;
+}
+
+.folder-table table tbody tr[class*="fv-row-drag-over-"] > td:first-child::after {
+    content: attr(data-fv-drop-label);
+    position: absolute;
+    z-index: 2;
+    inset-inline-start: 0.3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.18rem 0.4rem;
+    border-radius: 4px;
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-accent);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    pointer-events: none;
+}

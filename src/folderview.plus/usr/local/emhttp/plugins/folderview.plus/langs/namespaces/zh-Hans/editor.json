@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "添加自定义操作",
     "editor.actions.standard": "标准",
@@ -35,7 +36,7 @@
     "editor.webui-profiles.empty": "尚无自定义 WebUI 配置文件。",
     "editor.webui-profiles.name": "个人资料名称",
     "editor.webui-profiles.duplicate": "重复",
-    "editor.webui-profiles.move-up": "向上移动",
+    "editor.webui-profiles.move-up": "上移",
     "editor.webui-profiles.move-down": "下移",
     "editor.webui-profiles.delete": "删除",
     "editor.webui-profiles.search": "搜索文件夹成员",

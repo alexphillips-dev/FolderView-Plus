@@ -26,6 +26,12 @@ const healthyReport = () => ({
     summary: { recommendedActions: [], cards: [
         { key: 'docker', label: 'Docker config', headline: 'No issues detected.', detail: '5 folder(s), 0 rule(s), 25 backup(s).' },
         { key: 'vm', label: 'VM config', headline: 'No issues detected.', detail: '3 folder(s), 0 rule(s), 25 backup(s).' },
+        { key: 'backup_readiness', label: 'Backup readiness', headline: 'Backup snapshots are available.', states: {
+            docker: { state: 'ready', ageHours: 2 }, vm: { state: 'ready', ageHours: 4 }
+        } },
+        { key: 'runtime_connectivity', label: 'Live runtime connectivity', headline: 'Runtime connection succeeded.', states: {
+            docker: 'ready', vm: 'ready'
+        } },
         { key: 'storage', label: 'Storage and paths', headline: 'Paths look healthy.', detail: 'Folder maps, prefs, backups, and installed runtime files passed integrity checks.' },
         { key: 'custom_icons', label: 'Custom icons', headline: 'Custom icon storage looks healthy.', detail: '0 icon file(s) tracked.' },
         { key: 'update', label: 'Update check', headline: 'Plugin is up to date.', detail: 'Current version 2026.09.11.01.' }
@@ -43,13 +49,16 @@ test('healthy System Health renders translated summaries and counts from all 27 
         assert.equal(model.overall.headline, catalog['diagnostics.overall.healthy']);
         assert.equal(model.metrics.updateLabel, catalog['diagnostics.update.current']);
         assert.equal(cards[0].detail, t('diagnostics.cards.config-counts', '', 5, 0, 25));
-        assert.equal(cards[2].label, catalog['diagnostics.cards.storage']);
-        assert.equal(cards[3].detail, t('diagnostics.cards.icons-count', '', 0));
+        assert.equal(cards[2].label, catalog['diagnostics.cards.backup-readiness']);
+        assert.ok(cards[2].detail.includes('Docker:'));
+        assert.equal(cards[3].label, catalog['diagnostics.cards.runtime-connectivity']);
+        assert.equal(cards[4].label, catalog['diagnostics.cards.storage']);
+        assert.equal(cards[5].detail, t('diagnostics.cards.icons-count', '', 0));
         const html = view.buildHero(model) + view.buildSection('health', t('diagnostics.sections.system'), model.coreCards);
         assert.ok(html.includes(ui.escapeHtml(catalog['diagnostics.metrics.passed'])));
-        assert.ok(html.includes(ui.escapeHtml(t('diagnostics.cards.healthy-count', '', 6, 6))));
+        assert.ok(html.includes(ui.escapeHtml(t('diagnostics.cards.healthy-count', '', 8, 8))));
         if (locale !== 'en') {
-            assert.doesNotMatch(html, /All systems operational|Storage and paths|Custom icons|Update check|No issues detected|All checks passed|Up to date/);
+            assert.doesNotMatch(html, /All systems operational|Storage and paths|Custom icons|Update check|Backup readiness|Live runtime connectivity|No issues detected|All checks passed|Up to date/);
         }
         assert.equal(JSON.stringify(report), before, 'UI translation must not mutate support data');
     }
@@ -76,6 +85,18 @@ test('warning and failed update labels use structured status, and raw evidence r
     const html = view.buildCard(model.coreCards[0]);
     assert.match(html, /&lt;img/);
     assert.doesNotMatch(html, /<img/);
+});
+
+test('a connected and disabled runtime uses a neutral localized headline', () => {
+    const catalog = catalogFor('de'), t = translator(catalog);
+    const report = healthyReport();
+    const card = report.summary.cards.find((entry) => entry.key === 'runtime_connectivity');
+    card.status = 'info';
+    card.states.vm = 'disabled';
+    const view = viewApi.createApi({ t, escapeHtml: ui.escapeHtml });
+    const [localized] = view.decorateCardsWithRecommendedActions([card], report, report.summary);
+    assert.equal(localized.headline, catalog['diagnostics.cards.runtime-info']);
+    assert.ok(localized.detail.includes(catalog['diagnostics.cards.runtime-disabled']));
 });
 
 test('unchecked, failed, core error and advisory summaries all resolve through the selected catalog', () => {

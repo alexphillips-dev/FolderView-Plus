@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "Afegeix una acció personalitzada",
     "editor.actions.standard": "Estàndard",
@@ -13,8 +14,8 @@
     "editor.members.visible": "Visible",
     "editor.members.auto-included": "Inclòs automàticament per expressió regular o etiqueta",
     "editor.members.drag-reorder": "Arrossegueu per reordenar",
-    "editor.members.move-up": "Mou cap amunt",
-    "editor.members.move-down": "Mou cap avall",
+    "editor.members.move-up": "Mou amunt",
+    "editor.members.move-down": "Mou avall",
     "editor.rules.templates.title": "Plantilles de regles",
     "editor.rules.templates.help": "Creeu una regla compatible, previsualitzeu el seu efecte actual o afegiu-ne un últim. Els membres de la carpeta manual no es canvien mai.",
     "editor.rules.templates.template-label": "Plantilla",
@@ -35,8 +36,8 @@
     "editor.webui-profiles.empty": "Encara no hi ha perfils de WebUI personalitzats.",
     "editor.webui-profiles.name": "Nom del perfil",
     "editor.webui-profiles.duplicate": "Duplicat",
-    "editor.webui-profiles.move-up": "Mou cap amunt",
-    "editor.webui-profiles.move-down": "Mou cap avall",
+    "editor.webui-profiles.move-up": "Mou amunt",
+    "editor.webui-profiles.move-down": "Mou avall",
     "editor.webui-profiles.delete": "Suprimeix",
     "editor.webui-profiles.search": "Cerca membres de la carpeta",
     "editor.webui-profiles.select-webui": "Seleccioneu-ho tot amb WebUI",

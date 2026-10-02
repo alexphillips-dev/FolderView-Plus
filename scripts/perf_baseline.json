@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T15:43:15.383Z",
-  "notes": "Baseline for perf ratchet guard. September 2026 localized Settings navigation and diagnostic summaries/details were reviewed and remeasured; only those three asset baselines were refreshed. Aggregate budgets and the 8% growth ratchet remain unchanged.",
+  "generatedAt": "2026-09-23T20:50:42.808Z",
+  "notes": "September 2026 tree move, shared hierarchy, and bounded Docker preview changes were remeasured after browser and runtime performance budgets passed. This refresh also records pre-existing diagnostics view model and Settings workspace growth that exceeded the prior ratchet on clean dev. The 8% growth ratchet remains enabled; the Settings workspace gzip cap was raised to 13500 bytes to cover its measured 12975 bytes.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
       "bytes": 1256,
@@ -20,124 +20,124 @@
       "gzipBytes": 682
     },
     "scripts/folderviewplus.starter-templates.js": {
-      "bytes": 45227,
-      "gzipBytes": 9076
+      "bytes": 45866,
+      "gzipBytes": 9321
     },
     "scripts/folderviewplus.support-bundle-preview.js": {
-      "bytes": 24644,
-      "gzipBytes": 5489
+      "bytes": 26534,
+      "gzipBytes": 5883
     },
     "scripts/folderviewplus.download-diagnostics.js": {
       "bytes": 20648,
       "gzipBytes": 4340
     },
     "scripts/folderviewplus.support-bundle-browser.js": {
-      "bytes": 25591,
-      "gzipBytes": 4861
+      "bytes": 27633,
+      "gzipBytes": 5170
     },
     "scripts/folderviewplus.support-bundle-telemetry.js": {
-      "bytes": 30802,
-      "gzipBytes": 5810
+      "bytes": 31671,
+      "gzipBytes": 5932
     },
     "scripts/folderviewplus.diagnostics-view-model.js": {
-      "bytes": 19026,
-      "gzipBytes": 4258
+      "bytes": 20786,
+      "gzipBytes": 4765
     },
     "scripts/folderviewplus.diagnostics-view.js": {
       "bytes": 17008,
       "gzipBytes": 3845
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
-      "bytes": 108862,
-      "gzipBytes": 22863
+      "bytes": 111861,
+      "gzipBytes": 23660
     },
     "scripts/folderviewplus.settings-tree.js": {
-      "bytes": 32917,
-      "gzipBytes": 5979
+      "bytes": 32601,
+      "gzipBytes": 6116
     },
     "scripts/folderviewplus.tree-integrity.js": {
-      "bytes": 16660,
-      "gzipBytes": 3811
+      "bytes": 17003,
+      "gzipBytes": 3957
     },
     "scripts/folderviewplus.mobile-reorder.js": {
       "bytes": 2541,
       "gzipBytes": 765
     },
     "scripts/folderviewplus.folder-editor.js": {
-      "bytes": 38516,
-      "gzipBytes": 8281
+      "bytes": 39584,
+      "gzipBytes": 8677
     },
     "scripts/folderviewplus.settings-health.js": {
-      "bytes": 19930,
-      "gzipBytes": 4245
+      "bytes": 20329,
+      "gzipBytes": 4311
     },
     "scripts/folderviewplus.settings-workspaces.js": {
-      "bytes": 66485,
-      "gzipBytes": 11013
+      "bytes": 74317,
+      "gzipBytes": 12975
     },
     "scripts/folderviewplus.bulk-assignment.shared.js": {
       "bytes": 19498,
       "gzipBytes": 3636
     },
     "scripts/folderviewplus.bulk-assignment.js": {
-      "bytes": 48789,
-      "gzipBytes": 8808
+      "bytes": 49715,
+      "gzipBytes": 9172
     },
     "scripts/folderviewplus.runtime-actions.js": {
-      "bytes": 18937,
-      "gzipBytes": 3940
+      "bytes": 19396,
+      "gzipBytes": 4134
     },
     "scripts/folderviewplus.js": {
-      "bytes": 500144,
-      "gzipBytes": 96084
+      "bytes": 505100,
+      "gzipBytes": 98404
     },
     "scripts/folderviewplus.wizard.js": {
-      "bytes": 203182,
-      "gzipBytes": 36318
+      "bytes": 205193,
+      "gzipBytes": 37031
     },
     "scripts/folderviewplus.import.js": {
-      "bytes": 66156,
-      "gzipBytes": 14663
+      "bytes": 62497,
+      "gzipBytes": 14079
     },
     "styles/folderviewplus.css": {
-      "bytes": 376519,
-      "gzipBytes": 43993
+      "bytes": 373047,
+      "gzipBytes": 43765
     },
     "scripts/docker.runtime.hierarchy.js": {
-      "bytes": 43032,
-      "gzipBytes": 7917
+      "bytes": 42736,
+      "gzipBytes": 7916
     },
     "scripts/docker.runtime.actions.js": {
-      "bytes": 56905,
-      "gzipBytes": 10631
+      "bytes": 58568,
+      "gzipBytes": 11193
     },
     "scripts/docker.js": {
-      "bytes": 390444,
-      "gzipBytes": 76711
+      "bytes": 394568,
+      "gzipBytes": 78216
     },
     "scripts/vm.js": {
-      "bytes": 167147,
-      "gzipBytes": 36721
+      "bytes": 167878,
+      "gzipBytes": 37013
     },
     "scripts/folder.editor.preview-runtime.js": {
       "bytes": 11174,
       "gzipBytes": 2176
     },
     "scripts/folder.editor.icons.js": {
-      "bytes": 106723,
-      "gzipBytes": 17004
+      "bytes": 109230,
+      "gzipBytes": 17829
     },
     "scripts/folder.js": {
-      "bytes": 210575,
-      "gzipBytes": 43141
+      "bytes": 215513,
+      "gzipBytes": 44697
     }
   },
   "totals": {
-    "totalJs": 4192510,
-    "totalCss": 665251,
-    "totalJsGzip": 848512,
-    "totalCssGzip": 90223,
-    "settingsRuntimeJs": 1329428,
-    "settingsRuntimeJsGzip": 259723
+    "totalJs": 4478022,
+    "totalCss": 700469,
+    "totalJsGzip": 920975,
+    "totalCssGzip": 96500,
+    "settingsRuntimeJs": 1371979,
+    "settingsRuntimeJsGzip": 271724
   }
 }

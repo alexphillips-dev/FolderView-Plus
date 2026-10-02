@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
-        "namespace": "import"
+        "namespace": "import",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "import.subtitle": "기존 폴더를 처리할 방법을 선택하십시오. '가져오기 적용'을 선택할 때까지 아무 것도 변경되지 않습니다.",
     "import.behavior.question": "기존 폴더를 어떻게 처리해야 합니까?",
@@ -14,7 +15,7 @@
     "import.mode.replace.title": "정확히 교체",
     "import.mode.replace.description": "내보내기와 일치. 내보내기에 없는 폴더는 삭제될 수 있습니다.",
     "import.review.title": "계획된 변경 사항 검토",
-    "import.review.count": "{{PLURAL:$1|계획된 변경 사항 1개|계획된 변경 사항 $1개}}",
+    "import.review.count": "{{PLURAL:$1|계획된 변경 사항 $1개 검토|계획된 변경 사항 $1개 검토}}",
     "import.review.folders-fields": "폴더 및 필드",
     "import.review.choose": "포함할 변경 사항 선택",
     "import.safety.title": "안전 옵션",
@@ -35,17 +36,15 @@
     "import.summary.folder-change": "{{PLURAL:$1|폴더 변경|폴더 변경}}",
     "import.summary.planned-change": "미리보기의 {{PLURAL:$1|계획된 변경 사항|계획된 변경 사항들}}",
     "import.summary.new": "$1 새 항목",
-    "import.summary.update": "{{PLURAL:$1|하나의 업데이트|$1개의 업데이트}}",
-    "import.summary.delete": "{{PLURAL:$1|하나의 삭제|$1개의 삭제}}",
+    "import.summary.update": "{{PLURAL:$1|$1개의 업데이트|$1개의 업데이트}}",
+    "import.summary.delete": "{{PLURAL:$1|$1개의 삭제|$1개의 삭제}}",
     "import.kind.docker-folder": "Docker 폴더",
     "import.kind.vm-folder": "VM 폴더",
     "import.dialog.docker-title": "Docker 폴더 가져오기",
     "import.dialog.vm-title": "VM 폴더 가져오기",
     "import.actions.apply": "가져오기 적용",
     "import.folderview3.preview-title": "FolderView3 마이그레이션 미리보기",
-    "import.folderview3.preview-help": "설치된 FolderView3 구성을 검색하거나 전체 내보내기 JSON을 검사합니다. 감지 및 미리보기는 읽기 전용입니다. 기본 구성 레코드 및 Docker 자동 시작 변형은 나중에 적용할 때 명시적으로 포함하지 않는 한 제외된 상태로 유지됩니다.",
     "import.folderview3.read-only-title": "FolderView3 마이그레이션은 적용 계획을 승인할 때까지 읽기 전용입니다.",
-    "import.folderview3.read-only-help": "플러그인이나 Unraid 상태를 작성하지 않고도 설치된 구성을 감지하거나 FolderView3 내보내기를 미리 볼 수 있습니다.",
     "import.folderview3.read-only-preview-help": "설치된 FolderView3 구성을 감지하거나 FolderView3 내보내기를 미리 봅니다. 미리보기에서는 플러그인이나 Unraid 구성을 작성하지 않습니다.",
     "import.folderview3.not-detected": "설치된 FolderView3 구성이 감지되지 않았습니다.",
     "import.folderview3.preview-export-help": "다른 서버에서 FolderView3 전체 내보내기 JSON을 미리 볼 수 있습니다.",
@@ -71,11 +70,12 @@
     "import.folderview3.theme-unscoped": "인식된 FolderView3 페이지 범위가 없는 사용자 정의 스타일은 제외되었습니다.",
     "import.folderview3.theme-disabled": "비활성화된 테마는 별도의 비활성 모양 프로필로 보존되었습니다. 가져온 기본 프로필에는 포함되지 않습니다.",
     "import.folderview3.theme-compatibility": "가져온 CSS는 FolderView Plus와 다른 FolderView3 선택기 또는 변수를 사용할 수 있습니다. 활성화하기 전에 각 모양 프로필을 미리 봅니다.",
-    "import.folderview3.order-imported": "수입됨",
+    "import.folderview3.order-imported": "가져오기 완료",
     "import.folderview3.order-fallback": "구성 순서",
     "import.folderview3.order-empty": "저장된 주문 없음",
     "import.folderview3.order-invalid-status": "잘못된 스냅샷입니다. 구성 순서",
     "import.folderview3.appearance-profiles": "비활성 FolderView3 모양 프로필 추가",
     "import.folderview3.order-summary": "저장된 폴더 순서: Docker $1; VM $2.",
-    "import.folderview3.disabled-profile-count": "비활성화된 테마에 대한 별도의 프로필: $1."
+    "import.folderview3.disabled-profile-count": "비활성화된 테마에 대한 별도의 프로필: $1.",
+    "import.compare.to": "대상"
 }

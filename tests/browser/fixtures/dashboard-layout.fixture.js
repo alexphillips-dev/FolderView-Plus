@@ -10,18 +10,7 @@
     const visualController = window.FolderViewPlusDashboardVisualDiagnostics.createController({
         window,
         storage: window.localStorage,
-        deriveCompactMatrixLayout: ({ containerWidth }) => {
-            const width = Math.max(0, Number(containerWidth) || 0);
-            const folderColumns = width >= 1080 ? 3 : (width >= 700 ? 2 : 1);
-            const estimatedFolderWidth = folderColumns > 0 ? width / folderColumns : width;
-            const memberColumns = estimatedFolderWidth >= 440 ? 2 : 1;
-            return {
-                folderColumns,
-                memberColumns,
-                estimatedFolderWidth,
-                estimatedMemberWidth: estimatedFolderWidth / memberColumns
-            };
-        },
+        deriveCompactMatrixLayout: window.FolderViewPlusDashboardLayoutQuickRail.deriveCompactMatrixLayout,
         minimumMemberWidthPx: 220
     });
     const controller = window.FolderViewPlusDashboardLayoutQuickRail.createController({

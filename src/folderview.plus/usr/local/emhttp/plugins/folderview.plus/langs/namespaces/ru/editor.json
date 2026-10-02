@@ -2,7 +2,8 @@
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
-        "namespace": "editor"
+        "namespace": "editor",
+        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
     },
     "editor.actions.add-custom": "Добавить пользовательское действие",
     "editor.actions.standard": "Стандартный",
@@ -35,12 +36,12 @@
     "editor.webui-profiles.empty": "Настраиваемых профилей WebUI пока нет.",
     "editor.webui-profiles.name": "Имя профиля",
     "editor.webui-profiles.duplicate": "Дублировать",
-    "editor.webui-profiles.move-up": "Вверх",
-    "editor.webui-profiles.move-down": "Двигаться вниз",
+    "editor.webui-profiles.move-up": "Переместить вверх",
+    "editor.webui-profiles.move-down": "Переместить вниз",
     "editor.webui-profiles.delete": "Удалить",
     "editor.webui-profiles.search": "Поиск участников папки",
     "editor.webui-profiles.select-webui": "Выбрать все с помощью WebUI",
-    "editor.webui-profiles.clear": "Очистить выбор",
+    "editor.webui-profiles.clear": "Снять выделение",
     "editor.webui-profiles.webui-ready": "Веб-интерфейс настроен",
     "editor.webui-profiles.webui-runtime": "WebUI проверен при запуске",
     "editor.webui-profiles.unavailable": "Недоступно в этой папке",

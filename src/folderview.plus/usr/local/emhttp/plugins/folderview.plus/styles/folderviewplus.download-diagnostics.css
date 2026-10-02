@@ -67,13 +67,36 @@
     flex: 0 0 auto;
     flex-wrap: wrap;
     gap: 0.4rem;
+    max-width: 100%;
 }
 
 #fv-settings-root .fv-download-status-actions > button {
     min-width: 0;
-    min-height: 30px;
-    padding: 0.25rem 0.62rem;
+    min-height: 36px;
+    max-width: 100%;
+    padding: 0.4rem 0.7rem !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    border-image: none !important;
+    box-shadow: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
     font-size: 1rem;
+}
+
+#fv-settings-root .fv-download-status-actions > .fv-download-status-report {
+    background: transparent !important;
+    border-color: transparent !important;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+#fv-settings-root .fv-download-status-actions > button:focus-visible {
+    outline: 2px solid var(--fvplus-settings-focus-ring);
+    outline-offset: 2px;
 }
 
 @media (max-width: 760px) {

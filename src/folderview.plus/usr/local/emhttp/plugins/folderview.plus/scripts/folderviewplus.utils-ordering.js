@@ -1,13 +1,13 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-hierarchy.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.utilityOrdering = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs);
-}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs) {
+    modules.utilityOrdering = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityHierarchy);
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityHierarchy) {
     'use strict';
-    const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization, utilityPrefs);
+    const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization, utilityPrefs, utilityHierarchy);
     const {
         normalizeStringIdList,
         normalizeFolderMap,

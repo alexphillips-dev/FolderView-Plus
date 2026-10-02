@@ -10,7 +10,7 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
     const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
     const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
@@ -317,7 +317,7 @@
             const impactLines = [`${i18nLabel('remove-folder', 'Remove folder')}: ${folderName}`];
             if (directChildCount > 0) {
                 impactLines.push(
-                    `This folder has <strong>${directChildCount}</strong> direct child folder${directChildCount === 1 ? '' : 's'} (${descendantCount} nested in branch).`,
+                    surfaceT("common.repair.direct-child-folders-1-total-nested-folders-in-this-branch-2-c4f8b2", "Direct child folders: $1. Total nested folders in this branch: $2.", directChildCount, descendantCount),
                     `Children will be re-parented under <strong>${parentName}</strong>.`
                 );
             }
@@ -401,8 +401,8 @@
             const hiddenCount = Math.max(0, branchIds.length - Math.min(5, branchIds.length));
             const impactLines = [
                 `Delete branch folders: ${folderName}`,
-                `This will permanently delete <strong>${branchIds.length}</strong> folder${branchIds.length === 1 ? '' : 's'} in this branch.`,
-                'Nested child folders will be deleted with the root folder and will <strong>not</strong> be re-parented.'
+                escapeHtml(surfaceT("common.counts.delete-branch", "Permanently delete folders in this branch (count: $1)? This cannot be undone.", branchIds.length)),
+                escapeHtml(surfaceT("common.actions.delete-children", "Child folders will also be deleted. They will not be moved to another parent."))
             ];
             if (previewNames) {
                 impactLines.push(`<strong>Branch:</strong> ${previewNames}${hiddenCount > 0 ? ` (+${hiddenCount} more)` : ''}`);
@@ -623,7 +623,7 @@
                 .join('');
             const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
             const overflowHint = overflowCount > 0
-                ? `<div data-fvplus-style="fv-u-hogw00">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'} not shown</div>`
+                ? `<div data-fvplus-style="fv-u-hogw00">${escapeHtml(surfaceT("common.repair.additional-blocked-links-not-shown-1-c7f3a6", "Additional blocked links not shown: $1.", overflowCount))}</div>`
                 : '';
             const host = escapeHtml(String(win?.location?.host || '').trim() || 'this Unraid server');
             const blockedCount = Math.max(0, totalCount - openedCount);
@@ -643,7 +643,7 @@
                 `<ol data-fvplus-style="fv-u-wbhnsm">`,
                 `<li>Click the popup-blocked icon in your browser address bar.</li>`,
                 `<li>Choose to always allow popups/redirects for this Unraid host.</li>`,
-                `<li>Run <strong>${escapeHtml(retryLabel)}</strong> again.</li>`,
+                `<li>${escapeHtml(surfaceT("common.actions.run-again", "Run $1 again.", retryLabel))}</li>`,
                 `</ol>`,
                 `</div>`,
                 `<div class="fv-popup-panel">`,
@@ -729,7 +729,7 @@
             };
             const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
             const skippedHint = summary.droppedMemberBoundActionCount > 0
-                ? `<div data-fvplus-style="fv-u-1wnpfz0">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+                ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(surfaceT("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
                 : '';
             return [
                 `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
@@ -933,7 +933,7 @@
                     return;
                 }
                 const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
-                const nextName = String(promptFn('Clone folder name', defaultName) || '').trim();
+                const nextName = String(promptFn(surfaceT("common.repair.clone-folder-name-b9cbd2", "Clone folder name"), defaultName) || '').trim();
                 if (!nextName) {
                     return;
                 }
@@ -967,7 +967,7 @@
                     return;
                 }
                 const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
-                const nextName = String(promptFn('Clone branch root name', defaultName) || '').trim();
+                const nextName = String(promptFn(surfaceT("common.repair.clone-branch-root-name-f56266", "Clone branch root name"), defaultName) || '').trim();
                 if (!nextName) {
                     return;
                 }

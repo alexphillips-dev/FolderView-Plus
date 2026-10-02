@@ -5,18 +5,410 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.09.17.03">
-<!ENTITY md5 "23ed1cc7fc073ca2bced7e5c8be34a5a">
-<!ENTITY sha256 "ac9c1219f4907a75413662b68d862a540e56fda7c169d46d991b125fc65e0243">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.10.01.10">
+<!ENTITY md5 "aa9eba5488d65a03dc9e7fea67af543e">
+<!ENTITY sha256 "147036af107ef533f38094221ae02e603d8415e13872cadd3ab4e114cf0e8db5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.01.10
+- UI/UX: Bulk assignment now follows Recovery's compact mobile heading and summary-icon sizes, keeping both Settings workspaces consistent on phones.
+- Quality: Rechecked Recovery and Docker/VM bulk moves together across desktop, phone, light/dark themes, translated controls, RTL, and reduced motion.
+
+
+###2026.10.01.09
+- UI/UX: Recovery headings and metric icons now use compact mobile sizes consistent with Diagnostics, while retaining the desktop layout.
+- Quality: Recovery layout checks validate button spacing for both stacked phone actions and side-by-side desktop actions across Chrome, Firefox, and Safari fixtures.
+
+
+###2026.10.01.08
+- Fix: Removed obsolete Recovery styling and unused translations left behind by the recent Settings redesigns.
+- Compatibility: Reduced the size of folder-action preview assets while preserving their messages and confirmation behavior.
+
+
+###2026.10.01.07
+- UI/UX: Made Advanced → Bulk assignment more compact, matching Recovery's typography, section headings, summary values, icons, and panel spacing. Reduced the destination control, source tabs, move button, table height, and footer sizing while preserving usable controls on phones.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the compact workspace styles.
+
+
+###2026.10.01.06
+- UI/UX: Redesigned Advanced → Bulk assignment around a single Docker or VM workspace, with a destination sidebar, readable member table, summary cards, and a clear move footer.
+- Feature: Added current-folder and runtime-status filters, synchronized name searches, sortable columns, and selection controls for the displayed members. Selections hidden by filters remain selected and are identified in the footer.
+- UI/UX: Added a detailed plan that expands on demand, accurate counts that exclude members already in the destination, and responsive layouts for desktop and phones.
+- Compatibility: Updated translations for the new workspace and retained the existing confirmation, safety snapshot, atomic save, failed-member retry, and undo workflows. Hard-refresh the webGUI after updating.
+- Fix: Prevented duplicate bulk-move confirmations and changes to the destination, selection, or source while confirming or saving a move.
+
+
+###2026.10.01.05
+- Fix: Snapshot comparison popups now retain their intended layout on newer Unraid dialog libraries, with a full-width title above the content and action buttons in the footer.
+- UI/UX: Comparison buttons use consistent sizing and readable labels. Removed the duplicate title-bar Close button; Cancel or Close remains in the footer, and Escape still dismisses the popup.
+- Compatibility: Snapshot choosers and results keep their intended widths, theme colors, and scrollable content when Unraid's dialog styles are applied. Hard-refresh the webGUI after updating.
+
+
+###2026.10.01.04
+- UI/UX: Compare Snapshots in Restore and Backup Snapshots now opens a dialog to choose the two sources and whether to include preference changes.
+- UI/UX: Comparison results now show clear source cards, Added/Changed/Removed/Unchanged totals, readable folder and preference changes, and expandable before/after values. Compare again returns to the chooser with the previous selections.
+- Compatibility: Docker and VM comparisons support narrow screens, light and dark themes, keyboard navigation, and localized text. Long results scroll while the title and footer remain reachable. Cancelled comparisons ignore delayed responses.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the redesigned comparison dialogs.
+
+
+###2026.10.01.03
+- Fix: Health details scores now stay on one line as 85/100, with both parts at the same size, even when host styles would stack separate elements.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Health details markup and styles.
+
+
+###2026.10.01.02
+- Fix: Centered the complete Alerts button group in the Settings column.
+- UI/UX: Health details now uses larger, readable text and compact spacing that stays consistent with Unraid's text and definition-list styles. Scores display inline as 85/100 with both parts at the same size.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Health details markup and styles.
+
+
+###2026.10.01.01
+- Fix: Centered the update and health icons inside Settings alert buttons. The update button now appears only when a folder has available container updates.
+- UI/UX: Redesigned Health details with a colored health badge, clearly labeled summary cards, readable policy and reason sections, and scrolling that keeps the dialog actions reachable on smaller screens.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts and styles.
+
+
+###2026.09.29.04
+- UI/UX: Recovery text, snapshot history, and action buttons now follow the same type scale as Diagnostics, with a more compact layout.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Recovery styles.
+
+
+###2026.09.29.03
+- UI/UX: Moving and reordering folders in Basic Settings updates the row immediately without scrolling back to it after the save finishes.
+- Fix: Routine folder moves, reorders, preference changes, and pin changes no longer create a backup snapshot for each action. Folder move and reorder Undo/Redo now use the current browser session's change history.
+- Reliability: New setups enable scheduled backups every hour by default. The interval can be changed or disabled in Advanced > Recovery; existing saved schedules keep their settings. Scheduled backups run outside Settings folder reads.
+- Compatibility: Explicit safety backups for destructive changes, imports, bulk operations, and restores remain available. Hard-refresh the Unraid webGUI after updating to load the revised Settings assets.
+
+
+###2026.09.29.02
+- UI/UX: Recovery now uses larger, clearer text and icons in its introduction, readiness summary, backup metrics, and backup history.
+- UI/UX: Restore, backup, and compare actions fill a tighter row, with readable labels and spacing between button icons and text.
+- UI/UX: Snapshot history separates the date, reason, folder count, and filename so long backup names are easier to scan.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings assets.
+
+
+###2026.09.29.01
+- UI/UX: Advanced > Recovery now shows a compact status summary, primary restore and backup actions, selectable snapshot history, and backup policy details for Docker and VMs.
+- UI/UX: The history can show every snapshot, with restore, download, and delete actions on the selected row. Compare, scheduling, undo, and environment transfer remain available without crowding the main view.
+- Fix: Switching between Docker and VMs now refreshes the schedule editor values for the selected source. Restore Latest stays unavailable until a restorable backup exists.
+- UI/UX: FolderView3 detection and export preview controls are no longer shown in Recovery.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings assets.
+
+
+###2026.09.25.02
+- Fix: Settings now detects when its content is clipped by an ancestor or only its header remains visible, so the blank-page checks do not report a usable page in those cases.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so the revised Settings scripts load.
+
+
+###2026.09.25.01
+- Fix: Keep the Settings page reachable when the Unraid webGUI positions its content below a short header, including the layout reported with Firefox on Unraid 7.1.4.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so Settings loads the revised script.
+
+
+###2026.09.24.23
+- UX: Make the Operations dropdowns, template search, template name field, and Save from folder button more compact for Docker and VMs.
+- Fix: Align Save from folder with the source folder and template name inputs, including when the Unraid theme adds button spacing.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.24.22
+- UX: Rename the Advanced Operations heading and enlarge its help text, source tabs, action labels, and icons.
+- Fix: Highlight the selected Docker or VM tab and give folder selectors full borders and visible chevrons across supported themes.
+- UX: Shorten the template search, folder selectors, template name field, and Save from folder button to a consistent height.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.24.21
+- UX: Redesign Advanced > Operations with side-by-side folder actions and template library cards, prominent Docker and VM tabs, an always-visible action preview, and a visible template creation form.
+- Feature: Search saved templates by name. The empty library's creation shortcut focuses the template name field, and a newly saved template is selected in the library.
+- Fix: Keep Apply action visible while still requiring a current preview with eligible items before a folder action can run.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles and scripts.
+
+
+###2026.09.24.20
+- UX: Simplify Advanced > Operations into a focused folder action flow and a separate saved templates section. The heading is now "Operations"; controls have labels, the action plan appears after Preview, and template creation fields open on request.
+- Fix: Require a current preview with eligible items before applying a Docker or VM folder action. Changing the folder or action, or a changed action plan, requires a new preview.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.19
+- UX: Keep Logs rows neutral while retaining colored status icons and labels for complete, attention, issue, and information entries.
+- Fix: Show useful event details beside server log actions, including folder change counts, backup folder counts, and partial action outcomes. Existing recent server entries gain details when refreshed, without adding raw names or paths to the browser log.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles and scripts.
+
+
+###2026.09.24.18
+- UX: Show recent Docker, VM, and recovery events as color-coded single-line entries in Advanced > Logs. Remove the separate Recent recovery timeline panel.
+- Fix: Capture selected server events in the existing browser Logs feed for up to 30 days, order them with browser actions, and prevent cleared events from reappearing after navigation or refresh.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.17
+- UX: Move Undo latest change beside the restore controls in Advanced > Recovery and remove the separate Undo and recent changes section.
+- UX: Show server-recorded Docker and VM changes together in Advanced > Logs, with a refresh control and newest events first. Browser activity remains a separate 30-day feed.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.16
+- Feature: Add Backup readiness and Live runtime connectivity cards to Settings > Advanced > Diagnostics. The cards show Docker and VM backup age and live connection status.
+- Fix: Flag missing, unreadable, empty, or overdue scheduled backups and connections to enabled runtimes that fail. Disabled services and checks without enough evidence appear as informational.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the new Diagnostics cards and styling.
+- Diagnostics: Backup readiness checks snapshot metadata and age without performing a test restore. Runtime connectivity reflects the latest health check.
+
+
+###2026.09.24.15
+- UX: Reduce the blank space between Advanced Settings menu buttons while keeping their labels and focus states readable.
+- Fix: Remove status and apply-mode badges from Advanced section titles, including the empty dash beside titles such as Operations workspace.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings script and styles.
+
+
+###2026.09.24.14
+- UX: Advanced tabs now share one heading size, position, and content inset across Workflows, Appearance, and Support.
+- Fix: Remove the extra panel indentation and edge-to-edge layout differences seen when switching between Advanced tabs.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.24.13
+- Fix: Show the Customizations heading only once in Advanced Settings while keeping it visible in Basic Settings.
+- UX: Make the Workflows, Appearance, and Support group headings larger and easier to distinguish from their tabs.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings stylesheet.
+
+
+###2026.09.24.12
+- UX: Align the Advanced navigation title with the open section heading, and make navigation groups easier to distinguish.
+- UX: Give Appearance its own navigation group and place Recovery with Diagnostics and Logs under Support on desktop and phones.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and translations.
+
+
+###2026.09.24.11
+- UX: Advanced Settings now uses a grouped navigation rail on desktop and a single section picker on phones, keeping section choices easy to find.
+- Accessibility: The selected section has a clear, restrained accent, and switching sections keeps keyboard focus on the navigation control.
+- UX: Rename Automation to Bulk assignment and Start Order to Docker start order. The updated navigation labels are translated across all supported languages.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.10
+- UX: Docker and VM Basic Settings toolbars now match the Settings header control height and spacing, with blue Export all and green Import buttons in both light and dark themes.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.24.09
+- UX: Docker and VM Basic Settings folder names now show direct container or VM counts with matching icons, plus immediate sub-folder counts when present.
+- Localization: The new folder count labels are available in all supported languages.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.08
+- UX: Docker and VM Basic Settings summary cards have slightly more vertical padding for a more comfortable fit while retaining their compact layout.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised style.
+
+
+###2026.09.24.07
+- UX: Docker and VM Basic Settings summary cards use less vertical space while allowing longer content to expand naturally on narrow screens.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised style.
+
+
+###2026.09.24.06
+- UX: The Filters and view settings bar in Docker and VM Basic Settings now uses a solid theme-aware background instead of a gradient.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised style.
+
+
+###2026.09.24.05
+- UX: Docker and VM Basic Settings now place search, sort, Add Folder Group, Export, Import, Restore, and Clear in one responsive toolbar. The redundant Filters button is removed; Filters and view settings remains available from its section heading.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.04
+- UX: Removed the Path bar above the Docker and VM folder lists in Basic Settings. Folder filters remain directly above each list.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings layout and scripts.
+
+
+###2026.09.24.03
+- UX: Focusing the Settings search field no longer draws a blue outline inside the input. The highlighted border around the whole search box remains visible.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.24.02
+- UX: Advanced Settings now uses its tabs to organize sections without Compact or Expand buttons in section headings or the tab bar. Every section in the selected tab shows its content, including after updating from a previously compacted layout.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts and styles.
+
+
+###2026.09.24.01
+- UX: The Settings search field now sits centered alongside Basic, Advanced, and Wizard, with more space between the search icon and text.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.23.09
+- Fix: Advanced > Logs now keeps up to 100 entries in the current browser for 30 days, so recent activity survives switching tabs, leaving Settings, and reopening the page. Entries older than 30 days are removed when the history is read.
+- UX: Clear also removes the saved browser history. Clearing browser site data removes it as well; history is not shared between browsers or devices.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings script and translated description.
+
+
+###2026.09.23.08
+- UX: Advanced > Logs now color-codes each entry: green for completed actions, red for errors, orange for warnings, and blue for information. A matching tinted row and leading border make the status clear in light and dark themes.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings styles.
+
+
+###2026.09.23.07
+- UX: Settings activity now appears in Advanced > Logs instead of the bar above Basic settings. Entries are always visible with the newest at the top, and the latest action is shown only once.
+- UX: Logs keep up to 100 recent entries from the current Settings session. Routine informational notices and background diagnostic successes are omitted; completed actions, warnings, and failures remain visible. Clear empties the list.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts and styles.
+
+
+###2026.09.23.06
+- UX: Folder moves in Settings > Basic now appear as soon as a folder is dropped. The save continues in the background, with the previous position restored if it fails.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings scripts.
+
+
+###2026.09.23.05
+- UX: Dragging a folder onto a highlighted Before, Inside, or After target now moves it immediately without an extra confirmation dialog. The Move folder button remains available for keyboard-based moves.
+- UX: Folder drop highlighting now marks the outside edges of the destination row without outlining each table column.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings assets.
+
+
+###2026.09.23.04
+- Fix: Tree moves now save a folder's parent and manual position together, with revision checks that reject stale changes instead of leaving a partial move.
+- UX: Moving a folder inside another folder or back to the root keeps the current sort mode. Before and After moves set Manual sort, with the change shown in the move dialog.
+- UX: Drag folders between levels using labeled Before, Inside, and After targets. Review the destination path and number of folders in the moving branch before confirming; the Move folder action remains available for keyboard use.
+- UX: Large collapsed Docker previews initially show up to 24 container cards and 12 child folder chips. Use Show more to reveal the rest.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised Settings and Docker assets.
+
+
+###2026.09.23.03
+- Fix: Restore the stable release's button typography and component styling across plugin workspaces while continuing to use plugin theme colors instead of native Unraid button skins.
+- UX: Keep long translated button labels wrapping on narrow screens, preserve semantic status colors and minimal folder chevrons, and retain the folder editor's larger 1.3rem tabs with border-only selection highlighting.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised button styles.
+
+
+###2026.09.23.02
+- Fix: Settings and folder-editor saves now preserve unrelated changes made in another tab, including when a save retries after a revision conflict. Delayed branch-pin and Docker start-order saves retain only the intended edits.
+- Fix: Settings diagnostics start after Settings initialization and run once, preventing misleading startup errors from accessing settings before they are ready.
+- Fix: Overlapping VM actions release abandoned busy indicators while keeping newer and queued actions marked busy. Late responses from superseded actions no longer finalize the current action or trigger a stale page refresh.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised browser scripts.
+
+
+###2026.09.23.01
+- Fix: Restoring the latest Docker or VM backup now selects the intended snapshot before creating its safety backup, so it no longer restores the current state by mistake.
+- Fix: Restores now recover saved preferences alongside folders, including rules, pins, ordering, and Dashboard layout. Older folder-only snapshots continue to preserve existing preferences.
+- Fix: Restoring an older snapshot works when the backup retention limit is reached, including a limit of one. Retention runs after a successful restore and preserves the new safety backup for undo.
+- Fix: Restore operations wait for pending preference saves and roll back configuration changes if a restore fails. Confirmation text explains the restored contents in every supported language.
+
+
+###2026.09.22.01
+- Performance: Reduce Docker startup work by centering the completed folder tree once instead of repeatedly measuring every folder as each row is inserted. Folder membership, nesting, and existing expand/collapse behavior are preserved.
+- Diagnostics: Include aggregate Docker startup-stage timings in support bundles, covering provider preparation, runtime loading, data preparation, folder rendering, and deferred detail application without recording container or folder identities.
+- Regression guard: Add a synthetic 23-folder, seven-child-folder, 51-container workload with repeated cold/warm measurements, exact membership and hierarchy checks, and a measured baseline taken before the optimization. Existing stress-test baselines remain enforced.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Docker support-bundle milestones now start at the earlier bootstrap stage; compare named operation durations when reviewing older bundles. Synthetic benchmark results do not measure your server's PHP or network latency.
+
+
+###2026.09.21.04
+- Fix: Prevent the Standard performance profile label in Settings from creating a false localization advisory. Docker and VM summaries now use the shared translation catalog available on the Settings page in every supported language.
+- Regression guard: Require zero missing translation keys in startup benchmarks, and verify all performance profiles across all 27 locales while retaining warnings for genuine localization failures.
+- Compatibility: Hard-refresh the Unraid webGUI after updating, then run the health check again. Missing-key advisories belong to the current page session and clear when the corrected page loads.
+
+
+###2026.09.21.03
+- UX: Folder editor tab labels now use 1.3rem text. The selected tab uses an accent border with the same background as other tabs, while keyboard focus remains visible in light and dark themes.
+- Test: Add full plugin startup benchmarks for Settings and Docker, covering small through extreme folder libraries, cold and repeat loads, English, German and Arabic, browser blocking, requests, localization and rendering completeness. Existing component benchmarks remain in place.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the tab styles. Runtime performance optimizations are deferred until the new startup baseline has been reviewed; this update does not claim faster folder loading.
+
+
+###2026.09.21.02
+- Fix: Restore configured minimal folder chevrons and their colors on Docker and VM pages. Preserve colored status and alert chips in Settings and remove the unwanted outer box around pinned switches while keeping plugin button themes.
+- Fix: Prevent the folder editor from flashing a startup error while its scripts are still loading normally. Missing or stalled scripts and a missing runtime startup marker still produce actionable errors.
+- Performance: Allow versioned editor scripts to use the browser cache on normal folder opens, while explicit recovery retries request fresh copies. Reduce repeated translation work on empty attributes and unchanged, unrecognized page text across all supported languages.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Check folder loading and navigation on your server; automated performance checks use isolated fixtures rather than a live Unraid system.
+
+
+###2026.09.21.01
+- Fix: Export complete environment snapshots containing Docker and VM folders, preferences, defaults, and appearance settings. Reject incomplete export responses instead of reporting a successful empty download, and reconnect environment import previews, confirmation, and refresh after applying.
+- Fix: Record successful backup and environment actions in the Activity Center so History and Clear become available after activity. Show the original date and time for persisted recovery events and readable event labels, with technical identifiers available in event details.
+- Fix: Keep the latest backup list when Recovery requests overlap or a refresh fails, and avoid rebuilding unchanged recovery controls during refresh.
+- Localization: Render Recovery summaries, backup controls, snapshot comparisons, action target text, and performance summaries in the selected language immediately. Standardize current running-state wording across Docker, VMs, editor previews, and appearance controls in all 27 supported languages while preserving stored state values.
+- Fix: Keep running preview icons colored when grayscale is limited to stopped members, and avoid reporting a managed-theme update failure when no updates are available.
+- UX: Apply the plugin's button styling consistently across Settings, editor dialogs, Docker, VMs, and Dashboard controls. Wrap long translated labels, keep dialog close controls compact, prevent icon-picker and Dashboard option clipping, and add space around Dashboard member icons.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised scripts, styles, and language catalogs. A download-started notice means the file was handed to the browser; check the browser downloads list to confirm it was saved.
+
+
+###2026.09.19.01
+- Fix: Classify initial Docker and VM runtime loading as cold even when it finishes after the Settings interface becomes ready. Older runtime-loading samples with ambiguous classifications are discarded when restoring browser performance history; other timing history is retained. Repeated slow warm loads still produce warnings.
+- Localization: Replace fragmented performance-warning text with a complete translated message in all 27 supported languages. Translate the Settings loading subtitle from the first server-rendered frame and retain its explicit translation binding after startup.
+- Fix: Stop reporting a visible Settings loading screen as a blank page. Truly blank pages retain their early checks, while a loading screen that remains unfinished for 60 seconds receives a distinct, translated loading-timeout message.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the revised browser scripts and language catalogs.
+
+
+###2026.09.18.02
+- Fix: Show a calm, dismissible notice after requesting a configuration export. Replace the alarming download-failure button with a secondary "File missing? Get help" action, while preserving missing-file reporting, retry, and genuine error messages.
+- Fix: Keep dismissed notices closed when delayed diagnostic responses arrive, and prevent older responses from replacing a newer export notice. Dismissing a notice does not mark a download as successful or failed.
+- Localization: Translate the new download notice into all 27 supported languages and keep its controls readable on phones, in light and dark themes, and with right-to-left text.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. The notice confirms that the export was sent to the browser; it does not claim that the browser finished saving the file.
+
+
+###2026.09.18.01
+- Fix: Download Docker and VM backup snapshots as files without the HTTP 200 `[object Blob]` parsing error on desktop and mobile browsers. Preserve server error details and allow the browser time to begin saving before releasing the download URL.
+- Fix: Wrap Diagnostics action labels correctly on smaller screens and stack the actions on narrow phones, including longer translated labels and right-to-left languages.
+- Docs: Explain how to move from a manual or dev installation to the Community Applications stable channel without uninstalling, including backup preservation, downgrade checks, and verification of the installed update URL.
+- Docs: Add troubleshooting for persistent installation warnings and distinguish external application warnings from FolderView Plus health checks, including the evidence needed when a warning persists.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. This development update does not switch the installed update channel or clear warnings from other plugins.
+
+
+###2026.09.17.11
+- Fix: Extend translations across all 27 supported locales for conditional messages, folder editing, icons, themes, setup, imports, recovery, rules, runtime actions, and diagnostics. Correct remaining English text and context-sensitive action wording.
+- Fix: Localize native confirmations and clone prompts, CSS empty states, accessibility labels, and FolderView3 migration reports. Preserve cancellation behavior, user-entered names, and confirmation tokens.
+- Fix: Replace English plural suffix construction with complete count messages and prevent adjacent or overlapping message parameters from corrupting displayed names and counts. Preserve the distinction between manual sorting and manual membership.
+- Fix: Translate additional server errors and repair guidance while retaining the original diagnostic text, status, and appended technical details. Dates and selected numeric displays now follow the configured language.
+- Fix: Keep development-channel descriptions and quick-start guidance localized in installed packages, and retain their translation bootstrap during packaging.
+- Compatibility: Hard-refresh the Unraid webGUI after updating so the new scripts and language catalogs load together.
+
+
+###2026.09.17.10
+- Fix: Translate destructive backup and folder-branch confirmations across all supported languages. Count messages now use complete translated text without inserting English plural suffixes, including singular and zero-count states. Existing confirmation and cancellation safeguards are preserved.
+- Fix: Correct Apply, Run, Move shown, and Clear terminology, and distinguish manual sorting from manually assigned folder membership in Docker, VM, and setup views.
+- Fix: Translate missing appearance, icon-browser, advanced-rule, import, recovery, setup, update, and diagnostics messages, including native browser prompts and common server error and repair responses. User-entered names and technical diagnostic details retain their original contents.
+- Fix: Correct remaining reviewed wording in Swedish WebUI controls, Chinese batch controls and container labels, Czech setup guidance, and Danish help text. All 27 supported locale catalogs are regenerated together.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the updated scripts and translations.
+
+
+###2026.09.17.09
+- Fix: Complete runtime translations across all 27 supported locales for folder-editor validation, save actions, change counters, inherited defaults, preview summaries, parent-folder guidance, automatic rules, and bulk assignment.
+- Fix: Translate icon-browser filters, selection instructions, quota details, built-in icon names, and VM folder status counts, including text updated after an interaction or delayed language loading.
+- Fix: Correct sorting, manual membership, review actions, icon-package terminology, configuration descriptions, and Docker Compose wording across supported languages. User-entered names, icon filenames, paths, and saved values retain their original contents.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the updated scripts and language catalogs.
+
+
+###2026.09.17.08
+- Fix: Preserve Dashboard Accordion expansion after refresh, including Expand all and nested Docker and VM folders. Normal folder clicks retain Accordion behavior.
+- Fix: Compact Matrix uses available columns for ungrouped containers and VMs, including widgets with only one folder or no folders.
+- Fix: Compact Matrix reclaims space from folders and items hidden by Started Only and adjusts when runtime status changes. Hard-refresh the webGUI after updating.
+
+
+###2026.09.17.07
+- Fix: Prevent Compact Matrix from stretching Docker and VM Dashboard widgets beyond the screen under Unraid's native table styles. Folder cards wrap into their columns and the view controls remain accessible without horizontal scrolling. Hard-refresh the webGUI after updating.
+
+
+###2026.09.17.06
+- Fix: Use the available Docker and VM Dashboard widget width in Classic, Fullwidth, Inset, and Embossed views. Collapsed folders and ungrouped items now wrap across rows, while expanded folders receive a full-width panel with responsive member columns.
+- Fix: Remove the single-column member restriction from Fullwidth and improve member spacing in Accordion and other panel views. Long folder names truncate within their tiles while respecting the folder-label visibility setting, and nested folders retain their own expansion state.
+- Fix: Stack Compact Matrix cards independently in up to three columns so a tall folder no longer creates empty gaps between cards in adjacent columns. Member columns adapt to their own panel width, including nested panels.
+- Diagnostics: Keep Dashboard layout diagnostics aligned with the rendered Compact Matrix columns and panel padding. Hard-refresh the webGUI after updating to load the new layout styles.
+
+
+###2026.09.17.05
+- Fix: Keep parent and ancestor folders open when expanding nested Docker or VM folders in the Dashboard's Accordion layout. Sibling folders still collapse as expected, and saved expansion states keep nested folders visible after a page refresh.
+
+
+###2026.09.17.04
+- Maintenance: Synchronize the dev channel with stable 2026.09.17.03, including the complete folder, Dashboard, upload, diagnostics, migration, appearance, and localization improvements.
+- Reliability: Rebuild the dev archive with deterministic compression so Windows and Linux produce identical package bytes. Saved settings and runtime behavior are unchanged from the stable release.
+
 
 ###2026.09.17.03
 - UX: Add Edit folder defaults links for Docker and VMs. Edit saved defaults, including imported FolderView3 profiles, without creating a source folder; future folders inherit the profile while existing folders remain unchanged unless Apply to all is explicitly used.
@@ -8867,7 +9259,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

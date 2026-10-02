@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
+import { registerRecoverySupportCases } from './recovery-support.mjs';
 import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
+import { registerLocalizedEditorStateCases } from './localization-editor-state.mjs';
+import { registerLocalizationAuditCases } from './localization-audit.mjs';
+import { registerLocalizationRepairBoundaryCases } from './localization-repair-boundaries.mjs'; import { registerSettingsStartupRepairCases } from './settings-startup-repair.mjs';
 
 const loadI18n = async (page, baseUrl) => {
     await page.addScriptTag({ url: baseUrl + '/vendor/jquery.js' });
@@ -26,6 +30,10 @@ const configureGerman = (wait = true) => {
 };
 
 export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => {
+    registerRecoverySupportCases({ test, baseUrl, loadI18n });
+    registerLocalizedEditorStateCases({ test, baseUrl, loadI18n });
+    registerLocalizationAuditCases({ test, baseUrl, loadI18n });
+    registerLocalizationRepairBoundaryCases({ test, baseUrl, loadI18n }); registerSettingsStartupRepairCases({ test, baseUrl, loadI18n });
     registerDiagnosticsOrphanFixtureCases({ test, baseUrl });
     test('delayed German catalogs translate Docker controls in place across navigation', async ({ page }) => {
         for (let visit = 0; visit < 2; visit += 1) {
@@ -57,13 +65,13 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
                 const label = document.createElement('p');
                 label.id = 'early-health';
                 label.textContent = window.FolderViewPlusI18n.t('common.health.folder-summary',
-                    'Folder health: $1 started | $2 paused | $3 stopped', 0, 0, 3);
+                    'Folder health: $1 running | $2 paused | $3 stopped', 0, 0, 3);
                 document.body.append(label);
             });
             assert.match(await page.locator('[data-fvplus-docker-action="expand-all"]').innerText(), /Expand All/i);
             await page.evaluate(async () => { window.releaseGerman(); await window.catalogReady; });
             assert.match(await page.locator('[data-fvplus-docker-action="expand-all"]').textContent(), /Alles erweitern/);
-            assert.match(await page.locator('#early-health').innerText(), /Ordnerstatus: 0 gestartet.*3 gestoppt/);
+            assert.match(await page.locator('#early-health').innerText(), /Ordnerstatus: 0 Läuft.*3 gestoppt/);
             assert.equal(await page.locator('.appname').last().innerText(), 'Expand All', 'user names must remain unchanged');
             assert.equal(await page.evaluate(() => document.activeElement === window.originalExpand
                 && document.querySelector('[data-fvplus-docker-action="expand-all"]') === window.originalExpand), true);
@@ -74,7 +82,7 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
     test('German workspaces use production markup and fit long labels at desktop and phone widths', async ({ page }) => {
         await page.goto(baseUrl + '/settings');
         await loadI18n(page, baseUrl);
-        for (const name of ['folderviewplus.theme-profiles', 'folderviewplus.theme-workspace', 'folderviewplus.settings-workspaces']) {
+        for (const name of ['folderviewplus.theme-profiles', 'folderviewplus.theme-workspace', 'folderviewplus.environment', 'folderviewplus.settings-workspaces']) {
             await page.addScriptTag({ url: baseUrl + '/plugin/scripts/' + name + '.js' });
         }
         await page.addStyleTag({ url: baseUrl + '/plugin/styles/theme-profiles.css' });
@@ -85,8 +93,9 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             const source = await fetch('/plugin/FolderViewPlus.page').then(response => response.text());
             const parsed = new DOMParser().parseFromString(source, 'text/html');
             const root = document.getElementById('fv-settings-root');
-            root.innerHTML = ['fv-activity-feed-panel', 'fv-theme-workspace-panel']
-                .map(id => parsed.getElementById(id).outerHTML).join('')
+            root.innerHTML = parsed.querySelector('[data-fv-section="logs"]').outerHTML
+                + ['fv-activity-feed-panel', 'fv-theme-workspace-panel']
+                    .map(id => parsed.getElementById(id).outerHTML).join('')
                 + '<section id="german-recovery"></section><section id="german-operations"></section><section id="german-support"></section>';
             const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -110,7 +119,8 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             });
             document.getElementById('german-recovery').innerHTML = workspace.buildRecoveryOverviewHtml('docker')
                 + workspace.buildRecoveryBackupHistoryHtml('vm');
-            document.getElementById('german-operations').innerHTML = workspace.buildOperationsOverviewHtml('vm');
+            document.getElementById('german-operations').innerHTML = '<span id="vm-operations-template-count"></span><div id="vm-operations-template-library"></div>';
+            workspace.renderTemplateRows('vm');
             const preview = window.FolderViewPlusSupportBundlePreview.createApi({ t, escapeHtml });
             const bundle = { bundleMeta: { privacyMode: 'sanitized', previewOnly: true }, system: {}, pluginState: {},
                 runtimeState: {}, uiTelemetry: {}, healthAndHistory: {}, redactionManifest: {} };
@@ -119,10 +129,12 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             window.FolderViewPlusI18n.translate(root);
             window.originalProfiles = JSON.stringify(window.germanTheme.getWorkspace().profiles);
         });
-        assert.match(await page.locator('#fv-activity-center-toggle').textContent(), /Verlauf/);
+        assert.equal((await page.locator('[data-fv-section="logs"]').textContent()).trim(), 'Protokolle');
+        assert.notEqual((await page.locator('[data-i18n="settings.logs.retention-description"]').textContent()).trim(),
+            'Recent actions and issues are kept in this browser for 30 days. Newest first.');
         assert.equal((await page.locator('#fv-activity-center-clear').textContent()).trim(), 'Leeren');
-        assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/);
-        assert.match(await page.locator('#german-recovery').innerText(), /Aktuelle Ordner: 2/);
+        assert.match(await page.locator('#german-recovery').innerText(), /Vor dem Entfernen fehlender Verweise/i);
+        assert.match(await page.locator('#german-recovery').innerText(), /2\s+Ordner/i);
         assert.match(await page.locator('#german-operations').innerText(), /Noch keine gespeicherten VM-Vorlagen/);
         assert.match(await page.locator('#fv-theme-workspace-summary').innerText(), /Standardprofil \/ Global/);
         assert.equal(await page.locator('.fv-support-bundle-section-badge').first().innerText(), 'Enthalten');

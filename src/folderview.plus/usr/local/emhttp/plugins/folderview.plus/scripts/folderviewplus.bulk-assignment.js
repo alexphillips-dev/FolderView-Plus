@@ -7,11 +7,11 @@
     root.FolderViewPlusBulkAssignment = factory();
     root.FolderViewPlusBulkAssignmentModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
     const BULK_LIST_RENDER_CHUNK_SIZE = 120;
-
     const createBulkAssignUiState = () => ({
         selected: new Set(),
         allNames: [],
@@ -19,6 +19,7 @@
         failedNames: [],
         lastTargetFolderId: '',
         lastResult: null,
+        confirming: false,
         applying: false,
         renderToken: 0
     });
@@ -127,6 +128,7 @@
             docker: createBulkAssignUiState(),
             vm: createBulkAssignUiState()
         };
+        let workspace = null;
 
         const sanitizeBulkItemName = (value) => (
             sharedApi && typeof sharedApi.sanitizeBulkItemName === 'function'
@@ -309,28 +311,28 @@
                 {
                     id: `${type}-bulk-target-summary`,
                     value: plan?.targetFolderName || 'Choose a folder',
-                    title: plan?.targetFolderName || 'Pick a target folder before selecting items.',
+                    title: plan?.targetFolderName || surfaceT("common.repair.pick-a-target-folder-before-selecting-items-220e60", "Pick a target folder before selecting items."),
                     ready: Boolean(plan?.targetFolderId)
                 },
                 {
                     id: `${type}-bulk-available-summary`,
                     value: String(availableCount),
-                    title: `${availableCount} item${availableCount === 1 ? '' : 's'} available for assignment.`,
+                    title: surfaceT("common.runtime.items-available-for-assignment-1", "Items available for assignment: $1.", availableCount),
                     ready: availableCount > 0
                 },
                 {
                     id: `${type}-bulk-selected-summary`,
                     value: String((plan?.selectedNames || []).length),
                     title: hiddenSelectedCount > 0
-                        ? `${hiddenSelectedCount} selected item${hiddenSelectedCount === 1 ? '' : 's'} hidden by the current filter.`
-                        : `${(plan?.selectedNames || []).length} item${(plan?.selectedNames || []).length === 1 ? '' : 's'} selected.`,
+                        ? surfaceT("common.repair.selected-items-hidden-by-the-current-filter-1-987859", "Selected items hidden by the current filter: $1.", hiddenSelectedCount)
+                        : surfaceT("common.repair.selected-items-1-6266f4", "Selected items: $1.", (plan?.selectedNames || []).length),
                     ready: (plan?.selectedNames || []).length > 0
                 },
                 {
                     id: `${type}-bulk-action-summary`,
                     value: String((plan?.actionableNames || []).length),
                     title: plan?.targetFolderId
-                        ? `${(plan?.actionableNames || []).length} item${(plan?.actionableNames || []).length === 1 ? '' : 's'} will change folders.`
+                        ? surfaceT("common.repair.items-that-will-change-folders-1-bf3a47", "Items that will change folders: $1.", (plan?.actionableNames || []).length)
                         : 'Select a target folder to see how many items will change.',
                     ready: (plan?.actionableNames || []).length > 0
                 }
@@ -363,35 +365,35 @@
             let disabled = false;
             if (state.applying === true) {
                 icon = 'fa-spinner fa-spin';
-                label = 'Applying changes';
+                label = surfaceT("common.runtime.applying-changes", "Applying changes");
                 disabled = true;
             } else if (folderSelectDisabled) {
                 icon = 'fa-folder-open-o';
-                label = 'Create a folder first';
+                label = surfaceT("common.runtime.create-a-folder-first", "Create a folder first");
                 disabled = true;
             } else if (!plan?.targetFolderId) {
                 icon = 'fa-crosshairs';
-                label = 'Choose target first';
+                label = surfaceT("common.runtime.choose-target-first", "Choose target first");
                 disabled = true;
             } else if (!Array.isArray(plan?.selectedNames) || plan.selectedNames.length <= 0) {
-                icon = 'fa-check-square-o';
-                label = 'Select items first';
+                icon = 'fa-play';
+                label = type === 'vm' ? surfaceT('legacy.surface.0b6704b3edf02d3c', 'Move VMs ($1)', 0) : surfaceT('legacy.surface.89348b7fa76ab753', 'Move containers ($1)', 0);
                 disabled = true;
             } else if (!Array.isArray(plan?.actionableNames) || plan.actionableNames.length <= 0) {
                 icon = 'fa-check';
-                label = 'No changes needed';
+                label = surfaceT("common.runtime.no-changes-needed", "No changes needed");
                 disabled = true;
             } else {
                 const changeCount = plan.actionableNames.length;
-                icon = 'fa-check';
-                label = `Apply ${changeCount} change${changeCount === 1 ? '' : 's'}`;
+                icon = 'fa-play';
+                label = type === 'vm' ? surfaceT('legacy.surface.0b6704b3edf02d3c', 'Move VMs ($1)', changeCount) : surfaceT('legacy.surface.89348b7fa76ab753', 'Move containers ($1)', changeCount);
                 disabled = false;
             }
             button.replaceChildren(
                 createSafeElement('i', { className: `fa ${icon}` }),
                 documentRef.createTextNode(` ${label}`)
             );
-            button.disabled = disabled;
+            button.disabled = disabled || state.confirming === true;
             button.setAttribute('data-fv-bulk-state', state.applying === true ? 'applying' : (disabled ? 'idle' : 'ready'));
         };
 
@@ -473,6 +475,7 @@
                 ? planInput
                 : buildBulkAssignmentPlan(resolvedType, folderId, Array.from(state.selected || []));
             updateBulkSummaryCards(resolvedType, plan);
+            workspace?.update(resolvedType, plan);
             updateBulkStepState(resolvedType, plan);
             updateBulkPrimaryAction(resolvedType, plan);
             return plan;
@@ -547,7 +550,7 @@
             const actionRow = retryButton.closest('.bulk-result-actions');
             retryButton.toggleClass('is-hidden', failedCount <= 0);
             actionRow.toggleClass('is-hidden', failedCount <= 0 || !(state.lastResult && typeof state.lastResult === 'object'));
-            retryButton.prop('disabled', state.applying === true);
+            retryButton.prop('disabled', state.applying === true || state.confirming === true);
             if (failedCount > 0) {
                 retryButton.html(`<i class="fa fa-repeat"></i> Retry failed (${failedCount})`);
             }
@@ -567,7 +570,7 @@
                 text: summary,
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Apply',
+                confirmButtonText: surfaceT("common.actions.apply", "Apply"),
                 cancelButtonText: 'Cancel',
                 closeOnConfirm: true
             }, (confirmed) => {
@@ -613,10 +616,10 @@
             previewLines.push(`<div class="bulk-preview-line"><strong>Move</strong><span>${movePreview ? escapeHtml(movePreview) : '<span class="bulk-preview-none">none</span>'}${plan.moves.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.moves.length - listLimit} more)</span>` : ''}</span></div>`);
             previewLines.push(`<div class="bulk-preview-line"><strong>Unchanged</strong><span>${unchangedPreview ? escapeHtml(unchangedPreview) : '<span class="bulk-preview-none">none</span>'}${plan.unchanged.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.unchanged.length - listLimit} more)</span>` : ''}</span></div>`);
             if (plan.duplicateNames.length) {
-                previewLines.push(`<div class="bulk-preview-line"><strong>Duplicates</strong><span>${escapeHtml(`${plan.duplicateNames.length} duplicate selection${plan.duplicateNames.length === 1 ? '' : 's'} dropped automatically.`)}</span></div>`);
+                previewLines.push(`<div class="bulk-preview-line"><strong>Duplicates</strong><span>${escapeHtml(surfaceT("common.repair.duplicate-selections-removed-automatically-1-d519a8", "Duplicate selections removed automatically: $1.", plan.duplicateNames.length))}</span></div>`);
             }
             if (plan.conflicts.length) {
-                previewLines.push(`<div class="bulk-preview-line"><strong>Conflicts</strong><span>${escapeHtml(`${plan.conflicts.length} selected item${plan.conflicts.length === 1 ? '' : 's'} already match multiple folders.`)}</span></div>`);
+                previewLines.push(`<div class="bulk-preview-line"><strong>Conflicts</strong><span>${escapeHtml(surfaceT("common.repair.selected-items-already-matching-multiple-folders-1-f7f34f", "Selected items already matching multiple folders: $1.", plan.conflicts.length))}</span></div>`);
             }
             panel.html(`
         <div class="bulk-preview-summary">${escapeHtml(`Target folder: ${plan.targetFolderName || plan.targetFolderId}`)}</div>
@@ -655,7 +658,7 @@
             visibleCount = 0,
             filter = ''
         } = {}) => {
-            if (!$) {
+            if (!$ || workspace) {
                 return;
             }
             const help = $(`#${type}-bulk-help`);
@@ -671,60 +674,15 @@
                     help.text(`No items match "${filter}". Try a broader filter.`);
                     return;
                 }
-                help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'} (${BULK_LIST_RENDER_CHUNK_SIZE}/frame render chunks).`);
+                help.text(surfaceT("common.counts.items-shown", "Items shown: $1/$2 (render batch size: $3).", visibleCount, allCount, BULK_LIST_RENDER_CHUNK_SIZE));
                 return;
             }
             const perfHint = allCount > BULK_LIST_RENDER_CHUNK_SIZE ? ' Rendering is chunked for large inventories.' : '';
-            help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.${perfHint}`);
+            help.text(surfaceT("common.runtime.items-available-for-assignment-1-2", "Items available for assignment: $1.$2", allCount, perfHint));
         };
 
         const renderBulkChecklist = (type, visibleNames) => {
-            const list = documentRef?.getElementById?.(`${type}-bulk-items-list`);
-            if (!(list instanceof HTMLElement)) {
-                return;
-            }
-            const state = getBulkState(type);
-            state.renderToken += 1;
-            const renderToken = state.renderToken;
-            list.innerHTML = '';
-            if (!Array.isArray(visibleNames) || !visibleNames.length) {
-                list.innerHTML = '<div class="bulk-items-empty">No items match this filter.</div>';
-                return;
-            }
-            const selected = state.selected || new Set();
-            let cursor = 0;
-            const appendChunk = () => {
-                if (renderToken !== state.renderToken) {
-                    return;
-                }
-                const end = Math.min(cursor + BULK_LIST_RENDER_CHUNK_SIZE, visibleNames.length);
-                const fragment = documentRef.createDocumentFragment();
-                while (cursor < end) {
-                    const name = visibleNames[cursor];
-                    cursor += 1;
-                    const row = documentRef.createElement('label');
-                    row.className = 'bulk-item-row';
-                    row.title = name;
-                    const checkbox = documentRef.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.className = 'bulk-item-checkbox';
-                    checkbox.value = name;
-                    checkbox.checked = selected.has(name);
-                    checkbox.setAttribute('data-fv-bulk-type', type);
-                    checkbox.setAttribute('aria-label', `Select ${name}`);
-                    const nameNode = documentRef.createElement('span');
-                    nameNode.className = 'bulk-item-name';
-                    nameNode.textContent = name;
-                    row.appendChild(checkbox);
-                    row.appendChild(nameNode);
-                    fragment.appendChild(row);
-                }
-                list.appendChild(fragment);
-                if (cursor < visibleNames.length) {
-                    requestAnimationFrameRef(appendChunk);
-                }
-            };
-            appendChunk();
+            workspace?.renderItems(type, visibleNames);
         };
 
         const renderBulkItemOptions = (type) => {
@@ -739,9 +697,10 @@
             const hasTargetFolders = $(`#${type}-bulk-folder`).prop('disabled') !== true;
             const allNames = getBulkAssignableNames(type);
             const filter = getBulkItemsFilterQuery(type);
-            const visibleNames = filter
+            const matches = filter
                 ? allNames.filter((name) => name.toLowerCase().includes(filter))
                 : allNames;
+            const visibleNames = workspace ? workspace.filterItems(type, matches) : matches;
             state.allNames = allNames;
             state.visibleNames = visibleNames;
             normalizeBulkSelectionForType(type);
@@ -783,7 +742,7 @@
                 };
             }
             filtersByType[resolvedType].bulk = normalized;
-            const input = $(`#${resolvedType}-bulk-filter`);
+            const input = $(`#${resolvedType}-bulk-filter, #${resolvedType}-bulk-table-filter`);
             if (input.length && input.val() !== displayValue) {
                 input.val(displayValue);
             }
@@ -882,7 +841,7 @@
             }
             const resolvedType = normalizeManagedType(type);
             const state = getBulkState(resolvedType);
-            if (state.applying === true) {
+            if (state.applying === true || state.confirming === true) {
                 return;
             }
             const folderId = String($(`#${resolvedType}-bulk-folder`).val() || '');
@@ -930,16 +889,24 @@
                 swal({ title: 'Nothing to apply', text: summary, type: 'info' });
                 return;
             }
-            const confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
+            state.confirming = true;
+            workspace?.update(resolvedType, plan);
+            let confirmed;
+            try {
+                confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
+            } finally {
+                state.confirming = false;
+                syncBulkWorkflowUi(resolvedType);
+            }
             if (!confirmed) {
                 return;
             }
             state.applying = true;
-            updateBulkPrimaryAction(resolvedType, plan);
+            syncBulkWorkflowUi(resolvedType, plan);
             updateBulkResultActions(resolvedType);
             renderBulkResultPanel(resolvedType, {
                 level: 'progress',
-                summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in one atomic request...`,
+                summary: surfaceT("common.repair.applying-items-in-one-atomic-request-items-1-a8179d", "Applying items in one atomic request. Items: $1�", plan.actionableNames.length),
                 lines: []
             });
             try {
@@ -950,7 +917,7 @@
                         onProgress: ({ chunkSize: currentBatchSize, resultLines: nextLines }) => {
                             renderBulkResultPanel(resolvedType, {
                                 level: 'progress',
-                                summary: `Applying one atomic request (${currentBatchSize} item${currentBatchSize === 1 ? '' : 's'})...`,
+                                summary: surfaceT("common.repair.applying-one-atomic-request-items-1-31551b", "Applying one atomic request. Items: $1�", currentBatchSize),
                                 lines: nextLines
                             });
                         }
@@ -992,7 +959,7 @@
                     lines: resultLines
                 };
                 renderBulkResultPanel(resolvedType, state.lastResult);
-                showError('Bulk assignment failed', error);
+                showError(surfaceT("common.repair.bulk-assignment-failed-7a1e5b", "Bulk assignment failed"), error);
             } finally {
                 state.applying = false;
                 syncBulkWorkflowUi(resolvedType);
@@ -1000,6 +967,11 @@
             }
         };
 
+        workspace = win?.FolderViewPlusBulkAssignmentView?.createApi({
+            window: win, document: documentRef, $, getBulkState, getFolderMap, getInfoByType, createSafeElement,
+            getBulkMemberFolderLookup, renderBulkItemOptions, filterBulkItems, bulkItemSelectionAction, requestAnimationFrameRef,
+            getItemRuntimeStateKind: deps.getItemRuntimeStateKind || (() => 'unknown')
+        });
         return Object.freeze({
             getBulkAssignableNames,
             clearBulkExecutionState,

@@ -31,7 +31,8 @@
   "modules": [
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures" },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs"] },
+    { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
@@ -88,6 +89,7 @@
         "tests/browser/cases/import.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
         "tests/browser/cases/forum-reports.mjs",
+        "tests/browser/cases/dashboard-row-spacing.mjs",
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
@@ -102,8 +104,8 @@
         "tests/browser/helpers/settings-alerts-health-layout.mjs"
       ],
       "testCount": 73,
-      "assertionCount": 875,
-      "pageEvaluateCount": 226,
+      "assertionCount": 880,
+      "pageEvaluateCount": 229,
       "orderedTitleSha256": "aeadc4ad6e67de3709ed8c6239c285ae6f75e5d5707f5a0ca37aaa15e0589964"
     }
   }

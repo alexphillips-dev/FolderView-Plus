@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.02.02">
-<!ENTITY md5 "f05466097ff77f6de3ec6f639d6b19ad">
-<!ENTITY sha256 "3d471b668c2bc5333ec43deeda488ab84d7b3ae2f507ba75838d0015f88e201e">
+<!ENTITY version "2026.10.03.01">
+<!ENTITY md5 "c12cd77089da2a238aa044b42b7ab188">
+<!ENTITY sha256 "b41e291c3b51106b48ab7ba3224dfefc1200fbddaa0cc7c76461f4b12ec8a930">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.03.01
+- Fix: Dashboard rows containing collapsed folders now use the same vertical spacing as ordinary container or VM rows in Classic, Full Width, and Inset layouts. Compact density, folder expansion, and Embossed styling continue to work as before.
+
 
 ###2026.10.02.02
 - Security: Updated the bundled Moment.js date library to 2.31.0, resolving CVE-2026-17495 and preventing prototype locale names from corrupting date handling. Docker and Dashboard chart date parsing remains compatible. The advisory's filesystem-loading attack concerns server-side usage; FolderView Plus loads this library in the browser.

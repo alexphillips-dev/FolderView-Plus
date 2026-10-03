@@ -598,6 +598,11 @@ tbody:is(.fv-dashboard-layout-classic, .fv-dashboard-layout-fullwidth, .fv-dashb
     grid-column: 1 / -1;
 }
 
+/* Clear the host tile margin inside folder wrappers, too, so mixed rows stay even. */
+tbody:is(.fv-dashboard-layout-classic, .fv-dashboard-layout-fullwidth, .fv-dashboard-layout-inset) .folder-showcase-outer > span.outer {
+    margin-bottom: 0;
+}
+
 tbody.fv-dashboard-layout-accordion .folder-showcase-outer {
     margin-bottom: 10px;
 }

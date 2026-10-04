@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { registerBackupMobileReportCases } from './backup-mobile-report.mjs';
 import { registerDashboardRowSpacingCases } from './dashboard-row-spacing.mjs';
+import { registerSettingsHideEmptyCases } from './settings-hide-empty.mjs';
 
 export const registerForumReportFixtureCases = ({ test, baseUrl }) => {
 registerBackupMobileReportCases({ test, baseUrl });
 registerDashboardRowSpacingCases({ test, baseUrl });
+registerSettingsHideEmptyCases({ test });
 test('Dashboard card layouts fill the widget despite fixed-width host tiles', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
     await page.addStyleTag({ content: '.folder-showcase-outer { display: inline-block; width: 180px; } span.outer { width: 180px; display: inline-block; }' });

@@ -6431,7 +6431,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             }
         }
         const totalMemberCount = totalMembersSet.size;
-        if (hideEmptyFolders && members.length === 0) {
+        if (hideEmptyFolders && totalMemberCount === 0) {
             continue;
         }
         const pinned = isFolderPinned(type, id);

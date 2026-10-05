@@ -17,6 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
   # Dispatched synchronization branches retain a dev package; their branch name is not a release channel.
   FVPLUS_EXPECT_PLUGIN_BRANCH: ${{ github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'backmerge/') && 'dev' || '' }}
   FVPLUS_I18N_STRICT: '1'
@@ -279,7 +280,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: detect-changes
-    if: needs.detect-changes.outputs.needs_theme == 'true'
+    if: needs.detect-changes.outputs.needs_theme == 'true' && vars.FVPLUS_SKIP_THEME_MATRIX != '1'
     outputs:
       duration_seconds: ${{ steps.elapsed.outputs.seconds }}
 

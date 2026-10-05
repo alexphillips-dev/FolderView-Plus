@@ -13,7 +13,11 @@ export const readProductionBaseline = baselinePath => {
     }
 };
 
+export const selectProductionPerfSurfaces = (scenario, skipDocker = false) =>
+    (scenario.surfaces || ['settings', 'docker']).filter(surface => !skipDocker || surface !== 'docker');
+
 export const runProductionPerformance = async ({ updateBaseline = false, scenarioName = '' } = {}) => {
+    const skipDocker = process.env.FVPLUS_SKIP_DOCKER_BENCHMARK === '1';
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
     const config = JSON.parse(fs.readFileSync(path.join(root, 'scripts/production_perf_budgets.json')));
     if (scenarioName && !config.scenarios[scenarioName]) throw new Error(`Unknown scenario: ${scenarioName}`);
@@ -22,7 +26,8 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
     if (!baseline && !updateBaseline) throw new Error('Production startup baseline is missing');
     const report = { version: 1, generatedAt: new Date().toISOString(), measuredRuns: config.measuredRuns,
         limitations: 'Synthetic Unraid host and APIs; shipped plugin JavaScript, CSS, markup and locale catalogs. Host widget stubs do not model Unraid server execution time.',
-        cases: {}, failures: [] };
+        cases: {}, failures: [], skippedSurfaces: skipDocker ? ['docker'] : [] };
+    if (skipDocker) console.log('[production-perf] Docker startup benchmarks skipped: explicit FVPLUS_SKIP_DOCKER_BENCHMARK=1 override.');
     const browser = await chromium.launch({ args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'] });
     report.browser = browser.version();
     try {
@@ -32,7 +37,7 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
             await new Promise(resolve => fixture.server.listen(0, '127.0.0.1', resolve));
             const origin = `http://127.0.0.1:${fixture.server.address().port}`;
             try {
-                for (const surface of scenario.surfaces || ['settings', 'docker']) {
+                for (const surface of selectProductionPerfSurfaces(scenario, skipDocker)) {
                     const samples = { cold: [], warm: [] };
                     for (let run = 0; run < config.measuredRuns; run++) {
                         const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });

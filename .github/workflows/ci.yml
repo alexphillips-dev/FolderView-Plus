@@ -18,6 +18,7 @@ concurrency:
 
 env:
   FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
+  FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
   # Dispatched synchronization branches retain a dev package; their branch name is not a release channel.
   FVPLUS_EXPECT_PLUGIN_BRANCH: ${{ github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'backmerge/') && 'dev' || '' }}
   FVPLUS_I18N_STRICT: '1'

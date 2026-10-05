@@ -63,6 +63,7 @@ jobs:
       - name: Validate merged dev state before push
         env:
           FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
+          FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
           FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'

@@ -6,7 +6,7 @@
     "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder"
   ],
   "smoke": [
-    "Settings alerts", "Dashboard.*expansion", "Manage Folders keeps populated ancestors",
+    "Settings alerts", "Dashboard.*expansion", "Manage Folders keeps populated ancestors", "Docker hide-empty",
     "Lifecycle reconciliation", "Folder action sheet traps focus", "Snapshot comparison opens"
   ]
 }

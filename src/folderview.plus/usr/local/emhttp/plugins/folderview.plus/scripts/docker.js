@@ -4887,6 +4887,9 @@ const createFolders = async () => {
     globalFolders = foldersDone;
     dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
     applyNestedFolderHierarchy();
+    if (folderTypePrefs?.hideEmptyFolders === true) {
+        dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr.folder-id-${id}, tr#name-${id}`).remove());
+    }
     syncDockerPinnedFolderUi();
     queueDockerPinnedFolderServerReconcile('post-render', 160);
 
@@ -5914,14 +5917,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
         folder.settings?.folder_update_highlight === true && upToDate === false
     );
     const total = Object.entries(folder.containers).length;
-    const removedByHideEmpty = folderTypePrefs?.hideEmptyFolders === true && total === 0;
-    dockerFolderGroupingSession?.finishFolder?.(id, { renderedMemberCount: total, removedByHideEmpty });
-    if (removedByHideEmpty) {
-        $(`tr.folder-id-${id}`).remove();
-        $(`tr#name-${id}`).remove();
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): hideEmptyFolders enabled, removed empty folder row.`);
-        return remBefore;
-    }
+    dockerFolderGroupingSession?.finishFolder?.(id, { renderedMemberCount: total, removedByHideEmpty: false });
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
     applyFolderAccentStyle($folderRow, folder.settings);

@@ -160,6 +160,23 @@ test('late wizard folder shells survive shrinking sortable rows with hide-empty 
     assert.equal(JSON.stringify(snapshot).includes('sha256:'), false, 'diagnostics must not expose container IDs');
 });
 
+test('hide-empty finalization preserves populated ancestors and reports direct ownership without double counting', () => {
+    const session = grouping.createSession({ document: { querySelectorAll: () => [] }, containersInfo: {} });
+    const folders = {
+        parent: { containers: {}, runtimeContainers: { one: {}, two: {} } },
+        child: { containers: { one: {}, two: {} } },
+        emptyParent: { containers: {}, runtimeContainers: {} },
+        emptyChild: { containers: {} }
+    };
+    Object.keys(folders).forEach(id => session.beginFolder(id, {}, 0));
+    const removed = [];
+    session.filterEmptyFolders(folders, id => removed.push(id));
+    assert.deepEqual(removed, ['emptyParent', 'emptyChild']);
+    assert.equal(session.snapshot().folders.removedByHideEmptyCount, 2);
+    assert.equal(session.snapshot().folders.renderedMemberCount, 2, 'aggregate membership must not count the same members twice');
+    assert.deepEqual(Object.keys(folders), ['parent', 'child', 'emptyParent', 'emptyChild'], 'filtering must retain folder definitions');
+});
+
 test('Docker grouping preserves first-folder-wins ownership', () => {
     const containersInfo = createRuntime(1);
     const name = Object.keys(containersInfo)[0];

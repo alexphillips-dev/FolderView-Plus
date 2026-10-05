@@ -217,6 +217,15 @@
             entry.renderedMemberCount = Math.max(0, Number(details.renderedMemberCount) || 0);
             entry.removedByHideEmpty = details.removedByHideEmpty === true;
         };
+        const filterEmptyFolders = (folders, removeFolderRow) => {
+            // Parent runtime membership is resolved after every native row is claimed.
+            // Preserve the definitions so showing empty folders can render them again.
+            for (const [id, folder] of Object.entries(folders || {})) {
+                const removedByHideEmpty = Object.keys(folder.runtimeContainers || folder.containers || {}).length === 0;
+                finishFolder(id, { renderedMemberCount: Object.keys(folder.containers || {}).length, removedByHideEmpty });
+                if (removedByHideEmpty) removeFolderRow(id);
+            }
+        };
         const snapshot = () => {
             const entries = [...folderEntries.values()];
             const totals = entries.reduce((result, entry) => ({
@@ -263,6 +272,7 @@
             insertFolderRow,
             claim,
             finishFolder,
+            filterEmptyFolders,
             rollbackFolder,
             snapshot
         });

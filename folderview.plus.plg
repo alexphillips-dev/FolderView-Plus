@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.05.02">
-<!ENTITY md5 "76cda7ce4c53d9fba713e0c25af338af">
-<!ENTITY sha256 "133f457a06179496f2f7d553797876be5133ef096dae8e624e77213484308f3b">
+<!ENTITY version "2026.10.05.04">
+<!ENTITY md5 "71812d7ccc3ce0e7729296f8879c2bfb">
+<!ENTITY sha256 "50359dfe7a2c400d255fcba65ce2986d18271b215d8cc767317ab9e94e1cd3a8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.05.04
+- Fix: Hide Empty Folders on the Docker page now keeps parents visible when child folders or deeper descendants contain containers, so their contents remain accessible through expansion.
+- Fix: Entirely empty Docker branches remain hidden. Visibility uses containers actually grouped into the branch, including regex matches, rather than stale assignments or containers claimed by another folder.
+- Fix: Parent and child visibility remains consistent when toggling Show/Hide empty folders, refreshing folder state, or reloading the Docker page.
+- Maintenance: Stable releases reuse verified qualification checks, validate package and security-scan evidence, and synchronize the released version back to dev without creating extra release branches.
+
 
 ###2026.10.05.02
 - Fix: Capturing Dashboard layout diagnostics closes the view menu and displays a dismissible confirmation in the affected Docker or VM widget, with guidance to export the capture in a support bundle.

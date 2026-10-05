@@ -31,8 +31,10 @@
   "modules": [
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./settings-hide-empty.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs"] },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
+    { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
+    { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
     { "file": "tests/browser/cases/settings-hide-empty.mjs", "limit": 65, "owner": "Manage Folders descendant visibility regression" },
     { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 85, "owner": "isolated production Settings hierarchy host" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
@@ -92,6 +94,7 @@
         "tests/browser/cases/folder-render-recovery.mjs",
         "tests/browser/cases/forum-reports.mjs",
         "tests/browser/cases/dashboard-row-spacing.mjs",
+        "tests/browser/cases/dashboard-row-expansion.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
         "tests/browser/cases/download-notice.mjs"
       ],
@@ -105,11 +108,12 @@
         "tests/browser/helpers/advanced-workspace-layout.mjs",
         "tests/browser/helpers/advanced-title-badges.mjs",
         "tests/browser/helpers/settings-alerts-health-layout.mjs",
-        "tests/browser/helpers/settings-hide-empty-host.mjs"
+        "tests/browser/helpers/settings-hide-empty-host.mjs",
+        "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 73,
-      "assertionCount": 888,
-      "pageEvaluateCount": 231,
+      "assertionCount": 908,
+      "pageEvaluateCount": 238,
       "orderedTitleSha256": "aeadc4ad6e67de3709ed8c6239c285ae6f75e5d5707f5a0ca37aaa15e0589964"
     }
   }

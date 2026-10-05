@@ -43,6 +43,7 @@
         return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
     };
     const safeRect = (node) => {
+        if (node?.matches?.('.folder-showcase-outer') && node.getClientRects?.().length === 0) node = node.querySelector(':scope > span.outer') || node;
         const rect = node && typeof node.getBoundingClientRect === 'function'
             ? node.getBoundingClientRect()
             : null;
@@ -59,7 +60,7 @@
         if (!node || node.hidden === true) return false;
         const style = typeof win?.getComputedStyle === 'function' ? win.getComputedStyle(node) : null;
         if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
-        if (typeof node.getClientRects === 'function' && node.getClientRects().length === 0) return false;
+        if (style?.display !== 'contents' && typeof node.getClientRects === 'function' && node.getClientRects().length === 0) return false;
         const rect = safeRect(node);
         return rect.width > 0 && rect.height > 0;
     };

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.04.01">
-<!ENTITY md5 "fd6e8c393b9784f55eeda196f815cab4">
-<!ENTITY sha256 "920b168fe4ee9a9ad2ab86beffbb169a81b04768b69ff63408f5c3051e3bb51c">
+<!ENTITY version "2026.10.04.02">
+<!ENTITY md5 "fb1b7fbbdd51d1181ed81fa2c8b0f200">
+<!ENTITY sha256 "2608a3e64176e08b0c2d2b0fbd029d6acea25b6b9888c447a19866b2fe03ed09">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.04.02
+- Fix: Expanding a Dashboard folder in Classic, Full Width, Inset, or Embossed view keeps its header in the original row and column. Containers and VMs open in a full-width preview below that row, and multiple open previews remain separate.
+- Fix: Dashboard columns continue to adapt to widget resizing, and quick controls and visual diagnostics recognize expanded folders correctly.
+
 
 ###2026.10.04.01
 - Fix: Hide Empty Folders in Manage Folders now keeps parent folders visible when any child or deeper descendant contains containers or VMs, including members matched by regex or rules. Entirely empty branches remain hidden.

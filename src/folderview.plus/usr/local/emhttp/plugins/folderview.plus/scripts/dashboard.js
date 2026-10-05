@@ -1274,7 +1274,7 @@ const collectDashboardRenderDiagnosticsForType = (type) => {
     const nameSelector = resolvedType === 'docker' ? '.folder-appname-docker' : '.folder-appname-vm';
     return Array.from(document.querySelectorAll(`tbody#${tbodyId} .folder-showcase-outer`)).map((node) => {
         const img = node.querySelector('img.folder-img-docker, img.folder-img-vm');
-        const rect = node.getBoundingClientRect ? node.getBoundingClientRect() : { width: 0, height: 0 };
+        const rect = (node.getClientRects().length ? node : node.querySelector(':scope > span.outer') || node).getBoundingClientRect();
         return {
             id: String(node.getAttribute('data-fv-folder-id') || ''),
             name: String(node.querySelector(nameSelector)?.textContent || '').trim(),

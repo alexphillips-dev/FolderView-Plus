@@ -362,19 +362,21 @@
                 return;
             }
             bindDashboardCompactMatrixResizeObserverForType(resolvedType);
+            const $visibleItems = $container.children('.folder-showcase-outer, span.outer')
+                .filter((_, node) => isDashboardNodeVisible(node));
+            const gridLayout = ['classic', 'fullwidth', 'inset', 'embossed'].includes(layout);
+            const columns = Math.max(1, Math.min($visibleItems.length || 1, Math.floor((measureDashboardContainerWidth($container.get(0)) + 8) / 168)));
+            $container.css('--fv-dashboard-grid-columns', gridLayout ? String(columns) : '');
             if (layout !== 'compactmatrix') {
                 state.compactMatrixMetricsByType[resolvedType] = null;
-                $container.css('--fv-dashboard-compactmatrix-columns', '');
-                $container.css('--fv-dashboard-compactmatrix-member-columns', '');
-                $container.removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
+                $container.css('--fv-dashboard-compactmatrix-columns', '').css('--fv-dashboard-compactmatrix-member-columns', '')
+                    .removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
                 deps.onVisualDiagnostics?.(resolvedType, {
                     trigger,
                     minimumMemberWidthPx: COMPACT_MATRIX_LAYOUT.minMemberWidth
                 });
                 return;
             }
-            const $visibleItems = $container.children('.folder-showcase-outer, span.outer')
-                .filter((_, node) => isDashboardNodeVisible(node));
             const metrics = deriveCompactMatrixLayout({
                 containerWidth: measureDashboardContainerWidth($container.get(0)),
                 folderCount: $visibleItems.filter('.folder-showcase-outer').length,
@@ -395,9 +397,7 @@
             if (!node || !(node instanceof Element)) {
                 return false;
             }
-            if (node.hidden === true) {
-                return false;
-            }
+            if (node.hidden === true) return false;
             const ownerWindow = node.ownerDocument && node.ownerDocument.defaultView
                 ? node.ownerDocument.defaultView
                 : win;
@@ -409,7 +409,7 @@
                 }
                 current = current.parentElement;
             }
-            return node.getClientRects().length > 0;
+            return node.getClientRects().length > 0 || (node.matches('.folder-showcase-outer') && node.querySelector(':scope > span.outer')?.getClientRects().length > 0);
         };
 
         const isDashboardWidgetCollapsedForType = (type) => {
@@ -533,7 +533,7 @@
                 return;
             }
             const parentRect = parentNode.getBoundingClientRect();
-            const cardRect = firstVisibleCard.getBoundingClientRect();
+            const cardRect = (firstVisibleCard.getClientRects().length ? firstVisibleCard : firstVisibleCard.querySelector(':scope > span.outer')).getBoundingClientRect();
             const offsetTop = Math.max(0, Math.round(cardRect.top - parentRect.top));
             $host.css('top', `${offsetTop}px`);
             syncDashboardWidgetQuickRailFitForType(resolvedType, parentRect, offsetTop);

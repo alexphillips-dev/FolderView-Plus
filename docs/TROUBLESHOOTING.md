@@ -189,7 +189,7 @@ Dashboard layout problems must be captured on the affected Dashboard because a s
 
 1. Open Dashboard in the browser and device where the problem occurs.
 2. Expand the affected Docker or VM folder and reproduce the clipping.
-3. Open the widget's `View options` menu and select `Capture layout diagnostics`.
+3. Open the widget's `View options` menu and select `Capture layout diagnostics`. The menu closes and the widget shows `Layout diagnostics captured`. If a warning says the capture could not be saved, allow browser storage for the Unraid site and retry. You can dismiss the notice without deleting the capture.
 4. If orientation or browser zoom changes the result, capture once in each failing state. The bounded history keeps the distinct layouts.
 5. Return to `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
 6. Confirm the support-bundle preview shows a fresh Docker or VM Dashboard capture, then export a sanitized bundle.

@@ -129,14 +129,32 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.equal(await layoutTrigger.getAttribute('data-fv-layout'), 'classic');
 
     await rail.locator('[data-fv-quick-action="view-options"]').click();
-    const capture = popover.locator('[data-fv-view-action="capture-diagnostics"]');
+    const capture = popover.locator('[data-fv-view-action="capture-diagnostics"]'); const cardWidths = await page.locator('#fixture-dashboard-host > .folder-showcase-outer').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
     assert.equal(await capture.count(), 1);
-    await capture.click();
+    await capture.hover(); await page.mouse.down();
+    assert.notEqual(await capture.evaluate(node => getComputedStyle(node).transform), 'none');
+    await page.mouse.up();
+    await popover.waitFor({ state: 'detached' });
+    const feedback = page.locator('#docker_view .fv-dashboard-capture-feedback');
+    assert.equal(await feedback.isVisible(), true);
+    assert.deepEqual(await page.locator('#fixture-dashboard-host > .folder-showcase-outer').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width)), cardWidths);
+    assert.match(await feedback.textContent(), /Layout diagnostics captured/);
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-quick-action')), 'view-options');
     assert.equal(await page.evaluate(() => window.fixtureDashboardLayout.state.captureCount), 1);
     assert.equal(
         await page.evaluate(() => window.fixtureDashboardLayout.visualRecord().latest.trigger),
         'manual'
     );
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    await popover.locator('[data-fv-view-action="capture-diagnostics"]').click();
+    assert.equal(await feedback.count(), 1);
+    await feedback.locator('button').click(); assert.equal(await feedback.count(), 0);
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('blocked'); }; });
+    await popover.locator('[data-fv-view-action="capture-diagnostics"]').click();
+    assert.match(await feedback.textContent(), /could not save this capture/);
+    assert.match(await feedback.getAttribute('class'), /is-warning/);
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
     const reset = popover.locator('[data-fv-view-action="reset-view"]');
     assert.equal(await reset.isDisabled(), false);
     await reset.click();
@@ -150,6 +168,12 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.deepEqual((await page.evaluate(() => window.fixtureDashboardLayout.snapshot())).visibleQuickActions, ['expand-toggle', 'view-options']);
     const mobileButtonBox = await rail.locator('[data-fv-quick-action="view-options"]').boundingBox();
     assert.ok(mobileButtonBox.width >= 30 && mobileButtonBox.height >= 30, 'narrow action buttons must retain larger touch targets');
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    await popover.locator('[data-fv-view-action="capture-diagnostics"]').focus(); await page.keyboard.press('Enter');
+    await popover.waitFor({ state: 'detached' }); assert.equal(await feedback.isVisible(), true);
+    await page.evaluate(() => { document.querySelector('#fixture-vm-widget').hidden = false; fixtureDashboardLayout.controller.ensureDashboardWidgetLayoutQuickSwitchForType('vm'); });
+    await page.locator('#vm_view [data-fv-quick-action="view-options"]').click(); await popover.locator('[data-fv-view-action="capture-diagnostics"]').click();
+    assert.equal(await page.locator('#vm_view .fv-dashboard-capture-feedback.is-warning').isVisible(), true);
 });
 
 test('Dashboard Started only filters expanded and collapsed members and reconciles live state', async ({ page }) => {

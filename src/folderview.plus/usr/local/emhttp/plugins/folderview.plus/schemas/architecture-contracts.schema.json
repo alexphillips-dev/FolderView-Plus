@@ -84,6 +84,7 @@
       "scripts/docker.runtime.actions.js": { "limit": 1157, "target": 600, "history": [1157] },
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
+      "scripts/dashboard.capture-feedback.js": { "limit": 70, "target": 60, "history": [70] },
       "scripts/folderviewplus.settings-workspaces.js": { "limit": 1101, "target": 500, "history": [1101] },
       "scripts/folderviewplus.folderview3-migration.js": { "limit": 354, "target": 320, "history": [354] },
       "scripts/folderviewplus.folderview3-apply.js": { "limit": 98, "target": 90, "history": [98] },
@@ -1299,6 +1300,20 @@
       "exports": ["SCHEMA_VERSION", "STORAGE_KEY", "MAX_CAPTURES_PER_SURFACE", "TTL_MS", "SURFACES", "normalizeSnapshot", "normalizeRecord", "readRecord", "buildSnapshot", "capture", "captureAndAnnounce", "createController"],
       "apiFactory": "createController",
       "apiExports": ["capture", "read"]
+    },
+    {
+      "file": "scripts/dashboard.capture-feedback.js",
+      "owner": "dashboard-capture-feedback",
+      "consumers": ["dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusDashboardCaptureFeedback"],
+      "global": "FolderViewPlusDashboardCaptureFeedback",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createController"],
+      "apiFactory": "createController",
+      "apiExports": ["capture"]
     },
     {
       "file": "scripts/folderviewplus.ui-state-diagnostics.js",

@@ -133,6 +133,7 @@
                 ? ui.escapeHtml(value)
                 : String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
         );
+        const captureFeedback = win.FolderViewPlusDashboardCaptureFeedback?.createController({ window: win, translate });
 
         const dashboardTypeMeta = (type) => (
             typeof deps.dashboardTypeMeta === 'function'
@@ -783,15 +784,7 @@
                     popover.close('reset');
                     deps.onResetView?.(resolvedType);
                 } else if (action === 'capture-diagnostics') {
-                    const snapshot = deps.onCaptureDiagnostics?.(resolvedType);
-                    ui?.announce?.({
-                        title: snapshot
-                            ? translate('dashboard.quick.capture-success-title', 'Layout diagnostics captured')
-                            : translate('dashboard.quick.capture-unavailable-title', 'Layout diagnostics unavailable'),
-                        message: snapshot
-                            ? translate('dashboard.quick.capture-success-message', 'Reproduce the issue, then export a support bundle from FolderView Plus Settings.')
-                            : translate('dashboard.quick.capture-unavailable-message', 'Expand the affected folder and try the capture again.'),
-                    });
+                    captureFeedback?.capture(resolvedType, popover, () => deps.onCaptureDiagnostics?.(resolvedType));
                 } else if (action === 'open-settings') {
                     popover.close('settings', { restoreFocus: false });
                     deps.onOpenSettings?.();

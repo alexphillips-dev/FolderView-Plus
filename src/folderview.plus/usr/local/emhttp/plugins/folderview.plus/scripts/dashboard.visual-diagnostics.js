@@ -463,14 +463,16 @@
                 latest: snapshot,
                 snapshots: snapshots.slice(-historyLimit)
             };
+            let persisted = false;
             if (storage && typeof storage.setItem === 'function') {
                 try {
                     storage.setItem(STORAGE_KEYS[resolvedType], JSON.stringify(next));
+                    persisted = true;
                 } catch (_error) {
                     // Visual diagnostics must never interfere with Dashboard rendering.
                 }
             }
-            return next;
+            return { ...next, persisted };
         };
         const capture = (type, captureOptions = {}) => {
             const resolvedType = normalizeType(type);
@@ -656,13 +658,13 @@
                 },
                 verdict
             };
-            persist(resolvedType, snapshot);
+            const { persisted } = persist(resolvedType, snapshot);
             pageDiagnostics?.capture?.({
                 variant: resolvedType,
                 trigger: 'visual-capture',
                 root: tbody
             });
-            return snapshot;
+            return { ...snapshot, persisted };
         };
         const scheduleCapture = (type, captureOptions = {}) => {
             const resolvedType = normalizeType(type);

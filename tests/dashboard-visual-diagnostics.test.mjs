@@ -130,7 +130,7 @@ test('Dashboard visual history is bounded and replaces equivalent geometry sampl
         overflow: { labels: { unexpectedClipCount: 0 } },
         verdict: { status: 'healthy', codes: ['layout-consistent'] }
     };
-    controller.persist('docker', { ...base, capturedAt: new Date(clock).toISOString() });
+    assert.equal(controller.persist('docker', { ...base, capturedAt: new Date(clock).toISOString() }).persisted, true);
     clock += 1000;
     controller.persist('docker', { ...base, capturedAt: new Date(clock).toISOString() });
     assert.equal(controller.read('docker').snapshots.length, 1);
@@ -146,4 +146,12 @@ test('Dashboard visual history is bounded and replaces equivalent geometry sampl
     const record = controller.read('docker');
     assert.equal(record.snapshots.length, 4);
     assert.equal(record.latest.environment.viewport.width, 405);
+});
+
+test('Dashboard captures report blocked or unavailable storage without claiming persistence', () => {
+    for (const storage of [{}, { getItem: () => null, setItem: () => { throw new Error('blocked'); } }]) {
+        const controller = diagnostics.createController({ storage, document: null });
+        assert.equal(controller.persist('vm', { capturedAt: '2026-10-05T12:00:00Z' }).persisted, false);
+        assert.equal(controller.read('vm').latest, null);
+    }
 });

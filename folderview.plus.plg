@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.05.01">
-<!ENTITY md5 "f1dff05589b072bf0ba7f33cec105351">
-<!ENTITY sha256 "aed2ef991bd4cd700e37d829c3b38bc943c3ff95ecdcd9b68c23cab2616e237a">
+<!ENTITY version "2026.10.05.02">
+<!ENTITY md5 "76cda7ce4c53d9fba713e0c25af338af">
+<!ENTITY sha256 "133f457a06179496f2f7d553797876be5133ef096dae8e624e77213484308f3b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.05.02
+- Fix: Capturing Dashboard layout diagnostics closes the view menu and displays a dismissible confirmation in the affected Docker or VM widget, with guidance to export the capture in a support bundle.
+- Fix: The capture button provides visible pressed feedback for mouse and touch interaction, while keyboard activation returns focus to the menu trigger.
+- Diagnostics: A capture that cannot be saved because browser storage is unavailable displays a warning instead of a success confirmation.
+
 
 ###2026.10.05.01
 - Diagnostics: Sanitized support bundles now include the browser family and reported version to help troubleshoot browser-specific problems without sharing the raw user-agent string.

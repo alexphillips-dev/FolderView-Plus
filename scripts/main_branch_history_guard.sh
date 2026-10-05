@@ -14,6 +14,12 @@ detect_branch() {
   if [[ -z "${branch}" || "${branch}" == "HEAD" ]]; then
     branch="${GITHUB_REF_NAME:-}"
     branch="${branch#refs/heads/}"
+    if [[ "$branch" == fvplus-release-candidate-* ]]; then
+      [[ "$branch" =~ ^fvplus-release-candidate-([a-f0-9]{40})$ ]] || fvplus::fail 'Invalid release candidate tag.'
+      [[ "${BASH_REMATCH[1]}" == "$(git rev-parse HEAD)" ]] || fvplus::fail 'Release candidate tag does not match HEAD.'
+      [[ "${FVPLUS_MAIN_HISTORY_BASE_REF:-}" =~ ^[a-f0-9]{40}$ ]] || fvplus::fail 'Release candidate requires an explicit history baseline.'
+      branch=main
+    fi
   fi
   printf '%s' "${branch}"
 }
@@ -48,6 +54,9 @@ if [[ "${TARGET_BRANCH}" != "main" ]]; then
 fi
 
 RANGE="$(resolve_range)"
+if [[ "${GITHUB_REF_NAME:-}" == fvplus-release-candidate-* ]]; then
+  git merge-base --is-ancestor "$FVPLUS_MAIN_HISTORY_BASE_REF" HEAD || fvplus::fail 'Candidate does not contain the main history baseline.'
+fi
 if [[ -z "${RANGE}" ]]; then
   echo "Main branch history guard passed: no comparison range available."
   exit 0

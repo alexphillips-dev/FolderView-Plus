@@ -13,11 +13,16 @@ export const readProductionBaseline = baselinePath => {
     }
 };
 
-export const selectProductionPerfSurfaces = (scenario, skipDocker = false) =>
-    (scenario.surfaces || ['settings', 'docker']).filter(surface => !skipDocker || surface !== 'docker');
+export const selectProductionPerfSurfaces = (scenario, skipDocker = false, requested = '') => {
+    const selected = requested === 'none' ? [] : requested ? requested.split(',') : ['settings', 'docker'];
+    if (selected.some(surface => !['settings', 'docker'].includes(surface))) throw new Error('Unknown production benchmark surface');
+    return (scenario.surfaces || ['settings', 'docker']).filter(surface => selected.includes(surface) && (!skipDocker || surface !== 'docker'));
+};
 
 export const runProductionPerformance = async ({ updateBaseline = false, scenarioName = '' } = {}) => {
     const skipDocker = process.env.FVPLUS_SKIP_DOCKER_BENCHMARK === '1';
+    const requestedSurfaces = process.env.FVPLUS_PRODUCTION_PERF_SURFACES || '';
+    const selectedSurfaces = selectProductionPerfSurfaces({}, skipDocker, requestedSurfaces);
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
     const config = JSON.parse(fs.readFileSync(path.join(root, 'scripts/production_perf_budgets.json')));
     if (scenarioName && !config.scenarios[scenarioName]) throw new Error(`Unknown scenario: ${scenarioName}`);
@@ -26,8 +31,16 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
     if (!baseline && !updateBaseline) throw new Error('Production startup baseline is missing');
     const report = { version: 1, generatedAt: new Date().toISOString(), measuredRuns: config.measuredRuns,
         limitations: 'Synthetic Unraid host and APIs; shipped plugin JavaScript, CSS, markup and locale catalogs. Host widget stubs do not model Unraid server execution time.',
-        cases: {}, failures: [], skippedSurfaces: skipDocker ? ['docker'] : [] };
+        cases: {}, failures: [], skippedSurfaces: ['settings', 'docker'].filter(surface => !selectedSurfaces.includes(surface)) };
+    console.log(`[production-perf] Selected startup surfaces: ${selectedSurfaces.join(', ') || 'none; component benchmarks remain required'}`);
     if (skipDocker) console.log('[production-perf] Docker startup benchmarks skipped: explicit FVPLUS_SKIP_DOCKER_BENCHMARK=1 override.');
+    if (!selectedSurfaces.length) {
+        if (updateBaseline) throw new Error('Cannot update a baseline without startup samples');
+        const output = path.join(root, 'tmp/fixture-browser-artifacts/production-performance');
+        fs.mkdirSync(output, { recursive: true });
+        fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+        return report;
+    }
     const browser = await chromium.launch({ args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'] });
     report.browser = browser.version();
     try {
@@ -37,7 +50,7 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
             await new Promise(resolve => fixture.server.listen(0, '127.0.0.1', resolve));
             const origin = `http://127.0.0.1:${fixture.server.address().port}`;
             try {
-                for (const surface of selectProductionPerfSurfaces(scenario, skipDocker)) {
+                for (const surface of selectProductionPerfSurfaces(scenario, skipDocker, requestedSurfaces)) {
                     const samples = { cold: [], warm: [] };
                     for (let run = 0; run < config.measuredRuns; run++) {
                         const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
@@ -146,7 +159,7 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
     fs.writeFileSync(path.join(artifactDir, 'report.md'), '# Production startup benchmark\n\n'+report.limitations+'\n\n| Case | Ready ms | Longest task ms | Requests |\n|---|---:|---:|---:|\n'+Object.entries(report.cases).map(([key,c])=>`| ${key} | ${c.medians.readyMs} | ${c.medians.longestTaskMs} | ${c.medians.requests} |`).join('\n')+'\n\n## Existing issues recorded\n\n'+knownIssues.map(issue=>`- ${issue}`).join('\n')+'\n\n## Budget failures\n\n'+(report.failures.join('\n') || 'None')+'\n');
     if (report.failures.length) throw new Error(report.failures.join('\n'));
     if (updateBaseline) fs.writeFileSync(baselinePath, JSON.stringify({ version: 1, browser: report.browser,
-        generatedAt: report.generatedAt, cases: { ...(scenarioName ? baseline?.cases : {}), ...Object.fromEntries(Object.entries(report.cases).map(([key,value])=>[key,{ scenario: value.scenario, medians: value.medians }])) } }, null, 2)+'\n');
+        generatedAt: report.generatedAt, cases: { ...baseline?.cases, ...Object.fromEntries(Object.entries(report.cases).map(([key,value])=>[key,{ scenario: value.scenario, medians: value.medians }])) } }, null, 2)+'\n');
     console.log('Production startup performance budgets passed.');
     return report;
 };

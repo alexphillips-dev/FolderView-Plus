@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-export const RELEASE_PROFILE = 'release-v2';
+export const RELEASE_PROFILE = 'release-v3';
 export const RELEASE_JOBS = ['lint-and-syntax', 'node-tests', 'guard-suite', 'dependency-review', 'fixture-browser', 'layout-checks'];
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const git = (root, ...args) => execFileSync('git', args, { cwd: root, maxBuffer: 16 * 1024 * 1024 });
@@ -34,7 +34,15 @@ export function makeReleaseEvidence(identity, results, { repository, runId, runA
     assert.ok(Number.isSafeInteger(runAttempt) && runAttempt > 0, 'Missing validation run attempt');
     assert.match(comparisonBase, /^[a-f0-9]{40}$/, 'Missing release comparison base');
     return { schema: 1, profile: RELEASE_PROFILE, ...identity, repository, runId, runAttempt, comparisonBase,
-        createdAt: new Date(now).toISOString(), jobs: Object.fromEntries(RELEASE_JOBS.map(name => [name, 'success'])) };
+        createdAt: new Date(now).toISOString(), validatedAt: new Date(now).toISOString(),
+        jobs: Object.fromEntries(RELEASE_JOBS.map(name => [name, 'success'])) };
+}
+
+export function reissueReleaseEvidence(source, identity, options) {
+    verifyReleaseEvidence(source, identity, { ...options, runId: source.runId, runAttempt: source.runAttempt });
+    return { ...makeReleaseEvidence(identity, Object.fromEntries(RELEASE_JOBS.map(name => [name, { result: 'success' }])),
+        { ...options, comparisonBase: source.comparisonBase }), validatedAt: source.validatedAt,
+        reusedFromRunId: source.runId };
 }
 
 export function verifyReleaseEvidence(evidence, identity, { repository, runId, runAttempt = 1, comparisonBase, now = Date.now() }) {
@@ -46,7 +54,10 @@ export function verifyReleaseEvidence(evidence, identity, { repository, runId, r
     assert.match(evidence.comparisonBase, /^[a-f0-9]{40}$/, 'Missing comparison base');
     if (comparisonBase) assert.equal(evidence.comparisonBase, comparisonBase, 'Validation comparison base mismatch');
     for (const [key, value] of Object.entries(identity)) assert.equal(evidence[key], value, `Stale validation: ${key} differs`);
-    const age = now - Date.parse(evidence.createdAt);
+    const createdAge = now - Date.parse(evidence.createdAt);
+    assert.ok(Number.isFinite(createdAge) && createdAge >= -60000 && createdAge <= 86400000, 'Invalid receipt timestamp');
+    assert.ok(Date.parse(evidence.validatedAt) <= Date.parse(evidence.createdAt), 'Qualification timestamp follows receipt creation');
+    const age = now - Date.parse(evidence.validatedAt);
     assert.ok(Number.isFinite(age) && age >= -60000 && age <= 24 * 60 * 60 * 1000, 'Validation evidence expired or has an invalid timestamp');
     for (const name of RELEASE_JOBS) assert.equal(evidence.jobs?.[name], 'success', `Missing successful ${name} evidence`);
     return evidence;

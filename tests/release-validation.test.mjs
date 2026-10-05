@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { makeReleaseEvidence, releaseIdentity, RELEASE_JOBS, trustedValidationRun, verifyReleaseEvidence } from '../scripts/lib/release-evidence.mjs';
+import { makeReleaseEvidence, reissueReleaseEvidence, releaseIdentity, RELEASE_JOBS, trustedValidationRun, verifyReleaseEvidence } from '../scripts/lib/release-evidence.mjs';
 import { findReleaseEvidence, waitForWorkflow } from '../scripts/lib/github-release-validation.mjs';
 import { durationReport } from '../scripts/ci_duration_report.mjs';
 
@@ -17,6 +17,22 @@ const evidence = () => makeReleaseEvidence(identity, results, { repository, runI
 const run = overrides => ({ id: 42, head_sha: identity.commit, repository: { full_name: repository },
     head_repository: { full_name: repository }, path: '.github/workflows/ci.yml', event: 'workflow_dispatch',
     head_branch: `fvplus-release-candidate-${identity.commit}`, status: 'completed', conclusion: 'success', ...overrides });
+
+test('reissuing receipts cannot renew the original qualification expiry', () => {
+    const options = { repository, runId: 43, now: now + 23 * 3600000 };
+    const reissued = reissueReleaseEvidence(evidence(), identity, options);
+    assert.equal(reissued.validatedAt, evidence().validatedAt);
+    assert.equal(reissued.createdAt, new Date(options.now).toISOString());
+    assert.equal(reissued.runId, 43);
+    const again = reissueReleaseEvidence(reissued, identity, { ...options, runId: 44, now: options.now + 60000 });
+    assert.equal(again.validatedAt, evidence().validatedAt);
+    assert.throws(() => verifyReleaseEvidence(again, identity, { repository, runId: 44, now: now + 25 * 3600000 }), /expired/);
+    assert.throws(() => reissueReleaseEvidence(again, identity, { repository, runId: 45, now: now + 25 * 3600000 }), /expired/);
+    for (const overrides of [{ profile: 'release-v2' }, { validatedAt: undefined },
+        { validatedAt: new Date(now + 1).toISOString() }]) {
+        assert.throws(() => verifyReleaseEvidence({ ...evidence(), ...overrides }, identity, { repository, runId: 42, now }));
+    }
+});
 
 test('duration reporting uses completed job timestamps without treating pending jobs as zero', () => {
     const report = durationReport([{ name: 'Fixture (chromium)', conclusion: 'success',

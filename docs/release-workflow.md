@@ -22,12 +22,22 @@ Workflow, test and documentation changes alone do not bump the plugin version.
    engines and focused layout checks. Candidate dependency review preserves the
    protected `Dependency Review` check; ordinary PRs keep their existing review.
 5. CI uploads release evidence bound to the exact commit, tree, package digest,
-   lockfile digest, validation inputs, comparison base, repository and run. Evidence expires after
-   24 hours. The guarded push verifies the trusted successful run and security
+   lockfile digest, validation inputs, comparison base, repository and run.
+   Evidence expires after
+   24 hours from the original qualification, including after receipt reissuance.
+   Candidate-tag CI applies the main-history guard from the exact comparison
+   baseline. Manual `profile=release` dispatches require the previous stable
+   commit as a full nonzero `base_sha` before qualification starts. The guarded
+   push verifies the trusted successful run and security
    scans. Changing any tracked candidate input requires fresh qualification.
 6. Main CI verifies and reuses this evidence; it does not repeat the required
    functional jobs. CodeQL refreshes main code-scanning results. Changed dependency
-   inventory also requires the main OSV scan. The publisher waits for required
+   inventory also requires a successful main OSV workflow. Main OSV reuses a
+   clean exact-candidate SARIF report only when its committed SBOM, scanner inputs,
+   repository, run, report digest and original scan age (24 hours maximum) match.
+   It still uploads results to main code scanning. Missing, expired or invalid
+   proof causes a fresh scan; scheduled/manual security scans always scan fresh.
+   The publisher waits for required
    results, verifies release notes and raw package publication, then publishes
    the archive, checksum, provenance and SBOM attestations. Existing release tags
    must point to the qualified commit. The successful candidate tag is removed.
@@ -50,10 +60,25 @@ monitoring; local tests cannot prove hosted runner or ruleset acceptance.
 | CodeQL, OSV, Scorecard and attestations | Retained security and publication checks |
 
 CI uses shallow checkouts for ordinary jobs and blob-filtered full history where
-versioning requires it. Browser jobs install only their engine. Locked Node
+versioning requires it. Validation tooling uses Node 24 LTS. Browser jobs install
+only their engine. Locked Node
 dependencies are reused only with a matching installation stamp; missing or
 changed lockfiles cause a clean install. CI publishes lane results and timing
 artifacts so duration claims can be checked against actual runs.
+
+Performance-sensitive shared runtime modules select both Settings and Docker
+startup benchmarks. Settings-only or Docker-only modules select the affected
+startup surface. VM and Dashboard changes retain component benchmarks and
+functional fixtures; production startup fixtures currently model Settings and
+Docker only. Scheduled runs and explicit `benchmarks=true` requests keep full
+startup coverage. Review `production_surfaces` and the report's skipped surfaces
+when diagnosing a benchmark. No timing baseline is relaxed automatically.
+
+Qualification-tag-only pushes skip repeated local package/install hooks because
+candidate CI owns qualification. Mixed pushes and main promotion still run the
+guards and verify candidate evidence. Dev preview artifacts verify the committed
+package and checksum and upload only the current archive, checksum and curated
+notes, rather than rebuilding a package or uploading archive history.
 
 The intended improvement is to remove repeated suites and parallelize work.
 No fixed release duration is guaranteed: runner queues, security scans and
@@ -74,6 +99,8 @@ and checks main ancestry. If the merged tree equals published dev, it pushes onl
 the ancestry merge and performs raw publication checks. A changed tree qualifies
 once under `fvplus-sync-candidate-<full commit SHA>`; shipped source changes also
 rebuild the dev package. Main or dev moving during synchronization stops the push.
+Delete its qualification tag only after raw publication and `0 0` alignment
+succeed; failed verification retains the tag and worktree for diagnosis.
 After success, return to dev and fast-forward to origin/dev; verify a clean
 worktree and `0 0` alignment. Do not monitor Actions after this dev push.
 

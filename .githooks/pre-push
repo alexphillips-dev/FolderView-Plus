@@ -4,6 +4,28 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "${ROOT_DIR}"
 
+declare -a MAIN_PUSH_SHAS=()
+only_qualification_tags=1
+updates=0
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  updates=$((updates + 1))
+  if [[ "$remote_ref" =~ ^refs/tags/fvplus-(release|sync)-candidate-([a-f0-9]{40})$ ]]; then
+    tag_commit="${BASH_REMATCH[2]}"
+    if [[ "$local_sha" =~ ^0+$ ]]; then
+      [[ "$remote_sha" == "$tag_commit" ]] || { echo 'Qualification deletion does not match its commit.' >&2; exit 1; }
+    else
+      [[ "$local_sha" == "$tag_commit" ]] || { echo 'Qualification tag does not match its commit.' >&2; exit 1; }
+    fi
+  else
+    only_qualification_tags=0
+  fi
+  if [[ "$remote_ref" == refs/heads/main ]]; then MAIN_PUSH_SHAS+=("$local_sha"); fi
+done
+if [[ "$updates" -gt 0 && "$only_qualification_tags" == 1 ]]; then
+  echo '[pre-push] Qualification tag update; candidate CI owns validation. No branch promotion.'
+  exit 0
+fi
+
 echo "[pre-push] Running main branch history guard..."
 bash scripts/main_branch_history_guard.sh
 
@@ -29,12 +51,10 @@ if ! FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh; then
 fi
 
 # Candidate tag pushes publish the commit for qualification, not to main.
-while read -r _local_ref local_sha remote_ref _remote_sha; do
-  if [[ "$remote_ref" == refs/heads/main ]]; then
-    [[ "$(git branch --show-current)" == main && "$local_sha" == "$(git rev-parse HEAD)" ]] || { echo 'Main promotion requires current main HEAD.' >&2; exit 1; }
-    echo "[pre-push] Verifying exact-candidate CI evidence before main promotion..."
-    node scripts/release_validation.mjs verify
-  fi
+for local_sha in "${MAIN_PUSH_SHAS[@]}"; do
+  [[ "$(git branch --show-current)" == main && "$local_sha" == "$(git rev-parse HEAD)" ]] || { echo 'Main promotion requires current main HEAD.' >&2; exit 1; }
+  echo "[pre-push] Verifying exact-candidate CI evidence before main promotion..."
+  node scripts/release_validation.mjs verify
 done
 
 echo "[pre-push] All checks passed."

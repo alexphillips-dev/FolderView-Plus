@@ -30,6 +30,9 @@ export const FILTERS = Object.freeze({
         '.github/ISSUE_TEMPLATE/**',
         'scripts/classify_ci_changes.mjs',
         'scripts/release_validation.mjs',
+        'scripts/osv_scan_evidence.mjs',
+        'scripts/lib/osv-evidence.mjs',
+        'scripts/dev_release_preview.mjs',
         'scripts/ci_duration_report.mjs',
         'scripts/release_sync.sh',
         'scripts/sync_plan.mjs',
@@ -41,6 +44,9 @@ export const FILTERS = Object.freeze({
         'scripts/lib/github-release-validation.mjs',
         '.githooks/pre-push',
         'tests/release-validation.test.mjs',
+        'tests/release-overhead.test.mjs',
+        'tests/osv-evidence.test.mjs',
+        'scripts/main_branch_history_guard.sh',
         'scripts/actionlint_guard.sh',
         'scripts/issue_form_guard.mjs',
         'scripts/run_ci_suite.sh',
@@ -105,8 +111,8 @@ export const FILTERS = Object.freeze({
         'scripts/production_performance_benchmarks.mjs', 'scripts/production_perf_*.json',
         'scripts/lib/production-perf-*.mjs',
         'src/**/scripts/docker*.js', 'src/**/scripts/vm*.js',
-        'src/**/scripts/dashboard.js', 'src/**/scripts/folderviewplus.settings-loader.js',
-        'src/**/scripts/folderviewplus.js'
+        'src/**/scripts/dashboard*.js', 'src/**/scripts/folderviewplus*.js',
+        'src/**/scripts/runtime*.js', 'src/**/scripts/folder.*.js', 'src/**/scripts/folder.js'
     ]
 });
 
@@ -155,10 +161,23 @@ export const classifyPaths = (paths) => {
             needs_browser: (matched.browser || unknown) && !docsOnly && !workflowOnly,
             needs_theme: (matched.theme || unknown) && !docsOnly && !workflowOnly,
             needs_performance: matched.performance && !docsOnly && !workflowOnly,
+            production_surfaces: matched.performance ? productionSurfacesForPaths(changedPaths).join(',') || 'none' : '',
             preview_changed: matched.preview
         }
     };
 };
+
+export function productionSurfacesForPaths(paths) {
+    const surfaces = new Set();
+    for (const file of paths) {
+        if (!FILTERS.performance.some(pattern => matchesPattern(file, pattern))) continue;
+        if (file.startsWith('scripts/') || /\/(runtime[^/]*|folder(?:\.[^/]*)?|folderviewplus|folderviewplus\.(?:utils|i18n|request|runtime-snapshot|prefs-store|theme-|ui|folder-contract|page-bootstrap|fatal-banner|csp-events|safe-dom)[^/]*)\.js$/.test(file)) {
+            surfaces.add('settings'); surfaces.add('docker');
+        } else if (/\/docker[^/]*\.js$/.test(file)) surfaces.add('docker');
+        else if (/\/folderviewplus[^/]*\.js$/.test(file)) surfaces.add('settings');
+    }
+    return ['settings', 'docker'].filter(surface => surfaces.has(surface));
+}
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 

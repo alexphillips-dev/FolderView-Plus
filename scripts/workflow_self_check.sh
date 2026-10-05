@@ -327,6 +327,24 @@ if (!/release_validation\.mjs wait/.test(releaseOnMainWorkflow) || /run_ci_suite
 }
 
 const runCiSuite = read('scripts/run_ci_suite.sh');
+if (!/nonzero base_sha before qualification starts/.test(ciWorkflow)
+    || !/FVPLUS_MAIN_HISTORY_BASE_REF: \$\{\{ inputs.base_sha \|\| github.event.before \}\}/.test(ciWorkflow)
+    || !/COMPARISON_BASE: \$\{\{ needs.detect-changes.outputs.comparison_base \}\}/.test(ciWorkflow)
+    || !/node scripts\/dev_release_preview.mjs/.test(ciWorkflow)
+    || !/FVPLUS_PRODUCTION_PERF_SURFACES:/.test(performanceJob)) {
+  fail('CI must use one explicit release baseline, current-package previews and selected production benchmark surfaces.');
+}
+if (!/osv_scan_evidence.mjs find/.test(dependencyVulnerabilityScanWorkflow)
+    || !/osv_scan_evidence.mjs verify/.test(dependencyVulnerabilityScanWorkflow)
+    || !/if: github.event_name == 'push' && github.ref_name == 'main'/.test(dependencyVulnerabilityScanWorkflow)
+    || !/sha: \$\{\{ github.sha \}\}/.test(dependencyVulnerabilityScanWorkflow)) {
+  fail('Main OSV reuse must verify exact candidate evidence and retain main code-scanning publication.');
+}
+for (const file of ['.github/actions/setup-ci-env/action.yml', '.github/workflows/ci.yml',
+  '.github/workflows/codeql.yml', '.github/workflows/backmerge-main-to-dev.yml', '.github/workflows/dependency-vulnerability-scan.yml']) {
+  if (/(?:node-version:|default:) ['"]?20['"]?/.test(read(file))
+      || !/(?:node-version:|default:) ['"]24['"]/.test(read(file))) fail(`${file} must use the supported Node 24 toolchain.`);
+}
 const actionlintGuard = read('scripts/actionlint_guard.sh');
 if (!/run_timed_step csp-readiness/.test(runCiSuite)) {
   fail('The lint lane must enforce the deterministic CSP readiness report.');

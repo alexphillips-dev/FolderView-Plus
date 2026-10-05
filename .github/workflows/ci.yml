@@ -26,7 +26,7 @@ env:
   FVPLUS_I18N_STRICT: '1'
   FVPLUS_DEAD_CODE_STRICT: '1'
   FVPLUS_REQUIRE_PERF_BASELINE: '1'
-  FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
+  FVPLUS_MAIN_HISTORY_BASE_REF: ${{ inputs.base_sha || github.event.before }}
   FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
   FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED: '1'
 jobs:
@@ -40,6 +40,8 @@ jobs:
       needs_browser: ${{ steps.classify.outputs.needs_browser }}
       needs_theme: ${{ steps.classify.outputs.needs_theme }}
       needs_performance: ${{ steps.classify.outputs.needs_performance }}
+      production_surfaces: ${{ steps.classify.outputs.production_surfaces }}
+      comparison_base: ${{ steps.profile.outputs.base }}
       preview_changed: ${{ steps.classify.outputs.preview_changed }}
       release_profile: ${{ steps.profile.outputs.release == 'true' || steps.evidence.outputs.reused == 'true' }}
       reused: ${{ steps.evidence.outputs.reused }}
@@ -47,14 +49,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 2
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
       - name: Select validation profile
         id: profile
         env:
           PROFILE: ${{ inputs.profile || 'auto' }}
+          BASE_SHA: ${{ inputs.base_sha || github.event.before }}
         run: |
           release=false
           if [[ "$PROFILE" == release || ("$GITHUB_REF_NAME" == main && "$GITHUB_EVENT_NAME" == push) ]]; then release=true; fi
+          if [[ "$release" == true ]]; then
+            [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && ! "$BASE_SHA" =~ ^0+$ ]] || { echo '::error::Release validation requires a nonzero base_sha before qualification starts.'; exit 1; }
+          fi
           echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
       - name: Classify changed paths
         id: classify
         env:
@@ -141,12 +151,8 @@ jobs:
       - name: Resolve dependency comparison
         id: refs
         env:
-          BASE_REF: ${{ inputs.base_sha || github.event.before }}
+          BASE_REF: ${{ needs.detect-changes.outputs.comparison_base }}
         run: |
-          if [[ -z "$BASE_REF" || "$BASE_REF" =~ ^0+$ ]]; then
-            git fetch --filter=blob:none --no-tags --depth=1 origin refs/heads/main:refs/remotes/origin/main
-            BASE_REF=$(git rev-parse origin/main)
-          fi
           [[ "$BASE_REF" =~ ^[a-f0-9]{40}$ ]]
           echo "base=$BASE_REF" >> "$GITHUB_OUTPUT"
       - name: Enforce dependency vulnerability and license policy
@@ -214,6 +220,7 @@ jobs:
     timeout-minutes: 20
     env:
       FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
+      FVPLUS_PRODUCTION_PERF_SURFACES: ${{ inputs.benchmarks == true && 'settings,docker' || needs.detect-changes.outputs.production_surfaces }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -266,18 +273,13 @@ jobs:
           fetch-depth: 0
           filter: blob:none
       - uses: ./.github/actions/setup-ci-env
-      - run: bash pkg_build.sh --no-validate
-      - name: Build preview release notes
-        run: |
-          VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
-          FVPLUS_RELEASE_INSTALL_BRANCH=dev bash scripts/build_release_notes.sh --version "$VERSION" --output release_notes.md
+      - name: Verify current dev package and prepare preview
+        run: node scripts/dev_release_preview.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: dev-release-preview-${{ github.run_id }}
-          path: |
-            archive/*.txz
-            archive/*.sha256
-            release_notes.md
+          path: tmp/dev-release-preview/
+          if-no-files-found: error
   quality:
     if: always()
     needs: [detect-changes, lint-and-syntax, node-tests, guard-suite, dependency-review, fixture-browser, layout-checks, performance, theme-matrix, release-preview]
@@ -287,6 +289,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
       - name: Enforce required CI job results
         env:
           RESULTS: ${{ toJSON(needs) }}
@@ -297,7 +302,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           FVPLUS_JOB_RESULTS: ${{ toJSON(needs) }}
-          FVPLUS_RELEASE_COMPARISON_BASE: ${{ inputs.base_sha || github.event.before }}
+          FVPLUS_RELEASE_COMPARISON_BASE: ${{ needs.detect-changes.outputs.comparison_base }}
           REUSED: ${{ needs.detect-changes.outputs.reused }}
         run: |
           if [[ "$REUSED" == true ]]; then

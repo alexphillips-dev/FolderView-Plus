@@ -263,7 +263,7 @@ run_lane() {
       run_timed_step javascript-coverage "${NPM_BIN}" run test:coverage
       ;;
     workflow-tests)
-      run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs tests/release-validation.test.mjs tests/sync-main-to-dev.test.mjs tests/ci-change-classifier.test.mjs tests/security-release-contract.test.mjs
+      run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs tests/release-validation.test.mjs tests/release-overhead.test.mjs tests/osv-evidence.test.mjs tests/sync-main-to-dev.test.mjs tests/ci-change-classifier.test.mjs tests/security-release-contract.test.mjs
       ;;
     workflow-guards)
       run_timed_step actionlint bash scripts/actionlint_guard.sh

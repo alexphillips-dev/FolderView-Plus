@@ -34,11 +34,11 @@ git worktree add --detach "$worktree" origin/dev
   [[ "$(git rev-parse origin/main)" == "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("tmp/synchronization-plan.json")).mainCommit)')" ]] || { echo 'Main moved during synchronization; no push performed.' >&2; exit 1; }
   [[ "$(git rev-parse origin/dev)" == "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("tmp/synchronization-plan.json")).devBaseCommit)')" ]] || { echo 'Dev moved during synchronization; no push performed.' >&2; exit 1; }
   git push --no-verify origin HEAD:dev
-  tag="fvplus-sync-candidate-$(git rev-parse HEAD)"
-  if [[ -n "$(git ls-remote --tags origin "refs/tags/$tag")" ]]; then git push --no-verify origin ":refs/tags/$tag"; fi
   bash scripts/remote_publish_guard.sh
   git fetch --no-tags origin dev
   [[ "$(git rev-list --left-right --count origin/dev...HEAD)" == $'0\t0' ]]
+  tag="fvplus-sync-candidate-$(git rev-parse HEAD)"
+  if [[ -n "$(git ls-remote --tags origin "refs/tags/$tag")" ]]; then git push --no-verify origin ":refs/tags/$tag"; fi
   echo 'Verified synchronized dev publication and 0 0 alignment.'
 )
 # Failed worktrees are retained for inspection; remove only this clean success.

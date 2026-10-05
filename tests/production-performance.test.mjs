@@ -5,9 +5,30 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createProductionPerfFixture } from '../scripts/lib/production-perf-fixture.mjs';
-import { readProductionBaseline } from '../scripts/production_performance_benchmarks.mjs';
+import { readProductionBaseline, selectProductionPerfSurfaces, runProductionPerformance } from '../scripts/production_performance_benchmarks.mjs';
 import { median, checkMetric, dockerStartupStages, dockerStartupMetrics, checkDockerMembership, observeProductionStartup } from '../scripts/lib/production-perf-metrics.mjs';
 import { classifyPaths } from '../scripts/classify_ci_changes.mjs';
+
+test('production startup selection respects changed surfaces without suppressing component coverage', async () => {
+    assert.deepEqual(selectProductionPerfSurfaces({}, false, 'settings'), ['settings']);
+    assert.deepEqual(selectProductionPerfSurfaces({}, false, 'docker'), ['docker']);
+    assert.deepEqual(selectProductionPerfSurfaces({}, false, 'settings,docker'), ['settings', 'docker']);
+    assert.deepEqual(selectProductionPerfSurfaces({ surfaces: ['settings'] }, false, 'docker'), []);
+    assert.deepEqual(selectProductionPerfSurfaces({}, true, 'settings,docker'), ['settings']);
+    assert.deepEqual(selectProductionPerfSurfaces({}, false, 'none'), []);
+    assert.throws(() => selectProductionPerfSurfaces({}, false, 'unknown'), /Unknown/);
+    const previous = process.env.FVPLUS_PRODUCTION_PERF_SURFACES;
+    process.env.FVPLUS_PRODUCTION_PERF_SURFACES = 'none';
+    try {
+        const report = await runProductionPerformance();
+        assert.deepEqual(report.cases, {});
+        assert.deepEqual(report.skippedSurfaces, ['settings', 'docker']);
+        await assert.rejects(runProductionPerformance({ updateBaseline: true }), /without startup samples/);
+    } finally {
+        if (previous === undefined) delete process.env.FVPLUS_PRODUCTION_PERF_SURFACES;
+        else process.env.FVPLUS_PRODUCTION_PERF_SURFACES = previous;
+    }
+});
 
 test('Settings readiness records the actual transition before delayed browser polling', () => {
     let clock = 0, rows = 2;

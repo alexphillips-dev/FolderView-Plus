@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { makeReleaseEvidence, releaseIdentity, verifyReleaseEvidence, RELEASE_JOBS, trustedValidationRun } from './lib/release-evidence.mjs';
+import { makeReleaseEvidence, reissueReleaseEvidence, releaseIdentity, verifyReleaseEvidence, trustedValidationRun } from './lib/release-evidence.mjs';
 import { findReleaseEvidence, githubApi, githubCommand, waitForWorkflow } from './lib/github-release-validation.mjs';
 
 const [mode, output = 'tmp/release-validation.json'] = process.argv.slice(2);
@@ -25,8 +25,8 @@ if (mode === 'write') {
     assert.equal(process.env.GITHUB_SHA, identity.commit);
     const source = await findReleaseEvidence(identity, repository);
     assert.ok(source, 'Cannot reuse missing or stale candidate evidence');
-    write({ ...makeReleaseEvidence(identity, Object.fromEntries(RELEASE_JOBS.map(name => [name, { result: 'success' }])),
-        { repository, runId: Number(process.env.GITHUB_RUN_ID), runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT), comparisonBase: source.comparisonBase }), reusedFromRunId: source.runId });
+    write(reissueReleaseEvidence(source, identity,
+        { repository, runId: Number(process.env.GITHUB_RUN_ID), runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT) }));
 } else if (mode === 'find') {
     const evidence = await findReleaseEvidence(identity, repository);
     if (evidence) write(evidence);

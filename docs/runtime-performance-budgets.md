@@ -96,3 +96,15 @@ node scripts/runtime_performance_benchmarks.mjs
 ```
 
 Do not refresh the baseline merely to make a regression pass. The JSON report identifies the scenario, metric, median, absolute ceiling, baseline, and effective limit that failed.
+
+CI selects production startup surfaces from the changed runtime modules. Shared
+modules select both Settings and Docker; page-specific modules select their
+affected startup surface. VM/Dashboard changes still run component benchmarks
+and functional fixtures, since production startup fixtures currently cover
+Settings and Docker only. Scheduled and explicit benchmark requests run both.
+
+For a focused local startup measurement, set `FVPLUS_PRODUCTION_PERF_SURFACES`
+to `settings` or `docker`. `settings,docker` selects both; `none` omits production
+startup samples while the standard performance command still runs component
+benchmarks. Unknown values fail. Reports list skipped surfaces, and partial
+baseline updates preserve unmeasured cases; review every baseline change.

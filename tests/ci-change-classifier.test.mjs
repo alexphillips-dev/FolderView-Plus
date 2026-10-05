@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
 
 import {
     classifyPaths,
@@ -23,6 +24,7 @@ test('documentation-only changes skip runtime browser and theme lanes', () => {
         needs_browser: false,
         needs_theme: false,
         needs_performance: false,
+        production_surfaces: '',
         preview_changed: false
     });
 });
@@ -39,6 +41,7 @@ test('workflow-only changes use focused workflow validation', () => {
         needs_browser: false,
         needs_theme: false,
         needs_performance: false,
+        production_surfaces: '',
         preview_changed: false
     });
 });
@@ -72,6 +75,7 @@ test('workflow changes allow the generated SBOM as a focused validation companio
         needs_browser: false,
         needs_theme: false,
         needs_performance: false,
+        production_surfaces: '',
         preview_changed: false
     });
 });
@@ -107,6 +111,7 @@ test('runtime changes request browser, theme, and release-preview coverage', () 
         needs_browser: true,
         needs_theme: true,
         needs_performance: true,
+        production_surfaces: 'docker',
         preview_changed: true
     });
 });
@@ -115,6 +120,28 @@ test('metadata changes are not mistaken for documentation-only changes', () => {
     const result = classifyPaths(['folderview.plus.plg']);
     assert.equal(result.outputs.docs_only, false);
     assert.equal(result.outputs.preview_changed, true);
+});
+
+test('shared runtime changes select both production surfaces while page modules select affected startup coverage', () => {
+    const prefix = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/';
+    for (const name of ['runtime.shared-primitives.js', 'folder.runtime.state-observers.js', 'folder.js',
+        'folderviewplus.utils.js', 'folderviewplus.utils-ordering.js', 'folderviewplus.i18n.js', 'folderviewplus.js']) {
+        const result = classifyPaths([prefix + name]).outputs;
+        assert.equal(result.needs_performance, true, name);
+        assert.equal(result.production_surfaces, 'settings,docker', name);
+    }
+    for (const [name, surface] of [['docker.js', 'docker'], ['folderviewplus.settings-loader.js', 'settings'],
+        ['vm.js', 'none'], ['dashboard.js', 'none']]) {
+        const result = classifyPaths([prefix + name]).outputs;
+        assert.equal(result.needs_performance, true, name);
+        assert.equal(result.production_surfaces, surface, name);
+    }
+    assert.equal(classifyPaths(['scripts/lib/production-perf-metrics.mjs']).outputs.production_surfaces, 'settings,docker');
+    assert.equal(classifyPaths([prefix + 'docker.js', prefix + 'folderviewplus.settings-loader.js']).outputs.production_surfaces, 'settings,docker');
+    const dockerPage = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page', 'utf8');
+    for (const [, module] of dockerPage.matchAll(/scripts\/(folderviewplus\.[^']+\.js)/g)) {
+        assert.equal(classifyPaths([prefix + module]).outputs.production_surfaces, 'settings,docker', module);
+    }
 });
 
 test('ancestry-only synchronization skips repeated work and unknown paths retain layout validation', () => {

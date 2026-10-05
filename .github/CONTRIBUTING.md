@@ -15,7 +15,7 @@ Thanks for helping improve FolderView Plus.
 1. Fork and clone the repository.
 2. Create a branch from `dev` and normally target `dev` with the pull request. `main` is the stable release branch.
 3. Install required tools:
-   - Node.js 20+
+   - Node.js 24 LTS (the CI toolchain)
    - PHP
    - Bash + shellcheck
 4. Enable repo hooks (recommended, prevents failed pushes):
@@ -76,6 +76,16 @@ Identical dev files use an ancestry-only fast path. Changed files qualify once;
 only shipped source changes rebuild the dev package. No extra remote branch,
 back-merge PR, or duplicate PR/manual CI is created. See
 [Release workflow](../docs/release-workflow.md) for evidence, failures and retries.
+
+Manual release-profile CI requires the full nonzero `base_sha` for the previous
+stable commit. Candidate history checks, change classification, dependency review
+and validation receipts use that baseline. Reissuing a receipt does not reset its
+24-hour qualification expiry. Main OSV can reuse a verified fresh scan of the
+exact candidate and still publishes the report to main code scanning; missing or
+invalid proof causes a fresh scan. Scheduled security scans always run fresh.
+Qualification tag creation/deletion skips duplicate pre-push package checks;
+branch pushes retain their guards. Dev previews verify committed package bytes
+and contain only the current archive, checksum and notes.
 
 OpenSSF Scorecard samples historical merged PRs and commits. Missing checks on
 older back-merges can continue to affect its CI-Tests and SAST findings even

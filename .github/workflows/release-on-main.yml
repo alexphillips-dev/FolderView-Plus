@@ -49,7 +49,7 @@ jobs:
             git fetch --filter=blob:none --no-tags --depth=1 origin "$BEFORE_SHA"
           fi
           changed_paths=$(git diff --name-only "$RANGE")
-          if grep -Eq '^(docs/sbom\.cdx\.json|package-lock\.json|scripts/runtime_components\.json|\.github/workflows/dependency-vulnerability-scan\.yml)$' <<< "$changed_paths"; then
+          if grep -Eq '^(docs/sbom\.cdx\.json|package-lock\.json|scripts/runtime_components\.json|\.github/workflows/dependency-vulnerability-scan\.yml|scripts/osv_scan_evidence\.mjs|scripts/lib/(osv-evidence|github-release-validation|release-evidence)\.mjs)$' <<< "$changed_paths"; then
             echo 'FVPLUS_REQUIRE_MAIN_OSV=1' >> "$GITHUB_ENV"
           fi
           mapfile -t changed_files <<< "$changed_paths"

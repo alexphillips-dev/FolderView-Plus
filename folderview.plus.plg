@@ -5,18 +5,28 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.05.05">
-<!ENTITY md5 "4b860559f315920905857e074cf205fb">
-<!ENTITY sha256 "30b396537920328e134cd08f38823d7186ce29898933f8710cbbe6c94b0dd723">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.05.06">
+<!ENTITY md5 "4157185133e817a06f8ab60a2d9a09d3">
+<!ENTITY sha256 "1218d0d1295b94b313f056aceff14118db83485a9a6f2630f35d0f70b8d61bc1">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.05.06
+- Fix: Hide Empty Folders on the Docker page now keeps parents visible when child folders or deeper descendants contain containers, including regex matches. Entirely empty branches stay hidden, and visibility remains consistent when toggling the setting, refreshing folder state, or reloading the page.
+- Fix: Moving a Docker folder to root now updates its position, indentation, and visibility immediately without a page refresh. Expanded branches stay open, the former parent's totals and previews update, and collapsing that parent no longer hides the moved folder.
+- Fix: A failed Docker hierarchy save restores the previous on-screen hierarchy, indentation, and expansion state.
+- Reliability: Stable releases qualify the exact packaged candidate once, run browser engines and security checks in parallel, and reuse verified results during main publication. Full theme-matrix validation is reserved for scheduled or explicitly requested runs; performance checks target affected runtime surfaces.
+- Security: Release qualification preserves vulnerability and license checks and validates the source, package, dependency inventory, comparison baseline, and freshness of reused evidence. Main vulnerability scanning refreshes code-scanning results and falls back to a fresh scan when candidate evidence is missing or invalid.
+- Maintenance: Release tooling now uses Node 24 LTS, avoids duplicate validation and preview package builds, reports validation timings, and synchronizes main history back to dev without creating temporary remote branches.
+- Docs: Updated Docker folder moves, nested-folder visibility, troubleshooting, installation guidance, and the stable-release workflow. After upgrading, confirm the new version and hard-refresh the webGUI; existing folders, preferences, and backup schedules are preserved.
+
 
 ###2026.10.05.05
 - Fix: Moving a folder to root from the Docker folder menu now updates its position, nesting, and visibility immediately without requiring a page refresh.
@@ -9307,7 +9317,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

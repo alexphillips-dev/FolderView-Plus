@@ -2826,6 +2826,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         const previousFolders = { ...globalFolders };
         const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
         const previousOrder = fullOrder.slice();
+        const expandedIds = Object.keys(globalFolders).filter(folderId => $(`.dropDown-${folderId}`).attr('active') === 'true');
         const nextFolder = {
             ...sourceFolder,
             parentId
@@ -2843,15 +2844,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         });
         applyRuntimePrefs(folderTypePrefs);
         applyDockerFolderMenuOrderToDom(nextOrder);
-        const depthById = buildFolderDepthById(globalFolders);
-        sourceSubtreeIds.forEach((movedId) => {
-            const safeDepth = Math.max(0, Math.min(8, Number(depthById[movedId]) || 0));
-            $(`tr.folder-id-${movedId}`)
-                .attr('data-folder-depth', String(safeDepth))
-                .find('.folder-name-sub')
-                .css('padding-left', `${safeDepth * 20}px`);
-            forceFolderRowVerticalCenter(movedId);
-        });
+        applyNestedFolderHierarchy(expandedIds);
         try {
             await persistDockerFolderRecord(id, nextFolder);
             const response = await persistDockerFolderManualOrder(nextOrder);
@@ -2862,15 +2855,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             folderTypePrefs = previousPrefs;
             applyRuntimePrefs(folderTypePrefs);
             applyDockerFolderMenuOrderToDom(previousOrder);
-            const previousDepthById = buildFolderDepthById(previousFolders);
-            sourceSubtreeIds.forEach((movedId) => {
-                const safeDepth = Math.max(0, Math.min(8, Number(previousDepthById[movedId]) || 0));
-                $(`tr.folder-id-${movedId}`)
-                    .attr('data-folder-depth', String(safeDepth))
-                    .find('.folder-name-sub')
-                    .css('padding-left', `${safeDepth * 20}px`);
-                forceFolderRowVerticalCenter(movedId);
-            });
+            applyNestedFolderHierarchy(expandedIds);
             throw error;
         }
     });
@@ -6106,10 +6091,21 @@ const syncParentFolderVisualState = (id, expanded) => {
     }
 };
 
-const applyNestedFolderHierarchy = () => {
+const applyNestedFolderHierarchy = (expandedIds = null) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     if (hierarchyApi && typeof hierarchyApi.applyNestedFolderHierarchy === 'function') {
-        hierarchyApi.applyNestedFolderHierarchy();
+        hierarchyApi.applyNestedFolderHierarchy(expandedIds);
+        if (Array.isArray(expandedIds)) {
+            syncDockerPinnedFolderUi();
+            dockerHiddenFoldersApi.applyVisibility();
+            applyDockerRuntimeToolbarFilterState();
+            if (folderTypePrefs?.hideEmptyFolders === true) {
+                Object.entries(globalFolders).forEach(([id, folder]) => {
+                    if (!Object.keys(folder.runtimeContainers || folder.containers || {}).length) $(`tr.folder-id-${id}`).hide();
+                });
+            }
+            queueDockerSupportBundlePageSnapshot('folder-hierarchy-move', 0);
+        }
     }
 };
 

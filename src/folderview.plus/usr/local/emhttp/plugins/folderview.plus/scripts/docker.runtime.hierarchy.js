@@ -662,11 +662,13 @@
             }
         };
 
-        const applyNestedFolderHierarchy = () => {
+        const applyNestedFolderHierarchy = (expandedIds = null) => {
             if (!jq) {
                 return;
             }
             const folders = getGlobalFolders();
+            const reconcilingMove = Array.isArray(expandedIds);
+            if (reconcilingMove) Object.keys(folders).forEach(id => forceCollapseFolderRow(id, true));
             setDockerFolderHierarchy(buildFolderHierarchy(folders));
             const hierarchy = getDockerFolderHierarchy();
             const allIds = hierarchy?.ids || [];
@@ -678,6 +680,10 @@
                 $row.attr('data-folder-parent', parentId);
                 $row.toggleClass('fv-folder-is-child', !!parentId);
                 $row.toggleClass('fv-folder-has-children', folderHasChildren(id));
+                if (reconcilingMove) {
+                    const depth = Math.min(8, getFolderAncestors(id).length);
+                    $row.attr('data-folder-depth', String(depth)).find('.folder-name-sub').css('padding-left', `${depth * 20}px`);
+                }
                 if (parentId) {
                     forceCollapseFolderRow(id, false);
                     $row.addClass('fv-nested-hidden').hide();
@@ -689,7 +695,14 @@
             for (const id of allIds) {
                 if (!folderHasChildren(id)) {
                     if (folders[id]) {
+                        const wasParent = !!folders[id].runtimeContainers;
                         delete folders[id].runtimeContainers;
+                        if (reconcilingMove && wasParent) {
+                            const direct = buildRuntimeContainerMapForFolder(id, false);
+                            updateFolderRowStatusFromContainers(id, folders[id], direct);
+                            renderNestedAggregatePreview(id, folders[id], direct);
+                            jq(`tr.folder-id-${id}`).removeClass('fv-parent-collapsed fv-parent-expanded');
+                        }
                     }
                     continue;
                 }
@@ -699,6 +712,14 @@
                     updateFolderRowStatusFromContainers(id, folders[id], runtimeContainers);
                     syncParentFolderVisualState(id, folders[id]?.status?.expanded === true);
                 }
+            }
+            if (reconcilingMove) {
+                [...expandedIds].sort((a, b) => getFolderAncestors(a).length - getFolderAncestors(b).length).forEach(id => {
+                    if (jq(`tr.folder-id-${id}`).length && getFolderAncestors(id).every(parent => jq(`.dropDown-${parent}`).attr('active') === 'true')) dropDownButton(id, false);
+                });
+                applyFocusedFolderState();
+                queueRuntimeResizerBind();
+                scheduleRuntimeWidthReflow('folder-hierarchy-move', 24);
             }
         };
 

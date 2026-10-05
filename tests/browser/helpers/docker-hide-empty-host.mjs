@@ -63,6 +63,6 @@ window.loadlist = () => {
     await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
     return { url: `http://127.0.0.1:${host.server.address().port}/docker`, memberCount: host.names.length,
         populated: deep ? ['parent', 'branch', 'leaf', 'direct'] : ['parent', 'childA', 'childB', 'childC'],
-        all: Object.keys(folders), prefs: () => prefs,
+        all: Object.keys(folders), folders, prefs: () => prefs,
         close: async () => { host.server.closeAllConnections(); await new Promise(resolve => host.server.close(resolve)); } };
 };

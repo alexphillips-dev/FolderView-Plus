@@ -31,7 +31,7 @@
   "modules": [
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs"] },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
     { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
@@ -39,6 +39,8 @@
     { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 85, "owner": "isolated production Settings hierarchy host" },
     { "file": "tests/browser/cases/docker-hide-empty.mjs", "limit": 85, "owner": "Docker runtime descendant visibility and refresh regression" },
     { "file": "tests/browser/helpers/docker-hide-empty-host.mjs", "limit": 80, "owner": "isolated production Docker hierarchy host" },
+    { "file": "tests/browser/cases/docker-hierarchy-move.mjs", "limit": 100, "owner": "Docker hierarchy move interaction and rollback regression" },
+    { "file": "tests/browser/helpers/docker-hierarchy-move-host.mjs", "limit": 65, "owner": "synthetic native context menu and hierarchy persistence host" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
@@ -100,6 +102,7 @@
         "tests/browser/cases/dashboard-row-expansion.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
+        "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
@@ -114,12 +117,13 @@
         "tests/browser/helpers/settings-alerts-health-layout.mjs",
         "tests/browser/helpers/settings-hide-empty-host.mjs",
         "tests/browser/helpers/docker-hide-empty-host.mjs",
+        "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 74,
-      "assertionCount": 949,
-      "pageEvaluateCount": 250,
-      "orderedTitleSha256": "49847a43d4608c6b7c8bb63a314566f127882b4e82297d93e0ded51964142c12"
+      "testCount": 75,
+      "assertionCount": 969,
+      "pageEvaluateCount": 251,
+      "orderedTitleSha256": "30c5f97c072edfcbb996339a141ce774f41fe7b994eb590b10e3cf0f8f5ecee1"
     }
   }
 }

@@ -266,7 +266,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const normalizeDockerRuntimeInfoMap = \(source,\s*previousMap = null\) => \{[\s\S]*runtimeInfoApi\.normalizeDockerRuntimeInfoMap\(source,\s*previousMap\)/);
     assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
     assert.match(dockerJs, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\)/);
-    assert.match(dockerJs, /const applyNestedFolderHierarchy = \(\) => \{[\s\S]*hierarchyApi\.applyNestedFolderHierarchy\(\);/);
+    assert.match(dockerJs, /const applyNestedFolderHierarchy = \(expandedIds = null\) => \{[\s\S]*hierarchyApi\.applyNestedFolderHierarchy\(expandedIds\);/);
     assert.match(dockerJs, /const dropDownButton = \(id,\s*persistState = true\) => \{[\s\S]*hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
     assert.match(dockerJs, /const summarizeFolderActionCounts = \(containersMap\) => \{[\s\S]*actionsApi\.summarizeFolderActionCounts\(containersMap\)/);
     assert.match(dockerJs, /const rmFolder = \(id\) => \{[\s\S]*actionsApi\.rmFolder\(id\);/);

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.05.04">
-<!ENTITY md5 "71812d7ccc3ce0e7729296f8879c2bfb">
-<!ENTITY sha256 "50359dfe7a2c400d255fcba65ce2986d18271b215d8cc767317ab9e94e1cd3a8">
+<!ENTITY version "2026.10.05.05">
+<!ENTITY md5 "4b860559f315920905857e074cf205fb">
+<!ENTITY sha256 "30b396537920328e134cd08f38823d7186ce29898933f8710cbbe6c94b0dd723">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.05.05
+- Fix: Moving a folder to root from the Docker folder menu now updates its position, nesting, and visibility immediately without requiring a page refresh.
+- Fix: Hierarchy moves preserve expanded branches and update the previous parent's container totals and previews. Collapsing the previous parent no longer hides a folder that has moved to root.
+- Fix: When a hierarchy save fails, the Docker view restores the previous hierarchy, indentation, and expansion state.
+
 
 ###2026.10.05.04
 - Fix: Hide Empty Folders on the Docker page now keeps parents visible when child folders or deeper descendants contain containers, so their contents remain accessible through expansion.

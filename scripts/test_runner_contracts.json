@@ -38,6 +38,7 @@
     { "file": "tests/browser/cases/settings-hide-empty.mjs", "limit": 65, "owner": "Manage Folders descendant visibility regression" },
     { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 85, "owner": "isolated production Settings hierarchy host" },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
+    { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },

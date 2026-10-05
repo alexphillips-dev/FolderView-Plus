@@ -22,8 +22,43 @@ export const checkDockerMembership = (rows, folders, names) => {
     return rows.every(row => expected.has(row.name) && expected.get(row.name) === row.folderId);
 };
 // Runs before any host or plugin scripts. Navigation timing includes asset startup.
-export function observeProductionStartup() {
+export function observeProductionStartup({ folderCount } = {}) {
     const state = { longTasks: [], frameGaps: [], mutationCallbacks: 0, mutationRecords: 0, stopped: false };
+    // Timestamp the actual readiness transition, before deferred hydration can
+    // block Playwright's later polling callback. Functional readiness is still
+    // checked independently by the benchmark before accepting a sample.
+    const markReady = () => {
+        const locale = window.FolderViewPlusI18n?.snapshot();
+        if (locale?.initialized === true) {
+            const initializedAt = Date.parse(locale.readyAt) - performance.timeOrigin;
+            state.localeReadyMs ??= Number.isFinite(initializedAt) && initializedAt >= 0 && initializedAt <= performance.now() + 1
+                ? initializedAt : performance.now();
+        }
+        if (Number.isFinite(state.bootstrapReadyMs)
+            && document.querySelectorAll('#docker_folders tr[data-folder-id], #docker-folders tr[data-folder-id], tr[data-folder-id]').length === folderCount) {
+            state.rowsReadyMs ??= performance.now();
+            if (Number.isFinite(state.localeReadyMs))
+                state.readyMs ??= Math.max(state.bootstrapReadyMs, state.localeReadyMs, state.rowsReadyMs);
+        }
+    };
+    let bootstrapMarker;
+    Object.defineProperty(window, 'FolderViewPlusMarkSettingsBootstrapState', {
+        configurable: true,
+        get: () => bootstrapMarker,
+        set: callback => {
+            bootstrapMarker = typeof callback !== 'function' ? callback : function (...args) {
+                const result = callback.apply(this, args);
+                if (result?.ready === true && result.failed !== true && result.degraded !== true) {
+                    state.bootstrapReadyMs ??= performance.now();
+                    markReady();
+                }
+                return result;
+            };
+        }
+    });
+    document.addEventListener('folderviewplus:i18n-ready', () => {
+        markReady();
+    }, { once: true });
     const observer = new PerformanceObserver(list => state.longTasks.push(...list.getEntries().map(e => ({ start: e.startTime, duration: e.duration }))));
     observer.observe({ type: 'longtask', buffered: true });
     const mutations = new MutationObserver(records => { state.mutationCallbacks++; state.mutationRecords += records.length; });
@@ -31,7 +66,7 @@ export function observeProductionStartup() {
     let last;
     const frame = now => { if (last !== undefined) state.frameGaps.push(now-last); last=now; if (!state.stopped) requestAnimationFrame(frame); };
     requestAnimationFrame(frame);
-    window.productionPerf = { state, finish() {
+    window.productionPerf = { state, markReady, finish() {
         state.stopped = true; observer.disconnect(); mutations.disconnect();
         const resources = performance.getEntriesByType('resource');
         const scripts = resources.filter(e => e.initiatorType === 'script');

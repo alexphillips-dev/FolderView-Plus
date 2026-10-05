@@ -1,39 +1,54 @@
 name: Scheduled Cross-Browser Validation
-
 on:
   schedule:
     - cron: '17 8 * * 1'
   workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
   group: folderview-plus-scheduled-validation
   cancel-in-progress: true
-
 jobs:
   cross-browser-fixtures:
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Setup CI environment
-        uses: ./.github/actions/setup-ci-env
-
-      - name: Run Chromium, Firefox, and WebKit fixtures
-        env:
-          FVPLUS_FIXTURE_BROWSERS: chromium,firefox,webkit
-        shell: bash
-        run: bash scripts/run_ci_suite.sh --lane fixture-browser
-
-      - name: Upload fixture artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          name: scheduled-cross-browser-${{ github.run_id }}
-          path: tmp/fixture-browser-artifacts
-          if-no-files-found: ignore
+          fetch-depth: 1
+      - uses: ./.github/actions/setup-ci-env
+        with:
+          browsers: ${{ matrix.browser }}
+      - name: Run exhaustive light/dark and desktop/mobile coverage
+        env:
+          FVPLUS_THEME_SMOKE_BROWSERS: ${{ matrix.browser }}
+          FVPLUS_THEME_SMOKE_ARTIFACT_DIR: tmp/fixture-browser-artifacts/theme-matrix
+        run: bash scripts/run_ci_suite.sh --lane theme-matrix
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: scheduled-themes-${{ github.run_id }}-${{ matrix.browser }}
+          path: tmp/fixture-browser-artifacts/theme-matrix
+          if-no-files-found: error
           retention-days: 14
+  performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/setup-ci-env
+        with:
+          browsers: chromium
+      - run: bash scripts/run_ci_suite.sh --lane performance
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: scheduled-performance-${{ github.run_id }}
+          path: tmp/fixture-browser-artifacts/**
+          if-no-files-found: error

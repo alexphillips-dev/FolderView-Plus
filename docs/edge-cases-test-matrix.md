@@ -1,6 +1,9 @@
 # FolderView Plus Edge Cases and Test Matrix
 
-This matrix is the minimum validation target before release packaging.
+This matrix describes validation coverage. Releases use complete functional
+fixtures in parallel desktop engines and a focused light/dark desktop/mobile
+layout profile. The exhaustive combination matrix runs on schedule or explicit
+manual request; see [Release workflow](release-workflow.md).
 
 ## Known Edge Cases
 

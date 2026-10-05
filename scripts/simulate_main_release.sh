@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
-fvplus::require_commands git bash mktemp npm realpath
+fvplus::require_commands git bash mktemp realpath
 
 mkdir -p "${ROOT_DIR}/tmp"
 TMP_DIR="$(mktemp -d "${ROOT_DIR}/tmp/main-release-sim.XXXXXX")"
@@ -30,11 +30,9 @@ git -C "${ROOT_DIR}" worktree add --detach "${WORKTREE_DIR}" HEAD >/dev/null
     WORKTREE_GIT_DIR="$(git rev-parse --absolute-git-dir)"
     printf 'gitdir: %s\n' "$(realpath --relative-to="${WORKTREE_DIR}" "${WORKTREE_GIT_DIR}")" > .git
   fi
-  NPM_BIN="$(fvplus::resolve_platform_command npm)"
-  "${NPM_BIN}" ci --ignore-scripts
   FVPLUS_EXPECT_PLUGIN_BRANCH=main \
     bash scripts/release_prepare.sh --notes-output "${TMP_DIR}/release_notes.md"
 )
 
 cp "${TMP_DIR}/release_notes.md" "${NOTES_OUTPUT}"
-echo "Simulated main release successfully. Notes preview: ${NOTES_OUTPUT}"
+echo "Simulated main packaging successfully (functional CI is performed once on the final committed candidate). Notes preview: ${NOTES_OUTPUT}"

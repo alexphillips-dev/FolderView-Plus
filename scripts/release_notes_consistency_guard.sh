@@ -56,7 +56,8 @@ const fail = (message) => {
 };
 
 const versionHeading = '^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}\\s*$';
-const blockMatch = plg.match(new RegExp(`^###${version}\\s*$([\\s\\S]*?)(?=${versionHeading}|\\Z)`, 'm'));
+const escapedVersion = version.replaceAll('.', '\\.');
+const blockMatch = plg.match(new RegExp(`^###${escapedVersion}\\s*$([\\s\\S]*?)(?=${versionHeading}|\\]\\]>|</CHANGES>|(?![\\s\\S]))`, 'm'));
 if (!blockMatch) {
   fail(`Missing CHANGES block for version ${version}.`);
 }
@@ -79,6 +80,9 @@ if (hasOverride) {
   }
   if (!rendered.includes(overrideBody)) {
     fail(`Generated release notes are missing the curated override body from ${path.relative(root, overridePath)}.`);
+  }
+  if (notesBlock.replaceAll('\r\n', '\n') !== overrideBody.replaceAll('\r\n', '\n')) {
+    fail(`CHANGES and curated release notes disagree for ${version}.`);
   }
 } else {
   for (const line of notesBlock.split(/\r?\n/).filter(Boolean)) {

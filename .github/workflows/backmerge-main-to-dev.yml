@@ -1,219 +1,56 @@
 name: Back-Merge Main To Dev
-
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [Release On Main]
+    types: [completed]
   workflow_dispatch:
-
 permissions:
   contents: read
-
+  actions: read
 concurrency:
   group: folderview-plus-backmerge-main-to-dev
   cancel-in-progress: false
-
 jobs:
   backmerge:
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: write
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'workflow_dispatch' && github.ref_name == 'main')
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 10
     env:
-      BACKMERGE_BRANCH: backmerge/main-to-dev
-
+      FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'
     steps:
-      - name: Checkout repository
+      - name: Checkout published main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # The sync script needs both branch histories and their merge base.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
-
-      - name: Setup CI environment
-        uses: ./.github/actions/setup-ci-env
-
-      - name: Configure git identity
+          filter: blob:none
+      - name: Configure local merge identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Sync main into dev
-        run: |
-          bash scripts/sync_main_to_dev.sh
-
-      - name: Install merged dev validation dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Rebuild synchronized dev package
-        run: |
-          chmod +x scripts/prepare_backmerge_dev_package.sh
-          bash scripts/prepare_backmerge_dev_package.sh
-
-      - name: Commit synchronized dev package
-        run: |
-          git add --all
-          if git diff --cached --quiet; then
-            echo "No dev package changes to commit."
-          else
-            git commit --no-verify -m "Rebuild dev package after main sync"
-          fi
-
-      - name: Validate merged dev state before push
-        env:
-          FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
-          FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
-          FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'
-          FVPLUS_I18N_STRICT: '1'
-          FVPLUS_DEAD_CODE_STRICT: '1'
-          FVPLUS_REQUIRE_PERF_BASELINE: '1'
-          FVPLUS_BROWSER_SMOKE_BROWSERS: chromium
-          FVPLUS_BROWSER_SMOKE_COLOR_SCHEMES: dark
-          FVPLUS_BROWSER_SMOKE_VIEWPORTS: 1180x720
-          FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
-          FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
-          FVPLUS_THEME_COLOR_SCHEMES: 'light,dark'
-          FVPLUS_THEME_VIEWPORTS: '1180x720,390x844'
-          FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
-          FVPLUS_FIXTURE_BROWSERS: 'chromium,firefox,webkit'
-          FVPLUS_FIXTURE_BROWSER_ARTIFACT_DIR: ${{ github.workspace }}/tmp/fixture-browser-artifacts
-          FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
-        run: |
-          chmod +x scripts/run_ci_suite.sh
-          bash scripts/run_ci_suite.sh
-
-      - name: Push back-merge branch when updated
-        id: push_backmerge
-        run: |
-          git fetch origin dev "${BACKMERGE_BRANCH}" || true
-          LOCAL_DEV="$(git rev-parse dev)"
-          REMOTE_DEV="$(git rev-parse origin/dev)"
-          if [ "${LOCAL_DEV}" = "${REMOTE_DEV}" ]; then
-            echo "No dev changes produced by back-merge."
-            echo "updated=0" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-          git push --force-with-lease origin dev:"${BACKMERGE_BRANCH}"
-          echo "updated=1" >> "${GITHUB_OUTPUT}"
-
-      - name: Create or update back-merge PR
-        if: steps.push_backmerge.outputs.updated == '1'
-        env:
-          GH_TOKEN: ${{ secrets.FVPLUS_BACKMERGE_TOKEN || github.token }}
-          BACKMERGE_TOKEN_SOURCE: ${{ secrets.FVPLUS_BACKMERGE_TOKEN != '' && 'FVPLUS_BACKMERGE_TOKEN' || 'GITHUB_TOKEN' }}
-        run: |
-          set -euo pipefail
-          TITLE="Sync main into dev"
-          BODY_FILE="$(mktemp)"
-          MANUAL_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/dev...${GITHUB_REPOSITORY_OWNER}:${BACKMERGE_BRANCH}?expand=1"
-          report_pr_failure() {
-            local reason="$1"
-            {
-              echo "## Back-merge follow-up required"
-              echo
-              echo "The validated branch \`${BACKMERGE_BRANCH}\` was pushed, but the workflow could not create or update its pull request using \`${BACKMERGE_TOKEN_SOURCE}\`."
-              echo
-              echo "Reason: ${reason}"
-              echo
-              echo "[Open the back-merge pull request manually](${MANUAL_URL})"
-              echo
-              echo "Repository administrators can enable **Allow GitHub Actions to create and approve pull requests**, or configure the \`FVPLUS_BACKMERGE_TOKEN\` repository secret with pull-request access."
-            } >> "${GITHUB_STEP_SUMMARY}"
-            echo "::error title=Back-merge PR was not created::${reason}. The validated ${BACKMERGE_BRANCH} branch is available; use ${MANUAL_URL}"
-            exit 1
-          }
-          cat > "${BODY_FILE}" <<'EOF'
-          ## Summary
-
-          Automated back-merge of main-only fixes into `dev`.
-
-          This PR contains the commits present on `main` but not on `dev`. Stable release artifacts are replaced by a newly versioned dev package built from the merged source so the manifest, archive, checksum, and shipped files remain aligned.
-          EOF
-
-          set +e
-          EXISTING_PR="$(
-            gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
-              -f state=open \
-              -f base=dev \
-              -f head="${GITHUB_REPOSITORY_OWNER}:${BACKMERGE_BRANCH}" \
-              --jq '.[0].number // empty'
-          )"
-          LOOKUP_STATUS=$?
-          set -e
-          if [ "${LOOKUP_STATUS}" -ne 0 ]; then
-            report_pr_failure "GitHub rejected the lookup for an existing back-merge pull request"
-          fi
-
-          set +e
-          if [ -n "${EXISTING_PR}" ]; then
-            PR_URL="$(
-              gh api --method PATCH "repos/${GITHUB_REPOSITORY}/pulls/${EXISTING_PR}" \
-                -f title="${TITLE}" \
-                -f body="$(cat "${BODY_FILE}")" \
-                --jq '.html_url'
-            )"
-            STATUS=$?
-            if [ "${STATUS}" -eq 0 ]; then
-              echo "Updated back-merge PR #${EXISTING_PR}: ${PR_URL}"
-            fi
-          else
-            PR_URL="$(
-              gh api --method POST "repos/${GITHUB_REPOSITORY}/pulls" \
-                -f title="${TITLE}" \
-                -f head="${BACKMERGE_BRANCH}" \
-                -f base=dev \
-                -f body="$(cat "${BODY_FILE}")" \
-                --jq '.html_url'
-            )"
-            STATUS=$?
-            if [ "${STATUS}" -eq 0 ]; then
-              echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev: ${PR_URL}"
-            fi
-          fi
-          set -e
-
-          if [ "${STATUS}" -ne 0 ]; then
-            report_pr_failure "GitHub rejected the back-merge pull-request create or update operation"
-          fi
-          if [ -z "${PR_URL:-}" ]; then
-            report_pr_failure "GitHub returned no pull-request URL after the create or update operation"
-          fi
-
-          {
-            echo "## Back-merge pull request ready"
-            echo
-            echo "${PR_URL}"
-          } >> "${GITHUB_STEP_SUMMARY}"
-
-      - name: Request CI and CodeQL for back-merge commit
-        if: steps.push_backmerge.outputs.updated == '1'
+      - name: Verify published main and generate synchronization plan
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          # Explicit dispatch also works for branches and PRs created by GITHUB_TOKEN.
-          gh workflow run ci.yml --repo "${GITHUB_REPOSITORY}" --ref "${BACKMERGE_BRANCH}"
-          gh workflow run codeql.yml --repo "${GITHUB_REPOSITORY}" --ref "${BACKMERGE_BRANCH}"
-          echo "CI and CodeQL requested for ${BACKMERGE_BRANCH}. Wait for both checks to pass before merging." >> "${GITHUB_STEP_SUMMARY}"
-
-      - name: Collect back-merge debug artifacts on failure
-        if: failure()
-        shell: bash
+          node scripts/release_validation.mjs wait
+          expected_main=$(git rev-parse HEAD)
+          git fetch --filter=blob:none --no-tags origin main dev
+          test "$expected_main" = "$(git rev-parse origin/main)"
+          bash scripts/sync_main_to_dev.sh
+          node scripts/sync_plan.mjs
+      - name: Explain owner synchronization action
         run: |
-          set -euo pipefail
-          mkdir -p tmp/backmerge-debug
-          git status --short --branch > tmp/backmerge-debug/git-status.txt || true
-          git diff --stat > tmp/backmerge-debug/git-diff-stat.txt || true
-          git log --oneline --decorate -10 > tmp/backmerge-debug/git-log.txt || true
-
-      - name: Upload back-merge debug artifacts on failure
-        if: failure()
+          {
+            echo '## Main-to-dev synchronization'
+            echo
+            echo 'The plan is read-only. No PR, remote branch, or duplicate validation was created.'
+            echo 'After the authorized release is verified, run bash scripts/release_sync.sh --push-dev from current main.'
+            echo 'Identical dev files reuse their existing validation; changed files qualify once before pushing.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain synchronization plan
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: backmerge-debug-${{ github.run_id }}-${{ github.job }}
-          if-no-files-found: ignore
-          path: |
-            tmp/backmerge-debug/**
-            tmp/fixture-browser-artifacts/**
+          name: synchronization-plan-${{ github.run_id }}
+          path: tmp/synchronization-plan.json
+          if-no-files-found: error
           retention-days: 7

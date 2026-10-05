@@ -24,11 +24,6 @@ test('CodeQL scans dev and main for pushes and pull requests', () => {
 test('write-capable workflows keep top-level permissions read-only and scope writes to jobs', () => {
     const contracts = [
         {
-            file: 'backmerge-main-to-dev.yml',
-            job: 'backmerge',
-            permissionPattern: /permissions:\s*\n\s*contents:\s*write\s*\n\s*pull-requests:\s*write/
-        },
-        {
             file: 'release-on-main.yml',
             job: 'release',
             permissionPattern: /permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/
@@ -47,19 +42,22 @@ test('write-capable workflows keep top-level permissions read-only and scope wri
     }
 });
 
-test('automated back-merges request CI and CodeQL on their own branch', () => {
+test('stable synchronization is read-only and candidate qualification retains security checks', () => {
     const workflow = read('.github/workflows/backmerge-main-to-dev.yml');
-    const dispatch = workflow.split('- name: Request CI and CodeQL for back-merge commit')[1]?.split('\n      - name:')[0] || '';
-    assert.match(workflow, /pull-requests: write\s+actions: write/);
-    assert.match(dispatch, /if: steps\.push_backmerge\.outputs\.updated == '1'/);
-    assert.match(dispatch, /GH_TOKEN: \$\{\{ github\.token \}\}/);
-    assert.match(dispatch, /set -euo pipefail/);
-    for (const file of ['ci.yml', 'codeql.yml']) {
-        assert.ok(dispatch.includes(`gh workflow run ${file} --repo "\${GITHUB_REPOSITORY}" --ref "\${BACKMERGE_BRANCH}"`));
-        assert.match(read(`.github/workflows/${file}`), /workflow_dispatch:/);
-    }
-    assert.ok(workflow.indexOf('- name: Request CI and CodeQL') > workflow.indexOf('- name: Create or update back-merge PR'));
-    assert.doesNotMatch(dispatch, /\|\| true/);
+    assert.match(workflow, /contents:\s*read/);
+    assert.match(workflow, /workflow_run\.conclusion == 'success'/);
+    assert.match(workflow, /sync_plan\.mjs/);
+    assert.doesNotMatch(workflow, /contents:\s*write|pull-requests:\s*write|git push|gh api --method|FVPLUS_BACKMERGE_TOKEN/);
+    const qualification = read('scripts/release_validation.mjs');
+    assert.ok(qualification.includes("['codeql.yml', 'dependency-vulnerability-scan.yml']"));
+    assert.match(qualification, /afterRunId/);
+    assert.match(read('.githooks/pre-push'), /release_validation\.mjs verify/);
+    const ci = read('.github/workflows/ci.yml');
+    assert.match(ci, /base-ref: \$\{\{ steps\.refs\.outputs\.base \}\}/);
+    assert.match(ci, /head-ref: \$\{\{ github\.sha \}\}/);
+    assert.match(ci, /'Dependency Review' \|\| 'Release dependency policy'/);
+    assert.match(ci, /fail-on-severity: high/);
+    assert.match(ci, /license-check: true/);
 });
 
 test('clone traffic credential is isolated from metrics branch publication', () => {

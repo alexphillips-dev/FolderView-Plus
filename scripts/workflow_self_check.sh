@@ -121,7 +121,7 @@ if (!/fixture-browser:/.test(ciWorkflow) || !/--lane fixture-browser/.test(ciWor
   fail('CI workflow must run the required deterministic fixture browser lane.');
 }
 if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh'))) {
-  fail('The deterministic fixture browser lane must enforce runtime performance budgets.');
+  fail('The separate performance lane must enforce runtime performance budgets.');
 }
 if (!/test_runner_contract_guard\.mjs/.test(read('scripts/run_ci_suite.sh'))) {
   fail('The shared lint lane must enforce split test-runner contracts.');
@@ -139,7 +139,8 @@ if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
 for (const jobName of [
   'lint-and-syntax',
   'node-tests',
-  'browser-smoke',
+  'layout-checks',
+  'performance',
   'fixture-browser',
   'theme-matrix'
 ]) {
@@ -162,7 +163,8 @@ for (const jobName of [
   'lint-and-syntax',
   'node-tests',
   'guard-suite',
-  'browser-smoke',
+  'layout-checks',
+  'performance',
   'fixture-browser',
   'theme-matrix',
   'release-preview',
@@ -172,18 +174,6 @@ for (const jobName of [
     fail(`CI job ${jobName} must define a bounded timeout.`);
   }
 }
-for (const [name, workflow] of [
-  ['release-on-main', releaseOnMainWorkflow],
-  ['backmerge-main-to-dev', backmergeWorkflow]
-]) {
-  if (!/FVPLUS_FIXTURE_BROWSERS:\s*'?chromium,firefox,webkit'?/.test(workflow)) {
-    fail(`${name} must run deterministic fixtures in Chromium, Firefox, and WebKit.`);
-  }
-  if (!/tmp\/fixture-browser-artifacts/.test(workflow)) {
-    fail(`${name} must retain deterministic fixture artifacts on failure.`);
-  }
-}
-
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
@@ -235,11 +225,6 @@ if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g)
     !/sbom-path:\s*docs\/sbom\.cdx\.json/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must publish commit-pinned provenance and SBOM attestations for the release archive.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/.test(releaseOnMainWorkflow)
-    || !/FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/.test(releaseOnMainWorkflow)
-    || !/FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must run deterministic browser, theme, and responsive fixture coverage.');
-}
 const validationWorkflows = [
   ciWorkflow,
   backmergeWorkflow,
@@ -266,50 +251,21 @@ if (!/push:\s*\n\s*branches:\s*\n\s*-\s*main/.test(releaseOnMainWorkflow) ||
 if (fs.existsSync(path.join(root, '.github/workflows/release-main.yml'))) {
   fail('The obsolete direct-push Release Main workflow must remain retired.');
 }
-if (!/upload-artifact@[0-9a-f]{40}\s+# v7/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must upload debug artifacts on failure.');
-}
-if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
-}
-if (!/Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must install locked Node validation dependencies from the merged dev tree before packaging and validation.');
-}
-if (!/Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must commit the rebuilt dev package before validation and push.');
-}
-if (!/bash scripts\/prepare_backmerge_dev_package\.sh/.test(backmergeWorkflow) ||
-    /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must package merged source instead of bypassing packaged/source drift validation.');
-}
-if (!/^permissions:\s*\n  contents:\s*read\s*$/m.test(backmergeWorkflow)
-    || !/permissions:\s*\n\s*contents:\s*write\s*\n\s*pull-requests:\s*write/.test(jobBlock(backmergeWorkflow, 'backmerge'))) {
-  fail('Back-merge workflow must keep top-level access read-only and scope contents and pull-request writes to the backmerge job.');
-}
-if (!/Create or update back-merge PR/.test(backmergeWorkflow) ||
-    !/gh api --method POST/.test(backmergeWorkflow) ||
-    !/gh api --method PATCH/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must open or update a PR into dev instead of pushing directly.');
-}
-if (!/secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must support a scoped token when the repository GITHUB_TOKEN cannot create pull requests.');
-}
-if (!/Back-merge follow-up required/.test(backmergeWorkflow) ||
-    !/::error title=Back-merge PR was not created/.test(backmergeWorkflow) ||
-    !/exit 1/.test(backmergeWorkflow) ||
-    /::warning::Back-merge branch/.test(backmergeWorkflow)) {
-  fail('Back-merge PR failures must fail visibly and provide a manual recovery path.');
-}
-if (/git push origin dev/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must not push directly to protected dev.');
+
+if (!/workflow_run:/.test(backmergeWorkflow) || !/workflows: \[Release On Main\]/.test(backmergeWorkflow)
+    || !/node scripts\/sync_plan\.mjs/.test(backmergeWorkflow)
+    || !/release_sync\.sh --push-dev/.test(backmergeWorkflow)
+    || /contents:\s*write|pull-requests:\s*write|actions:\s*write|git push|gh api --method|run_ci_suite/.test(backmergeWorkflow)) {
+  fail('Main-to-dev workflow must produce a read-only plan after publication, without remote branches, PRs or duplicate validation.');
 }
 if (!/permissions:\s*\n\s*contents:\s*read/.test(scheduledValidationWorkflow)
     || /issues:\s*write/.test(scheduledValidationWorkflow)) {
   fail('Scheduled cross-browser validation must keep repository contents read-only.');
 }
-if (!/FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/.test(scheduledValidationWorkflow)
-    || !/bash scripts\/run_ci_suite\.sh --lane fixture-browser/.test(scheduledValidationWorkflow)) {
-  fail('Scheduled validation must run deterministic Chromium, Firefox, and WebKit fixtures.');
+
+if (!/browser: \[chromium, firefox, webkit\]/.test(scheduledValidationWorkflow)
+    || !/--lane theme-matrix/.test(scheduledValidationWorkflow) || !/--lane performance/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation must run the exhaustive parallel browser matrix and separate performance suite.');
 }
 if (/FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS|live-unraid:|gh issue/.test(scheduledValidationWorkflow)) {
   fail('Scheduled validation must not depend on live-Unraid targets, secrets, or issue automation.');
@@ -337,13 +293,37 @@ for (const [workflowName, workflow, jobNames] of [
   ['dependency-vulnerability-scan', dependencyVulnerabilityScanWorkflow, ['scan']],
   ['scorecard', scorecardWorkflow, ['analysis']],
   ['clone-traffic-badge', cloneTrafficBadgeWorkflow, ['collect', 'publish']],
-  ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures']]
+  ['scheduled-validation', scheduledValidationWorkflow, ['cross-browser-fixtures', 'performance']]
 ]) {
   for (const jobName of jobNames) {
     if (!/timeout-minutes:\s*[1-9][0-9]*/.test(jobBlock(workflow, jobName))) {
       fail(`${workflowName} job ${jobName} must define a bounded timeout.`);
     }
   }
+}
+
+
+const fixtureJob = jobBlock(ciWorkflow, 'fixture-browser');
+const layoutJob = jobBlock(ciWorkflow, 'layout-checks');
+const performanceJob = jobBlock(ciWorkflow, 'performance');
+const candidateDependencyJob = jobBlock(ciWorkflow, 'dependency-review');
+const themeJob = jobBlock(ciWorkflow, 'theme-matrix');
+if (!/browser: \[chromium, firefox, webkit\]/.test(fixtureJob) || !/matrix\.browser/.test(fixtureJob)
+    || !/--lane layout-checks/.test(layoutJob) || !/needs_performance/.test(performanceJob)
+    || !/inputs\.profile == 'exhaustive'/.test(themeJob) || /^  browser-smoke:/m.test(ciWorkflow)) {
+  fail('CI must parallelize full browser coverage, use focused layout checks and run exhaustive themes and benchmarks selectively.');
+}
+if (!/dependency-review-action@[0-9a-f]{40}/.test(candidateDependencyJob)
+    || !/base-ref:/.test(candidateDependencyJob) || !/head-ref:/.test(candidateDependencyJob)
+    || !/fail-on-severity: high/.test(candidateDependencyJob) || !/license-check: true/.test(candidateDependencyJob)
+    || !/'Dependency Review' \|\| 'Release dependency policy'/.test(candidateDependencyJob)) {
+  fail('Candidate CI must retain the protected dependency vulnerability and license review without overriding ordinary PR checks.');
+}
+if (!/release_validation\.mjs wait/.test(releaseOnMainWorkflow) || /run_ci_suite|npm ci/.test(releaseOnMainWorkflow)
+    || !/release_validation\.mjs qualify/.test(read('scripts/release_prepare.sh'))
+    || !/release_validation\.mjs verify/.test(read('.githooks/pre-push'))
+    || !/release_validation\.mjs reissue/.test(jobBlock(ciWorkflow, 'quality'))) {
+  fail('Release preparation, protected push and publication must consume exact candidate evidence without repeating CI.');
 }
 
 const runCiSuite = read('scripts/run_ci_suite.sh');

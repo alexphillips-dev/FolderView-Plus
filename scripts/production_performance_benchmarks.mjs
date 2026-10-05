@@ -42,7 +42,7 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
                     for (let run = 0; run < config.measuredRuns; run++) {
                         const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
                         try {
-                            await context.addInitScript(observeProductionStartup);
+                            await context.addInitScript(observeProductionStartup, { folderCount: scenario.folders });
                             const page = await context.newPage();
                             page.setDefaultNavigationTimeout(60000);
                             for (const temperature of ['cold', 'warm']) {
@@ -62,7 +62,10 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
                                             && document.querySelectorAll('#docker_folders tr[data-folder-id], #docker-folders tr[data-folder-id], tr[data-folder-id]').length === count
                                             : document.querySelectorAll('#docker_list tr.folder').length === count;
                                         const localized = window.FolderViewPlusI18n?.snapshot().initialized === true;
-                                        if (ready && localized) window.productionPerf.state.readyMs ||= performance.now();
+                                        if (ready && localized) {
+                                            if (surface === 'settings') window.productionPerf.markReady();
+                                            window.productionPerf.state.readyMs ??= performance.now();
+                                        }
                                         return ready && localized;
                                     }, { surface, count: scenario.folders }, { timeout: 100000 });
                                     if (surface === 'settings') await page.evaluate(() => window.FolderViewPlusSettingsRuntimeHydrationPromise);

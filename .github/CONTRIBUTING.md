@@ -20,6 +20,7 @@ Thanks for helping improve FolderView Plus.
    - Bash + shellcheck
 4. Enable repo hooks (recommended, prevents failed pushes):
    - `bash scripts/install_git_hooks.sh`
+5. Install locked validation dependencies with `npm ci --ignore-scripts`.
 
 ## Validation Checklist
 
@@ -35,11 +36,12 @@ Use `bash scripts/run_ci_suite.sh --lane <name>` for a focused run. Supported la
 bash scripts/run_ci_suite.sh --lane fixture-browser
 ```
 
-API, browser, theme, responsive, and cross-browser qualification is isolated and deterministic. Run:
+API, browser, theme, responsive, and cross-browser qualification is isolated and deterministic. The default profile uses full functional fixtures and focused layout coverage. Run expanded qualification when relevant:
 
 ```bash
-bash scripts/run_ci_suite.sh --lane browser-smoke
+bash scripts/run_ci_suite.sh --lane layout-checks
 bash scripts/run_ci_suite.sh --lane theme-matrix
+bash scripts/run_ci_suite.sh --lane performance
 ```
 
 Do not configure repository validation with a live Unraid URL, session, or secret. Add or update a synthetic profile under `tests/fixtures/unraid-api/` when an upstream API outcome needs coverage.
@@ -51,7 +53,7 @@ Do not configure repository validation with a live Unraid URL, session, or secre
 - Update the relevant user guide, troubleshooting page, `docs/current-state.json`, release notes, screenshots, or language catalogs when behavior changes.
 - Keep backwards compatibility unless the change is intentional and documented.
 
-### Automated back-merges
+### Stable releases and synchronization
 
 For an explicitly authorized release exception, an administrator may set
 `FVPLUS_SKIP_THEME_MATRIX` or `FVPLUS_SKIP_DOCKER_BENCHMARK` to `1` as repository
@@ -60,15 +62,20 @@ Docker startup measurements while retaining Settings startup checks. Other
 validation remains required. Delete the variables after the release to restore
 the defaults. Skipped checks are not passing checks.
 
-The main-to-dev back-merge workflow requests CI and CodeQL on the generated
-`backmerge/main-to-dev` branch. Before merging, verify that both workflows passed
-for the PR's current head commit. The earlier validation inside the back-merge
-workflow does not replace checks attached to that commit.
+Keep remote branches limited to `main`, `dev` and `metrics`. An authorized stable
+release uses `bash scripts/release_prepare.sh --push-main`: it packages and commits
+the final candidate, qualifies that exact commit through a temporary tag, and
+pushes main only after CI, CodeQL and OSV succeed. Browser engines run in parallel;
+the exhaustive theme matrix is scheduled/manual, and benchmarks run separately
+for relevant changes or explicit requests. The publisher verifies candidate
+evidence and package integrity rather than repeating the complete test suite.
 
-If either request fails, use **Run workflow** in the CI and CodeQL Actions pages
-and select `backmerge/main-to-dev`. Manual CI validates the full selected
-revision, including browser and theme fixtures. Do not merge while checks are
-missing, pending, or failing.
+The Back-Merge workflow now produces a read-only synchronization plan after
+publication. From verified current main, run `bash scripts/release_sync.sh --push-dev`.
+Identical dev files use an ancestry-only fast path. Changed files qualify once;
+only shipped source changes rebuild the dev package. No extra remote branch,
+back-merge PR, or duplicate PR/manual CI is created. See
+[Release workflow](../docs/release-workflow.md) for evidence, failures and retries.
 
 OpenSSF Scorecard samples historical merged PRs and commits. Missing checks on
 older back-merges can continue to affect its CI-Tests and SAST findings even

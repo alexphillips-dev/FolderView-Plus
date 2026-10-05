@@ -28,7 +28,13 @@ if ! FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh; then
   exit 1
 fi
 
-echo "[pre-push] Running automated tests..."
-node --test tests/*.mjs
+# Candidate tag pushes publish the commit for qualification, not to main.
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  if [[ "$remote_ref" == refs/heads/main ]]; then
+    [[ "$(git branch --show-current)" == main && "$local_sha" == "$(git rev-parse HEAD)" ]] || { echo 'Main promotion requires current main HEAD.' >&2; exit 1; }
+    echo "[pre-push] Verifying exact-candidate CI evidence before main promotion..."
+    node scripts/release_validation.mjs verify
+  fi
+done
 
 echo "[pre-push] All checks passed."

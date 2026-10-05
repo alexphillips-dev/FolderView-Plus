@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { selectFixtureTests } from './fixture-browser-profile.mjs';
 
 export const runFixtureBrowserSuite = async ({
-    fixtureServer, tests, requestedBrowsers, browserTypes, colorSchemes, viewports,
+    fixtureServer, tests: registeredTests, requestedBrowsers, browserTypes, colorSchemes, viewports,
     timeoutMs, accessibilityEnabled,
     axeScriptPath, artifactDir, rootDir
 }) => {
+const tests = selectFixtureTests(registeredTests, process.env.FVPLUS_FIXTURE_PROFILE || 'all');
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
 const report = {
     schemaVersion: 1,

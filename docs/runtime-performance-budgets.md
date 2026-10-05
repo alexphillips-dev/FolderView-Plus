@@ -1,6 +1,6 @@
 # Runtime performance budgets
 
-FolderView Plus validates browser runtime performance in addition to static asset and package size. The required Chromium benchmark uses deterministic fixtures so the same workloads run locally, in pull requests, on `dev`, and during release validation without requiring a live Unraid host.
+FolderView Plus validates browser runtime performance in addition to static asset and package size. The Chromium benchmark uses deterministic fixtures in a separate performance lane. It runs for performance-sensitive changes, scheduled qualification or explicit manual requests, rather than as part of every functional browser pass. No live Unraid host is required.
 
 ## Scenario matrix
 
@@ -68,7 +68,17 @@ Timing allowances include a general scheduling-noise floor and may define a larg
 
 Timing comparisons use a percentage allowance and a minimum millisecond noise floor. Counts use a smaller percentage allowance with deterministic count floors. Retained heap uses a separate percentage and byte floor. This ignores inconsequential timer noise while still catching substantial runtime, DOM, observer, memory, or request growth.
 
-Reports are written to `tmp/fixture-browser-artifacts/runtime-performance/` as JSON and Markdown and are retained by the existing fixture-browser CI artifact upload.
+Reports are written to `tmp/fixture-browser-artifacts/runtime-performance/` as JSON and Markdown and retained by the separate performance job's artifact upload.
+
+Settings readiness is timestamped at successful non-degraded bootstrap and
+localization initialization, once the expected folder rows exist. Localization's
+existing `readyAt` timestamp marks its initialization flag; the later translated
+DOM event can arrive after expensive hydration and must not change that timestamp.
+Playwright still
+checks those conditions independently before accepting the sample. Later polling
+or deferred hydration cannot inflate that earlier transition timestamp. Other
+metrics and their budgets remain enforced; the post-readiness observation window
+still measures long tasks, mutations, requests and complete rendering.
 
 ## Local use
 

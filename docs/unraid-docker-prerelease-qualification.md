@@ -128,7 +128,13 @@ bash scripts/release_guard.sh
 bash scripts/install_smoke.sh
 ```
 
-`browser-smoke` is a deterministic Chromium fixture profile. `theme-matrix` runs the same local inventory across Chromium, Firefox, WebKit, light/dark color schemes, and desktop/smartphone viewports. Scheduled validation uses the isolated fixture suite and has no live-system secrets.
+`browser-smoke` is an optional deterministic Chromium subset. Standard release
+qualification runs the full functional suite in three parallel browser jobs and
+focused light/dark desktop/mobile layout checks. `theme-matrix` runs the complete
+inventory across Chromium, Firefox, WebKit, both themes and desktop/smartphone
+viewports on schedule or explicit request. Prerelease compatibility qualification
+still calls for that expanded matrix. Benchmarks run separately. All automated
+validation uses isolated fixtures and has no live-system secrets.
 
 ## 11. Make the release decision
 

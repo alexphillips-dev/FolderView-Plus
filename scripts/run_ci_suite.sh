@@ -7,7 +7,7 @@ source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
 RELEASE_MODE=0
-PLAYWRIGHT_READY=0
+PLAYWRIGHT_READY=''
 declare -a REQUESTED_LANES=()
 declare -a TIMING_ROWS=()
 
@@ -21,7 +21,8 @@ Options:
   --release       Run the complete deterministic release validation profile.
   --lane <name>   Run only a specific lane. Supported lanes:
                   lint, tests, workflow-tests, guards, workflow-guards,
-                  docs-guards, fixture-browser, browser-smoke, theme-matrix
+                  docs-guards, fixture-browser, browser-smoke, layout-checks,
+                  performance, theme-matrix
 EOF
 }
 
@@ -149,35 +150,47 @@ run_playwright_install() {
 }
 
 prepare_playwright() {
-  if [[ "${PLAYWRIGHT_READY}" -eq 1 ]]; then
-    return
-  fi
   fvplus::require_commands npm npx
-  "${NPM_BIN}" ci --ignore-scripts
+  local dependency_stamp="node_modules/.fvplus-validation-lock.sha256"
+  local dependency_digest
+  dependency_digest="$(sha256sum package.json package-lock.json | sha256sum | cut -d ' ' -f 1)"
+  if [[ ! -d node_modules/playwright || ! -d node_modules/jquery || ! -f "$dependency_stamp" || "$(cat "$dependency_stamp")" != "$dependency_digest" ]]; then
+    "${NPM_BIN}" ci --ignore-scripts
+    printf '%s\n' "$dependency_digest" > "$dependency_stamp"
+  fi
 
   local browsers_dir="${PLAYWRIGHT_BROWSERS_PATH:-${HOME}/.cache/ms-playwright}"
+  local browser_list="${FVPLUS_PLAYWRIGHT_BROWSERS:-${FVPLUS_FIXTURE_BROWSERS:-chromium}}"
+  browser_list="${browser_list//,/ }"
+  local -a browser_names=()
+  local browser
+  read -r -a browser_names <<< "$browser_list"
+  for browser in "${browser_names[@]}"; do
+    case "$browser" in chromium|firefox|webkit) ;; *) fvplus::fail "Unsupported Playwright browser: $browser" ;; esac
+  done
   local browser_cache_ready=0
-  if [[ -d "${browsers_dir}" ]] && "${NODE_BIN}" -e "const fs=require('node:fs');const p=require('playwright');process.exit(['chromium','firefox','webkit'].every((name)=>fs.existsSync(p[name].executablePath()))?0:1)"; then
+  if [[ -d "${browsers_dir}" ]] && FVPLUS_PLAYWRIGHT_BROWSERS="$browser_list" "${NODE_BIN}" -e "const fs=require('node:fs');const p=require('playwright');process.exit(process.env.FVPLUS_PLAYWRIGHT_BROWSERS.split(' ').every((name)=>fs.existsSync(p[name].executablePath()))?0:1)"; then
     browser_cache_ready=1
   fi
+  local ready_key="${dependency_digest}:${browser_list}:${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"
+  if [[ "$PLAYWRIGHT_READY" == "$ready_key" && "$browser_cache_ready" == 1 ]]; then return; fi
 
   if [[ "${browser_cache_ready}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
     if [[ "${NODE_BIN}" != *.exe ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
-      run_playwright_install install-deps chromium firefox webkit
+      run_playwright_install install-deps "${browser_names[@]}"
     fi
     printf '[ci-suite] Matching Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
   elif parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
-    run_playwright_install install --with-deps chromium firefox webkit
+    run_playwright_install install --with-deps "${browser_names[@]}"
   else
-    run_playwright_install install chromium firefox webkit
+    run_playwright_install install "${browser_names[@]}"
   fi
-  PLAYWRIGHT_READY=1
+  PLAYWRIGHT_READY="$ready_key"
 }
 
 run_fixture_browser_tests() {
   prepare_playwright
   bash scripts/fixture_browser_tests.sh
-  bash scripts/runtime_performance_benchmarks.sh
 }
 
 lint_shell_scripts() {
@@ -210,13 +223,19 @@ lint_php_syntax() {
 }
 
 run_browser_smoke_if_needed() {
-  prepare_playwright
+  FVPLUS_PLAYWRIGHT_BROWSERS="${FVPLUS_BROWSER_SMOKE_BROWSERS:-chromium}" prepare_playwright
   bash scripts/browser_smoke.sh
 }
 
 run_theme_matrix_if_needed() {
-  prepare_playwright
+  FVPLUS_PLAYWRIGHT_BROWSERS="${FVPLUS_THEME_SMOKE_BROWSERS:-chromium,firefox,webkit}" prepare_playwright
   bash scripts/theme_matrix_smoke.sh
+}
+
+run_layout_checks() {
+  FVPLUS_FIXTURE_PROFILE=layout FVPLUS_FIXTURE_BROWSERS="${FVPLUS_LAYOUT_BROWSERS:-chromium}" \
+    FVPLUS_PLAYWRIGHT_BROWSERS="${FVPLUS_LAYOUT_BROWSERS:-chromium}" \
+    FVPLUS_FIXTURE_COLOR_SCHEMES=light,dark FVPLUS_FIXTURE_VIEWPORTS=1180x720,390x844 run_fixture_browser_tests
 }
 
 run_lane() {
@@ -240,12 +259,11 @@ run_lane() {
       run_timed_step phpstan bash scripts/phpstan_guard.sh
       ;;
     tests)
-      run_timed_step node-mobile-tests "${NODE_BIN}" --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
       run_timed_step node-test-suite "${NODE_BIN}" --test tests/*.mjs
       run_timed_step javascript-coverage "${NPM_BIN}" run test:coverage
       ;;
     workflow-tests)
-      run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
+      run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs tests/release-validation.test.mjs tests/sync-main-to-dev.test.mjs tests/ci-change-classifier.test.mjs tests/security-release-contract.test.mjs
       ;;
     workflow-guards)
       run_timed_step actionlint bash scripts/actionlint_guard.sh
@@ -280,10 +298,17 @@ run_lane() {
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
       ;;
     fixture-browser)
-      run_timed_step fixture-browser run_fixture_browser_tests
+      FVPLUS_FIXTURE_PROFILE=all run_timed_step fixture-browser run_fixture_browser_tests
       ;;
     browser-smoke)
       run_timed_step browser-smoke run_browser_smoke_if_needed
+      ;;
+    layout-checks)
+      run_timed_step layout-checks run_layout_checks
+      ;;
+    performance)
+      prepare_playwright
+      run_timed_step performance bash scripts/runtime_performance_benchmarks.sh
       ;;
     theme-matrix)
       run_timed_step theme-matrix run_theme_matrix_if_needed
@@ -295,7 +320,7 @@ run_lane() {
 }
 
 if [[ "${#REQUESTED_LANES[@]}" -eq 0 ]]; then
-  REQUESTED_LANES=(lint tests guards fixture-browser browser-smoke theme-matrix)
+  REQUESTED_LANES=(lint tests guards fixture-browser layout-checks)
 fi
 
 for lane in "${REQUESTED_LANES[@]}"; do

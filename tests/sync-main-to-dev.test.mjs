@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { synchronizationPlan } from '../scripts/sync_plan.mjs';
 
 const repoRoot = path.resolve(process.cwd());
 const syncMainToDevPath = path.join(repoRoot, 'scripts/sync_main_to_dev.sh');
@@ -99,12 +100,26 @@ test('sync_main_to_dev preserves main ancestry while keeping dev release artifac
         .split(/\r?\n/)
         .filter(Boolean);
     assert.deepEqual(diffFiles, ['app.txt']);
+    assert.equal(synchronizationPlan(workDir).validationRequired, true);
+    assert.equal(synchronizationPlan(workDir).changedFileCount, 1);
     assert.doesNotThrow(() => runGit(['merge-base', '--is-ancestor', 'origin/main', 'backmerge/test'], workDir));
     assert.equal(runGit(['rev-list', '--parents', '-n', '1', 'backmerge/test'], workDir).split(' ').length, 3);
     assert.equal(runGit(['show', 'backmerge/test:app.txt'], workDir), 'base\nmain change');
     assert.equal(runGit(['show', 'backmerge/test:folderview.plus.plg'], workDir), 'version=2026.04.05.14');
     assert.match(runGit(['ls-tree', '-r', '--name-only', 'backmerge/test'], workDir), /docs\/releases\/2026\.04\.05\.14\.md/);
     assert.doesNotMatch(runGit(['ls-tree', '-r', '--name-only', 'backmerge/test'], workDir), /2026\.04\.05\.13/);
+    runGit(['checkout', 'dev'], workDir);
+    writeFile(path.join(workDir, 'owner-work.txt'), 'unpublished commit');
+    runGit(['add', '.'], workDir);
+    runGit(['commit', '--no-verify', '-m', 'Unpublished owner work'], workDir);
+    const unpublished = runGit(['rev-parse', 'HEAD'], workDir);
+    assert.throws(() => runSyncMainToDev(workDir, 'dev'), /Command failed/);
+    assert.equal(runGit(['rev-parse', 'HEAD'], workDir), unpublished);
+    assert.equal(fs.readFileSync(path.join(workDir, 'owner-work.txt'), 'utf8'), 'unpublished commit');
+    runGit(['checkout', '--detach', 'origin/dev'], workDir);
+    runSyncMainToDev(workDir, 'HEAD');
+    assert.equal(runGit(['branch', '--show-current'], workDir), '');
+    assert.equal(synchronizationPlan(workDir).validationRequired, true);
 });
 
 test('sync_main_to_dev records main ancestry even when main differs only by release artifacts', (t) => {
@@ -158,6 +173,12 @@ test('sync_main_to_dev records main ancestry even when main differs only by rele
         .split(/\r?\n/)
         .filter(Boolean);
     assert.deepEqual(diffFiles, []);
+    assert.equal(synchronizationPlan(workDir).validationRequired, false);
+    assert.equal(synchronizationPlan(workDir).unchanged, true);
+    writeFile(path.join(workDir, 'unpublished.txt'), 'owner work');
+    assert.throws(() => runSyncMainToDev(workDir), /Command failed/);
+    assert.equal(fs.readFileSync(path.join(workDir, 'unpublished.txt'), 'utf8'), 'owner work');
+    fs.rmSync(path.join(workDir, 'unpublished.txt'));
     assert.notEqual(runGit(['rev-parse', 'backmerge/test'], workDir), runGit(['rev-parse', 'origin/dev'], workDir));
     assert.doesNotThrow(() => runGit(['merge-base', '--is-ancestor', 'origin/main', 'backmerge/test'], workDir));
     assert.equal(runGit(['rev-list', '--parents', '-n', '1', 'backmerge/test'], workDir).split(' ').length, 3);

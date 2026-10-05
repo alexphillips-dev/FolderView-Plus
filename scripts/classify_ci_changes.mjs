@@ -29,6 +29,18 @@ export const FILTERS = Object.freeze({
         '.github/actions/**',
         '.github/ISSUE_TEMPLATE/**',
         'scripts/classify_ci_changes.mjs',
+        'scripts/release_validation.mjs',
+        'scripts/ci_duration_report.mjs',
+        'scripts/release_sync.sh',
+        'scripts/sync_plan.mjs',
+        'scripts/release_prepare.sh',
+        'scripts/simulate_main_release.sh',
+        'scripts/sync_main_to_dev.sh',
+        'scripts/prepare_backmerge_dev_package.sh',
+        'scripts/lib/release-evidence.mjs',
+        'scripts/lib/github-release-validation.mjs',
+        '.githooks/pre-push',
+        'tests/release-validation.test.mjs',
         'scripts/actionlint_guard.sh',
         'scripts/issue_form_guard.mjs',
         'scripts/run_ci_suite.sh',
@@ -61,6 +73,7 @@ export const FILTERS = Object.freeze({
         'scripts/fixture_browser_tests.sh',
         'scripts/fixture_browser_tests.mjs',
         'scripts/lib/fixture-browser-*.mjs',
+        'scripts/fixture_browser_profiles.json',
         'scripts/test_runner_contracts.json',
         'scripts/runtime_performance_benchmarks.sh',
         'scripts/runtime_performance_benchmarks.mjs',
@@ -86,6 +99,14 @@ export const FILTERS = Object.freeze({
         'pkg_build.sh',
         'folderview.plus.plg',
         'folderview.plus.xml'
+    ],
+    performance: [
+        'scripts/runtime_performance_benchmarks.*', 'scripts/runtime_perf_*.json',
+        'scripts/production_performance_benchmarks.mjs', 'scripts/production_perf_*.json',
+        'scripts/lib/production-perf-*.mjs',
+        'src/**/scripts/docker*.js', 'src/**/scripts/vm*.js',
+        'src/**/scripts/dashboard.js', 'src/**/scripts/folderviewplus.settings-loader.js',
+        'src/**/scripts/folderviewplus.js'
     ]
 });
 
@@ -122,14 +143,18 @@ export const classifyPaths = (paths) => {
         FILTERS.workflows.some((pattern) => matchesPattern(filePath, pattern)) ||
         WORKFLOW_COMPANION_PATTERNS.some((pattern) => matchesPattern(filePath, pattern))
     );
+    const unknown = changedPaths.some(filePath => !Object.values(FILTERS).some(patterns => patterns.some(pattern => matchesPattern(filePath, pattern)))
+        && !/^archive\/folderview\.plus-[0-9.]+\.txz(?:\.sha256)?$/.test(filePath));
     return {
         changedPaths,
         matched,
         outputs: {
+            no_changes: changedPaths.length === 0,
             docs_only: docsOnly,
             workflow_only: workflowOnly,
-            needs_browser: matched.browser && !docsOnly && !workflowOnly,
-            needs_theme: matched.theme && !docsOnly && !workflowOnly,
+            needs_browser: (matched.browser || unknown) && !docsOnly && !workflowOnly,
+            needs_theme: (matched.theme || unknown) && !docsOnly && !workflowOnly,
+            needs_performance: matched.performance && !docsOnly && !workflowOnly,
             preview_changed: matched.preview
         }
     };
@@ -151,8 +176,14 @@ const ensureCommit = (sha) => {
 export const resolveChangedPaths = ({
     eventName = process.env.FVPLUS_CI_EVENT_NAME || '',
     beforeSha = process.env.FVPLUS_CI_BEFORE_SHA || '',
-    headSha = process.env.FVPLUS_CI_HEAD_SHA || 'HEAD'
+    headSha = process.env.FVPLUS_CI_HEAD_SHA || 'HEAD',
+    baseSha = process.env.FVPLUS_CI_BASE_SHA || ''
 } = {}) => {
+    if (eventName === 'workflow_dispatch' && baseSha) {
+        if (!/^[a-f0-9]{40}$/.test(baseSha)) throw new Error('Invalid comparison commit');
+        ensureCommit(baseSha);
+        return git('diff', '--name-only', baseSha, headSha).split(/\r?\n/).filter(Boolean);
+    }
     // A manual validation request must cover the whole selected revision.
     if (eventName === 'workflow_dispatch') {
         return git('ls-tree', '-r', '--name-only', headSha).split(/\r?\n/).filter(Boolean);
@@ -210,6 +241,9 @@ const isDirectRun = process.argv[1] &&
 
 if (isDirectRun) {
     const result = classifyPaths(resolveChangedPaths());
+    // Manual full-revision functional checks do not implicitly request every
+    // benchmark merely because performance files exist in the repository.
+    if (process.env.FVPLUS_CI_EVENT_NAME === 'workflow_dispatch' && !process.env.FVPLUS_CI_BASE_SHA) result.outputs.needs_performance = false;
     writeGithubOutputs(result);
     appendSummary(result);
     process.stdout.write(`Classified ${result.changedPaths.length} changed path(s).\n`);

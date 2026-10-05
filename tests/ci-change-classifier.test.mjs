@@ -17,10 +17,12 @@ test('path matching supports exact, subtree, and wildcard workflow patterns', ()
 test('documentation-only changes skip runtime browser and theme lanes', () => {
     const result = classifyPaths(['README.md', 'docs/architecture.md']);
     assert.deepEqual(result.outputs, {
+        no_changes: false,
         docs_only: true,
         workflow_only: false,
         needs_browser: false,
         needs_theme: false,
+        needs_performance: false,
         preview_changed: false
     });
 });
@@ -31,10 +33,12 @@ test('workflow-only changes use focused workflow validation', () => {
         'scripts/classify_ci_changes.mjs'
     ]);
     assert.deepEqual(result.outputs, {
+        no_changes: false,
         docs_only: false,
         workflow_only: true,
         needs_browser: false,
         needs_theme: false,
+        needs_performance: false,
         preview_changed: false
     });
 });
@@ -62,10 +66,12 @@ test('workflow changes allow the generated SBOM as a focused validation companio
         'docs/sbom.cdx.json'
     ]);
     assert.deepEqual(result.outputs, {
+        no_changes: false,
         docs_only: false,
         workflow_only: true,
         needs_browser: false,
         needs_theme: false,
+        needs_performance: false,
         preview_changed: false
     });
 });
@@ -95,10 +101,12 @@ test('runtime changes request browser, theme, and release-preview coverage', () 
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
     ]);
     assert.deepEqual(result.outputs, {
+        no_changes: false,
         docs_only: false,
         workflow_only: false,
         needs_browser: true,
         needs_theme: true,
+        needs_performance: true,
         preview_changed: true
     });
 });
@@ -107,6 +115,16 @@ test('metadata changes are not mistaken for documentation-only changes', () => {
     const result = classifyPaths(['folderview.plus.plg']);
     assert.equal(result.outputs.docs_only, false);
     assert.equal(result.outputs.preview_changed, true);
+});
+
+test('ancestry-only synchronization skips repeated work and unknown paths retain layout validation', () => {
+    assert.equal(classifyPaths([]).outputs.no_changes, true);
+    const unknown = classifyPaths(['scripts/new-tool.mjs']);
+    assert.equal(unknown.outputs.needs_browser, true);
+    assert.equal(unknown.outputs.needs_theme, true);
+    assert.equal(unknown.outputs.needs_performance, false);
+    assert.equal(classifyPaths(['scripts/lib/production-perf-metrics.mjs']).outputs.needs_performance, true);
+    assert.equal(classifyPaths(['src/app/styles/layout.css']).outputs.needs_performance, false);
 });
 
 test('manual validation covers the full revision instead of its last commit', () => {

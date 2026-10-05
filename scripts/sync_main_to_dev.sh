@@ -63,7 +63,7 @@ ensure_origin_remote_usable() {
 }
 
 ensure_origin_remote_usable
-git fetch origin main dev --tags
+git fetch --filter=blob:none --no-tags origin main dev
 
 release_only_path() {
   local path="${1:-}"
@@ -127,11 +127,17 @@ changed_paths_since_ref() {
   git diff --name-only --find-renames "${source_ref}" || true
 }
 
-if git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
-  git checkout -f "${DEV_BRANCH}"
-  git reset --hard "${DEV_REF}"
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo 'Refusing to synchronize a dirty worktree.' >&2
+  exit 1
+fi
+if [[ "$DEV_BRANCH" == HEAD ]]; then
+  [[ "$(git rev-parse HEAD)" == "$(git rev-parse "$DEV_REF")" ]] || { echo 'Detached synchronization must start at origin/dev.' >&2; exit 1; }
+elif git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
+  [[ "$(git rev-parse "$DEV_BRANCH")" == "$(git rev-parse "$DEV_REF")" ]] || { echo 'Local dev branch differs from origin/dev; synchronize it before retrying.' >&2; exit 1; }
+  git checkout "${DEV_BRANCH}"
 else
-  git checkout -f -b "${DEV_BRANCH}" "${DEV_REF}"
+  git checkout -b "${DEV_BRANCH}" "${DEV_REF}"
 fi
 
 if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then

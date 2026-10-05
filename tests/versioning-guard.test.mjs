@@ -377,7 +377,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /"\$\{PHP_BIN\}" -l/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" "\$\(fvplus::path_for_command "\$\{NODE_BIN\}" "scripts\/js_unused_symbols_guard\.mjs"\)"/);
     assert.match(runCiSuite, /"\$\{PHP_BIN\}" "\$\(fvplus::path_for_command "\$\{PHP_BIN\}" "scripts\/php_unused_helpers_guard\.php"\)"/);
-    assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/mobile-touch-support\.test\.mjs tests\/mobile-regression-guard\.test\.mjs/);
+    assert.doesNotMatch(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/mobile-touch-support\.test\.mjs tests\/mobile-regression-guard\.test\.mjs/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/\*\.mjs/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/versioning-guard\.test\.mjs tests\/support-policy-contract\.test\.mjs/);
     assert.match(runCiSuite, /bash scripts\/release_guard\.sh/);
@@ -395,8 +395,8 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
     assert.match(runCiSuite, /Matching Playwright browsers already cached/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" != \*\.exe/);
-    assert.match(runCiSuite, /run_playwright_install install-deps chromium firefox webkit/);
-    assert.match(runCiSuite, /run_playwright_install install --with-deps chromium firefox webkit/);
+    assert.match(runCiSuite, /run_playwright_install install-deps "\$\{browser_names\[@\]\}"/);
+    assert.match(runCiSuite, /run_playwright_install install --with-deps "\$\{browser_names\[@\]\}"/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_INSTALL_ATTEMPTS:-2/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_INSTALL_TIMEOUT:-20m/);
     assert.match(runCiSuite, /timeout --kill-after=30s/);
@@ -411,8 +411,8 @@ test('scheduled validation runs deterministic cross-browser fixtures without liv
     assert.match(scheduledValidationWorkflow, /schedule:/);
     assert.match(scheduledValidationWorkflow, /workflow_dispatch:/);
     assert.match(scheduledValidationWorkflow, /permissions:\s*\n\s*contents:\s*read/);
-    assert.match(scheduledValidationWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
-    assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
+    assert.match(scheduledValidationWorkflow, /browser: \[chromium, firefox, webkit\]/);
+    assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
     assert.doesNotMatch(scheduledValidationWorkflow, /issues:\s*write/);
     assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_UNRAID_MATRIX/);
     assert.doesNotMatch(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_URL/);
@@ -435,107 +435,32 @@ test('scheduled dependency vulnerability scanning covers the generated SBOM', ()
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {
-    assert.match(ciWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main\s*\n\s*-\s*dev\s*\n\s*-\s*reset-main/);
-    assert.match(ciWorkflow, /detect-changes:/);
+    assert.match(ciWorkflow, /branches: \[main, dev\]/);
     assert.match(ciWorkflow, /node scripts\/classify_ci_changes\.mjs/);
-    assert.doesNotMatch(ciWorkflow, /dorny\/paths-filter@/);
-    assert.match(ciWorkflow, /group:\s*folderview-plus-ci-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/);
-    assert.match(ciWorkflow, /cancel-in-progress:\s*true/);
-    assert.match(ciWorkflow, /workflow_only/);
-    assert.match(ciWorkflow, /docs_only/);
-    assert.match(ciWorkflow, /needs_browser/);
-    assert.match(ciWorkflow, /needs_theme/);
-    assert.match(ciWorkflow, /lint-and-syntax:/);
-    assert.match(ciWorkflow, /node-tests:/);
-    assert.match(ciWorkflow, /guard-suite:/);
-    assert.match(ciWorkflow, /browser-smoke:/);
-    assert.match(ciWorkflow, /fixture-browser:/);
-    assert.match(ciWorkflow, /theme-matrix:/);
-    assert.match(ciWorkflow, /release-preview:/);
-    assert.match(ciWorkflow, /quality:/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane lint/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane tests/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane workflow-tests/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane guards/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane workflow-guards/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane docs-guards/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane browser-smoke/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
-    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
-    assert.match(ciWorkflow, /dev-release-preview/);
-    assert.match(ciWorkflow, /ci-duration-report/);
-    assert.match(ciWorkflow, /actions\/upload-artifact@[0-9a-f]{40}\s+# v7/);
-    assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
-    assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
-    assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-    const nodeTestJob = ciWorkflow.match(/^  node-tests:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
-    assert.match(nodeTestJob, /Install Node test dependencies[\s\S]*npm ci --ignore-scripts/);
-
-    for (const workflow of [releaseOnMainWorkflow]) {
-        assert.match(workflow, /Setup CI environment/);
-        assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_COLOR_SCHEMES:\s*dark/);
-        assert.match(workflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
-        assert.match(workflow, /FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/);
-        assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
-        assert.match(workflow, /tmp\/fixture-browser-artifacts/);
-        assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
-        assert.doesNotMatch(workflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
+    assert.doesNotMatch(ciWorkflow, /dorny\/paths-filter@|^  browser-smoke:/m);
+    assert.match(ciWorkflow, /browser: \[chromium, firefox, webkit\]/);
+    for (const lane of ['lint', 'tests', 'guards', 'workflow-tests', 'workflow-guards', 'docs-guards', 'fixture-browser', 'layout-checks', 'performance', 'theme-matrix']) {
+        assert.ok(ciWorkflow.includes('--lane ' + lane), lane);
     }
-
-    assert.match(releaseOnMainWorkflow, /Run release validation suite/);
-    assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
-
-    assert.match(backmergeWorkflow, /Validate merged dev state before push/);
-    assert.match(backmergeWorkflow, /Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/);
-    assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
-    assert.match(backmergeWorkflow, /bash scripts\/prepare_backmerge_dev_package\.sh/);
-    assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
-    assert.match(prepareBackmergeDevPackage, /FVPLUS_EXPECT_PLUGIN_BRANCH=dev[\s\S]*bash pkg_build\.sh --branch dev/);
-    assert.doesNotMatch(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
-    assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
-    assert.match(backmergeWorkflow, /Setup CI environment/);
-    assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-    assert.match(backmergeWorkflow, /FVPLUS_BROWSER_SMOKE_BROWSERS:\s*chromium/);
-    assert.match(backmergeWorkflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
-    assert.match(backmergeWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*'chromium,firefox,webkit'/);
-    assert.doesNotMatch(backmergeWorkflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
-    assert.match(backmergeWorkflow, /tmp\/fixture-browser-artifacts/);
-    assert.match(backmergeWorkflow, /pull-requests:\s*write/);
-    assert.match(backmergeWorkflow, /secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/);
-    assert.match(backmergeWorkflow, /Back-merge follow-up required/);
-    assert.match(backmergeWorkflow, /::error title=Back-merge PR was not created/);
-    assert.doesNotMatch(backmergeWorkflow, /::warning::Back-merge branch/);
-    assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
-
-    for (const jobName of [
-        'lint-and-syntax',
-        'node-tests',
-        'browser-smoke',
-        'fixture-browser',
-        'theme-matrix'
-    ]) {
-        const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
-        const job = ciWorkflow.match(jobPattern)?.[1] || '';
-        assert.match(job, /fetch-depth:\s*1/, `${jobName} should use a shallow checkout`);
-        assert.doesNotMatch(job, /fetch-depth:\s*0/, `${jobName} should not fetch full history`);
+    assert.match(ciWorkflow, /inputs\.profile == 'exhaustive'/);
+    assert.match(ciWorkflow, /needs_performance/);
+    assert.match(ciWorkflow, /release_validation\.mjs (?:write|reissue)/);
+    assert.match(ciWorkflow, /dev-release-preview|ci-duration-report/);
+    for (const name of ['lint-and-syntax', 'node-tests', 'fixture-browser', 'layout-checks', 'performance', 'theme-matrix']) {
+        const block = ciWorkflow.match(new RegExp('^  ' + name + ':\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))', 'm'))?.[1];
+        assert.match(block, /fetch-depth:\s*1/, name);
+        assert.match(block, /timeout-minutes:\s*[1-9]/, name);
     }
-    {
-        const detectJob = ciWorkflow.match(/^  detect-changes:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
-        assert.match(detectJob, /fetch-depth:\s*2/, 'detect-changes should fetch pull-request merge parents');
-        assert.doesNotMatch(detectJob, /fetch-depth:\s*0/, 'detect-changes should not fetch full history');
+    for (const name of ['guard-suite', 'release-preview']) {
+        const block = ciWorkflow.match(new RegExp('^  ' + name + ':\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))', 'm'))?.[1];
+        assert.match(block, /fetch-depth:\s*0/, name);
+        assert.match(block, /filter: blob:none/, name);
     }
-    for (const jobName of ['guard-suite', 'release-preview']) {
-        const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
-        const job = ciWorkflow.match(jobPattern)?.[1] || '';
-        assert.match(job, /fetch-depth:\s*0/, `${jobName} should retain full history`);
-    }
-
-    assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
-    assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
-    assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh --release/);
-    assert.doesNotMatch(releasePrepare, /--beta/);
+    assert.match(releasePrepare, /release_validation\.mjs qualify/);
+    assert.doesNotMatch(releasePrepare + releaseOnMainWorkflow + backmergeWorkflow, /run_ci_suite\.sh --release/);
+    assert.match(releaseOnMainWorkflow, /release_validation\.mjs wait/);
+    assert.match(backmergeWorkflow, /sync_plan\.mjs/);
+    assert.doesNotMatch(backmergeWorkflow, /git push|pull-requests:\s*write|--force/);
 });
 
 test('deterministic browser fixtures exercise shipped runtime modules without a live Unraid URL', () => {
@@ -590,15 +515,10 @@ test('release note parsers distinguish category headings from version headings',
 });
 
 test('release publishing serializes concurrent runs and enforces isolated validation', () => {
-    for (const workflow of [releaseOnMainWorkflow]) {
-        assert.match(workflow, /concurrency:/);
-        assert.match(workflow, /group:\s*folderview-plus-release/);
-        assert.match(workflow, /cancel-in-progress:\s*false/);
-        assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
-        assert.match(workflow, /FVPLUS_THEME_COLOR_SCHEMES:\s*'light,dark'/);
-        assert.match(workflow, /FVPLUS_THEME_VIEWPORTS:\s*'1180x720,390x844'/);
-        assert.doesNotMatch(workflow, /FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
-    }
+    assert.match(releaseOnMainWorkflow, /group:\s*folderview-plus-release/);
+    assert.match(releaseOnMainWorkflow, /cancel-in-progress:\s*false/);
+    assert.match(releaseOnMainWorkflow, /release_validation\.mjs wait/);
+    assert.doesNotMatch(releaseOnMainWorkflow, /run_ci_suite|FVPLUS_UNRAID_MATRIX|FVPLUS_BROWSER_SMOKE_URL|FVPLUS_THEME_MATRIX_URLS/);
 });
 
 test('release preparation keeps an explicit guarded push option for operator use', () => {
@@ -617,41 +537,28 @@ test('release-on-main is the single authoritative release workflow', () => {
 
 test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
     assert.match(releaseOnMainWorkflow, /name:\s*Release On Main/);
-    assert.match(releaseOnMainWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main/);
-    assert.match(releaseOnMainWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
-    assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
-    assert.match(releaseOnMainWorkflow, /release_notes\.md/);
-    assert.match(releaseOnMainWorkflow, /folderview\.plus\.plg/);
-    assert.match(releaseOnMainWorkflow, /archive\/folderview\.plus-\$\{VERSION\}\.txz/);
-    assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
-    assert.match(releaseOnMainWorkflow, /sha256sum "\$\{ARCHIVE\}"/);
-    assert.match(releaseOnMainWorkflow, /Generated missing checksum/);
-    assert.match(releaseOnMainWorkflow, /gh release create/);
+    assert.match(releaseOnMainWorkflow, /release_validation\.mjs wait/);
+    assert.match(releaseOnMainWorkflow, /committed checksum is missing/);
+    assert.doesNotMatch(releaseOnMainWorkflow, /Generated missing checksum|npm ci/);
+    assert.match(releaseOnMainWorkflow, /gh release create.*--target "\$GITHUB_SHA"/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
-    assert.match(releaseOnMainWorkflow, /retry_command "Upload release package" gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
-    assert.match(releaseOnMainWorkflow, /retry_command "Upload release checksum" gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
-    assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
-    assert.match(releaseOnMainWorkflow, /retry_command\(\)/);
+    assert.match(releaseOnMainWorkflow, /git rev-parse 'FETCH_HEAD\^\{commit\}'/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release package"/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release checksum"/);
     assert.match(releaseOnMainWorkflow, /create_or_confirm_release\(\)/);
+    assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
     assert.match(releaseOnMainWorkflow, /release not found\|HTTP 404\|Not Found/);
-    assert.match(releaseOnMainWorkflow, /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/);
 });
 
 test('back-merge workflow validates merged dev state before pushing', () => {
-    assert.match(backmergeWorkflow, /name:\s*Back-Merge Main To Dev/);
-    assert.match(backmergeWorkflow, /Setup CI environment/);
-    assert.match(backmergeWorkflow, /Sync main into dev[\s\S]*Install merged dev validation dependencies[\s\S]*npm ci --ignore-scripts/);
-    assert.match(backmergeWorkflow, /Commit synchronized dev package[\s\S]*git add --all[\s\S]*git commit --no-verify -m "Rebuild dev package after main sync"/);
-    assert.match(backmergeWorkflow, /Validate merged dev state before push/);
-    assert.match(backmergeWorkflow, /Push back-merge branch when updated/);
-    assert.match(backmergeWorkflow, /Create or update back-merge PR/);
-    assert.match(backmergeWorkflow, /git push --force-with-lease origin dev:"\$\{BACKMERGE_BRANCH\}"/);
-    assert.match(backmergeWorkflow, /gh api --method POST "repos\/\$\{GITHUB_REPOSITORY\}\/pulls"/);
-    assert.match(backmergeWorkflow, /gh api --method PATCH "repos\/\$\{GITHUB_REPOSITORY\}\/pulls\/\$\{EXISTING_PR\}"/);
-    assert.match(backmergeWorkflow, /secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/);
-    assert.match(backmergeWorkflow, /exit 1/);
-    assert.match(backmergeWorkflow, /Collect back-merge debug artifacts on failure/);
-    assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
+    assert.match(backmergeWorkflow, /workflows: \[Release On Main\]/);
+    assert.match(backmergeWorkflow, /workflow_run\.conclusion == 'success'/);
+    assert.match(backmergeWorkflow, /release_validation\.mjs wait/);
+    assert.match(backmergeWorkflow, /sync_main_to_dev\.sh/);
+    assert.match(backmergeWorkflow, /sync_plan\.mjs/);
+    assert.match(backmergeWorkflow, /release_sync\.sh --push-dev/);
+    assert.match(backmergeWorkflow, /synchronization-plan/);
+    assert.doesNotMatch(backmergeWorkflow, /git push|pull-requests:\s*write|contents:\s*write|FVPLUS_BACKMERGE_TOKEN|npm ci|run_ci_suite/);
 });
 
 test('back-merge sync script preserves main ancestry while restoring dev release artifacts', () => {
@@ -732,7 +639,7 @@ test('release preparation uses dry-run version resolution and explicit notes bef
     assert.match(releasePrepare, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1/);
     assert.match(releasePrepare, /ensure_plg_changes_entry\.sh --check-only --require-explicit --version "\$\{RELEASE_VERSION\}"/);
     assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
-    assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh --release/);
+    assert.match(releasePrepare, /release_validation\.mjs qualify/);
     assert.match(releasePrepare, /git commit -m "Stable release \$\{FINAL_VERSION\}"/);
     assert.match(releasePrepare, /git push origin main/);
 });

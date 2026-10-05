@@ -8,7 +8,7 @@ cd "${ROOT_DIR}"
 
 fvplus::require_commands bash git sed
 
-if [[ "$(git branch --show-current)" != "dev" ]]; then
+if [[ "$(git branch --show-current)" != "dev" && "${FVPLUS_BACKMERGE_LOCAL_BRANCH:-}" != HEAD ]]; then
   fvplus::fail "Back-merge package preparation must run on dev."
 fi
 if ! git rev-parse -q --verify "origin/dev^{commit}" >/dev/null 2>&1; then
@@ -16,15 +16,10 @@ if ! git rev-parse -q --verify "origin/dev^{commit}" >/dev/null 2>&1; then
 fi
 
 mapfile -t changed_source_paths < <(
-  git diff --name-only origin/dev...HEAD -- \
-    . \
-    ':(exclude)folderview.plus.plg' \
-    ':(exclude)folderview.plus.xml' \
-    ':(exclude)archive/**' \
-    ':(exclude)docs/releases/**'
+  git diff --name-only origin/dev HEAD -- src
 )
 if [[ "${#changed_source_paths[@]}" -eq 0 ]]; then
-  echo "Back-merge contains no source or workflow changes; package preparation skipped."
+  echo "Synchronization changes no shipped plugin files; package preparation skipped."
   exit 0
 fi
 

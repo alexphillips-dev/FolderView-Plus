@@ -10,6 +10,10 @@ inputs:
     description: Extra cache key suffix to allow targeted cache busting
     required: false
     default: 'v1'
+  browsers:
+    description: Space-separated browser engines needed by this job; none for non-browser jobs.
+    required: false
+    default: 'none'
 
 runs:
   using: composite
@@ -29,13 +33,23 @@ runs:
           ${{ runner.os }}-fvplus-npm-
 
     - name: Restore Playwright browser cache
+      if: inputs.browsers != 'none'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh', 'package-lock.json') }}
+        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.browsers }}-${{ hashFiles('package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-
           ${{ runner.os }}-fvplus-playwright-
+
+    - name: Select required Playwright engines
+      if: inputs.browsers != 'none'
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: |
+        [[ "$BROWSERS" =~ ^(chromium|firefox|webkit)(\ (chromium|firefox|webkit))*$ ]] || exit 1
+        echo "FVPLUS_PLAYWRIGHT_BROWSERS=$BROWSERS" >> "$GITHUB_ENV"
 
     - name: Install shellcheck
       shell: bash

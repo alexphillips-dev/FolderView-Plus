@@ -40,6 +40,12 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+if [[ "$PUSH_MAIN" == 1 ]]; then
+  [[ "$(git branch --show-current)" == main ]] || fvplus::fail 'Stable publication must run from main.'
+  [[ -z "$(git status --porcelain)" ]] || fvplus::fail 'Commit the reviewed release scope and notes before stable preparation.'
+  export FVPLUS_REQUIRE_GITHOOKS=1
+fi
+
 chmod +x \
   pkg_build.sh \
   scripts/build_release_notes.sh \
@@ -81,11 +87,11 @@ bash scripts/ensure_plg_changes_entry.sh --check-only --require-explicit --versi
 FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
 bash pkg_build.sh --branch main --no-validate
 
-FVPLUS_I18N_STRICT=1 \
-FVPLUS_DEAD_CODE_STRICT=1 \
-FVPLUS_REQUIRE_PERF_BASELINE=1 \
-FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
-bash scripts/run_ci_suite.sh --release
+# Local preparation checks packaging. The exact committed candidate is validated
+# once by CI; the publisher consumes that evidence instead of repeating the suite.
+FVPLUS_EXPECT_PLUGIN_BRANCH=main bash scripts/release_guard.sh
+bash scripts/release_notes_consistency_guard.sh
+bash scripts/install_smoke.sh
 
 FINAL_VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
 
@@ -100,7 +106,10 @@ if [[ "${PUSH_MAIN}" == "1" ]]; then
   else
     git commit -m "Stable release ${FINAL_VERSION}"
   fi
+  node scripts/release_validation.mjs qualify
   git push origin main
+  candidate_tag="fvplus-release-candidate-$(git rev-parse HEAD)"
+  git push origin ":refs/tags/${candidate_tag}"
 fi
 
 echo "Release prepared successfully: ${FINAL_VERSION}"

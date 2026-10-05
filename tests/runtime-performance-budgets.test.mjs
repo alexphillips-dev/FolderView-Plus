@@ -69,10 +69,14 @@ test('runtime fixtures observe real browser DOM, lifecycle, view-switch, heap, a
     assert.match(runner, /page\.on\('request'/);
 });
 
-test('required fixture-browser CI lane runs the runtime performance budgets', () => {
+test('performance budgets run in a separate selectively scheduled CI lane', () => {
     const suite = read('scripts/run_ci_suite.sh');
     const workflow = read('.github/workflows/ci.yml');
     assert.match(suite, /bash scripts\/runtime_performance_benchmarks\.sh/);
     assert.match(workflow, /--lane fixture-browser/);
+    assert.match(workflow, /--lane performance/);
+    assert.match(workflow, /needs_performance/);
+    const functional = suite.split('run_fixture_browser_tests() {')[1].split('\n}')[0];
+    assert.doesNotMatch(functional, /performance_benchmarks/);
     assert.match(workflow, /tmp\/fixture-browser-artifacts\/\*\*/);
 });

@@ -3,10 +3,43 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 import { createProductionPerfFixture } from '../scripts/lib/production-perf-fixture.mjs';
 import { readProductionBaseline } from '../scripts/production_performance_benchmarks.mjs';
-import { median, checkMetric, dockerStartupStages, dockerStartupMetrics, checkDockerMembership } from '../scripts/lib/production-perf-metrics.mjs';
+import { median, checkMetric, dockerStartupStages, dockerStartupMetrics, checkDockerMembership, observeProductionStartup } from '../scripts/lib/production-perf-metrics.mjs';
 import { classifyPaths } from '../scripts/classify_ci_changes.mjs';
+
+test('Settings readiness records the actual transition before delayed browser polling', () => {
+    let clock = 0, rows = 2;
+    const listeners = new Map();
+    let localized = false;
+    const window = { FolderViewPlusI18n: { snapshot: () => ({ initialized: localized, readyAt: new Date(60).toISOString() }) } };
+    const context = vm.createContext({ window, document: {
+        querySelectorAll: () => ({ length: rows }), addEventListener: (name, callback) => listeners.set(name, callback)
+    }, performance: { now: () => clock, timeOrigin: 0 }, Number, Math, Date,
+    PerformanceObserver: class { observe() {} }, MutationObserver: class { observe() {} }, requestAnimationFrame() {} });
+    vm.runInContext(`(${observeProductionStartup.toString()})({folderCount:2})`, context);
+    window.FolderViewPlusMarkSettingsBootstrapState = state => state;
+    window.FolderViewPlusMarkSettingsBootstrapState({ ready: true, degraded: true });
+    assert.equal(window.productionPerf.state.readyMs, undefined);
+    rows = 1;
+    window.FolderViewPlusMarkSettingsBootstrapState({ ready: true });
+    clock = 60;
+    localized = true;
+    listeners.get('folderviewplus:i18n-ready')();
+    assert.equal(window.productionPerf.state.readyMs, undefined, 'Wrong row count cannot mark readiness');
+    rows = 2;
+    window.FolderViewPlusMarkSettingsBootstrapState({ ready: true });
+    assert.equal(window.productionPerf.state.readyMs, 60);
+    clock = 1400;
+    window.FolderViewPlusMarkSettingsBootstrapState({ ready: true });
+    assert.equal(window.productionPerf.state.readyMs, 60, 'Deferred work cannot inflate the timestamp');
+    const state = window.productionPerf.state;
+    delete state.readyMs; delete state.localeReadyMs;
+    // Catalog initialization happened at 60ms; its DOM translation event can be later.
+    listeners.get('folderviewplus:i18n-ready')();
+    assert.equal(state.readyMs, 60, 'The late translation event must use the initialization timestamp');
+});
 
 test('production benchmark rejects missing samples and enforces absolute and baseline limits', () => {
     for (const values of [[], [undefined], [NaN], [-1], [1, Infinity]]) assert.throws(() => median(values));

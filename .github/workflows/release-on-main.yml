@@ -19,21 +19,19 @@ jobs:
       contents: write
       id-token: write
       attestations: write
+      actions: read
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 35
 
     steps:
       - name: Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
+          fetch-depth: 2
+          filter: blob:none
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
-
-      - name: Install Node validation dependencies
-        shell: bash
-        run: npm ci --ignore-scripts
 
       - name: Detect release artifact changes
         id: release_scope
@@ -47,8 +45,14 @@ jobs:
           if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
             RANGE="${AFTER_SHA}^..${AFTER_SHA}"
           fi
-
-          mapfile -t changed_files < <(git diff --name-only "${RANGE}" || true)
+          if [[ "$BEFORE_SHA" =~ ^[a-f0-9]{40}$ ]] && ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            git fetch --filter=blob:none --no-tags --depth=1 origin "$BEFORE_SHA"
+          fi
+          changed_paths=$(git diff --name-only "$RANGE")
+          if grep -Eq '^(docs/sbom\.cdx\.json|package-lock\.json|scripts/runtime_components\.json|\.github/workflows/dependency-vulnerability-scan\.yml)$' <<< "$changed_paths"; then
+            echo 'FVPLUS_REQUIRE_MAIN_OSV=1' >> "$GITHUB_ENV"
+          fi
+          mapfile -t changed_files <<< "$changed_paths"
           should_publish=0
           for changed_file in "${changed_files[@]}"; do
             case "${changed_file}" in
@@ -91,11 +95,7 @@ jobs:
             echo "ERROR: expected archive not found: ${ARCHIVE}" >&2
             exit 1
           fi
-          if [ ! -f "${CHECKSUM}" ]; then
-            ARCHIVE_BASENAME="$(basename "${ARCHIVE}")"
-            sha256sum "${ARCHIVE}" | awk -v name="${ARCHIVE_BASENAME}" '{print $1 "  " name}' > "${CHECKSUM}"
-            echo "Generated missing checksum: ${CHECKSUM}"
-          fi
+          test -f "$CHECKSUM" || { echo 'ERROR: committed checksum is missing.' >&2; exit 1; }
           {
             echo "version=${VERSION}"
             echo "archive=${ARCHIVE}"
@@ -103,30 +103,27 @@ jobs:
             echo "tag=v${VERSION}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Run release validation suite
+      - name: Require exact candidate CI and security results
         if: steps.release_scope.outputs.should_publish == '1'
         env:
-          FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
-          FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
-          FVPLUS_I18N_STRICT: '1'
-          FVPLUS_DEAD_CODE_STRICT: '1'
-          FVPLUS_REQUIRE_PERF_BASELINE: '1'
-          FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES: '1'
-          FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
-          FVPLUS_BROWSER_SMOKE_BROWSERS: chromium
-          FVPLUS_BROWSER_SMOKE_COLOR_SCHEMES: dark
-          FVPLUS_BROWSER_SMOKE_VIEWPORTS: 1180x720
-          FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
-          FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
-          FVPLUS_THEME_COLOR_SCHEMES: 'light,dark'
-          FVPLUS_THEME_VIEWPORTS: '1180x720,390x844'
-          FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
-          FVPLUS_FIXTURE_BROWSERS: chromium,firefox,webkit
-          FVPLUS_FIXTURE_BROWSER_ARTIFACT_DIR: ${{ github.workspace }}/tmp/fixture-browser-artifacts
-          FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
+          GH_TOKEN: ${{ github.token }}
         run: |
-          chmod +x scripts/run_ci_suite.sh
-          bash scripts/run_ci_suite.sh --release
+          node scripts/release_validation.mjs wait
+          bash scripts/release_guard.sh
+          FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 bash scripts/release_notes_consistency_guard.sh
+
+      - name: Fetch previous stable release reference
+        if: steps.release_scope.outputs.should_publish == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_TAG: ${{ steps.release_meta.outputs.tag }}
+        run: |
+          previous=$(gh release list --exclude-drafts --exclude-pre-releases --limit 100 --json tagName | node --input-type=module -e 'import fs from "node:fs"; const current=process.env.CURRENT_TAG; const tags=JSON.parse(fs.readFileSync(0,"utf8")).map(r=>r.tagName).filter(t=>/^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}$/.test(t)&&t<current).sort().reverse(); console.log(tags[0]||"");')
+          if [[ -n "$previous" ]]; then
+            [[ "$previous" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$ ]]
+            git fetch --filter=blob:none --no-tags --depth=1 origin "refs/tags/$previous:refs/tags/$previous"
+            echo "FVPLUS_RELEASE_PREVIOUS_REF=$previous" >> "$GITHUB_ENV"
+          fi
 
       - name: Build release notes from current CHANGES block
         id: notes
@@ -226,12 +223,16 @@ jobs:
           done
 
           create_or_confirm_release() {
-            if gh release create "${TAG}" --title "${TAG}" --notes-file release_notes.md; then
+            if gh release create "${TAG}" --target "$GITHUB_SHA" --title "${TAG}" --notes-file release_notes.md; then
               return 0
             fi
             gh release view "${TAG}" >/dev/null 2>&1
           }
 
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            git fetch --no-tags --depth=1 origin "refs/tags/$TAG"
+            test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$GITHUB_SHA"
+          fi
           if (( release_exists == 1 )); then
             retry_command "Update release metadata" gh release edit "${TAG}" --title "${TAG}" --notes-file release_notes.md
             echo "Updated release ${TAG} metadata."
@@ -239,6 +240,8 @@ jobs:
             retry_command "Create release" create_or_confirm_release
             echo "Created release ${TAG}."
           fi
+          git fetch --no-tags --depth=1 origin "refs/tags/$TAG"
+          test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$GITHUB_SHA"
           retry_command "Upload release package" gh release upload "${TAG}" "${ARCHIVE}" --clobber
           retry_command "Upload release checksum" gh release upload "${TAG}" "${CHECKSUM}" --clobber
           echo "Published release ${TAG} package and checksum assets."

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-09-23T20:50:42.808Z",
-  "notes": "September 2026 tree move, shared hierarchy, and bounded Docker preview changes were remeasured after browser and runtime performance budgets passed. This refresh also records pre-existing diagnostics view model and Settings workspace growth that exceeded the prior ratchet on clean dev. The 8% growth ratchet remains enabled; the Settings workspace gzip cap was raised to 13500 bytes to cover its measured 12975 bytes.",
+  "notes": "September 2026 tree move, shared hierarchy, and bounded Docker preview changes were remeasured after browser and runtime performance budgets passed. This refresh also records pre-existing diagnostics view model and Settings workspace growth that exceeded the prior ratchet on clean dev. The 8% growth ratchet remains enabled; the Settings workspace gzip cap was raised to 13500 bytes to cover its measured 12975 bytes. The import asset baseline was refreshed to the verified published dev 2026.10.04.02 source (67376 bytes, 15191 gzip bytes) for the October diagnostics additions; its hard limits and the 8% growth policy remain unchanged.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
       "bytes": 1256,
@@ -96,8 +96,8 @@
       "gzipBytes": 37031
     },
     "scripts/folderviewplus.import.js": {
-      "bytes": 62497,
-      "gzipBytes": 14079
+      "bytes": 67376,
+      "gzipBytes": 15191
     },
     "styles/folderviewplus.css": {
       "bytes": 373047,

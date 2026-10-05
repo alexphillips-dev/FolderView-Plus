@@ -23,7 +23,7 @@
         <table>
             <tbody id="docker_view">
                 <tr class="updated">
-                    <td id="fixture-dashboard-host">
+                    <td id="fixture-dashboard-host" colspan="2">
                         <div class="folder-showcase-outer" data-fv-folder-id="system" expanded="true">
                             <span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">System</span></span></span>
                             <div class="folder-showcase">
@@ -42,7 +42,7 @@
         </table>
     </section>
     <section id="fixture-vm-widget" hidden>
-        <input id="vms" type="checkbox">
+        <input id="vms" type="checkbox" aria-label="Show running VMs only">
         <table><tbody id="vm_view"><tr class="updated"><td>
             <div id="fixture-vm-folder" class="folder-showcase-outer" data-fv-folder-id="vm-system" expanded="true">
                 <span class="outer vms folder-vm"><span class="inner folder-inner-vm"><span class="folder-appname-vm">VM System</span></span></span>
@@ -56,6 +56,7 @@
     </section>
     <script src="/vendor/jquery.js"></script>
     <script src="/plugin/scripts/folderviewplus.ui.js"></script>
+    <script src="/plugin/scripts/dashboard.capture-feedback.js"></script>
     <script src="/plugin/scripts/dashboard.layout-quickrail.js"></script>
     <script src="/plugin/scripts/dashboard.visual-diagnostics.js?v=fixture"></script>
     <script src="/fixtures/dashboard-layout.fixture.js"></script>

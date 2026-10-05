@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:acb084e7-ee9d-8ac3-b7f0-30017b294bac",
+  "serialNumber": "urn:uuid:96b32952-38ea-874c-acd2-5a56a8f724c4",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.10.02.01",
+      "version": "2026.10.05.02",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -154,7 +154,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@bcoe%2Fv8-coverage@1.0.2"
+      "purl": "pkg:npm/%40bcoe/v8-coverage@1.0.2"
     },
     {
       "type": "library",
@@ -168,7 +168,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@istanbuljs%2Fschema@0.1.6"
+      "purl": "pkg:npm/%40istanbuljs/schema@0.1.6"
     },
     {
       "type": "library",
@@ -182,7 +182,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@jridgewell%2Fresolve-uri@3.1.2"
+      "purl": "pkg:npm/%40jridgewell/resolve-uri@3.1.2"
     },
     {
       "type": "library",
@@ -196,7 +196,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@jridgewell%2Fsourcemap-codec@1.5.5"
+      "purl": "pkg:npm/%40jridgewell/sourcemap-codec@1.5.5"
     },
     {
       "type": "library",
@@ -210,7 +210,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@jridgewell%2Ftrace-mapping@0.3.31"
+      "purl": "pkg:npm/%40jridgewell/trace-mapping@0.3.31"
     },
     {
       "type": "library",
@@ -262,7 +262,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/@types%2Fistanbul-lib-coverage@2.0.6"
+      "purl": "pkg:npm/%40types/istanbul-lib-coverage@2.0.6"
     },
     {
       "type": "library",
@@ -350,7 +350,7 @@
     },
     {
       "type": "library",
-      "name": "Chart.js",
+      "name": "chart.js",
       "version": "3.9.1",
       "scope": "required",
       "hashes": [
@@ -951,13 +951,13 @@
     },
     {
       "type": "library",
-      "name": "Moment.js",
-      "version": "2.29.4",
+      "name": "moment",
+      "version": "2.31.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0023c5fda55a2d83850d8cc3b80d6fb8dd07c6b5c5bf716a3954061952987bc"
+          "content": "384e977ae74e80df1ecaebe2a1602bb19bff386838ffdc5bf508373871f2669e"
         }
       ],
       "licenses": [
@@ -965,7 +965,7 @@
           "expression": "MIT"
         }
       ],
-      "purl": "pkg:npm/moment@2.29.4",
+      "purl": "pkg:npm/moment@2.31.0",
       "externalReferences": [
         {
           "type": "website",
@@ -1315,6 +1315,20 @@
     },
     {
       "type": "library",
+      "name": "yargs-parser",
+      "version": "22.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yargs-parser@22.0.0"
+    },
+    {
+      "type": "library",
       "name": "yargs",
       "version": "18.0.0",
       "scope": "optional",
@@ -1326,20 +1340,6 @@
         }
       ],
       "purl": "pkg:npm/yargs@18.0.0"
-    },
-    {
-      "type": "library",
-      "name": "yargs/node_modules/yargs-parser",
-      "version": "22.0.0",
-      "scope": "optional",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC"
-          }
-        }
-      ],
-      "purl": "pkg:npm/yargs%2Fnode_modules%2Fyargs-parser@22.0.0"
     },
     {
       "type": "library",

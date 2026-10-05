@@ -1274,7 +1274,7 @@ const collectDashboardRenderDiagnosticsForType = (type) => {
     const nameSelector = resolvedType === 'docker' ? '.folder-appname-docker' : '.folder-appname-vm';
     return Array.from(document.querySelectorAll(`tbody#${tbodyId} .folder-showcase-outer`)).map((node) => {
         const img = node.querySelector('img.folder-img-docker, img.folder-img-vm');
-        const rect = node.getBoundingClientRect ? node.getBoundingClientRect() : { width: 0, height: 0 };
+        const rect = (node.getClientRects().length ? node : node.querySelector(':scope > span.outer') || node).getBoundingClientRect();
         return {
             id: String(node.getAttribute('data-fv-folder-id') || ''),
             name: String(node.querySelector(nameSelector)?.textContent || '').trim(),
@@ -2288,6 +2288,7 @@ const toggleFolderExpansion = (type, id, options = {}) => {
     }
     const state = el.attr('expanded') === 'true';
     const nextState = forceExpanded === null ? !state : forceExpanded;
+    if (state !== nextState && typeof getDashboardVisualDiagnosticsController === 'function') getDashboardVisualDiagnosticsController()?.beginExpansion?.(meta.type, card[0]);
     const storage = el.children('div.folder-storage').first();
     const showcase = card.children(`div.folder-showcase-${safeId}`).first();
     if (!storage.length || !showcase.length) {

@@ -6370,6 +6370,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
     const statusFilterMode = normalizeStatusFilterMode(statusFilterByType[type]);
     const quickFilterMode = normalizeQuickFolderFilterMode(quickFolderFilterByType[type], type);
+    const renderedDiagnostics = { phase: runtimeState, runtimeReady, totalFolders: folderCount, displayedFolders: 0, hideEmpty: hideEmptyFolders === true, searchActive: !!filter, hiddenSearch: 0, hiddenCollapsed: 0, hiddenEmpty: 0, hiddenQuick: 0, hiddenStatus: 0, hiddenUpdates: 0, hiddenHealth: 0, parentsKeptByDescendants: 0 };
     const previousStatusSnapshot = statusContext?.previous && typeof statusContext.previous === 'object'
         ? statusContext.previous
         : {};
@@ -6413,9 +6414,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const nameText = String(folder.name || '');
         const pathLabel = String(pathLabelById[id] || nameText || id);
         if (filter && !filterVisibleIds.has(id)) {
+            renderedDiagnostics.hiddenSearch += 1;
             continue;
         }
         if (!filter && isFolderHiddenByCollapsedAncestor(id, hierarchyMeta.parentById, activeCollapsedParents)) {
+            renderedDiagnostics.hiddenCollapsed += 1;
             continue;
         }
         const members = Array.isArray(memberSnapshot[id]?.members) ? memberSnapshot[id].members : [];
@@ -6431,7 +6434,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             }
         }
         const totalMemberCount = totalMembersSet.size;
-        if (hideEmptyFolders && members.length === 0) {
+        if (hideEmptyFolders && totalMemberCount === 0) {
+            renderedDiagnostics.hiddenEmpty += 1;
             continue;
         }
         const pinned = isFolderPinned(type, id);
@@ -6475,6 +6479,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             countsByState,
             updateCount: dockerUpdateNames.length
         })) {
+            renderedDiagnostics.hiddenQuick += 1;
             continue;
         }
         const folderNameRaw = String(folder.name || id);
@@ -6511,6 +6516,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : '';
         const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
         if (runtimeReady && !folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
+            renderedDiagnostics.hiddenStatus += 1;
             continue;
         }
         const statusWarnThresholdInfo = resolveFolderStatusWarnThresholdForId({
@@ -6658,6 +6664,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const updateNames = dockerUpdateNames;
             const updateCount = updateNames.length;
             if (dockerUpdatesOnlyFilter && updateCount === 0) {
+                renderedDiagnostics.hiddenUpdates += 1;
                 continue;
             }
             let updateClass = 'is-ok';
@@ -6682,6 +6689,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 Number(dockerHealthPrefs?.warnStoppedPercent) || 60
             );
             if (healthSeverityFilterMode !== 'all' && healthStatus.filterSeverity !== healthSeverityFilterMode) {
+                renderedDiagnostics.hiddenHealth += 1;
                 continue;
             }
             const healthFilterActive = healthSeverityFilterMode === healthStatus.filterSeverity;
@@ -6799,6 +6807,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + `</span>`
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
                 + `</div>`);
+        renderedDiagnostics.displayedFolders += 1;
+        if (hideEmptyFolders && directMemberCount === 0 && totalMemberCount > 0) renderedDiagnostics.parentsKeptByDescendants += 1;
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" data-fv-onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
@@ -6813,6 +6823,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + '</tr>'
         );
     }
+    window.FolderViewPlusUiStateDiagnostics?.record('settings', type, renderedDiagnostics);
     if (rows.length === 0) {
         const suffixes = [];
         if (isDockerType && dockerUpdatesOnlyFilter) {
@@ -8677,6 +8688,7 @@ const renderTable = (type) => {
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
     scheduleSettingsSecondarySurfaces(type, { immediate: settingsUiState.initialized !== true });
+    window.FolderViewPlusUiStateDiagnostics?.recordSettingsSurface(type);
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {

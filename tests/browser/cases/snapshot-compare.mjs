@@ -11,12 +11,11 @@ const mountCompare = async (page, baseUrl) => {
     });
     await page.addStyleTag({ content: 'html{font-size:10px}.ui-dialog p{font-size:10px;white-space:pre-line}.ui-dialog strong{font-size:inherit}button{letter-spacing:2px} .ui-dialog-content{box-sizing:border-box}' });
     await page.addStyleTag({ url: `${baseUrl}/fixtures/snapshot-compare-host.css` });
-    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-workspaces.js` });
+    for (const script of ['settings-workspaces', 'ui-state-diagnostics']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.${script}.js` });
     await page.addScriptTag({ url: `${baseUrl}/fixtures/snapshot-compare.fixture.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.csp-events.js` });
     await page.evaluate(() => window.FolderViewPlusCspEvents.registerActions({ openActiveRecoverySnapshotCompare: () => window.fixtureCompare.open('docker') }, { owner: 'snapshot-compare-fixture' }));
 };
-
 const verifyModal = async (page) => {
     const layout = await page.locator('.ui-dialog:visible').evaluate(modal => {
         const box = modal.getBoundingClientRect(); const content = modal.querySelector('.ui-dialog-content');
@@ -70,6 +69,9 @@ export const registerSnapshotCompareCases = ({ test, baseUrl }) => {
             await page.locator('.fv-backup-compare-picker-modal .fv-compare-primary').click();
             await page.locator('.fv-backup-compare-modal').waitFor({ state: 'visible' });
             assert.deepEqual(await page.locator('.fv-compare-count strong').allTextContents(), ['0', '0', '0', '3']);
+            const diagnostics = await page.evaluate(type => window.FolderViewPlusUiStateDiagnostics.collect().channels.compare[type].latest.data, state.type);
+            assert.deepEqual([diagnostics.phase, diagnostics.fromKind, diagnostics.toKind, diagnostics.unchanged, diagnostics.includePrefs], ['complete', 'snapshot', 'current', 3, false]);
+            assert.equal(diagnostics.dialog.buttons.length, 2); assert.equal(diagnostics.dialog.geometry.outsideViewport, false);
             assert.equal(await page.locator('#backup-compare-prefs .fv-compare-change').count(), 0);
             await page.locator('.fv-backup-compare-modal .fv-compare-primary').click();
         }
@@ -90,6 +92,7 @@ export const registerSnapshotCompareCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('.fv-backup-compare-picker-modal .fv-compare-primary').isDisabled(), true);
         await page.locator('.fv-backup-compare-picker-modal').press('Escape');
         await page.evaluate(() => { window.fixtureCompare.release(); window.fixtureCompare.defer = false; });
+        await page.waitForFunction(() => window.FolderViewPlusUiStateDiagnostics.collect().channels.compare.docker.latest.data.discardedResponses === 1); assert.equal(await page.evaluate(() => window.FolderViewPlusUiStateDiagnostics.collect().channels.compare.docker.latest.data.phase), 'cancelled');
         assert.equal(await page.locator('.ui-dialog:visible').count(), 0);
         assert.equal(await page.locator('#compare-open').evaluate(node => node === document.activeElement), true);
         await page.evaluate(() => { window.fixtureCompare.fail = true; });

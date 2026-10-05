@@ -88,14 +88,14 @@ const hostComponents = (runtimeInventory.hostProvidedComponents || []).map((comp
 const npmComponents = Object.entries(packageLock.packages || {})
     .filter(([packagePath, metadata]) => packagePath.startsWith('node_modules/') && metadata?.version)
     .map(([packagePath, metadata]) => {
-        const name = packagePath.slice('node_modules/'.length);
+        const name = packagePath.slice(packagePath.lastIndexOf('node_modules/') + 'node_modules/'.length);
         return {
             type: 'library',
             name,
             version: String(metadata.version),
             scope: 'optional',
             ...(metadata.license ? { licenses: [{ license: { id: String(metadata.license) } }] } : {}),
-            purl: `pkg:npm/${encodeURIComponent(name).replaceAll('%40', '@')}@${encodeURIComponent(String(metadata.version))}`
+            purl: `pkg:npm/${name.split('/').map((segment) => encodeURIComponent(segment)).join('/')}@${encodeURIComponent(String(metadata.version))}`
         };
     });
 

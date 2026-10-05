@@ -110,6 +110,7 @@ export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
                         const host = document.querySelector('#fixture-dashboard-host');
                         const widget = document.querySelector('#fixture-widget').getBoundingClientRect();
                         const rects = [...host.querySelectorAll(':scope > .folder-showcase-outer, .fv-dashboard-quick-action')]
+                            .flatMap((node) => node.getClientRects().length ? [node] : [...node.querySelectorAll(':scope > span.outer, :scope > .folder-showcase')])
                             .filter((node) => node.getClientRects().length).map((node) => node.getBoundingClientRect());
                         return { overflow: document.documentElement.scrollWidth > innerWidth,
                             withinWidget: rects.every((r) => r.left >= widget.left - 1 && r.right <= widget.right + 1),
@@ -162,7 +163,7 @@ export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
                         const cards = [...host.children].filter((node) => node.classList.contains('folder-showcase-outer'));
                         cards.forEach((card) => card.setAttribute('expanded', 'false'));
                         fixture.controller.applyDashboardLayoutStateForType(type);
-                        const rect = (node) => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, bottom: r.bottom }; };
+                        const rect = (node) => { const r = (node.getClientRects().length ? node : node.querySelector(':scope > span.outer') || node).getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, bottom: r.bottom }; };
                         const collapsed = cards.map(rect);
                         const order = [...host.children].map((node) => node.dataset.fvFolderId || node.id);
                         cards[0].setAttribute('expanded', 'true');
@@ -194,7 +195,7 @@ export const registerDashboardDensityFixtureCases = ({ test, baseUrl }) => {
                     assert.deepEqual(geometry.afterOrder, geometry.order, `${label}: saved order stays intact`);
                     if (['classic', 'fullwidth', 'inset', 'embossed'].includes(layout)) {
                         assert.ok(columns >= ({ 390: 2, 570: 3, 900: 4, 1180: 6 })[width], `${label}: ${columns} collapsed columns`);
-                        assert.ok(geometry.expanded[0].width >= geometry.host.width - 40, `${label}: expanded card spans widget`);
+                        assert.ok(geometry.panel.width >= geometry.host.width - 40, `${label}: expanded contents span widget`);
                     }
                     if (layout === 'accordion') assert.equal(columns, 1, label);
                     if (layout !== 'compactmatrix') {

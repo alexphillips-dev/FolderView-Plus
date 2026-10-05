@@ -275,6 +275,7 @@
             const state = getBulkState(type);
             state.failedNames = [];
             state.lastResult = null;
+            win?.FolderViewPlusUiStateDiagnostics?.record('bulk', type, { succeeded: 0, skipped: 0 });
         };
 
         const updateBulkStepState = (type, plan) => {
@@ -307,6 +308,11 @@
             const visibleNames = Array.isArray(state.visibleNames) ? state.visibleNames : [];
             const visibleSelectedCount = visibleNames.filter((name) => state.selected.has(name)).length;
             const hiddenSelectedCount = Math.max(0, (plan?.selectedNames || []).length - visibleSelectedCount);
+            win?.FolderViewPlusUiStateDiagnostics?.record('bulk', type, {
+                phase: state.applying ? 'applying' : state.confirming ? 'confirming' : state.lastResult?.level || 'idle', confirming: state.confirming === true, applying: state.applying === true,
+                available: availableCount, displayed: visibleNames.length, selected: (plan?.selectedNames || []).length, visibleSelected: visibleSelectedCount, hiddenSelected: hiddenSelectedCount, ...(state.lastResult ? {} : { succeeded: 0, skipped: 0 }),
+                plannedChanges: (plan?.actionableNames || []).length, alreadyInTarget: (plan?.unchanged || []).length, invalid: (plan?.invalidNames || []).length, failed: (state.failedNames || []).length, hasTarget: !!plan?.targetFolderId, filtersActive: visibleNames.length < availableCount
+            });
             const summaryValues = [
                 {
                     id: `${type}-bulk-target-summary`,
@@ -890,6 +896,7 @@
                 return;
             }
             state.confirming = true;
+            updateBulkSummaryCards(resolvedType, plan);
             workspace?.update(resolvedType, plan);
             let confirmed;
             try {
@@ -899,6 +906,7 @@
                 syncBulkWorkflowUi(resolvedType);
             }
             if (!confirmed) {
+                win?.FolderViewPlusUiStateDiagnostics?.record('bulk', resolvedType, { phase: 'cancelled' });
                 return;
             }
             state.applying = true;
@@ -936,6 +944,7 @@
                     ? fallbackExecutionResult.failedNames
                     : [];
                 state.lastTargetFolderId = plan.targetFolderId;
+                win?.FolderViewPlusUiStateDiagnostics?.record('bulk', resolvedType, { succeeded: Number(fallbackExecutionResult.assignedCount) || 0, skipped: Number(fallbackExecutionResult.skippedCount) || 0 });
                 state.lastResult = {
                     level: String(fallbackExecutionResult.level || 'info'),
                     summary: String(fallbackExecutionResult.summary || 'Bulk assignment update'),

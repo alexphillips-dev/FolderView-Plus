@@ -527,6 +527,7 @@
                 payload.uiTelemetry && typeof payload.uiTelemetry === 'object' && !Array.isArray(payload.uiTelemetry)
             ) ? { ...payload.uiTelemetry } : {};
             existingUiTelemetry.browserCapabilities = collectBrowserCapabilities();
+            existingUiTelemetry.uiState = root.FolderViewPlusUiStateDiagnostics?.collect?.() || { available: false };
             existingUiTelemetry.clientStorage = collectClientStorageDiagnostics();
             existingUiTelemetry.clientStorage.requestFailures = root?.FolderViewPlusRequest?.failureDiagnostics?.() || [];
             existingUiTelemetry.currentPage = collectCurrentPageTelemetry(uiRedactor);

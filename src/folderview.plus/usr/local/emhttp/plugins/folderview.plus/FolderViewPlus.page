@@ -1667,7 +1667,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
          '/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
-         '/plugins/folderview.plus/scripts/runtime.page-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
+         '/plugins/folderview.plus/scripts/runtime.page-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.ui-state-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
         '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
         '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js', '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-actions.js',
         '/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js', '/plugins/folderview.plus/scripts/folderviewplus.activity-detail.js',

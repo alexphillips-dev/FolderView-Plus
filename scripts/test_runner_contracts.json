@@ -112,8 +112,8 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 73,
-      "assertionCount": 908,
-      "pageEvaluateCount": 238,
+      "assertionCount": 924,
+      "pageEvaluateCount": 245,
       "orderedTitleSha256": "aeadc4ad6e67de3709ed8c6239c285ae6f75e5d5707f5a0ca37aaa15e0589964"
     }
   }

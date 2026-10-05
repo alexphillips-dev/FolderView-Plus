@@ -947,6 +947,7 @@ const openSnapshotCompareDialog = (dialog, options) => {
         syncTheme();
         dialog.dialog('option', 'width', Math.min(options.width, Math.max(280, window.innerWidth - 24)));
         dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+        window.FolderViewPlusUiStateDiagnostics?.recordDialog(options.type, dialog.dialog('widget')[0]);
     };
     dialog.dialog({
         ...options, modal: true, resizable: false, draggable: false, height: 'auto',
@@ -962,6 +963,7 @@ const openSnapshotCompareDialog = (dialog, options) => {
 
 const openBackupComparePicker = (type) => {
     const resolvedType = normalizeManagedType(type);
+    window.FolderViewPlusUiStateDiagnostics?.begin('compare', resolvedType, { phase: 'chooser' });
     const picker = $('#backup-compare-picker');
     if (!picker.length) return;
     const requestId = ++backupCompareRequestId;
@@ -976,7 +978,7 @@ const openBackupComparePicker = (type) => {
     });
     openSnapshotCompareDialog(picker, {
         title: importT('legacy.surface.37fa840aca750d15', 'Compare $1 snapshots', resolvedType === 'docker' ? 'Docker' : 'VM'),
-        width: 700, dialogClass: 'fv-backup-compare-picker-modal',
+        type: resolvedType, width: 700, dialogClass: 'fv-backup-compare-picker-modal',
         buttons: [
             { text: importT('common.cancel', 'Cancel'), click() { picker.dialog('close'); } },
             { text: importT('legacy.surface.d45a249749981e95', 'Compare Snapshots'), class: 'fv-compare-primary', disabled: !canCompare,
@@ -1000,7 +1002,7 @@ const openBackupComparePicker = (type) => {
                 }
             }
         ],
-        close() { backupCompareRequestId += 1; }
+        close() { backupCompareRequestId += 1; window.FolderViewPlusUiStateDiagnostics?.cancel('compare', resolvedType); }
     });
 };
 
@@ -1337,7 +1339,7 @@ const renderBackupCompareDialog = ({ type, leftSnapshot, rightSnapshot, diff, in
     window.FolderViewPlusI18n?.translate?.(dialog[0]);
     openSnapshotCompareDialog(dialog, {
         title: importT('legacy.surface.37fa840aca750d15', 'Compare $1 snapshots', type === 'docker' ? 'Docker' : 'VM'),
-        width: 980,
+        type, width: 980,
         dialogClass: 'fv-backup-compare-modal',
         buttons: [
             { text: importT('legacy.surface.502f6dbd6eb1f20f', 'Compare again'), click() { dialog.dialog('close'); openBackupComparePicker(type); } },
@@ -1404,17 +1406,19 @@ const compareBackupSnapshots = async (type, options = {}) => {
         return;
     }
 
+    const capture = window.FolderViewPlusUiStateDiagnostics?.traceComparison(resolvedType, leftTarget === '__current__', rightTarget === '__current__', includePrefs);
     try {
         const [leftSnapshot, rightSnapshot] = await Promise.all([
             resolveBackupCompareSnapshot(resolvedType, leftTarget),
             resolveBackupCompareSnapshot(resolvedType, rightTarget)
         ]);
-        if (options.isActive && !options.isActive()) return;
+        if (options.isActive && !options.isActive()) { capture?.discard(); return; }
         const diff = buildBackupSnapshotDiff(leftSnapshot.folders, rightSnapshot.folders);
         const prefsAvailable = leftSnapshot.prefs !== null && rightSnapshot.prefs !== null;
         const prefsDiff = includePrefs && prefsAvailable
             ? buildBackupPrefsDiff(leftSnapshot.prefs, rightSnapshot.prefs)
             : { rows: [], comparedCount: 0 };
+        capture?.complete(diff.counts, diff.leftCount, diff.rightCount, prefsDiff.rows.length, prefsDiff.comparedCount, prefsAvailable);
         options.beforeRender?.();
         renderBackupCompareDialog({
             type: resolvedType,
@@ -1426,7 +1430,8 @@ const compareBackupSnapshots = async (type, options = {}) => {
             prefsAvailable
         });
     } catch (error) {
-        if (options.isActive && !options.isActive()) return;
+        if (options.isActive && !options.isActive()) { capture?.discard(); return; }
+        capture?.error();
         showError(importT("common.repair.compare-failed-fd89d7", "Compare failed"), error);
     }
 };

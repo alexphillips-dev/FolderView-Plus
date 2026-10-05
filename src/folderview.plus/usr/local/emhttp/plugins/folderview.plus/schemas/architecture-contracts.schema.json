@@ -44,6 +44,7 @@
       "scripts/runtime.shared-primitives.js": { "limit": 525, "target": 500, "history": [525] },
       "scripts/runtime.shared-diagnostics.js": { "limit": 270, "target": 240, "history": [270] },
       "scripts/runtime.page-diagnostics.js": { "limit": 210, "target": 200, "history": [210] },
+      "scripts/folderviewplus.ui-state-diagnostics.js": { "limit": 210, "target": 200, "history": [210] },
       "scripts/runtime.shared-controls.js": { "limit": 353, "target": 320, "history": [353] },
       "scripts/folderviewplus.import.js": { "limit": 1486, "target": 500, "history": [1486] },
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
@@ -1298,6 +1299,20 @@
       "exports": ["SCHEMA_VERSION", "STORAGE_KEY", "MAX_CAPTURES_PER_SURFACE", "TTL_MS", "SURFACES", "normalizeSnapshot", "normalizeRecord", "readRecord", "buildSnapshot", "capture", "captureAndAnnounce", "createController"],
       "apiFactory": "createController",
       "apiExports": ["capture", "read"]
+    },
+    {
+      "file": "scripts/folderviewplus.ui-state-diagnostics.js",
+      "owner": "settings-support-ui-state",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusUiStateDiagnostics"],
+      "global": "FolderViewPlusUiStateDiagnostics",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["STORAGE_KEY", "HISTORY_LIMIT", "STALE_AFTER_MS", "normalize", "browserInfo", "measure", "normalizeDashboardGeometry", "createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["record", "begin", "finish", "cancel", "traceComparison", "recordDialog", "recordSettingsSurface", "collect", "normalizeDashboardGeometry"]
     },
     {
       "file": "scripts/runtime.shared-diagnostics.js",

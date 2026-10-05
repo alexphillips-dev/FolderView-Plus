@@ -31,6 +31,12 @@ export const registerSettingsHideEmptyCases = ({ test }) => {
                 host.releaseRuntime();
                 await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
                 await expectRows(populated);
+                const diagnostics = await page.evaluate(type => window.FolderViewPlusUiStateDiagnostics.collect().channels.settings[type].latest.data, type);
+                assert.equal(diagnostics.totalFolders, 7);
+                assert.equal(diagnostics.displayedFolders, 5);
+                assert.equal(diagnostics.hiddenEmpty, 2);
+                assert.equal(diagnostics.parentsKeptByDescendants, 2);
+                assert.equal(diagnostics.runtimeReady, true);
                 assert.match(await row('parent').textContent(), /0\s*\/\s*2/, 'parent count includes manual and regex descendant membership');
                 assert.equal(await row('child').getAttribute('data-folder-parent'), 'parent');
                 assert.equal(await row('leaf').getAttribute('data-folder-parent'), 'child');

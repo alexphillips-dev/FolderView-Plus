@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.04.02">
-<!ENTITY md5 "fb1b7fbbdd51d1181ed81fa2c8b0f200">
-<!ENTITY sha256 "2608a3e64176e08b0c2d2b0fbd029d6acea25b6b9888c447a19866b2fe03ed09">
+<!ENTITY version "2026.10.05.01">
+<!ENTITY md5 "f1dff05589b072bf0ba7f33cec105351">
+<!ENTITY sha256 "aed2ef991bd4cd700e37d829c3b38bc943c3ff95ecdcd9b68c23cab2616e237a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.05.01
+- Diagnostics: Sanitized support bundles now include the browser family and reported version to help troubleshoot browser-specific problems without sharing the raw user-agent string.
+- Diagnostics: Settings diagnostics record displayed and hidden folder counts, the filters hiding rows, retained parent folders, runtime readiness, and rendered visibility or clipping measurements.
+- Diagnostics: Dashboard captures include header and native-tile heights, row spacing, expanded preview sizes, and before/after header movement to help diagnose expansion layout problems.
+- Diagnostics: Bulk assignment diagnostics include available, displayed, selected, hidden-selected, planned-change, and outcome counts alongside confirmation and application state.
+- Diagnostics: Snapshot comparison diagnostics include target kinds, difference totals, preference inclusion, elapsed time, cancellations, discarded responses, and dialog/button measurements.
+- Privacy: New UI histories retain at most three recent records per feature and Docker/VM type for 30 minutes, mark version differences, and exclude names, identifiers, filenames, search text, paths, URLs, and raw browser identification strings. Normal operation continues when browser storage is unavailable.
+
 
 ###2026.10.04.02
 - Fix: Expanding a Dashboard folder in Classic, Full Width, Inset, or Embossed view keeps its header in the original row and column. Containers and VMs open in a full-width preview below that row, and multiple open previews remain separate.

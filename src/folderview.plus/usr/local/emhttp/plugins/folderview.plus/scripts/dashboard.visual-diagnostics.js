@@ -369,6 +369,43 @@
         }) || null;
         const rafByType = { docker: 0, vm: 0 };
         const triggerByType = { docker: 'render', vm: 'render' };
+        const expansionBaselines = new Map();
+        const expansionResults = new Map();
+        const headerNode = node => node?.classList?.contains('folder-showcase-outer') ? (node.querySelector(':scope > span.outer') || node) : node;
+        const beginExpansion = (type, card) => {
+            const resolvedType = normalizeType(type), host = card?.parentElement;
+            if (!host || !host.matches?.('td') || !host.closest?.(TYPE_META[resolvedType].tbodySelector)) return;
+            const target = safeRect(headerNode(card));
+            const peers = Array.from(host.children || []).filter(node => node.matches?.('.folder-showcase-outer, span.outer') && isVisible(node, win))
+                .slice(0, 512).map(headerNode).map(node => ({ node, rect: safeRect(node) })).filter(entry => Math.abs(entry.rect.top - target.top) <= 1);
+            expansionBaselines.set(resolvedType, { peers, capturedAt: now(), width: safeRect(host).width, layout: host.closest('tbody')?.getAttribute('data-fv-dashboard-layout') });
+        };
+        const captureGeometry = (type, host, layout, previews) => {
+            const tiles = Array.from(host.children || []).filter(node => node.matches?.('.folder-showcase-outer, span.outer') && isVisible(node, win));
+            const measured = tiles.slice(0, 512).map(node => ({ folder: node.classList.contains('folder-showcase-outer'), rect: safeRect(headerNode(node)) }));
+            const rows = [...new Set(measured.map(entry => entry.rect.top))].sort((a, b) => a - b);
+            const gaps = rows.slice(1).map((top, index) => top - Math.max(...measured.filter(entry => entry.rect.top === rows[index]).map(entry => entry.rect.bottom))).filter(gap => gap >= 0);
+            const baseline = expansionBaselines.get(type);
+            if (baseline) {
+                let reason = 'measured', movedHeaderCount = 0, maximumHorizontalShiftPx = 0, maximumVerticalShiftPx = 0;
+                if (now() - baseline.capturedAt > 5000) reason = 'expired';
+                else if (baseline.layout !== layout || Math.abs(baseline.width - safeRect(host).width) > 1) reason = 'layout-changed';
+                else if (baseline.peers.some(entry => !entry.node.isConnected || !isVisible(entry.node, win))) reason = 'headers-unavailable';
+                if (reason === 'measured') for (const entry of baseline.peers) {
+                    const rect = safeRect(entry.node), dx = Math.abs(rect.left - entry.rect.left), dy = Math.abs(rect.top - entry.rect.top);
+                    maximumHorizontalShiftPx = Math.max(maximumHorizontalShiftPx, dx); maximumVerticalShiftPx = Math.max(maximumVerticalShiftPx, dy);
+                    if (dx > 1 || dy > 1) movedHeaderCount += 1;
+                }
+                expansionResults.set(type, { available: reason === 'measured', reason, measuredHeaderCount: baseline.peers.length, movedHeaderCount, maximumHorizontalShiftPx: rounded(maximumHorizontalShiftPx), maximumVerticalShiftPx: rounded(maximumVerticalShiftPx) });
+                expansionBaselines.delete(type);
+            }
+            return { observedTileCount: tiles.length, truncated: tiles.length > 512, appliedRowGapPx: rounded(Number.parseFloat(win?.getComputedStyle?.(host)?.rowGap || '0')),
+                folderHeaderHeights: summarizeWidths(measured.filter(entry => entry.folder).map(entry => entry.rect.height)),
+                nativeTileHeights: summarizeWidths(measured.filter(entry => !entry.folder).map(entry => entry.rect.height)),
+                rowGaps: summarizeWidths(gaps), previewHeights: summarizeWidths(previews.slice(0, 512).map(node => safeRect(node).height)),
+                expansion: expansionResults.get(type) || { available: false, reason: 'not-observed' }
+            };
+        };
 
         const emptyRecord = (type) => ({
             schemaVersion: SCHEMA_VERSION,
@@ -399,6 +436,7 @@
             environment: snapshot.environment,
             layout: snapshot.layout,
             content: snapshot.content,
+            geometry: snapshot.geometry,
             overflow: {
                 labels: snapshot.overflow?.labels,
                 tileBoundaryOverflowCount: snapshot.overflow?.tileBoundaryOverflowCount,
@@ -476,6 +514,7 @@
             const renderedMemberColumns = renderedMemberColumnValues[0] || 0;
             const appliedFolderColumns = parseColumnValue(
                 host.getAttribute('data-fv-compactmatrix-folder-columns')
+                || readCssVariable(hostStyle, '--fv-dashboard-grid-columns')
                 || readCssVariable(hostStyle, '--fv-dashboard-compactmatrix-columns')
             );
             const appliedMemberColumns = parseColumnValue(
@@ -556,6 +595,7 @@
                     surface: 'dashboard'
                 },
                 environment: collectEnvironment(win, doc),
+                geometry: captureGeometry(resolvedType, host, layout, showcases),
                 layout: {
                     preference: layout,
                     widget: {
@@ -640,6 +680,7 @@
                 : win?.setTimeout?.(run, 32);
         };
         return Object.freeze({
+            beginExpansion,
             capture,
             scheduleCapture,
             read,

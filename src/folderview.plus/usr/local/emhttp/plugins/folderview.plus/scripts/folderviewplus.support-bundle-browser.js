@@ -370,6 +370,7 @@
         };
 
         const collectDashboardVisualDiagnostics = (uiRedactor, options = {}) => {
+            const normalizeGeometrySnapshot = snapshot => snapshot?.geometry ? { ...snapshot, geometry: root.FolderViewPlusUiStateDiagnostics?.normalizeDashboardGeometry?.(snapshot.geometry) || { available: false } } : snapshot;
             const currentPluginVersion = String(options.pluginVersion || '').trim();
             const currentCapabilities = collectBrowserCapabilities();
             const collectType = (type, storageKey) => {
@@ -451,9 +452,9 @@
                         status: reasons.length === 0 ? 'ready' : (latest.verdict?.status === 'error' ? 'error' : 'attention'),
                         reasons
                     },
-                    latest,
+                    latest: normalizeGeometrySnapshot(latest),
                     historyCount: Array.isArray(record.snapshots) ? record.snapshots.length : 0,
-                    snapshots: Array.isArray(record.snapshots) ? record.snapshots.slice(-12) : []
+                    snapshots: Array.isArray(record.snapshots) ? record.snapshots.slice(-12).map(normalizeGeometrySnapshot) : []
                 };
                 return sanitizeUiRecord(
                     uiRedactor,

@@ -194,7 +194,21 @@ Dashboard layout problems must be captured on the affected Dashboard because a s
 5. Return to `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
 6. Confirm the support-bundle preview shows a fresh Docker or VM Dashboard capture, then export a sanitized bundle.
 
-The capture records viewport, touch capability, orientation, browser scale, widget/card widths, expected/applied/rendered grid columns, overflow counts, and a layout verdict. It also distinguishes deliberate ellipsis from unexpected clipping. A capture older than 30 minutes, made on another plugin version, or made in a different viewport/input class is identified in the preview instead of being presented as current evidence.
+The capture records viewport, touch capability, orientation, browser scale, widget/card widths, expected/applied/rendered grid columns, overflow counts, and a layout verdict. It also includes folder-header and native-tile heights, row spacing, expanded-preview heights, and before/after movement of the expanded header and its row peers. A resize or layout change makes that movement comparison unavailable rather than reporting an expansion fault. It distinguishes deliberate ellipsis from unexpected clipping. A capture older than 30 minutes, made on another plugin version, or made in a different viewport/input class is identified in the preview instead of being presented as current evidence.
+
+### Settings Rows, Bulk Assignment, Or Snapshot Comparison Looks Wrong
+
+Reproduce the problem in the affected browser before exporting a sanitized support bundle through **Advanced > Diagnostics**. Include a screenshot and describe the action, selected filters, and whether navigation or a refresh changes the result.
+
+The bundle includes a short recent UI history for Docker and VMs:
+
+- Settings records total and displayed folder counts, runtime readiness, and counts hidden by search, collapsed parents, empty-folder filtering, quick filters, status, updates, or health. Each hidden folder is counted under the first filter that excludes it. Populated ancestor folders retained by the empty-folder filter are counted separately. Rendered root measurements and the workspace active during export help identify hidden or clipped content.
+- Bulk assignment records available, displayed, selected, hidden-selected, and planned-change counts, confirmation/application state, and aggregate outcomes. Selected items hidden by a filter remain included in the diagnostic counts.
+- Snapshot comparison records snapshot versus current-state target kinds, preference inclusion, folder and preference difference totals, elapsed time, cancellation, discarded responses, and dialog/button size and clipping measurements. Late responses do not replace a newer comparison's result.
+
+These histories keep at most three distinct records per feature and managed type for 30 minutes. Expired records are excluded, and captures from another plugin version are marked. A restricted browser can prevent history from surviving navigation; diagnostics do not prevent normal operations when storage is unavailable. Bundle browser metadata contains only a normalized browser family and its reported numeric version, which can differ from a browser's full beta/build label.
+
+New UI records contain counts, fixed state labels, and measurements. They omit folder/member names, identifiers, snapshot filenames, search text, paths, URLs, and raw user-agent strings in both sanitized and full exports. Screenshots remain useful because aggregate measurements cannot reconstruct the exact appearance.
 
 ### Privacy Choice Is Not Applied
 

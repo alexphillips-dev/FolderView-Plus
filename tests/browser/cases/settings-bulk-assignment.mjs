@@ -19,7 +19,7 @@ const mountBulk = async (page, baseUrl) => {
     });
     await page.addStyleTag({ content: 'html{font-size:10px}body{margin:0}#fv-settings-root{padding:24px}button{letter-spacing:2px}select,input{font:inherit}#fv-settings-root{overflow:visible}' });
     for (const style of ['ui.host-buttons', 'bulk-assignment-workspace']) await page.addStyleTag({ url: `${baseUrl}/plugin/styles/${style}.css` });
-    for (const script of ['safe-dom', 'bulk-assignment.shared', 'bulk-assignment.view', 'bulk-assignment', 'csp-events']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.${script}.js` });
+    for (const script of ['ui-state-diagnostics', 'safe-dom', 'bulk-assignment.shared', 'bulk-assignment.view', 'bulk-assignment', 'csp-events']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.${script}.js` });
     await page.addScriptTag({ url: `${baseUrl}/fixtures/bulk-assignment.fixture.js` });
 };
 const rows = page => page.locator('#docker-bulk-items-list .bulk-item-name').allTextContents();
@@ -65,6 +65,8 @@ export const registerBulkAssignmentCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('#docker-bulk-table-filter').inputValue(), 'beta'); assert.deepEqual(await rows(page), ['beta']);
         await page.locator('#docker-bulk-toggle-all').check(); assert.deepEqual(await selected(page), ['alpha', 'beta']);
         assert.match(await page.locator('#docker-bulk-selected-count').textContent(), /hidden.*1/);
+        const diagnostics = await page.evaluate(() => window.FolderViewPlusUiStateDiagnostics.collect().channels.bulk.docker.latest.data);
+        assert.deepEqual([diagnostics.available, diagnostics.displayed, diagnostics.selected, diagnostics.visibleSelected, diagnostics.hiddenSelected, diagnostics.plannedChanges], [5, 1, 2, 1, 1, 2]);
         await page.locator('.bulk-module:not([hidden]) [data-fv-onclick*="none"]').click(); assert.deepEqual(await selected(page), ['alpha']);
         await page.locator('.bulk-module:not([hidden]) [data-fv-onclick*="invert"]').click(); assert.deepEqual(await selected(page), ['alpha', 'beta']);
         await page.locator('.bulk-module:not([hidden]) [data-fv-bulk-action="clear-filters"]').click();
@@ -86,6 +88,7 @@ export const registerBulkAssignmentCases = ({ test, baseUrl }) => {
     test('Bulk move locks confirmation and application, preserves cancel, and retains atomic backup, retry, and undo', async ({ page }) => {
         await mountBulk(page, baseUrl); await page.locator('#docker-bulk-items-list input[value="alpha"]').check();
         await page.locator('#docker-bulk-assign-btn').click();
+        assert.equal(await page.evaluate(() => window.FolderViewPlusUiStateDiagnostics.collect().channels.bulk.docker.latest.data.phase), 'confirming');
         assert.equal(await page.locator('#docker-bulk-folder').isDisabled(), true); assert.equal(await page.locator('[data-fv-bulk-source="vm"]').isDisabled(), true);
         await page.evaluate(() => { fixtureBulk.api.assignSelectedItems('docker'); fixtureBulk.confirm(false); });
         assert.equal(await page.evaluate(() => fixtureBulk.confirmations.length), 0); assert.equal(await page.evaluate(() => fixtureBulk.requests.length), 0);

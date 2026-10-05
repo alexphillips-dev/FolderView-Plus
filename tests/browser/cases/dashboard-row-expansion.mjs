@@ -26,6 +26,10 @@ export const registerDashboardRowExpansionCases = ({test, baseUrl}) => {
                     assert.ok(Math.abs(after[index].top - before[index].top) <= 1, `${layout}: expanded header stays in its row`);
                     assert.ok(Math.abs(after[0].top - after[2].top) <= 1 || before[0].top !== before[2].top, `${layout}: peers retain their row`);
                     assert.equal(await header.getAttribute('aria-expanded'), 'true');
+                    const geometry = await page.evaluate(type => window.fixtureDashboardLayout.visualController.capture(type).geometry, type);
+                    assert.equal(geometry.expansion.available, true);
+                    assert.equal(geometry.expansion.movedHeaderCount, 0, 'diagnostics measure only the expanded header row');
+                    assert.equal(geometry.folderHeaderHeights.count, 6);
                     assert.equal(await page.evaluate(({type, index}) => window.fixtureDashboardRowExpansion.saved(type)[`row-${index}`], {type, index}), true);
                     const panel = page.locator(`.folder-showcase-row-${index}`);
                     assert.equal(await panel.isVisible(), true);
@@ -66,6 +70,12 @@ export const registerDashboardRowExpansionCases = ({test, baseUrl}) => {
             await page.locator('#header-row-1').click();
             const fewAfter = (await positions()).slice(0, 2);
             assert.ok(fewAfter.every((position, index) => Math.abs(position.width - fewBefore[index].width) <= 1 && Math.abs(position.left - fewBefore[index].left) <= 1), 'a full-width preview does not create unused header columns');
+            const movement = await page.evaluate(type => {
+                const fixture = window.fixtureDashboardLayout, card = document.querySelector('[data-fv-folder-id="row-1"]'), header = card.querySelector(':scope > span.outer');
+                fixture.visualController.beginExpansion(type, card); header.style.transform = 'translateX(24px)';
+                const expansion = fixture.visualController.capture(type).geometry.expansion; header.style.removeProperty('transform'); return expansion;
+            }, type);
+            assert.equal(movement.movedHeaderCount, 1); assert.equal(movement.maximumHorizontalShiftPx, 24);
             await page.evaluate(() => {
                 const child = document.querySelector('[data-fv-folder-id="row-5"]'); child.hidden = false;
                 document.querySelector('.folder-showcase-row-1').append(child);

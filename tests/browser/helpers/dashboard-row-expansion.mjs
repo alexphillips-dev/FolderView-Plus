@@ -34,6 +34,7 @@ export const installDashboardRowExpansion = async (page, baseUrl, type) => {
             globalFolders.${type === 'vm' ? 'vms' : 'docker'}[node.dataset.fvFolderId] = {status: {expanded: false}, settings: {}};
         });
         const normalizeDashboardPrefsForType = () => ({layout: fixture.state.layout});
+        const getDashboardVisualDiagnosticsController = () => fixture.visualController;
         const applyFolderDashboardCardSettings = (type, id) => updateExpandToggleIcon(getDashboardCard(type, id), getDashboardCard(type, id).attr('expanded') === 'true');
         const applyDashboardStartedOnlyFilterForType = type => fixture.controller.applyDashboardStartedOnlyFilterForType(type);
         const scheduleDashboardLayoutApplyForType = type => fixture.controller.applyDashboardLayoutStateForType(type);

@@ -299,6 +299,10 @@ if [[ "${#REQUESTED_LANES[@]}" -eq 0 ]]; then
 fi
 
 for lane in "${REQUESTED_LANES[@]}"; do
+  if [[ "${lane}" == "theme-matrix" && "${FVPLUS_SKIP_THEME_MATRIX:-0}" == "1" ]]; then
+    echo "[ci-suite] theme-matrix skipped: explicit FVPLUS_SKIP_THEME_MATRIX=1 override."
+    continue
+  fi
   run_lane "${lane}"
 done
 

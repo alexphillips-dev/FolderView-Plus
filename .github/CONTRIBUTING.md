@@ -53,6 +53,12 @@ Do not configure repository validation with a live Unraid URL, session, or secre
 
 ### Automated back-merges
 
+For an explicitly authorized release exception, an administrator may set the
+repository variable `FVPLUS_SKIP_THEME_MATRIX` to `1`. CI marks the theme job
+skipped, and release/back-merge validation omits only that lane. All other
+validation remains required. Delete the variable after the release to restore
+the default full matrix. A skipped matrix is not a passing matrix.
+
 The main-to-dev back-merge workflow requests CI and CodeQL on the generated
 `backmerge/main-to-dev` branch. Before merging, verify that both workflows passed
 for the PR's current head commit. The earlier validation inside the back-merge

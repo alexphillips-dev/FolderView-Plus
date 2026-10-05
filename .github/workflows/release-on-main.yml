@@ -106,6 +106,7 @@ jobs:
       - name: Run release validation suite
         if: steps.release_scope.outputs.should_publish == '1'
         env:
+          FVPLUS_SKIP_THEME_MATRIX: ${{ vars.FVPLUS_SKIP_THEME_MATRIX || '0' }}
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'

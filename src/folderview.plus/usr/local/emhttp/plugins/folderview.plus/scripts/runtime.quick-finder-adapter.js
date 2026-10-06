@@ -55,6 +55,14 @@
             return label === name;
         }) || null;
         const findRow = (item) => item.kind === 'folder' ? folderRow(item.id) : itemRow(item.id);
+        const getIcon = (item) => {
+            const sanitize = win.FolderViewPlusFoundationModules?.utilityFoundation?.sanitizeImageUrl;
+            if (!sanitize) return '';
+            const configured = sanitize(item.entry.icon, '');
+            if (configured) return configured;
+            const selector = item.kind === 'folder' ? '.folder-name img.folder-img' : type === 'vm' ? 'td.vm-name img' : 'td.ct-name img';
+            return sanitize(findRow(item)?.querySelector(selector)?.getAttribute('src'), '');
+        };
         const getState = (item) => {
             const entry = item.entry;
             if (type === 'docker') return entry.state === true ? (entry.pause === true ? 'paused' : 'running') : 'stopped';
@@ -114,7 +122,7 @@
             window: win, document: doc, type,
             resolveMount: () => resolveMount(doc, table(), type),
             getEntries: () => finder.buildIndex(getFolders(), deps.getRuntime(), deps.getMembers),
-            getActions, getState, findRow, prepareReveal, runAction,
+            getActions, getState, getIcon, findRow, prepareReveal, runAction,
             onError: deps.onError, onDispose: () => { active = false; }
         });
         return Object.freeze({ ...api, dispose: () => { active = false; api.dispose(); } });

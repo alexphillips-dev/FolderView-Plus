@@ -17,6 +17,8 @@ test('Quick finder resolves direct and aggregated membership to the deepest nest
     assert.equal(index.find(item => item.id === 'unassigned').path, '');
     assert.equal(searchIndex(index, 'HOME services', 'item').length, 1);
     assert.equal(searchIndex(index, 'home', 'folder').length, 2);
+    assert.deepEqual(searchIndex(index), []);
+    assert.deepEqual(searchIndex(index, '   '), []);
 });
 
 test('Quick finder handles persisted member arrays, cycles, accents, and special names as plain data', () => {

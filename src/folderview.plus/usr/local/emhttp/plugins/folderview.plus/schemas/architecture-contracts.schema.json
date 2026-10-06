@@ -1526,7 +1526,7 @@
       "owner": "runtime-quick-finder-adapters",
       "consumers": ["docker", "vm"],
       "stateModel": "factory-owned",
-      "dependsOn": ["scripts/runtime.quick-finder.js"],
+      "dependsOn": ["scripts/runtime.quick-finder.js", "scripts/folderviewplus.utils-foundation.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "runtimeQuickFinderAdapter",

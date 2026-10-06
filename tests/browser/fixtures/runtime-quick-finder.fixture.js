@@ -4,15 +4,15 @@
     const body = table.tBodies[0];
     if (type === 'vm') { table.id = 'kvm_table'; body.id = 'kvm_list'; }
     const folders = {
-        home: { name: 'Home Automation', containers: { Assistant: {}, Mosquitto: {} }, status: { expanded: false } },
+        home: { name: 'Home Automation', icon: '/plugin/images/folder-icon.png', containers: { Assistant: {}, Mosquitto: {} }, status: { expanded: false } },
         services: { name: 'Services', parentId: 'home', containers: { Assistant: {}, Mosquitto: {} }, status: { expanded: false } },
         backup: { name: 'Backup', containers: {}, status: { expanded: false } }
     };
     const runtime = type === 'vm' ? {
-        Assistant: { uuid: 'sample-vm', state: 'running', logs: '/sample/assistant.log' },
+        Assistant: { icon: '/plugin/images/folder-icon.png', uuid: 'sample-vm', state: 'running', logs: '/sample/assistant.log' },
         Mosquitto: { uuid: 'sample-stopped-vm', state: 'shutoff' }
     } : {
-        Assistant: { state: true, webui: 'https://example.com/assistant', shell: '/bin/sh' },
+        Assistant: { icon: '/plugin/images/folder-icon.png', state: true, webui: 'https://example.com/assistant', shell: '/bin/sh' },
         Mosquitto: { state: false }
     };
     const events = [];

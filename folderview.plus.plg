@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.06.01">
-<!ENTITY md5 "6bbfafa4852669944920fa2822d1f9ce">
-<!ENTITY sha256 "93710db7acddac92f9df71406c14dbc84dfbd86f6231b12996c0491402e99b70">
+<!ENTITY version "2026.10.06.02">
+<!ENTITY md5 "cea2daab93a3e1dd9838d94fb6e6e2d0">
+<!ENTITY sha256 "7c49e957c9eea64b3cc9419a87e8adc078a00db6cc4df758649fd991584edaa5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.06.02
+- UI/UX: Quick finder results now use configured folder, Docker container, and VM icons, with a safe generic fallback for unavailable images. Each result keeps its name, folder path, status, and actions together in one compact card.
+- Fix: Opening Quick finder no longer lists every folder and member. Results appear only after typing; clearing the query hides the dropdown, and closing search clears the query.
+- Compatibility: Result titles no longer inherit a separate bordered button background from the shared Unraid button skin. Keyboard actions, mobile layouts, and Privacy name masking remain available. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.06.01
 - Feature: Docker and VMs now include an expanding Quick finder to the left of the native Basic/Advanced view controls. Search folders and members by name or nested folder path, narrow results by type, and reveal a match without manually opening each folder.

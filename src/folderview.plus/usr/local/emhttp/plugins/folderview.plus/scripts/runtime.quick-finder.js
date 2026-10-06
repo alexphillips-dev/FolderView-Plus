@@ -51,6 +51,7 @@
     };
     const searchIndex = (items, query = '', filter = 'all') => {
         const terms = fold(query).trim().split(/\s+/).filter(Boolean);
+        if (!terms.length) return [];
         return items.filter((item) => (filter === 'all' || item.kind === filter) && terms.every((term) => item.search.includes(term)));
     };
 
@@ -108,6 +109,22 @@
             node.append(doc.createTextNode(label));
             return node;
         };
+        const resultIcon = (item) => {
+            const wrap = doc.createElement('span'); wrap.className = 'fv-quickfinder-icon'; wrap.setAttribute('aria-hidden', 'true');
+            const fallback = icon(item.kind === 'folder' ? 'fa-folder-o' : type === 'vm' ? 'fa-desktop' : 'fa-cube');
+            wrap.append(fallback);
+            const source = deps.getIcon?.(item);
+            if (source) {
+                const image = doc.createElement('img'); image.alt = ''; image.decoding = 'async'; image.loading = 'lazy';
+                fallback.hidden = true;
+                image.addEventListener('error', () => {
+                    win.FolderViewPlusFoundationModules?.imageFallbacks?.record?.(source);
+                    image.remove(); fallback.hidden = false;
+                }, { once: true });
+                image.src = source; wrap.append(image);
+            }
+            return wrap;
+        };
         const select = (key) => {
             selected = key;
             results?.querySelectorAll('[data-result-index]').forEach((row) => {
@@ -131,7 +148,8 @@
             shell?.classList.remove('is-open');
             trigger?.setAttribute('aria-expanded', 'false');
             if (popover) popover.hidden = true;
-            if (input) { input.disabled = true; input.tabIndex = -1; }
+            if (input) { input.value = ''; input.disabled = true; input.tabIndex = -1; }
+            results?.replaceChildren(); selected = ''; matches = []; entries = [];
             shell?.querySelector('[data-finder-close]')?.setAttribute('hidden', '');
             if (restoreFocus) trigger?.focus();
         };
@@ -179,6 +197,9 @@
             if (!open || disposed) return;
             results.replaceChildren();
             matches = searchIndex(entries, input.value, filter);
+            popover.hidden = !input.value.trim();
+            trigger.setAttribute('aria-expanded', String(!popover.hidden));
+            if (popover.hidden) { selected = ''; count.textContent = ''; return; }
             const visible = matches.slice(0, RESULT_LIMIT);
             count.textContent = translate('legacy.surface.477b5fc5edb6cb02', 'Results: $1', matches.length);
             for (const [kind, label] of [['folder', labels.folders], ['item', labels.items]]) {
@@ -187,7 +208,7 @@
                 const heading = doc.createElement('h3'); heading.textContent = label; results.append(heading);
                 group.forEach((item) => {
                     const row = doc.createElement('div'); row.className = 'fv-quickfinder-result'; row.dataset.resultIndex = String(entries.indexOf(item));
-                    const title = button('', kind === 'folder' ? 'fa-folder-o' : type === 'vm' ? 'fa-desktop' : 'fa-cube');
+                    const title = button(''); title.append(resultIcon(item));
                     title.className = 'fv-quickfinder-result-title'; title.dataset.finderSelect = '';
                     const copy = doc.createElement('span'); copy.className = 'fv-quickfinder-copy';
                     const name = doc.createElement('strong'); name.className = 'fv-quickfinder-name'; name.textContent = item.name;
@@ -224,7 +245,7 @@
             const focused = doc.activeElement?.closest?.('[data-result-index]');
             const focusedKey = focused ? entries[Number(focused.dataset.resultIndex)]?.key : '';
             const focusedAction = doc.activeElement?.dataset?.finderAction;
-            entries = deps.getEntries();
+            entries = input.value.trim() ? deps.getEntries() : [];
             render();
             if (focusedKey) {
                 const index = entries.findIndex((item) => item.key === focusedKey);
@@ -267,7 +288,7 @@
             popover.append(toolbar, results, footer); shell.append(popover);
             target.host.classList.add('fv-quickfinder-mount');
             target.host.insertBefore(shell, target.anchor || target.host.firstChild);
-            listen(shell, 'input', (event) => { if (event.target === input) { clearTimeout(queryTimer); queryTimer = win.setTimeout(render, 60); } });
+            listen(shell, 'input', (event) => { if (event.target === input) { clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
             listen(shell, 'click', (event) => {
                 const control = event.target.closest?.('button');
                 if (!control) return;

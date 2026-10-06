@@ -11,6 +11,47 @@ const openAndSearch = async (page, query) => {
 };
 
 export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
+    test('Quick finder waits for typing and uses configured icons inside unified result cards', async ({ page }) => {
+        for (const type of ['docker', 'vm']) {
+            await page.goto(`${baseUrl}/fixtures/runtime-quick-finder.html?type=${type}`);
+            await page.locator('[data-finder-toggle]').click();
+            assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
+            assert.equal(await page.locator('.fv-quickfinder-result').count(), 0);
+            await page.locator('.fv-quickfinder input').fill('   ');
+            assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
+            await page.locator('.fv-quickfinder input').fill('Home Automation');
+            await page.locator('.fv-quickfinder-icon img').first().waitFor();
+            const folder = page.locator('.fv-quickfinder-result').filter({ has: page.locator('.fv-quickfinder-name', { hasText: /^Home Automation$/ }) });
+            assert.equal(await folder.locator('img').getAttribute('src'), '/plugin/images/folder-icon.png');
+            assert.equal(await folder.locator('[data-finder-action="edit"]').count(), 1);
+            assert.equal(await folder.locator('.fv-quickfinder-result-title').evaluate(node => getComputedStyle(node).borderTopColor), 'rgba(0, 0, 0, 0)');
+            assert.equal(await folder.locator('.fv-quickfinder-result-title').evaluate(node => getComputedStyle(node).backgroundColor), 'rgba(0, 0, 0, 0)');
+            await page.locator('.fv-quickfinder input').fill('Assistant');
+            await page.waitForFunction(() => document.querySelectorAll('.fv-quickfinder-result').length === 1);
+            assert.equal(await page.locator('.fv-quickfinder-icon img').getAttribute('src'), '/plugin/images/folder-icon.png');
+            await page.locator('.fv-quickfinder-icon img').evaluate(node => node.dispatchEvent(new Event('error')));
+            assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);
+            assert.notEqual(await page.locator('.fv-quickfinder-icon > i').evaluate(node => getComputedStyle(node).display), 'none');
+            await page.evaluate(() => { window.fixtureFinder.runtime.Assistant.icon = 'javascript:alert(1)'; window.fixtureFinder.refresh(); });
+            assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);
+            await page.evaluate(() => {
+                window.fixtureFinder.runtime.Assistant.icon = '';
+                const native = document.createElement('img'); native.src = '/plugin/images/folder-icon.png?native=1&source=test';
+                document.querySelector('#ct-Assistant td').prepend(native); window.fixtureFinder.refresh();
+            });
+            assert.equal(await page.locator('.fv-quickfinder-icon img').getAttribute('src'), '/plugin/images/folder-icon.png?native=1&source=test');
+            await page.locator('.fv-quickfinder input').fill('');
+            assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
+            assert.equal(await page.locator('.fv-quickfinder-result').count(), 0);
+            await page.keyboard.press('ArrowDown');
+            assert.equal(await page.evaluate(() => document.activeElement.tagName), 'INPUT');
+            await page.keyboard.press('Escape');
+            await page.locator('[data-finder-toggle]').click();
+            assert.equal(await page.locator('.fv-quickfinder input').inputValue(), '');
+            assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
+        }
+    });
+
     test('Quick finder production Docker reveal waits for Host list to return to a grouped nested tree', async ({ page }) => {
         const host = await createDockerHideEmptyHost(page, true);
         try {
@@ -90,6 +131,8 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         await page.keyboard.press('Escape');
         assert.equal(await page.evaluate(() => document.activeElement.hasAttribute('data-finder-toggle')), true);
         await page.keyboard.press('Control+k');
+        await page.locator('.fv-quickfinder input').fill('Assistant');
+        await page.locator('[data-finder-select]').waitFor();
         await page.keyboard.press('ArrowDown');
         assert.equal(await page.evaluate(() => document.activeElement.hasAttribute('data-finder-select')), true);
         await page.keyboard.press('Enter');
@@ -100,6 +143,8 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.evaluate(() => { document.body.classList.remove('fvplus-privacy-docker-runtime-mask-names'); document.documentElement.dir = 'rtl'; });
         await page.locator('[data-finder-toggle]').click();
+        await page.locator('.fv-quickfinder input').fill('Assistant');
+        await page.locator('[data-finder-select]').waitFor();
         assert.equal(await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).transitionDuration), '0s');
         assert.equal(await page.locator('.fv-quickfinder-popover').evaluate(node => getComputedStyle(node).animationName), 'none');
         const rtl = await page.locator('.fv-quickfinder-popover').boundingBox();

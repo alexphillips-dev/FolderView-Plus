@@ -123,10 +123,10 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 81,
-      "assertionCount": 1015,
-      "pageEvaluateCount": 269,
-      "orderedTitleSha256": "f8338e1bbb1f700d672c3962a500186f94d7aa9fbea84235d10b26a562a079dc"
+      "testCount": 82,
+      "assertionCount": 1032,
+      "pageEvaluateCount": 272,
+      "orderedTitleSha256": "8a312e0ad6745cd526959302834b7bef4d445e9633102a4dd039bb03abdca6e8"
     }
   }
 }

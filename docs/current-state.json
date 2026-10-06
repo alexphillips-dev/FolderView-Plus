@@ -24,6 +24,7 @@
       "surfaces": ["Docker", "VMs"],
       "placement": "left of native Basic/Advanced controls; above the table when unavailable",
       "queryPersistence": false,
+      "queryActivation": "non-empty trimmed query; cleared on close",
       "visibleResultLimit": 40
     },
     "advancedWorkspaces": [

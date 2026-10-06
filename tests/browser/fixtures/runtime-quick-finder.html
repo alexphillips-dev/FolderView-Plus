@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Docker and VM quick finder fixture</title>
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/ui.host-buttons.css">
     <link rel="stylesheet" href="/plugin/styles/runtime.quick-finder.css">
     <style>
         body { font: 14px/1.4 Arial, sans-serif; background: var(--fvplus-ui-page); color: var(--fvplus-ui-text-primary); margin: 1rem; }
@@ -23,6 +24,8 @@
     <table id="docker_containers"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody id="docker_list"></tbody></table>
     <button type="button" id="outside">Outside control</button>
 </main>
+<script src="/plugin/scripts/folderviewplus.utils-foundation.js"></script>
+<script src="/plugin/scripts/runtime.image-fallbacks.js"></script>
 <script src="/plugin/scripts/runtime.quick-finder.js"></script>
 <script src="/plugin/scripts/runtime.quick-finder-adapter.js"></script>
 <script src="/fixtures/runtime-quick-finder.fixture.js"></script>

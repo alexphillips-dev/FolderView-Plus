@@ -9,12 +9,14 @@ cd "${ROOT_DIR}"
 fvplus::require_commands bash node awk sed grep mktemp
 
 PUSH_MAIN=0
+WORKFLOW_ONLY=0
 NOTES_OUTPUT=""
 
 usage() {
   cat <<'EOF'
 Usage: release_prepare.sh [options]
   --push-main          Commit and push the prepared stable release to main
+  --workflow-only      Qualify a workflow/documentation-only main update without rebuilding the plugin
   --notes-output FILE  Render release notes for the prepared version to FILE
   -h, --help           Show this help
 EOF
@@ -24,6 +26,9 @@ while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --push-main)
       PUSH_MAIN=1
+      ;;
+    --workflow-only)
+      WORKFLOW_ONLY=1
       ;;
     --notes-output)
       NOTES_OUTPUT="${2:-}"
@@ -74,6 +79,19 @@ chmod +x \
 
 bash scripts/doctor.sh
 
+if [[ "$WORKFLOW_ONLY" == 1 ]]; then
+  [[ "$PUSH_MAIN" == 1 ]] || fvplus::fail '--workflow-only requires --push-main.'
+  git fetch --no-tags origin main
+  git merge-base --is-ancestor origin/main HEAD || fvplus::fail 'Workflow-only publication must preserve published main ancestry.'
+  while IFS= read -r changed_path; do
+    case "$changed_path" in
+      docs/sbom.cdx.json) fvplus::fail 'Workflow-only publication cannot change the packaged dependency inventory.' ;;
+      .github/*|scripts/*|tests/*|docs/*|README.md) ;;
+      *) fvplus::fail "Workflow-only publication cannot change package or runtime files: $changed_path" ;;
+    esac
+  done < <(git diff --name-only --no-renames origin/main HEAD)
+  echo 'Reusing the unchanged stable package for a qualified workflow-only update.'
+else
 DRY_RUN_OUTPUT="$(bash pkg_build.sh --branch main --dry-run)"
 RELEASE_VERSION="$(printf '%s\n' "${DRY_RUN_OUTPUT}" | sed -n 's/^Version: //p' | head -n 1 || true)"
 if [[ -z "${RELEASE_VERSION}" ]]; then
@@ -86,6 +104,7 @@ bash scripts/ensure_plg_changes_entry.sh --check-only --require-explicit --versi
 
 FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
 bash pkg_build.sh --branch main --no-validate
+fi
 
 # Local preparation checks packaging. The exact committed candidate is validated
 # once by CI; the publisher consumes that evidence instead of repeating the suite.

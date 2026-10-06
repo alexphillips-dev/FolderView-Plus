@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { runInNewContext } from 'node:vm';
 
 const root = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -58,6 +59,27 @@ test('stable synchronization is read-only and candidate qualification retains se
     assert.match(ci, /'Dependency Review' \|\| 'Release dependency policy'/);
     assert.match(ci, /fail-on-severity: high/);
     assert.match(ci, /license-check: true/);
+});
+
+test('synchronization planner rejects foreign, PR and unsuccessful publication events', () => {
+    const workflow = read('.github/workflows/backmerge-main-to-dev.yml');
+    const condition = workflow.match(/^    if: (.+)$/m)[1];
+    const repository = 'example/fixture';
+    const accepted = (overrides = {}, context = {}) => runInNewContext(condition, {
+        github: { repository, event_name: 'workflow_run', ref_name: 'main',
+            event: { workflow_run: { head_branch: 'main', head_repository: { full_name: repository },
+                event: 'push', conclusion: 'success', ...overrides } }, ...context }
+    });
+    assert.equal(accepted(), true);
+    assert.equal(accepted({ event: 'workflow_dispatch' }), true);
+    assert.equal(accepted({ head_repository: { full_name: 'foreign/fork' } }), false);
+    assert.equal(accepted({ event: 'pull_request' }), false);
+    assert.equal(accepted({ head_branch: 'dev' }), false);
+    assert.equal(accepted({ conclusion: 'failure' }), false);
+    assert.equal(accepted({}, { event_name: 'workflow_dispatch' }), true);
+    assert.equal(accepted({}, { event_name: 'workflow_dispatch', ref_name: 'dev' }), false);
+    assert.match(workflow, /ref: main/);
+    assert.doesNotMatch(workflow, /ref: \$\{\{ github\.event\.workflow_run/);
 });
 
 test('clone traffic credential is isolated from metrics branch publication', () => {

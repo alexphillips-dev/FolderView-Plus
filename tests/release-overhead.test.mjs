@@ -44,6 +44,74 @@ test('detached release qualification enforces main merge history from the exact 
     assert.match(check(bad).stderr, /promote only dev history/);
 });
 
+test('workflow-only publication keeps the package unchanged and rejects shipped changes', shellOnly, async t => {
+    for (const changed of ['.github/workflows/fixture.yml', 'src/runtime.js', 'folderview.plus.plg', 'docs/sbom.cdx.json']) {
+        await t.test(changed, t => {
+            const f = fixture(t);
+            f.copy('scripts/lib.sh'); f.copy('scripts/release_prepare.sh');
+            const source = fs.readFileSync(path.join(root, 'scripts/release_prepare.sh'), 'utf8');
+            for (const name of new Set([...source.matchAll(/scripts\/[\w]+\.sh/g)].map(match => match[0]))) {
+                if (!['scripts/release_prepare.sh', 'scripts/lib.sh'].includes(name)) f.write(name, `echo ${name}\n`, 0o755);
+            }
+            f.write('pkg_build.sh', 'echo unexpected-build > build.log\nexit 99\n', 0o755);
+            f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.06">\n');
+            f.write('archive/fixture.txz', 'unchanged package');
+            f.write('scripts/release_validation.mjs', `import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
+fs.writeFileSync('qualified.log', process.argv[2]);
+const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+execFileSync('git', ['push', 'origin', 'HEAD:refs/tags/fvplus-release-candidate-' + sha]);
+`);
+            const base = f.commit('Published package'); f.git('branch', '-M', 'main');
+            const remote = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-workflow-origin-'));
+            t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+            execFileSync('git', ['clone', '--bare', f.directory, remote], { stdio: 'pipe' });
+            f.git('remote', 'add', 'origin', remote);
+            f.write(changed, 'changed fixture'); const candidate = f.commit('Workflow correction');
+            const result = spawnSync('bash', ['scripts/release_prepare.sh', '--workflow-only', '--push-main'], {
+                cwd: f.directory, encoding: 'utf8'
+            });
+            assert.equal(fs.existsSync(path.join(f.directory, 'build.log')), false);
+            if (changed.startsWith('.github/')) {
+                assert.equal(result.status, 0, result.stderr);
+                assert.equal(f.git('rev-parse', 'origin/main'), candidate);
+                assert.equal(fs.readFileSync(path.join(f.directory, 'qualified.log'), 'utf8'), 'qualify');
+                assert.match(result.stdout, /Reusing the unchanged stable package/);
+                assert.equal(f.git('show', 'origin/main:archive/fixture.txz'), 'unchanged package');
+            } else {
+                assert.notEqual(result.status, 0);
+                assert.match(result.stderr, /Workflow-only publication cannot change/);
+                assert.equal(f.git('rev-parse', 'origin/main'), base);
+                assert.equal(fs.existsSync(path.join(f.directory, 'qualified.log')), false);
+            }
+        });
+    }
+});
+
+test('synchronization planner rejects stale main before executing repository scripts', shellOnly, t => {
+    const f = fixture(t);
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows/backmerge-main-to-dev.yml'), 'utf8');
+    const block = workflow.split('      - name: Verify published main and generate synchronization plan')[1]
+        .split('      - name: Explain owner synchronization action')[0];
+    const script = block.split('        run: |\n')[1].split('\n').map(line => line.replace(/^          /, '')).join('\n');
+    f.write('scripts/release_validation.mjs', "import fs from 'node:fs'; fs.writeFileSync('executed.log', 'trusted scripts executed');\n");
+    f.write('scripts/sync_main_to_dev.sh', 'exit 0\n'); f.write('scripts/sync_plan.mjs', '');
+    const sha = f.commit('Trusted main'); f.git('branch', '-M', 'main');
+    f.git('branch', 'dev', sha);
+    const remote = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-planner-origin-'));
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    execFileSync('git', ['clone', '--bare', f.directory, remote], { stdio: 'pipe' });
+    f.git('remote', 'add', 'origin', remote);
+    const check = expected => spawnSync('bash', ['-c', 'set -euo pipefail\n' + script], {
+        cwd: f.directory, encoding: 'utf8', env: { ...process.env, EXPECTED_MAIN: expected }
+    });
+    assert.notEqual(check('a'.repeat(40)).status, 0);
+    assert.equal(fs.existsSync(path.join(f.directory, 'executed.log')), false);
+    const trusted = check(sha);
+    assert.equal(trusted.status, 0, trusted.stderr);
+    assert.equal(fs.readFileSync(path.join(f.directory, 'executed.log'), 'utf8'), 'trusted scripts executed');
+});
+
 test('tag-only pre-push avoids repeated guards but mixed main pushes require candidate verification', shellOnly, t => {
     const f = fixture(t);
     f.copy('.githooks/pre-push');

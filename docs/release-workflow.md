@@ -3,6 +3,11 @@
 Release work requires explicit owner authorization. Ordinary development updates
 stay on `dev`; keep remote branches limited to `main`, `dev` and `metrics`.
 Workflow, test and documentation changes alone do not bump the plugin version.
+For a reviewed correction limited to workflows, scripts, tests or documentation,
+commit it on dev and apply it to current main, then use
+`bash scripts/release_prepare.sh --workflow-only --push-main`. This mode rejects
+runtime, package and SBOM changes, retains exact-candidate qualification and all
+main push guards, and preserves the published plugin version and release assets.
 
 ## Prepare and qualify once
 
@@ -88,7 +93,10 @@ publication retries can still affect elapsed time.
 
 The Back-Merge workflow runs after successful publication and uploads a read-only
 synchronization plan. It creates no PR or remote branch and does not run another
-full suite. After verifying the stable release, from current main run:
+full suite. The planner checks out trusted main only, accepts successful same-repository main
+push or manual publication events, and rejects a stale event before executing
+repository scripts. It never checks out a commit selected by an untrusted event.
+After verifying the stable release, from current main run:
 
 ```bash
 bash scripts/release_sync.sh --push-dev

@@ -29,6 +29,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
         await page.locator('[data-finder-toggle]').press('Tab');
         await page.locator('[data-finder-toggle]').focus();
         assert.equal(await page.locator('[data-finder-toggle]').evaluate(node => getComputedStyle(node).outlineStyle), 'none');
+        await page.locator('.fv-quickfinder-field').evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
         assert.equal(await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).borderTopColor), await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).color));
     });
 
@@ -67,6 +68,17 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
     test('Quick finder keeps unavailable Docker shortcuts visible and logs usable for stopped containers', async ({ page }) => {
         await page.goto(`${baseUrl}/fixtures/runtime-quick-finder.html`);
         await search(page, 'Mosquitto');
+        assert.equal(await page.locator('[data-finder-action="reveal"]').count(), 0);
+        const badge = await page.locator('.fv-quickfinder-status').evaluate(node => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.fillStyle = getComputedStyle(node).color;
+            context.fillRect(0, 0, 1, 1);
+            return { size: parseFloat(getComputedStyle(node).fontSize) / parseFloat(getComputedStyle(node.parentElement).fontSize), color: Array.from(context.getImageData(0, 0, 1, 1).data) };
+        });
+        assert.ok(badge.size > 0.9 && badge.size < 1);
+        const [red, green, blue] = badge.color;
+        assert.ok(red > green + 20 && red > blue + 20);
         assert.equal(await page.locator('[data-finder-action="webui"]').isDisabled(), true);
         assert.equal(await page.locator('[data-finder-action="console"]').isDisabled(), true);
         assert.equal(await page.locator('[data-finder-action="logs"]').isEnabled(), true);

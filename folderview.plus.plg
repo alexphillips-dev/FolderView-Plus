@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.06.03">
-<!ENTITY md5 "4bcf1c445d6cb06af34755730dfeeb84">
-<!ENTITY sha256 "f8be1b6297943afb0abb2d61301610521b2b6d720070a9dfaac761336ede76d1">
+<!ENTITY version "2026.10.06.04">
+<!ENTITY md5 "5137580020268b660f64da6b34aeb53e">
+<!ENTITY sha256 "124fd2cecf691fe6291d70690496b91abebe590b0d7a129301fc410b6245e4c6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.06.04
+- UI/UX: Removed the redundant Reveal button from Quick finder results. Click a folder, container, or VM result name, or select it with the arrow keys and press Enter, to reveal it. Running and Stopped badges are larger, and Stopped uses readable red text and a matching border in light and dark themes. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.06.03
 - Fix: Quick finder now reads Docker running status, WebUI URLs, and console shells from the same runtime metadata used by container previews. Running containers no longer appear stopped or lose their available WebUI and console shortcuts in search results.

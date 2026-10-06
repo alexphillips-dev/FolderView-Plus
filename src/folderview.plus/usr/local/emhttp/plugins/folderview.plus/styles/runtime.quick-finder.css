@@ -113,12 +113,12 @@
 .fv-quickfinder-copy { display: flex; flex-direction: column; gap: 0.15em; flex: 1; min-inline-size: 0; }
 .fv-quickfinder-name { font-weight: 600; overflow-wrap: anywhere; }
 .fv-quickfinder-path { font-size: 0.86em; color: var(--fvplus-ui-text-muted); overflow-wrap: anywhere; }
-.fv-quickfinder-status { padding: 0.15em 0.4em; border: 1px solid var(--fvplus-ui-border-strong); border-radius: 4px; font-size: 0.8em; color: var(--fvplus-ui-text-muted); }
+.fv-quickfinder-status { padding: 0.22em 0.55em; border: 1px solid var(--fvplus-ui-border-strong); border-radius: 4px; font-size: 0.92em; font-weight: 600; color: var(--fvplus-ui-text-muted); }
 .fv-quickfinder-status[data-state="running"] { color: var(--fvplus-graphite-success); }
 .fv-quickfinder-status[data-state="paused"] { color: var(--fvplus-graphite-warning); }
+.fv-quickfinder-status[data-state="stopped"] { color: color-mix(in srgb, var(--fvplus-graphite-danger) 70%, var(--fvplus-ui-text-primary)); border-color: currentColor; }
 .fv-quickfinder-actions { display: flex; flex-wrap: wrap; gap: 0.4em; margin-inline-start: 2.8em; padding-block-start: 0.55em; }
 .fv-quickfinder-actions button { font-size: 0.86em; }
-.fv-quickfinder-actions [data-finder-action="reveal"] { --fv-button-fg: var(--fvplus-ui-accent); --fv-button-border: var(--fvplus-ui-accent); --fv-button-bg: var(--fvplus-ui-control-active); color: var(--fvplus-ui-accent); border-color: var(--fvplus-ui-accent); background: var(--fvplus-ui-control-active); }
 .fv-quickfinder-footer { flex: 0 0 auto; padding: 0.65em 0.9em; border-block-start: 1px solid var(--fvplus-ui-border-subtle); font-size: 0.8em; color: var(--fvplus-ui-text-muted); }
 .fv-quickfinder-message { padding: 1em 0.6em; margin: 0; color: var(--fvplus-ui-text-muted); }
 tr.fv-quickfinder-highlight > td { box-shadow: inset 0 2px var(--fvplus-ui-accent), inset 0 -2px var(--fvplus-ui-accent); background-color: var(--fvplus-ui-control-active); }

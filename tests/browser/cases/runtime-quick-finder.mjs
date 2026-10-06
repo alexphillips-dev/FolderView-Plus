@@ -50,6 +50,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             assert.equal(await page.locator('.fv-quickfinder input').inputValue(), '');
             assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
         }
+        await page.locator('.fv-quickfinder input').evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
     });
 
     test('Quick finder production Docker reveal waits for Host list to return to a grouped nested tree', async ({ page }) => {
@@ -62,7 +63,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             await page.locator('[data-fvplus-docker-view="host"]').click();
             await page.waitForFunction(() => !document.querySelector('#docker_list tr.folder'));
             await openAndSearch(page, 'fixture-app-0');
-            await page.locator('[data-finder-action="reveal"]').click();
+            await page.locator('[data-finder-select]').click();
             await page.waitForFunction(() => document.querySelector('tr.fv-quickfinder-highlight')?.dataset.name === 'fixture-app-0');
             assert.equal(await page.locator('tr.fv-quickfinder-highlight').isVisible(), true);
             assert.equal(host.prefs().pageViewMode, 'folderview');
@@ -88,7 +89,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('[data-finder-action="webui"]').count(), 1);
         assert.equal(await page.locator('[data-finder-action="console"]').count(), 1);
         assert.equal(await page.locator('[data-finder-action="logs"]').count(), 1);
-        await page.locator('[data-finder-action="reveal"]').click();
+        await page.locator('[data-finder-select]').click();
         await page.waitForSelector('tr.fv-quickfinder-highlight');
         assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
         assert.equal(await page.locator('tr.fv-quickfinder-highlight').getAttribute('data-name'), 'Assistant');
@@ -169,7 +170,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         await page.locator('.fv-quickfinder input').fill('home');
         await page.waitForFunction(() => document.querySelector('.fv-quickfinder-name')?.textContent === 'Home Automation');
         await page.evaluate(() => window.fixtureFinder.deferPrepare());
-        await page.locator('[data-finder-action="reveal"]').first().click();
+        await page.locator('[data-finder-select]').first().click();
         await page.evaluate(() => { window.fixtureFinder.replace(); window.fixtureFinder.releasePrepare(); });
         await page.waitForFunction(() => document.querySelector('.fv-quickfinder')?.getAttribute('aria-busy') !== 'true');
         assert.equal(await page.evaluate(() => window.fixtureFinder.events.filter(event => event.action === 'expand').length), 0);

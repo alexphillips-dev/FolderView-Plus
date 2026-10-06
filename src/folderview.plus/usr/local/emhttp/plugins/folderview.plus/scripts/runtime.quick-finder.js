@@ -78,7 +78,6 @@
             closed: translate('legacy.surface.7d9eb7acb13e2462', 'Close')
         };
         const actionLabels = {
-            reveal: labels.reveal,
             focus: translate('legacy.surface.d46681a9c5a875c4', 'Focus folder'),
             edit: translate('legacy.surface.fe82f5a54ad3a3dd', 'Edit folder'),
             webui: translate('legacy.surface.771dded9e684868e', 'Open WebUI'),
@@ -86,7 +85,7 @@
             console: translate('legacy.surface.f4063d1b2a07230d', 'Open console'),
             actions: translate('legacy.surface.ff8059dc6752afdd', 'Actions')
         };
-        const actionIcons = { reveal: 'fa-arrow-right', focus: 'fa-bullseye', edit: 'fa-pencil', webui: 'fa-globe', logs: 'fa-bars', console: 'fa-terminal', actions: 'fa-ellipsis-h' };
+        const actionIcons = { focus: 'fa-bullseye', edit: 'fa-pencil', webui: 'fa-globe', logs: 'fa-bars', console: 'fa-terminal', actions: 'fa-ellipsis-h' };
         const prefix = `fvplus-${type}-quick-finder`;
         let shell = null, input = null, popover = null, results = null, count = null, trigger = null;
         let open = false, disposed = false, busy = false, filter = 'all', selected = '', entries = [], matches = [];

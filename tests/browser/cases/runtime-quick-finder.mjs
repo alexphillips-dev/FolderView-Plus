@@ -160,7 +160,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         await page.evaluate(() => { window.fixtureFinder.runtime.Assistant.state = false; });
         await page.locator('[data-finder-action="console"]').click();
         assert.equal(await page.evaluate(() => window.fixtureFinder.events.filter(event => event.action === 'terminal').length), 0);
-        assert.equal(await page.locator('[data-finder-action="console"]').count(), 0);
+        assert.equal(await page.locator('[data-finder-action="console"]').isDisabled(), true);
         await page.evaluate(() => window.fixtureFinder.removeItem('Assistant'));
         assert.equal(await page.locator('.fv-quickfinder-result').count(), 0);
         await page.evaluate(() => window.fixtureFinder.remount());

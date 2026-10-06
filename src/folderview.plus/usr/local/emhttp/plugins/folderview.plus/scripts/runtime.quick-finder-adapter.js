@@ -74,15 +74,20 @@
         const getActions = (item) => {
             if (item.kind === 'folder') return [...(folderRow(item.id) ? ['reveal', 'focus'] : []), 'edit'];
             const actions = findRow(item) ? ['reveal'] : [];
-            const running = getState(item) === 'running';
             if (type === 'docker') {
-                if (running && deps.safeWebui(item.entry.webui)) actions.push('webui');
-                if (typeof win.openTerminal === 'function') { actions.push('logs'); if (running) actions.push('console'); }
+                actions.push('webui', 'console', 'logs');
             } else {
                 if (item.entry.logs && typeof win.openTerminal === 'function') actions.push('logs');
                 if (nativeTrigger(item)) actions.push('actions');
             }
             return actions;
+        };
+        const isActionEnabled = (item, action) => {
+            if (type !== 'docker' || item.kind !== 'item') return true;
+            if (action === 'webui') return getState(item) === 'running' && Boolean(deps.safeWebui(item.entry.webui));
+            if (action === 'console') return getState(item) === 'running' && typeof win.openTerminal === 'function';
+            if (action === 'logs') return typeof win.openTerminal === 'function';
+            return true;
         };
         const prepareReveal = async (item) => {
             const generation = deps.getRenderGeneration?.();
@@ -122,7 +127,7 @@
             window: win, document: doc, type,
             resolveMount: () => resolveMount(doc, table(), type),
             getEntries: () => finder.buildIndex(getFolders(), deps.getRuntime(), deps.getMembers),
-            getActions, getState, getIcon, findRow, prepareReveal, runAction,
+            getActions, isActionEnabled, getState, getIcon, findRow, prepareReveal, runAction,
             onError: deps.onError, onDispose: () => { active = false; }
         });
         return Object.freeze({ ...api, dispose: () => { active = false; api.dispose(); } });

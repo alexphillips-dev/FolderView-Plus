@@ -26,7 +26,6 @@
 }
 .fv-quickfinder.is-open .fv-quickfinder-field {
     inline-size: 22em;
-    border-color: var(--fvplus-ui-accent);
     background: var(--fvplus-ui-input);
 }
 .fv-quickfinder button {
@@ -57,7 +56,11 @@
     padding: 0;
     border: 0;
 }
-.fv-quickfinder.is-open [data-finder-toggle] { color: var(--fvplus-ui-accent); }
+.fv-quickfinder-field > button:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+.fv-quickfinder-field:has(> :focus-visible) { border-color: var(--fvplus-ui-text-primary); }
 .fv-quickfinder-field > input {
     flex: 1;
     inline-size: 100%;
@@ -76,7 +79,6 @@
 .fv-quickfinder-field > input::-webkit-search-cancel-button { display: none; }
 .fv-quickfinder-field > input::placeholder { color: var(--fvplus-ui-text-muted); }
 .fv-quickfinder.is-open input { opacity: 1; }
-.fv-quickfinder-field:focus-within { box-shadow: 0 0 0 1px var(--fvplus-ui-accent); }
 .fv-quickfinder-popover {
     position: fixed;
     inset-inline-start: auto;

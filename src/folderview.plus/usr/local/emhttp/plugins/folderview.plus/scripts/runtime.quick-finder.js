@@ -151,13 +151,13 @@
             if (input) { input.value = ''; input.disabled = true; input.tabIndex = -1; }
             results?.replaceChildren(); selected = ''; matches = []; entries = [];
             shell?.querySelector('[data-finder-close]')?.setAttribute('hidden', '');
-            if (restoreFocus) trigger?.focus();
+            if (restoreFocus) trigger?.focus({ preventScroll: true });
         };
         const runAction = async (item, action) => {
             if (busy || disposed) return;
             // Resolve again at click time; removed items and newly unavailable actions cannot use stale results.
             const current = deps.getEntries().find((candidate) => candidate.key === item.key);
-            if (!current || !deps.getActions(current).includes(action)) { refresh(); return; }
+            if (!current || !deps.getActions(current).includes(action) || deps.isActionEnabled?.(current, action) === false) { refresh(); return; }
             busy = true;
             shell.setAttribute('aria-busy', 'true');
             try {
@@ -225,7 +225,8 @@
                     row.append(title);
                     const actions = doc.createElement('div'); actions.className = 'fv-quickfinder-actions';
                     deps.getActions(item).filter((action) => actionLabels[action]).forEach((action) => {
-                        const control = button(actionLabels[action], actionIcons[action]); control.dataset.finderAction = action; actions.append(control);
+                        const control = button(actionLabels[action], actionIcons[action]); control.dataset.finderAction = action;
+                        control.disabled = deps.isActionEnabled?.(item, action) === false; actions.append(control);
                     });
                     row.append(actions); results.append(row);
                 });
@@ -259,7 +260,7 @@
             open = true; shell.classList.add('is-open'); trigger.setAttribute('aria-expanded', 'true');
             input.disabled = false; input.tabIndex = 0; popover.hidden = false;
             shell.querySelector('[data-finder-close]').hidden = false;
-            refresh(); input.focus();
+            refresh(); input.focus({ preventScroll: true });
         };
         const mount = () => {
             if (disposed) return;
@@ -310,7 +311,12 @@
             listen(doc, 'pointerdown', (event) => { if (open && !shell.contains(event.target)) close(); });
             listen(doc, 'focusin', (event) => { if (open && !shell.contains(event.target)) close(); });
             listen(win, 'resize', positionPopover);
-            listen(win, 'scroll', () => { if (open) close(); });
+            listen(win, 'scroll', () => {
+                if (!open) return;
+                const bounds = shell.getBoundingClientRect();
+                if (bounds.bottom < 0 || bounds.top > win.innerHeight) close();
+                else positionPopover();
+            });
             listen(doc, 'keydown', (event) => {
                 if (event.defaultPrevented || !shell.isConnected) return;
                 if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {

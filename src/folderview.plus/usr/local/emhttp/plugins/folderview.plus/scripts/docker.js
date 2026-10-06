@@ -7855,7 +7855,7 @@ function ensureDockerQuickFinder() {
         dockerQuickFinderApi = adapter.createApi({
             window, document, type: 'docker', hostAdapter: dockerHostAdapter,
             getFolders: () => globalFolders,
-            getRuntime: () => dockerRuntimeInfoByName,
+            getRuntime: () => Object.fromEntries(Object.entries(dockerRuntimeInfoByName).map(([name, entry]) => [name, getDockerRuntimeInfoApi().buildRuntimeContainerEntry(name, entry)])),
             getMembers: (id) => getScopedRuntimeContainersForFolder(id, false),
             getRenderGeneration: () => dockerRuntimeLastRenderGeneration,
             isViewReady: () => !createFoldersInFlight && !createFoldersQueued,

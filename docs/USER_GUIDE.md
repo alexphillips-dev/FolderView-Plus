@@ -75,7 +75,7 @@ Docker searches Docker folders and containers; VMs searches VM folders and virtu
 
 - **Reveal** clears temporary folder focus and Docker toolbar filters, expands the containing folder path, and highlights the native row. Docker returns to FolderView when necessary. Revealing a hidden Docker branch uses the existing temporary hidden-folder visibility control without restoring its saved hidden state.
 - Folder results offer **Focus folder** and **Edit folder**. A folder without a rendered row, such as an empty folder suppressed by visibility settings, offers editing rather than an unavailable reveal action.
-- Container results offer **Open WebUI** when running with an available safe WebUI, **View logs**, and **Open console** when running and the host terminal handler is available.
+- Container results show **Open WebUI**, **Open console**, and **View logs** buttons. WebUI requires a running container with an available safe WebUI; console requires a running container and the host terminal handler. Unavailable shortcuts stay visible but disabled. Logs remain available for stopped containers when the host terminal handler is present.
 - VM results offer **View logs** when the host supplies a log location and **Actions** to open the existing native VM menu. Available console and power controls remain governed by Unraid.
 
 Arrow keys select results and Enter reveals the selected item. Privacy name masking also masks result names, folder paths, and the query. Searching does not change folder assignments or start, stop, or update members.

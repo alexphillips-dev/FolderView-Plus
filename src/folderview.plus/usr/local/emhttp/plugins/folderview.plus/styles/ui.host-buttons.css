@@ -18,14 +18,14 @@ html body :is(button, input[type="button"], input[type="submit"], a[role="button
 }
 
 html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
-    :is(button, input[type="button"], input[type="submit"], a[role="button"]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)),
-html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-quickfinder-field > button)),
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-quickfinder-field > button)) {
     background-color: var(--fvplus-ui-control-hover) !important;
     border-color: var(--fvplus-ui-border-strong) !important;
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
-    :is(button, input[type="button"], input[type="submit"], a[role="button"]):focus-visible,
-html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):focus-visible {
+    :is(button, input[type="button"], input[type="submit"], a[role="button"]):focus-visible:where(:not(.fv-quickfinder-field > button)),
+html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):focus-visible:where(:not(.fv-quickfinder-field > button)) {
     outline: 2px solid var(--fv-ui-info) !important;
     outline-offset: 2px;
 }

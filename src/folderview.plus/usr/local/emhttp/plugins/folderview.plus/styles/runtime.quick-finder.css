@@ -103,7 +103,18 @@
 .fv-quickfinder-filters [aria-pressed="true"] { background: var(--fvplus-ui-control-active); color: var(--fvplus-ui-accent); }
 .fv-quickfinder-count { margin-inline-start: auto; font-size: 0.85em; color: var(--fvplus-ui-text-muted); white-space: nowrap; }
 .fv-quickfinder-results { overflow-y: auto; overscroll-behavior: contain; padding: 0.35em 0.6em 0.65em; }
-.fv-quickfinder-results h3 { margin: 0.65em 0.4em 0.45em; color: var(--fvplus-ui-text-muted); font: inherit; font-size: 0.82em; font-weight: 600; }
+.fv-quickfinder-results h3 {
+    margin: 0.65em 0 0.55em;
+    padding: 0.45em 0.65em;
+    border-inline-start: 3px solid var(--fvplus-ui-accent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--fvplus-ui-accent) 8%, var(--fvplus-ui-panel));
+    color: var(--fvplus-ui-text-primary);
+    font: inherit;
+    font-size: 1.05em;
+    font-weight: 700;
+}
+.fv-quickfinder-results h3:not(:first-child) { margin-block-start: 1.2em; }
 .fv-quickfinder-result { padding: 0.65em 0.75em; margin-block-end: 0.45em; border: 1px solid var(--fvplus-ui-border-subtle); border-radius: 7px; }
 .fv-quickfinder-result[aria-current="true"] { background: var(--fvplus-ui-control-hover); border-color: var(--fvplus-ui-border-subtle); }
 .fv-quickfinder button.fv-quickfinder-result-title { --fv-button-bg: transparent; --fv-button-border: transparent; inline-size: 100%; justify-content: flex-start; text-align: start; border: 0; padding: 0; background: transparent; }

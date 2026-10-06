@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
+        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -107,7 +107,7 @@
     "common.icons.home-automation": "家庭自動化",
     "common.icons.tools": "工具",
     "common.icons.development": "開發",
-    "common.targets.containers": "貨櫃",
+    "common.targets.containers": "容器",
     "common.targets.selected-count": "已選擇：$1",
     "common.targets.none-eligible": "目前沒有符合資格的會員。",
     "common.targets.none-selected": "尚未選擇任何成員。",

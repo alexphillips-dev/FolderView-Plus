@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "import",
-        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
+        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
     },
     "import.subtitle": "既存のフォルダの処理方法を選択してください。［インポートを適用］を選択するまでは、何も変更されません。",
     "import.behavior.question": "既存のフォルダはどのように処理しますか？",

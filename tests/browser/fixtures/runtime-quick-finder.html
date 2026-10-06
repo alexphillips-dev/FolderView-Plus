@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Docker and VM quick finder fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/runtime.quick-finder.css">
+    <style>
+        body { font: 14px/1.4 Arial, sans-serif; background: var(--fvplus-ui-page); color: var(--fvplus-ui-text-primary); margin: 1rem; }
+        .ToggleViewMode { margin-block-end: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { border-bottom: 1px solid var(--fvplus-ui-border-subtle); padding: .6rem; text-align: start; }
+        .folder-storage { display: none; }
+        .native-toggle { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
+        @media (prefers-color-scheme: light) { body { --fvplus-ui-page:#fafafa; --fvplus-ui-panel:#fff; --fvplus-ui-text-primary:#242424; --fvplus-ui-text-muted:#555; --fvplus-ui-control:#eee; --fvplus-ui-input:#fff; --fvplus-ui-border-strong:#777; --fvplus-ui-border-subtle:#ccc; --fvplus-ui-control-hover:#eee; --fvplus-ui-control-active:#fff0da; --fvplus-ui-accent:#985000; --fvplus-graphite-success:#28793f; --fvplus-graphite-warning:#8a6000; } }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Docker and VM quick finder fixture</h1>
+    <div class="ToggleViewMode"><label class="native-toggle"><input id="native-basic" type="checkbox">Basic view</label><span>Privacy</span></div>
+    <table id="docker_containers"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody id="docker_list"></tbody></table>
+    <button type="button" id="outside">Outside control</button>
+</main>
+<script src="/plugin/scripts/runtime.quick-finder.js"></script>
+<script src="/plugin/scripts/runtime.quick-finder-adapter.js"></script>
+<script src="/fixtures/runtime-quick-finder.fixture.js"></script>
+</body>
+</html>

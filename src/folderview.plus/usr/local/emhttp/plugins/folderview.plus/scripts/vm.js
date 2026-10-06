@@ -14,7 +14,7 @@ const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCr
     document
 }) || null;
 const vmLifecycleModule = window.FolderViewPlusVmRuntimeLifecycle || null;
-let vmLifecycleApi = null;
+let vmLifecycleApi = null, vmQuickFinderApi = null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -1724,6 +1724,7 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    ensureVmQuickFinder();
     ensureVmNativeDetailInteractionHooks();
     ensureVmNativeDetailRowObserver();
     adoptVmNativeDetailRows(Array.from(document.querySelectorAll(`tbody#kvm_list > ${VM_NATIVE_DETAIL_ROW_SELECTOR}`)));
@@ -3323,15 +3324,7 @@ const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
     $scope.toggleClass('autostart', entry?.autostart === true);
 };
 
-const findVmRuntimeRowsByName = (name) => {
-    const safeName = String(name || '').trim();
-    if (!safeName) {
-        return $();
-    }
-    return $('#kvm_list tr').not('.folder').filter(function matchVmRuntimeRow() {
-        return String($(this).find('td.vm-name span.outer span.inner a').first().text() || '').trim() === safeName;
-    });
-};
+const findVmRuntimeRowsByName = (name) => $(window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.findVmRows(document, name));
 
 const getVmRuntimeEntryByUuid = (uuid, fallbackName = '') => {
     const safeUuid = String(uuid || '').trim();
@@ -3456,7 +3449,7 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
             ? runtimeSnapshotApi.diffRuntimeRows('vm', vmRuntimeInfoByName, nextRuntimeInfo)
             : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
-        vmRuntimeInfoByName = nextRuntimeInfo;
+        vmRuntimeInfoByName = nextRuntimeInfo; vmQuickFinderApi?.refresh();
         lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
         if (snapshot) rememberVmRuntimeSnapshot(snapshot);
         if (rowDiff.structuralChanged) {
@@ -3873,7 +3866,15 @@ const bindVmSettingsPinSyncListener = () => {
 };
 bindVmSettingsPinSyncListener();
 
-// Add the button for creating a folder
+function ensureVmQuickFinder() {
+    vmQuickFinderApi ||= window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.createApi({
+        window, document, type: 'vm', hostAdapter: vmHostAdapter,
+        getFolders: () => globalFolders, getRuntime: () => vmRuntimeInfoByName,
+        clearFocus: () => toggleVmFolderFocus(vmFocusedFolderId),
+        expand: dropDownButton, edit: editFolder, focus: toggleVmFolderFocus
+    });
+    vmQuickFinderApi.mount();
+}
 const createFolderBtn = () => {
     recordVmFatalBannerAction('VM Add Folder clicked');
     clearFolderEditorPrefill();
@@ -3927,6 +3928,7 @@ addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
+    vmQuickFinderApi?.dispose();
     vmLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(vmRuntimeWidthReflowTimer);

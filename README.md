@@ -29,6 +29,7 @@ FolderView Plus is a folder-first organization and management plugin for Unraid.
 
 - Organize Docker containers, VMs, and Dashboard views into folders.
 - Use nested folders, live previews, custom icons, and folder-level actions.
+- Find folders and members directly on Docker and VMs with the expanding Quick finder and contextual shortcuts.
 - Build starter layouts with the beginner-friendly Setup Assistant.
 - Automate organization with rules, bulk assignment, templates, and Docker start order tools.
 - Protect changes with backups, snapshot compare, restore, delete, and undo workflows.

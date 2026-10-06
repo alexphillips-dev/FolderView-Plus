@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.05.05">
-<!ENTITY md5 "4b860559f315920905857e074cf205fb">
-<!ENTITY sha256 "30b396537920328e134cd08f38823d7186ce29898933f8710cbbe6c94b0dd723">
+<!ENTITY version "2026.10.06.01">
+<!ENTITY md5 "6bbfafa4852669944920fa2822d1f9ce">
+<!ENTITY sha256 "93710db7acddac92f9df71406c14dbc84dfbd86f6231b12996c0491402e99b70">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.06.01
+- Feature: Docker and VMs now include an expanding Quick finder to the left of the native Basic/Advanced view controls. Search folders and members by name or nested folder path, narrow results by type, and reveal a match without manually opening each folder.
+- Feature: Search results offer folder focus and editing, available Docker WebUI/log/console shortcuts, and VM logs and native VM actions. Revealing an item clears temporary focus and Docker filters, expands its containing path, and highlights its row.
+- Accessibility: Quick finder supports keyboard navigation, Escape dismissal, mobile dropdowns, light and dark themes, right-to-left layouts, and reduced-motion preferences. Privacy name masking also covers search results and the query; searches are not saved or included in diagnostics.
+- Reliability: Search results refresh with folder rendering, validate item availability before acting, limit visible matches for large inventories, and remove handlers during page teardown.
+- Docs: Added Quick finder usage and action availability to the user guide. After installing, confirm the new version and hard-refresh the Unraid webGUI. Existing folder assignments and preferences are preserved.
+
 
 ###2026.10.05.05
 - Fix: Moving a folder to root from the Docker folder menu now updates its position, nesting, and visibility immediately without requiring a page refresh.

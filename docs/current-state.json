@@ -19,6 +19,13 @@
   },
   "featureNames": {
     "settingsModes": ["Basic", "Advanced"],
+    "quickFinder": {
+      "label": "Quick finder",
+      "surfaces": ["Docker", "VMs"],
+      "placement": "left of native Basic/Advanced controls; above the table when unavailable",
+      "queryPersistence": false,
+      "visibleResultLimit": 40
+    },
     "advancedWorkspaces": [
       { "id": "automation", "label": "Bulk assignment" },
       { "id": "rules", "label": "Rules" },

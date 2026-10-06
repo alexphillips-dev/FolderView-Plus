@@ -1509,6 +1509,32 @@
       ]
     },
     {
+      "file": "scripts/runtime.quick-finder.js",
+      "owner": "runtime-quick-finder",
+      "consumers": ["docker", "vm"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimeQuickFinder",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["buildIndex", "searchIndex", "createApi", "RESULT_LIMIT"]
+    },
+    {
+      "file": "scripts/runtime.quick-finder-adapter.js",
+      "owner": "runtime-quick-finder-adapters",
+      "consumers": ["docker", "vm"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/runtime.quick-finder.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimeQuickFinderAdapter",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi", "resolveMount", "findViewToggleAnchor", "findVmRows"]
+    },
+    {
       "file": "scripts/runtime.shared-controls.js",
       "owner": "shared-runtime-controls",
       "consumers": ["docker", "vm", "dashboard"],

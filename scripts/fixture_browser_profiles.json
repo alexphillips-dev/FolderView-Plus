@@ -3,8 +3,9 @@
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts)", "Folder action sheet", "Settings chrome",
     "Settings overflow", "Settings visibility", "Operations matches", "Filters and view settings",
-    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder"
+    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder"
   ],
+  "quick-finder": ["Quick finder"],
   "smoke": [
     "Settings alerts", "Dashboard.*expansion", "Manage Folders keeps populated ancestors", "Docker hide-empty", "Docker Move to root",
     "Lifecycle reconciliation", "Folder action sheet traps focus", "Snapshot comparison opens"

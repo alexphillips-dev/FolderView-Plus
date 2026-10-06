@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "docker",
-        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
+        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
     },
     "docker.actions.label": "Akce FolderView",
     "docker.actions.add-folder": "Přidat složku",
@@ -25,7 +25,7 @@
     "docker.actions.empty-filter-help": "Před filtrováním zobrazte prázdné složky z Nástroje.",
     "docker.actions.reset-view": "Obnovit zobrazení",
     "docker.preview.open-webui": "Otevřete WebUI",
-    "docker.preview.open-console": "Otevřete konzoli",
+    "docker.preview.open-console": "Otevřít konzoli",
     "docker.preview.view-logs": "Zobrazit protokoly",
     "docker.provider.hybrid-label": "Starší Unraid WebGUI s daty GraphQL",
     "docker.health.api-summary": "Docker API: aktualizace: $1, připraveno k opětovnému sestavení: $2, osiřelé: $3, konflikty portů: $4",

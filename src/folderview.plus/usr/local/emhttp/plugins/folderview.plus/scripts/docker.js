@@ -45,6 +45,7 @@ if (dockerHostCompatibilityDecision.runtimeActivationAllowed !== true) {
 }
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+let dockerQuickFinderApi = null;
 const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
@@ -3499,7 +3500,10 @@ const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPa
 
 let dockerRuntimeActionBarApi = null;
 const applyDockerRuntimeToolbarFilterState = () => dockerRuntimeActionBarApi?.applyFilterState();
-const renderDockerRuntimeActionBar = (mode = resolveDockerPageViewMode()) => dockerRuntimeActionBarApi?.sync(mode);
+const renderDockerRuntimeActionBar = (mode = resolveDockerPageViewMode()) => {
+    dockerRuntimeActionBarApi?.sync(mode);
+    ensureDockerQuickFinder();
+};
 
 const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
     dockerRuntimeActionBarApi?.sync(normalizeDockerPageViewMode(mode));
@@ -4081,38 +4085,7 @@ const bindDockerRuntimePrivacyStorageSync = () => {
     });
 };
 
-const findDockerRuntimeListViewToggleAnchor = () => {
-    const table = dockerHostAdapter?.getTable?.();
-    if (!table) {
-        return null;
-    }
-    const scopes = [
-        table.parentElement,
-        table.parentElement?.parentElement,
-        document.body
-    ].filter(Boolean);
-    const switchSelector = 'input[type="checkbox"], .switch-button, .switch-button-background';
-    for (const scope of scopes) {
-        const switches = Array.from(scope.querySelectorAll(switchSelector));
-        for (const toggleNode of switches) {
-            const candidates = [
-                toggleNode.closest('label'),
-                toggleNode.closest('span'),
-                toggleNode.closest('div'),
-                toggleNode.parentElement,
-                toggleNode.parentElement?.parentElement
-            ].filter(Boolean);
-            for (const candidate of candidates) {
-                const text = String(candidate.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-                if (!text.includes('basic view')) {
-                    continue;
-                }
-                return candidate;
-            }
-        }
-    }
-    return null;
-};
+const findDockerRuntimeListViewToggleAnchor = () => window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.findViewToggleAnchor(document, dockerHostAdapter?.getTable?.());
 
 const ensureDockerRuntimePrivacyFallbackHost = () => {
     const table = dockerHostAdapter?.getTable?.();
@@ -7557,7 +7530,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
                 structuralChanged: Object.keys(previousRuntimeInfo || {}).length !== Object.keys(nextRuntimeInfo).length,
                 hasChanges: true
             };
-        dockerRuntimeInfoByName = nextRuntimeInfo;
+        dockerRuntimeInfoByName = nextRuntimeInfo; dockerQuickFinderApi?.refresh();
         const nextSignature = buildDockerStateSignature(parsed, true);
         if (nextSignature) {
             lastLiveRefreshStateSignature = nextSignature;
@@ -7875,7 +7848,42 @@ if (FOLDER_VIEW_DEBUG_MODE) {
     });
 }
 
-// Add the button for creating a folder
+function ensureDockerQuickFinder() {
+    const adapter = window.FolderViewPlusFoundationModules?.runtimeQuickFinderAdapter;
+    if (!adapter || !dockerHostAdapter) return;
+    if (!dockerQuickFinderApi) {
+        dockerQuickFinderApi = adapter.createApi({
+            window, document, type: 'docker', hostAdapter: dockerHostAdapter,
+            getFolders: () => globalFolders,
+            getRuntime: () => dockerRuntimeInfoByName,
+            getMembers: (id) => getScopedRuntimeContainersForFolder(id, false),
+            getRenderGeneration: () => dockerRuntimeLastRenderGeneration,
+            isViewReady: () => !createFoldersInFlight && !createFoldersQueued,
+            prepareView: async () => {
+                if (resolveDockerPageViewMode() !== 'folderview') {
+                    await dockerRuntimeActionBarApi?.setPageViewMode('folderview');
+                    return true;
+                }
+            },
+            clearFocus: () => {
+                dockerRuntimeStateStore.set({ focusedFolderId: '' });
+                dockerFocusedFolderId = '';
+                applyDockerFocusedFolderState();
+            },
+            clearFilters: () => dockerRuntimeActionBarApi?.setFilterMode('all'),
+            revealHidden: (item) => {
+                const ids = [...item.ancestors, ...(item.kind === 'folder' ? [item.id] : [])];
+                if (ids.some((id) => folderTypePrefs?.hiddenFolderIds?.includes(id))) dockerHiddenFoldersApi.setReveal(true);
+            },
+            expand: (id) => dropDownButton(id),
+            edit: (id) => editFolder(id),
+            focus: (id) => toggleDockerFolderFocus(id),
+            safeWebui: (url) => getSafeWebuiUrl(url),
+            openWebui: (url) => openWebuiInNewTab(url)
+        });
+    }
+    dockerQuickFinderApi.mount();
+}
 const createFolderBtn = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolderBtn: Clicked. Redirecting.');
     recordDockerFatalBannerAction('Docker Add Folder clicked');
@@ -7958,6 +7966,7 @@ addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
+    dockerQuickFinderApi?.dispose();
     dockerLiveRefreshController.dispose();
     dockerApiIntegration?.dispose?.();
     dockerApiIntegration = null;

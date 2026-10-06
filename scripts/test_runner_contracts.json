@@ -14,6 +14,7 @@
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
+        "../tests/browser/cases/runtime-quick-finder.mjs",
         "../tests/browser/cases/docker-hidden-folders.mjs",
         "../tests/browser/cases/settings.mjs",
         "../tests/browser/cases/settings-start-order.mjs",
@@ -51,6 +52,7 @@
     { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
+    { "file": "tests/browser/cases/runtime-quick-finder.mjs", "limit": 200, "owner": "Docker and VM Quick finder interaction and lifecycle cases" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
@@ -80,6 +82,7 @@
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
+        "tests/browser/cases/runtime-quick-finder.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
@@ -120,10 +123,10 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 75,
-      "assertionCount": 969,
-      "pageEvaluateCount": 251,
-      "orderedTitleSha256": "30c5f97c072edfcbb996339a141ce774f41fe7b994eb590b10e3cf0f8f5ecee1"
+      "testCount": 81,
+      "assertionCount": 1015,
+      "pageEvaluateCount": 269,
+      "orderedTitleSha256": "f8338e1bbb1f700d672c3962a500186f94d7aa9fbea84235d10b26a562a079dc"
     }
   }
 }

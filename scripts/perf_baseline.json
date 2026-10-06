@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-09-23T20:50:42.808Z",
-  "notes": "September 2026 tree move, shared hierarchy, and bounded Docker preview changes were remeasured after browser and runtime performance budgets passed. This refresh also records pre-existing diagnostics view model and Settings workspace growth that exceeded the prior ratchet on clean dev. The 8% growth ratchet remains enabled; the Settings workspace gzip cap was raised to 13500 bytes to cover its measured 12975 bytes. The import asset baseline was refreshed to the verified published dev 2026.10.04.02 source (67376 bytes, 15191 gzip bytes) for the October diagnostics additions; its hard limits and the 8% growth policy remain unchanged.",
+  "notes": "September 2026 tree move, shared hierarchy, and bounded Docker preview changes were remeasured after browser and runtime performance budgets passed. This refresh also records pre-existing diagnostics view model and Settings workspace growth that exceeded the prior ratchet on clean dev. The 8% growth ratchet remains enabled; the Settings workspace gzip cap was raised to 13500 bytes to cover its measured 12975 bytes. The import asset baseline was refreshed to the verified published dev 2026.10.04.02 source (67376 bytes, 15191 gzip bytes) for the October diagnostics additions; its hard limits and the 8% growth policy remain unchanged. The October 6 Quick finder addition contributes exactly 6780 CSS bytes (1637 gzip) to the existing aggregate baselines; no existing asset baseline, JavaScript allowance, or 8% growth policy was reset.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
       "bytes": 1256,
@@ -134,9 +134,9 @@
   },
   "totals": {
     "totalJs": 4478022,
-    "totalCss": 700469,
+    "totalCss": 707249,
     "totalJsGzip": 920975,
-    "totalCssGzip": 96500,
+    "totalCssGzip": 98137,
     "settingsRuntimeJs": 1371979,
     "settingsRuntimeJsGzip": 271724
   }

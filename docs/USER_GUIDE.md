@@ -67,6 +67,19 @@ Each Docker folder menu includes four quick actions: focus, pin, lock, and hide.
 
 VM and Dashboard surfaces use the same saved Docker or VM folder configuration where applicable. Runtime state is reconciled incrementally so start, stop, pause, resume, and update results can update without rebuilding the entire page.
 
+## Quick finder on Docker and VMs
+
+Click the magnifying glass immediately to the left of the native Basic/Advanced view controls. It expands into a search field with a dropdown. If the host page does not provide view controls, Quick finder appears above the table. `Ctrl+K` (`Command+K` on macOS) opens it; Escape or clicking outside closes it. The animation respects reduced-motion preferences.
+
+Docker searches Docker folders and containers; VMs searches VM folders and virtual machines. Search matches names and containing folder paths, including collapsed nested folders. Use **All**, **Folders**, or the member-type filter to narrow results. Up to 40 matches are rendered at once; refine the query when the total exceeds that limit. The query is temporary and is not saved or added to diagnostics.
+
+- **Reveal** clears temporary folder focus and Docker toolbar filters, expands the containing folder path, and highlights the native row. Docker returns to FolderView when necessary. Revealing a hidden Docker branch uses the existing temporary hidden-folder visibility control without restoring its saved hidden state.
+- Folder results offer **Focus folder** and **Edit folder**. A folder without a rendered row, such as an empty folder suppressed by visibility settings, offers editing rather than an unavailable reveal action.
+- Container results offer **Open WebUI** when running with an available safe WebUI, **View logs**, and **Open console** when running and the host terminal handler is available.
+- VM results offer **View logs** when the host supplies a log location and **Actions** to open the existing native VM menu. Available console and power controls remain governed by Unraid.
+
+Arrow keys select results and Enter reveals the selected item. Privacy name masking also masks result names, folder paths, and the query. Searching does not change folder assignments or start, stop, or update members.
+
 ## Folder actions
 
 ### Custom WebUI profiles for Docker folders

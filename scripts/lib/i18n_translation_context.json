@@ -25,7 +25,12 @@
         "Inherited": "Inherited from existing settings"
     },
     "overrides": {
+        "fr": { "Open console": "Ouvrir la console" },
+        "it": { "Open console": "Apri console" },
         "cs": {
+            "Close search": "Zavřít hledání",
+            "Open console": "Otevřít konzoli",
+            "Quick finder": "Rychlé hledání",
             "Live impact for this step": "Průběžný dopad tohoto kroku",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Počáteční složky: $1 (vybrané: $2; přeskočené existující: $3; automaticky přiřazené shody: $4; vyžadující kontrolu: $5; bez shody: $6)",
             "Import ops": "Operace importu",
@@ -56,6 +61,7 @@
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。"
         },
         "bn": {
+            "Containers": "কন্টেইনার",
             "VMs: $1": "ভার্চুয়াল মেশিন: $1",
             "Choose the containers you want to move.": "আপনি যে কনটেইনারগুলি সরাতে চান সেগুলি বেছে নিন।",
             "Choose the containers you want to move to $1.": "আপনি যে কনটেইনারগুলি $1-এ সরাতে চান সেগুলি বেছে নিন।",
@@ -87,6 +93,8 @@
             "$1 refs": "Referenser: $1"
         },
         "zh-Hans": {
+            "Containers": "容器",
+            "Reveal": "定位",
             "Disabled": "已禁用",
             "Move batch up": "上移批次",
             "Move batch down": "下移批次",
@@ -94,6 +102,8 @@
             "Container": "容器"
         },
         "zh-Hant": {
+            "Containers": "容器",
+            "Reveal": "定位",
             "Disabled": "已停用",
             "Container": "容器",
             "Move VMs ($1)": "移動虛擬機器 ($1)",
@@ -150,6 +160,7 @@
             "Toggle $1": "$1 umschalten"
         },
         "es": {
+            "Open console": "Abrir consola",
             "Disabled": "Desactivado",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "¿Restaurar las carpetas y las preferencias guardadas de esta instantánea? Primero se crea una copia de seguridad.",
             "Manual $1": "Asignación manual: $1"
@@ -178,10 +189,12 @@
             "Containers: $1": "Docker-containers: $1"
         },
         "pt-BR": {
+            "Containers": "Contêineres",
             "Manual $1": "Atribuição manual: $1",
             "VMs: $1": "Máquinas virtuais: $1"
         },
         "pt-PT": {
+            "Containers": "Contentores",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "Restaurar as pastas e as preferências guardadas deste instantâneo? Primeiro, é criada uma cópia de segurança.",
             "Manual $1": "Atribuição manual: $1",
             "VMs: $1": "Máquinas virtuais: $1"

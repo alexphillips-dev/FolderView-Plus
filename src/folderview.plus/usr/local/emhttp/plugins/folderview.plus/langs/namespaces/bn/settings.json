@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "translation-context-revision": "6f0be5b8d296258bec58a745a1d0d032550f903abd080eeab4f08dfe4c08a829"
+        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
     },
     "settings.folder-defaults.edit": "ফোল্ডারের ডিফল্ট সেটিংস সম্পাদনা করুন",
     "settings.search.placeholder": "অনুসন্ধান সেটিংস",

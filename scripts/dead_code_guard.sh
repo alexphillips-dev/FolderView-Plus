@@ -52,6 +52,13 @@ const generatedSelectorPrefixes = [
 ];
 const generatedSelectorMatchers = [
   {
+    selectors: ['#fvplus-docker-quick-finder', '#fvplus-vm-quick-finder'],
+    predicate: (source) => (
+      source.includes('const prefix = `fvplus-${type}-quick-finder`;')
+      && source.includes('shell.id = prefix;')
+    )
+  },
+  {
     selectors: ['.fvplus-privacy-docker-settings', '.fvplus-privacy-vm-settings'],
     predicate: (source) => (
       source.includes("toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true)")

@@ -50,6 +50,7 @@
     --fvplus-settings-nested-meta-text: rgba(194, 206, 224, 0.86);
     --fvplus-settings-chip-info: #9ecbff;
     --fvplus-settings-export-action: #9ecbff;
+    --fvplus-settings-report-action: #daa1b2;
     --fvplus-settings-navigation-info: #9ecbff;
     --fvplus-settings-chip-info-border: rgba(113, 184, 255, 0.58);
     --fvplus-settings-chip-info-bg: rgba(113, 184, 255, 0.12);
@@ -117,6 +118,7 @@ body[data-fv-theme-class="light"] #fv-settings-root,
     --fvplus-settings-nested-meta-text: rgba(105, 117, 133, 0.86);
     --fvplus-settings-chip-info: #286393;
     --fvplus-settings-export-action: #00243f;
+    --fvplus-settings-report-action: #7b2942;
     --fvplus-settings-navigation-info: #0b4168;
     --fvplus-settings-chip-info-border: rgba(47, 110, 166, 0.34);
     --fvplus-settings-chip-info-bg: rgba(47, 110, 166, 0.10);
@@ -6560,6 +6562,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     opacity: 0.72;
 }
 
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-report,
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-export {
     --fv-diagnostics-action-border: var(--fvplus-settings-chip-info-border);
     --fv-diagnostics-action-background: color-mix(
@@ -6583,16 +6586,17 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-button-shadow-hover);
 }
 
-#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-export > i {
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-export > i,
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-report > i {
     color: currentColor;
 }
 
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-report {
-    --fv-diagnostics-action-background: #723;
-    --fv-diagnostics-action-hover-background: #834;
-    --fv-diagnostics-action-color: white;
-    --fv-diagnostics-action-hover-color: white;
-    --fv-diagnostics-action-hover-shadow: 0 0 0 2px #b68;
+    --fvplus-settings-chip-info: var(--fvplus-settings-report-action);
+    --fv-diagnostics-action-border: color-mix(in srgb, var(--fvplus-settings-chip-info) 58%, transparent);
+    --fv-diagnostics-action-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-hover-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-hover-background: color-mix(in srgb, var(--fvplus-settings-chip-info) 12%, transparent);
 }
 
 .fv-diagnostics-summary-surface {

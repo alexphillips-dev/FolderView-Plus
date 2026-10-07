@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.11">
-<!ENTITY md5 "01d9086db11754b716de289c64a026e8">
-<!ENTITY sha256 "a1f5529eedd398c81bcb8c0375323f233f85e0f9073a7b28ad96bacd5a4e0fbf">
+<!ENTITY version "2026.10.07.12">
+<!ENTITY md5 "7db29a59ddb691069bf5da07af00b2d5">
+<!ENTITY sha256 "4cb7dcd1c2e50d6ddaa6b0ae40cd85f3bc8ece2c0116d1aa9dde4d3451f28d01">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.12
+- UX: The Report issue on GitHub button in Advanced Settings > Diagnostics now uses a subtle burgundy tint, accent-colored text and icons, and theme-aware hover and focus styling consistent with Export support bundle.
+
 
 ###2026.10.07.11
 - UX: The Report issue on GitHub button in Advanced Settings > Diagnostics now uses burgundy styling with readable text, a lighter hover state, and a visible keyboard-focus ring.

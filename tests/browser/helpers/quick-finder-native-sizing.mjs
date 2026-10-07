@@ -17,6 +17,6 @@ export const assertQuickFinderNativeScale = async page => {
     });
     assert.ok(scale.name >= 0.85 && scale.name <= 1.1, 'Search names must match the native Docker preview text scale');
     assert.ok(scale.icon >= 0.8 && scale.icon <= 1.15, 'Search icons must match the native Docker preview icon scale');
-    assert.ok(scale.bottomGap <= 0.8, 'Native wrapper height and spacing must not leave an empty band below search content');
+    assert.ok(scale.bottomGap <= 0.8, `Native wrapper height and spacing must not leave an empty band below search content: ${JSON.stringify(scale)}`);
     await hostSpacing.evaluate(node => node.remove());
 };

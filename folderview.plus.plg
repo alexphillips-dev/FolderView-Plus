@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.12">
-<!ENTITY md5 "7db29a59ddb691069bf5da07af00b2d5">
-<!ENTITY sha256 "4cb7dcd1c2e50d6ddaa6b0ae40cd85f3bc8ece2c0116d1aa9dde4d3451f28d01">
+<!ENTITY version "2026.10.07.15">
+<!ENTITY md5 "4988bc2be247d3988abc106b43e97cc4">
+<!ENTITY sha256 "481a207b6b196bd09a0acbf5ef98e83146aafb991707dc9fd002ef82fa9f7fa6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.15
+- Fix: Removed excess space beneath Docker Quick finder results in Linux WebKit browsers when native host wrappers impose larger minimum heights. Container result cards retain their compact layout and familiar shortcuts.
+- Compatibility: Kept Docker and VM search behavior, privacy masking, desktop/mobile layouts, and keyboard actions unchanged while retaining strict sizing regression checks.
+
 
 ###2026.10.07.12
 - UX: The Report issue on GitHub button in Advanced Settings > Diagnostics now uses a subtle burgundy tint, accent-colored text and icons, and theme-aware hover and focus styling consistent with Export support bundle.

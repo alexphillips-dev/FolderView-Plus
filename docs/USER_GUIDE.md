@@ -198,6 +198,8 @@ The Docker-page Privacy toggle hides selected values without changing the stored
 
 Open `Advanced -> Diagnostics` to run health checks, inspect core and advisory results, copy an issue report, and preview or export a support bundle. Use a sanitized bundle for public reports unless raw values are explicitly required.
 
+**Report issue on GitHub**, beside **Export support bundle**, opens the GitHub issue forms in a separate tab and keeps Diagnostics available. Review the sanitized preview and export a bundle before attaching it to your report. Opening the shortcut does not create an issue or upload diagnostic data automatically.
+
 **Backup readiness** checks snapshot metadata and age without performing a restore. **Live runtime connectivity** reflects the latest health check of enabled Docker/VM services. Disabled services and insufficient evidence are informational. Docker startup diagnostics include aggregate stage timings without workload identities.
 
 When a runtime page shows an error banner, copy its diagnostics before refreshing. See [Troubleshooting](TROUBLESHOOTING.md) for targeted checks and [Compatibility](COMPATIBILITY.md) for supported environments.

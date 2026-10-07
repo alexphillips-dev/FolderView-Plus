@@ -2,6 +2,12 @@
 
 Use this when the root README quick fixes are not enough.
 
+## Quick finder on Docker or VMs
+
+After upgrading, confirm the installed version and hard-refresh the webGUI. Click the magnifying glass to the left of Basic/Advanced or press Ctrl+K (Command+K on macOS). An empty query intentionally shows no results; type a name or folder path and check the active All/Folders/member filter. Only the current tab's Docker or VM inventory is searched, and at most 40 matches are displayed, so refine broad queries.
+
+The keyboard shortcut preserves an open dialog's focus and does not interrupt text composition. Stopped containers cannot use WebUI or console shortcuts; logs depend on Unraid's terminal handler. A folder suppressed by visibility settings can still offer editing when its rendered row is unavailable. For a persistent problem, record the tab, browser, theme, viewport, and reproduction sequence, capture current page diagnostics, and use a privacy-reviewed screenshot plus a sanitized support bundle. Clear identifying query text before sharing the screenshot.
+
 ## Common Issues
 
 ### Persistent Installation Warnings

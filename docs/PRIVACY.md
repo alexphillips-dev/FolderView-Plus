@@ -43,6 +43,12 @@ Settings provides privacy choices for VM and Dashboard rendering where the corre
 
 A mask can only affect information that FolderView Plus can identify on that surface. Native content inserted later by Unraid or another plugin may require the next runtime reconciliation before the mask is applied.
 
+## Quick finder
+
+Docker and VM Quick finder results follow **Mask names and icons**: result names, identifying icons, and containing folder paths are masked, including selected results and fallback icons. The search field, placeholder, and typed query remain readable so search stays usable while Privacy is enabled.
+
+Queries are temporary and are not saved or included in diagnostics. Clear the query or close search before sharing a screenshot or recording if the typed text identifies a private workload. Runtime masking and support-bundle sanitization remain separate.
+
 ## What runtime privacy does not do
 
 Runtime privacy mode does not:

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.09">
-<!ENTITY md5 "fe205a97e50247990ac846e377e8ae53">
-<!ENTITY sha256 "6cfe3ca89ede9c5dd8c79a197d09869f87fe893757d17686657940064113de9c">
+<!ENTITY version "2026.10.07.10">
+<!ENTITY md5 "afec470872d95e8f478a60495c9e3720">
+<!ENTITY sha256 "44b9dcda6f7a457cb946833b2918ad2adf487ad1c6ffd9572eab156c6365d595">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.10
+- UX: Added a Report issue on GitHub shortcut beside Export support bundle in Advanced Settings > Diagnostics. It opens the issue forms in a separate tab while keeping Diagnostics available.
+- Diagnostics: Updated support-sharing guidance to help users review and export a sanitized support bundle before attaching it to their GitHub report.
+
 
 ###2026.10.07.09
 - Fix: Docker and VM search now uses the current query when Enter is pressed immediately after typing, preventing the previous result from being revealed.

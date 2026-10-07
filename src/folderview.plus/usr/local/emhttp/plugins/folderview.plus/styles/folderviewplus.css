@@ -6508,6 +6508,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     ) !important;
     font-size: 1.16rem;
     text-shadow: none !important;
+    text-decoration: none;
     white-space: nowrap;
 }
 

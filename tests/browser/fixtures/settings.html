@@ -41,11 +41,7 @@
             <div id="fv-diagnostics-workspace" class="fv-diagnostics-workspace">
                 <header class="fv-diagnostics-workspace-head">
                     <p>Monitor plugin health.</p>
-                    <div class="fv-diagnostics-toolbar">
-                        <button type="button" class="fv-ui-button is-primary">Run health check</button>
-                        <button type="button" class="fv-ui-button">Retest performance</button>
-                        <button type="button" class="fv-ui-button is-export"><i class="fa fa-upload" aria-hidden="true"></i>Export support bundle</button>
-                    </div>
+                    <div class="fv-diagnostics-toolbar"></div>
                 </header>
                 <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface" aria-live="polite"></div>
                 <div id="fv-support-visual-fixture"></div>
@@ -82,6 +78,9 @@
         ].join('');
         const loadViewSettingsFixture = async () => {
             const source = await fetch('/plugin/FolderViewPlus.page').then((response) => response.text());
+            const settingsPage = new DOMParser().parseFromString(source, 'text/html');
+            const toolbar = settingsPage.querySelector('.fv-diagnostics-toolbar');
+            document.querySelector('.fv-diagnostics-toolbar').replaceChildren(...Array.from(toolbar.children, node => node.cloneNode(true)));
             const start = source.indexOf('<details id="docker-view-settings"');
             const end = source.indexOf('</details>', start);
             if (start < 0 || end < 0) throw new Error('Docker view settings panel markup was not found.');
@@ -182,10 +181,11 @@
                 ${supportBundlePreview.buildSupportBundleRedactionPreviewHtml(supportFixtureBundle)}
             </div>
         `;
+        const viewSettingsReady = loadViewSettingsFixture();
         window.fixtureSettings = {
             ready: true,
-            viewSettingsReady: loadViewSettingsFixture(),
-            diagnosticsReady: Promise.resolve(diagnosticsModel)
+            viewSettingsReady,
+            diagnosticsReady: viewSettingsReady.then(() => diagnosticsModel)
         };
     </script>
 </body>

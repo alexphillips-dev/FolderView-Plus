@@ -362,7 +362,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.supportHeaderIconColors.length, 2);
     assert.equal(layout.supportHeaderIconColors.every((color) => color !== 'rgb(0, 0, 0)' && color !== layout.accentColor), true);
     assert.equal(new Set(layout.supportHeaderIconColors).size, 2);
-    assert.equal(layout.toolbarButtonCount, 3);
+    assert.equal(layout.toolbarButtonCount, 4);
     assert.equal(layout.toolbarButtonLabels.some((label) => label === 'Copy issue report'), false);
     assert.equal(layout.toolbarButtonHeights.every((height) => height >= 35 && height <= 37), true);
     assert.ok(

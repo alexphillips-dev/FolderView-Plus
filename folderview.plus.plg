@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.02">
-<!ENTITY md5 "9652461efc7df9bca245f10ca8cdc733">
-<!ENTITY sha256 "fe0df757dd2aa5140ac29fb58111ddc3ef4501ae7ec0eae7e783ad3809fcd67a">
+<!ENTITY version "2026.10.07.03">
+<!ENTITY md5 "6653daa2b7eccf7dacadfdcfa67e21ba">
+<!ENTITY sha256 "bb3873483e866f1b71952cd23281c76b7227aad007762dcffbe687e3699611d8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.03
+- Fix: Quick finder stays readable while Privacy mode is enabled on Docker and VM pages. The search field, placeholder, and query are no longer blurred, so you can see what you type and clear the query normally. Result names and containing folder paths remain masked when privacy name masking is enabled. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.07.02
 - Fix: Docker Quick finder now appears alongside the Privacy controls during toolbar startup instead of waiting for folders to finish loading. Mounting search no longer changes the styling of neighboring toolbar controls, and the Privacy options icon stays orange and borderless in light and dark themes.

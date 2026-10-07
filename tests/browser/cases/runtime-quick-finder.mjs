@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
+import { checkReadablePrivacyQuery } from '../helpers/quick-finder-toolbar.mjs';
 
 const openAndSearch = async (page, query) => {
     await page.locator('[data-finder-toggle]').click();
@@ -116,6 +117,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         await page.locator('.fv-quickfinder input').fill('Mosquitto');
         await page.waitForFunction(() => document.querySelector('.fv-quickfinder-name')?.textContent === 'Mosquitto');
         assert.equal(await page.locator('[data-finder-action="logs"]').count(), 0);
+        await checkReadablePrivacyQuery(page, 'vm');
         await page.keyboard.press('Escape');
     });
 
@@ -126,9 +128,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
         const viewport = page.viewportSize();
         assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= viewport.width + 1);
         assert.ok(bounds.y + bounds.height <= viewport.height + 1);
-        await page.evaluate(() => document.body.classList.add('fvplus-privacy-docker-runtime-mask-names'));
-        assert.notEqual(await page.locator('.fv-quickfinder-name').evaluate(node => getComputedStyle(node).filter), 'none');
-        assert.notEqual(await page.locator('.fv-quickfinder input').evaluate(node => getComputedStyle(node).filter), 'none');
+        await checkReadablePrivacyQuery(page, 'docker');
         await page.keyboard.press('Escape');
         assert.equal(await page.evaluate(() => document.activeElement.hasAttribute('data-finder-toggle')), true);
         await page.keyboard.press('Control+k');

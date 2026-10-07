@@ -33,7 +33,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             assert.equal(await page.locator('.fv-quickfinder-icon img').getAttribute('src'), '/plugin/images/folder-icon.png');
             await page.locator('.fv-quickfinder-icon img').evaluate(node => node.dispatchEvent(new Event('error')));
             assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);
-            assert.notEqual(await page.locator('.fv-quickfinder-icon > i').evaluate(node => getComputedStyle(node).display), 'none');
+            assert.notEqual(await page.locator('.fv-quickfinder-icon > svg').evaluate(node => getComputedStyle(node).display), 'none');
             await checkPrivacyResultIcons(page, type);
             await page.evaluate(() => { window.fixtureFinder.runtime.Assistant.icon = 'javascript:alert(1)'; window.fixtureFinder.refresh(); });
             assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);

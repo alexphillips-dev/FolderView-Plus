@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
 import { holdDockerSnapshotWithToolbar, readDockerPrivacyStyle } from '../helpers/quick-finder-toolbar.mjs';
 import { checkPrivacyResultIcons } from '../helpers/quick-finder-privacy.mjs';
+import { registerQuickFinderResultCases } from './runtime-quick-finder-results.mjs';
 
 const search = async (page, name) => {
     if (!(await page.locator('.fv-quickfinder input').isEnabled())) await page.locator('[data-finder-toggle]').click();
@@ -119,4 +120,5 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('[data-finder-action="logs"]').isDisabled(), true);
         await page.locator('.fv-quickfinder-popover').evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
     });
+    registerQuickFinderResultCases({ test, baseUrl });
 };

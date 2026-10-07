@@ -85,19 +85,34 @@
             console: translate('legacy.surface.f4063d1b2a07230d', 'Open console'),
             actions: translate('legacy.surface.ff8059dc6752afdd', 'Actions')
         };
-        const actionIcons = { focus: 'fa-bullseye', edit: 'fa-pencil', webui: 'fa-globe', logs: 'fa-bars', console: 'fa-terminal', actions: 'fa-ellipsis-h' };
+        const actionIcons = { focus: 'fa-bullseye', edit: 'fa-pencil', webui: 'fa-globe', logs: 'fa-bars', console: 'fa-terminal', actions: 'fa-ellipsis-v' };
         const prefix = `fvplus-${type}-quick-finder`;
         let shell = null, input = null, popover = null, results = null, count = null, trigger = null;
         let open = false, disposed = false, busy = false, filter = 'all', selected = '', entries = [], matches = [];
         let queryTimer = null, highlightTimer = null, highlightedRow = null;
         const listeners = [];
+        const collapsed = new Set();
         const listen = (target, event, callback) => {
             target.addEventListener(event, callback);
             listeners.push(() => target.removeEventListener(event, callback));
         };
         const icon = (className) => {
-            const node = doc.createElement('i');
-            node.className = `fa ${className}`;
+            const paths = {
+                'fa-search': 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0', 'fa-times': 'M6 6l12 12M6 18L18 6',
+                'fa-folder-o': 'M3 5h6l2 3h10v12H3z', 'fa-folder-open-o': 'M3 20V5h6l2 3h10v3M3 20l3-9h17l-3 9z',
+                'fa-cube': 'M12 2l10 5v10l-10 5-10-5V7zM2 7l10 5 10-5M12 12v10',
+                'fa-desktop': 'M2 3h20v14H2zM12 17v4M7 21h10', 'fa-th-large': 'M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6z',
+                'fa-bullseye': 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0M12 12h.01',
+                'fa-pencil': 'M16 3l5 5-13 13H3v-5zM13 6l5 5', 'fa-globe': 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M2 12h20M12 2c-6 6-6 14 0 20 6-6 6-14 0-20M4 6h16M4 18h16',
+                'fa-bars': 'M3 5h18M3 12h18M3 19h18', 'fa-terminal': 'M4 5l7 7-7 7M13 19h8',
+                'fa-ellipsis-v': 'M12 4h.01M12 12h.01M12 20h.01', 'fa-chevron-up': 'M5 15l7-7 7 7',
+                'fa-question-circle-o': 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M9 8a3 3 0 1 1 5 3c-2 1-2 1-2 3M12 18h.01'
+            };
+            const node = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            node.setAttribute('viewBox', '0 0 24 24'); node.setAttribute('fill', className === 'fa-th-large' ? 'currentColor' : 'none');
+            node.setAttribute('stroke', 'currentColor'); node.setAttribute('stroke-width', className === 'fa-ellipsis-v' ? '4' : '1.8');
+            node.setAttribute('stroke-linecap', 'round'); node.setAttribute('stroke-linejoin', 'round');
+            const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', paths[className] || paths['fa-cube']); node.append(path);
             node.setAttribute('aria-hidden', 'true');
             return node;
         };
@@ -115,10 +130,10 @@
             const source = deps.getIcon?.(item);
             if (source) {
                 const image = doc.createElement('img'); image.alt = ''; image.decoding = 'async'; image.loading = 'lazy';
-                fallback.hidden = true;
+                fallback.setAttribute('hidden', '');
                 image.addEventListener('error', () => {
                     win.FolderViewPlusFoundationModules?.imageFallbacks?.record?.(source);
-                    image.remove(); fallback.hidden = false;
+                    image.remove(); fallback.removeAttribute('hidden');
                 }, { once: true });
                 image.src = source; wrap.append(image);
             }
@@ -133,13 +148,13 @@
         const positionPopover = () => {
             if (!open || !shell?.isConnected) return;
             const bounds = shell.getBoundingClientRect();
-            const width = Math.min(560, win.innerWidth - 24);
+            const width = Math.min(760, win.innerWidth - 24);
             const left = Math.max(12, Math.min(bounds.right - width, win.innerWidth - width - 12));
             const top = bounds.bottom + 7;
             popover.style.setProperty('--fv-finder-left', `${left}px`);
             popover.style.setProperty('--fv-finder-top', `${top}px`);
             popover.style.setProperty('--fv-finder-width', `${width}px`);
-            popover.style.setProperty('--fv-finder-height', `${Math.max(80, Math.min(600, win.innerHeight - top - 12))}px`);
+            popover.style.setProperty('--fv-finder-height', `${Math.max(80, Math.min(800, win.innerHeight - top - 12))}px`);
         };
         const close = (restoreFocus = false) => {
             open = false;
@@ -149,6 +164,7 @@
             if (popover) popover.hidden = true;
             if (input) { input.value = ''; input.disabled = true; input.tabIndex = -1; }
             results?.replaceChildren(); selected = ''; matches = []; entries = [];
+            collapsed.clear();
             shell?.querySelector('[data-finder-close]')?.setAttribute('hidden', '');
             if (restoreFocus) trigger?.focus({ preventScroll: true });
         };
@@ -204,7 +220,17 @@
             for (const [kind, label] of [['folder', labels.folders], ['item', labels.items]]) {
                 const group = visible.filter((item) => item.kind === kind);
                 if (!group.length) continue;
-                const heading = doc.createElement('h3'); heading.textContent = label; results.append(heading);
+                const section = doc.createElement('section'); section.className = 'fv-quickfinder-group';
+                const heading = doc.createElement('h3');
+                const groupToggle = button(label, kind === 'folder' ? 'fa-folder-open-o' : type === 'vm' ? 'fa-desktop' : 'fa-cube');
+                groupToggle.dataset.finderGroup = kind; groupToggle.setAttribute('aria-expanded', String(!collapsed.has(kind)));
+                const groupCount = doc.createElement('span'); groupCount.className = 'fv-quickfinder-group-count';
+                const total = matches.filter(item => item.kind === kind).length;
+                groupCount.textContent = total === 1 ? translate('legacy.surface.144a0aadbcc56e8d', '$1 result', total)
+                    : translate('legacy.surface.7d7d761f8dd42bae', '$1 results', total);
+                groupToggle.append(groupCount, icon('fa-chevron-up')); heading.append(groupToggle);
+                const groupBody = doc.createElement('div'); groupBody.id = `${prefix}-group-${kind}`; groupBody.hidden = collapsed.has(kind);
+                groupToggle.setAttribute('aria-controls', groupBody.id); section.append(heading, groupBody); results.append(section);
                 group.forEach((item) => {
                     const row = doc.createElement('div'); row.className = 'fv-quickfinder-result'; row.dataset.resultIndex = String(entries.indexOf(item));
                     const title = button(''); title.append(resultIcon(item));
@@ -214,22 +240,28 @@
                     const path = doc.createElement('span'); path.className = 'fv-quickfinder-path'; path.textContent = item.path || labels.root;
                     copy.append(name, path); title.append(copy);
                     if (kind === 'item') {
+                        row.classList.add('fv-quickfinder-item-result');
                         const status = doc.createElement('span'); status.className = 'fv-quickfinder-status';
                         const state = deps.getState(item);
                         status.textContent = state === 'running' ? translate('legacy.surface.f4ccae29e1bb0c20', 'Running')
                             : state === 'paused' ? translate('legacy.surface.e159b06187d369a0', 'Paused')
                                 : translate('legacy.surface.1a4f630ac1b69fd0', 'Stopped');
-                        status.dataset.state = state; title.append(status);
+                        status.dataset.state = state; copy.append(status); path.remove();
                     }
                     row.append(title);
                     const actions = doc.createElement('div'); actions.className = 'fv-quickfinder-actions';
                     deps.getActions(item).filter((action) => actionLabels[action]).forEach((action) => {
-                        const control = button(actionLabels[action], actionIcons[action]); control.dataset.finderAction = action;
+                        const compact = kind === 'item' || action === 'actions';
+                        const control = button(compact ? '' : actionLabels[action], actionIcons[action]); control.dataset.finderAction = action;
+                        control.setAttribute('aria-label', actionLabels[action]); control.title = actionLabels[action];
                         control.disabled = deps.isActionEnabled?.(item, action) === false; actions.append(control);
                     });
                     row.append(actions);
+                    if (kind === 'item') { path.prepend(icon('fa-folder-o'), doc.createTextNode(' ')); row.append(path); }
                     deps.decorateResult?.(item, { row, title, path, actions });
-                    results.append(row);
+                    const more = row.querySelector('[data-finder-action="actions"]');
+                    if (more) { more.classList.add('fv-quickfinder-more'); row.append(more); }
+                    groupBody.append(row);
                 });
             }
             if (!visible.length || matches.length > RESULT_LIMIT) {
@@ -238,7 +270,8 @@
                     : translate('legacy.surface.fa7f6e591471d6be', 'Showing $1 of $2', visible.length, matches.length);
                 results.append(message);
             }
-            if (!visible.some((item) => item.key === selected)) selected = visible[0]?.key || '';
+            const expanded = visible.filter(item => !collapsed.has(item.kind));
+            if (!expanded.some((item) => item.key === selected)) selected = expanded[0]?.key || '';
             select(selected);
             positionPopover();
         };
@@ -247,8 +280,10 @@
             const focused = doc.activeElement?.closest?.('[data-result-index]');
             const focusedKey = focused ? entries[Number(focused.dataset.resultIndex)]?.key : '';
             const focusedAction = doc.activeElement?.dataset?.finderAction;
+            const focusedGroup = doc.activeElement?.dataset?.finderGroup;
             entries = input.value.trim() ? deps.getEntries() : [];
             render();
+            if (focusedGroup) results.querySelector(`[data-finder-group="${focusedGroup}"]`)?.focus();
             if (focusedKey) {
                 const index = entries.findIndex((item) => item.key === focusedKey);
                 const row = results.querySelector(`[data-result-index="${index}"]`);
@@ -281,22 +316,34 @@
             popover = doc.createElement('section'); popover.id = `${prefix}-popover`; popover.className = 'fv-quickfinder-popover'; popover.hidden = true; popover.setAttribute('aria-label', labels.title);
             const toolbar = doc.createElement('div'); toolbar.className = 'fv-quickfinder-filters';
             for (const [value, label] of [['all', labels.all], ['folder', labels.folders], ['item', labels.items]]) {
-                const control = button(label); control.dataset.finderFilter = value; control.setAttribute('aria-pressed', value === filter ? 'true' : 'false'); toolbar.append(control);
+                const control = button(label, value === 'all' ? 'fa-th-large' : value === 'folder' ? 'fa-folder-o' : type === 'vm' ? 'fa-desktop' : 'fa-cube');
+                control.dataset.finderFilter = value; control.setAttribute('aria-pressed', value === filter ? 'true' : 'false'); toolbar.append(control);
             }
             count = doc.createElement('span'); count.className = 'fv-quickfinder-count'; count.setAttribute('role', 'status'); count.setAttribute('aria-live', 'polite'); toolbar.append(count);
             results = doc.createElement('div'); results.id = `${prefix}-results`; results.className = 'fv-quickfinder-results';
             const footer = doc.createElement('div'); footer.className = 'fv-quickfinder-footer';
-            footer.textContent = `↑ ↓ ${labels.select} · Enter ${labels.reveal} · Esc ${labels.closed}`;
+            for (const [key, label] of [['↑ ↓', labels.select], ['Enter', labels.reveal], ['Esc', labels.closed]]) {
+                const shortcut = doc.createElement('span'); const keycap = doc.createElement('kbd'); keycap.textContent = key;
+                shortcut.append(keycap, doc.createTextNode(` ${label}`)); footer.append(shortcut);
+            }
+            const hint = doc.createElement('span'); hint.className = 'fv-quickfinder-hint';
+            hint.append(icon('fa-question-circle-o'), doc.createTextNode(type === 'docker'
+                ? translate('legacy.surface.dcf146dd21027242', 'Search Docker objects') : translate('legacy.surface.8ee0f7f8dad57e25', 'Search VM objects')));
+            footer.append(hint);
             popover.append(toolbar, results, footer); shell.append(popover);
             target.host.classList.add('fvplus-finder-mount');
             target.host.insertBefore(shell, target.anchor || target.host.firstChild);
-            listen(shell, 'input', (event) => { if (event.target === input) { clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
+            listen(shell, 'input', (event) => { if (event.target === input) { collapsed.clear(); clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
             listen(shell, 'click', (event) => {
                 const control = event.target.closest?.('button, [data-finder-icon], [data-finder-select], [data-finder-action]');
                 if (!control) return;
                 event.preventDefault();
                 if (control.hasAttribute('data-finder-toggle')) { open ? close(true) : show(); return; }
                 if (control.hasAttribute('data-finder-close')) { close(true); return; }
+                if (control.dataset.finderGroup) {
+                    const kind = control.dataset.finderGroup; collapsed.has(kind) ? collapsed.delete(kind) : collapsed.add(kind);
+                    render(); results.querySelector(`[data-finder-group="${kind}"]`)?.focus(); return;
+                }
                 if (control.dataset.finderFilter) {
                     filter = control.dataset.finderFilter;
                     toolbar.querySelectorAll('[data-finder-filter]').forEach((node) => node.setAttribute('aria-pressed', node === control ? 'true' : 'false'));
@@ -331,7 +378,7 @@
                     if (item) runAction(item, 'reveal'); return;
                 }
                 if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-                    const titles = Array.from(results.querySelectorAll('[data-finder-select]'));
+                    const titles = Array.from(results.querySelectorAll('[data-finder-select]')).filter(node => !node.closest('[hidden]'));
                     if (!titles.length) return;
                     event.preventDefault();
                     const current = titles.indexOf(event.target.closest?.('[data-result-index]')?.querySelector('[data-finder-select]'));

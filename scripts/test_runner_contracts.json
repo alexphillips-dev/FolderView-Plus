@@ -55,6 +55,7 @@
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
     { "file": "tests/browser/cases/runtime-quick-finder.mjs", "limit": 200, "owner": "Docker and VM Quick finder interaction and lifecycle cases" },
     { "file": "tests/browser/cases/runtime-quick-finder-controls.mjs", "limit": 130, "owner": "Quick finder field styling and production Docker shortcuts" },
+    { "file": "tests/browser/cases/runtime-quick-finder-results.mjs", "limit": 60, "owner": "Quick finder reference layout, grouped results and native action menus" },
     { "file": "tests/browser/helpers/quick-finder-toolbar.mjs", "limit": 35, "owner": "Quick finder startup latency and native toolbar styling fixture" },
     { "file": "tests/browser/helpers/quick-finder-privacy.mjs", "limit": 40, "owner": "Quick finder identity icon masking and readable query assertions" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
@@ -88,6 +89,7 @@
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/runtime-quick-finder.mjs",
         "tests/browser/cases/runtime-quick-finder-controls.mjs",
+        "tests/browser/cases/runtime-quick-finder-results.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
@@ -130,10 +132,10 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 85,
-      "assertionCount": 1082,
-      "pageEvaluateCount": 280,
-      "orderedTitleSha256": "5bb8866eefc641631b79cc7839633683c37c898a740e56c3a57a6c2e408cd045"
+      "testCount": 87,
+      "assertionCount": 1101,
+      "pageEvaluateCount": 283,
+      "orderedTitleSha256": "c6a3275d4bfd16c7634c0bd5f4e8a243d1152baaa155f32f803e00393d15bede"
     }
   }
 }

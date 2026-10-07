@@ -22,7 +22,8 @@
         body.replaceChildren();
         for (const [id, folder] of Object.entries(folders)) {
             const row = document.createElement('tr'); row.className = `folder folder-id-${id}`; row.dataset.sampleFolder = id;
-            row.insertCell().textContent = folder.name;
+            const folderTrigger = document.createElement('button'); folderTrigger.className = 'folder-hand'; folderTrigger.textContent = folder.name;
+            folderTrigger.onclick = () => events.push({ action: 'folder-native-menu', id }); row.insertCell().append(folderTrigger);
             const storage = document.createElement('table'); storage.className = 'folder-storage'; storage.createTBody(); row.insertCell().append(storage);
             body.append(row);
         }

@@ -68,14 +68,15 @@
             if (type === 'docker') return entry.state === true ? (entry.pause === true ? 'paused' : 'running') : 'stopped';
             return entry.state === 'running' ? 'running' : ['paused', 'pmsuspended'].includes(entry.state) ? 'paused' : 'stopped';
         };
-        const nativeTrigger = (item) => findRow(item)?.querySelector(type === 'vm'
+        const nativeTrigger = (item) => findRow(item)?.querySelector(item.kind === 'folder' ? '.folder-hand, .folder-name .hand' : type === 'vm'
             ? '.vm-name .hand, .vm-name [onclick*="addVMContext"], .vm-name [data-fv-onclick*="addVMContext"]'
             : '.ct-name .hand');
         const getActions = (item) => {
-            if (item.kind === 'folder') return [...(folderRow(item.id) ? ['reveal', 'focus'] : []), 'edit'];
+            if (item.kind === 'folder') return [...(folderRow(item.id) ? ['reveal', 'focus'] : []), 'edit', ...(nativeTrigger(item) ? ['actions'] : [])];
             const actions = findRow(item) ? ['reveal'] : [];
             if (type === 'docker') {
                 actions.push('webui', 'console', 'logs');
+                if (nativeTrigger(item)) actions.push('actions');
             } else {
                 if (item.entry.logs && typeof win.openTerminal === 'function') actions.push('logs');
                 if (nativeTrigger(item)) actions.push('actions');
@@ -106,7 +107,7 @@
             const state = row.querySelector('.fv-quickfinder-status');
             state.classList.add('state');
             const stateIcon = nativeState.previousElementSibling;
-            if (stateIcon?.matches('i.fa')) state.prepend(stateIcon);
+            if (stateIcon?.matches('i.fa')) stateIcon.remove();
             hand.replaceChildren(title.querySelector('.fv-quickfinder-icon'));
             hand.dataset.finderIcon = '';
             const nameLink = doc.createElement('a'); nameLink.href = '#';
@@ -117,9 +118,9 @@
             actions.querySelectorAll('button').forEach(control => {
                 const link = doc.createElement('a'); link.href = '#';
                 link.dataset.finderAction = control.dataset.finderAction;
-                link.setAttribute('aria-label', control.textContent.trim()); link.title = control.textContent.trim();
+                link.setAttribute('aria-label', control.getAttribute('aria-label')); link.title = control.title;
                 if (control.disabled) link.setAttribute('aria-disabled', 'true');
-                link.append(control.querySelector('i')); control.replaceWith(link);
+                link.append(control.querySelector('svg')); control.replaceWith(link);
             });
             inner.append(actions);
             row.classList.add('fv-quickfinder-container-result');

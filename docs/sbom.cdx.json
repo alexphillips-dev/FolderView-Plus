@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:8a88b3e5-5378-86fd-80fe-3bdc6c0ad653",
+  "serialNumber": "urn:uuid:805bff27-cf16-895c-938e-a5a56590c52e",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.10.07.14",
+      "version": "2026.10.07.15",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",

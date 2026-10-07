@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.10.07.13">
-<!ENTITY md5 "dfd785a800553a3b2c5e56b78f8f18f6">
-<!ENTITY sha256 "41ffc119c4a312cda75d3c1dc4d7484d9935e1bbc6bcc566da0e14cbc6240242">
+<!ENTITY version "2026.10.07.14">
+<!ENTITY md5 "c2dfe2c3c623760e60cce3271b7d928d">
+<!ENTITY sha256 "716bad3429ae0e0c4b746be3c3470e81b340fc579eba4905c60048271ab576ca">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.14
+- Feature: Added Quick finder to Docker and VMs, immediately to the left of the Basic/Advanced view controls. Click the search icon or press Ctrl+K (Command+K on macOS) to find folders and members by name or nested folder path. Results appear after typing and are separated into counted, collapsible folder and container/VM sections.
+- UX: Search results use configured icons, compact cards, folder paths, and readable status badges, including red Stopped indicators. Folder results provide Focus folder and Edit folder; Docker results use familiar WebUI, console, and logs icons. Available three-dot Actions controls open the existing folder or native member menu. Click a result or use arrow keys and Enter to reveal it.
+- Compatibility: Docker and VM search remain separate. Revealing a result expands its containing branch and clears temporary focus and Docker filters; unavailable runtime shortcuts remain disabled. Search supports smartphone layouts, light/dark themes, right-to-left text, reduced motion, and keyboard navigation. The results panel moves above the field when needed and stays within the viewport during scrolling and resizing.
+- Fix: Pressing Enter immediately after typing now uses the latest query. Closing, changing, or reopening search cancels delayed reveal, focus, and menu work. Search shortcuts preserve dialog focus and do not interrupt input-method composition. Search mounts with the toolbar and preserves neighboring Privacy controls and native button styling.
+- Privacy: Quick finder masks result names, folder paths, and identifying icons when Mask names and icons is enabled, including selected and fallback icons. The search field and typed query remain readable. Queries are temporary, are not saved or included in diagnostics, and should be cleared before sharing a screenshot when they identify private workloads.
+- Diagnostics: Added Report issue on GitHub beside Export support bundle in Advanced Settings > Diagnostics, with theme-aware burgundy accents. It opens the GitHub issue forms in a separate tab while leaving Diagnostics available. Review and export a sanitized support bundle before attaching it; the shortcut does not upload diagnostics automatically.
+- Reliability: Stable release validation now recognizes Quick finder controls with generated IDs, preventing a false release failure while retaining strict unused-selector checks. Synchronization planning uses only current published main after a successful same-repository release, rejecting stale or untrusted publication events while preserving the guarded release process.
+- Docs: Updated Docker/VM search, privacy, troubleshooting, reporting, and upgrade guidance. Confirm the installed version and hard-refresh the webGUI after upgrading. Existing folders, assignments, preferences, and backup schedules are preserved; no configuration reset or migration is required.
+
 
 ###2026.10.07.13
 - Feature: Added Quick finder to Docker and VMs, immediately to the left of the Basic/Advanced view controls. Click the search icon or press Ctrl+K (Command+K on macOS) to find folders and members by name or nested folder path. Results appear after typing and are separated into counted, collapsible folder and container/VM sections.

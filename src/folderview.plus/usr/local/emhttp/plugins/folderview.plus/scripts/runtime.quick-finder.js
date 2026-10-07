@@ -148,7 +148,7 @@
         const positionPopover = () => {
             if (!open || !shell?.isConnected) return;
             const bounds = shell.getBoundingClientRect();
-            const width = Math.min(640, win.innerWidth - 24);
+            const width = Math.min(560, win.innerWidth - 24);
             const left = Math.max(12, Math.min(bounds.right - width, win.innerWidth - width - 12));
             const top = bounds.bottom + 7;
             popover.style.setProperty('--fv-finder-left', `${left}px`);

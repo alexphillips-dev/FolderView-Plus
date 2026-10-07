@@ -59,6 +59,7 @@
     { "file": "tests/browser/helpers/quick-finder-toolbar.mjs", "limit": 35, "owner": "Quick finder startup latency and native toolbar styling fixture" },
     { "file": "tests/browser/helpers/quick-finder-privacy.mjs", "limit": 40, "owner": "Quick finder identity icon masking and readable query assertions" },
     { "file": "tests/browser/helpers/quick-finder-sizing.mjs", "limit": 30, "owner": "Quick finder readable host font scaling and compact panel sizing" },
+    { "file": "tests/browser/helpers/quick-finder-native-sizing.mjs", "limit": 25, "owner": "Quick finder scale comparison against rendered Docker folder previews" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
@@ -120,6 +121,7 @@
         "tests/browser/helpers/quick-finder-toolbar.mjs",
         "tests/browser/helpers/quick-finder-privacy.mjs",
         "tests/browser/helpers/quick-finder-sizing.mjs",
+        "tests/browser/helpers/quick-finder-native-sizing.mjs",
         "scripts/fixture_browser_tests.mjs",
         "scripts/lib/fixture-browser-server.mjs",
         "scripts/lib/fixture-browser-runner.mjs",
@@ -135,8 +137,8 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 87,
-      "assertionCount": 1105,
-      "pageEvaluateCount": 285,
+      "assertionCount": 1108,
+      "pageEvaluateCount": 286,
       "orderedTitleSha256": "c6a3275d4bfd16c7634c0bd5f4e8a243d1152baaa155f32f803e00393d15bede"
     }
   }

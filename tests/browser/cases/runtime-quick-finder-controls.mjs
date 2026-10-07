@@ -3,6 +3,7 @@ import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs
 import { holdDockerSnapshotWithToolbar, readDockerPrivacyStyle } from '../helpers/quick-finder-toolbar.mjs';
 import { checkPrivacyResultIcons } from '../helpers/quick-finder-privacy.mjs';
 import { registerQuickFinderResultCases } from './runtime-quick-finder-results.mjs';
+import { assertQuickFinderNativeScale } from '../helpers/quick-finder-native-sizing.mjs';
 
 const search = async (page, name) => {
     if (!(await page.locator('.fv-quickfinder input').isEnabled())) await page.locator('[data-finder-toggle]').click();
@@ -72,6 +73,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
                 });
             });
             await search(page, 'fixture-app-0');
+            await assertQuickFinderNativeScale(page);
             assert.equal(await page.locator('.fv-quickfinder-status').textContent(), 'Running');
             assert.equal(await page.locator('.fv-quickfinder-container-result > .outer.fv-docker-preview-mode-1').count(), 1);
             await checkPrivacyResultIcons(page, 'docker');

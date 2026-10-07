@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.06">
-<!ENTITY md5 "f79fff13394eb9a3563c9741a2e67e6c">
-<!ENTITY sha256 "21d4e45bee9a2ca236ff5927274fd94371c0527c7edd76418acce2d75e5848f0">
+<!ENTITY version "2026.10.07.07">
+<!ENTITY md5 "6bcc3a1032dcb087e48940c9d39af97c">
+<!ENTITY sha256 "d054557443ee0e24312fc4c88b3c55092dbef759adbed14ff958fc8f71c841ad">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.07
+- UX: Quick finder results now follow the surrounding Docker or VM text size, with smaller icons, buttons, card padding, and section spacing to better match the compact folder view.
+- UX: The results panel is narrower while retaining grouped results, status badges, existing actions, and responsive mobile controls. Hard-refresh the webGUI after updating to load the compact sizing.
+
 
 ###2026.10.07.06
 - UX: Quick finder results use larger, readable text even when the Unraid theme uses a small root font. Names, section headings, status badges, actions, and shortcut hints scale together.

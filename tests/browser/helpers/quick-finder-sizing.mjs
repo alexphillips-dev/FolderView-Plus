@@ -11,11 +11,13 @@ export const assertQuickFinderSizing = async (page) => {
             host: font('body'), panel: font('.fv-quickfinder-popover'),
             name: font('.fv-quickfinder-name'), action: font('[data-finder-action="focus"]'),
             footer: font('.fv-quickfinder-footer'),
+            icon: document.querySelector('.fv-quickfinder-icon').getBoundingClientRect().width,
             width: document.querySelector('.fv-quickfinder-popover').getBoundingClientRect().width
         };
     });
-    assert.ok(sizes.panel >= 14 && sizes.panel >= sizes.host, 'Small host root fonts must keep results readable');
-    assert.ok(sizes.name >= sizes.panel && sizes.action >= sizes.host - 1);
-    assert.ok(sizes.footer >= sizes.host - 2);
-    assert.ok(sizes.width <= Math.min(640, page.viewportSize().width - 24), 'Results must use the narrower panel and fit mobile');
+    assert.ok(sizes.panel >= sizes.host * 0.9 && sizes.panel <= sizes.host, 'Results must follow the host text size despite a small root font');
+    assert.ok(sizes.name <= sizes.host && sizes.action >= sizes.host * 0.85);
+    assert.ok(sizes.footer >= sizes.host * 0.85);
+    assert.ok(sizes.icon <= sizes.host * 2.5, 'Result icons must stay close to compact folder preview icons');
+    assert.ok(sizes.width <= Math.min(560, page.viewportSize().width - 24), 'Compact results must fit desktop and mobile');
 };

@@ -78,7 +78,7 @@ Docker searches Docker folders and containers; VMs searches VM folders and virtu
 - Container results reuse the compact icon, name, and inline status layout from Docker folder previews, with the containing folder path alongside. The globe, terminal, and list icons provide **Open WebUI**, **Open console**, and **View logs** shortcuts; their tooltips and accessible labels identify each action. WebUI requires a running container with an available safe WebUI; console requires a running container and the host terminal handler. Unavailable shortcuts stay visible but disabled. Logs remain available for stopped containers when the host terminal handler is present.
 - VM results offer **View logs** when the host supplies a log location and **Actions** to open the existing native VM menu. Available console and power controls remain governed by Unraid.
 
-Arrow keys select results and Enter reveals the selected item. Privacy name masking masks result names and folder paths; the search field and the query you type stay readable. Searching does not change folder assignments or start, stop, or update members.
+Arrow keys select results and Enter reveals the selected item. Privacy name masking masks result names, icons, and folder paths; the search field and the query you type stay readable. Searching does not change folder assignments or start, stop, or update members.
 
 ## Folder actions
 

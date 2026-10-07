@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
-import { checkReadablePrivacyQuery } from '../helpers/quick-finder-toolbar.mjs';
+import { checkPrivacyResultIcons, checkReadablePrivacyQuery } from '../helpers/quick-finder-privacy.mjs';
 
 const openAndSearch = async (page, query) => {
     await page.locator('[data-finder-toggle]').click();
@@ -24,6 +24,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             await page.locator('.fv-quickfinder-icon img').first().waitFor();
             const folder = page.locator('.fv-quickfinder-result').filter({ has: page.locator('.fv-quickfinder-name', { hasText: /^Home Automation$/ }) });
             assert.equal(await folder.locator('img').getAttribute('src'), '/plugin/images/folder-icon.png');
+            await checkPrivacyResultIcons(page, type);
             assert.equal(await folder.locator('[data-finder-action="edit"]').count(), 1);
             assert.equal(await folder.locator('.fv-quickfinder-result-title').evaluate(node => getComputedStyle(node).borderTopColor), 'rgba(0, 0, 0, 0)');
             assert.equal(await folder.locator('.fv-quickfinder-result-title').evaluate(node => getComputedStyle(node).backgroundColor), 'rgba(0, 0, 0, 0)');
@@ -33,6 +34,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             await page.locator('.fv-quickfinder-icon img').evaluate(node => node.dispatchEvent(new Event('error')));
             assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);
             assert.notEqual(await page.locator('.fv-quickfinder-icon > i').evaluate(node => getComputedStyle(node).display), 'none');
+            await checkPrivacyResultIcons(page, type);
             await page.evaluate(() => { window.fixtureFinder.runtime.Assistant.icon = 'javascript:alert(1)'; window.fixtureFinder.refresh(); });
             assert.equal(await page.locator('.fv-quickfinder-icon img').count(), 0);
             await page.evaluate(() => {

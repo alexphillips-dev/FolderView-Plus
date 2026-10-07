@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
 import { holdDockerSnapshotWithToolbar, readDockerPrivacyStyle } from '../helpers/quick-finder-toolbar.mjs';
+import { checkPrivacyResultIcons } from '../helpers/quick-finder-privacy.mjs';
 
 const search = async (page, name) => {
     if (!(await page.locator('.fv-quickfinder input').isEnabled())) await page.locator('[data-finder-toggle]').click();
@@ -72,6 +73,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
             await search(page, 'fixture-app-0');
             assert.equal(await page.locator('.fv-quickfinder-status').textContent(), 'Running');
             assert.equal(await page.locator('.fv-quickfinder-container-result > .outer.fv-docker-preview-mode-1').count(), 1);
+            await checkPrivacyResultIcons(page, 'docker');
             assert.equal(await page.locator('.fv-quickfinder-container-result .inner .appname [data-finder-select]').count(), 1);
             assert.deepEqual(await page.locator('.fv-quickfinder-container-result .inner [data-finder-action]').allTextContents(), ['', '', '']);
             assert.equal(await page.locator('.fv-quickfinder-container-result [id], .fv-quickfinder-container-result [data-fv-onerror]').count(), 0);

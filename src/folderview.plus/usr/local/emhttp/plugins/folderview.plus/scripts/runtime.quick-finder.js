@@ -288,7 +288,7 @@
             const footer = doc.createElement('div'); footer.className = 'fv-quickfinder-footer';
             footer.textContent = `↑ ↓ ${labels.select} · Enter ${labels.reveal} · Esc ${labels.closed}`;
             popover.append(toolbar, results, footer); shell.append(popover);
-            target.host.classList.add('fv-quickfinder-mount');
+            target.host.classList.add('fvplus-finder-mount');
             target.host.insertBefore(shell, target.anchor || target.host.firstChild);
             listen(shell, 'input', (event) => { if (event.target === input) { clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
             listen(shell, 'click', (event) => {
@@ -347,7 +347,7 @@
             clearTimeout(highlightTimer); highlightedRow?.classList.remove('fv-quickfinder-highlight');
             listeners.splice(0).forEach((remove) => remove());
             const host = shell?.parentElement; shell?.remove();
-            if (!host?.querySelector('.fv-quickfinder')) host?.classList.remove('fv-quickfinder-mount');
+            if (!host?.querySelector('.fv-quickfinder')) host?.classList.remove('fvplus-finder-mount');
             if (controllers.get(doc) === api) controllers.delete(doc);
         };
         const api = Object.freeze({ mount, refresh, dispose, close });

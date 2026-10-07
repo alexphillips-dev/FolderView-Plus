@@ -4367,7 +4367,7 @@ const queueDockerRuntimePrivacyToggleMount = () => {
     dockerRuntimePrivacyToggleMountQueued = true;
     const flush = () => {
         dockerRuntimePrivacyToggleMountQueued = false;
-        renderDockerRuntimePrivacyToggle();
+        renderDockerRuntimePrivacyToggle(); ensureDockerQuickFinder();
     };
     if (typeof window?.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(flush);

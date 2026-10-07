@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.01">
-<!ENTITY md5 "3b5ed47ee9c5fb2f07667870c8d0bfb6">
-<!ENTITY sha256 "e589890fcfab86b45ac5510e037d4807e53a02c4c039006813251aa0167df72d">
+<!ENTITY version "2026.10.07.02">
+<!ENTITY md5 "9652461efc7df9bca245f10ca8cdc733">
+<!ENTITY sha256 "fe0df757dd2aa5140ac29fb58111ddc3ef4501ae7ec0eae7e783ad3809fcd67a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.02
+- Fix: Docker Quick finder now appears alongside the Privacy controls during toolbar startup instead of waiting for folders to finish loading. Mounting search no longer changes the styling of neighboring toolbar controls, and the Privacy options icon stays orange and borderless in light and dark themes.
+- UI/UX: The collapsed Quick finder icon is now borderless with a transparent background. The expanded search field keeps its neutral border, expansion animation, and keyboard focus indicator. VM Quick finder also mounts during toolbar startup.
+
 
 ###2026.10.07.01
 - UI/UX: Docker Quick finder results now reuse the familiar container preview layout from folder rows: container icon and name, inline running/stopped status, and compact WebUI, console, and logs icons. Shortcut tooltips and accessible labels identify each action, unavailable shortcuts stay disabled, and the containing folder path remains visible. Clicking the name or icon and keyboard selection still reveal the container. Hard-refresh the webGUI after updating.

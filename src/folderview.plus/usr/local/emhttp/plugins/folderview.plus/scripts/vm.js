@@ -3884,7 +3884,7 @@ window.addVMFolderContext = addVMFolderContext;
 window.dropDownButton = dropDownButton;
 window.editFolder = editFolder;
 window.createFolderBtn = createFolderBtn;
-bindVmFolderRowActions();
+bindVmFolderRowActions(); ensureVmQuickFinder();
 
 
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

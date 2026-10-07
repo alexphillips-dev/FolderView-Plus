@@ -1,11 +1,11 @@
-.fv-quickfinder-mount{display:flex;justify-content:flex-end;align-items:center;gap:0.55em;}
+.fvplus-finder-mount{display:flex;justify-content:flex-end;align-items:center;gap:0.55em;}
 .fv-quickfinder-fallback{margin-block-end:0.5em;}
 .fv-quickfinder{display:inline-flex;flex:0 0 auto;vertical-align:middle;font-size:0.95em;color:var(--fvplus-ui-text-primary);text-align:start;}
-.fv-quickfinder-field{display:flex;align-items:center;inline-size:2.5em;block-size:2.5em;overflow:hidden;border:1px solid var(--fvplus-ui-border-strong);border-radius:6px;background:var(--fvplus-ui-control);transition:inline-size 220ms ease,border-color 160ms ease;}
-.fv-quickfinder.is-open .fv-quickfinder-field{inline-size:22em;background:var(--fvplus-ui-input);}
+.fv-quickfinder-field{display:flex;align-items:center;inline-size:2.5em;block-size:2.5em;overflow:hidden;border:0;border-radius:6px;background:transparent;transition:inline-size 220ms;}
+.fv-quickfinder.is-open .fv-quickfinder-field{inline-size:22em;border:1px solid var(--fvplus-ui-border-strong);background:var(--fvplus-ui-input);}
 .fv-quickfinder button{display:inline-flex;align-items:center;justify-content:center;gap:0.4em;margin:0;min-inline-size:0;padding:0.35em 0.6em;border:1px solid var(--fvplus-ui-border-subtle);border-radius:5px;background:transparent;color:inherit;font:inherit;line-height:1.35;text-transform:none;letter-spacing:normal;cursor:pointer;}
 .fv-quickfinder button:hover{background:var(--fvplus-ui-control-hover);}
-.fv-quickfinder :is(button,a):focus-visible{outline:2px solid var(--fvplus-ui-accent);outline-offset:2px;}
+.fv-quickfinder :is(button,a):focus-visible,.fv-quickfinder:not(.is-open):has(:focus-visible){outline:2px solid var(--fvplus-ui-accent);outline-offset:2px;}
 .fv-quickfinder-field > button{--fv-button-bg:transparent;--fv-button-border:transparent;flex:0 0 2.4em;block-size:2.4em;padding:0;border:0;}
 .fv-quickfinder-field > button:focus-visible{outline:none;box-shadow:none;}
 .fv-quickfinder-field:has(> :focus-visible){border-color:var(--fvplus-ui-text-primary);}
@@ -16,7 +16,6 @@
 .fv-quickfinder-popover{position:fixed;inset-inline-start:auto;left:var(--fv-finder-left);top:var(--fv-finder-top);inline-size:var(--fv-finder-width);max-block-size:var(--fv-finder-height);z-index:10000;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--fvplus-ui-border-strong);border-radius:9px;background:var(--fvplus-ui-panel);color:var(--fvplus-ui-text-primary);box-shadow:var(--fvplus-ui-shadow,0 16px 40px rgba(0,0,0,0.3));animation:fv-quickfinder-enter 160ms ease;}
 .fv-quickfinder [hidden]{display:none;}
 .fv-quickfinder-filters{display:flex;align-items:center;gap:0.4em;padding:0.7em;border-block-end:1px solid var(--fvplus-ui-border-subtle);}
-.fv-quickfinder-filters button{border-color:transparent;}
 .fv-quickfinder-filters [aria-pressed="true"]{background:var(--fvplus-ui-control-active);color:var(--fvplus-ui-accent);}
 .fv-quickfinder-count{margin-inline-start:auto;font-size:0.85em;color:var(--fvplus-ui-text-muted);white-space:nowrap;}
 .fv-quickfinder-results{overflow-y:auto;overscroll-behavior:contain;padding:0.35em 0.6em 0.65em;}
@@ -52,7 +51,7 @@ body.fvplus-privacy-docker-runtime-mask-names #fvplus-docker-quick-finder .fv-qu
 @keyframes fv-quickfinder-enter{from{opacity:0;transform:translateY(-4px);}
 to{opacity:1;transform:translateY(0);}
 }
-@media (max-width:640px){.fv-quickfinder-mount{flex-wrap:wrap;}
+@media (max-width:640px){.fvplus-finder-mount{flex-wrap:wrap;}
 .fv-quickfinder.is-open .fv-quickfinder-field{inline-size:min(12em,calc(100vw - 10em));}
 .fv-quickfinder-actions{margin-inline-start:0;}
 .fv-quickfinder-actions button{min-block-size:2.6em;}

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
+import { holdDockerSnapshotWithToolbar, readDockerPrivacyStyle } from '../helpers/quick-finder-toolbar.mjs';
 
 const search = async (page, name) => {
     if (!(await page.locator('.fv-quickfinder input').isEnabled())) await page.locator('[data-finder-toggle]').click();
@@ -12,6 +13,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
         await page.goto(`${baseUrl}/fixtures/runtime-quick-finder.html`);
         await page.locator('[data-finder-toggle]').hover();
         assert.equal(await page.locator('[data-finder-toggle]').evaluate(node => getComputedStyle(node).borderTopColor), 'rgba(0, 0, 0, 0)');
+        assert.equal(await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).borderTopWidth), '0px');
         await page.locator('[data-finder-toggle]').click();
         await page.locator('.fv-quickfinder input').click();
         const field = await page.locator('.fv-quickfinder-field').evaluate(node => {
@@ -29,6 +31,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
         await page.locator('[data-finder-toggle]').press('Tab');
         await page.locator('[data-finder-toggle]').focus();
         assert.equal(await page.locator('[data-finder-toggle]').evaluate(node => getComputedStyle(node).outlineStyle), 'none');
+        assert.equal(await page.locator('.fv-quickfinder').evaluate(node => getComputedStyle(node).outlineStyle), 'solid');
         await page.locator('.fv-quickfinder-field').evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
         assert.equal(await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).borderTopColor), await page.locator('.fv-quickfinder-field').evaluate(node => getComputedStyle(node).color));
     });
@@ -37,10 +40,27 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
         const host = await createDockerHideEmptyHost(page, true);
         host.runtime['fixture-app-0'].info.State.WebUi = 'https://example.com/fixture-webui';
         host.runtime['fixture-app-0'].info.Shell = '/bin/bash';
+        const releaseSnapshot = await holdDockerSnapshotWithToolbar(page);
+        const privacyStyle = () => readDockerPrivacyStyle(page);
         try {
-            await page.goto(host.url);
+            await page.goto(host.url, { waitUntil: 'domcontentloaded' });
+            await page.locator('.fvplus-docker-runtime-privacy-menu-button').waitFor();
+            assert.equal(await page.locator('[data-finder-toggle]').isVisible(), true, 'Finder must mount with Privacy while folder data is pending');
+            assert.equal(await page.locator('#docker_list tr.folder').count(), 0);
+            const initialPrivacy = await privacyStyle();
+            assert.equal(initialPrivacy.border, '0px');
+            assert.equal(initialPrivacy.background, 'rgba(0, 0, 0, 0)');
+            assert.equal(initialPrivacy.color, initialPrivacy.accent);
+            releaseSnapshot();
             await page.waitForFunction(() => document.querySelector('#docker_list tr.folder'));
             await page.waitForLoadState('networkidle');
+            assert.deepEqual(await privacyStyle(), initialPrivacy, 'Finder hydration must not restyle sibling controls');
+            await page.locator('.fvplus-docker-runtime-privacy-menu-button').hover();
+            assert.deepEqual(await privacyStyle(), initialPrivacy);
+            await page.locator('.fvplus-docker-runtime-privacy-menu-button').click();
+            assert.equal(await page.locator('#fvplus-docker-runtime-privacy-menu').isVisible(), true);
+            await page.keyboard.press('Escape');
+            assert.equal(await page.locator('#fvplus-docker-runtime-privacy-menu').isVisible(), false);
             await page.evaluate(() => {
                 window.fixtureTerminalCalls = []; window.fixtureWebuiCalls = [];
                 window.openTerminal = (...args) => window.fixtureTerminalCalls.push(args);
@@ -66,7 +86,7 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
             await page.locator('[data-finder-action="logs"]').click();
             assert.deepEqual(await page.evaluate(() => window.fixtureTerminalCalls), [['docker', 'fixture-app-0', '/bin/bash'], ['docker', 'fixture-app-0', '.log']]);
             assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
-        } finally { await host.close(); }
+        } finally { releaseSnapshot(); await host.close(); }
     }, { skipAccessibility: true });
 
     test('Quick finder keeps unavailable Docker shortcuts visible and logs usable for stopped containers', async ({ page }) => {

@@ -69,7 +69,7 @@ VM and Dashboard surfaces use the same saved Docker or VM folder configuration w
 
 ## Quick finder on Docker and VMs
 
-Click the magnifying glass immediately to the left of the native Basic/Advanced view controls. It expands into a search field; the dropdown appears only after you type. Clearing the query hides the dropdown, and closing search clears the query. If the host page does not provide view controls, Quick finder appears above the table. `Ctrl+K` (`Command+K` on macOS) opens it; Escape or clicking outside closes it. The animation respects reduced-motion preferences.
+Click the borderless magnifying glass immediately to the left of the native Basic/Advanced view controls. Quick finder mounts during toolbar startup, alongside Docker Privacy controls, without waiting for folder data to finish loading. It expands into a search field; the dropdown appears only after you type. Clearing the query hides the dropdown, and closing search clears the query. If the host page does not provide view controls, Quick finder appears above the table. `Ctrl+K` (`Command+K` on macOS) opens it; Escape or clicking outside closes it. The animation respects reduced-motion preferences.
 
 Docker searches Docker folders and containers; VMs searches VM folders and virtual machines. Search matches names and containing folder paths, including collapsed nested folders. Result cards display configured folder and member icons, with a generic fallback if an icon is missing or cannot load. Use **All**, **Folders**, or the member-type filter to narrow results. Up to 40 matches are rendered at once; refine the query when the total exceeds that limit. The query is temporary and is not saved or added to diagnostics.
 

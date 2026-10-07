@@ -217,7 +217,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     border-radius: 0;
     background: transparent !important;
     box-shadow: none !important;
-    color: var(--fvplus-theme-foreground);
+    color: var(--fvplus-graphite-accent);
     font: inherit;
     line-height: 1;
     opacity: 0.88;
@@ -231,7 +231,6 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     outline: none;
     background: transparent !important;
     box-shadow: none !important;
-    color: var(--fvplus-runtime-menu-hover-fg, var(--fvplus-theme-foreground));
     opacity: 1;
 }
 

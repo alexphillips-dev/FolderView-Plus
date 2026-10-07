@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertQuickFinderSizing } from '../helpers/quick-finder-sizing.mjs';
 
 export const registerQuickFinderResultCases = ({ test, baseUrl }) => {
     test('Quick finder reference cards keep counted sections, status badges and actions responsive', async ({ page }) => {
@@ -7,6 +8,7 @@ export const registerQuickFinderResultCases = ({ test, baseUrl }) => {
             await page.locator('[data-finder-toggle]').click();
             await page.locator('.fv-quickfinder input').fill('home');
             await page.waitForFunction(() => document.querySelectorAll('.fv-quickfinder-result').length === 4);
+            await assertQuickFinderSizing(page);
             assert.equal(await page.locator('[data-finder-filter] > svg').count(), 3);
             assert.deepEqual(await page.locator('.fv-quickfinder-group-count').allTextContents(), ['2 results', '2 results']);
             assert.equal(await page.locator('.fv-quickfinder-footer kbd').count(), 3);

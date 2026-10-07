@@ -89,6 +89,42 @@
             if (action === 'logs') return typeof win.openTerminal === 'function';
             return true;
         };
+        const decorateResult = (item, { row, title, path, actions }) => {
+            if (type !== 'docker' || item.kind !== 'item') return;
+            const preview = deps.createMemberPreview?.({ ...item.entry, name: item.name });
+            const hand = preview?.querySelector('.hand');
+            const inner = preview?.querySelector('.inner');
+            const appname = inner?.querySelector('.appname');
+            const nativeState = inner?.querySelector('.state');
+            if (!hand || !appname || !nativeState) return;
+            // Reuse the folder renderer's structure, but keep interactions in the finder controller.
+            for (const node of [preview, ...preview.querySelectorAll('*')]) {
+                for (const attr of Array.from(node.attributes)) {
+                    if (attr.name === 'id' || attr.name.startsWith('on') || attr.name.startsWith('data-fv-on')) node.removeAttribute(attr.name);
+                }
+            }
+            const state = row.querySelector('.fv-quickfinder-status');
+            state.classList.add('state');
+            const stateIcon = nativeState.previousElementSibling;
+            if (stateIcon?.matches('i.fa')) state.prepend(stateIcon);
+            hand.replaceChildren(title.querySelector('.fv-quickfinder-icon'));
+            hand.dataset.finderIcon = '';
+            const nameLink = doc.createElement('a'); nameLink.href = '#';
+            nameLink.className = 'exec fv-quickfinder-result-title'; nameLink.dataset.finderSelect = '';
+            nameLink.append(title.querySelector('.fv-quickfinder-name'));
+            appname.replaceChildren(nameLink);
+            nativeState.replaceWith(state);
+            actions.querySelectorAll('button').forEach(control => {
+                const link = doc.createElement('a'); link.href = '#';
+                link.dataset.finderAction = control.dataset.finderAction;
+                link.setAttribute('aria-label', control.textContent.trim()); link.title = control.textContent.trim();
+                if (control.disabled) link.setAttribute('aria-disabled', 'true');
+                link.append(control.querySelector('i')); control.replaceWith(link);
+            });
+            inner.append(actions);
+            row.classList.add('fv-quickfinder-container-result');
+            row.replaceChildren(preview, path);
+        };
         const prepareReveal = async (item) => {
             const generation = deps.getRenderGeneration?.();
             const changed = await deps.prepareView?.();
@@ -127,7 +163,7 @@
             window: win, document: doc, type,
             resolveMount: () => resolveMount(doc, table(), type),
             getEntries: () => finder.buildIndex(getFolders(), deps.getRuntime(), deps.getMembers),
-            getActions, isActionEnabled, getState, getIcon, findRow, prepareReveal, runAction,
+            getActions, isActionEnabled, getState, getIcon, findRow, prepareReveal, runAction, decorateResult,
             onError: deps.onError, onDispose: () => { active = false; }
         });
         return Object.freeze({ ...api, dispose: () => { active = false; api.dispose(); } });

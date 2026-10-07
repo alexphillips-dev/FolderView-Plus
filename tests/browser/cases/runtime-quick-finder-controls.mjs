@@ -51,6 +51,10 @@ export const registerQuickFinderControlCases = ({ test, baseUrl }) => {
             });
             await search(page, 'fixture-app-0');
             assert.equal(await page.locator('.fv-quickfinder-status').textContent(), 'Running');
+            assert.equal(await page.locator('.fv-quickfinder-container-result > .outer.fv-docker-preview-mode-1').count(), 1);
+            assert.equal(await page.locator('.fv-quickfinder-container-result .inner .appname [data-finder-select]').count(), 1);
+            assert.deepEqual(await page.locator('.fv-quickfinder-container-result .inner [data-finder-action]').allTextContents(), ['', '', '']);
+            assert.equal(await page.locator('.fv-quickfinder-container-result [id], .fv-quickfinder-container-result [data-fv-onerror]').count(), 0);
             assert.equal(await page.locator('[data-finder-action="webui"]').isEnabled(), true);
             assert.equal(await page.locator('[data-finder-action="console"]').isEnabled(), true);
             assert.equal(await page.locator('[data-finder-action="logs"]').isEnabled(), true);

@@ -63,7 +63,7 @@ export const registerRuntimeQuickFinderCases = ({ test, baseUrl }) => {
             await page.locator('[data-fvplus-docker-view="host"]').click();
             await page.waitForFunction(() => !document.querySelector('#docker_list tr.folder'));
             await openAndSearch(page, 'fixture-app-0');
-            await page.locator('[data-finder-select]').click();
+            await page.locator('[data-finder-icon]').click();
             await page.waitForFunction(() => document.querySelector('tr.fv-quickfinder-highlight')?.dataset.name === 'fixture-app-0');
             assert.equal(await page.locator('tr.fv-quickfinder-highlight').isVisible(), true);
             assert.equal(host.prefs().pageViewMode, 'folderview');

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.06.05">
-<!ENTITY md5 "54e63eafc33d52940018f3cfbebbaa5d">
-<!ENTITY sha256 "32380e64eb13523e1ce5a32604b4403d9d5d794edefc9fe4d591a0338467d1fc">
+<!ENTITY version "2026.10.07.01">
+<!ENTITY md5 "3b5ed47ee9c5fb2f07667870c8d0bfb6">
+<!ENTITY sha256 "e589890fcfab86b45ac5510e037d4807e53a02c4c039006813251aa0167df72d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.01
+- UI/UX: Docker Quick finder results now reuse the familiar container preview layout from folder rows: container icon and name, inline running/stopped status, and compact WebUI, console, and logs icons. Shortcut tooltips and accessible labels identify each action, unavailable shortcuts stay disabled, and the containing folder path remains visible. Clicking the name or icon and keyboard selection still reveal the container. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.06.05
 - UI/UX: Quick finder search results now separate Folders from Containers or VMs with larger, bolder section labels, full-width tinted heading bars, accent edges, and clearer spacing. Section text stays readable in light and dark themes. Hard-refresh the webGUI after updating.

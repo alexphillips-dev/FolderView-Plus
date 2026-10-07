@@ -7847,7 +7847,6 @@ if (FOLDER_VIEW_DEBUG_MODE) {
         }
     });
 }
-
 function ensureDockerQuickFinder() {
     const adapter = window.FolderViewPlusFoundationModules?.runtimeQuickFinderAdapter;
     if (!adapter || !dockerHostAdapter) return;
@@ -7857,6 +7856,7 @@ function ensureDockerQuickFinder() {
             getFolders: () => globalFolders,
             getRuntime: () => Object.fromEntries(Object.entries(dockerRuntimeInfoByName).map(([name, entry]) => [name, getDockerRuntimeInfoApi().buildRuntimeContainerEntry(name, entry)])),
             getMembers: (id) => getScopedRuntimeContainersForFolder(id, false),
+            createMemberPreview: (entry) => buildDockerPreviewItem({ entry, settings: { preview: 1, preview_status: 'symbol' } }).$item.get(0),
             getRenderGeneration: () => dockerRuntimeLastRenderGeneration,
             isViewReady: () => !createFoldersInFlight && !createFoldersQueued,
             prepareView: async () => {

@@ -48,6 +48,12 @@
         window, document, type, hostAdapter: { getTable: () => table },
         getFolders: () => folders, getRuntime: () => runtime, getMembers: (id) => folders[id].containers,
         readRowName: (row) => row.dataset.name || '',
+        createMemberPreview: type === 'docker' ? entry => {
+            const preview = document.createElement('span'); preview.className = 'outer fv-docker-preview-card';
+            preview.innerHTML = '<span class="hand"></span><span class="inner"><span class="appname"></span><br><i class="fa" aria-hidden="true"></i><span class="state"></span></span>';
+            preview.querySelector('i').classList.add(entry.state ? 'fa-play' : 'fa-square', entry.state ? 'fv-preview-status-started' : 'fv-preview-status-stopped');
+            return preview;
+        } : undefined,
         expand, clearFocus: () => events.push({ action: 'clear-focus' }),
         clearFilters: () => events.push({ action: 'clear-filters' }),
         focus: (id) => events.push({ action: 'focus', id }), edit: (id) => events.push({ action: 'edit', id }),

@@ -227,7 +227,9 @@
                         const control = button(actionLabels[action], actionIcons[action]); control.dataset.finderAction = action;
                         control.disabled = deps.isActionEnabled?.(item, action) === false; actions.append(control);
                     });
-                    row.append(actions); results.append(row);
+                    row.append(actions);
+                    deps.decorateResult?.(item, { row, title, path, actions });
+                    results.append(row);
                 });
             }
             if (!visible.length || matches.length > RESULT_LIMIT) {
@@ -290,7 +292,7 @@
             target.host.insertBefore(shell, target.anchor || target.host.firstChild);
             listen(shell, 'input', (event) => { if (event.target === input) { clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
             listen(shell, 'click', (event) => {
-                const control = event.target.closest?.('button');
+                const control = event.target.closest?.('button, [data-finder-icon], [data-finder-select], [data-finder-action]');
                 if (!control) return;
                 event.preventDefault();
                 if (control.hasAttribute('data-finder-toggle')) { open ? close(true) : show(); return; }

@@ -126,17 +126,17 @@
             row.classList.add('fv-quickfinder-container-result');
             row.replaceChildren(preview, path);
         };
-        const prepareReveal = async (item) => {
+        const prepareReveal = async (item, isCurrent = () => true) => {
             const generation = deps.getRenderGeneration?.();
             const changed = await deps.prepareView?.();
             if (changed) {
                 const deadline = Date.now() + 10000;
-                while (active && (deps.getRenderGeneration?.() === generation || deps.isViewReady?.() !== true)) {
+                while (active && isCurrent() && (deps.getRenderGeneration?.() === generation || deps.isViewReady?.() !== true)) {
                     if (Date.now() >= deadline) throw new Error('view-unavailable');
                     await new Promise(resolve => win.setTimeout(resolve, 50));
                 }
             }
-            if (!active) return;
+            if (!active || !isCurrent()) return;
             deps.clearFocus();
             deps.clearFilters?.();
             deps.revealHidden?.(item);
@@ -146,15 +146,15 @@
                 if (folderRow(id) && folders[id]?.status?.expanded !== true) deps.expand(id);
             });
         };
-        const runAction = async (item, action) => {
+        const runAction = async (item, action, isCurrent = () => true) => {
             if (action === 'edit') return deps.edit(item.id);
-            if (action === 'focus') { await prepareReveal(item); if (active) return deps.focus(item.id); return; }
+            if (action === 'focus') { await prepareReveal(item, isCurrent); if (active && isCurrent()) return deps.focus(item.id); return; }
             if (action === 'webui') return deps.openWebui(deps.safeWebui(item.entry.webui));
             if (action === 'console') return win.openTerminal('docker', item.id, item.entry.shell || '/bin/sh');
             if (action === 'logs') return win.openTerminal(type === 'vm' ? 'log' : 'docker', item.id, type === 'vm' ? item.entry.logs : '.log');
             if (action === 'actions') {
-                await prepareReveal(item);
-                if (!active) return;
+                await prepareReveal(item, isCurrent);
+                if (!active || !isCurrent()) return;
                 const trigger = nativeTrigger(item);
                 trigger?.scrollIntoView({ block: 'nearest' });
                 trigger?.click();

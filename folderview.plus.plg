@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.08">
-<!ENTITY md5 "1d07c0a30107ebe33280380f7267ed68">
-<!ENTITY sha256 "790de67fabf505aca9311bc88c1324a1b2cf5a38427d24a358fa77bb465d0aa0">
+<!ENTITY version "2026.10.07.09">
+<!ENTITY md5 "fe205a97e50247990ac846e377e8ae53">
+<!ENTITY sha256 "6cfe3ca89ede9c5dd8c79a197d09869f87fe893757d17686657940064113de9c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.09
+- Fix: Docker and VM search now uses the current query when Enter is pressed immediately after typing, preventing the previous result from being revealed.
+- Fix: Closing, changing, or reopening search cancels stale reveal, focus, and menu preparation so delayed work cannot clear a new query or open the wrong item.
+- Fix: The search keyboard shortcut preserves focus while a FolderView Plus dialog is open.
+- Fix: Confirming text through an input method editor no longer triggers search shortcuts or reveals a result before composition finishes.
+- UX: Search results open above the field when space below is limited and stay within the viewport when the window is resized. Hard-refresh the webGUI after updating to load these browser changes.
+
 
 ###2026.10.07.08
 - UX: Container search cards fit their content more closely, with less vertical padding and no extra space from inherited Docker preview wrapper sizing. Hard-refresh the webGUI after updating to load the tightened layout.

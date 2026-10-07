@@ -56,6 +56,7 @@
     { "file": "tests/browser/cases/runtime-quick-finder.mjs", "limit": 200, "owner": "Docker and VM Quick finder interaction and lifecycle cases" },
     { "file": "tests/browser/cases/runtime-quick-finder-controls.mjs", "limit": 130, "owner": "Quick finder field styling and production Docker shortcuts" },
     { "file": "tests/browser/cases/runtime-quick-finder-results.mjs", "limit": 60, "owner": "Quick finder reference layout, grouped results and native action menus" },
+    { "file": "tests/browser/cases/runtime-quick-finder-safety.mjs", "limit": 150, "owner": "Quick finder query, asynchronous action, modal, composition and viewport regressions" },
     { "file": "tests/browser/helpers/quick-finder-toolbar.mjs", "limit": 35, "owner": "Quick finder startup latency and native toolbar styling fixture" },
     { "file": "tests/browser/helpers/quick-finder-privacy.mjs", "limit": 40, "owner": "Quick finder identity icon masking and readable query assertions" },
     { "file": "tests/browser/helpers/quick-finder-sizing.mjs", "limit": 30, "owner": "Quick finder readable host font scaling and compact panel sizing" },
@@ -92,6 +93,7 @@
         "tests/browser/cases/runtime-quick-finder.mjs",
         "tests/browser/cases/runtime-quick-finder-controls.mjs",
         "tests/browser/cases/runtime-quick-finder-results.mjs",
+        "tests/browser/cases/runtime-quick-finder-safety.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
@@ -136,10 +138,10 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 87,
-      "assertionCount": 1109,
-      "pageEvaluateCount": 286,
-      "orderedTitleSha256": "c6a3275d4bfd16c7634c0bd5f4e8a243d1152baaa155f32f803e00393d15bede"
+      "testCount": 92,
+      "assertionCount": 1130,
+      "pageEvaluateCount": 297,
+      "orderedTitleSha256": "5d4d5a7bdc3ed810700dd14db78641d5bf66fca8b9862b61586a4029ba80aaf0"
     }
   }
 }

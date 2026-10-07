@@ -90,6 +90,7 @@
         let shell = null, input = null, popover = null, results = null, count = null, trigger = null;
         let open = false, disposed = false, busy = false, filter = 'all', selected = '', entries = [], matches = [];
         let queryTimer = null, highlightTimer = null, highlightedRow = null;
+        let actionGeneration = 0, composing = false;
         const listeners = [];
         const collapsed = new Set();
         const listen = (target, event, callback) => {
@@ -150,15 +151,26 @@
             const bounds = shell.getBoundingClientRect();
             const width = Math.min(560, win.innerWidth - 24);
             const left = Math.max(12, Math.min(bounds.right - width, win.innerWidth - width - 12));
-            const top = bounds.bottom + 7;
             popover.style.setProperty('--fv-finder-left', `${left}px`);
-            popover.style.setProperty('--fv-finder-top', `${top}px`);
             popover.style.setProperty('--fv-finder-width', `${width}px`);
-            popover.style.setProperty('--fv-finder-height', `${Math.max(80, Math.min(800, win.innerHeight - top - 12))}px`);
+            const below = Math.max(0, win.innerHeight - bounds.bottom - 19);
+            const above = Math.max(0, bounds.top - 19);
+            const upward = below < Math.min(300, popover.scrollHeight) && above > below;
+            const height = Math.min(800, upward ? above : below);
+            popover.style.setProperty('--fv-finder-height', `${height}px`);
+            const top = upward ? Math.max(12, bounds.top - popover.getBoundingClientRect().height - 7) : Math.min(bounds.bottom + 7, win.innerHeight - height - 12);
+            popover.style.setProperty('--fv-finder-top', `${top}px`);
+        };
+        const invalidateActions = () => {
+            actionGeneration += 1;
+            busy = false;
+            shell?.removeAttribute('aria-busy');
         };
         const close = (restoreFocus = false) => {
+            invalidateActions(); composing = false;
             open = false;
             clearTimeout(queryTimer);
+            queryTimer = null;
             shell?.classList.remove('is-open');
             trigger?.setAttribute('aria-expanded', 'false');
             if (popover) popover.hidden = true;
@@ -172,13 +184,16 @@
             if (busy || disposed) return;
             // Resolve again at click time; removed items and newly unavailable actions cannot use stale results.
             const current = deps.getEntries().find((candidate) => candidate.key === item.key);
-            if (!current || !deps.getActions(current).includes(action) || deps.isActionEnabled?.(current, action) === false) { refresh(); return; }
+            if (!current || !searchIndex([current], input.value, filter).length || !deps.getActions(current).includes(action) || deps.isActionEnabled?.(current, action) === false) { refresh(); return; }
+            if (action !== 'reveal') close(true);
+            const generation = ++actionGeneration;
+            const isCurrent = () => !disposed && generation === actionGeneration;
             busy = true;
             shell.setAttribute('aria-busy', 'true');
             try {
                 if (action === 'reveal') {
-                    await deps.prepareReveal(current);
-                    if (disposed) return;
+                    await deps.prepareReveal(current, isCurrent);
+                    if (!isCurrent()) return;
                     const row = deps.findRow(current);
                     if (!row || !row.isConnected) throw new Error('unavailable');
                     close();
@@ -194,18 +209,16 @@
                     else row.setAttribute('tabindex', previousTabIndex);
                     highlightTimer = win.setTimeout(() => { row.classList.remove('fv-quickfinder-highlight'); highlightedRow = null; }, 2600);
                 } else {
-                    close(true);
-                    await deps.runAction(current, action);
+                    await deps.runAction(current, action, isCurrent);
                 }
             } catch (_error) {
-                if (!disposed) {
+                if (isCurrent()) {
                     const message = translate('legacy.surface.7013b0cddf5e6532', 'Search action failed.');
                     if (deps.onError) deps.onError(message);
                     else win.FolderViewPlusUI?.alert?.({ title: labels.title, message, tone: 'danger' });
                 }
             } finally {
-                busy = false;
-                shell?.removeAttribute('aria-busy');
+                if (isCurrent()) { busy = false; shell?.removeAttribute('aria-busy'); }
             }
         };
         const render = () => {
@@ -277,6 +290,7 @@
         };
         const refresh = () => {
             if (!open || disposed) return;
+            clearTimeout(queryTimer); queryTimer = null;
             const focused = doc.activeElement?.closest?.('[data-result-index]');
             const focusedKey = focused ? entries[Number(focused.dataset.resultIndex)]?.key : '';
             const focusedAction = doc.activeElement?.dataset?.finderAction;
@@ -293,6 +307,7 @@
         };
         const show = () => {
             if (disposed || !shell?.isConnected) return;
+            invalidateActions();
             open = true; shell.classList.add('is-open'); trigger.setAttribute('aria-expanded', 'true');
             input.disabled = false; input.tabIndex = 0; popover.hidden = false;
             shell.querySelector('[data-finder-close]').hidden = false;
@@ -333,7 +348,17 @@
             popover.append(toolbar, results, footer); shell.append(popover);
             target.host.classList.add('fvplus-finder-mount');
             target.host.insertBefore(shell, target.anchor || target.host.firstChild);
-            listen(shell, 'input', (event) => { if (event.target === input) { collapsed.clear(); clearTimeout(queryTimer); if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60); } });
+            listen(input, 'compositionstart', () => { composing = true; invalidateActions(); clearTimeout(queryTimer); queryTimer = null; });
+            listen(input, 'compositionend', () => {
+                composing = false; collapsed.clear(); clearTimeout(queryTimer);
+                queryTimer = win.setTimeout(refresh, 60);
+            });
+            listen(shell, 'input', (event) => {
+                if (event.target !== input) return;
+                invalidateActions(); collapsed.clear(); clearTimeout(queryTimer); queryTimer = null;
+                if (composing || event.isComposing) return;
+                if (!input.value.trim()) refresh(); else queryTimer = win.setTimeout(refresh, 60);
+            });
             listen(shell, 'click', (event) => {
                 const control = event.target.closest?.('button, [data-finder-icon], [data-finder-select], [data-finder-action]');
                 if (!control) return;
@@ -341,10 +366,12 @@
                 if (control.hasAttribute('data-finder-toggle')) { open ? close(true) : show(); return; }
                 if (control.hasAttribute('data-finder-close')) { close(true); return; }
                 if (control.dataset.finderGroup) {
+                    invalidateActions();
                     const kind = control.dataset.finderGroup; collapsed.has(kind) ? collapsed.delete(kind) : collapsed.add(kind);
                     render(); results.querySelector(`[data-finder-group="${kind}"]`)?.focus(); return;
                 }
                 if (control.dataset.finderFilter) {
+                    invalidateActions();
                     filter = control.dataset.finderFilter;
                     toolbar.querySelectorAll('[data-finder-filter]').forEach((node) => node.setAttribute('aria-pressed', node === control ? 'true' : 'false'));
                     render(); input.focus(); return;
@@ -358,6 +385,7 @@
             });
             listen(doc, 'pointerdown', (event) => { if (open && !shell.contains(event.target)) close(); });
             listen(doc, 'focusin', (event) => { if (open && !shell.contains(event.target)) close(); });
+            listen(field, 'transitionend', positionPopover);
             listen(win, 'resize', positionPopover);
             listen(win, 'scroll', () => {
                 if (!open) return;
@@ -366,14 +394,15 @@
                 else positionPopover();
             });
             listen(doc, 'keydown', (event) => {
-                if (event.defaultPrevented || !shell.isConnected) return;
+                if (event.defaultPrevented || !shell.isConnected || event.isComposing || composing || event.keyCode === 229) return;
                 if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
-                    if (doc.querySelector('dialog[open], .sweet-alert.showSweetAlert')) return;
+                    if (doc.querySelector('dialog[open], .sweet-alert.showSweetAlert, .fv-ui-modal[aria-modal="true"]')) return;
                     event.preventDefault(); show(); return;
                 }
                 if (!open || !shell.contains(event.target)) return;
                 if (event.key === 'Escape') { event.preventDefault(); close(true); return; }
                 if (event.target === input && event.key === 'Enter') {
+                    if (queryTimer !== null) refresh();
                     event.preventDefault(); const item = entries.find((candidate) => candidate.key === selected);
                     if (item) runAction(item, 'reveal'); return;
                 }

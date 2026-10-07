@@ -51,6 +51,8 @@
 .fv-quickfinder-item-result > .fv-quickfinder-path{max-inline-size:12em;}
 .fv-quickfinder-item-result:not(.fv-quickfinder-container-result){grid-template-columns:minmax(0,1fr) auto auto auto;}
 .fv-quickfinder-item-result .fv-quickfinder-icon{border-radius:50%;background:transparent;}
+.fv-quickfinder-container-result{padding-block:0.35em;}
+.fv-quickfinder-container-result :is(.outer,.inner,.hand){block-size:auto;min-block-size:0;margin:0;padding:0;line-height:1.1;}
 .fv-quickfinder-container-result > .outer{display:flex;align-items:center;gap:0.8em;min-inline-size:0;}
 .fv-quickfinder-container-result .inner{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:0.2em 0.45em;min-inline-size:0;}
 .fv-quickfinder-container-result .appname{grid-column:1/-1;}

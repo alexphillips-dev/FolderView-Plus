@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.07">
-<!ENTITY md5 "6bcc3a1032dcb087e48940c9d39af97c">
-<!ENTITY sha256 "d054557443ee0e24312fc4c88b3c55092dbef759adbed14ff958fc8f71c841ad">
+<!ENTITY version "2026.10.07.08">
+<!ENTITY md5 "1d07c0a30107ebe33280380f7267ed68">
+<!ENTITY sha256 "790de67fabf505aca9311bc88c1324a1b2cf5a38427d24a358fa77bb465d0aa0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.08
+- UX: Container search cards fit their content more closely, with less vertical padding and no extra space from inherited Docker preview wrapper sizing. Hard-refresh the webGUI after updating to load the tightened layout.
+
 
 ###2026.10.07.07
 - UX: Quick finder results now follow the surrounding Docker or VM text size, with smaller icons, buttons, card padding, and section spacing to better match the compact folder view.

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.07.10">
-<!ENTITY md5 "afec470872d95e8f478a60495c9e3720">
-<!ENTITY sha256 "44b9dcda6f7a457cb946833b2918ad2adf487ad1c6ffd9572eab156c6365d595">
+<!ENTITY version "2026.10.07.11">
+<!ENTITY md5 "01d9086db11754b716de289c64a026e8">
+<!ENTITY sha256 "a1f5529eedd398c81bcb8c0375323f233f85e0f9073a7b28ad96bacd5a4e0fbf">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.07.11
+- UX: The Report issue on GitHub button in Advanced Settings > Diagnostics now uses burgundy styling with readable text, a lighter hover state, and a visible keyboard-focus ring.
+
 
 ###2026.10.07.10
 - UX: Added a Report issue on GitHub shortcut beside Export support bundle in Advanced Settings > Diagnostics. It opens the issue forms in a separate tab while keeping Diagnostics available.

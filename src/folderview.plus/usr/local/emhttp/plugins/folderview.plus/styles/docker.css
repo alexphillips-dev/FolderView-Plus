@@ -346,7 +346,7 @@ body.fvplus-performance-mode .hover div.folder-preview div:not(.folder-preview-r
 .folder-name-sub {
     display: flex;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
     gap: 6px;
     box-sizing: border-box;
 }

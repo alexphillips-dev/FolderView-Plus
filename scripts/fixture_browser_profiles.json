@@ -1,12 +1,13 @@
 {
   "layout": [
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
-    "Dashboard.*(rows|expansion|card layouts)", "Folder action sheet", "Settings chrome",
+    "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Settings chrome",
     "Settings overflow", "Settings visibility", "Operations matches", "Filters and view settings",
     "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu"
   ],
   "quick-finder": ["Quick finder"],
   "folder-menu": ["Docker folder menu", "Docker child-folder preview", "Docker folder feedback"],
+  "folder-effects": ["Dashboard folder effects", "Docker folder hover animations"],
   "smoke": [
     "Settings alerts", "Dashboard.*expansion", "Manage Folders keeps populated ancestors", "Docker hide-empty", "Docker Move to root",
     "Lifecycle reconciliation", "Folder action sheet traps focus", "Snapshot comparison opens"

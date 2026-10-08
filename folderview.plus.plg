@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.05">
-<!ENTITY md5 "d008553362a1af60753136fcf649187f">
-<!ENTITY sha256 "0943934518fbe9819440ea0aea9306faa5487976d8b3b29595120dde51fa50f2">
+<!ENTITY version "2026.10.08.06">
+<!ENTITY md5 "86beebb5d7f00e39a3096d9608610018">
+<!ENTITY sha256 "e2d49978f1adb9295f3cedafe1c58d65e19e0c3598f75159662da3aa2fc243dc">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.06
+- Fix: Dashboard folder accent bars stay visible over overlapping icons in collapsed and expanded layouts. Hover animations now respond to the folder header instead of also triggering when hovering its expanded contents.
+- Fix: Docker folder hover animations are no longer cropped by the folder name wrapper. Folder text keeps its existing truncation, and the row layout remains unchanged.
+- Compatibility: Folder hover effects continue to respect reduced motion. Hard-refresh the Unraid webGUI after updating to load the corrected styles.
+
 
 ###2026.10.08.05
 - UX: Docker folder actions now show a compact blue loading icon at the right of the affected folder's name cell instead of a progress banner above the entire container table. The icon keeps folder names and row heights in place and disappears after success.

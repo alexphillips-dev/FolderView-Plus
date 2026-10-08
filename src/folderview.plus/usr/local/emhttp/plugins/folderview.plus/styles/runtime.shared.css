@@ -238,32 +238,32 @@ tr.folder:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-ani
 }
 
 tr.folder.fv-hover-animation-lift:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-lift:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-lift > .outer:hover {
     animation: fv-folder-hover-lift 460ms ease-out both;
 }
 
 tr.folder.fv-hover-animation-bounce:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-bounce:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-bounce > .outer:hover {
     animation: fv-folder-hover-bounce 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 tr.folder.fv-hover-animation-pop:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-pop:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-pop > .outer:hover {
     animation: fv-folder-hover-pop 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 tr.folder.fv-hover-animation-glow:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-glow:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-glow > .outer:hover {
     animation: fv-folder-hover-glow 620ms ease-out both;
 }
 
 tr.folder.fv-hover-animation-flip:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-flip:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-flip > .outer:hover {
     animation: fv-folder-hover-flip 560ms ease-in-out both;
 }
 
 tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-wiggle:hover > .outer {
+.folder-showcase-outer.fv-hover-animation-wiggle > .outer:hover {
     animation: fv-folder-hover-wiggle 460ms ease-in-out both;
 }
 
@@ -305,7 +305,7 @@ tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
 
 @media (prefers-reduced-motion: reduce) {
     tr.folder:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle):hover .folder-outer,
-    .folder-showcase-outer:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle):hover > .outer {
+    .folder-showcase-outer:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle) > .outer:hover {
         animation: none !important;
     }
 }

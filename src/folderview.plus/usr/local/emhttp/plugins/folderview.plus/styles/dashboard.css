@@ -206,6 +206,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     width: 3px;
     border-radius: 999px;
     background: var(--fv-folder-accent-color, #ffca63);
+    z-index: 1;
     pointer-events: none;
 }
 

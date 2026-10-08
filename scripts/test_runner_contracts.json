@@ -33,7 +33,8 @@
   "modules": [
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
+    { "file": "tests/browser/cases/folder-hover-effects.mjs", "limit": 100, "owner": "folder accent stacking and hover animation rendering" },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
     { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
@@ -118,6 +119,7 @@
         "tests/browser/cases/forum-reports.mjs",
         "tests/browser/cases/dashboard-row-spacing.mjs",
         "tests/browser/cases/dashboard-row-expansion.mjs",
+        "tests/browser/cases/folder-hover-effects.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
@@ -146,10 +148,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 97,
-      "assertionCount": 1205,
-      "pageEvaluateCount": 308,
-      "orderedTitleSha256": "2271fbf30f2bbf610db7c708eb9038a6512a4c7e4ba43547ea33148d889115cd"
+      "testCount": 98,
+      "assertionCount": 1217,
+      "pageEvaluateCount": 310,
+      "orderedTitleSha256": "96ac0808393eb5c72bd11966dec647bb74da2c7b10d785e46669ad2852bb0ab1"
     }
   }
 }

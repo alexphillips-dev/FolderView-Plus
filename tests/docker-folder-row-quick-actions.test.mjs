@@ -66,7 +66,7 @@ test('docker context menu keeps focus/pin/lock/hide quick actions at the top', (
     assert.match(dockerScript, /createDockerContextMenuQuickStripAdapter/);
     assert.match(dockerScript, /dockerContextQuickStripAdapter/);
     assert.match(dockerScript, /iconClassCandidates:\s*\[[\s\S]*'fa-thumb-tack'[\s\S]*\]/);
-    assert.match(dockerScript, /icon:\s*'fa-thumb-tack'/);
+    assert.match(dockerScript, /icon:\s*pinned \? 'fa-thumb-tack fvplus-docker-quick-active-icon' : 'fa-thumb-tack'/);
     assert.doesNotMatch(dockerScript, /icon:\s*pinned \? 'fa-star' : 'fa-star-o'/);
     assert.doesNotMatch(dockerScript, /fv-folder-row-actions/);
 });
@@ -124,7 +124,7 @@ test('docker pin state resolves from normalized prefs and runtime store', () => 
 
 test('docker pinned folder affordances use a pin icon instead of a star', () => {
     assert.match(dockerScript, /iconClassCandidates:\s*\[[\s\S]*'fa-thumb-tack'[\s\S]*\]/);
-    assert.match(dockerScript, /text:\s*pinned[\s\S]*icon:\s*'fa-thumb-tack'/);
+    assert.match(dockerScript, /text:\s*pinned[\s\S]*icon:\s*pinned \? 'fa-thumb-tack fvplus-docker-quick-active-icon' : 'fa-thumb-tack'/);
     assert.doesNotMatch(dockerScript, /fa-star-o/);
     assert.match(dockerScript, /const buildDockerFolderPinnedIndicatorHtml = \(\) => \{/);
     assert.match(dockerScript, /class="fv-folder-pin-indicator"[\s\S]*fa fa-thumb-tack/);
@@ -308,7 +308,7 @@ test('docker runtime exposes and applies focus\/lock state guards', () => {
 
 test('docker context menu quick-action strip styles remain defined', () => {
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item/);
-    assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item > a/);
+    assert.match(dockerCss, /\.fvplus-docker-quick-item :is\(a, \.context-menu-item\)/);
 });
 
 test('docker context menus clamp main and nested menus inside the viewport', () => {

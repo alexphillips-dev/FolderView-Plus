@@ -5,6 +5,7 @@ import { registerDashboardRowExpansionCases } from './dashboard-row-expansion.mj
 import { registerSettingsHideEmptyCases } from './settings-hide-empty.mjs';
 import { registerDockerHideEmptyCases } from './docker-hide-empty.mjs';
 import { registerDockerHierarchyMoveCases } from './docker-hierarchy-move.mjs';
+import { registerDockerFolderMenuStateCases } from './docker-folder-menu-state.mjs';
 
 export const registerForumReportFixtureCases = ({ test, baseUrl }) => {
 registerBackupMobileReportCases({ test, baseUrl });
@@ -13,6 +14,7 @@ registerDashboardRowExpansionCases({ test, baseUrl });
 registerSettingsHideEmptyCases({ test });
 registerDockerHideEmptyCases({ test });
 registerDockerHierarchyMoveCases({ test });
+registerDockerFolderMenuStateCases({ test });
 test('Dashboard card layouts fill the widget despite fixed-width host tiles', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
     await page.addStyleTag({ content: '.folder-showcase-outer { display: inline-block; width: 180px; } span.outer { width: 180px; display: inline-block; }' });

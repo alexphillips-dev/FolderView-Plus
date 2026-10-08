@@ -1414,41 +1414,17 @@ div.folder-preview-4 span.outer {
     z-index: 1000;
 }
 
-.docker-context-menu {
-    background-color: inherit;
-    border: var(--fvplus-border);
-    border-radius: 4px;
-    padding: 5px 0;
-    min-width: 150px;
-}
-
-.docker-context-menu a {
-    display: block;
-    padding: 5px 15px;
-    color: inherit;
-    text-decoration: none;
-}
-
-.docker-context-menu a:hover {
-    background-color: var(--fvplus-hover-bg);
-}
-
-/* Docker folder context quick actions: icon-only strip on first row. */
 .fvplus-docker-context-menu > li.fvplus-docker-quick-item {
     display: inline-flex !important;
-    width: 34px;
-    width: var(--fvplus-docker-context-quick-item-width, 34px);
+    width: var(--fvplus-docker-context-quick-item-width);
     margin: 0 4px 0 0;
     vertical-align: top;
 }
 
-.fvplus-docker-context-menu > li.fvplus-docker-quick-item > a,
-.fvplus-docker-context-menu > li.fvplus-docker-quick-item .context-menu-item {
-    width: 30px;
-    width: var(--fvplus-docker-context-quick-link-width, 30px);
+.fvplus-docker-quick-item :is(a, .context-menu-item) {
+    width: var(--fvplus-docker-context-quick-link-width);
     min-width: 30px;
-    height: 26px;
-    height: var(--fvplus-docker-context-quick-link-height, 26px);
+    height: var(--fvplus-docker-context-quick-link-height);
     padding: 2px 0 !important;
     display: inline-flex;
     align-items: center;
@@ -1457,24 +1433,37 @@ div.folder-preview-4 span.outer {
     line-height: 1;
 }
 
-.fvplus-docker-context-menu > li.fvplus-docker-quick-item > a i,
-.fvplus-docker-context-menu > li.fvplus-docker-quick-item .context-menu-item i,
+.fvplus-docker-quick-item :is(a, .context-menu-item) i,
 .fvplus-docker-context-menu > li.fvplus-docker-quick-item::before {
     font-size: 14px !important;
 }
 
-.fvplus-docker-context-menu > li.fvplus-docker-quick-item .fvplus-docker-quick-svg {
+.fvplus-docker-quick-item .fvplus-docker-quick-svg {
     width: 15px;
     height: 15px;
-    font-size: 15px !important;
 }
 
 .fvplus-docker-context-menu > li.fvplus-docker-quick-clear {
     clear: both;
 }
 
+.fvplus-docker-quick-active > :is(a, .context-menu-item) {
+    --fvplus-runtime-menu-fg: var(--fvplus-ui-accent-strong);
+    --fvplus-runtime-menu-item-bg: var(--fvplus-ui-accent-soft);
+}
+
+.fvplus-docker-remove-item > :is(a, .context-menu-item) {
+    --fvplus-runtime-menu-fg: var(--fvplus-docker-menu-danger);
+    --fvplus-runtime-menu-hover-fg: var(--fvplus-docker-menu-danger);
+}
+
 .fvplus-docker-context-menu {
+    --fvplus-docker-menu-danger: var(--fvplus-graphite-danger);
     overflow: visible !important;
+}
+
+body[data-fv-theme-class="light"] .fvplus-docker-context-menu {
+    --fvplus-docker-menu-danger: #b42332;
 }
 
 .fvplus-docker-context-menu ul {

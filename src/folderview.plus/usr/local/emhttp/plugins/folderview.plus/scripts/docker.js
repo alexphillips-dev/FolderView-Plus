@@ -6731,7 +6731,7 @@ const addDockerFolderContext = (id) => {
         text: focused
             ? getDockerMenuLabel('clear-focus-folder', 'Clear focus')
             : getDockerMenuLabel('focus-folder', 'Focus folder'),
-        icon: focused ? 'fa-dot-circle-o' : 'fa-bullseye',
+        icon: focused ? 'fa-dot-circle-o fvplus-docker-quick-active-icon' : 'fa-bullseye',
         action: (evt) => {
             evt.preventDefault();
             toggleDockerFolderFocus(id);
@@ -6741,7 +6741,7 @@ const addDockerFolderContext = (id) => {
         text: pinned
             ? getDockerMenuLabel('unpin-folder', 'Unpin folder')
             : getDockerMenuLabel('pin-folder', 'Pin folder'),
-        icon: 'fa-thumb-tack',
+        icon: pinned ? 'fa-thumb-tack fvplus-docker-quick-active-icon' : 'fa-thumb-tack',
         action: (evt) => {
             evt.preventDefault();
             toggleDockerFolderPin(id, !pinned);
@@ -6751,7 +6751,7 @@ const addDockerFolderContext = (id) => {
         text: locked
             ? getDockerMenuLabel('unlock-folder', 'Unlock folder')
             : getDockerMenuLabel('lock-folder', 'Lock folder'),
-        icon: locked ? 'fa-lock' : 'fa-unlock-alt',
+        icon: locked ? 'fa-lock fvplus-docker-quick-active-icon' : 'fa-unlock-alt',
         action: (evt) => {
             evt.preventDefault();
             toggleDockerFolderLock(id);
@@ -7016,12 +7016,6 @@ const addDockerFolderContext = (id) => {
         subMenu: cloneSubMenu
     });
 
-    opts.push({
-        text: $.i18n('remove'),
-        icon: 'fa-trash',
-        action: (evt) => { evt.preventDefault(); rmFolder(id); }
-    });
-
     // Add custom actions as submenu if not overriding and custom actions exist
     if(!folderData.settings.override_default_actions && folderData.actions && folderData.actions.length) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Adding custom actions as submenu.`);
@@ -7039,6 +7033,12 @@ const addDockerFolderContext = (id) => {
         });
     }
 
+    appendDivider();
+    opts.push({
+        text: $.i18n('remove'),
+        icon: 'fa-trash fvplus-docker-remove-icon',
+        action: (evt) => { evt.preventDefault(); rmFolder(id); }
+    });
     opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));

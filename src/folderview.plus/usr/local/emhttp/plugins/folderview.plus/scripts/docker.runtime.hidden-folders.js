@@ -226,7 +226,7 @@
                         ? translate('docker.folder.restore-hidden-branch', 'Restore hidden branch')
                         : translate('docker.folder.restore', 'Restore folder'))
                     : translate('docker.folder.hide', 'Hide folder'),
-                icon: hiddenOwnerId ? 'fa-eye' : 'fa-eye-slash',
+                icon: hiddenOwnerId ? 'fa-eye fvplus-docker-quick-active-icon' : 'fa-eye-slash',
                 action: (event) => {
                     event?.preventDefault?.();
                     void (hiddenOwnerId ? restoreFolder(hiddenOwnerId) : hideFolder(id));
@@ -238,8 +238,18 @@
             let decorated = false;
             for (const selector of selectors || []) {
                 $(`${selector}:visible`).each((_, menu) => {
+                    const $menu = $(menu);
+                    if (!$menu.hasClass('fvplus-docker-context-menu')) return;
+                    $menu.children('li').each((__, item) => {
+                        const $item = $(item);
+                        $item.toggleClass('fvplus-docker-remove-item', $item.find('i.fvplus-docker-remove-icon').length > 0);
+                    });
                     $(menu).children('li.fvplus-docker-quick-item').each((__, item) => {
                         const $item = $(item);
+                        const active = $item.find('i.fvplus-docker-quick-active-icon, svg[data-fv-icon="eye"]').length > 0;
+                        $item.toggleClass('fvplus-docker-quick-active', active);
+                        $item.find('a, .context-menu-item').first().attr({ role: 'button', 'aria-pressed': String(active) });
+                        decorated = true;
                         const $icon = $item.find('i.fa-eye, i.fa-eye-slash').first();
                         if (!$icon.length || $item.find('svg[data-fv-icon="eye"], svg[data-fv-icon="eye-off"]').length) return;
                         $icon.replaceWith(svgIcon($icon.hasClass('fa-eye-slash') ? 'eye-off' : 'eye', { className: 'fvplus-docker-quick-svg' }));

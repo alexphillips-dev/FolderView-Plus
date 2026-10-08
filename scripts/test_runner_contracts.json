@@ -33,7 +33,7 @@
   "modules": [
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
     { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
@@ -43,6 +43,8 @@
     { "file": "tests/browser/helpers/docker-hide-empty-host.mjs", "limit": 80, "owner": "isolated production Docker hierarchy host" },
     { "file": "tests/browser/cases/docker-hierarchy-move.mjs", "limit": 100, "owner": "Docker hierarchy move interaction and rollback regression" },
     { "file": "tests/browser/helpers/docker-hierarchy-move-host.mjs", "limit": 65, "owner": "synthetic native context menu and hierarchy persistence host" },
+    { "file": "tests/browser/cases/docker-folder-menu-state.mjs", "limit": 120, "owner": "Docker folder shortcut states and removal presentation", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
+    { "file": "tests/browser/helpers/docker-folder-menu-host.mjs", "limit": 50, "owner": "synthetic Docker folder context markup with production actions", "requiredImports": ["./docker-hierarchy-move-host.mjs"] },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
@@ -117,6 +119,7 @@
         "tests/browser/cases/settings-hide-empty.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
+        "tests/browser/cases/docker-folder-menu-state.mjs",
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
@@ -136,12 +139,13 @@
         "tests/browser/helpers/settings-hide-empty-host.mjs",
         "tests/browser/helpers/docker-hide-empty-host.mjs",
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
+        "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 92,
-      "assertionCount": 1130,
-      "pageEvaluateCount": 297,
-      "orderedTitleSha256": "5d4d5a7bdc3ed810700dd14db78641d5bf66fca8b9862b61586a4029ba80aaf0"
+      "testCount": 94,
+      "assertionCount": 1150,
+      "pageEvaluateCount": 298,
+      "orderedTitleSha256": "c145745972d320aaf81c838061f70eed58932ff1d88fc5f74e7af4a70b0e9b0c"
     }
   }
 }

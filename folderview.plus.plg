@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.06">
-<!ENTITY md5 "86beebb5d7f00e39a3096d9608610018">
-<!ENTITY sha256 "e2d49978f1adb9295f3cedafe1c58d65e19e0c3598f75159662da3aa2fc243dc">
+<!ENTITY version "2026.10.08.07">
+<!ENTITY md5 "ea4fae5b747b4a83bca83b53ae55d3ca">
+<!ENTITY sha256 "01ec1b8791ac200bdd22b8699dfca0a92273793c4682a6b327ba60502220f25e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.07
+- Fix: Enabled Dashboard folder accent bars now have their own space beside the icon, keeping each selected color visible without overlapping the folder artwork. Applies to Docker and VM widgets and both collapsed and expanded folders.
+- Compatibility: Dashboard accents follow the leading edge in right-to-left layouts. Hard-refresh the Unraid webGUI after updating to load the corrected styles.
+
 
 ###2026.10.08.06
 - Fix: Dashboard folder accent bars stay visible over overlapping icons in collapsed and expanded layouts. Hover animations now respond to the folder header instead of also triggering when hovering its expanded contents.

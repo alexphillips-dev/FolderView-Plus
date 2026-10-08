@@ -12,12 +12,13 @@ export const registerFolderHoverEffectCases = ({ test, baseUrl }) => {
         test(`${type} Dashboard folder effects preserve accents and animate only the hovered header`, async ({ page }) => {
             await installDashboardRowExpansion(page, baseUrl, type);
             await page.addStyleTag({ url: `${baseUrl}/plugin/styles/runtime.shared.css` });
-            await page.addStyleTag({ content: '#header-row-1 { padding: 0; }' });
+            await page.addStyleTag({ content: '.folder-showcase-outer > span.outer { padding: 0; } img.img { width:32px; height:32px; margin-right:10px; }' });
             await page.emulateMedia({ reducedMotion: 'no-preference' });
             await page.evaluate(() => {
                 const card = document.querySelector('[data-fv-folder-id="row-1"]');
                 card.style.setProperty('--fv-folder-accent-color', '#24b8d7');
-                card.querySelector(':scope > span.outer').insertAdjacentHTML('afterbegin', '<span class="img" style="position:relative;display:block;width:32px;height:32px;background:#4779aa;flex:none"></span>');
+                const header = card.querySelector(':scope > span.outer'); header.classList.add('solid');
+                header.insertAdjacentHTML('afterbegin', '<span class="hand" style="flex:none"><img class="img" alt="" style="position:relative;z-index:2;display:block;background:#4779aa" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22/%3E"></span>');
             });
             const header = page.locator('#header-row-1');
             for (const layout of ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']) {
@@ -35,7 +36,9 @@ export const registerFolderHoverEffectCases = ({ test, baseUrl }) => {
                         return [...image.data.subarray(offset, offset + 3)];
                     };
                     assert.deepEqual(await color(false), [71, 121, 170], `${layout}: the opaque icon covers the unaccented edge`);
-                    assert.deepEqual(await color(true), [36, 184, 215], `${layout}: accent paints over the opaque icon`);
+                    assert.deepEqual(await color(true), [36, 184, 215], `${layout}: accent remains visible beside the opaque icon`);
+                    const icon = await header.locator('img.img').boundingBox();
+                    assert.ok(icon.x - before.x >= 6, `${layout}: accent gutter must stay outside the icon`);
                     for (const animation of animations) {
                         await header.evaluate((node, animation) => {
                             node.parentNode.classList.remove(...[...node.parentNode.classList].filter(name => name.startsWith('fv-hover-animation-')));
@@ -58,6 +61,10 @@ export const registerFolderHoverEffectCases = ({ test, baseUrl }) => {
                     if (expanded) await header.click();
                 }
             }
+            await header.evaluate(node => node.closest('tbody').dir = 'rtl');
+            const bounds = await header.boundingBox(), icon = await header.locator('img.img').boundingBox();
+            assert.ok(bounds.x + bounds.width - icon.x - icon.width >= 6, 'RTL reserves the accent gutter on the leading edge');
+            assert.equal(await header.evaluate(node => getComputedStyle(node, '::before').right), '0px');
         }, { skipAccessibility: true }); // Synthetic headers omit native Unraid accessibility landmarks.
     }
     test('Docker folder hover animations remain visible within the native folder row', async ({ page }) => {

@@ -280,7 +280,7 @@ test('docker styles support multi-row previews without the removed member action
     assert.match(runtimeSharedCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 0\.9em\)/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*6px 0 0 10px/);
-    assert.doesNotMatch(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*transform:\s*translateY\(/);
+    assert.doesNotMatch(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[^}]*transform:\s*translateY\(/);
     assert.match(dockerCss, /\.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 1\.2em\)/);

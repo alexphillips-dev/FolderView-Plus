@@ -39,8 +39,10 @@
             return result;
         };
         const hideTip = () => {
+            const focusTarget = tip?.contains(doc.activeElement) ? anchor : null;
             if (anchor) { anchor.setAttribute('aria-expanded', 'false'); anchor.removeAttribute('aria-describedby'); }
             tip?.remove(); tip = null; anchor = null; pinned = false;
+            if (focusTarget?.isConnected) focusTarget.focus();
         };
         const positionTip = () => {
             if (!tip || !anchor?.isConnected) { hideTip(); return; }
@@ -74,34 +76,28 @@
             doc.body.append(tip); trigger.setAttribute('aria-expanded', 'true');
             trigger.setAttribute('aria-describedby', tip.id); positionTip();
         };
-        const ensureHost = () => {
-            let host = doc.getElementById('fvplus-docker-folder-feedback');
-            const table = doc.getElementById('docker_containers');
-            if (!host && table?.parentNode) {
-                host = node('div', 'fv-docker-folder-feedback'); host.id = 'fvplus-docker-folder-feedback';
-                table.before(host);
-            }
-            return host;
-        };
         const removeOperation = operation => {
             if (operation.busy) return;
-            win.clearTimeout(operation.timer); operation.element?.remove(); operations.delete(operation.id);
+            const restoreFocus = anchor === operation.indicator && (tip?.contains(doc.activeElement) || doc.activeElement === anchor);
+            if (anchor === operation.indicator) hideTip();
+            if (restoreFocus) operation.indicator?.parentNode?.querySelector('.folder-dropdown')?.focus();
+            win.clearTimeout(operation.timer); operation.indicator?.remove(); operations.delete(operation.id);
         };
-        const renderOperation = operation => {
-            if (disposed) return;
-            const host = ensureHost(); if (!host) return;
-            if (!operation.element?.isConnected) { operation.element = node('div', 'fv-docker-operation fvplus-docker-visibility-notice fv-ui-progress-state'); host.append(operation.element); }
-            const root = operation.element; root.replaceChildren(); root.dataset.state = operation.state;
-            root.classList.toggle('is-undo', operation.state === 'success');
-            root.setAttribute('role', 'status'); root.setAttribute('aria-live', 'polite');
-            const icon = node('i', `fv-ui-badge is-${operation.busy ? 'info' : operation.state === 'success' ? 'success' : 'warning'} fa ${operation.busy ? 'fa-circle-o-notch fa-spin' : operation.state === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`);
-            icon.setAttribute('aria-hidden', 'true');
+        const renderDetails = operation => {
+            if (!tip || anchor !== operation.indicator) return;
+            const root = tip, revision = `${operation.state}:${operation.message}:${operation.failures.length}`;
+            if (root.dataset.fvOperationRevision === revision) return;
+            const closeFocused = root.querySelector('.fv-docker-operation-dismiss') === doc.activeElement;
+            const detailsOpen = root.querySelector('details')?.open === true;
+            root.replaceChildren(); root.dataset.state = operation.state; root.dataset.fvOperationRevision = revision;
             const copy = node('span', 'fv-docker-operation-copy');
+            copy.setAttribute('role', 'status'); copy.setAttribute('aria-live', 'polite');
             copy.append(node('strong', 'fv-docker-feedback-name', operation.name || surfaceT('legacy.surface.06ad81df147811c3', 'Folder action')), doc.createTextNode(' · '),
                 node('span', '', operation.message));
-            root.append(icon, copy);
+            root.append(copy);
             if (operation.failures.length) {
                 const details = node('details', 'fv-docker-operation-details');
+                details.open = detailsOpen;
                 details.append(node('summary', '', surfaceT('docker.feedback.view-details', 'View details')));
                 for (const failure of operation.failures) {
                     const item = node('div', 'fv-docker-operation-failure');
@@ -115,18 +111,49 @@
                 const progress = node('progress', 'fv-docker-operation-progress');
                 progress.max = operation.jobs.length; progress.value = operation.completed;
                 progress.setAttribute('aria-label', actionLabel(operation.action)); root.append(progress);
-            } else {
-                const dismiss = node('button', 'fv-docker-operation-dismiss fv-ui-button fv-ui-icon-button is-sm fvplus-docker-visibility-button', '×'); dismiss.type = 'button';
-                dismiss.setAttribute('aria-label', surfaceT('legacy.surface.48845bff334a50a5', 'Dismiss'));
-                dismiss.addEventListener('click', () => removeOperation(operation)); root.append(dismiss);
             }
+            const dismiss = node('button', 'fv-docker-operation-dismiss fv-ui-button fv-ui-icon-button is-sm', '×'); dismiss.type = 'button';
+            dismiss.setAttribute('aria-label', operation.busy ? surfaceT('legacy.surface.7d9eb7acb13e2462', 'Close') : surfaceT('legacy.surface.48845bff334a50a5', 'Dismiss'));
+            dismiss.addEventListener('click', () => {
+                if (operation.busy) { hideTip(); operation.indicator?.focus(); }
+                else removeOperation(operation);
+            }); root.append(dismiss);
+            if (closeFocused) dismiss.focus();
+            positionTip();
+        };
+        const renderOperation = operation => {
+            if (disposed) return;
+            const cell = doc.querySelector?.(`tr.folder-id-${win.CSS.escape(operation.id)} > td.folder-name`);
+            if (!cell) return;
+            if (!operation.indicator?.isConnected) {
+                if (anchor === operation.indicator) hideTip();
+                operation.indicator = cell.querySelector('.fv-docker-operation-icon') || node('span', 'fv-docker-operation-icon'); cell.append(operation.indicator);
+                operation.indicator.dataset.fvFolderOperation = operation.id;
+                operation.indicator.setAttribute('role', 'button'); operation.indicator.setAttribute('tabindex', '0');
+                operation.indicator.setAttribute('aria-expanded', 'false');
+            }
+            const indicator = operation.indicator; indicator.replaceChildren(); indicator.dataset.state = operation.state;
+            indicator.setAttribute('aria-label', operation.message); indicator.setAttribute('title', operation.message);
+            indicator.setAttribute('aria-busy', String(operation.busy));
+            const icon = node('span', operation.busy ? 'fv-ui-spinner' : 'fv-ui-badge is-warning fa fa-exclamation-triangle');
+            icon.setAttribute('aria-hidden', 'true'); indicator.append(icon); renderDetails(operation);
+        };
+        const showOperationTip = trigger => {
+            const operation = operations.get(trigger.dataset.fvFolderOperation); if (!operation) return;
+            hideTip(); anchor = trigger; pinned = true;
+            tip = node('div', 'fv-docker-operation fv-ui-popover fv-ui-modal-body fv-ui-progress-state');
+            tip.id = 'fvplus-docker-folder-operation-details'; tip.setAttribute('role', 'dialog');
+            tip.setAttribute('aria-label', surfaceT('legacy.surface.06ad81df147811c3', 'Folder action'));
+            doc.body.append(tip); trigger.setAttribute('aria-expanded', 'true'); trigger.setAttribute('aria-describedby', tip.id);
+            renderDetails(operation);
         };
         const finish = (operation, state, message) => {
             if (disposed || operations.get(operation.id) !== operation) return;
             operation.busy = false; operation.state = state; operation.message = message;
             for (const job of operation.jobs) reservations.delete(job.identity);
-            win.clearTimeout(operation.timer); renderOperation(operation);
-            if (state === 'success') operation.timer = win.setTimeout(() => removeOperation(operation), 6000);
+            win.clearTimeout(operation.timer);
+            if (state === 'success') removeOperation(operation);
+            else renderOperation(operation);
         };
         const verify = (operation, entries) => {
             if (!operation.settled || !operation.busy || operation.action === 'restart') return;
@@ -147,7 +174,7 @@
             targets.set(String(id), { counts: summarize(entries), includesChildren });
             if (anchor === trigger) { const keepPinned = pinned; showTip(trigger); pinned = keepPinned; }
             const operation = operations.get(String(id));
-            if (operation?.busy) { renderOperation(operation); verify(operation, entries || {}); }
+            if (operation) { renderOperation(operation); verify(operation, entries || {}); }
         };
         const run = async ({ id, name, action, entries, request, refresh, read }) => {
             if (disposed || operations.get(String(id))?.busy || !actionLabel(action)) return false;
@@ -158,7 +185,7 @@
             if (jobs.some(job => reservations.has(job.identity))) return false;
             const previous = operations.get(String(id)); if (previous) removeOperation(previous);
             const operation = { id: String(id), name, action, jobs, completed: 0, failures: [], busy: true, settled: false,
-                state: 'pending', message: actionLabel(action), timer: null, element: null };
+                state: 'pending', message: actionLabel(action), timer: null, indicator: null };
             operations.set(operation.id, operation); jobs.forEach(job => reservations.add(job.identity)); renderOperation(operation);
             if (!jobs.length) { finish(operation, 'success', surfaceT('docker.feedback.no-matching', 'No containers need this action')); return true; }
             await Promise.all(jobs.map(async job => {
@@ -201,17 +228,23 @@
         };
         const onLeave = event => { if (!pinned && anchor?.contains(event.target) && !anchor.contains(event.relatedTarget)) hideTip(); };
         const onClick = event => {
+            const indicator = event.target.closest?.('[data-fv-folder-operation]');
+            if (indicator) {
+                event.preventDefault(); event.stopPropagation();
+                if (anchor === indicator && pinned) hideTip(); else showOperationTip(indicator);
+                return;
+            }
             const trigger = event.target.closest?.('[data-fv-folder-status]');
             if (trigger) { event.preventDefault(); event.stopPropagation(); if (pinned && anchor === trigger) hideTip(); else { showTip(trigger); pinned = true; } }
             else if (!tip?.contains(event.target)) hideTip();
         };
         const onKey = event => {
             if (event.key === 'Escape' && tip) { event.preventDefault(); hideTip(); }
-            else if (['Enter', ' '].includes(event.key) && event.target.matches?.('[data-fv-folder-status]')) onClick(event);
+            else if (['Enter', ' '].includes(event.key) && event.target.matches?.('[data-fv-folder-status], [data-fv-folder-operation]')) onClick(event);
         };
         const destroy = () => {
-            disposed = true; hideTip(); operations.forEach(operation => win.clearTimeout(operation.timer));
-            operations.clear(); targets.clear(); reservations.clear(); doc.getElementById('fvplus-docker-folder-feedback')?.remove();
+            disposed = true; hideTip(); operations.forEach(operation => { win.clearTimeout(operation.timer); operation.indicator?.remove(); });
+            operations.clear(); targets.clear(); reservations.clear();
             doc.removeEventListener('pointerover', onPointer); doc.removeEventListener('pointerout', onLeave);
             doc.removeEventListener('focusin', onPointer); doc.removeEventListener('focusout', onLeave);
             doc.removeEventListener('click', onClick, true); doc.removeEventListener('keydown', onKey);

@@ -90,7 +90,7 @@ Create and maintain profiles from the folder editor's **WebUI Profiles** section
 
 ### Docker action feedback and folder status
 
-Starting, stopping, pausing, resuming, or restarting a Docker folder shows a compact progress notice above the container table. It identifies the folder, reports completed requests, and prevents duplicate operations on the same containers. Start, stop, pause, and resume are confirmed against refreshed runtime state; restart reports accepted requests. Partial failures and unconfirmed status remain visible with a dismiss control, and failed requests have a details section. Successful notices disappear after a short delay. Privacy mode masks folder and container names in these notices.
+Starting, stopping, pausing, resuming, or restarting a Docker folder shows a compact blue loading icon at the right of that folder's name cell. The icon disappears when the operation succeeds; partial failures or unconfirmed status leave a warning icon. Click the icon, or focus it and press Enter or Space, to open progress or failure details. Duplicate operations on the same containers are blocked while pending. Start, stop, pause, and resume are confirmed against refreshed runtime state; restart reports accepted requests. Warning details have a dismiss control. Privacy mode masks folder and container names in these details.
 
 Hover over, keyboard-focus, or tap a folder's running-count label to see its running, stopped, paused, and update counts. The breakdown indicates whether it includes child folders. Updates are counted separately from runtime states. Opening the details keeps the folder's expansion state; Escape or a tap outside closes them.
 

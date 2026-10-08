@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.04">
-<!ENTITY md5 "7ade81ad1cd1ee17539e595ae4baca45">
-<!ENTITY sha256 "9c577247024a0435f7e96564f2b20b74a7f0eff9a4e6f5f142bcc05b6064581a">
+<!ENTITY version "2026.10.08.05">
+<!ENTITY md5 "d008553362a1af60753136fcf649187f">
+<!ENTITY sha256 "0943934518fbe9819440ea0aea9306faa5487976d8b3b29595120dde51fa50f2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.05
+- UX: Docker folder actions now show a compact blue loading icon at the right of the affected folder's name cell instead of a progress banner above the entire container table. The icon keeps folder names and row heights in place and disappears after success.
+- Reliability: Failed or unconfirmed actions leave a warning icon on the affected folder. Click the loading or warning icon, or activate it with Enter or Space, to view progress or failure details. Dismissing a warning removes its icon; closing pending details leaves the action running.
+- Compatibility: Folder action indicators survive runtime row updates, respect reduced motion, and keep private folder and container names masked in their details. Hard-refresh the Unraid webGUI after updating.
+
 
 ###2026.10.08.04
 - Feature: Docker folder Start, Stop, Pause, Resume, and Restart actions now show compact progress notices above the container table. Notices identify the folder, report completed requests, and keep the page usable while actions run.

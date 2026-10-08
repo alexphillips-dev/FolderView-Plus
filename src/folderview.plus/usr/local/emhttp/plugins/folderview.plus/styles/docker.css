@@ -1812,10 +1812,11 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     }
 }
 
-.fv-docker-operation { flex-wrap: wrap; margin: 5px 0; }
+.fv-docker-operation { width: 320px; }
+.fv-docker-operation-icon { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); padding: 3px; cursor: pointer; }
+.fv-docker-operation-icon .fv-ui-spinner { display: block; width: 14px; height: 14px; }
 .fv-docker-operation progress { height: 3px; }
 .fv-docker-status-details { width: 220px; font-size: 12px; }
 .fv-docker-status-detail span { color: inherit; }
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-feedback-name { filter: blur(5px); }
-[data-fv-folder-status]:focus-visible { outline: 2px solid currentColor; }
-@media (prefers-reduced-motion: reduce) { .fv-docker-operation .fa-spin { animation: none; } }
+[data-fv-folder-status]:focus-visible, .fv-docker-operation-icon:focus-visible { outline: 2px solid currentColor; }

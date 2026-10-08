@@ -44,6 +44,7 @@
     { "file": "tests/browser/cases/docker-hierarchy-move.mjs", "limit": 100, "owner": "Docker hierarchy move interaction and rollback regression" },
     { "file": "tests/browser/helpers/docker-hierarchy-move-host.mjs", "limit": 65, "owner": "synthetic native context menu and hierarchy persistence host" },
     { "file": "tests/browser/cases/docker-folder-menu-state.mjs", "limit": 120, "owner": "Docker folder shortcut states and removal presentation", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
+    { "file": "tests/browser/cases/docker-nested-folder-menu.mjs", "limit": 90, "owner": "Nested preview native folder-menu interactions", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/helpers/docker-folder-menu-host.mjs", "limit": 50, "owner": "synthetic Docker folder context markup with production actions", "requiredImports": ["./docker-hierarchy-move-host.mjs"] },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
@@ -120,6 +121,7 @@
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
+        "tests/browser/cases/docker-nested-folder-menu.mjs",
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
@@ -142,10 +144,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 94,
-      "assertionCount": 1155,
+      "testCount": 95,
+      "assertionCount": 1170,
       "pageEvaluateCount": 298,
-      "orderedTitleSha256": "c145745972d320aaf81c838061f70eed58932ff1d88fc5f74e7af4a70b0e9b0c"
+      "orderedTitleSha256": "c7bb5c8e2c1966f1c04eee4388965ac183178837b75f250a39754e07f6990678"
     }
   }
 }

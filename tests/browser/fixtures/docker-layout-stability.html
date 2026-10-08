@@ -396,7 +396,19 @@
             applyFolderPreviewLayout: () => {},
             layoutFolderPreviewRows: layoutChildFolderFixtureRows,
             editFolder: () => { childFolderFixtureState.editCount += 1; },
-            openFolderActions: () => { childFolderFixtureState.actionCount += 1; },
+            openFolderActions: (id, options) => {
+                childFolderFixtureState.actionCount += 1;
+                window.jQuery(options.targetSelector).off('click.fixtureChildNative').on('click.fixtureChildNative', event => {
+                    window.jQuery('ul.contextMenuPlugin').remove();
+                    const menu = window.jQuery('<ul class="contextMenuPlugin" role="menu"></ul>').css({ position: 'fixed', listStyle: 'none', color: '#f4f4f4', background: '#1b1b1b' });
+                    const link = window.jQuery('<a href="#" role="menuitem"></a>').text(options.navigationAction.text).css('color', 'inherit');
+                    link.on('click', options.navigationAction.action);
+                    menu.append(window.jQuery('<li role="none"></li>').append(link)).appendTo(document.body);
+                    menu.css({ left: Math.max(8, Math.min(event.clientX, innerWidth - menu[0].offsetWidth - 8)),
+                        top: Math.max(8, Math.min(event.clientY, innerHeight - menu[0].offsetHeight - 8)) });
+                });
+                return true;
+            },
             recordChildFolderPreviewRender: actionsApi.recordChildFolderPreviewRender,
             recordChildFolderPreviewBinding: actionsApi.recordChildFolderPreviewBinding,
             recordChildFolderPreviewMenuOpen: actionsApi.recordChildFolderPreviewMenuOpen
@@ -430,7 +442,7 @@
                 );
             },
             closeMenu() {
-                window.jQuery('.fv-folder-preview-context-menu').remove();
+                window.jQuery('ul.contextMenuPlugin').remove();
                 window.jQuery(document).off('click.fvFolderPreviewContext keydown.fvFolderPreviewContext');
             },
             dispatchTouchClick() {
@@ -448,18 +460,18 @@
                 renderChildFolderFixture();
             },
             snapshot() {
-                const menu = document.querySelector('.fv-folder-preview-context-menu');
+                const menu = document.querySelector('ul.contextMenuPlugin');
                 return {
                     chipCount: document.querySelectorAll('#fixture-child-folder-preview .fv-folder-preview-child').length,
                     rowCount: document.querySelectorAll('#fixture-child-folder-preview .folder-preview-row').length,
-                    menuCount: document.querySelectorAll('.fv-folder-preview-context-menu').length,
+                    menuCount: window.jQuery('ul.contextMenuPlugin:visible').length,
                     menuLeft: Number.parseFloat(menu?.style?.left || '0'),
                     menuTop: Number.parseFloat(menu?.style?.top || '0'),
                     menuWidth: Number(menu?.offsetWidth || 180),
                     menuHeight: Number(menu?.offsetHeight || 112),
                     viewportWidth: Number(window.innerWidth || document.documentElement.clientWidth || 0),
                     viewportHeight: Number(window.innerHeight || document.documentElement.clientHeight || 0),
-                    menuActions: Array.from(menu?.querySelectorAll('button') || []).map((button) => button.textContent.trim()),
+                    menuActions: Array.from(menu?.querySelectorAll('a') || []).map((link) => link.textContent.trim()),
                     focusedAction: document.activeElement?.textContent?.trim() || '',
                     editCount: childFolderFixtureState.editCount,
                     actionCount: childFolderFixtureState.actionCount,

@@ -97,14 +97,15 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
     assert.deepEqual(result.memberContextClicks, { default: 1, advanced: 0 });
 
     await chip.click();
+    await page.waitForFunction(() => window.fixtureChildFolderPreviewContext.snapshot().diagnostics.childFolderPreview.counters.menuOpens === 1);
     result = await snapshot();
     assert.equal(result.menuCount, 1, 'normal click must open the child-folder menu');
     assert.ok(result.menuLeft > 0);
     assert.ok(result.menuTop > 0);
-    assert.deepEqual(result.menuActions, ['Expand to folder', 'Edit folder', 'Open folder actions']);
-    await page.getByRole('menuitem', { name: 'Edit folder' }).click();
+    assert.deepEqual(result.menuActions, ['Expand to folder']);
+    await page.getByRole('menuitem', { name: 'Expand to folder' }).click();
     result = await snapshot();
-    assert.deepEqual([result.menuCount, result.editCount], [0, 1]);
+    assert.deepEqual([result.menuCount, result.actionCount], [0, 1]);
 
     await chip.focus();
     await chip.press('Enter');
@@ -117,13 +118,15 @@ export const exerciseChildFolderPreviewContext = async ({ page, baseUrl }) => {
     await page.keyboard.press('Escape');
 
     await chip.click({ button: 'right' });
+    await page.waitForFunction(() => window.fixtureChildFolderPreviewContext.snapshot().diagnostics.childFolderPreview.counters.menuOpens === 3);
     result = await snapshot();
     assert.equal(result.menuCount, 1, 'right-click must keep opening the child-folder menu');
-    await page.getByRole('menuitem', { name: 'Open folder actions' }).click();
+    await page.getByRole('menuitem', { name: 'Expand to folder' }).click();
     result = await snapshot();
-    assert.deepEqual([result.menuCount, result.actionCount], [0, 1]);
+    assert.deepEqual([result.menuCount, result.actionCount], [0, 3]);
 
     await page.evaluate(() => window.fixtureChildFolderPreviewContext.dispatchTouchClick());
+    await page.waitForFunction(() => window.fixtureChildFolderPreviewContext.snapshot().diagnostics.childFolderPreview.counters.menuOpens === 4);
     result = await snapshot();
     assert.equal(result.menuCount, 1, 'touch-like activation must open the child-folder menu');
     const expectedTouchLeft = Math.max(8, Math.min(321, result.viewportWidth - result.menuWidth - 8));

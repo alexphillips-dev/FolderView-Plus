@@ -499,11 +499,11 @@
             $item.append($inner);
             recordChildFolderPreviewRender();
             const openChildFolderPreviewMenu = (event) => {
-                if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) {
+                if (event.originalEvent?.fvplusChildContextReplay || (event.type === 'keydown' && !['Enter', ' '].includes(event.key))) {
                     return;
                 }
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopImmediatePropagation();
                 childFolderPreviewMenuApi?.show?.({
                     event,
                     rootId: parentId,

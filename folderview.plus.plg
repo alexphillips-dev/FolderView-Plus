@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.02">
-<!ENTITY md5 "72b88cf0088ef6a3dd4b5a56129fa5e1">
-<!ENTITY sha256 "fc0f030215609844a3493b42cda12af3fc36ce763809d334af11788f23dc1e32">
+<!ENTITY version "2026.10.08.03">
+<!ENTITY md5 "3745f26fd2883251409411c3e2e5e12b">
+<!ENTITY sha256 "f47b6850c050e1f039cde0309ba33014b6a92ec43af2bda700d8033d1d97bf16">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.03
+- UX: Clicking a nested folder in a Docker folder preview now opens the regular Docker folder menu directly, with the same Focus, Pin, Lock, and Hide shortcuts, state colors, container controls, folder-management actions, and separated Remove entry.
+- UX: Nested-folder menus keep Expand to folder beneath the shortcuts. Opening the menu leaves the parent collapsed; expanding the hierarchy and scrolling to the selected child happens only when this action is chosen. Applicable actions such as Move to root are available without opening a second menu.
+- Fix: Opening a folder menu while another menu is visible now applies shortcut styling and state indicators to the newly opened menu together. Nested previews support mouse, right-click, touch, and keyboard activation, with Escape closing the menu and restoring keyboard focus.
+- Compatibility: The obsolete compact nested-folder popup has been removed. Existing folder action guards and confirmations still apply. Hard-refresh the Unraid webGUI after updating to load the new browser assets.
+
 
 ###2026.10.08.02
 - UX: Enabled Docker folder-menu shortcuts now color only their icons, without an orange background. Focus uses blue, Pin keeps yellow, Lock uses red, and Hide uses purple, so each enabled state is easy to distinguish.

@@ -21,9 +21,14 @@
         const scrollFolderRowIntoView = typeof deps.scrollFolderRowIntoView === 'function'
             ? deps.scrollFolderRowIntoView
             : (() => {});
-        const editFolder = typeof deps.editFolder === 'function' ? deps.editFolder : (() => {});
         const openFolderActions = typeof deps.openFolderActions === 'function' ? deps.openFolderActions : (() => {});
         const recordMenuOpen = typeof deps.recordMenuOpen === 'function' ? deps.recordMenuOpen : (() => {});
+        const triggerId = 'fvplus-child-folder-menu-trigger';
+        const menuSelector = 'ul.context-menu-list:visible, ul.contextMenuPlugin:visible, ul.context-menu:visible, ul.dropdown-menu:visible';
+        let activeTrigger = null;
+        let originalId = null;
+        let activeMenu = null;
+        let focusTimer = null;
 
         const resolveInputMethod = (event = null) => {
             const sourceEvent = event?.originalEvent || event || {};
@@ -56,9 +61,18 @@
             };
         };
 
-        const close = () => {
+        const close = (restoreFocus = false) => {
             if (!jq) return;
-            jq('.fv-folder-preview-context-menu').remove();
+            if (focusTimer !== null) win?.clearTimeout?.(focusTimer);
+            focusTimer = null;
+            activeMenu?.hide?.();
+            activeMenu = null;
+            if (activeTrigger?.id === triggerId) {
+                if (originalId === null) activeTrigger.removeAttribute('id');
+                else activeTrigger.id = originalId;
+            }
+            if (restoreFocus && activeTrigger?.isConnected) activeTrigger.focus();
+            activeTrigger = null;
             const doc = win?.document || (typeof document !== 'undefined' ? document : null);
             if (doc) jq(doc).off('click.fvFolderPreviewContext keydown.fvFolderPreviewContext');
         };
@@ -79,48 +93,45 @@
             const rootId = String(options.rootId || '').trim();
             const childId = String(options.childId || '').trim();
             const safeChildName = String(options.childName || 'Folder').trim() || 'Folder';
-            const $menu = jq('<div class="fv-folder-preview-context-menu" role="menu"></div>');
-            const addAction = (label, iconClass, onClick) => {
-                const $button = jq('<button type="button" role="menuitem"></button>');
-                $button.append(jq(`<i class="fa ${iconClass}" aria-hidden="true"></i>`));
-                $button.append(jq('<span></span>').text(label));
-                $button.on('click', (clickEvent) => {
-                    clickEvent.preventDefault();
-                    clickEvent.stopPropagation();
-                    close();
-                    onClick();
-                });
-                $menu.append($button);
-            };
-            addAction('Expand to folder', 'fa-level-down', () => {
-                expandFolderPathToChild(rootId, childId);
-                scrollFolderRowIntoView(childId);
-            });
-            addAction('Edit folder', 'fa-pencil', () => editFolder(childId));
-            addAction('Open folder actions', 'fa-bars', () => {
-                expandFolderPathToChild(rootId, childId);
-                scrollFolderRowIntoView(childId);
-                openFolderActions(childId);
-            });
-            $menu.attr('aria-label', surfaceT("common.repair.folder-actions-for-1-133218", "Folder actions for $1", safeChildName));
-            jq(doc.body).append($menu);
-            const viewportWidth = Number(win?.innerWidth || doc.documentElement?.clientWidth || 0);
-            const viewportHeight = Number(win?.innerHeight || doc.documentElement?.clientHeight || 0);
-            const menuNode = $menu.get(0);
-            const menuWidth = Number(menuNode?.offsetWidth || 180);
-            const menuHeight = Number(menuNode?.offsetHeight || 112);
+            activeTrigger = options.$item?.get?.(0) || null;
+            if (!childId || !activeTrigger?.isConnected || typeof win?.MouseEvent !== 'function') {
+                recordMenuOpen({ success: false, inputMethod, reason: 'document-unavailable' });
+                return false;
+            }
             const activationPoint = resolveActivationPoint(event, options.$item || null);
-            const left = Math.max(8, Math.min(activationPoint.clientX, viewportWidth ? viewportWidth - menuWidth - 8 : activationPoint.clientX));
-            const top = Math.max(8, Math.min(activationPoint.clientY, viewportHeight ? viewportHeight - menuHeight - 8 : activationPoint.clientY));
-            $menu.css({ left: `${left}px`, top: `${top}px` });
-            recordMenuOpen({ success: true, inputMethod });
-            setTimeout(() => {
+            originalId = activeTrigger.getAttribute('id');
+            activeTrigger.id = triggerId;
+            const success = openFolderActions(childId, {
+                targetSelector: '#' + triggerId,
+                navigationAction: {
+                    text: surfaceT('legacy.surface.b9f679f5b3e47cc6', 'Expand to folder'),
+                    icon: 'fa-level-down',
+                    action: (clickEvent) => {
+                        clickEvent.preventDefault();
+                        close();
+                        expandFolderPathToChild(rootId, childId);
+                        scrollFolderRowIntoView(childId);
+                    }
+                }
+            }) === true;
+            if (!success) { close(); recordMenuOpen({ success: false, inputMethod, reason: 'document-unavailable' }); return false; }
+            activeTrigger.dispatchEvent(Object.assign(new win.MouseEvent('click', {
+                bubbles: true, cancelable: true, view: win, ...activationPoint
+            }), { fvplusChildContextReplay: true }));
+            activeMenu = jq(menuSelector).first();
+            const opened = activeMenu.length > 0;
+            recordMenuOpen({ success: opened, inputMethod, ...(opened ? {} : { reason: 'document-unavailable' }) });
+            if (!opened) { close(); return false; }
+            activeMenu.attr('aria-label', surfaceT('common.repair.folder-actions-for-1-133218', 'Folder actions for $1', safeChildName));
+            focusTimer = win.setTimeout(() => {
+                focusTimer = null;
+                if (!activeTrigger?.isConnected) { close(); return; }
                 jq(doc)
-                    .on('click.fvFolderPreviewContext', close)
+                    .on('click.fvFolderPreviewContext', () => close())
                     .on('keydown.fvFolderPreviewContext', (keyEvent) => {
-                        if (keyEvent.key === 'Escape') close();
+                        if (keyEvent.key === 'Escape') { keyEvent.preventDefault(); close(true); }
                     });
-                if (inputMethod === 'keyboard') $menu.find('button').first().trigger('focus');
+                if (inputMethod === 'keyboard') activeMenu.find('a:visible').first().trigger('focus');
             }, 0);
             return true;
         };

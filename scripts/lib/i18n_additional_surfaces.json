@@ -8038,15 +8038,6 @@
     ]
   },
   {
-    "phrase": "Open folder actions",
-    "locations": [
-      {
-        "file": "scripts/docker.runtime.child-folder-preview-menu.js",
-        "anchor": "'Open folder actions'"
-      }
-    ]
-  },
-  {
     "phrase": "Open setup assistant",
     "locations": [
       {

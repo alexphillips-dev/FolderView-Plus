@@ -10,12 +10,12 @@ export const createDockerFolderMenuHost = async page => {
             const node = document.querySelector(selector);
             if (!node || bound.has(node)) return;
             bound.add(node);
-            node.addEventListener('click', () => {
+            node.addEventListener('click', event => {
                 document.getElementById('synthetic-folder-menu')?.remove();
                 const menu = document.createElement('ul');
                 menu.id = 'synthetic-folder-menu';
                 menu.className = 'contextMenuPlugin';
-                menu.style.cssText = 'position:fixed;inset:0 auto auto 0;z-index:99999;list-style:none';
+                menu.style.cssText = `position:fixed;left:${event.clientX}px;top:${event.clientY}px;z-index:99999;list-style:none`;
                 for (const item of options.get(selector) || []) {
                     const row = document.createElement('li');
                     if (item.divider) row.className = 'divider';

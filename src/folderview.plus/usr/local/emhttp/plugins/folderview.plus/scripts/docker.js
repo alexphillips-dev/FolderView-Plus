@@ -895,25 +895,7 @@ const getDockerRuntimeHierarchyApi = () => {
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             editFolder: (id) => editFolder(id),
-            openFolderActions: (id) => {
-                const trigger = document.getElementById(String(id || '').trim());
-                if (trigger && typeof trigger.dispatchEvent === 'function') {
-                    const rect = typeof trigger.getBoundingClientRect === 'function'
-                        ? trigger.getBoundingClientRect()
-                        : null;
-                    const clientX = rect ? rect.left + Math.max(1, rect.width / 2) : 0;
-                    const clientY = rect ? rect.top + Math.max(1, rect.height / 2) : 0;
-                    trigger.dispatchEvent(new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                        clientX,
-                        clientY
-                    }));
-                    return;
-                }
-                addDockerFolderContext(id);
-            },
+            openFolderActions: (id, options) => addDockerFolderContext(id, options),
             recordChildFolderPreviewRender: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewRender?.(),
             recordChildFolderPreviewBinding: () => getDockerPreviewActionsApi()?.recordChildFolderPreviewBinding?.(),
             recordChildFolderPreviewMenuOpen: (details) => getDockerPreviewActionsApi()?.recordChildFolderPreviewMenuOpen?.(details),
@@ -6473,8 +6455,10 @@ const queueDockerFolderContextQuickIcons = (attempt = 0) => {
     if (!dockerContextQuickStripAdapter || typeof dockerContextQuickStripAdapter.queueEnhance !== 'function') {
         return;
     }
-    dockerContextQuickStripAdapter.queueEnhance(attempt);
-    window.setTimeout(() => dockerHiddenFoldersApi?.decorateQuickIcon?.(DOCKER_CONTEXT_MENU_SELECTORS, attempt), 24);
+    window.requestAnimationFrame(() => {
+        dockerContextQuickStripAdapter.queueEnhance(attempt);
+        dockerHiddenFoldersApi?.decorateQuickIcon?.(DOCKER_CONTEXT_MENU_SELECTORS, attempt);
+    });
 };
 const getVisibleDockerContextMenus = () => {
     const jq = window.jQuery || window.$;
@@ -6622,7 +6606,7 @@ const queueDockerContextViewportGuard = (attempt = 0) => {
  * Atach the menu when clicking the folder icon
  * @param {string} id the id of the folder
  */
-const addDockerFolderContext = (id) => {
+const addDockerFolderContext = (id, options = {}) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Entry.`);
     dockerPerfTelemetry.begin('context-menu-build');
     let opts = [];
@@ -6759,8 +6743,10 @@ const addDockerFolderContext = (id) => {
     });
     opts.push(dockerHiddenFoldersApi.buildQuickAction(id));
     appendDivider();
-
-
+    if (options.navigationAction) {
+        opts.push(options.navigationAction);
+        appendDivider();
+    }
     if (folderData.settings.folder_webui && folderData.settings.folder_webui_url) {
         opts.push({
             text: $.i18n('webui'),
@@ -7042,11 +7028,12 @@ const addDockerFolderContext = (id) => {
     opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
-    context.attach('#' + id, opts);
+    context.attach(options.targetSelector || '#' + id, opts);
     queueDockerFolderContextQuickIcons();
     queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
+    return true;
 };
 // Route Unraid host lifecycle hooks through the shared adapter while retaining legacy aliases.
 getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {

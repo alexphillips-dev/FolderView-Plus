@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.01">
-<!ENTITY md5 "88b2cd37ec6b6f4e793e859122d9c4c2">
-<!ENTITY sha256 "c125ac28126d3dd93f69ceffbe62a16042d0fbbd6e7b273aab074b355fdbfc97">
+<!ENTITY version "2026.10.08.02">
+<!ENTITY md5 "72b88cf0088ef6a3dd4b5a56129fa5e1">
+<!ENTITY sha256 "fc0f030215609844a3493b42cda12af3fc36ce763809d334af11788f23dc1e32">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.02
+- UX: Enabled Docker folder-menu shortcuts now color only their icons, without an orange background. Focus uses blue, Pin keeps yellow, Lock uses red, and Hide uses purple, so each enabled state is easy to distinguish.
+- Compatibility: Shortcut sizes, keyboard focus, pressed-state accessibility, action tooltips, and the separated Remove action are preserved. Hard-refresh the Unraid webGUI after updating to load the new menu styles.
+
 
 ###2026.10.08.01
 - UX: Docker folder-menu shortcuts now visibly indicate when Focus, Pin, Lock, or Hide is active, with a subtle accent background and colored icons. Hover labels retain the corresponding reverse action, and assistive technology can read the pressed state. Hidden folders also reflect hiding inherited from a parent.

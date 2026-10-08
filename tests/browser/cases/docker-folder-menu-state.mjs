@@ -19,7 +19,9 @@ export const registerDockerFolderMenuStateCases = ({ test }) => {
         const state = async () => menu.locator('.fvplus-docker-quick-item > a').evaluateAll(links => links.map(link => ({
             active: link.getAttribute('aria-pressed') === 'true',
             label: link.getAttribute('aria-label'), title: link.title,
-            marked: link.parentElement.classList.contains('fvplus-docker-quick-active')
+            marked: link.parentElement.classList.contains('fvplus-docker-quick-active'),
+            color: getComputedStyle(link.querySelector('i, svg')).color,
+            background: getComputedStyle(link).backgroundColor
         })));
         try {
             await page.goto(host.url, { waitUntil: 'load' });
@@ -51,8 +53,11 @@ export const registerDockerFolderMenuStateCases = ({ test }) => {
                     ordinaryColor: getComputedStyle(element.querySelector('li:not(.fvplus-docker-quick-item):not(.divider) > a')).color
                 };
             });
-            assert.notEqual(visuals.activeColor, visuals.inactiveColor);
-            assert.notEqual(visuals.activeBackground, 'rgba(0, 0, 0, 0)');
+            assert.equal(visuals.activeColor, visuals.inactiveColor, 'only the icon changes color');
+            assert.ok(active.every(item => item.background === 'rgba(0, 0, 0, 0)'));
+            assert.equal(new Set(active.slice(0, 3).map(item => item.color)).size, 3);
+            assert.ok(active.slice(0, 3).every(item => item.color !== active[3].color));
+            assert.equal(active[1].color, 'rgb(255, 202, 99)', 'Pin retains its yellow status color');
             assert.equal(visuals.activeHeight, visuals.inactiveHeight);
             assert.equal(visuals.separated, true);
             assert.equal(visuals.last, true);
@@ -69,6 +74,8 @@ export const registerDockerFolderMenuStateCases = ({ test }) => {
             await open();
             await menu.locator('svg[data-fv-icon="eye"]').waitFor();
             assert.equal((await state())[3].active, true);
+            assert.equal(new Set([...active.slice(0, 3).map(item => item.color), (await state())[3].color]).size, 4);
+            assert.equal((await state())[3].background, 'rgba(0, 0, 0, 0)');
             const restore = menu.getByRole('button', { name: 'Restore folder', exact: true });
             await page.keyboard.press('Tab');
             await restore.focus();

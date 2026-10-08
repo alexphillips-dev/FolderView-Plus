@@ -1447,9 +1447,8 @@ div.folder-preview-4 span.outer {
     clear: both;
 }
 
-.fvplus-docker-quick-active > :is(a, .context-menu-item) {
-    --fvplus-runtime-menu-fg: var(--fvplus-ui-accent-strong);
-    --fvplus-runtime-menu-item-bg: var(--fvplus-ui-accent-soft);
+.fvplus-docker-context-menu .fvplus-docker-quick-active :is(i, svg) {
+    color: var(--fvplus-quick-color) !important;
 }
 
 .fvplus-docker-remove-item > :is(a, .context-menu-item) {

@@ -75,7 +75,7 @@ body ul.context-menu > li > .context-menu-item,
 body ul.dropdown-menu > li > a,
 body ul.dropdown-menu > li > .dropdown-item,
 body ul.dropdown-menu > li > .context-menu-item {
-    background: var(--fvplus-runtime-menu-item-bg, transparent) !important;
+    background: transparent !important;
     color: var(--fvplus-runtime-menu-fg) !important;
 }
 

@@ -248,6 +248,10 @@
                         const $item = $(item);
                         const active = $item.find('i.fvplus-docker-quick-active-icon, svg[data-fv-icon="eye"]').length > 0;
                         $item.toggleClass('fvplus-docker-quick-active', active);
+                        const color = $item.find('i.fa-thumb-tack').length ? '#ffca63'
+                            : $item.find('i.fa-lock, i.fa-unlock-alt').length ? 'var(--fvplus-docker-menu-danger)'
+                                : $item.find('i.fa-bullseye, i.fa-dot-circle-o').length ? 'var(--fvplus-graphite-info)' : '#b48cff';
+                        $item.css('--fvplus-quick-color', color);
                         $item.find('a, .context-menu-item').first().attr({ role: 'button', 'aria-pressed': String(active) });
                         decorated = true;
                         const $icon = $item.find('i.fa-eye, i.fa-eye-slash').first();

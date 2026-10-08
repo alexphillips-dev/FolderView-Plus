@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Accions de FolderView",
     "docker.actions.add-folder": "Afegeix una carpeta",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 de $3 llest)",
     "docker.webui-profiles.manage": "Gestionar perfils WebUI",
     "docker.webui-profiles.none-title": "No hi ha cap IU preparada",
-    "docker.webui-profiles.none-body": "Cap dels contenidors seleccionats s'està executant amb una UI disponible."
+    "docker.webui-profiles.none-body": "Cap dels contenidors seleccionats s'està executant amb una UI disponible.",
+    "docker.feedback.starting": "Contenidors d'arrencada",
+    "docker.feedback.stopping": "Aturar contenidors",
+    "docker.feedback.pausing": "Pausa dels contenidors",
+    "docker.feedback.resuming": "Reprenent els contenidors",
+    "docker.feedback.restarting": "Reinici de contenidors",
+    "docker.feedback.includes-children": "Inclou carpetes infantils",
+    "docker.feedback.direct-members": "Només membres directes",
+    "docker.feedback.updates-available": "Actualitzacions disponibles",
+    "docker.feedback.total": "Total: $1 contenidors",
+    "docker.feedback.view-details": "Veure detalls",
+    "docker.feedback.container": "Contenidor",
+    "docker.feedback.partial": "$1 confirmat · $2 ha fallat",
+    "docker.feedback.confirmed": "Els contenidors $1 han arribat a l'estat sol·licitat",
+    "docker.feedback.no-matching": "Cap contenidor necessita aquesta acció",
+    "docker.feedback.rejected": "S'ha rebutjat l'acció del contenidor",
+    "docker.feedback.request-failed": "La sol·licitud ha fallat o s'ha esgotat el temps d'espera",
+    "docker.feedback.progress": "$1 · $2 de $3 sol·licituds completades",
+    "docker.feedback.restart-requested": "$1 s'han acceptat les sol·licituds de reinici · $2 ha fallat",
+    "docker.feedback.waiting": "Sol·licituds completades · esperant l'estat d'execució",
+    "docker.feedback.unconfirmed": "L'estat d'execució no està confirmat · Les sol·licituds $1 han fallat",
+    "docker.feedback.missing-identity": "L'identificador del contenidor no està disponible; actualitzar la pàgina"
 }

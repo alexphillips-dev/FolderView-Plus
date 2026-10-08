@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimiento masivo no disponible",
     "legacy.surface.0012950979762d8c": "Elija una instantánea para restaurar, descargar o eliminar.",
@@ -831,7 +831,6 @@
     "legacy.surface.4594a3b522d344e3": "Mostrar filtros",
     "legacy.surface.45989de49fb7f66d": "Detalles",
     "legacy.surface.4598cc153e912c9f": "Aplicar la configuración de la carpeta",
-    "legacy.surface.45b492d7e5b210d0": "Error de acción de carpeta desconocida.",
     "legacy.surface.45d2cefa8ddce7a8": "Operaciones de importación",
     "legacy.surface.45dccf6c33f8d1ef": "Valor de etiqueta faltante",
     "legacy.surface.45f95a450344da81": "Plantilla guardada",

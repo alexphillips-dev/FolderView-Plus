@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -2870,7 +2870,6 @@
     "legacy.surface.8cc08731a42d6541": "Unknown error.",
     "legacy.surface.a00372c6eccfb986": "Unknown export time",
     "legacy.surface.29223804c8c16938": "Unknown folder",
-    "legacy.surface.45b492d7e5b210d0": "Unknown folder action error.",
     "legacy.surface.52128b4ec8ac8a5c": "Unknown folder editor bootstrap failure.",
     "legacy.surface.4901a5182e0dbb1a": "Unknown Host list restoration error",
     "legacy.surface.61b970f55f66b301": "Unknown icon",

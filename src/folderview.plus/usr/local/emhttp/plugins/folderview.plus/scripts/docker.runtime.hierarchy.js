@@ -417,6 +417,7 @@
 
             const expanded = folder?.status?.expanded === true;
             folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
+            win.FolderViewPlusDockerFolderFeedback?.getApi?.(win)?.decorateStatus(id, folder, runtimeContainers, folderHasChildren(id));
         };
 
         const expandFolderPathToChild = (rootId, childId) => {

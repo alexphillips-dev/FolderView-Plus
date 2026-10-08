@@ -88,6 +88,12 @@ Create and maintain profiles from the folder editor's **WebUI Profiles** section
 
 > Screenshot placeholder: WebUI Profiles editor and Docker folder profile submenu.
 
+### Docker action feedback and folder status
+
+Starting, stopping, pausing, resuming, or restarting a Docker folder shows a compact progress notice above the container table. It identifies the folder, reports completed requests, and prevents duplicate operations on the same containers. Start, stop, pause, and resume are confirmed against refreshed runtime state; restart reports accepted requests. Partial failures and unconfirmed status remain visible with a dismiss control, and failed requests have a details section. Successful notices disappear after a short delay. Privacy mode masks folder and container names in these notices.
+
+Hover over, keyboard-focus, or tap a folder's running-count label to see its running, stopped, paused, and update counts. The breakdown indicates whether it includes child folders. Updates are counted separately from runtime states. Opening the details keeps the folder's expansion state; Escape or a tap outside closes them.
+
 ## Install
 
 Install from Unraid:

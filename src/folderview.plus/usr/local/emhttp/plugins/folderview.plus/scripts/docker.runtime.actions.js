@@ -126,12 +126,6 @@
             }
         };
 
-        const debugError = (...args) => {
-            if (debugEnabled && consoleRef && typeof consoleRef.error === 'function') {
-                consoleRef.error(...args);
-            }
-        };
-
         const getFolderMap = () => {
             const folders = getGlobalFolders();
             return folders && typeof folders === 'object' ? folders : {};
@@ -1020,103 +1014,15 @@
         };
 
         const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
-            debugLog(`[FV3_DEBUG] actionFolder (id: ${id}, action: ${action}, includeDescendants: ${includeDescendants}): Entry.`);
-            const spinner = getSpinner();
-            try {
-                const folder = getFolderById(id);
-                const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
-                if (!folder || !containersMap || Object.keys(containersMap).length === 0) {
-                    debugError(`[FV3_DEBUG] actionFolder (id: ${id}): Folder or scoped containers not found in globalFolders.`);
-                    return;
-                }
-                const cts = Object.keys(containersMap);
-                const proms = [];
-
-                debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Folder data:`, { ...folder }, 'Containers to act on:', cts);
-
-                if (typeof jq === 'function') {
-                    jq(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
-                }
-                spinner?.show('slow');
-
-                for (let index = 0; index < cts.length; index += 1) {
-                    const containerName = cts[index];
-                    const ct = containersMap[containerName];
-                    if (!ct) {
-                        debugWarn(`[FV3_DEBUG] actionFolder (id: ${id}): Container data for '${containerName}' not found in scoped containers.`);
-                        continue;
-                    }
-                    const cid = ct.id;
-                    let pass = false;
-                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Processing container ${containerName} (cid: ${cid}). State: ${ct.state}, Paused: ${ct.pause}.`);
-                    switch (action) {
-                        case 'start':
-                            pass = !ct.state;
-                            break;
-                        case 'stop':
-                            pass = ct.state;
-                            break;
-                        case 'pause':
-                            pass = ct.state && !ct.pause;
-                            break;
-                        case 'resume':
-                            pass = ct.state && ct.pause;
-                            break;
-                        case 'restart':
-                            pass = true;
-                            break;
-                        default:
-                            pass = false;
-                            debugWarn(`[FV3_DEBUG] actionFolder (id: ${id}): Unknown action '${action}'.`);
-                            break;
-                    }
-                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Container ${containerName} - action '${action}', pass condition: ${pass}.`);
-                    if (pass) {
-                        debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Pushing POST request for container ${cid}, action ${action}.`);
-                        proms.push(jq.post(eventUrl, { action, container: cid }, null, 'json').promise());
-                    }
-                }
-
-                if (proms.length === 0) {
-                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): No matching containers for action '${action}' in selected scope.`);
-                    return;
-                }
-
-                debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Awaiting ${proms.length} promises.`);
-                const results = await Promise.all(proms);
-                debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Promises resolved. Results:`, results);
-
-                const errors = results.filter((entry) => entry?.success !== true);
-                debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Filtered errors:`, errors);
-                if (errors.length > 0) {
-                    const errorMessages = errors.map((entry) => entry?.text || JSON.stringify(entry));
-                    debugError(`[FV3_DEBUG] actionFolder (id: ${id}): Execution errors occurred:`, errorMessages);
-                    swalFn({
-                        title: i18nLabel('exec-error', 'Execution error'),
-                        text: errorMessages.join('<br>'),
-                        type: 'error',
-                        html: true,
-                        confirmButtonText: 'Ok'
-                    }, () => refreshDockerRuntimeState({ followupDelayMs: 650 }));
-                } else {
-                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): No errors. Refreshing runtime state in place.`);
-                    await Promise.resolve(refreshDockerRuntimeState({ followupDelayMs: 650 }));
-                }
-            } catch (error) {
-                if (consoleRef && typeof consoleRef.error === 'function') {
-                    consoleRef.error('folderview.plus: actionFolder failed', error);
-                }
-                swalFn({
-                    title: i18nLabel('exec-error', 'Execution error'),
-                    text: escapeHtml(String(error?.message || 'Unknown folder action error.')),
-                    type: 'error',
-                    html: true,
-                    confirmButtonText: 'Ok'
-                });
-            } finally {
-                spinner?.hide('slow');
-                debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): Exit.`);
-            }
+            const folder = getFolderById(id);
+            const feedback = win?.FolderViewPlusDockerFolderFeedback?.getApi?.(win);
+            if (!folder || !feedback || typeof jq?.ajax !== 'function') return;
+            return feedback.run({ id, name: folder.name, action,
+                entries: getScopedRuntimeContainersForFolder(id, includeDescendants),
+                request: entry => jq.ajax({ url: eventUrl, type: 'POST', dataType: 'json', timeout: 30000,
+                    data: { action, container: entry.id } }),
+                refresh: () => refreshDockerRuntimeState({ followupDelayMs: 650, preserveGroupedDom: true }),
+                read: () => getScopedRuntimeContainersForFolder(id, includeDescendants) });
         };
 
         return Object.freeze({

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Действия FolderView",
     "docker.actions.add-folder": "Добавить папку",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 из $3 готов)",
     "docker.webui-profiles.manage": "Управление профилями веб-интерфейса",
     "docker.webui-profiles.none-title": "Нет готовых веб-интерфейсов",
-    "docker.webui-profiles.none-body": "Ни один из выбранных контейнеров не работает с доступным веб-интерфейсом."
+    "docker.webui-profiles.none-body": "Ни один из выбранных контейнеров не работает с доступным веб-интерфейсом.",
+    "docker.feedback.starting": "Запуск контейнеров",
+    "docker.feedback.stopping": "Остановка контейнеров",
+    "docker.feedback.pausing": "Приостановка контейнеров",
+    "docker.feedback.resuming": "Возобновление контейнеров",
+    "docker.feedback.restarting": "Перезапуск контейнеров",
+    "docker.feedback.includes-children": "Включает дочерние папки",
+    "docker.feedback.direct-members": "Только прямые участники",
+    "docker.feedback.updates-available": "Доступны обновления",
+    "docker.feedback.total": "Всего: $1 контейнеров",
+    "docker.feedback.view-details": "Посмотреть детали",
+    "docker.feedback.container": "Контейнер",
+    "docker.feedback.partial": "$1 подтверждено · $2 не выполнено",
+    "docker.feedback.confirmed": "$1 контейнеров достигли запрошенного состояния",
+    "docker.feedback.no-matching": "Это действие не требуется ни для одного контейнера.",
+    "docker.feedback.rejected": "Действие с контейнером отклонено",
+    "docker.feedback.request-failed": "Запрос не выполнен или истекло время ожидания",
+    "docker.feedback.progress": "$1 · $2 из $3 запросов выполнено",
+    "docker.feedback.restart-requested": "$1 запросы на перезапуск приняты · $2 не выполнено",
+    "docker.feedback.waiting": "Запросы выполнены · ожидание статуса выполнения",
+    "docker.feedback.unconfirmed": "Статус выполнения не подтвержден · Не удалось выполнить запросы $1",
+    "docker.feedback.missing-identity": "Идентификатор контейнера недоступен; обновить страницу"
 }

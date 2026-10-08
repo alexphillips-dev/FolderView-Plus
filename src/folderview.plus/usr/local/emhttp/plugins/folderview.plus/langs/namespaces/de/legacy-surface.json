@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Massenverschiebung nicht verfügbar",
     "legacy.surface.0012950979762d8c": "Wählen Sie einen Snapshot zum Wiederherstellen, Herunterladen oder Löschen aus.",
@@ -831,7 +831,6 @@
     "legacy.surface.4594a3b522d344e3": "Filter anzeigen",
     "legacy.surface.45989de49fb7f66d": "Einzelheiten",
     "legacy.surface.4598cc153e912c9f": "Ordnereinstellungen anwenden",
-    "legacy.surface.45b492d7e5b210d0": "Fehler bei unbekannter Ordneraktion.",
     "legacy.surface.45d2cefa8ddce7a8": "Operationen importieren",
     "legacy.surface.45dccf6c33f8d1ef": "Fehlender Labelwert",
     "legacy.surface.45f95a450344da81": "Vorlage gespeichert",

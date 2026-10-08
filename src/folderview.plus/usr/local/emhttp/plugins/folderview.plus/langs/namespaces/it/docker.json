@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Azioni della Vista Cartella",
     "docker.actions.add-folder": "Aggiungi cartella",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 di $3 pronto)",
     "docker.webui-profiles.manage": "Gestire i profili WebUI",
     "docker.webui-profiles.none-title": "Nessuna WebUI pronta",
-    "docker.webui-profiles.none-body": "Nessuno dei contenitori selezionati è in esecuzione con una WebUI disponibile."
+    "docker.webui-profiles.none-body": "Nessuno dei contenitori selezionati è in esecuzione con una WebUI disponibile.",
+    "docker.feedback.starting": "Contenitori di partenza",
+    "docker.feedback.stopping": "Arresto dei contenitori",
+    "docker.feedback.pausing": "Contenitori in pausa",
+    "docker.feedback.resuming": "Ripresa dei contenitori",
+    "docker.feedback.restarting": "Riavvio dei contenitori",
+    "docker.feedback.includes-children": "Include cartelle secondarie",
+    "docker.feedback.direct-members": "Solo membri diretti",
+    "docker.feedback.updates-available": "Aggiornamenti disponibili",
+    "docker.feedback.total": "Totale: $1 contenitori",
+    "docker.feedback.view-details": "Visualizza i dettagli",
+    "docker.feedback.container": "Contenitore",
+    "docker.feedback.partial": "$1 confermato · $2 fallito",
+    "docker.feedback.confirmed": "I contenitori $1 hanno raggiunto lo stato richiesto",
+    "docker.feedback.no-matching": "Nessun contenitore necessita di questa azione",
+    "docker.feedback.rejected": "L'azione contenitore è stata respinta",
+    "docker.feedback.request-failed": "La richiesta non è riuscita o è scaduta",
+    "docker.feedback.progress": "$1 · $2 di $3 richieste completate",
+    "docker.feedback.restart-requested": "$1 richieste di riavvio accettate · $2 non riuscito",
+    "docker.feedback.waiting": "Richieste completate · in attesa dello stato di runtime",
+    "docker.feedback.unconfirmed": "Lo stato di runtime non è confermato · Le richieste $1 non sono riuscite",
+    "docker.feedback.missing-identity": "L'identificatore del contenitore non è disponibile; aggiornare la pagina"
 }

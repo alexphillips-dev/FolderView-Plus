@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Åtgärder i mappvy",
     "docker.actions.add-folder": "Lägg till mapp",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 av $3 redo)",
     "docker.webui-profiles.manage": "Hantera webbgränssnittsprofiler",
     "docker.webui-profiles.none-title": "Inga webbgränssnitt är redo",
-    "docker.webui-profiles.none-body": "Ingen av de valda behållarna körs med ett tillgängligt WebUI."
+    "docker.webui-profiles.none-body": "Ingen av de valda behållarna körs med ett tillgängligt WebUI.",
+    "docker.feedback.starting": "Starta containrar",
+    "docker.feedback.stopping": "Stoppa containrar",
+    "docker.feedback.pausing": "Pausar behållare",
+    "docker.feedback.resuming": "Återuppta containrar",
+    "docker.feedback.restarting": "Startar om behållare",
+    "docker.feedback.includes-children": "Inkluderar underordnade mappar",
+    "docker.feedback.direct-members": "Endast direkta medlemmar",
+    "docker.feedback.updates-available": "Uppdateringar tillgängliga",
+    "docker.feedback.total": "Totalt: $1 behållare",
+    "docker.feedback.view-details": "Visa detaljer",
+    "docker.feedback.container": "Behållare",
+    "docker.feedback.partial": "$1 bekräftat · $2 misslyckades",
+    "docker.feedback.confirmed": "$1 behållare nådde det begärda tillståndet",
+    "docker.feedback.no-matching": "Inga behållare behöver denna åtgärd",
+    "docker.feedback.rejected": "Behållaråtgärden avvisades",
+    "docker.feedback.request-failed": "Begäran misslyckades eller tog timeout",
+    "docker.feedback.progress": "$1 · $2 av $3 förfrågningar slutförda",
+    "docker.feedback.restart-requested": "$1 omstartsbegäranden accepterades · $2 misslyckades",
+    "docker.feedback.waiting": "Förfrågningar slutförda · väntar på körtidsstatus",
+    "docker.feedback.unconfirmed": "Körtidsstatus är inte bekräftad · $1 förfrågningar misslyckades",
+    "docker.feedback.missing-identity": "Behållaridentifieraren är inte tillgänglig. uppdatera sidan"
 }

@@ -6,7 +6,7 @@
     "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu"
   ],
   "quick-finder": ["Quick finder"],
-  "folder-menu": ["Docker folder menu", "Docker child-folder preview"],
+  "folder-menu": ["Docker folder menu", "Docker child-folder preview", "Docker folder feedback"],
   "smoke": [
     "Settings alerts", "Dashboard.*expansion", "Manage Folders keeps populated ancestors", "Docker hide-empty", "Docker Move to root",
     "Lifecycle reconciliation", "Folder action sheet traps focus", "Snapshot comparison opens"

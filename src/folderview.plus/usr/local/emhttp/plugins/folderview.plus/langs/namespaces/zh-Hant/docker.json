@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "資料夾檢視操作",
     "docker.actions.add-folder": "新增資料夾",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1（$3 的 $2 已準備好）",
     "docker.webui-profiles.manage": "管理 WebUI 設定檔案",
     "docker.webui-profiles.none-title": "尚未準備好 WebUI",
-    "docker.webui-profiles.none-body": "所選容器均未使用可用的 WebUI 運作。"
+    "docker.webui-profiles.none-body": "所選容器均未使用可用的 WebUI 運作。",
+    "docker.feedback.starting": "啟動容器",
+    "docker.feedback.stopping": "停止容器",
+    "docker.feedback.pausing": "暫停容器",
+    "docker.feedback.resuming": "恢復容器",
+    "docker.feedback.restarting": "重啟容器",
+    "docker.feedback.includes-children": "包括子資料夾",
+    "docker.feedback.direct-members": "限直接會員",
+    "docker.feedback.updates-available": "可用更新",
+    "docker.feedback.total": "總計：$1 個容器",
+    "docker.feedback.view-details": "看詳情",
+    "docker.feedback.container": "容器",
+    "docker.feedback.partial": "$1 已確認 · $2 失敗",
+    "docker.feedback.confirmed": "$1 容器達到請求的狀態",
+    "docker.feedback.no-matching": "沒有容器需要此操作",
+    "docker.feedback.rejected": "容器操作被拒絕",
+    "docker.feedback.request-failed": "請求失敗或逾時",
+    "docker.feedback.progress": "$1 · $2 個請求已完成，共 $3 個請求已完成",
+    "docker.feedback.restart-requested": "$1 已接受重新啟動請求 · $2 失敗",
+    "docker.feedback.waiting": "請求已完成 · 等待執行時狀態",
+    "docker.feedback.unconfirmed": "執行時狀態未確認 · $1 請求失敗",
+    "docker.feedback.missing-identity": "容器識別符號不可用；重新整理頁面"
 }

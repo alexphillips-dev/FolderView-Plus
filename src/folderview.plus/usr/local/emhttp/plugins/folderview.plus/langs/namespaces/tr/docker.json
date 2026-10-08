@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Klasör Görünümü eylemleri",
     "docker.actions.add-folder": "Klasör Ekle",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 / $3 hazır)",
     "docker.webui-profiles.manage": "WebUI profillerini yönetin",
     "docker.webui-profiles.none-title": "Hazır WebUI yok",
-    "docker.webui-profiles.none-body": "Seçilen kapsayıcılardan hiçbiri kullanılabilir bir WebUI ile çalışmıyor."
+    "docker.webui-profiles.none-body": "Seçilen kapsayıcılardan hiçbiri kullanılabilir bir WebUI ile çalışmıyor.",
+    "docker.feedback.starting": "Kapsayıcıların başlatılması",
+    "docker.feedback.stopping": "Konteynerleri durdurma",
+    "docker.feedback.pausing": "Kapsayıcıları duraklatma",
+    "docker.feedback.resuming": "Kapsayıcılar devam ettiriliyor",
+    "docker.feedback.restarting": "Kapsayıcılar yeniden başlatılıyor",
+    "docker.feedback.includes-children": "Alt klasörleri içerir",
+    "docker.feedback.direct-members": "Yalnızca doğrudan üyeler",
+    "docker.feedback.updates-available": "Güncellemeler mevcut",
+    "docker.feedback.total": "Toplam: $1 kapsayıcı",
+    "docker.feedback.view-details": "Ayrıntıları görüntüle",
+    "docker.feedback.container": "Konteyner",
+    "docker.feedback.partial": "$1 onaylandı · $2 başarısız oldu",
+    "docker.feedback.confirmed": "$1 kapsayıcı istenen duruma ulaştı",
+    "docker.feedback.no-matching": "Hiçbir kapsayıcının bu eyleme ihtiyacı yok",
+    "docker.feedback.rejected": "Konteyner eylemi reddedildi",
+    "docker.feedback.request-failed": "İstek başarısız oldu veya zaman aşımına uğradı",
+    "docker.feedback.progress": "$1 · $2 / $3 istek tamamlandı",
+    "docker.feedback.restart-requested": "$1 yeniden başlatma istekleri kabul edildi · $2 başarısız oldu",
+    "docker.feedback.waiting": "İstekler tamamlandı · çalışma zamanı durumu bekleniyor",
+    "docker.feedback.unconfirmed": "Çalışma zamanı durumu onaylanmadı · $1 istekleri başarısız oldu",
+    "docker.feedback.missing-identity": "Kapsayıcı tanımlayıcısı kullanılamıyor; sayfayı yenile"
 }

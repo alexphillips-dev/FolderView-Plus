@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "FolderView actions",
     "docker.actions.add-folder": "Add Folder",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 of $3 ready)",
     "docker.webui-profiles.manage": "Manage WebUI profiles",
     "docker.webui-profiles.none-title": "No WebUIs ready",
-    "docker.webui-profiles.none-body": "None of the selected containers are running with an available WebUI."
+    "docker.webui-profiles.none-body": "None of the selected containers are running with an available WebUI.",
+    "docker.feedback.starting": "Starting containers",
+    "docker.feedback.stopping": "Stopping containers",
+    "docker.feedback.pausing": "Pausing containers",
+    "docker.feedback.resuming": "Resuming containers",
+    "docker.feedback.restarting": "Restarting containers",
+    "docker.feedback.includes-children": "Includes child folders",
+    "docker.feedback.direct-members": "Direct members only",
+    "docker.feedback.updates-available": "Updates available",
+    "docker.feedback.total": "Total: $1 containers",
+    "docker.feedback.view-details": "View details",
+    "docker.feedback.container": "Container",
+    "docker.feedback.partial": "$1 confirmed · $2 failed",
+    "docker.feedback.confirmed": "$1 containers reached the requested state",
+    "docker.feedback.no-matching": "No containers need this action",
+    "docker.feedback.rejected": "The container action was rejected",
+    "docker.feedback.request-failed": "The request failed or timed out",
+    "docker.feedback.progress": "$1 · $2 of $3 requests completed",
+    "docker.feedback.restart-requested": "$1 restart requests accepted · $2 failed",
+    "docker.feedback.waiting": "Requests completed · waiting for runtime status",
+    "docker.feedback.unconfirmed": "Runtime status is not confirmed · $1 requests failed",
+    "docker.feedback.missing-identity": "The container identifier is unavailable; refresh the page"
 }

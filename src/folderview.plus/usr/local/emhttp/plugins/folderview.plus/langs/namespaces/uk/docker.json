@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Дії FolderView",
     "docker.actions.add-folder": "Додати папку",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 з $3 готовий)",
     "docker.webui-profiles.manage": "Керуйте профілями WebUI",
     "docker.webui-profiles.none-title": "Немає готових WebUI",
-    "docker.webui-profiles.none-body": "Жоден із вибраних контейнерів не працює з доступним WebUI."
+    "docker.webui-profiles.none-body": "Жоден із вибраних контейнерів не працює з доступним WebUI.",
+    "docker.feedback.starting": "Стартові контейнери",
+    "docker.feedback.stopping": "Зупинка контейнерів",
+    "docker.feedback.pausing": "Призупинення контейнерів",
+    "docker.feedback.resuming": "Відновлення контейнерів",
+    "docker.feedback.restarting": "Перезапуск контейнерів",
+    "docker.feedback.includes-children": "Включає дочірні папки",
+    "docker.feedback.direct-members": "Лише прямі учасники",
+    "docker.feedback.updates-available": "Доступні оновлення",
+    "docker.feedback.total": "Усього: $1 контейнерів",
+    "docker.feedback.view-details": "Переглянути деталі",
+    "docker.feedback.container": "Контейнер",
+    "docker.feedback.partial": "$1 підтверджено · $2 не вдалося",
+    "docker.feedback.confirmed": "Контейнери $1 досягли потрібного стану",
+    "docker.feedback.no-matching": "Ніякі контейнери не потребують цієї дії",
+    "docker.feedback.rejected": "Дію контейнера відхилено",
+    "docker.feedback.request-failed": "Запит не виконано або минув час очікування",
+    "docker.feedback.progress": "$1 · $2 із $3 запитів виконано",
+    "docker.feedback.restart-requested": "$1 запитів на перезапуск прийнято · $2 не вдалося",
+    "docker.feedback.waiting": "Запити виконано · очікується статус виконання",
+    "docker.feedback.unconfirmed": "Статус виконання не підтверджено · Не вдалося виконати $1 запитів",
+    "docker.feedback.missing-identity": "Ідентифікатор контейнера недоступний; оновити сторінку"
 }

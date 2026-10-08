@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "FolderView-handlinger",
     "docker.actions.add-folder": "Tilføj mappe",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 af $3 klar)",
     "docker.webui-profiles.manage": "Administrer WebUI-profiler",
     "docker.webui-profiles.none-title": "Ingen WebUI'er klar",
-    "docker.webui-profiles.none-body": "Ingen af de valgte containere kører med en tilgængelig WebUI."
+    "docker.webui-profiles.none-body": "Ingen af de valgte containere kører med en tilgængelig WebUI.",
+    "docker.feedback.starting": "Start containere",
+    "docker.feedback.stopping": "Stop af containere",
+    "docker.feedback.pausing": "Pause containere",
+    "docker.feedback.resuming": "Genoptagelse af containere",
+    "docker.feedback.restarting": "Genstart af containere",
+    "docker.feedback.includes-children": "Indeholder underordnede mapper",
+    "docker.feedback.direct-members": "Kun direkte medlemmer",
+    "docker.feedback.updates-available": "Opdateringer tilgængelige",
+    "docker.feedback.total": "I alt: $1 containere",
+    "docker.feedback.view-details": "Se detaljer",
+    "docker.feedback.container": "Container",
+    "docker.feedback.partial": "$1 bekræftet · $2 mislykkedes",
+    "docker.feedback.confirmed": "$1 containere nåede den anmodede tilstand",
+    "docker.feedback.no-matching": "Ingen containere behøver denne handling",
+    "docker.feedback.rejected": "Containerhandlingen blev afvist",
+    "docker.feedback.request-failed": "Anmodningen mislykkedes eller fik timeout",
+    "docker.feedback.progress": "$1 · $2 af $3 anmodninger gennemført",
+    "docker.feedback.restart-requested": "$1 genstartsanmodninger accepteret · $2 mislykkedes",
+    "docker.feedback.waiting": "Anmodninger fuldført · venter på køretidsstatus",
+    "docker.feedback.unconfirmed": "Kørselsstatus er ikke bekræftet · $1 anmodninger mislykkedes",
+    "docker.feedback.missing-identity": "Beholder-id'et er ikke tilgængeligt; opdatere siden"
 }

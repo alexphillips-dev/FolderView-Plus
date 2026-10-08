@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Akce FolderView",
     "docker.actions.add-folder": "Přidat složku",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 z $3 připraveno)",
     "docker.webui-profiles.manage": "Správa profilů WebUI",
     "docker.webui-profiles.none-title": "Nejsou připravena žádná rozhraní WebUI",
-    "docker.webui-profiles.none-body": "Žádný z vybraných kontejnerů není spuštěn s dostupným rozhraním WebUI."
+    "docker.webui-profiles.none-body": "Žádný z vybraných kontejnerů není spuštěn s dostupným rozhraním WebUI.",
+    "docker.feedback.starting": "Startovací kontejnery",
+    "docker.feedback.stopping": "Zastavení kontejnerů",
+    "docker.feedback.pausing": "Pozastavení kontejnerů",
+    "docker.feedback.resuming": "Obnovení kontejnerů",
+    "docker.feedback.restarting": "Restartování kontejnerů",
+    "docker.feedback.includes-children": "Zahrnuje podřízené složky",
+    "docker.feedback.direct-members": "Pouze přímí členové",
+    "docker.feedback.updates-available": "Dostupné aktualizace",
+    "docker.feedback.total": "Celkem: $1 kontejnerů",
+    "docker.feedback.view-details": "Zobrazit podrobnosti",
+    "docker.feedback.container": "Kontejner",
+    "docker.feedback.partial": "$1 potvrzeno · $2 se nezdařilo",
+    "docker.feedback.confirmed": "$1 kontejnery dosáhly požadovaného stavu",
+    "docker.feedback.no-matching": "Tuto akci nevyžadují žádné kontejnery",
+    "docker.feedback.rejected": "Akce kontejneru byla zamítnuta",
+    "docker.feedback.request-failed": "Požadavek selhal nebo vypršel časový limit",
+    "docker.feedback.progress": "$1 · $2 z $3 požadavků dokončeno",
+    "docker.feedback.restart-requested": "$1 požadavky na restart přijaty · $2 se nezdařilo",
+    "docker.feedback.waiting": "Požadavky dokončeny · čekání na stav runtime",
+    "docker.feedback.unconfirmed": "Stav běhového prostředí není potvrzen · $1 požadavků se nezdařilo",
+    "docker.feedback.missing-identity": "Identifikátor kontejneru není k dispozici; obnovit stránku"
 }

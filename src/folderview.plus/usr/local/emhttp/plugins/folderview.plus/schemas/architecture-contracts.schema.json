@@ -1564,6 +1564,17 @@
       ]
     },
     {
+      "file": "scripts/docker.runtime.folder-feedback.js",
+      "owner": "docker-folder-action-and-status-feedback",
+      "consumers": ["docker"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusDockerFolderFeedback"],
+      "global": "FolderViewPlusDockerFolderFeedback",
+      "loader": "commonjs",
+      "exports": ["summarize", "eligible", "matchesState", "getApi"]
+    },
+    {
       "file": "scripts/docker.runtime.hidden-folders.js",
       "owner": "docker-hidden-folder-visibility",
       "consumers": ["docker"],

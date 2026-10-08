@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "フォルダビューの操作",
     "docker.actions.add-folder": "フォルダを追加",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1（$3件中$2件準備完了）",
     "docker.webui-profiles.manage": "WebUIプロファイルの管理",
     "docker.webui-profiles.none-title": "WebUI が準備されていません",
-    "docker.webui-profiles.none-body": "選択したコンテナはどれも、利用可能な WebUI で実行されていません。"
+    "docker.webui-profiles.none-body": "選択したコンテナはどれも、利用可能な WebUI で実行されていません。",
+    "docker.feedback.starting": "コンテナを起動中",
+    "docker.feedback.stopping": "コンテナを停止中",
+    "docker.feedback.pausing": "コンテナを一時停止中",
+    "docker.feedback.resuming": "コンテナの再開",
+    "docker.feedback.restarting": "コンテナの再起動",
+    "docker.feedback.includes-children": "子フォルダーを含む",
+    "docker.feedback.direct-members": "直接所属するコンテナのみ",
+    "docker.feedback.updates-available": "更新あり",
+    "docker.feedback.total": "合計: $1 コンテナー",
+    "docker.feedback.view-details": "詳細を見る",
+    "docker.feedback.container": "コンテナ",
+    "docker.feedback.partial": "$1 は確認されましたが、$2 は失敗しました",
+    "docker.feedback.confirmed": "$1 コンテナが要求された状態に到達しました",
+    "docker.feedback.no-matching": "このアクションが必要なコンテナはありません",
+    "docker.feedback.rejected": "コンテナアクションが拒否されました",
+    "docker.feedback.request-failed": "リクエストが失敗したかタイムアウトになりました",
+    "docker.feedback.progress": "$1 · $2/$3 リクエストが完了しました",
+    "docker.feedback.restart-requested": "$1 再起動リクエストは受け入れられました · $2 は失敗しました",
+    "docker.feedback.waiting": "リクエスト完了・実行時待機中ステータス",
+    "docker.feedback.unconfirmed": "実行時ステータスが確認されていません · $1 リクエストが失敗しました",
+    "docker.feedback.missing-identity": "コンテナ識別子は使用できません。ページを更新する"
 }

@@ -55,6 +55,12 @@
             "Manual $1": "Atribuire manuală: $1"
         },
         "ja": {
+            "Starting containers": "コンテナを起動中",
+            "Stopping containers": "コンテナを停止中",
+            "Pausing containers": "コンテナを一時停止中",
+            "Direct members only": "直接所属するコンテナのみ",
+            "Updates available": "更新あり",
+            "Container": "コンテナ",
             "Disabled": "無効",
             "Recent actions and issues are kept in this browser for 30 days. Newest first.": "最近の操作と問題は、このブラウザーに30日間保存されます。新しい順に表示します。",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
@@ -132,6 +138,8 @@
             "Clear": "Wyczyść"
         },
         "de": {
+            "Starting containers": "Container werden gestartet",
+            "Container": "Container",
             "VMs: $1": "Virtuelle Maschinen: $1",
             "Dashboard": "Dashboard",
             "Order": "Reihenfolge",

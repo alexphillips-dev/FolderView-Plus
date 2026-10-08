@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Acciones de Vista de Carpeta",
     "docker.actions.add-folder": "Agregar Carpeta",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 de $3 listo)",
     "docker.webui-profiles.manage": "Administrar perfiles de WebUI",
     "docker.webui-profiles.none-title": "No hay UI web listas",
-    "docker.webui-profiles.none-body": "Ninguno de los contenedores seleccionados se ejecuta con una WebUI disponible."
+    "docker.webui-profiles.none-body": "Ninguno de los contenedores seleccionados se ejecuta con una WebUI disponible.",
+    "docker.feedback.starting": "Contenedores iniciales",
+    "docker.feedback.stopping": "Detener contenedores",
+    "docker.feedback.pausing": "Pausar contenedores",
+    "docker.feedback.resuming": "Reanudando contenedores",
+    "docker.feedback.restarting": "Reiniciar contenedores",
+    "docker.feedback.includes-children": "Incluye carpetas secundarias",
+    "docker.feedback.direct-members": "Solo miembros directos",
+    "docker.feedback.updates-available": "Actualizaciones disponibles",
+    "docker.feedback.total": "Total: $1 contenedores",
+    "docker.feedback.view-details": "Ver detalles",
+    "docker.feedback.container": "Contenedor",
+    "docker.feedback.partial": "$1 confirmado · $2 fallido",
+    "docker.feedback.confirmed": "Los contenedores $1 alcanzaron el estado solicitado",
+    "docker.feedback.no-matching": "Ningún contenedor necesita esta acción",
+    "docker.feedback.rejected": "La acción del contenedor fue rechazada.",
+    "docker.feedback.request-failed": "La solicitud falló o se agotó el tiempo de espera.",
+    "docker.feedback.progress": "$1 · $2 de $3 solicitudes completadas",
+    "docker.feedback.restart-requested": "$1 solicitudes de reinicio aceptadas · $2 fallidas",
+    "docker.feedback.waiting": "Solicitudes completadas · esperando el estado del tiempo de ejecución",
+    "docker.feedback.unconfirmed": "El estado del tiempo de ejecución no está confirmado · $1 solicitudes fallidas",
+    "docker.feedback.missing-identity": "El identificador del contenedor no está disponible; actualizar la pagina"
 }

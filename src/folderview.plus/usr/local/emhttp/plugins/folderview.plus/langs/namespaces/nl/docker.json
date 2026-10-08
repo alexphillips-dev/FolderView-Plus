@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "Mapweergave acties",
     "docker.actions.add-folder": "Map toevoegen",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 van $3 gereed)",
     "docker.webui-profiles.manage": "Beheer WebUI-profielen",
     "docker.webui-profiles.none-title": "Geen WebUI's gereed",
-    "docker.webui-profiles.none-body": "Geen van de geselecteerde containers draait met een beschikbare WebUI."
+    "docker.webui-profiles.none-body": "Geen van de geselecteerde containers draait met een beschikbare WebUI.",
+    "docker.feedback.starting": "Beginnende containers",
+    "docker.feedback.stopping": "Containers tegenhouden",
+    "docker.feedback.pausing": "Containers pauzeren",
+    "docker.feedback.resuming": "Hervatten van containers",
+    "docker.feedback.restarting": "Herstarten van containers",
+    "docker.feedback.includes-children": "Inclusief onderliggende mappen",
+    "docker.feedback.direct-members": "Alleen directe leden",
+    "docker.feedback.updates-available": "Updates beschikbaar",
+    "docker.feedback.total": "Totaal: $1 containers",
+    "docker.feedback.view-details": "Bekijk details",
+    "docker.feedback.container": "Houder",
+    "docker.feedback.partial": "$1 bevestigd · $2 mislukt",
+    "docker.feedback.confirmed": "$1 containers hebben de gevraagde status bereikt",
+    "docker.feedback.no-matching": "Er zijn geen containers die deze actie nodig hebben",
+    "docker.feedback.rejected": "De containeractie werd afgewezen",
+    "docker.feedback.request-failed": "Het verzoek is mislukt of er is een time-out opgetreden",
+    "docker.feedback.progress": "$1 · $2 van $3 verzoeken voltooid",
+    "docker.feedback.restart-requested": "$1 herstartverzoeken geaccepteerd · $2 mislukt",
+    "docker.feedback.waiting": "Verzoeken voltooid · wachten op runtimestatus",
+    "docker.feedback.unconfirmed": "Runtimestatus is niet bevestigd · $1 verzoeken zijn mislukt",
+    "docker.feedback.missing-identity": "De container-ID is niet beschikbaar; ververs de pagina"
 }

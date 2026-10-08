@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.08.03">
-<!ENTITY md5 "3745f26fd2883251409411c3e2e5e12b">
-<!ENTITY sha256 "f47b6850c050e1f039cde0309ba33014b6a92ec43af2bda700d8033d1d97bf16">
+<!ENTITY version "2026.10.08.04">
+<!ENTITY md5 "7ade81ad1cd1ee17539e595ae4baca45">
+<!ENTITY sha256 "9c577247024a0435f7e96564f2b20b74a7f0eff9a4e6f5f142bcc05b6064581a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.08.04
+- Feature: Docker folder Start, Stop, Pause, Resume, and Restart actions now show compact progress notices above the container table. Notices identify the folder, report completed requests, and keep the page usable while actions run.
+- Feature: Hover over, keyboard-focus, or tap a folder's running-count label to see running, stopped, paused, and update counts. The breakdown indicates whether it includes child folders and keeps the folder's expansion state.
+- Reliability: Duplicate actions on the same containers are blocked while pending. Start, Stop, Pause, and Resume are confirmed against refreshed runtime state; Restart reports accepted requests. Partial failures and unconfirmed status remain visible with details and dismissal controls. Missing container identifiers cannot produce an action request.
+- Compatibility: Feedback respects privacy masking, light/dark themes, smartphone layouts, keyboard controls, and reduced motion. Successful notices dismiss automatically. Hard-refresh the Unraid webGUI after updating to load the new browser assets.
+
 
 ###2026.10.08.03
 - UX: Clicking a nested folder in a Docker folder preview now opens the regular Docker folder menu directly, with the same Focus, Pin, Lock, and Hide shortcuts, state colors, container controls, folder-management actions, and separated Remove entry.

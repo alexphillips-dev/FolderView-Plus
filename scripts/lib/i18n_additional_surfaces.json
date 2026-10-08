@@ -12170,15 +12170,6 @@
     ]
   },
   {
-    "phrase": "Unknown folder action error.",
-    "locations": [
-      {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Unknown folder action error.'"
-      }
-    ]
-  },
-  {
     "phrase": "Unknown folder editor bootstrap failure.",
     "locations": [
       {

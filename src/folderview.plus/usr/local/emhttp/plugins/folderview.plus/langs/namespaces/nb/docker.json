@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "docker",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "docker.actions.label": "FolderView-handlinger",
     "docker.actions.add-folder": "Legg til mappe",
@@ -65,5 +65,26 @@
     "docker.webui-profiles.ready": "$1 ($2 av $3 klar)",
     "docker.webui-profiles.manage": "Administrer WebUI-profiler",
     "docker.webui-profiles.none-title": "Ingen WebUIer er klare",
-    "docker.webui-profiles.none-body": "Ingen av de valgte beholderne kjører med et tilgjengelig WebUI."
+    "docker.webui-profiles.none-body": "Ingen av de valgte beholderne kjører med et tilgjengelig WebUI.",
+    "docker.feedback.starting": "Starte containere",
+    "docker.feedback.stopping": "Stoppe containere",
+    "docker.feedback.pausing": "Setter containere på pause",
+    "docker.feedback.resuming": "Gjenoppta containere",
+    "docker.feedback.restarting": "Starter beholdere på nytt",
+    "docker.feedback.includes-children": "Inkluderer barnemapper",
+    "docker.feedback.direct-members": "Kun direkte medlemmer",
+    "docker.feedback.updates-available": "Oppdateringer tilgjengelig",
+    "docker.feedback.total": "Totalt: $1 containere",
+    "docker.feedback.view-details": "Se detaljer",
+    "docker.feedback.container": "Beholder",
+    "docker.feedback.partial": "$1 bekreftet · $2 mislyktes",
+    "docker.feedback.confirmed": "$1 containere nådde den forespurte tilstanden",
+    "docker.feedback.no-matching": "Ingen containere trenger denne handlingen",
+    "docker.feedback.rejected": "Beholderhandlingen ble avvist",
+    "docker.feedback.request-failed": "Forespørselen mislyktes eller ble tidsavbrutt",
+    "docker.feedback.progress": "$1 · $2 av $3 forespørsler fullført",
+    "docker.feedback.restart-requested": "$1 omstartsforespørsler akseptert · $2 mislyktes",
+    "docker.feedback.waiting": "Forespørsler fullført · venter på kjøretidsstatus",
+    "docker.feedback.unconfirmed": "Kjøretidsstatus er ikke bekreftet · $1-forespørsler mislyktes",
+    "docker.feedback.missing-identity": "Beholderidentifikatoren er utilgjengelig. oppdater siden"
 }

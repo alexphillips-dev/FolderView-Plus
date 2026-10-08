@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "legacy-surface",
-        "translation-context-revision": "edb400cc7504b95b48f8144cd5ed41fa3eb05315e2975e1cd00fce6d8da674b1"
+        "translation-context-revision": "ab06a71beb9b23826bd9806b6fc96678bccda19643b4af08173123b679bf0a6b"
     },
     "legacy.surface.0008eb7acd3f7a56": "대량이동 불가",
     "legacy.surface.0012950979762d8c": "복원, 다운로드 또는 삭제할 스냅샷을 선택하세요.",
@@ -831,7 +831,6 @@
     "legacy.surface.4594a3b522d344e3": "필터 표시",
     "legacy.surface.45989de49fb7f66d": "세부정보",
     "legacy.surface.4598cc153e912c9f": "폴더 설정 적용",
-    "legacy.surface.45b492d7e5b210d0": "알 수 없는 폴더 작업 오류입니다.",
     "legacy.surface.45d2cefa8ddce7a8": "가져오기 작업",
     "legacy.surface.45dccf6c33f8d1ef": "라벨 값이 누락되었습니다.",
     "legacy.surface.45f95a450344da81": "저장된 템플릿",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.01">
-<!ENTITY md5 "22bfcad0c53fcdda670ea2140ac635dc">
-<!ENTITY sha256 "830538049b596ac23b7d659bc521417568038bb50de4002bc0b0312c833712c9">
+<!ENTITY version "2026.10.09.02">
+<!ENTITY md5 "5b921d8b4568e47404a1bff120d535e3">
+<!ENTITY sha256 "5f9f262c5ba1ba70362aed4396759ac8e60a2388a77833290e2d23fb27f69ebc">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.02
+- Fix: Remove the extra blue focus outline from the Docker and VM sort dropdowns in Settings while preserving their existing dropdown styling and sorting behavior.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the corrected sort-control styles.
+
 
 ###2026.10.09.01
 - Fix: Remove the extra blue focus outline from the Docker and VM folder searches in Settings and the blue outer glow from the main Settings search. Focused search fields use a single orange accent border in Basic and Advanced views.

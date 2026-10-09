@@ -3145,7 +3145,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     border-color: var(--fvplus-settings-accent);
 }
 
-#fv-settings-root .fv-basic-search > input[type="text"]:focus {
+#fv-settings-root :is(.fv-basic-search, .fv-basic-sort) > :focus {
     outline: none;
 }
 

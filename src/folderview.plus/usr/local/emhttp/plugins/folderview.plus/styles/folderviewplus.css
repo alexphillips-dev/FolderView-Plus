@@ -9963,6 +9963,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-mode-toggle button {
     flex: 0 0 auto;
     min-width: 88px;
+    min-height: 30px;
+    padding: 0 0.55rem;
     margin: 0;
     border: 0;
     border-right: 1px solid rgba(255, 255, 255, 0.16);
@@ -9990,7 +9992,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     gap: 0.65rem;
     box-sizing: border-box;
     width: 100%;
-    min-height: 34px;
+    min-height: 30px;
     padding: 0 0.35rem 0 0.55rem;
     color: var(--fvplus-settings-text-muted);
     background: var(--fvplus-settings-surface-field);
@@ -10011,13 +10013,15 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-settings-search-wrap input[type="text"] {
     width: 100%;
-    min-height: 32px;
+    min-height: 28px;
+    height: 28px;
 }
 
 .fv-settings-search-wrap input[type="search"] {
     width: 100%;
     min-width: 0;
-    min-height: 32px;
+    min-height: 28px;
+    height: 28px;
     margin: 0;
     padding: 0;
     color: var(--fvplus-settings-text-primary);
@@ -10182,8 +10186,19 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 #fv-run-wizard {
-    min-height: 34px;
-    padding: 0.3rem 0.55rem;
+    min-height: 30px;
+    padding: 0 0.55rem;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+    #fv-settings-root :is(.fv-mode-toggle button, #fv-run-wizard, .fv-settings-search-wrap) {
+        min-height: 40px;
+    }
+
+    #fv-settings-root .fv-settings-search-wrap :is(input[type="text"], input[type="search"]) {
+        min-height: 38px;
+        height: 38px;
+    }
 }
 
 .fv-setup-sidebar-toggle {

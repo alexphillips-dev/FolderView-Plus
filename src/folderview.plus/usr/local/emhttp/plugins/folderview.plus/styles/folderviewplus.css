@@ -4097,58 +4097,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: var(--fvplus-settings-surface-muted);
 }
 
-.fv-rules-overview-copy {
-    display: grid;
-    gap: 0.25rem;
-}
-
-.fv-rules-status-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    max-width: 100%;
-    min-height: 24px;
-    padding: 0.12rem 0.6rem;
-    border-radius: 999px;
-    border: 1px solid var(--fvplus-settings-border-faint);
-    background: var(--fvplus-settings-surface-strong);
-    color: var(--fvplus-settings-text-muted);
-    font-size: 0.88rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.fv-rules-status-chip.is-ready {
-    border-color: var(--fvplus-settings-chip-ok-border);
-    background: var(--fvplus-settings-chip-ok-bg);
-    color: var(--fvplus-settings-chip-ok);
-}
-
-.fv-rules-status-chip.is-watch {
-    border-color: var(--fvplus-settings-warning-border);
-    background: var(--fvplus-settings-warning-soft);
-    color: var(--fvplus-settings-title-accent);
-}
-
-.fv-rules-status-chip.is-attention {
-    border-color: var(--fvplus-settings-chip-danger-border);
-    background: var(--fvplus-settings-chip-danger-bg);
-    color: var(--fvplus-settings-chip-danger);
-}
-
-.fv-rules-headline {
-    font-size: 1.14rem;
-    font-weight: 700;
-    color: var(--fvplus-settings-text-primary);
-}
-
-.fv-rules-detail {
-    margin: 0;
-    color: var(--fvplus-settings-text-muted);
-    line-height: 1.5;
-}
 
 .fv-rules-stat-grid {
     display: grid;
@@ -4364,75 +4312,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     white-space: nowrap;
 }
 
-.fv-rule-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: start;
-    padding: 0.82rem 0.9rem;
-    border-radius: 12px;
-    border: 1px solid var(--fvplus-settings-border-faint);
-    background: var(--fvplus-settings-surface-strong);
-}
-
-.fv-rule-card.is-disabled {
-    opacity: 0.84;
-}
-
-.fv-rule-card.is-invalid {
-    border-color: var(--fvplus-settings-chip-danger-border);
-}
-
-.fv-rule-card-select {
-    padding-top: 0.15rem;
-}
-
-.fv-rule-card-main {
-    display: grid;
-    gap: 0.36rem;
-    min-width: 0;
-}
-
-.fv-rule-card-top {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.45rem 0.7rem;
-    align-items: center;
-}
-
-.fv-rule-order-pill {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    padding: 0.14rem 0.5rem;
-    border-radius: 999px;
-    background: var(--fvplus-settings-chip-info-bg);
-    color: var(--fvplus-settings-chip-info);
-    border: 1px solid var(--fvplus-settings-chip-info-border);
-    font-size: 0.88rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.fv-rule-card-summary {
-    font-size: 1.02rem;
-    font-weight: 700;
-    line-height: 1.45;
-    color: var(--fvplus-settings-text-primary);
-}
-
-.fv-rule-card-detail {
-    color: var(--fvplus-settings-text-muted);
-    line-height: 1.45;
-}
-
-.fv-rule-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.36rem;
-}
 
 .fv-rule-chip {
     display: inline-flex;
@@ -4475,16 +4354,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-danger);
 }
 
-.fv-rule-card-actions {
-    display: inline-flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    align-items: stretch;
-}
-
-.fv-rule-card-actions > button {
-    white-space: nowrap;
-}
 
 .fv-rule-tester-grid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -4612,19 +4481,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-rule-builder-actions,
     .fv-rule-test-actions {
         justify-content: flex-start;
-    }
-
-    .fv-rule-card {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .fv-rule-card-select {
-        padding-top: 0;
-    }
-
-    .fv-rule-card-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
     }
 
     .fv-rule-suggestion-card,

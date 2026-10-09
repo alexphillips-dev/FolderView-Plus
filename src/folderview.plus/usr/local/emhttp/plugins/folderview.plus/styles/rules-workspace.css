@@ -1,0 +1,111 @@
+/* Rules presentation shares the existing matcher, preference store and UI primitives. */
+#fv-settings-root h2[data-fv-section="auto-assignment"] { --fvplus-settings-title-accent: var(--fvplus-settings-text-primary); margin-bottom: .4rem; }
+#fv-settings-root .fv-rules-redesign { display: grid; gap: 1rem; --fv-rules-surface: color-mix(in srgb, var(--fvplus-settings-chip-info) 5%, var(--fvplus-settings-surface-panel)); --fvplus-settings-chip-ok: var(--fvplus-settings-chip-success); --fvplus-settings-chip-ok-bg: var(--fvplus-settings-chip-success-bg); --fvplus-settings-chip-ok-border: var(--fvplus-settings-chip-success-border); }
+#fv-settings-root .fv-rules-redesign button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font: inherit; }
+#fv-settings-root .fv-rules-redesign button[hidden] { display: none; }
+#fv-settings-root .fv-rules-redesign [data-rule-icon] { display: inline-flex; align-items: center; flex-shrink: 0; }
+#fv-settings-root .fv-rules-redesign > .rules-panel { padding: 0; border: 0; background: none; min-width: 0; }
+#fv-settings-root .fv-rules-workspace { display: grid; gap: 1rem; min-width: 0; }
+#fv-settings-root .fv-rules-workspace > *, .fv-rules-stat-card { min-width: 0; }
+#fv-settings-root .fv-rules-workspace[hidden] { display: none; }
+#fv-settings-root .fv-rules-source-panel > p { margin: 0 0 .9rem; }
+.fv-rules-workspace-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+#fv-settings-root .fv-rules-redesign .fv-rules-source-switch { gap: 0; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 8px; overflow: hidden; }
+#fv-settings-root .fv-rules-redesign .fv-rules-source-btn { min-width: 140px; min-height: 42px; border-radius: 0; margin: 0; }
+#fv-settings-root .fv-rules-redesign .fv-rules-source-btn.is-active { --fv-button-bg: var(--fvplus-settings-accent); --fv-button-fg: #171718; --fvplus-settings-button-accent-top: var(--fvplus-settings-accent); --fvplus-settings-button-accent-fg: #171718; --fvplus-settings-button-bg-top: var(--fvplus-settings-accent); --fvplus-settings-button-fg: #171718; }
+#fv-settings-root .fv-rules-tester-launch { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem; text-align: start; margin: 0; }
+.fv-rules-tester-launch > span:last-child { display: grid; gap: .2rem; }
+.fv-rules-tester-launch small { font-weight: 400; color: var(--fvplus-settings-text-muted); }
+.fv-rules-tester-launch > [data-rule-icon] { color: var(--fvplus-settings-accent); font-size: 1.8rem; }
+#fv-settings-root .fv-rules-overview { padding: 0; border: 0; background: none; }
+#fv-settings-root .fv-rules-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; }
+#fv-settings-root .fv-rules-stat-card { display: flex; align-items: center; gap: 1rem; background: var(--fv-rules-surface); padding: 1rem; min-height: 4.8rem; }
+.fv-rules-stat-card > [data-rule-icon] { display: grid; place-items: center; flex: 0 0 3rem; height: 3rem; border-radius: 10px; background: var(--fvplus-settings-surface-strong); font-size: 1.7rem; }
+.fv-rules-stat-card > div { display: grid; gap: .25rem; min-width: 0; overflow-wrap: anywhere; }
+#fv-settings-root .fv-rules-stat-label { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 1rem; }
+#fv-settings-root .fv-rules-stat-value { font-size: 1.6rem; }
+[data-rule-stat="active"] > [data-rule-icon] { color: var(--fvplus-settings-chip-ok); background: var(--fvplus-settings-chip-ok-bg); }
+[data-rule-stat="exclude"] > [data-rule-icon] { color: var(--fvplus-settings-chip-danger); background: var(--fvplus-settings-chip-danger-bg); }
+[data-rule-stat="folders"] > [data-rule-icon] { color: var(--fvplus-settings-accent); background: var(--fvplus-settings-warning-soft); }
+#fv-settings-root .fv-rules-redesign .fv-rule-stage { margin: 0; background: var(--fv-rules-surface); padding: 1rem; }
+.fv-rule-create { position: relative; grid-template-columns: minmax(0, 1fr); }
+#fv-settings-root .fv-rules-redesign .fv-rule-stage-head { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+.fv-rule-stage-head > [data-rule-icon] { flex: 0 0 2.6rem; display: grid; place-items: center; height: 2.6rem; font-size: 1.7rem; color: var(--fvplus-settings-accent); background: var(--fvplus-settings-warning-soft); border-radius: 9px; }
+.fv-rule-stage-head > div { display: grid; gap: .3rem; min-width: 0; }
+.fv-rule-stage-head > div > strong { font-size: 1.2rem; color: var(--fvplus-settings-text-primary); }
+.fv-rule-stage-head > div > span { font-size: .95rem; color: var(--fvplus-settings-text-muted); line-height: 1.4; }
+.fv-rule-create > .fv-rule-stage-head { padding-inline-end: 14rem; margin-bottom: .4rem; }
+.fv-rule-create .fv-rule-stage-head > [data-rule-icon] { background: var(--fvplus-settings-accent); color: var(--fvplus-settings-button-accent-fg); }
+#fv-settings-root .fv-rule-builder-grid { grid-template-columns: minmax(140px, 1fr) minmax(130px, .9fr) minmax(140px, 1fr) minmax(280px, 1.8fr) minmax(160px, 1.3fr); gap: 1rem; align-items: end; }
+#fv-settings-root .fv-rule-builder-field > :is(input, select) { width: 100%; min-width: 0; min-height: 40px; box-sizing: border-box; margin: 0; font: inherit; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 7px; background: var(--fvplus-settings-surface-field); color: var(--fvplus-settings-text-primary); padding: .5rem .7rem; }
+.fv-rule-builder-field > span { font-weight: 700; font-size: .95rem; }
+.fv-rule-segments { display: flex; gap: .2rem; flex-wrap: wrap; }
+#fv-settings-root .fv-rule-segments > button { margin: 0; min-height: 40px; flex: 1 0 auto; padding: .4rem .6rem; font: inherit; white-space: nowrap; }
+#fv-settings-root .fv-rule-segments > [aria-pressed="true"] { --fv-button-bg: var(--fvplus-settings-accent); --fv-button-fg: var(--fvplus-ui-accent-contrast, #171718); }
+.fv-rule-advanced > summary { position: absolute; inset-inline-end: 1rem; top: 1rem; display: flex; align-items: center; gap: .5rem; cursor: pointer; padding: .6rem .8rem; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 7px; background: var(--fvplus-settings-surface-field); }
+.fv-rule-advanced > summary::-webkit-details-marker { display: none; }
+.fv-rule-advanced-fields { display: flex; align-items: start; flex-wrap: wrap; gap: 1rem; padding: .6rem 0; }
+.fv-rule-label-field { flex: 1 1 300px; }
+.fv-rule-label-field[hidden] { display: none; }
+.fv-rule-advanced-fields > .rules-help { flex-basis: 100%; margin: 0; }
+#fv-settings-root .fv-rule-builder-actions { gap: .8rem; flex-wrap: wrap; }
+.fv-rule-live-preview { display: flex; align-items: center; gap: .8rem; flex: 1 1 300px; padding: .65rem .8rem; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 8px; min-width: 0; }
+.fv-rule-live-preview > [data-rule-icon] { font-size: 1.6rem; }
+.fv-rule-live-preview > div { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
+.fv-rule-live-preview > div > span { color: var(--fvplus-settings-text-muted); font-size: .9rem; }
+#fv-settings-root .fv-rule-live-preview > output { margin: 0; margin-inline-start: auto; color: var(--fvplus-settings-chip-info); white-space: nowrap; font-size: 1rem; }
+#fv-settings-root .fv-rule-live-preview > output.is-invalid { color: var(--fvplus-settings-chip-danger); white-space: normal; overflow-wrap: anywhere; }
+#fv-settings-root .fv-rule-builder-actions > .rules-add-btn { min-height: 46px; padding: .65rem 1.5rem; --fv-button-bg: var(--fvplus-settings-accent); --fv-button-fg: #171718; --fvplus-settings-button-bg-top: var(--fvplus-settings-accent); --fvplus-settings-button-fg: #171718; }
+#fv-settings-root .fv-rule-suggestions { grid-template-columns: 1fr auto; border-color: var(--fvplus-settings-warning-border); background: linear-gradient(110deg, var(--fvplus-settings-warning-soft), var(--fv-rules-surface)); }
+.fv-rule-suggestions > .fv-rule-suggestion-list { grid-column: 1 / -1; }
+.fv-rule-suggestion-list[hidden] { display: none; }
+#fv-settings-root .fv-rule-test-actions { justify-content: flex-end; }
+#fv-settings-root .fv-rule-suggestions .fv-rule-test-actions > button { min-height: 40px; padding: .5rem .85rem; margin: 0; }
+.fv-rule-review-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+#fv-settings-root .fv-rule-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.fv-rule-search { display: flex; align-items: center; gap: .6rem; border: 1px solid var(--fvplus-settings-border-subtle); background: var(--fvplus-settings-surface-field); border-radius: 7px; padding: .4rem .65rem; }
+#fv-settings-root .fv-rule-search > input { border: 0; background: transparent; margin: 0; min-height: 26px; font: inherit; width: 12rem; min-width: 0; outline: none; box-shadow: none; }
+.fv-rule-search:focus-within { border-color: var(--fvplus-settings-accent); }
+#fv-settings-root .fv-rule-selection-actions > button { min-height: 38px; margin: 0; }
+.fv-rule-table-scroll { overflow: auto; max-height: 32rem; border: 1px solid var(--fvplus-settings-border-faint); }
+#fv-settings-root .fv-rule-table { width: 100%; min-width: 800px; border-collapse: collapse; margin: 0; font-size: 1rem; }
+#fv-settings-root .fv-rule-list { display: table-row-group; }
+#fv-settings-root .fv-rule-table :is(th, td) { padding: .38rem .7rem; text-align: start; vertical-align: middle; border-bottom: 1px solid var(--fvplus-settings-border-faint); }
+#fv-settings-root .fv-rule-table th { position: sticky; top: 0; z-index: 1; background: var(--fvplus-settings-surface-panel); color: var(--fvplus-settings-text-primary); white-space: nowrap; }
+#fv-settings-root .fv-rule-table tbody > tr:nth-child(even) { background: var(--fvplus-settings-surface-muted); }
+#fv-settings-root .fv-rule-table tbody > tr:is(:hover, .is-selected) { background: var(--fvplus-settings-chip-info-bg); }
+.fv-rule-table .is-dragging { opacity: .45; }
+#fv-settings-root .fv-rule-table button { padding: .2rem; margin: 0; min-width: 26px; min-height: 26px; --fv-button-bg: transparent; --fv-button-border: transparent; }
+#fv-settings-root .fv-rule-table input[type="checkbox"] { margin: 0; }
+.fv-rule-select { white-space: nowrap; }
+[data-rule-drag] { cursor: grab; }
+.fv-rule-folder { display: inline-flex; align-items: center; gap: .7rem; }
+.fv-rule-folder > svg { color: var(--fvplus-settings-accent); flex-shrink: 0; }
+.fv-rule-match { overflow-wrap: anywhere; max-width: 28rem; }
+.fv-rule-problems { display: block; color: var(--fvplus-settings-chip-danger); }
+.fv-rule-status { display: inline-flex; align-items: center; gap: .6rem; white-space: nowrap; color: var(--fvplus-settings-text-muted); }
+.fv-rule-status::before { content: ''; width: .55rem; height: .55rem; border-radius: 50%; background: currentColor; }
+.fv-rule-status.is-active { color: var(--fvplus-settings-chip-ok); }
+.fv-rule-table-footer { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .9rem; color: var(--fvplus-settings-text-muted); }
+.fv-rules-menu { display: grid; gap: .3rem; min-width: 12rem; }
+.fv-rules-menu > button { justify-content: flex-start; }
+.fv-rules-menu > .is-danger { --fv-button-fg: var(--fvplus-ui-danger); border-top: 1px solid var(--fvplus-ui-border-subtle); margin-top: .3rem; }
+#fv-settings-root .fv-rule-tester-close { margin-bottom: 1rem; }
+#fv-settings-root .fv-rules-issue-row { color: var(--fvplus-settings-chip-danger); }
+@media (max-width: 1300px) {
+    #fv-settings-root .fv-rule-builder-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fv-rule-builder-grid > :nth-child(4) { grid-column: 1 / -1; }
+    #fv-settings-root .fv-rule-suggestions { grid-template-columns: 1fr; }
+    #fv-settings-root .fv-rule-test-actions { justify-content: flex-start; }
+}
+@media (max-width: 700px) {
+    #fv-settings-root .fv-rules-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #fv-settings-root .fv-rule-builder-grid { grid-template-columns: minmax(0, 1fr); }
+    .fv-rule-builder-grid > :nth-child(4) { grid-column: auto; }
+    .fv-rule-create > .fv-rule-stage-head { padding-inline-end: 0; }
+    .fv-rule-advanced > summary { position: static; width: fit-content; }
+    .fv-rule-live-preview { flex-wrap: wrap; }
+    #fv-settings-root .fv-rule-live-preview > output { margin-inline-start: 0; }
+    .fv-rule-search { width: 100%; box-sizing: border-box; }
+    #fv-settings-root .fv-rule-search > input { width: 100%; }
+}

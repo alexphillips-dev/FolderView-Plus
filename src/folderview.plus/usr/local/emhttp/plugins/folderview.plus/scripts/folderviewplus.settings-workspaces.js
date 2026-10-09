@@ -684,6 +684,10 @@
 
         const syncRulesWorkspaceUi = () => {
             const activeType = normalizeRulesWorkspaceType(getActiveRulesWorkspaceTypeValue());
+            const description = documentRef?.getElementById('fv-rules-description');
+            if (description) description.textContent = activeType === 'docker'
+                ? translate('settings.rules.docker-description', 'Automatically organize your Docker containers into the right folders using flexible rules.')
+                : translate('settings.rules.vm-description', 'Automatically organize your VMs into the right folders using flexible rules.');
             documentRef?.querySelectorAll('[data-fv-rules-source-toggle]').forEach((button) => {
                 if (!(button instanceof windowRef.HTMLButtonElement)) {
                     return;

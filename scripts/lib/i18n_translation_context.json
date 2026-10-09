@@ -1,5 +1,7 @@
 {
     "sources": {
+        "Image": "Container image",
+        "Label": "Docker label",
         "Order": "Sort order",
         "Manual": "Manually assigned",
         "$1 manual": "Manually assigned: $1",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.05">
-<!ENTITY md5 "b46c77babb92dc01fa88173fa67c17c6">
-<!ENTITY sha256 "3cbe2e2e056d531d3a59374cb2fa41bd4e60fe6679923e9b5f5d1d8e80b171fe">
+<!ENTITY version "2026.10.09.06">
+<!ENTITY md5 "cb476d60afbf5cbd6be3116ecf969a70">
+<!ENTITY sha256 "cc9def21dd11e15a5d0c11e3245a334c6277f88870be5b49e97215b8dfe6b22a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.06
+- Feature: Redesign Advanced Settings > Rules with Docker/VM tabs, four summary cards, a guided rule builder, live match counts, smart suggestions, and a compact searchable rules table.
+- UX: Add Include/Exclude and Contains/Starts with/Ends with/Exact controls. Keep raw regex and Docker label keys in Advanced options, with Docker image and Compose project matching supported by the existing assignment engine.
+- Feature: Edit rules in the builder, reorder them by dragging or with keyboard/menu controls, and use selected-rule enable, disable, delete, and export actions. Open the existing priority tester, assignment preview, and conflict inspector from Open Rule Tester.
+- Fix: Preserve rule IDs, enabled states, and priorities when editing. Retain failed drafts, retry queued saves without creating duplicate rules, prevent repeated submissions, and preserve keyboard focus during table refreshes.
+- Compatibility: Existing saved rule formats and preference revision protections remain supported. Hard-refresh the Unraid webGUI after updating to load the new Rules workspace.
+
 
 ###2026.10.09.05
 - Fix: Make the Docker and VM Basic Settings Sort dropdown a single-row control whose full interior opens the native selector, including the label, icon, and arrow areas.

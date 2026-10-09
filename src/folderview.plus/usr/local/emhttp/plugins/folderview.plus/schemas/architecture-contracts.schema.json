@@ -86,6 +86,7 @@
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
       "scripts/dashboard.capture-feedback.js": { "limit": 70, "target": 60, "history": [70] },
       "scripts/folderviewplus.settings-workspaces.js": { "limit": 1101, "target": 500, "history": [1101] },
+      "scripts/folderviewplus.rules-workspace.js": { "limit": 300, "target": 260, "history": [300] },
       "scripts/folderviewplus.folderview3-migration.js": { "limit": 354, "target": 320, "history": [354] },
       "scripts/folderviewplus.folderview3-apply.js": { "limit": 98, "target": 90, "history": [98] },
       "scripts/runtime.transport.js": { "limit": 499, "target": 499, "history": [1060, 499] },
@@ -791,6 +792,18 @@
       "globalMember": "folderGroupsModel",
       "loader": "commonjs",
       "exports": ["normalizeFolderGroups"]
+    },
+    {
+      "file": "scripts/folderviewplus.rules-workspace.js",
+      "owner": "settings-rules-workspace",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.ui.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "rulesWorkspace",
+      "loader": "commonjs",
+      "exports": ["normalizeBuilderRule", "describeCondition", "reorderRules", "createApi"]
     },
     {
       "file": "scripts/folderviewplus.folder-groups.js",

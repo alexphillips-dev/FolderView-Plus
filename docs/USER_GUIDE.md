@@ -126,12 +126,12 @@ Folder locks and eligibility checks prevent unsupported runtime operations. Revi
 
 Advanced Auto-Rules are the primary automation system. Rules are evaluated in their saved priority order; the first enabled matching include or exclude decision wins.
 
-1. Open `Advanced -> Rules`.
-2. Create a rule for a supported name, label, Compose, or metadata match.
-3. Select Include or Exclude and the target folder.
-4. Test the rule against current inventory.
-5. Review conflicts and the assignment preview.
-6. Apply the plan only after the preview is correct.
+1. Open `Advanced -> Rules` and choose **Docker** or **VMs**. Summary cards show the total, active and exclude rules, and targeted folders.
+2. In **Create rule**, select the target folder, Include or Exclude, the match field, and Contains, Starts with, Ends with, or Exact. Enter the match value and check the live match count before saving.
+3. Open **Advanced options** for raw regular expressions or Docker label keys. Label rules support Contains, Starts with, and Exact; an empty Exact value matches any value for that key.
+4. Use **Scan suggestions** to find patterns in existing folders and members, then save only the checked suggestions.
+5. Search the rules table, select rows for bulk enable, disable, delete or export, and use each row's **Actions** menu to edit or move it. Drag the handle to reorder, or focus it and use the Up/Down arrow keys.
+6. Open **Rule Tester** to test one item, inspect conflicts and preview all assignments. Apply previewed assignments only after reviewing the plan.
 
 Legacy folder regex remains compatible for imports and existing installations, but new automation should use Advanced Auto-Rules. See [Migration Guide](MIGRATION_GUIDE.md) before converting legacy regex rules.
 

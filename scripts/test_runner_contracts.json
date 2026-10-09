@@ -69,6 +69,7 @@
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings-rules.mjs", "limit": 230, "owner": "production Settings rule saves, matching and responsive workspace" },
     { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
     { "file": "tests/browser/cases/settings-bulk-assignment.mjs", "limit": 155, "owner": "fixture bulk move layout, filtering, selection and atomic mutation" },
     { "file": "tests/browser/helpers/settings-alerts-health-layout.mjs", "limit": 45, "owner": "fixture Alerts centering and compact health dialog assertions" },
@@ -103,6 +104,7 @@
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
+        "tests/browser/cases/settings-rules.mjs",
         "tests/browser/cases/settings-folder-groups.mjs",
         "tests/browser/cases/settings-alerts-health.mjs",
         "tests/browser/cases/settings-bulk-assignment.mjs",
@@ -149,10 +151,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 101,
-      "assertionCount": 1249,
-      "pageEvaluateCount": 323,
-      "orderedTitleSha256": "87bbd957d3c8d911685d0f2d3331db22bd45009d60a54494c6d3459bd645d85d"
+      "testCount": 103,
+      "assertionCount": 1301,
+      "pageEvaluateCount": 329,
+      "orderedTitleSha256": "e7598661646008fbd926d7fb1bb1f0a91b811302144bc80a1c944905de8e19e5"
     }
   }
 }

@@ -1260,20 +1260,20 @@
   },
   {
     "file": "scripts/folderviewplus.js",
-    "key": "common.repair.1-rules-matching-the-current-filter-2-of-3-061470",
-    "english": "$1 Rules matching the current filter: $2 of $3.",
+    "key": "settings.rules.showing",
+    "english": "Showing $1 of $2 rules",
     "params": [
-      "detailText",
-      "filteredCount",
-      "totalCount"
+      "filteredRules.length",
+      "rules.length"
     ]
   },
   {
     "file": "scripts/folderviewplus.js",
-    "key": "common.repair.matching-rules-shown-1-0b0157",
-    "english": "Matching rules shown: $1.",
+    "key": "settings.rules.selected",
+    "english": " · $1 selected ($2 shown)",
     "params": [
-      "filteredRules.length"
+      "validSelected.size",
+      "selectedShownCount"
     ]
   },
   {

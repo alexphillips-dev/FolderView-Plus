@@ -387,15 +387,6 @@
     "explicit": true
   },
   {
-    "phrase": "$1 active $2 evaluating in priority order.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "evaluating in priority order."
-      }
-    ]
-  },
-  {
     "phrase": "$1 active of $2 total rules",
     "locations": [
       {
@@ -648,15 +639,6 @@
       {
         "file": "scripts/folder.js",
         "anchor": "editor bulk move"
-      }
-    ]
-  },
-  {
-    "phrase": "$1 exclude rules",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "exclude rules"
       }
     ]
   },
@@ -1240,15 +1222,6 @@
       {
         "file": "scripts/folderviewplus.actions-support.js",
         "anchor": "scheduled backup run"
-      }
-    ]
-  },
-  {
-    "phrase": "$1 selected of $2 shown. Use the bulk actions above to update them together.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "shown. Use the bulk actions above to update them together."
       }
     ]
   },
@@ -2044,15 +2017,6 @@
       {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
         "anchor": "against a"
-      }
-    ]
-  },
-  {
-    "phrase": "All $1 $2 currently disabled.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "currently disabled."
       }
     ]
   },
@@ -3115,15 +3079,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "\" looks related to"
-      }
-    ]
-  },
-  {
-    "phrase": "Compose project name (example: media)",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Compose project name (example: media)'"
       }
     ]
   },
@@ -4371,15 +4326,6 @@
     ]
   },
   {
-    "phrase": "Enable at least one rule if you want new items to be assigned automatically.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Enable at least one rule if you want new items to be assigned automatically.'"
-      }
-    ]
-  },
-  {
     "phrase": "Enable imports/rules or adjust behavior to produce at least one planned change.",
     "locations": [
       {
@@ -4492,10 +4438,6 @@
     "locations": [
       {
         "file": "scripts/folder.editor.rules.js",
-        "anchor": "'Exclude rule'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
         "anchor": "'Exclude rule'"
       }
     ]
@@ -5007,15 +4949,6 @@
       {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "'Fine tune how folder status warnings are calculated.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Fix invalid or incomplete rules first so the priority order behaves predictably.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Fix invalid or incomplete rules first so the priority order behaves predictably.'"
       }
     ]
   },
@@ -6442,10 +6375,6 @@
       {
         "file": "scripts/folder.editor.rules.js",
         "anchor": "'Include rule'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Include rule'"
       }
     ]
   },
@@ -7444,10 +7373,6 @@
     "phrase": "Needs review",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Needs review'"
-      },
-      {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "'Needs review'"
       }
@@ -7567,24 +7492,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "folders are available to save as manual order."
-      }
-    ]
-  },
-  {
-    "phrase": "No $1 rules selected.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "rules selected."
-      }
-    ]
-  },
-  {
-    "phrase": "No $1 rules yet.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "rules yet."
       }
     ]
   },
@@ -8910,10 +8817,6 @@
       {
         "file": "scripts/folder.editor.type-docker.js",
         "anchor": "'Regex pattern (example: ^media$)'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Regex pattern (example: ^media$)'"
       }
     ]
   },
@@ -8935,10 +8838,6 @@
       },
       {
         "file": "scripts/folder.editor.type-docker.js",
-        "anchor": "'Regex pattern (example: linuxserver/)'"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
         "anchor": "'Regex pattern (example: linuxserver/)'"
       }
     ]
@@ -9463,15 +9362,6 @@
     ]
   },
   {
-    "phrase": "Review the priority order below. The first matching rule wins.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Review the priority order below. The first matching rule wins."
-      }
-    ]
-  },
-  {
     "phrase": "Review the setup plan before continuing.",
     "locations": [
       {
@@ -9584,24 +9474,6 @@
     ]
   },
   {
-    "phrase": "rule is",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'rule is'"
-      }
-    ]
-  },
-  {
-    "phrase": "rule needs",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'rule needs'"
-      }
-    ]
-  },
-  {
     "phrase": "Rule preview assignment",
     "locations": [
       {
@@ -9616,15 +9488,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "'Rule preview assignment transaction failed.'"
-      }
-    ]
-  },
-  {
-    "phrase": "rules are",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'rules are'"
       }
     ]
   },
@@ -9652,15 +9515,6 @@
       {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "Rules do not start or stop apps"
-      }
-    ]
-  },
-  {
-    "phrase": "rules need",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'rules need'"
       }
     ]
   },
@@ -10941,10 +10795,6 @@
       {
         "file": "scripts/folderviewplus.bulk-assignment.js",
         "anchor": "Target folder:"
-      },
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Target folder:"
       }
     ]
   },
@@ -11026,24 +10876,6 @@
       {
         "file": "scripts/folder.editor.rule-template-workspace.js",
         "anchor": "'Template rule added before the final catch-all.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Text at the start of the name (example: prod-)",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Text at the start of the name (example: prod-)'"
-      }
-    ]
-  },
-  {
-    "phrase": "Text in the image (example: linuxserver/sonarr)",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Text in the image (example: linuxserver/sonarr)'"
       }
     ]
   },
@@ -12860,15 +12692,6 @@
       {
         "file": "scripts/folder.js",
         "anchor": "'Warning: requested folder could not be loaded.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Watch excludes",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'Watch excludes'"
       }
     ]
   },

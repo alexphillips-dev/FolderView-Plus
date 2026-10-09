@@ -372,8 +372,8 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
 
 test('rules and bulk assignment use source-switched workspaces', () => {
     assert.match(settingsPage, /class="fv-rules-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
-    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-status"[\s\S]*id="docker-rules-selection-summary"[\s\S]*id="docker-rules"/);
-    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-status"[\s\S]*id="vm-rules-selection-summary"[\s\S]*id="vm-rules"/);
+    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-total"[\s\S]*id="docker-rules"[\s\S]*id="docker-rules-selection-summary"/);
+    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-total"[\s\S]*id="vm-rules"[\s\S]*id="vm-rules-selection-summary"/);
     assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="docker"[\s\S]*id="docker-rule-test-output"[\s\S]*id="docker-conflict-output"/);
     assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rule-test-output"[\s\S]*id="vm-conflict-output"/);
     assert.match(settingsJs, /const normalizeRulesWorkspaceType = \(value\) =>/);

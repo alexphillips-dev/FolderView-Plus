@@ -21,6 +21,7 @@
         "scripts/folderviewplus.utils-rules.js",
         "scripts/folderviewplus.rule-templates.js",
         "scripts/folderviewplus.utils.js",
+        "scripts/folderviewplus.rules-workspace.js",
         "scripts/folderviewplus.ui.js",
         "scripts/folderviewplus.request-diagnostics.js",
         "scripts/folderviewplus.request.js",

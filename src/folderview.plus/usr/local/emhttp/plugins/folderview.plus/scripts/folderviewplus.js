@@ -61,6 +61,7 @@ const settingsRegistry = window.FolderViewPlusSettingsRegistry || null;
 const viewSettingsModule = window.FolderViewPlusViewSettings || null;
 const settingsSearchModule = window.FolderViewPlusFoundationModules?.settingsSearch || null;
 const ruleTemplatesModule = window.FolderViewPlusFoundationModules?.ruleTemplates || null;
+const rulesWorkspaceModule = window.FolderViewPlusFoundationModules?.rulesWorkspace;
 const viewSettingsChangeController = viewSettingsModule?.createChangeController?.({ registry: settingsRegistry })?.start?.() || null;
 const resolveViewSettingsChange = (handler, type, key, value, fallback) => (
     viewSettingsChangeController?.resolve?.(handler, type, key, value, fallback) || null
@@ -1450,7 +1451,7 @@ const isInputInvalidForUi = (input) => {
             return true;
         }
     }
-    if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && String(input.value || '').trim()) {
+    if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && document.getElementById(input.id.replace('-pattern', '-regex'))?.checked && String(input.value || '').trim()) {
         try {
             // eslint-disable-next-line no-new
             new RegExp(String(input.value || '').trim());
@@ -1844,6 +1845,10 @@ const scrollToSectionKey = (key) => {
     }
     settingsUiState.activeSectionKey = key;
     syncSectionJumpOptions();
+    if (key === 'conflict-inspector') {
+        document.getElementById('fv-rules-tester').open = true;
+        document.querySelector('[data-rule-tester="open"]').setAttribute('aria-expanded', 'true');
+    }
     section.heading.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth', block: 'start' });
 };
 
@@ -2035,7 +2040,7 @@ const ensureRegexPresetUi = (type) => {
     const presetId = `${type}-rule-presets`;
     const hintId = `${type}-rule-live-match`;
     if (!$(`#${presetId}`).length) {
-        patternInput.after(`
+        $(`#${type}-rule-advanced`).append(`
             <div id="${presetId}" class="rule-presets">
                 <span>Regex presets:</span>
                 <button type="button" data-type="${type}" data-preset="starts_with">Starts with</button>
@@ -2050,7 +2055,7 @@ const ensureRegexPresetUi = (type) => {
     }
 };
 
-const escapeRegexLiteral = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRegexLiteral = (value) => rulesWorkspaceModule.escapeLiteral(value);
 
 const applyRegexPreset = (type, preset) => {
     const input = $(`#${type}-rule-pattern`);
@@ -2073,138 +2078,31 @@ const applyRegexPreset = (type, preset) => {
         pattern = `^${escaped}$`;
     }
 
-    if (type === 'docker' && String($('#docker-rule-kind').val() || '') !== 'name_regex') {
-        $('#docker-rule-kind').val('name_regex');
-        toggleRuleKindFields('docker');
-    }
+    $(`#${type}-rule-field`).val('name');
+    $(`#${type}-rule-regex`).prop('checked', true);
+    toggleRuleKindFields(type);
     input.val(pattern);
     input.trigger('input');
     input.trigger('change');
 };
 
-const getDockerItemLabels = (itemInfo) => itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
-
-const basenameFromPathish = (value) => {
-    const trimmed = String(value || '').trim();
-    if (!trimmed) {
-        return '';
-    }
-    const firstEntry = trimmed.split(',')[0].trim();
-    if (!firstEntry) {
-        return '';
-    }
-    const normalized = firstEntry.replace(/\\/g, '/').replace(/\/+$/, '');
-    if (!normalized) {
-        return '';
-    }
-    const parts = normalized.split('/');
-    return String(parts[parts.length - 1] || '').trim();
-};
-
-const getComposeProjectLabelValue = (labels) => {
-    if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
-        return String(utils.getComposeProjectFromLabels(labels) || '');
-    }
-    const source = labels && typeof labels === 'object' ? labels : {};
-    const explicit = String(source['com.docker.compose.project'] || '').trim();
-    if (explicit) {
-        return explicit;
-    }
-    const fromWorkingDir = basenameFromPathish(source['com.docker.compose.project.working_dir']);
-    if (fromWorkingDir) {
-        return fromWorkingDir;
-    }
-    const configFiles = String(source['com.docker.compose.project.config_files'] || '').trim();
-    if (configFiles) {
-        const firstConfig = configFiles.split(',')[0].trim();
-        if (firstConfig) {
-            const normalized = firstConfig.replace(/\\/g, '/');
-            const dir = normalized.split('/').slice(0, -1).join('/');
-            const fromConfigDir = basenameFromPathish(dir);
-            if (fromConfigDir) {
-                return fromConfigDir;
-            }
-        }
-    }
-    return '';
-};
 
 const updateRuleLiveMatch = (type) => {
     const output = $(`#${type}-rule-live-match`);
-    if (!output.length) {
-        return;
-    }
+    if (!output.length) return;
+    const rule = normalizeRuleBuilderRuleInput({
+        type, folderId: $(`#${type}-rule-folder`).val(), effect: $(`#${type}-rule-effect`).val(),
+        kind: $(`#${type}-rule-kind`).val(), pattern: $(`#${type}-rule-pattern`).val(),
+        labelKey: $(`#${type}-rule-label-key`).val(), labelValue: $(`#${type}-rule-label-value`).val()
+    });
+    const problems = getAutoRuleProblems(type, rule);
+    const invalid = problems.some(problem => problem !== 'Missing folder');
     const names = Object.keys(infoByType[type] || {});
-    if (!names.length) {
-        output.removeClass('is-invalid is-ok').text('Live matches: no items available.');
-        return;
-    }
-
-    if (type === 'vm') {
-        const pattern = String($('#vm-rule-pattern').val() || '').trim();
-        if (!pattern) {
-            output.removeClass('is-invalid is-ok').text('Live matches: enter a regex pattern.');
-            return;
-        }
-        try {
-            const regex = new RegExp(pattern);
-            const count = names.filter((name) => regex.test(name)).length;
-            output.removeClass('is-invalid').addClass('is-ok').text(`Live matches: ${count}/${names.length} VMs`);
-        } catch (error) {
-            output.removeClass('is-ok').addClass('is-invalid').text(`Invalid regex: ${error.message}`);
-        }
-        return;
-    }
-
-    const kind = String($('#docker-rule-kind').val() || 'name_regex');
-    const pattern = String($('#docker-rule-pattern').val() || '').trim();
-    const labelKey = String($('#docker-rule-label-key').val() || '').trim();
-    const labelValue = String($('#docker-rule-label-value').val() || '').trim();
-    const info = infoByType.docker || {};
-
-    let count = 0;
-    try {
-        if (kind === 'name_regex' || kind === 'image_regex' || kind === 'compose_project_regex') {
-            if (!pattern) {
-                output.removeClass('is-invalid is-ok').text('Live matches: enter a regex pattern.');
-                return;
-            }
-            const regex = new RegExp(pattern);
-            for (const name of names) {
-                const row = info[name] || {};
-                const labels = getDockerItemLabels(row);
-                const image = row?.info?.Config?.Image || row?.Image || '';
-                const composeProject = getComposeProjectLabelValue(labels);
-                const value = kind === 'image_regex' ? image : (kind === 'compose_project_regex' ? composeProject : name);
-                regex.lastIndex = 0;
-                if (regex.test(String(value || ''))) {
-                    count += 1;
-                }
-            }
-        } else if (kind === 'label' || kind === 'label_contains' || kind === 'label_starts_with') {
-            if (!labelKey) {
-                output.removeClass('is-invalid is-ok').text('Live matches: enter a label key.');
-                return;
-            }
-            for (const name of names) {
-                const row = info[name] || {};
-                const labels = getDockerItemLabels(row);
-                const value = String(labels[labelKey] || '');
-                if (kind === 'label' && (labelValue ? value === labelValue : Boolean(value))) {
-                    count += 1;
-                }
-                if (kind === 'label_contains' && labelValue && value.includes(labelValue)) {
-                    count += 1;
-                }
-                if (kind === 'label_starts_with' && labelValue && value.startsWith(labelValue)) {
-                    count += 1;
-                }
-            }
-        }
-        output.removeClass('is-invalid').addClass('is-ok').text(`Live matches: ${count}/${names.length} containers`);
-    } catch (error) {
-        output.removeClass('is-ok').addClass('is-invalid').text(`Invalid regex: ${error.message}`);
-    }
+    const count = invalid ? 0 : names.filter(name => utils.ruleMatchesItem(rule, name, infoByType[type] || {}, type)).length;
+    const showInvalid = invalid && Boolean(rule.pattern || rule.labelKey || rule.labelValue);
+    output.toggleClass('is-invalid', showInvalid).text(showInvalid ? surfaceT('settings.rules.enter-match', 'Enter a valid match value.')
+        : (type === 'docker' ? surfaceT('settings.rules.matches-containers', 'Matches $1 containers', count) : surfaceT('settings.rules.matches-vms', 'Matches $1 VMs', count)));
+    $(`[data-fv-onclick="addAutoRule('${type}')"]`).prop('disabled', problems.length > 0);
 };
 
 const runQuickSetupWizard = (force = false, options = {}) => {
@@ -2438,12 +2336,6 @@ const initSettingsControls = () => {
             quiet: false
         });
     });
-    $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')
-        .off('input.fvlivematch change.fvlivematch')
-        .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('docker'));
-    $('#vm-rule-pattern')
-        .off('input.fvlivematch change.fvlivematch')
-        .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('vm'));
     $('#docker-rule-test-name, #docker-rule-test-label-key, #docker-rule-test-label-value, #docker-rule-test-image, #docker-rule-test-compose')
         .off('input.fvrulehint change.fvrulehint')
         .on('input.fvrulehint change.fvrulehint', () => updateRuleValidationHint('docker'));
@@ -7421,51 +7313,18 @@ const enhanceViewOrganizationWorkspace = (type) => {
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
-const RULE_SIMPLE_KINDS = Object.freeze(['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals']);
+const RULE_SIMPLE_KINDS = Object.freeze(['name', 'image', 'compose_project'].flatMap(field => ['contains', 'starts_with', 'ends_with', 'exact', 'equals'].map(operator => `${field}_${operator}`)));
 
-const normalizeRuleBuilderRuleInput = ({ type, folderId, effect, kind, pattern, labelKey, labelValue }) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const rawKind = String(kind || 'name_regex').trim().toLowerCase();
-    const safePattern = String(pattern || '').trim();
-    const safeLabelKey = String(labelKey || '').trim();
-    const safeLabelValue = String(labelValue || '').trim();
-    const normalized = {
-        id: '',
-        enabled: true,
-        folderId: String(folderId || '').trim(),
-        effect: effect === 'exclude' ? 'exclude' : 'include',
-        kind: rawKind,
-        pattern: '',
-        labelKey: '',
-        labelValue: ''
-    };
-
-    if (rawKind === 'name_contains') {
-        normalized.kind = 'name_regex';
-        normalized.pattern = escapeRegexLiteral(safePattern);
-    } else if (rawKind === 'name_starts_with') {
-        normalized.kind = 'name_regex';
-        normalized.pattern = `^${escapeRegexLiteral(safePattern)}`;
-    } else if (rawKind === 'image_contains' && resolvedType === 'docker') {
-        normalized.kind = 'image_regex';
-        normalized.pattern = escapeRegexLiteral(safePattern);
-    } else if (rawKind === 'compose_project_equals' && resolvedType === 'docker') {
-        normalized.kind = 'compose_project_regex';
-        normalized.pattern = `^${escapeRegexLiteral(safePattern)}$`;
-    } else if (RULE_LABEL_KINDS.includes(rawKind) && resolvedType === 'docker') {
-        normalized.kind = rawKind;
-        normalized.labelKey = safeLabelKey;
-        normalized.labelValue = safeLabelValue;
-    } else if (RULE_REGEX_KINDS.includes(rawKind) && (resolvedType === 'docker' || rawKind === 'name_regex')) {
-        normalized.kind = rawKind;
-        normalized.pattern = safePattern;
-    } else {
-        normalized.kind = 'name_regex';
-        normalized.pattern = safePattern;
-    }
-
-    return normalized;
-};
+const normalizeRuleBuilderRuleInput = (input) => rulesWorkspaceModule.normalizeBuilderRule(input);
+const getRulesWorkspaceApi = (() => {
+    let api = null;
+    return () => api ||= rulesWorkspaceModule.createApi({
+        window, document, ui: window.FolderViewPlusUI, translate: surfaceT,
+        getRules: type => prefsByType[type]?.autoRules || [], onDraftChange: updateRuleLiveMatch,
+        onMove: moveAutoRule, onReorder: reorderAutoRule,
+        onAction: (type, id, action) => action === 'delete' ? deleteAutoRule(type, id) : toggleAutoRule(type, id)
+    });
+})();
 
 const getRuleKindLabel = (rule) => {
     const kind = String(rule?.kind || 'name_regex').trim().toLowerCase();
@@ -7540,6 +7399,7 @@ const ruleDescription = (rule) => {
     }
     return `${effect} when name matches ${rule?.pattern || '(empty)'}`;
 };
+
 
 const buildRuleSummaryCopy = (type, rule, folderName) => {
     const targetLabel = type === 'docker' ? 'containers' : 'VMs';
@@ -7790,9 +7650,11 @@ const renderSmartRuleSuggestions = (type, suggestions = null) => {
     if (!root.length) {
         return;
     }
+    root.prop('hidden', false);
     const rows = Array.isArray(suggestions) ? suggestions : smartRuleSuggestionCacheByType[resolvedType] || [];
     if (!rows.length) {
         root.html(`<div class="fv-rule-list-empty"><strong>No suggestions found.</strong><span>Try creating folders or assigning a few current ${resolvedType === 'docker' ? 'containers' : 'VMs'} first so FolderView Plus has patterns to learn from.</span></div>`);
+        getRulesWorkspaceApi().updateSuggestions(resolvedType);
         return;
     }
     root.html(rows.map((suggestion, index) => `
@@ -7806,6 +7668,7 @@ const renderSmartRuleSuggestions = (type, suggestions = null) => {
             <span class="fv-rule-suggestion-count">${escapeHtml(surfaceT("common.runtime.matches-1", "Matches: $1", suggestion.matches.length))}</span>
         </label>
     `).join(''));
+    getRulesWorkspaceApi().updateSuggestions(resolvedType);
 };
 
 const scanSmartRuleSuggestions = (type) => {
@@ -7927,121 +7790,55 @@ const renderRulePreviewRows = (type, rows) => {
 };
 
 const renderRulesOverview = (type, rules, filteredRules) => {
-    const totalCount = Array.isArray(rules) ? rules.length : 0;
-    const activeCount = rules.filter((rule) => rule?.enabled !== false).length;
-    const excludeCount = rules.filter((rule) => rule?.effect === 'exclude').length;
-    const foldersCovered = new Set(rules.map((rule) => String(rule?.folderId || '').trim()).filter(Boolean)).size;
-    const invalidCount = rules.filter((rule) => getAutoRuleProblems(type, rule).length > 0).length;
-    const disabledCount = totalCount - activeCount;
-    const statusEl = document.getElementById(`${type}-rules-status`);
-    const headlineEl = document.getElementById(`${type}-rules-headline`);
-    const detailEl = document.getElementById(`${type}-rules-detail`);
-    const issueRow = document.getElementById(`${type}-rules-issues`);
-    const statMap = {
-        [`${type}-rules-total`]: totalCount,
-        [`${type}-rules-active`]: activeCount,
-        [`${type}-rules-exclude`]: excludeCount,
-        [`${type}-rules-folders`]: foldersCovered
-    };
-
-    Object.entries(statMap).forEach(([id, value]) => {
-        const node = document.getElementById(id);
-        if (node instanceof HTMLElement) {
-            node.textContent = String(value);
-        }
+    const counts = { total: rules.length, active: rules.filter(rule => rule.enabled !== false).length,
+        exclude: rules.filter(rule => rule.effect === 'exclude').length,
+        folders: new Set(rules.map(rule => rule.folderId).filter(Boolean)).size };
+    Object.entries(counts).forEach(([key, count]) => {
+        const node = document.getElementById(`${type}-rules-${key}`);
+        if (node) node.textContent = String(count);
     });
-
-    let statusText = 'No rules yet';
-    let headlineText = `No ${type === 'docker' ? 'Docker' : 'VM'} rules yet.`;
-    let detailText = type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first Docker container rule to automatically sort new items into the right folder.") : surfaceT("common.runtime.create-your-first-vm-rule-to-automatically-sort-new-items-into-the-right-folder", "Create your first VM rule to automatically sort new items into the right folder.");
-
-    if (totalCount > 0 && invalidCount > 0) {
-        statusText = 'Needs review';
-        headlineText = `${invalidCount} ${invalidCount === 1 ? 'rule needs' : 'rules need'} review.`;
-        detailText = 'Fix invalid or incomplete rules first so the priority order behaves predictably.';
-    } else if (totalCount > 0 && activeCount <= 0) {
-        statusText = 'Paused';
-        headlineText = `All ${totalCount} ${totalCount === 1 ? 'rule is' : 'rules are'} currently disabled.`;
-        detailText = 'Enable at least one rule if you want new items to be assigned automatically.';
-    } else if (totalCount > 0) {
-        statusText = excludeCount > 0 ? 'Watch excludes' : 'Ready';
-        headlineText = `${activeCount} active ${activeCount === 1 ? 'rule is' : 'rules are'} evaluating in priority order.`;
-        detailText = 'Rules run from top to bottom. The first matching include or exclude rule decides what happens.';
-    }
-
-    if (statusEl instanceof HTMLElement) {
-        statusEl.textContent = statusText;
-        statusEl.classList.toggle('is-attention', invalidCount > 0 || (totalCount > 0 && activeCount <= 0));
-        statusEl.classList.toggle('is-watch', invalidCount <= 0 && excludeCount > 0 && activeCount > 0);
-        statusEl.classList.toggle('is-ready', invalidCount <= 0 && activeCount > 0 && excludeCount <= 0);
-    }
-    if (headlineEl instanceof HTMLElement) {
-        headlineEl.textContent = headlineText;
-    }
-    if (detailEl instanceof HTMLElement) {
-        const filteredCount = Array.isArray(filteredRules) ? filteredRules.length : 0;
-        detailEl.textContent = filteredCount !== totalCount && totalCount > 0
-            ? surfaceT("common.repair.1-rules-matching-the-current-filter-2-of-3-061470", "$1 Rules matching the current filter: $2 of $3.", detailText, filteredCount, totalCount)
-            : detailText;
-    }
-
-    if (issueRow instanceof HTMLElement) {
-        const issues = [];
-        if (invalidCount > 0) {
-            issues.push(`<span class="fv-rules-issue-chip is-invalid">${escapeHtml(`${invalidCount} need review`)}</span>`);
-        }
-        if (disabledCount > 0) {
-            issues.push(`<span class="fv-rules-issue-chip">${escapeHtml(`${disabledCount} disabled`)}</span>`);
-        }
-        if (excludeCount > 0) {
-            issues.push(`<span class="fv-rules-issue-chip">${escapeHtml(`${excludeCount} exclude rules`)}</span>`);
-        }
-        issueRow.innerHTML = issues.join('');
-        issueRow.hidden = issues.length <= 0;
-    }
+    document.getElementById(`${type}-rules-list-count`).textContent = String(rules.length);
+    const selected = selectedRuleIdsByType[type] || new Set();
+    const shown = filteredRules.filter(rule => selected.has(String(rule.id)));
+    const selectAll = document.getElementById(`${type}-rules-select-all`);
+    selectAll.checked = filteredRules.length > 0 && shown.length === filteredRules.length;
+    selectAll.indeterminate = shown.length > 0 && shown.length < filteredRules.length;
+    selectAll.disabled = filteredRules.length === 0;
+    document.querySelectorAll(`[data-rule-bulk="${type}"]`).forEach(button => { button.disabled = selected.size === 0; });
+    const issueRow = document.getElementById(`${type}-rules-issues`);
+    const invalid = rules.filter(rule => getAutoRuleProblems(type, rule).length).length;
+    issueRow.textContent = invalid ? surfaceT('settings.rules.need-review', '$1 rules need review. Use Actions to edit invalid rules.', invalid) : '';
+    issueRow.hidden = invalid === 0;
 };
 
-const buildRuleCardHtml = (type, rule, globalIndex, isSelected) => {
-    const folderName = folderNameForId(type, rule.folderId);
-    const stateLabel = rule.enabled ? 'Disable' : 'Enable';
-    const stateIcon = rule.enabled ? 'fa-eye-slash' : 'fa-eye';
-    const upDisabled = globalIndex === 0 ? 'disabled' : '';
-    const downDisabled = globalIndex === (prefsByType[type]?.autoRules || []).length - 1 ? 'disabled' : '';
-    const checked = isSelected ? 'checked' : '';
+const buildRuleRowHtml = (type, rule, globalIndex, isSelected) => {
+    const condition = rulesWorkspaceModule.describeCondition(rule);
+    const fields = { name: surfaceT('table-name', 'Name'), image: surfaceT('settings.rules.field-image', 'Image'),
+        compose_project: surfaceT('legacy.surface.af1a83d99490b199', 'Compose project'), label: surfaceT('settings.rules.field-label', 'Label') };
+    const operators = { contains: surfaceT('legacy.surface.2eaecb3d0cf1282f', 'Contains'), starts_with: surfaceT('legacy.surface.03277ef8ef2700bf', 'Starts with'),
+        ends_with: surfaceT('legacy.surface.fc203569fa858e0e', 'Ends with'), exact: surfaceT('legacy.surface.b5aee780c3bf589d', 'Exact') };
+    const conditionLabel = condition.regex ? `${fields[condition.field]} ${surfaceT('legacy.surface.0f2712521d504431', 'Regex')}`
+        : `${fields[condition.field]} ${condition.field === 'label' && !condition.value ? surfaceT('settings.rules.key-exists', 'key exists') : operators[condition.operator]}`;
+    const match = condition.field === 'label' ? `${condition.labelKey}${condition.value ? ` = ${condition.value}` : ''}` : condition.value;
     const issues = getAutoRuleProblems(type, rule);
-    const summaryCopy = buildRuleSummaryCopy(type, rule, folderName);
-    const chips = [
-        `<span class="fv-rule-chip ${rule.enabled ? 'is-active' : 'is-muted'}">${escapeHtml(rule.enabled ? 'Active' : 'Disabled')}</span>`,
-        `<span class="fv-rule-chip ${rule.effect === 'exclude' ? 'is-warning' : 'is-info'}">${escapeHtml(rule.effect === 'exclude' ? 'Exclude rule' : 'Include rule')}</span>`,
-        `<span class="fv-rule-chip">${escapeHtml(getRuleKindLabel(rule))}</span>`,
-        ...issues.map((issue) => `<span class="fv-rule-chip is-invalid">${escapeHtml(issue)}</span>`)
-    ];
-
-    return `<div class="fv-rule-card${rule.enabled ? '' : ' is-disabled'}${issues.length > 0 ? ' is-invalid' : ''}" data-fv-rule-id="${escapeHtml(rule.id)}">
-        <div class="fv-rule-card-select">
-            <input type="checkbox" ${checked} data-fv-onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}', this.checked)" aria-label="Select ${escapeHtml(type === 'docker' ? 'Docker' : 'VM')} rule ${globalIndex + 1}">
-        </div>
-        <div class="fv-rule-card-main">
-            <div class="fv-rule-card-top">
-                <span class="fv-rule-order-pill">Priority ${globalIndex + 1}</span>
-                <span class="rule-priority-actions">
-                    <button type="button" ${upDisabled} title="Move up" data-fv-onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',-1)"><i class="fa fa-chevron-up"></i></button>
-                    <button type="button" ${downDisabled} title="Move down" data-fv-onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',1)"><i class="fa fa-chevron-down"></i></button>
-                </span>
-            </div>
-            <div class="fv-rule-card-summary">${escapeHtml(summaryCopy.summary)}</div>
-            <div class="fv-rule-card-detail">${escapeHtml(summaryCopy.detail)}</div>
-            <div class="fv-rule-card-meta">${chips.join('')}</div>
-        </div>
-        <div class="fv-rule-card-actions">
-            <button type="button" data-fv-onclick="toggleAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa ${stateIcon}"></i> ${escapeHtml(stateLabel)}</button>
-            <button type="button" data-fv-onclick="deleteAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa fa-trash"></i> Delete</button>
-        </div>
-    </div>`;
+    const svg = window.FolderViewPlusUI.svgIcon;
+    return `<tr data-fv-rule-id="${escapeHtml(rule.id)}" data-rule-type="${type}" class="${isSelected ? 'is-selected' : ''}${issues.length ? ' is-invalid' : ''}">
+        <td class="fv-rule-select"><input type="checkbox" ${isSelected ? 'checked' : ''} data-fv-onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}',this.checked)" aria-label="${escapeHtml(surfaceT('settings.rules.select-rule', 'Select rule $1', globalIndex + 1))}"><button type="button" draggable="true" data-rule-drag aria-label="${escapeHtml(surfaceT('settings.rules.move-rule', 'Move rule $1. Use Up or Down arrow keys.', globalIndex + 1))}">${svg('grip')}</button></td>
+        <td>${globalIndex + 1}</td><td><span class="fv-rule-folder">${svg('folder')}${escapeHtml(folderNameForId(type, rule.folderId))}</span></td>
+        <td><span class="fv-rule-chip ${rule.effect === 'exclude' ? 'is-invalid' : 'is-active'}">${escapeHtml(rule.effect === 'exclude' ? surfaceT('legacy.surface.5b76f62e1ba0401f', 'Exclude') : surfaceT('legacy.surface.7285576bdacf86fe', 'Include'))}</span></td>
+        <td>${escapeHtml(conditionLabel)}</td><td class="fv-rule-match">${escapeHtml(match)}${issues.length ? `<small class="fv-rule-problems">${escapeHtml(issues.join(', '))}</small>` : ''}</td>
+        <td><span class="fv-rule-status ${rule.enabled ? 'is-active' : ''}">${escapeHtml(rule.enabled ? surfaceT('legacy.surface.92340695899bd2d8', 'Active') : surfaceT('common.repair.inactive-ac7c94', 'Inactive'))}</span></td>
+        <td><button type="button" data-rule-menu aria-haspopup="dialog" aria-label="${escapeHtml(surfaceT('settings.rules.actions-for', 'Actions for rule $1', globalIndex + 1))}">${svg('more')}</button></td>
+    </tr>`;
 };
 
 const renderRulesTable = (type) => {
+    getRulesWorkspaceApi().closeMenu();
+    getRulesWorkspaceApi().hydrateIcons();
     const rulesBody = $(`#${type}-rules`);
+    const active = document.activeElement;
+    const activeRowId = rulesBody[0]?.contains(active) ? active.closest('[data-fv-rule-id]')?.dataset.fvRuleId : '';
+    const focusSelector = active?.matches('[data-rule-drag]') ? '[data-rule-drag]' : 'input[type="checkbox"]';
     const rules = prefsByType[type]?.autoRules || [];
     const selected = selectedRuleIdsByType[type] || new Set();
     const validSelected = new Set(Array.from(selected).filter((id) => rules.some((rule) => String(rule.id) === id)));
@@ -8059,15 +7856,8 @@ const renderRulesTable = (type) => {
     const selectionSummary = document.getElementById(`${type}-rules-selection-summary`);
     if (selectionSummary instanceof HTMLElement) {
         const selectedShownCount = filteredRules.filter((rule) => validSelected.has(String(rule.id || ''))).length;
-        if (rules.length <= 0) {
-            selectionSummary.textContent = `No ${type === 'docker' ? 'Docker' : 'VM'} rules selected.`;
-        } else if (selectedShownCount > 0) {
-            selectionSummary.textContent = `${selectedShownCount} selected of ${filteredRules.length} shown. Use the bulk actions above to update them together.`;
-        } else if (filter) {
-            selectionSummary.textContent = surfaceT("common.repair.matching-rules-shown-1-0b0157", "Matching rules shown: $1.", filteredRules.length);
-        } else {
-            selectionSummary.textContent = `Review the priority order below. The first matching rule wins.`;
-        }
+        selectionSummary.textContent = surfaceT('settings.rules.showing', 'Showing $1 of $2 rules', filteredRules.length, rules.length)
+            + (validSelected.size ? surfaceT('settings.rules.selected', ' · $1 selected ($2 shown)', validSelected.size, selectedShownCount) : '');
     }
 
     if (!filteredRules.length) {
@@ -8076,15 +7866,19 @@ const renderRulesTable = (type) => {
         const help = hasFilter
             ? 'Try a different search term or clear the rule filter.'
             : (type === 'docker' ? surfaceT("common.runtime.create-your-first-docker-container-rule-above", "Create your first Docker container rule above.") : surfaceT("common.runtime.create-your-first-vm-rule-above", "Create your first VM rule above."));
-        rulesBody.html(`<div class="fv-rule-list-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(help)}</span></div>`);
+        rulesBody.html(buildModuleEmptyTableRow(title, help, 8));
         return;
     }
 
     const cards = filteredRules.map((rule) => {
         const globalIndex = rules.findIndex((item) => item.id === rule.id);
-        return buildRuleCardHtml(type, rule, globalIndex, validSelected.has(String(rule.id || '')));
+        return buildRuleRowHtml(type, rule, globalIndex, validSelected.has(String(rule.id || '')));
     });
     rulesBody.html(cards.join(''));
+    if (activeRowId) {
+        Array.from(rulesBody[0].querySelectorAll('[data-fv-rule-id]'))
+            .find(row => row.dataset.fvRuleId === activeRowId)?.querySelector(focusSelector)?.focus({ preventScroll: true });
+    }
 };
 
 const getBulkAssignableNames = (...args) => getBulkAssignmentApi().getBulkAssignableNames(...args);
@@ -10112,6 +9906,8 @@ const changeBackupSchedulePref = async (type, key, value) => {
 };
 
 const addAutoRule = async (type) => {
+    if (getRulesWorkspaceApi().isSaving(type)) return;
+    getRulesWorkspaceApi().sync(type);
     const folderId = String($(`#${type}-rule-folder`).val() || '');
     const effect = String($(`#${type}-rule-effect`).val() || 'include');
     const kind = String($(`#${type}-rule-kind`).val() || 'name_regex');
@@ -10160,26 +9956,36 @@ const addAutoRule = async (type) => {
         }
     }
 
+    const editingId = String($(`#${type}-rule-editing`).val() || '');
+    const editingRule = (prefsByType[type]?.autoRules || []).find(rule => rule.id === editingId);
+    if (editingId && !editingRule) {
+        showError(surfaceT('settings.rules.edit-missing', 'The rule being edited no longer exists. Cancel the edit and select another rule.'));
+        return;
+    }
     const nextRule = {
         ...normalizedRule,
-        id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-        enabled: true
+        id: editingId || `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        enabled: editingRule ? editingRule.enabled : true
     };
 
+    getRulesWorkspaceApi().setSaving(type, true);
     try {
         const nextPrefs = utils.normalizePrefs({
             ...prefsByType[type],
-            autoRules: ruleTemplatesModule?.insertBeforeCatchAll?.(prefsByType[type].autoRules || [], nextRule) || [...(prefsByType[type].autoRules || []), nextRule]
+            autoRules: editingId ? (prefsByType[type].autoRules || []).map(rule => rule.id === editingId ? nextRule : rule)
+                : (ruleTemplatesModule?.insertBeforeCatchAll?.(prefsByType[type].autoRules || [], nextRule) || [...(prefsByType[type].autoRules || []), nextRule])
         });
         prefsByType[type] = await postPrefs(type, nextPrefs);
-
-        $(`#${type}-rule-pattern`).val('');
-        $(`#${type}-rule-label-key`).val('');
-        $(`#${type}-rule-label-value`).val('');
-        $(`#${type}-rule-effect`).val('include');
+        if (diagnosticsPrefsCoordinator) prefsByType[type] = utils.normalizePrefs(await diagnosticsPrefsCoordinator.flush(type));
+        getRulesWorkspaceApi().reset(type);
         renderRulesTable(type);
     } catch (error) {
+        if (!editingId && (prefsByType[type]?.autoRules || []).some(rule => rule.id === nextRule.id)) {
+            getRulesWorkspaceApi().edit(type, nextRule);
+        }
         showError(surfaceT("common.repair.rule-save-failed-a631c5", "Rule save failed"), error);
+    } finally {
+        getRulesWorkspaceApi().setSaving(type, false);
     }
 };
 
@@ -10219,60 +10025,26 @@ const deleteAutoRule = async (type, ruleId) => {
     }
 };
 
-const moveAutoRule = async (type, ruleId, direction) => {
-    const rules = [...(prefsByType[type].autoRules || [])];
-    const index = rules.findIndex((rule) => rule.id === ruleId);
-    if (index === -1) {
-        return;
-    }
-
-    const newIndex = direction < 0 ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= rules.length) {
-        return;
-    }
-
-    const [moved] = rules.splice(index, 1);
-    rules.splice(newIndex, 0, moved);
-    const orderedRules = ruleTemplatesModule?.isExplicitCatchAll ? [...rules.filter((rule) => !ruleTemplatesModule.isExplicitCatchAll(rule)), ...rules.filter(ruleTemplatesModule.isExplicitCatchAll)] : rules;
-
+const reorderAutoRule = async (type, ruleId, targetId, after = false) => {
+    const rules = rulesWorkspaceModule.reorderRules(prefsByType[type]?.autoRules || [], ruleId, targetId, after);
+    if (!rules) return;
+    const orderedRules = ruleTemplatesModule?.isExplicitCatchAll ? [...rules.filter(rule => !ruleTemplatesModule.isExplicitCatchAll(rule)), ...rules.filter(ruleTemplatesModule.isExplicitCatchAll)] : rules;
     try {
-        prefsByType[type] = await postPrefs(type, {
-            ...prefsByType[type],
-            autoRules: orderedRules
-        });
+        prefsByType[type] = await postPrefs(type, { ...prefsByType[type], autoRules: orderedRules });
         renderRulesTable(type);
     } catch (error) {
         showError(surfaceT("common.repair.rule-reorder-failed-a25aec", "Rule reorder failed"), error);
     }
 };
-
-const toggleRuleKindFields = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const kind = String($(`#${resolvedType}-rule-kind`).val() || 'name_regex');
-    const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
-    const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-    const simpleKinds = ['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals'];
-    const placeholderByKind = {
-        name_contains: surfaceT("common.runtime.text-in-the-name-example-arr", "Text in the name (example: arr)"),
-        name_starts_with: 'Text at the start of the name (example: prod-)',
-        image_contains: 'Text in the image (example: linuxserver/sonarr)',
-        compose_project_equals: 'Compose project name (example: media)',
-        image_regex: 'Regex pattern (example: linuxserver/)',
-        compose_project_regex: 'Regex pattern (example: ^media$)',
-        name_regex: 'Regex pattern (example: ^media-)'
-    };
-    const showPattern = regexKinds.includes(kind) || simpleKinds.includes(kind);
-    $(`#${resolvedType}-rule-pattern`)
-        .attr('placeholder', placeholderByKind[kind] || placeholderByKind.name_regex)
-        .toggle(showPattern);
-    if (resolvedType === 'docker') {
-        $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
-        $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
-        $('#docker-rule-presets').toggle(regexKinds.includes(kind) || simpleKinds.includes(kind));
-    }
-    updateRuleLiveMatch(resolvedType);
-    updateRuleValidationHint(resolvedType);
+const moveAutoRule = (type, ruleId, direction) => {
+    const rules = prefsByType[type]?.autoRules || [];
+    const index = rules.findIndex(rule => rule.id === ruleId);
+    const target = index + (direction < 0 ? -1 : 1);
+    if (index < 0 || target < 0 || target >= rules.length) return Promise.resolve();
+    return reorderAutoRule(type, ruleId, rules[target].id, direction > 0);
 };
+
+const toggleRuleKindFields = (type) => getRulesWorkspaceApi().sync(type === 'vm' ? 'vm' : 'docker');
 
 const updateRuleValidationHint = (type, strict = false) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -10882,7 +10654,7 @@ const toggleAllRuleSelections = (type, checked) => {
     const selected = selectedRuleIdsByType[type] || new Set();
     const filter = normalizedFilter(filtersByType[type]?.rules);
     for (const rule of rules) {
-        const haystack = `${folderNameForId(type, rule.folderId)} ${ruleDescription(rule)} ${rule.id || ''}`.toLowerCase();
+        const haystack = `${folderNameForId(type, rule.folderId)} ${ruleDescription(rule)} ${rule.id || ''} ${getRuleKindLabel(rule)}`.toLowerCase();
         if (filter && !haystack.includes(filter)) {
             continue;
         }

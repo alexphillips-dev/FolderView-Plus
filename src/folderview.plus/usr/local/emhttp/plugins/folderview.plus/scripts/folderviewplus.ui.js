@@ -34,6 +34,16 @@
     );
     const translateMessage = value => host?.FolderViewPlusI18n?.message?.(value) || String(value ?? '');
     const SVG_ICON_PATHS = Object.freeze({
+        'plus': '<path d="M12 5v14M5 12h14"></path>',
+        'search': '<circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path>',
+        'flask': '<path d="M9 3h6M10 3v7L4 20h16l-6-10V3M7 15h10"></path>',
+        'list': '<path d="M9 6h12M9 12h12M9 18h12M3 6h.01M3 12h.01M3 18h.01"></path>',
+        'lightbulb': '<path d="M9 18h6M9 21h6M8 14a6 6 0 1 1 8 0l-1 3H9z"></path>',
+        'play': '<path d="m7 4 14 8-14 8z"></path>',
+        'pause': '<path d="M8 5v14M16 5v14"></path>',
+        'trash': '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"></path>',
+        'more': '<circle cx="4" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="20" cy="12" r="1"></circle>',
+        'grip': '<path d="M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01"></path>',
         'activity': '<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"></polyline>',
         'alert-triangle': '<path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
         'boxes': '<rect x="3" y="4" width="7" height="7" rx="1"></rect><rect x="14" y="4" width="7" height="7" rx="1"></rect><rect x="8.5" y="14" width="7" height="7" rx="1"></rect>',

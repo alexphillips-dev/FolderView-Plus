@@ -153,6 +153,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'csp-hardening.html');
         } else if (requestUrl.pathname.startsWith('/security-fixtures/')) {
             filePath = safeResolve(path.join(rootDir, 'tests', 'fixtures', 'security'), requestUrl.pathname.slice('/security-fixtures/'.length));
+        } else if (requestUrl.pathname.startsWith('/plugins/folderview.plus/images/')) {
+            filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugins/folderview.plus/'.length));
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {

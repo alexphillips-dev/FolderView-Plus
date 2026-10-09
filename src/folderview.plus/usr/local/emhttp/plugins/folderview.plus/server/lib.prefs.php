@@ -98,6 +98,7 @@
                     'actions' => []
                 ]
             ],
+            'folderGroups' => [],
             'importPresets' => [
                 'defaultId' => 'builtin:merge',
                 'custom' => []
@@ -155,6 +156,43 @@
             return $normalized;
         }
         return 'merge';
+    }
+
+    function normalizeTypeFolderGroups($value): array {
+        $groups = [];
+        $ids = [];
+        foreach (is_array($value) ? $value : [] as $row) {
+            if (!is_array($row)) continue;
+            $text = static function ($value, int $max): string {
+                return is_string($value) ? truncateUtf8String(trim($value), $max) : '';
+            };
+            $id = $text($row['id'] ?? '', 96);
+            $name = $text($row['name'] ?? '', 64);
+            if (!preg_match('/^custom:[a-zA-Z0-9._-]{1,80}$/', $id) || $name === '' || isset($ids[$id])) continue;
+            $folders = [];
+            $names = [];
+            foreach (is_array($row['folders'] ?? null) ? $row['folders'] : [] as $folder) {
+                if (!is_array($folder)) continue;
+                $folderName = $text($folder['name'] ?? '', 160);
+                $key = function_exists('mb_strtolower') ? mb_strtolower($folderName, 'UTF-8') : strtolower($folderName);
+                if ($folderName === '' || isset($names[$key])) continue;
+                $names[$key] = true;
+                $icon = $text($folder['icon'] ?? '', 2048);
+                $url = parse_url($icon);
+                $local = substr($icon, 0, 1) === '/' && substr($icon, 0, 2) !== '//';
+                $remote = is_array($url) && in_array(strtolower($url['scheme'] ?? ''), ['https', 'http'], true)
+                    && !isset($url['user']) && !isset($url['pass']) && filter_var($icon, FILTER_VALIDATE_URL);
+                $inline = preg_match('/^data:image\/(?:png|jpe?g|gif|webp|avif|bmp|x-icon|vnd\.microsoft\.icon);base64,[a-z0-9+\/=\s]+$/i', $icon);
+                if (!$local && !$remote && !$inline) $icon = '/plugins/folderview.plus/images/folder-icon.png';
+                $folders[] = ['name' => $folderName, 'icon' => $icon];
+                if (count($folders) >= 50) break;
+            }
+            if (!$folders) continue;
+            $ids[$id] = true;
+            $groups[] = ['id' => $id, 'name' => $name, 'folders' => $folders];
+            if (count($groups) >= 30) break;
+        }
+        return $groups;
     }
 
     function normalizeTypeImportPresets($value): array {
@@ -601,6 +639,7 @@
         $normalized['dockerStartOrder'] = normalizeDockerStartOrderPrefs($prefs['dockerStartOrder'] ?? []);
         $normalized['folderDefaults'] = normalizeTypeFolderDefaultsProfile($prefs['folderDefaults'] ?? []);
         $normalized['importPresets'] = normalizeTypeImportPresets($prefs['importPresets'] ?? []);
+        $normalized['folderGroups'] = normalizeTypeFolderGroups($prefs['folderGroups'] ?? []);
         return $normalized;
     }
 

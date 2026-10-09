@@ -171,7 +171,7 @@ export function productionSurfacesForPaths(paths) {
     const surfaces = new Set();
     for (const file of paths) {
         if (!FILTERS.performance.some(pattern => matchesPattern(file, pattern))) continue;
-        if (file.startsWith('scripts/') || /\/(runtime[^/]*|folder(?:\.[^/]*)?|folderviewplus|folderviewplus\.(?:utils|i18n|request|runtime-snapshot|prefs-store|theme-|ui|folder-contract|page-bootstrap|fatal-banner|csp-events|safe-dom)[^/]*)\.js$/.test(file)) {
+        if (file.startsWith('scripts/') || /\/(runtime[^/]*|folder(?:\.[^/]*)?|folderviewplus|folderviewplus\.(?:utils|folder-groups-model|i18n|request|runtime-snapshot|prefs-store|theme-|ui|folder-contract|page-bootstrap|fatal-banner|csp-events|safe-dom)[^/]*)\.js$/.test(file)) {
             surfaces.add('settings'); surfaces.add('docker');
         } else if (/\/docker[^/]*\.js$/.test(file)) surfaces.add('docker');
         else if (/\/folderviewplus[^/]*\.js$/.test(file)) surfaces.add('settings');

@@ -781,16 +781,40 @@
       "exports": ["buildFolderHierarchyModel", "buildNestedFolderOrderIdsFromMap"]
     },
     {
+      "file": "scripts/folderviewplus.folder-groups-model.js",
+      "owner": "shared-folder-group-blueprints",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderGroupsModel",
+      "loader": "commonjs",
+      "exports": ["normalizeFolderGroups"]
+    },
+    {
+      "file": "scripts/folderviewplus.folder-groups.js",
+      "owner": "settings-folder-group-creation",
+      "consumers": ["settings"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.ui.js", "scripts/folderviewplus.utils.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderGroups",
+      "loader": "commonjs",
+      "exports": ["createApi", "planCreates"]
+    },
+    {
       "file": "scripts/folderviewplus.utils-prefs.js",
       "owner": "shared-utility-preferences",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor", "plugin-pages"],
       "stateModel": "pure",
-      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js"],
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.folder-groups-model.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityPrefs",
       "loader": "commonjs",
-      "exports": ["normalizePrefs"]
+      "exports": ["normalizePrefs", "normalizeFolderGroups"]
     },
     {
       "file": "scripts/folderviewplus.utils-ordering.js",

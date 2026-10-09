@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.02">
-<!ENTITY md5 "5b921d8b4568e47404a1bff120d535e3">
-<!ENTITY sha256 "5f9f262c5ba1ba70362aed4396759ac8e60a2388a77833290e2d23fb27f69ebc">
+<!ENTITY version "2026.10.09.03">
+<!ENTITY md5 "7c2812aa451951c861bd225c2b43a14d">
+<!ENTITY sha256 "0401bed3023bdc4c708a0be3d70c241ac73391a6b1c62364b542a2c6005035d7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.03
+- Feature: Add folder/group now opens a unified creation popup in Basic Settings for Docker and VMs. Create a single folder, choose preconfigured folders from the setup wizard's categories and Smart suggestions, or build your own named group with folder names and icons.
+- Feature: Save, edit, reuse, and delete custom folder groups. Docker and VM groups are stored separately on the server. Saving a group does not create folders; deleting a saved group leaves existing folders intact. Creating a group skips matching existing folder names.
+- UX: Refresh the Basic toolbar with section icons and descriptions, a clearer two-line sort control, a search shortcut hint, and subtle blue Export and green Import treatments. Add folder/group retains its neutral button style, and the six status blocks retain their existing appearance.
+- Compatibility: Custom groups contain folder names and icons and create root-level folders using the existing folder creation defaults. Groups do not copy container or VM assignments. Hard-refresh the Unraid webGUI after updating to load the new assets.
+
 
 ###2026.10.09.02
 - Fix: Remove the extra blue focus outline from the Docker and VM sort dropdowns in Settings while preserving their existing dropdown styling and sorting behavior.

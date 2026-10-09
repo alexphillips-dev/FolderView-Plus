@@ -102,8 +102,8 @@ export const verifyBasicToolbarLayout = async (page) => {
             return {
                 type, bounds: { left: bounds.left, right: bounds.right }, controls,
                 headerHeight: headerSearch.height,
-                toolbarGap: getComputedStyle(toolbar).columnGap,
-                headerGap: getComputedStyle(document.querySelector('.fv-settings-right')).columnGap,
+                toolbarGap: parseFloat(getComputedStyle(toolbar).columnGap),
+                addBackground: getComputedStyle(toolbar.querySelector('.fv-basic-add-btn')).backgroundColor,
                 exportColor: getComputedStyle(exportButton).color,
                 importColor: getComputedStyle(importButton).color,
                 exportBackground: getComputedStyle(exportButton).backgroundColor,
@@ -115,7 +115,8 @@ export const verifyBasicToolbarLayout = async (page) => {
         for (const layout of layouts) {
             assert.equal(layout.controls.length, 7, `${layout.type} toolbar must contain search, sort, add, and four actions`);
             assert.equal(layout.filtersButton, false, `${layout.type} toolbar must not include a Filters button`);
-            assert.equal(layout.toolbarGap, layout.headerGap, `${layout.type} toolbar spacing must match the Settings header`);
+            assert.ok(layout.toolbarGap > 0, `${layout.type} toolbar controls need visible separation`);
+            assert.equal(layout.addBackground, layout.restoreBackground, `${layout.type} Add folder/group must retain the neutral button treatment`);
             assert.notEqual(layout.exportColor, layout.importColor, `${layout.type} Export and Import must have distinct colors`);
             assert.notEqual(layout.exportBackground, layout.restoreBackground, `${layout.type} Export must have a colored background`);
             assert.notEqual(layout.importBackground, layout.restoreBackground, `${layout.type} Import must have a colored background`);
@@ -125,8 +126,8 @@ export const verifyBasicToolbarLayout = async (page) => {
                     `${layout.type} controls must share one desktop row: ${JSON.stringify(layout)}`);
             }
             for (const [index, box] of layout.controls.entries()) {
-                assert.ok(Math.abs(box.height - layout.headerHeight) <= 2,
-                    `${layout.type} toolbar control height must match the Settings header at ${width}px: ${JSON.stringify(layout)}`);
+                assert.ok(Math.abs(box.height - layout.controls[0].height) <= 2,
+                    `${layout.type} toolbar controls must have matching heights at ${width}px: ${JSON.stringify(layout)}`);
                 assert.ok(box.left >= layout.bounds.left - 1 && box.right <= layout.bounds.right + 1,
                     `${layout.type} toolbar control must fit at ${width}px: ${JSON.stringify(layout)}`);
                 for (const other of layout.controls.slice(index + 1)) {

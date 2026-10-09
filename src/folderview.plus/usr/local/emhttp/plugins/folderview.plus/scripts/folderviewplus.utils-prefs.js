@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.folder-groups-model.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.utilityPrefs = factory(modules.utilityFoundation, modules.utilityNormalization);
-}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization) {
+    modules.utilityPrefs = factory(modules.utilityFoundation, modules.utilityNormalization, modules.folderGroupsModel);
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, folderGroupsModel) {
     'use strict';
     const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization);
     const {
@@ -35,6 +35,7 @@
         FOLDER_SORT_MODES
     } = utilityDependencies;
 
+    const normalizeFolderGroups = (value) => folderGroupsModel.normalizeFolderGroups(value);
     const normalizePrefs = (prefs) => {
         const incoming = isPlainObject(prefs) ? prefs : {};
         const incomingMetadata = isPlainObject(incoming._metadata) ? incoming._metadata : {};
@@ -371,12 +372,11 @@
             backupSchedule,
             dockerStartOrder,
             folderDefaults,
-            importPresets
+            importPresets, folderGroups: normalizeFolderGroups(incoming.folderGroups)
         };
     };
 
-
     return Object.freeze({
-        normalizePrefs
+        normalizePrefs, normalizeFolderGroups
     });
 }));

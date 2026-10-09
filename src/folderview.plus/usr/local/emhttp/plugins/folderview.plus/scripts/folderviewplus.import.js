@@ -1197,7 +1197,8 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
         { key: 'health', label: 'Health card settings' },
         { key: 'status', label: 'Status column settings' },
         { key: 'backupSchedule', label: 'Backup schedule' },
-        { key: 'importPresets', label: 'Import preset settings' }
+        { key: 'importPresets', label: 'Import preset settings' },
+        { key: 'folderGroups', label: importT('settings.groups.saved', 'Saved groups') }
     ];
     const rows = [];
     for (const descriptor of descriptors) {

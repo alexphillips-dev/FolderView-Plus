@@ -159,6 +159,20 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             fvplus_validation_assert_assoc_map($payload['expandedFolderState'], 'expandedFolderState', 20000);
         }
 
+        if (array_key_exists('folderGroups', $payload)) {
+            if (!is_array($payload['folderGroups']) || count($payload['folderGroups']) > 30) {
+                throw new RuntimeException("Invalid prefs payload: 'folderGroups' must contain at most 30 groups.");
+            }
+            foreach ($payload['folderGroups'] as $group) {
+                if (!is_array($group) || !is_array($group['folders'] ?? null) || count($group['folders']) > 50) {
+                    throw new RuntimeException('Invalid prefs payload: each folder group must contain at most 50 folders.');
+                }
+                foreach ($group['folders'] as $folder) {
+                    if (!is_array($folder)) throw new RuntimeException('Invalid prefs payload: each group folder must be an object.');
+                }
+            }
+        }
+
         $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'dockerStartOrder', 'importPresets'];
         foreach ($objectKeys as $key) {
             if (array_key_exists($key, $payload) && !is_array($payload[$key])) {

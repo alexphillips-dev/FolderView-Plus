@@ -304,11 +304,13 @@ const settingsRuntimeBudget = {
 };
 const settingsRuntimePaths = [
   'scripts/folderviewplus.utils-hierarchy.js',
+  'scripts/folderviewplus.folder-groups-model.js',
   'scripts/folderviewplus.runtime-parity.js',
   'scripts/folderviewplus.settings-sections.js',
   'scripts/folderviewplus.setup-assistant.js',
   'scripts/folderviewplus.smart-detect-config.js',
   'scripts/folderviewplus.starter-templates.js',
+  'scripts/folderviewplus.folder-groups.js',
   'scripts/folderviewplus.support-bundle-preview.js',
   'scripts/folderviewplus.download-diagnostics.js',
   'scripts/folderviewplus.support-bundle-browser.js',

@@ -58,7 +58,7 @@ fvplus_json_try(function (): array {
         syncContainerOrder('docker');
     }
     $auditRelevant = $orderPrefsChanged || $dockerOrderChanged;
-    foreach (['autoRules', 'backupSchedule', 'folderDefaults', 'importPresets'] as $key) {
+    foreach (['autoRules', 'backupSchedule', 'folderDefaults', 'importPresets', 'folderGroups'] as $key) {
         if (array_key_exists($key, $decoded) && json_encode($current[$key] ?? null) !== json_encode($saved[$key] ?? null)) {
             $auditRelevant = true;
             break;

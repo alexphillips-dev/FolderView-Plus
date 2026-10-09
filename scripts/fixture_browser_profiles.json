@@ -2,7 +2,7 @@
   "layout": [
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Settings chrome",
-    "Settings overflow", "Settings visibility", "Operations matches", "Filters and view settings",
+    "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",
     "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu"
   ],
   "quick-finder": ["Quick finder"],

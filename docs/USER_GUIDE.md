@@ -15,11 +15,15 @@ Settings search matches labels and common aliases. Change its scope when you wan
 ## Create a folder
 
 1. Open the Docker or VM table in Basic settings.
-2. Select `Add folder`.
-3. Give the folder a unique name within its selected parent.
-4. Choose an icon or keep the default.
-5. Select the members that belong in the folder.
-6. Review the live preview and save.
+2. Select `Add folder/group`, then choose **Single folder**.
+3. Enter the folder name, choose an icon or keep the default, and select **Create folder**.
+4. Open the new folder's editor to choose its parent, assign members, review the preview, and save its settings.
+
+To create several folders together, choose **Preconfigured groups** in the same popup. The categories and Smart suggestions use the setup wizard's folder templates. Select the folders you want, then choose **Create folders**. Existing matching folder names are skipped.
+
+Choose **My groups** to build your own reusable group. Enter a group name, add folder names and icons, and select **Save group**. You can reopen the popup and choose it from **Saved groups**, edit and save it, or select **Create folders** to deploy it. Saving a group does not create folders. Deleting a saved group leaves existing folders intact. Docker and VM groups are stored separately on the server, with up to 30 saved groups per type and 50 folders per group.
+
+Groups create root-level folders using the existing folder creation defaults. They store folder names and icons, without member assignments; use the folder editor for nesting, members, and other settings. The Basic toolbar's **Ctrl+K** shortcut (or **Cmd+K** on macOS) focuses the folder search in the current table, or the first visible table when focus is elsewhere.
 
 The modern folder editor separates controls into General, Members, Preview, Chevron, Status, Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
 

@@ -1,0 +1,50 @@
+/* Basic toolbar and folder/group creation. Summary cards retain their existing styles. */
+#fv-settings-root:not(.fv-advanced-mode) .fv-basic-workspace-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.2rem 0;
+}
+.fv-basic-workspace-heading > i { color: var(--fvplus-settings-accent); font-size: 2.4rem; }
+.fv-basic-workspace-heading h2 { margin: 0; }
+.fv-basic-workspace-heading p { color: var(--fvplus-settings-text-secondary); margin: .35rem 0 0; }
+#fv-settings-root.fv-advanced-mode .fv-basic-workspace-heading :is(i, p) { display: none; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-toolbar { gap: .65rem; padding: .4rem 0; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-toolbar :is(.fv-basic-search, .fv-basic-sort, .fv-basic-add-btn, .toolbar-actions > button) { min-height: 42px; }
+.fv-basic-search:has(.fv-basic-search-shortcut) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.fv-basic-search-shortcut { display: inline-flex; gap: .25rem; color: var(--fvplus-settings-text-secondary); }
+.fv-basic-search-shortcut kbd { font: inherit; font-size: .85em; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 4px; padding: .12rem .3rem; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-basic-sort { grid-template-columns: auto minmax(0, 1fr); gap: 0 .5rem; margin-inline-start: .5rem; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-basic-sort > i { grid-row: 1 / 3; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-basic-sort > span { font-size: .85em; font-weight: 400; color: var(--fvplus-settings-text-secondary); }
+#fv-settings-root:not(.fv-advanced-mode) .fv-basic-sort > select { grid-column: 2; min-height: 20px; padding: 0; margin: 0; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-toolbar .toolbar-actions > :is(.fv-basic-export-btn, .fv-basic-import-btn) {
+    --fvplus-settings-button-bg-top: color-mix(in srgb, var(--fvplus-settings-button-fg) 8%, var(--fvplus-settings-surface-card));
+    --fvplus-settings-button-hover-top: color-mix(in srgb, var(--fvplus-settings-button-fg) 16%, var(--fvplus-settings-surface-card));
+}
+.fv-folder-create-modal .fv-group-modes { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.fv-folder-create-modal .fv-ui-button { font-size: 1rem; min-width: 0; text-transform: none; letter-spacing: 0; overflow-wrap: normal; word-break: normal; }
+.fv-folder-create-modal .fv-ui-modal-footer { flex-wrap: wrap; }
+.fv-folder-create-modal .fv-ui-modal-footer .fv-ui-button { white-space: normal; }
+.fv-folder-create-modal .fv-group-modes [aria-pressed="true"] { border-color: var(--fvplus-ui-accent); color: var(--fvplus-ui-accent); background: var(--fvplus-ui-strong); }
+.fv-folder-create-modal :is(.fv-group-panel, .fv-group-editor) { display: grid; gap: .8rem; }
+.fv-group-library { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem; }
+.fv-group-library > label { flex: 1; min-width: 160px; }
+.fv-group-editor-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: .6rem; padding: .8rem; border: 1px solid var(--fvplus-ui-border-faint); border-radius: var(--fv-ui-radius-md); }
+.fv-folder-create-modal .fv-group-editor-row label { display: grid; gap: .35rem; min-width: 0; }
+.fv-folder-create-modal .fv-group-editor-row :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; }
+.fv-group-editor-row > img { width: 32px; height: 32px; object-fit: contain; align-self: center; }
+.fv-group-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.fv-group-template { display: flex; align-items: center; gap: .6rem; border: 1px solid var(--fvplus-ui-border-faint); padding: .65rem; border-radius: var(--fv-ui-radius-md); }
+.fv-group-template span { overflow-wrap: anywhere; }
+.fv-group-template img { width: 28px; height: 28px; object-fit: contain; }
+.fv-group-feedback { padding: .7rem; border-inline-start: 3px solid var(--fv-ui-success); background: var(--fvplus-ui-strong); }
+.fv-group-feedback.is-error { border-color: var(--fv-ui-danger); }
+@media (max-width: 700px) {
+    .fv-basic-search-shortcut { display: none; }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-basic-sort { margin-inline-start: 0; }
+    .fv-group-template-grid { grid-template-columns: 1fr; }
+    .fv-group-editor-row { grid-template-columns: 32px minmax(0, 1fr) auto; }
+    .fv-group-editor-row .fv-group-icon-field { grid-column: 2; grid-row: 2; }
+    .fv-group-editor-row > button { grid-column: 3; grid-row: 1 / 3; }
+}

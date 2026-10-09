@@ -63,7 +63,7 @@
         resolvePreviewActionPrefs: api.resolvePreviewActionPrefs,
         normalizeThemeCompatibilityMode: api.normalizeThemeCompatibilityMode,
         normalizePerformanceProfile: api.normalizePerformanceProfile,
-        normalizePrefs: api.normalizePrefs,
+        normalizePrefs: api.normalizePrefs, normalizeFolderGroups: api.normalizeFolderGroups,
         orderFoldersByPrefs: api.orderFoldersByPrefs,
         getFolderStatusColors: api.getFolderStatusColors,
         buildFullExportPayload: api.buildFullExportPayload,

@@ -34,6 +34,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.host-buttons.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/csp.utilities.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folder-groups.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/operations-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/bulk-assignment-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.tree-move.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.diagnostics.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/start-order-workspace.css')?>"><link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme-profiles.css')?>">
@@ -165,13 +166,17 @@ if (!empty($fvplusRuntimeConflicts)) {
     </div>
 </div>
 
-<h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
+<div class="fv-basic-workspace-heading" data-fv-section-row="1">
+    <i class="fa fa-cubes" aria-hidden="true"></i>
+    <div><h2 data-i18n="docker" data-fv-section="docker">Docker</h2><p data-i18n="settings.groups.docker-description">Manage your Docker folders, groups and sync rules</p></div>
+</div>
 <div class="folder-table">
     <div class="folder-toolbar" role="group" aria-label="Docker folder controls">
         <div class="fv-basic-commandbar">
             <label class="fv-basic-search" for="docker-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
                 <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" data-fv-oninput="setFilterQuery('folders','docker',this.value)">
+                <span class="fv-basic-search-shortcut" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
             </label>
             <label class="fv-basic-sort" for="docker-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
@@ -186,7 +191,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
             </label>
-            <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('docker')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+            <button type="button" class="fv-basic-add-btn" data-fv-onclick="openFolderCreation('docker')"><i class="fa fa-plus" aria-hidden="true"></i><span data-i18n="settings.groups.add">Add folder/group</span></button>
         </div>
         <div class="toolbar-actions">
             <button type="button" class="fv-basic-export-btn" data-i18n="[html]export-all" data-fv-onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
@@ -519,13 +524,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-i18n="vms" data-fv-section="vms">VMs</h2>
+<div class="fv-basic-workspace-heading" data-fv-section-row="1">
+    <i class="fa fa-desktop" aria-hidden="true"></i>
+    <div><h2 data-i18n="vms" data-fv-section="vms">VMs</h2><p data-i18n="settings.groups.vm-description">Manage your VM folders, groups and sync rules</p></div>
+</div>
 <div class="folder-table">
     <div class="folder-toolbar" role="group" aria-label="VM folder controls">
         <div class="fv-basic-commandbar">
             <label class="fv-basic-search" for="vm-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
                 <input id="vm-folder-filter" type="text" placeholder="Search VM folders" data-fv-oninput="setFilterQuery('folders','vm',this.value)">
+                <span class="fv-basic-search-shortcut" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
             </label>
             <label class="fv-basic-sort" for="vm-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
@@ -540,7 +549,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
             </label>
-            <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('vm')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+            <button type="button" class="fv-basic-add-btn" data-fv-onclick="openFolderCreation('vm')"><i class="fa fa-plus" aria-hidden="true"></i><span data-i18n="settings.groups.add">Add folder/group</span></button>
         </div>
         <div class="toolbar-actions">
             <button type="button" class="fv-basic-export-btn" data-i18n="[html]export-all" data-fv-onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
@@ -1643,7 +1652,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <?php
 $fvplusSettingsFoundationAssets = [
-        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.folder-groups-model.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
         '/plugins/folderview.plus/scripts/folderviewplus.request-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.request.js',
@@ -1666,6 +1675,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
         '/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
         '/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.folder-groups.js',
         '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
          '/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
          '/plugins/folderview.plus/scripts/runtime.page-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.ui-state-diagnostics.js', '/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',

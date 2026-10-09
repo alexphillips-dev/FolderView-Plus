@@ -2358,6 +2358,15 @@ const initSettingsControls = () => {
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
     });
+    $(document).off('keydown.fvfoldersearch').on('keydown.fvfoldersearch', (event) => {
+        if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k' || event.altKey || event.shiftKey
+            || document.querySelector('.fv-ui-modal-backdrop, .ui-widget-overlay, .sweet-overlay[style*="display: block"]')) return;
+        const fields = [...document.querySelectorAll('.fv-basic-search input')].filter(field => field.getClientRects().length);
+        const current = event.target.closest?.('.folder-table')?.querySelector('.fv-basic-search input');
+        const field = current || fields.find(field => field.getBoundingClientRect().bottom > 0) || fields[0];
+        if (field) { event.preventDefault(); field.focus(); field.select(); }
+    });
+    $(window).off('pagehide.fvfoldercreation').on('pagehide.fvfoldercreation', () => folderCreationApi?.close());
     $(document).off('click.fvemptyactions', '[data-fv-empty-action]').on('click.fvemptyactions', '[data-fv-empty-action]', async (event) => {
         event.preventDefault();
         const action = String($(event.currentTarget).attr('data-fv-empty-action') || '').trim().toLowerCase();
@@ -3628,6 +3637,39 @@ const getBulkAssignmentApi = (() => {
         return cachedApi;
     };
 })();
+
+let folderCreationApi = null;
+const openFolderCreation = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed(surfaceT('settings.groups.add', 'Add folder/group'))) return;
+    document.querySelector(`.fv-basic-add-btn[data-fv-onclick="openFolderCreation('${resolvedType}')"]`)?.focus();
+    folderCreationApi ||= window.FolderViewPlusFoundationModules?.folderGroups?.createApi({
+        window, document, ui: window.FolderViewPlusUI, utils, translate: surfaceT,
+        getGroups: (type) => utils.normalizePrefs(prefsByType[type]).folderGroups,
+        saveGroups: (type, groups) => updatePrefsPartial(type, { folderGroups: utils.normalizeFolderGroups(groups) }, { immediate: true }),
+        getBlueprints: (type) => STARTER_TEMPLATE_BLUEPRINTS[type] || [],
+        getSmartIndexes: resolveStarterTemplateSmartIndexes,
+        categoryLabel: (category) => window.FolderViewPlusI18n?.message(STARTER_TEMPLATE_CATEGORY_META[category]?.label || category) || category,
+        getIcons: (type) => Object.values(getFolderMap(type) || {}).map(folder => folder.icon),
+        ensureAllowed: () => ensureRuntimeConflictActionAllowed(surfaceT('settings.groups.add', 'Add folder/group')),
+        async createFolders(type, folders) {
+            const { creates, skipped } = window.FolderViewPlusFoundationModules.folderGroups.planCreates(folders, getFolderMap(type));
+            if (creates.length) await requestFolderBatchMutation(type, { creates: creates.map(folder => ({ folder: buildStarterFolderPayload(folder.name, folder.icon) })) }, { expectedRevision: readFolderConfigurationRevision(type) });
+            let refreshFailed = false;
+            if (creates.length) {
+                try { const refreshed = await refreshType(type); refreshFailed = refreshed?.hasErrors === true; } catch (_) { refreshFailed = true; }
+            }
+            return { created: creates.length, skipped, refreshFailed };
+        },
+        onCreated(type, result) {
+            const message = surfaceT('settings.groups.created-summary', 'Folders created: $1. Existing folders skipped: $2.', result.created, result.skipped);
+            addActivityEntry(message, result.refreshFailed ? 'warning' : 'success');
+            showActionSummaryToast({ title: surfaceT('settings.groups.add', 'Add folder/group'), message: result.refreshFailed ? `${message} ${surfaceT('settings.groups.refresh-needed', 'The folders were saved. Refresh the page to show the latest configuration.')}` : message, level: result.refreshFailed ? 'warning' : result.created ? 'success' : 'info', durationMs: 5000, type });
+        }
+    });
+    if (!folderCreationApi) { showError(surfaceT('settings.groups.unavailable', 'Folder creation is unavailable. Refresh the page and try again.')); return; }
+    return folderCreationApi.open(resolvedType);
+};
 
 const readFolderConfigurationRevision = (type) => {
     const resolvedType = normalizeManagedType(type);
@@ -11310,6 +11352,7 @@ settingsActionSupportModule.registerActions(window, {
     openSettingsFolderEditor,
     openFolderRowQuickActions,
     quickCreateStarterFolder,
+    openFolderCreation,
     quickCreateStarterTemplates,
     applyRuleTestSample,
     clearActivityFeed,

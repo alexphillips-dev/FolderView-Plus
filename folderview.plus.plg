@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.04">
-<!ENTITY md5 "4e3ac6fb154d155f21b29c0fa92d992c">
-<!ENTITY sha256 "34d4977c2efffcf352bf1e8d9d7d647d32005276f6b565aa50e12487474a911f">
+<!ENTITY version "2026.10.09.05">
+<!ENTITY md5 "b46c77babb92dc01fa88173fa67c17c6">
+<!ENTITY sha256 "3cbe2e2e056d531d3a59374cb2fa41bd4e60fe6679923e9b5f5d1d8e80b171fe">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.05
+- Fix: Make the Docker and VM Basic Settings Sort dropdown a single-row control whose full interior opens the native selector, including the label, icon, and arrow areas.
+- UX: Move Edit folder defaults immediately after Add folder/group in each toolbar. Give the search field less space on wide screens and wrap the toolbar cleanly on narrower screens while preserving the divider below the unchanged status blocks.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the corrected toolbar markup and styles.
+
 
 ###2026.10.09.04
 - UX: Tighten the Docker and VM Basic Settings toolbars with consistent button spacing, separators between control groups, and a better-aligned sort dropdown. Remove the Ctrl+K hint from the folder search fields.

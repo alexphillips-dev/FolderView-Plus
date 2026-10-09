@@ -87,40 +87,57 @@ export const verifyBasicToolbarLayout = async (page) => {
     }, { docker: basicToolbarMarkup('docker'), vm: basicToolbarMarkup('vm') });
     for (const width of [1700, 1180, 390]) {
         await page.setViewportSize({ width, height: 720 });
-        const layouts = await page.evaluate(() => ['docker', 'vm'].map((type) => {
-            const toolbar = document.querySelector(`[data-toolbar-type="${type}"] .folder-toolbar`);
-            const bounds = toolbar.getBoundingClientRect();
-            const headerSearch = document.querySelector('.fv-settings-search-wrap').getBoundingClientRect();
-            const controls = [...toolbar.querySelectorAll(
-                '.fv-basic-search, .fv-basic-sort, .fv-basic-add-btn, .toolbar-actions > button'
-            )].map((element) => {
-                const rect = element.getBoundingClientRect();
-                return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, height: rect.height };
-            });
-            const exportButton = toolbar.querySelector('.fv-basic-export-btn');
-            const importButton = toolbar.querySelector('.fv-basic-import-btn');
-            return {
-                type, bounds: { left: bounds.left, right: bounds.right }, controls,
-                headerHeight: headerSearch.height,
-                toolbarGap: parseFloat(getComputedStyle(toolbar).columnGap),
-                addBackground: getComputedStyle(toolbar.querySelector('.fv-basic-add-btn')).backgroundColor,
-                exportColor: getComputedStyle(exportButton).color,
-                importColor: getComputedStyle(importButton).color,
-                exportBackground: getComputedStyle(exportButton).backgroundColor,
-                importBackground: getComputedStyle(importButton).backgroundColor,
-                restoreBackground: getComputedStyle(toolbar.querySelector('[data-fv-onclick^="restoreLatestBackup"]')).backgroundColor,
-                filtersButton: [...toolbar.querySelectorAll('button')].some((button) => button.textContent.trim() === 'Filters')
-            };
-        }));
-        for (const layout of layouts) {
-            assert.equal(layout.controls.length, 7, `${layout.type} toolbar must contain search, sort, add, and four actions`);
+        for (const type of ['docker', 'vm']) {
+            await page.locator(`[data-toolbar-type="${type}"] .folder-toolbar`).scrollIntoViewIfNeeded();
+            const layout = await page.evaluate((type) => {
+                const toolbar = document.querySelector(`[data-toolbar-type="${type}"] .folder-toolbar`);
+                const bounds = toolbar.getBoundingClientRect();
+                const headerSearch = document.querySelector('.fv-settings-search-wrap').getBoundingClientRect();
+                const controls = [...toolbar.querySelectorAll(
+                    '.fv-basic-search, .fv-basic-sort, .fv-basic-add-btn, .toolbar-actions > button'
+                )].map((element) => {
+                    const rect = element.getBoundingClientRect();
+                    return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, height: rect.height };
+                });
+                const exportButton = toolbar.querySelector('.fv-basic-export-btn');
+                const importButton = toolbar.querySelector('.fv-basic-import-btn');
+                const sort = toolbar.querySelector('.fv-basic-sort');
+                const select = sort.querySelector('select');
+                const sortBox = sort.getBoundingClientRect();
+                const prefix = sort.querySelector('span').getBoundingClientRect();
+                const hitPoints = [[3, 3], [sortBox.width - 3, 3], [3, sortBox.height - 3],
+                    [sortBox.width - 3, sortBox.height - 3], [sortBox.width / 2, sortBox.height / 2]];
+                const defaults = toolbar.querySelector('.fv-defaults-editor-link');
+                return {
+                    type, bounds: { left: bounds.left, right: bounds.right }, controls,
+                    sortHitsSelect: hitPoints.every(([x, y]) => document.elementFromPoint(sortBox.left + x, sortBox.top + y) === select),
+                    sortCenterError: Math.abs((prefix.top + prefix.bottom - sortBox.top - sortBox.bottom) / 2),
+                    sortTextClearance: select.getBoundingClientRect().left + parseFloat(getComputedStyle(select).paddingLeft) - prefix.right,
+                    defaultsAfterAdd: defaults.previousElementSibling?.matches('[data-fv-onclick^="openFolderCreation"]'),
+                    defaultsHref: defaults.getAttribute('href'),
+                    headerHeight: headerSearch.height,
+                    toolbarGap: parseFloat(getComputedStyle(toolbar).columnGap),
+                    addBackground: getComputedStyle(toolbar.querySelector('.fv-basic-add-btn')).backgroundColor,
+                    exportColor: getComputedStyle(exportButton).color,
+                    importColor: getComputedStyle(importButton).color,
+                    exportBackground: getComputedStyle(exportButton).backgroundColor,
+                    importBackground: getComputedStyle(importButton).backgroundColor,
+                    restoreBackground: getComputedStyle(toolbar.querySelector('[data-fv-onclick^="restoreLatestBackup"]')).backgroundColor,
+                    filtersButton: [...toolbar.querySelectorAll('button')].some((button) => button.textContent.trim() === 'Filters')
+                };
+            }, type);
+            assert.equal(layout.controls.length, 8, `${layout.type} toolbar must contain search, sort, add, defaults, and four actions`);
+            assert.equal(layout.sortHitsSelect, true, `${layout.type} native dropdown must receive clicks across the whole Sort control at ${width}px`);
+            assert.ok(layout.sortCenterError <= 1 && layout.sortTextClearance >= 0, `${layout.type} Sort label and selection must share one row without overlapping`);
+            assert.equal(layout.defaultsAfterAdd, true, `${layout.type} defaults editor must follow Add folder/group`);
+            assert.equal(layout.defaultsHref, `/${layout.type === 'docker' ? 'Docker' : 'VMs'}/Folder?type=${layout.type}&defaults=1`);
             assert.equal(layout.filtersButton, false, `${layout.type} toolbar must not include a Filters button`);
             assert.ok(layout.toolbarGap > 0, `${layout.type} toolbar controls need visible separation`);
             assert.equal(layout.addBackground, layout.restoreBackground, `${layout.type} Add folder/group must retain the neutral button treatment`);
             assert.notEqual(layout.exportColor, layout.importColor, `${layout.type} Export and Import must have distinct colors`);
             assert.notEqual(layout.exportBackground, layout.restoreBackground, `${layout.type} Export must have a colored background`);
             assert.notEqual(layout.importBackground, layout.restoreBackground, `${layout.type} Import must have a colored background`);
-            if (width >= 1180) {
+            if (width >= 1700) {
                 const tops = layout.controls.map((box) => box.top);
                 assert.ok(Math.max(...tops) - Math.min(...tops) <= 2,
                     `${layout.type} controls must share one desktop row: ${JSON.stringify(layout)}`);

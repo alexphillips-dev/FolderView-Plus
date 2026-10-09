@@ -3141,7 +3141,11 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     box-shadow: none !important;
 }
 
-.fv-basic-search > input[type="text"]:focus {
+.fv-basic-search:focus-within {
+    border-color: var(--fvplus-settings-accent);
+}
+
+#fv-settings-root .fv-basic-search > input[type="text"]:focus {
     outline: none;
 }
 
@@ -10141,7 +10145,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-settings-search-wrap:focus-within {
     border-color: var(--fvplus-settings-accent);
-    box-shadow: 0 0 0 3px var(--fvplus-settings-focus-ring);
+    box-shadow: none;
 }
 
 .fv-settings-search-icon {

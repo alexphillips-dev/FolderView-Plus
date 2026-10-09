@@ -371,7 +371,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
 });
 
 test('rules and bulk assignment use source-switched workspaces', () => {
-    assert.match(settingsPage, /class="fv-rules-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
+    assert.match(settingsPage, /class="fv-rules-source-switch bulk-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-total"[\s\S]*id="docker-rules"[\s\S]*id="docker-rules-selection-summary"/);
     assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-total"[\s\S]*id="vm-rules"[\s\S]*id="vm-rules-selection-summary"/);
     assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="docker"[\s\S]*id="docker-rule-test-output"[\s\S]*id="docker-conflict-output"/);
@@ -428,7 +428,7 @@ test('recovery tab presents restore, history, policy, and environment actions in
 
 test('operations tab shows the reference action and template workflows for both sources', () => {
     assert.match(settingsPage, /<h2 data-i18n="settings.navigation.operations" data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations<\/h2>/);
-    assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
+    assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch bulk-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
     assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
     assert.doesNotMatch(settingsPage, /id="(?:docker|vm)-operations-overview"/);
@@ -446,7 +446,7 @@ test('operations tab shows the reference action and template workflows for both 
     assert.match(settingsJs, /const invalidateFolderRuntimePreview = \(\.\.\.args\) => getSettingsRuntimeActionsApi\(\)\.invalidateFolderRuntimePreview\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);
     assert.match(settingsJs, /exportTemplateEntry\('/);
-    assert.match(settingsCss, /\.fv-operations-source-switch/);
+    assert.match(settingsCss, /\.bulk-source-switch button/);
     assert.match(settingsCss, /\.fv-operations-stage-grid/);
     assert.match(settingsCss, /\.fv-operations-runtime-output/);
     assert.match(settingsCss, /\.fv-operations-template-library/);

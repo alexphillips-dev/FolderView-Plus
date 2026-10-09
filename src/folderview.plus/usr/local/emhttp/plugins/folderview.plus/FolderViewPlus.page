@@ -832,9 +832,9 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div class="rules-panel fv-rules-source-panel">
         <p id="fv-rules-description" class="rules-help">Automatically organize your Docker containers into the right folders using flexible rules.</p>
         <div class="fv-rules-workspace-toolbar">
-            <div class="fv-rules-source-switch" role="group" aria-label="Rules source switcher">
-                <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><span data-rule-icon="boxes" aria-hidden="true"></span> Docker</button>
-                <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><span data-rule-icon="monitor" aria-hidden="true"></span> VMs</button>
+            <div class="fv-rules-source-switch bulk-source-switch" role="group" aria-label="Rules source switcher">
+                <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
+                <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
             </div>
             <button type="button" class="fv-rules-tester-launch" data-rule-tester="open" aria-controls="fv-rules-tester" aria-expanded="false"><span data-rule-icon="flask" aria-hidden="true"></span><span><strong>Open Rule Tester</strong><small>Test rules, check conflicts, and more.</small></span></button>
         </div>
@@ -958,9 +958,9 @@ if (!empty($fvplusRuntimeConflicts)) {
             <h3>Test the current rule set</h3>
             <span class="rules-help">Use the same source switch here to test one item, preview all assignments, and inspect conflicts.</span>
         </div>
-        <div class="fv-rules-source-switch" role="tablist" aria-label="Rules troubleshooting source switcher">
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
+        <div class="fv-rules-source-switch bulk-source-switch" role="tablist" aria-label="Rules troubleshooting source switcher">
+            <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cube"></i> Docker</button>
+            <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
         </div>
     </div>
 
@@ -1168,9 +1168,9 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="fv-operations-module-wrap">
     <div class="rules-panel fv-operations-panel">
         <div class="fv-operations-section-body">
-            <div id="fv-operations-source-switch" class="fv-rules-source-switch fv-operations-source-switch" role="group" aria-label="Operations source">
-                <button type="button" class="fv-rules-source-btn is-active" aria-pressed="true" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
-                <button type="button" class="fv-rules-source-btn" aria-pressed="false" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
+            <div id="fv-operations-source-switch" class="fv-rules-source-switch fv-operations-source-switch bulk-source-switch" role="group" aria-label="Operations source">
+                <button type="button" class="fv-rules-source-btn fv-workspace-source-btn is-active" aria-pressed="true" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')"><i class="fa fa-cube" aria-hidden="true"></i> Docker</button>
+                <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" aria-pressed="false" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')"><i class="fa fa-desktop" aria-hidden="true"></i> VMs</button>
             </div>
 
             <section class="fv-operations-source-panel" data-fv-operations-panel="docker">

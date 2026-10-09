@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.06">
-<!ENTITY md5 "cb476d60afbf5cbd6be3116ecf969a70">
-<!ENTITY sha256 "cc9def21dd11e15a5d0c11e3245a334c6277f88870be5b49e97215b8dfe6b22a">
+<!ENTITY version "2026.10.09.07">
+<!ENTITY md5 "83bc6c1f7a696f8b672243c327384c8c">
+<!ENTITY sha256 "db6891904df260ef3612d7cadb64d5e48f59383fb8b4508d82f46672cb45ed3a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.07
+- UX: Match the Operations and Rules Docker/VM tabs to Bulk Assignment, including their icons, sizing, spacing, and selected states.
+- UX: Align Rules action buttons with Bulk Assignment typography and compact spacing, and reduce the Add rule button height.
+- Fix: Let the Rules workspace and long rules lists expand down the page instead of using a nested vertical scrollbar.
+- Fix: Enlarge and center the Rules summary and Smart suggestions SVG icons within their colored squares.
+- Compatibility: Rule matching, saved configuration, source switching, and guarded saves remain unchanged. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.09.06
 - Feature: Redesign Advanced Settings > Rules with Docker/VM tabs, four summary cards, a guided rule builder, live match counts, smart suggestions, and a compact searchable rules table.

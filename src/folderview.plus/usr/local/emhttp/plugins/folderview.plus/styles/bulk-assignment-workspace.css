@@ -9,10 +9,12 @@
 #fv-settings-root .fv-bulk-hero > a { display: inline-flex; align-items: center; gap: 8px; flex: none; margin-inline-start: auto; padding: 0.4rem 0.8rem; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 8px; color: var(--fvplus-settings-text-muted); text-decoration: none; }
 #fv-settings-root .fv-bulk-workspace { --fv-ui-radius-sm: 8px; --fv-bulk-accent-text: color-mix(in srgb, var(--fvplus-settings-accent) 65%, var(--fvplus-settings-text-primary)); min-width: 0; }
 #fv-settings-root .fv-bulk-workspace * { box-sizing: border-box; }
-#fv-settings-root .fv-bulk-workspace button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; margin: 0; padding: 0.4rem 0.8rem; font: inherit; font-weight: 600; letter-spacing: 0; text-transform: none; box-shadow: none; overflow-wrap: normal; }
+#fv-settings-root .fv-bulk-workspace button,
+#fv-settings-root .fv-rules-redesign button:where(:not(.fv-rule-table button)),
+#fv-settings-root .bulk-source-switch button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; margin: 0; padding: 0.4rem 0.8rem; font: inherit; font-weight: 600; letter-spacing: 0; text-transform: none; box-shadow: none; overflow-wrap: normal; }
 #fv-settings-root .fv-bulk-workspace button:disabled { opacity: 0.5; cursor: default; }
 #fv-settings-root .fv-bulk-workspace :is(button, input, select, summary):focus-visible { outline: 2px solid var(--fvplus-settings-chip-info); outline-offset: 3px; }
-#fv-settings-root .bulk-source-switch { display: flex; align-items: stretch; gap: 0; margin-bottom: 0.9rem; border-bottom: 1px solid var(--fvplus-settings-border-subtle); }
+#fv-settings-root .bulk-source-switch { --fv-ui-radius-sm: 8px; --fv-bulk-accent-text: color-mix(in srgb, var(--fvplus-settings-accent) 65%, var(--fvplus-settings-text-primary)); display: flex; align-items: stretch; gap: 0; margin-bottom: 0.9rem; border-bottom: 1px solid var(--fvplus-settings-border-subtle); font-size: 1.25rem; line-height: 1.45; }
 #fv-settings-root .bulk-source-switch button { min-width: 130px; min-height: 40px; border-radius: 8px 8px 0 0; font-size: inherit; }
 #fv-settings-root .bulk-source-switch button i { font-size: 1.8rem; }
 #fv-settings-root .bulk-source-switch [aria-pressed="true"] { --fv-button-bg: var(--fvplus-settings-accent-soft); --fv-button-fg: var(--fv-bulk-accent-text); --fv-button-border: var(--fvplus-settings-accent); --fvplus-ui-control-hover: var(--fvplus-settings-accent-soft); box-shadow: inset 0 -3px var(--fvplus-settings-accent); }

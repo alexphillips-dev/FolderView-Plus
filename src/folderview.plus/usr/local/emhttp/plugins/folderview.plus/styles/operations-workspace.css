@@ -80,40 +80,6 @@
     padding: 0;
 }
 
-.fv-operations-source-switch {
-    justify-content: flex-start;
-    gap: 0;
-    padding-bottom: 1px;
-    border-bottom: 1px solid var(--fvplus-settings-border-subtle);
-}
-
-#fv-settings-root .fv-operations-source-switch > .fv-rules-source-btn {
-    min-width: 180px;
-    min-height: 46px;
-    margin-bottom: -1px;
-    border: 1px solid var(--fvplus-settings-border-subtle) !important;
-    border-radius: 8px 8px 0 0;
-    background: var(--fvplus-settings-surface-muted) !important;
-    color: var(--fvplus-settings-text-muted) !important;
-    box-shadow: none !important;
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0;
-    text-transform: none;
-}
-
-#fv-settings-root #fv-operations-source-switch > .fv-rules-source-btn:is(.is-active, [aria-pressed="true"]) {
-    border-color: var(--fvplus-settings-accent) !important;
-    border-bottom: 3px solid var(--fvplus-settings-accent) !important;
-    background: color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-surface-panel)) !important;
-    color: var(--fvplus-settings-accent-strong) !important;
-}
-
-.fv-operations-source-switch .fa {
-    margin-inline-end: 0.6rem;
-    font-size: 1.35rem !important;
-}
-
 .fv-operations-source-panel {
     display: grid;
     min-width: 0;
@@ -570,11 +536,6 @@
 
     .fv-operations-hero-copy > h2[data-fv-advanced="1"] {
         font-size: 1.35rem;
-    }
-
-    .fv-operations-source-switch > .fv-rules-source-btn {
-        flex: 1 1 0;
-        min-width: 0 !important;
     }
 
     .fv-operations-template-stage-head {

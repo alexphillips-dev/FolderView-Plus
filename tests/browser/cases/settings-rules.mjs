@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {createProductionPerfFixture} from '../../../scripts/lib/production-perf-fixture.mjs';
+import {verifyWorkspaceControls} from '../helpers/settings-workspace-controls.mjs';
 
 const withRulesFixture = async (page, run) => {
     const {server, folders, names} = createProductionPerfFixture(process.cwd(), {members:12, folders:4, nestedFolders:0});
@@ -116,9 +117,11 @@ test('Rules workspace creates, edits, filters and reorders through guarded produ
         const dragDeadline = Date.now() + 5000;
         while (state.saved.docker.autoRules.slice(0,4).map(rule => rule.id).join(',') !== 'rule-0,rule-2,rule-1,rule-3' && Date.now() < dragDeadline) await page.waitForTimeout(20);
         assert.deepEqual(state.saved.docker.autoRules.slice(0,4).map(rule => rule.id), ['rule-0','rule-2','rule-1','rule-3']);
+        await page.waitForFunction(() => !diagnosticsPrefsCoordinator.getSnapshot('docker').pending && pendingTableRenderFrameByType.docker === null);
         await row('rule-0').locator('input').focus();
         await page.keyboard.press('Space');
         assert.equal(await page.evaluate(() => document.activeElement.matches('input[type="checkbox"]') && document.activeElement.closest('[data-fv-rule-id]').dataset.fvRuleId === 'rule-0'), true);
+        await page.waitForFunction(() => document.getElementById('docker-rules-select-all').indeterminate);
         assert.equal(await page.locator('#docker-rules-select-all').evaluate(el => el.indeterminate), true);
         await page.locator('#docker-rules-filter').fill('vm-');
         assert.equal(await page.locator('#docker-rules [data-fv-rule-id]').count(), 1);
@@ -217,6 +220,7 @@ test('Rules workspace respects theme, touch widths, advanced fields and failed s
         await page.setViewportSize({width:1180,height:900});
         await page.locator('#docker-rule-pattern').fill('fixture');
         await page.locator('#docker-rule-field').selectOption('name');
+        await verifyWorkspaceControls(page);
     });
 });
 };

@@ -1,6 +1,6 @@
 /* Rules presentation shares the existing matcher, preference store and UI primitives. */
 #fv-settings-root h2[data-fv-section="auto-assignment"] { --fvplus-settings-title-accent: var(--fvplus-settings-text-primary); margin-bottom: .4rem; }
-#fv-settings-root .fv-rules-redesign { display: grid; gap: 1rem; --fv-rules-surface: color-mix(in srgb, var(--fvplus-settings-chip-info) 5%, var(--fvplus-settings-surface-panel)); --fvplus-settings-chip-ok: var(--fvplus-settings-chip-success); --fvplus-settings-chip-ok-bg: var(--fvplus-settings-chip-success-bg); --fvplus-settings-chip-ok-border: var(--fvplus-settings-chip-success-border); }
+#fv-settings-root .fv-rules-redesign { display: grid; gap: 1rem; --fv-rules-surface: var(--fvplus-settings-surface-panel); --fvplus-settings-chip-ok: var(--fvplus-settings-chip-success); --fvplus-settings-chip-ok-bg: var(--fvplus-settings-chip-success-bg); --fvplus-settings-chip-ok-border: var(--fvplus-settings-chip-success-border); }
 #fv-settings-root .fv-rules-redesign { --fv-ui-radius-sm: 8px; font-size: 1.25rem; line-height: 1.45; }
 #fv-settings-root .fv-rules-redesign button[hidden] { display: none; }
 #fv-settings-root .fv-rules-redesign [data-rule-icon] { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }

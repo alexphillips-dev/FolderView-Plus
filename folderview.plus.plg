@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.07">
-<!ENTITY md5 "83bc6c1f7a696f8b672243c327384c8c">
-<!ENTITY sha256 "db6891904df260ef3612d7cadb64d5e48f59383fb8b4508d82f46672cb45ed3a">
+<!ENTITY version "2026.10.09.08">
+<!ENTITY md5 "f12f6794b91e594bdd3acad54b6fbe19">
+<!ENTITY sha256 "ed3cd8135906c9dcb76be720e47cff912d4a09744ab3e42746d946b544edb886">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.09.08
+- Fix: Remove the blue tint from the Advanced Rules status cards and panels. They now use the same theme-aware panel colors as Bulk Assignment.
+- Compatibility: The change applies to both Docker and VM rules. Existing rule matching, saved configuration, and status colors are preserved. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.09.07
 - UX: Match the Operations and Rules Docker/VM tabs to Bulk Assignment, including their icons, sizing, spacing, and selected states.

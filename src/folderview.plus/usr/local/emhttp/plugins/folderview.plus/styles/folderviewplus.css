@@ -1686,7 +1686,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     align-items: center;
     gap: 0.24rem;
     max-width: 100%;
-    font-size: 1.03rem;
+    font-size: 1.15rem;
     line-height: 1.1;
     color: var(--fvplus-settings-members-meta-text);
     opacity: 0.92;
@@ -1712,7 +1712,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 1.03rem;
+    font-size: 1.15rem;
     line-height: 1.15;
     color: var(--fvplus-settings-nested-meta-text);
 }
@@ -3306,12 +3306,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .name-cell-text {
-    font-size: 1.08rem;
+    font-size: 1.35rem;
     font-weight: 700;
 }
 
 .name-cell-members-meta {
-    font-size: 0.96rem;
+    font-size: 1.15rem;
 }
 
 .row-order-actions {
@@ -14037,7 +14037,7 @@ body.fv-folder-action-sheet-open {
     }
 
     .name-cell-nested-meta {
-        font-size: 1.03rem;
+        font-size: 1.15rem;
     }
 }
 

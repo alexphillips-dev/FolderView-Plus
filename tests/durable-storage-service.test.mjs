@@ -169,6 +169,75 @@ test('durable writer preserves committed data across every injected failure stag
     }
 });
 
+test('durable writer refuses traversal before touching outside bytes or creating directories', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-durable-boundary-'));
+    try {
+        const config = path.join(tempDir, 'config');
+        const runtime = path.join(tempDir, 'runtime');
+        const outside = path.join(tempDir, 'outside');
+        const documentRoot = path.join(tempDir, 'document-root');
+        for (const dir of [config, runtime, outside, documentRoot]) fs.mkdirSync(dir);
+        const sentinel = path.join(outside, 'sentinel.json');
+        fs.writeFileSync(sentinel, 'outside-original');
+        fs.writeFileSync(`${sentinel}.lastgood`, 'outside-lastgood');
+        const code = `
+$_SERVER['DOCUMENT_ROOT'] = ${phpSingleQuote(documentRoot)};
+require_once ${phpSingleQuote(libPath)};
+$rejected = [];
+foreach ([
+    $configDir . '/../outside/sentinel.json',
+    $configDir . '//..///outside/sentinel.json',
+    $configDir . '/missing/../../outside/sentinel.json',
+    $configDir . '/../outside/new/deep/state.json',
+    $configDir . '/../outside/sentinel.json.lastgood',
+    $configDir . '/./state.json',
+    $configDir . '/missing/../state.json',
+    $configDir . '-escape/state.json'
+] as $target) {
+    try { writeJsonObjectAtomic($target, ['value' => 'escaped']); $rejected[] = false; }
+    catch (RuntimeException $error) { $rejected[] = true; }
+}
+$payload = ['fixture' => 'preserved', 'schemaVersion' => 1];
+writeJsonObjectWithLastGood($configDir . '/docker.json', $payload);
+writeJsonObjectWithLastGood($configDir . '/vm.prefs.json', $payload);
+writeJsonObjectWithLastGood($configDir . '/docker.metadata.json', $payload);
+writeJsonObjectAtomic($configDir . '//backups///new/snapshot.json', $payload);
+writeDurableFileAtomic($sourceDir . '/styles/generated/theme.css', 'fixture-css');
+writeDurableFileAtomic($sourceDir . '/images/custom/icon.svg', 'fixture-icon');
+writeDurableFileAtomic(getenv('FVPLUS_TEST_STORAGE_DIR') . '/native/autostart', "fixture-container 5\\n");
+echo json_encode(['rejected' => $rejected]);
+`;
+        const result = JSON.parse(execFileSync('php', ['-r', code], {
+            cwd: repoRoot, encoding: 'utf8',
+            env: {
+                ...process.env,
+                FVPLUS_TEST_CONFIG_DIR: config,
+                FVPLUS_TEST_SOURCE_DIR: runtime,
+                FVPLUS_TEST_STORAGE_DIR: path.join(tempDir, 'host-fixture')
+            }
+        }));
+        assert.deepEqual(result.rejected, Array(8).fill(true));
+        assert.equal(fs.readFileSync(sentinel, 'utf8'), 'outside-original');
+        assert.equal(fs.readFileSync(`${sentinel}.lastgood`, 'utf8'), 'outside-lastgood');
+        assert.deepEqual(fs.readdirSync(outside).sort(), ['sentinel.json', 'sentinel.json.lastgood']);
+        assert.equal(fs.existsSync(path.join(config, 'missing')), false);
+        assert.equal(fs.existsSync(`${config}-escape`), false);
+        const jsonBytes = '{"fixture":"preserved","schemaVersion":1}';
+        for (const name of ['docker.json', 'vm.prefs.json', 'docker.metadata.json']) {
+            assert.equal(fs.readFileSync(path.join(config, name), 'utf8'), jsonBytes);
+            assert.equal(fs.readFileSync(path.join(config, `${name}.lastgood`), 'utf8'), jsonBytes);
+        }
+        assert.equal(fs.readFileSync(path.join(config, 'backups/new/snapshot.json'), 'utf8'), jsonBytes);
+        assert.equal(fs.readFileSync(path.join(runtime, 'styles/generated/theme.css'), 'utf8'), 'fixture-css');
+        assert.equal(fs.readFileSync(path.join(runtime, 'images/custom/icon.svg'), 'utf8'), 'fixture-icon');
+        assert.equal(fs.readFileSync(path.join(tempDir, 'host-fixture/native/autostart'), 'utf8'), 'fixture-container 5\n');
+        const tempFiles = fs.readdirSync(tempDir, { recursive: true }).filter(name => name.includes('.tmp.'));
+        assert.deepEqual(tempFiles, []);
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+});
+
 test('durable configuration surfaces use the shared storage service', () => {
     const lib = [
         'lib.php',

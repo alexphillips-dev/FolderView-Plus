@@ -3,6 +3,10 @@
 function fvplusNormalizeFilesystemPath(string $path): string {
     $normalized = str_replace('\\', '/', trim($path));
     $normalized = preg_replace('#/+#', '/', $normalized);
+    // Generated storage targets must not change directories during resolution.
+    if (is_string($normalized) && preg_match('#(?:^|/)\.{1,2}(?:/|$)#', $normalized)) {
+        return '';
+    }
     return is_string($normalized) ? rtrim($normalized, '/') : '';
 }
 
@@ -23,13 +27,15 @@ function fvplusPathHasSymlinkComponent(string $path): bool {
 
 function fvplusAssertDurableWriteTarget(string $path): void {
     global $configDir, $sourceDir;
-    if (trim($path) === '' || strpos($path, "\0") !== false) {
+    $normalizedPath = fvplusNormalizeFilesystemPath($path);
+    // Validate the spelling used by the writer, including POSIX literal backslashes.
+    if ($normalizedPath === '' || $path !== trim($path) || strpos($path, "\0") !== false
+        || (DIRECTORY_SEPARATOR === '/' && strpos($path, '\\') !== false)) {
         throw new RuntimeException('Durable storage target path is invalid.');
     }
     if (is_link($path) || fvplusPathHasSymlinkComponent(dirname($path))) {
         throw new RuntimeException("Durable storage target contains a symbolic link: '" . basename($path) . "'.");
     }
-    $normalizedPath = fvplusNormalizeFilesystemPath($path);
     $allowedRoots = [
         fvplusNormalizeFilesystemPath((string)$configDir),
         fvplusNormalizeFilesystemPath((string)$sourceDir),

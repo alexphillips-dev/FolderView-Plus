@@ -72,6 +72,92 @@ echo json_encode($results);
     }
 });
 
+test('durable storage boundary rejects dot segments before prefix authorization', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-storage-paths-'));
+    try {
+        const config = path.join(tempDir, 'config').replace(/\\/g, '/');
+        const source = path.join(tempDir, 'source').replace(/\\/g, '/');
+        const cases = [
+            [config, true],
+            [`${config}/docker.json`, true],
+            [`${config}//backups///missing/snapshot.json`, true],
+            [`${source}/styles/generated.css`, true],
+            [`${source}/images/custom/icon.svg`, true],
+            ['/var/lib/docker/autostart', true],
+            ['/var/lib/docker-backup/autostart', false],
+            [`${config}-escape/prefs.json`, false],
+            [`${config}/../outside/prefs.json`, false],
+            [`${config}/missing/../../outside/prefs.json`, false],
+            [`${config}//..///outside/prefs.json`, false],
+            [`${config}/./prefs.json`, false],
+            [`${config}/child/..`, false],
+            [`${config}/child/.`, false],
+            [`${config}/..\\outside/prefs.json`, false],
+            [`${config}\\..\\outside\\prefs.json`, false],
+            [`${config}/.hidden/prefs.json`, true],
+            [`${config}/.../prefs.json`, true],
+            [` ${config}/prefs.json`, false],
+            [`${config}/prefs.json `, false],
+            ['', false],
+            [`${config}/invalid\0.json`, false],
+            [`${config}\\prefs.json`, process.platform === 'win32'],
+            [`${config}/backups\\snapshot.json`, process.platform === 'win32']
+        ];
+        const code = `
+require_once ${phpQuote(filesystemSecurityLibPath)};
+$configDir = ${phpQuote(config)};
+$sourceDir = ${phpQuote(source)};
+$cases = json_decode(${phpQuote(JSON.stringify(cases))}, true);
+$results = [];
+foreach ($cases as $case) {
+    try { fvplusAssertDurableWriteTarget($case[0]); $results[] = true; }
+    catch (RuntimeException $error) { $results[] = false; }
+}
+echo json_encode($results);
+`;
+        const results = JSON.parse(execFileSync('php', ['-r', code], {
+            encoding: 'utf8', env: { ...process.env, FVPLUS_TEST_STORAGE_DIR: '' }
+        }));
+        cases.forEach(([target, expected], index) => {
+            assert.equal(results[index], expected, `authorization for ${JSON.stringify(target)}`);
+        });
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+});
+
+test('durable storage boundary rejects symbolic link targets and existing ancestors', {
+    skip: process.platform === 'win32' ? 'Symlink permissions and path semantics run in Linux CI.' : false
+}, () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-storage-links-'));
+    try {
+        const config = path.join(tempDir, 'config');
+        const outside = path.join(tempDir, 'outside');
+        fs.mkdirSync(config);
+        fs.mkdirSync(outside);
+        fs.writeFileSync(path.join(outside, 'sentinel.json'), 'original');
+        fs.symlinkSync(outside, path.join(config, 'linked'));
+        fs.symlinkSync(path.join(outside, 'sentinel.json'), path.join(config, 'target.json'));
+        fs.symlinkSync(path.join(outside, 'missing'), path.join(config, 'dangling'));
+        const code = `
+require_once ${phpQuote(filesystemSecurityLibPath)};
+$configDir = ${phpQuote(config)};
+$sourceDir = '';
+$rejected = [];
+foreach (['linked/sentinel.json', 'linked/missing/deep/state.json', 'target.json', 'dangling/state.json'] as $child) {
+    try { fvplusAssertDurableWriteTarget($configDir . '/' . $child); $rejected[] = false; }
+    catch (RuntimeException $error) { $rejected[] = true; }
+}
+echo json_encode($rejected);
+`;
+        assert.deepEqual(JSON.parse(execFileSync('php', ['-r', code], {
+            encoding: 'utf8', env: { ...process.env, FVPLUS_TEST_STORAGE_DIR: '' }
+        })), [true, true, true, true]);
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+});
+
 test('process profiles construct fixed argument arrays and reject command fragments', () => {
     const code = `
 require_once ${phpQuote(processLibPath)};

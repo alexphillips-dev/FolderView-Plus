@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.09.10">
-<!ENTITY md5 "d58b6ecff4b8ad92aa42383d8fcbc0f9">
-<!ENTITY sha256 "24ab7a9f4c0473b603c17ceacf9fdfd58f8017cc99838eae8dec8dae65a08a8b">
+<!ENTITY version "2026.10.10.01">
+<!ENTITY md5 "fc2313fcac6570432dfc2c67d0ab55e0">
+<!ENTITY sha256 "f3e622b65450fbfa7143886edf7d7a4470cbafa6d21ed2553a3418fed3aba71e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.10.01
+- UX: Match the Docker and VM Settings toolbar controls to the Basic, Advanced, and Wizard button heights using one shared sizing token.
+- Fix: Remove the Sort dropdown's taller minimum height so its clickable area follows the compact toolbar. Keep matching search fields and larger controls on narrow screens and touch devices. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.09.10
 - UX: Reduce excess vertical space in the Settings header buttons and Docker/VM Basic toolbar controls, with matching search-field heights.

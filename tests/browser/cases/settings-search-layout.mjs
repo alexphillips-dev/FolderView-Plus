@@ -143,6 +143,8 @@ export const verifyBasicToolbarLayout = async (page) => {
                     `${layout.type} controls must share one desktop row: ${JSON.stringify(layout)}`);
             }
             for (const [index, box] of layout.controls.entries()) {
+                assert.ok(Math.abs(box.height - layout.headerHeight) <= 2,
+                    `${layout.type} toolbar controls must match the Settings header height at ${width}px: ${JSON.stringify(layout)}`);
                 assert.ok(Math.abs(box.height - layout.controls[0].height) <= 2,
                     `${layout.type} toolbar controls must have matching heights at ${width}px: ${JSON.stringify(layout)}`);
                 assert.ok(box.left >= layout.bounds.left - 1 && box.right <= layout.bounds.right + 1,

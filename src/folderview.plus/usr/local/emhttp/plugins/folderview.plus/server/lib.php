@@ -1097,6 +1097,14 @@
         if (strlen($value) <= $maxBytes) {
             return $value;
         }
+        // Preserve existing handling of malformed input; JSON writers reject it.
+        if (preg_match('//u', $value) !== 1) {
+            return substr($value, 0, $maxBytes);
+        }
+        // The first excluded byte must not be a UTF-8 continuation byte.
+        while ((ord($value[$maxBytes]) & 0xC0) === 0x80) {
+            $maxBytes--;
+        }
         return substr($value, 0, $maxBytes);
     }
 

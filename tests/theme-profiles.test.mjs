@@ -67,7 +67,7 @@ test('save-as-profile copies other scopes, persists the selected draft and rejec
         $workspace['profiles'][0]['layers']['global']['variables'] = ['--fvplus-theme-accent' => '#123456'];
         $workspace['profiles'][0]['layers']['vm']['customCss'] = '.vm-saved { opacity: .9; }';
         writeThemeWorkspace($workspace);
-        $copied = createThemeWorkspaceProfile('Blue Docker', 'default', 'docker', ['--fvplus-theme-accent' => '#3b82f6'], '.docker-draft { opacity: .8; }');
+        $copied = createThemeWorkspaceProfile(str_repeat('p', 95) . '😀', 'default', 'docker', ['--fvplus-theme-accent' => '#3b82f6'], '.docker-draft { opacity: .8; }');
         $before = file_get_contents(getThemeWorkspacePath());
         $rejected = false;
         try { createThemeWorkspaceProfile('Unsafe', 'default', 'docker', [], '@import url(https://example.invalid/private.css);'); }
@@ -80,6 +80,7 @@ test('save-as-profile copies other scopes, persists the selected draft and rejec
         } }));
         const original = result.saved.profiles.find(profile => profile.id === 'default');
         const copy = result.saved.profiles.find(profile => profile.id === result.saved.activeProfileId);
+        assert.equal(copy.name, 'p'.repeat(95), 'multibyte profile names must remain serializable at the byte limit');
         assert.equal(original.layers.global.variables['--fvplus-theme-accent'], '#123456');
         assert.equal(copy.layers.global.variables['--fvplus-theme-accent'], '#123456');
         assert.equal(copy.layers.docker.variables['--fvplus-theme-accent'], '#3b82f6');

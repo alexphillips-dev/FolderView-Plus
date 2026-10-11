@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.10.02">
-<!ENTITY md5 "18d1c28c4e3da7a1ce0b3737221e8cd9">
-<!ENTITY sha256 "ed879497037e07744e02a999e9a6213a1ec313162a712a9acd24ed7ef4b82eaf">
+<!ENTITY version "2026.10.11.01">
+<!ENTITY md5 "c4a865931ab85bac213ec092e63fcde4">
+<!ENTITY sha256 "f9c2e124a0e011c92673c8f23d7f0b320f6db6d5d2aaafe7e2e013c1c0bf355d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.11.01
+- Fix: Keep byte-limited folder names, preferences, migration data and theme metadata on complete UTF-8 character boundaries so valid multilingual input remains serializable and saves successfully.
+- Compatibility: Preserve existing byte ceilings, ASCII values and malformed-input rejection without requiring the mbstring PHP extension.
+
 
 ###2026.10.10.02
 - Security: Reject parent-directory and current-directory components in durable storage targets before any directory or temporary-file creation. Preserve approved configuration, runtime, and Docker host roots and symbolic-link rejection.

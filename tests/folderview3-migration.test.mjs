@@ -56,7 +56,7 @@ const fixture = {
     native_autostart: ['plex 15', 'arr-one']
 };
 
-const runPhpPlan = (bundle) => {
+const runPhpPlan = (bundle, sourceName = 'fixture.json') => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-fv3-migration-'));
     const configDir = path.join(tempDir, 'config');
     const sourceDir = path.join(tempDir, 'source');
@@ -69,7 +69,7 @@ const runPhpPlan = (bundle) => {
     const code = [
         `require_once ${phpString(path.join(serverRoot, 'lib.php'))};`,
         `$bundle = decodeFolderView3BundlePayloadString(file_get_contents(${phpString(bundlePath)}));`,
-        `$plan = buildFolderView3MigrationPlan($bundle, 'fixture.json');`,
+        `$plan = buildFolderView3MigrationPlan($bundle, ${phpString(sourceName)});`,
         `echo json_encode(['plan' => $plan, 'report' => folderView3MigrationReport($plan)], JSON_UNESCAPED_SLASHES);`
     ].join(' ');
     try {
@@ -120,6 +120,22 @@ test('FolderView3 conversion preserves folders, rules, defaults, start order, an
     assert.equal(report.operations.find((entry) => entry.id === 'native-autostart').selected, false);
     assert.equal(report.operations.find((entry) => entry.id === 'organizer-registry').selected, false);
     assert.equal(Object.hasOwn(report, 'target'), false, 'downloadable report must not expose migrated names or raw target config');
+});
+
+test('FolderView3 multilingual folder, rule and source boundaries produce serializable plans', () => {
+    const bundle = structuredClone(fixture);
+    bundle.docker.dockerFolder.name = 'd'.repeat(159) + 'é';
+    bundle.vm.vmFolder.name = 'v'.repeat(159) + '界';
+    bundle.docker.dockerFolder.regex = 'r'.repeat(1023) + '😀';
+    bundle.plugin_version = 'p'.repeat(127) + 'é';
+    const { plan, report } = runPhpPlan(bundle, 's'.repeat(254) + '😀');
+    assert.equal(plan.target.types.docker.folders.dockerFolder.name, 'd'.repeat(159));
+    assert.equal(plan.target.types.vm.folders.vmFolder.name, 'v'.repeat(159));
+    assert.equal(plan.target.types.docker.prefs.autoRules[0].pattern, 'r'.repeat(1023));
+    assert.equal(plan.source.sourceName, 's'.repeat(254));
+    assert.equal(plan.source.pluginVersion, 'p'.repeat(127));
+    assert.equal(report.summary.dockerFolderCount, 1);
+    assert.equal(report.summary.vmFolderCount, 1);
 });
 
 test('FolderView3 conversion rejects unsupported exports and severe custom CSS', () => {

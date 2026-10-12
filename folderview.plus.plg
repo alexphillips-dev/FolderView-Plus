@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.11.03">
-<!ENTITY md5 "eb44d65b24a3bffa5720c917d63ce261">
-<!ENTITY sha256 "7bcdaca0f33f0dd31e84be26dd297eafd1b57ac3e511301e0089a5f052b57bb4">
+<!ENTITY version "2026.10.12.01">
+<!ENTITY md5 "2aacde59fa5b83e570f96619ecd04b23">
+<!ENTITY sha256 "375758a1af1048cf171b89189c867a08c8cb29fdb96ed7eabe9b8111e50b20a0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.01
+- Fix: Restore the original Docker or VM folders, preferences and revision metadata when a configuration save fails partway through. Failed saves can be retried without silently retaining the rejected change.
+- Fix: Keep last-good recovery copies until the configuration and revision metadata have both saved. Recovery-copy failures remain non-fatal after a successful save.
+- Fix: Report incomplete rollback accurately during batch edits and bulk assignment, retaining the original storage error and available recovery copies.
+- Compatibility: Configuration formats and revision conflict protection are unchanged. Recovery after a process interruption continues to use the existing file-hash reconciliation.
+
 
 ###2026.10.11.03
 - Fix: Stop environment imports, backup restores, FolderView3 migrations and appearance updates before changing configuration when required rollback files cannot be read safely. Empty files and missing files remain distinct.

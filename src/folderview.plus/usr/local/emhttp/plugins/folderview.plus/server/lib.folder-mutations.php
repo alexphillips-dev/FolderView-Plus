@@ -233,7 +233,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 }
                 $rollbackDetail = count($rollbackErrors) > 0
                     ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
-                    : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                    : ($error instanceof FVPlusConfigWriteRollbackException ? '' : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.'));
                 throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
             }
 

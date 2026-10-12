@@ -260,6 +260,10 @@ function readJsonObjectFile(string $path): ?array {
 
     function writeJsonObjectWithLastGood(string $path, array $payload): void {
         writeJsonObjectAtomic($path, $payload);
+        fvplusWriteJsonLastGood($path, $payload);
+    }
+
+    function fvplusWriteJsonLastGood(string $path, array $payload): void {
         $lastGoodPath = getLastGoodJsonPath($path);
         try {
             fvplusStorageThrowInjectedFailure('last-good', $lastGoodPath);
@@ -364,14 +368,14 @@ function readJsonObjectFile(string $path): ?array {
         return $normalized;
     }
 
-    function readConfigMetadata(string $type, bool $reconcile = true): array {
+    function readConfigMetadata(string $type, bool $reconcile = true, bool $persist = true): array {
         $safeType = ensureType($type);
-        return withConfigMutationLock(static function () use ($safeType, $reconcile): array {
+        return withConfigMutationLock(static function () use ($safeType, $reconcile, $persist): array {
             $path = getConfigMetadataPath($safeType);
             $decoded = readJsonObjectFile($path);
             $recovered = false;
             if (!is_array($decoded)) {
-                $decoded = recoverJsonObjectFromLastGood($path);
+                $decoded = $persist ? recoverJsonObjectFromLastGood($path) : readJsonObjectFile(getLastGoodJsonPath($path));
                 $recovered = is_array($decoded);
             }
             $metadata = normalizeConfigMetadata($decoded, $safeType);
@@ -406,31 +410,11 @@ function readJsonObjectFile(string $path): ?array {
                 }
             }
 
-            if ($changed) {
+            if ($changed && $persist) {
                 return writeConfigMetadata($safeType, $metadata);
             }
             return $metadata;
         });
-    }
-
-    function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata): array {
-        $safeType = ensureType($type);
-        if (!in_array($kind, ['folder', 'prefs'], true)) {
-            throw new RuntimeException('Unsupported configuration metadata kind.');
-        }
-        $now = gmdate('c');
-        $revisionKey = $kind . 'Revision';
-        $updatedKey = $kind . 'UpdatedAt';
-        $hashKey = $kind . 'Sha256';
-        $metadata = normalizeConfigMetadata($metadata, $safeType);
-        $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
-        $metadata[$updatedKey] = $now;
-        $metadata[$hashKey] = configMetadataHashFromPath($targetPath);
-        $metadata['updatedAt'] = $now;
-        $metadata['lastTraceId'] = getRequestTraceId();
-        $metadata['lastTransactionId'] = getRequestTransactionId();
-        $metadata['lastMutationAt'] = $now;
-        return writeConfigMetadata($safeType, $metadata);
     }
 
     function rebuildConfigMetadata(string $type): array {

@@ -1,4 +1,15 @@
 import test from 'node:test';
+import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
+
+test('backup restore retains exact files and revisions after a nested metadata failure', () => {
+    for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) {
+        const result = runConfigWriteFixture({ type, kind, operation: 'backup' });
+        assert.ok(result.observed);
+        assert.ok(result.error);
+        assert.deepEqual(result.after, result.before);
+        assert.equal(result.otherUnchanged, true);
+    }
+});
 import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

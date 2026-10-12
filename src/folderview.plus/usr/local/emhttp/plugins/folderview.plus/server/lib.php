@@ -1449,6 +1449,7 @@
 
     require_once(__DIR__ . '/lib.storage.php');
     require_once(__DIR__ . '/lib.transaction-files.php');
+    require_once(__DIR__ . '/lib.config-write.php');
 
     require_once(__DIR__ . '/lib.theme-profiles.php'); require_once(__DIR__ . '/lib.theme-update-plan.php'); require_once(__DIR__ . '/lib.theme-workspace.php');
 
@@ -1657,13 +1658,7 @@
 
     function writeRawFolderMap(string $type, array $folders): void {
         $type = ensureType($type);
-        withConfigMutationLock(static function () use ($type, $folders): void {
-            $path = getFolderFilePath($type);
-            $metadata = readConfigMetadata($type, true);
-            $normalized = normalizeFolderMapPayload($folders);
-            writeJsonObjectWithLastGood($path, $normalized);
-            commitConfigMetadataWrite($type, 'folder', $path, $metadata);
-        });
+        fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), normalizeFolderMapPayload($folders));
     }
 
     function reorderFoldersByIdList(string $type, array $orderedIds): array {

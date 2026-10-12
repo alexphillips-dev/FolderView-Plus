@@ -4,6 +4,35 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
+
+test('batch and bulk writers compensate metadata failures without false rollback claims', () => {
+    for (const type of ['docker', 'vm']) for (const operation of ['batch', 'bulk']) {
+        const result = runConfigWriteFixture({ type, operation });
+        assert.ok(result.observed);
+        assert.deepEqual(result.after, result.before);
+        assert.match(result.error, /No configuration write was committed/);
+        const uncertain = runConfigWriteFixture({ type, operation, rollback: true });
+        assert.match(uncertain.error, /rollback was incomplete/);
+        assert.doesNotMatch(uncertain.error, /No configuration write was committed|restored the original configuration/);
+    }
+});
+
+test('preference metadata failure after a batch folder commit restores payloads with monotonic folder revisions', () => {
+    for (const type of ['docker', 'vm']) {
+        const result = runConfigWriteFixture({ type, operation: 'batch', kind: 'prefs' });
+        assert.ok(result.observed);
+        assert.match(result.error, /Automatic rollback restored the original configuration/);
+        for (const suffix of ['.json', '.json.lastgood', '.prefs.json', '.prefs.json.lastgood']) {
+            assert.deepEqual(result.after[suffix], result.before[suffix]);
+        }
+        assert.equal(result.metadata.folderRevision, 3, 'forward write and compensating write each advance the revision');
+        assert.equal(result.metadata.prefsRevision, 1, 'failed preference write must not advance its revision');
+        const uncertain = runConfigWriteFixture({ type, operation: 'batch', kind: 'prefs', rollback: true });
+        assert.match(uncertain.error, /rollback was incomplete.*Automatic rollback had errors.*folders/s);
+        assert.doesNotMatch(uncertain.error, /No configuration write was committed|restored the original configuration/);
+    }
+});
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');

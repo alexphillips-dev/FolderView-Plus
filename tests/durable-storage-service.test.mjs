@@ -4,6 +4,64 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
+
+test('native Linux config writes retain modes and report real permission failures', {
+    skip: process.platform !== 'linux' || process.getuid?.() === 0 ? 'Requires unprivileged native Linux PHP' : false
+}, () => {
+    const result = JSON.parse(execFileSync('php', [path.resolve('tests/fixtures/config-write-linux.php'),
+        path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server')], { encoding: 'utf8', timeout: 30000 }));
+    assert.equal(result.checks, 116);
+    assert.notEqual(result.uid, 0);
+});
+
+test('folder and preference failures restore exact payload, sidecar, mirrors and first-run absence', () => {
+    for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) {
+        for (const stage of ['primary-rename', 'metadata-open', 'metadata-rename']) for (const first of [false, true]) {
+            const result = runConfigWriteFixture({ type, kind, stage, first });
+            const label = `${type}/${kind}/${stage}/first=${first}`;
+            assert.ok(result.error, label);
+            assert.deepEqual(result.after, result.before, label);
+            assert.deepEqual(result.temps, [], label);
+            assert.equal(result.otherUnchanged, true, label);
+            assert.equal(result.sentinel, 'keep', label);
+            assert.equal(result.runtimeSnapshot.ok, false, `${label}: compensation must retain failure diagnostics`);
+            assert.equal(result.tokenAfter, result.tokenBefore, `${label}: rejected writes must not invalidate the runtime token`);
+            if (stage !== 'primary-rename') assert.notDeepEqual(result.observed, result.before, `${label}: failure must follow payload rename`);
+        }
+    }
+});
+
+test('failed configuration compensation preserves recovery mirrors and reports the original failure', () => {
+    for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) {
+        const result = runConfigWriteFixture({ type, kind, rollback: true });
+        const suffix = kind === 'folder' ? '.json' : '.prefs.json';
+        assert.match(result.error, /atomically replace.*rollback was incomplete/s);
+        assert.match(result.previous, /atomically replace/);
+        assert.match(result.errorClass, /FVPlusConfigWriteRollbackException$/);
+        assert.notDeepEqual(result.after[suffix], result.before[suffix]);
+        assert.deepEqual(result.after[`${suffix}.lastgood`], result.before[`${suffix}.lastgood`]);
+        assert.deepEqual(result.after['.metadata.json'], result.before['.metadata.json']);
+        assert.deepEqual(result.after['.metadata.json.lastgood'], result.before['.metadata.json.lastgood']);
+        assert.equal(result.metadata.externalChangeCount, 1, 'restart reconciliation must detect the uncertain payload');
+        assert.notEqual(result.tokenAfter, result.tokenBefore);
+    }
+});
+
+test('last-good failures stay non-fatal after payload and revision commit', () => {
+    for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) for (const mirrorDirectories of [false, true]) {
+        const result = runConfigWriteFixture({ type, kind, stage: 'none', mirrors: !mirrorDirectories, mirrorDirectories });
+        const suffix = kind === 'folder' ? '.json' : '.prefs.json';
+        assert.equal(result.error, '');
+        assert.notDeepEqual(result.after[suffix], result.before[suffix]);
+        assert.deepEqual(result.after[`${suffix}.lastgood`], result.before[`${suffix}.lastgood`]);
+        assert.deepEqual(result.after['.metadata.json.lastgood'], result.before['.metadata.json.lastgood']);
+        assert.equal(result.metadata[`${kind}Revision`], 2);
+        assert.equal(result.metadata.externalChangeCount, 0);
+        assert.notEqual(result.tokenAfter, result.tokenBefore);
+        if (mirrorDirectories) assert.equal(result.mirrorDirectoriesIntact, true);
+    }
+});
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');

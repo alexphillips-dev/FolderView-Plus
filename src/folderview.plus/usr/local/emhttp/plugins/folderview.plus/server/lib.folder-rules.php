@@ -275,7 +275,7 @@ function legacyRegexMigrationLockPath(string $type): string {
                     }
                     $rollbackDetail = count($rollbackErrors) > 0
                         ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
-                        : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                        : ($error instanceof FVPlusConfigWriteRollbackException ? '' : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.'));
                     throw new RuntimeException('Bulk assignment transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
                 }
             }

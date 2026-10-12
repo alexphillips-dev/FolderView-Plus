@@ -1,4 +1,15 @@
 import test from 'node:test';
+import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
+
+test('environment import restores exact Docker and VM state after a nested metadata failure', () => {
+    for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) {
+        const result = runConfigWriteFixture({ type, kind, operation: 'environment' });
+        assert.ok(result.observed);
+        assert.match(result.error, /All changed configuration was restored/);
+        assert.deepEqual(result.after, result.before);
+        assert.equal(result.otherUnchanged, true);
+    }
+});
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';

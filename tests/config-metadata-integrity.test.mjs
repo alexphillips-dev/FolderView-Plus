@@ -4,6 +4,32 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runConfigWriteFixture, runConcurrentConfigWriters } from './helpers/config-write-fixture.mjs';
+
+test('rejected writes retain external edits and corrupt sidecars for normal restart reconciliation', () => {
+    for (const type of ['docker', 'vm']) for (const request of [{ external: true }, { corruptMetadata: true }]) {
+        const result = runConfigWriteFixture({ type, restart: true, ...request });
+        assert.deepEqual(result.after, result.before);
+        assert.ok(result.error);
+        assert.equal(result.metadata.folderRevision, request.external ? 2 : 1);
+        assert.equal(result.metadata.externalChangeCount, request.external ? 1 : 0);
+    }
+});
+
+test('independent writers wait for failed-write compensation and retain a valid retry revision', async () => {
+    for (const type of ['docker', 'vm']) {
+        const result = await runConcurrentConfigWriters(type);
+        assert.equal(result.blocked, true);
+        assert.match(result.failed.error, /Failed to atomically replace durable payload/);
+        assert.doesNotMatch(result.failed.error, /Fixture barrier/);
+        assert.equal(result.winner.error, '');
+        assert.equal(result.winner.metadata.folderRevision, 2);
+        assert.equal(result.winner.metadata.prefsRevision, 1);
+        assert.equal(result.winner.metadata.externalChangeCount, 0);
+        const saved = JSON.parse(Buffer.from(result.winner.after['.json'][0], 'base64').toString('utf8'));
+        assert.deepEqual(Object.keys(saved), ['winner']);
+    }
+});
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(

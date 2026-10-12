@@ -4,6 +4,17 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
+
+test('a rejected preference save preserves patch state and the revision used for retry', () => {
+    for (const type of ['docker', 'vm']) {
+        const result = runConfigWriteFixture({ type, kind: 'prefs', stage: 'metadata-open' });
+        assert.ok(result.error);
+        assert.deepEqual(result.after, result.before);
+        assert.equal(result.metadata.prefsRevision, 1);
+        assert.equal(result.metadata.folderRevision, 1);
+    }
+});
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');

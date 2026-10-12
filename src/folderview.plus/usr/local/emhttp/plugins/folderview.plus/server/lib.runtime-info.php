@@ -190,18 +190,6 @@ function getDockerTemplateCachePath(): string {
             $autoStart = array_map('var_split', $autoStartLines);
             $dockerWebuiInfo = readDockerWebuiInfoCache();
 
-            // Remove stale entries from autostart file (containers that no longer exist)
-            $allCtNames = array_map(function($c) { return ltrim($c['Names'][0] ?? '', '/'); }, $cts);
-            $cleanedLines = array_filter($autoStartLines, function($line) use ($allCtNames) {
-                $parts = explode(' ', $line, 2);
-                return in_array($parts[0], $allCtNames);
-            });
-            if (count($cleanedLines) < count($autoStartLines)) {
-                writeDurableFileAtomic($autoStartFile, implode("\n", $cleanedLines) . "\n");
-                fv3_debug_log("readInfo: removed " . (count($autoStartLines) - count($cleanedLines)) . " stale autostart entries");
-                $autoStart = array_map('var_split', $cleanedLines);
-            }
-
             $allXmlTemplates = getDockerTemplateIndexCached($dockerTemplates);
 
             foreach ($cts as $key => &$ct) {

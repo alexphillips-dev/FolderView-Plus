@@ -48,7 +48,7 @@ function dockerSyncOrderLockPath(): string {
         return $delay > 0 ? $name . ' ' . $delay : $name;
     }
 
-    function buildDockerStartOrderContext(): array {
+    function buildDockerStartOrderContext(?array $verifiedInventory = null): array {
         global $configDir;
 
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
@@ -59,18 +59,20 @@ function dockerSyncOrderLockPath(): string {
         $foldersFile = "$configDir/docker.json";
         $folders = file_exists($foldersFile) ? (json_decode(file_get_contents($foldersFile), true) ?: []) : [];
 
-        $dockerClient = new DockerClient();
         $allContainerNames = [];
-        foreach ((array)$dockerClient->getDockerContainers() as $containerMeta) {
-            $name = trim((string)($containerMeta['Name'] ?? ''));
-            if ($name === '' || in_array($name, $allContainerNames, true)) {
-                continue;
+        if ($verifiedInventory === null) {
+            $dockerClient = new DockerClient();
+            foreach ((array)$dockerClient->getDockerContainers() as $containerMeta) {
+                $name = trim((string)($containerMeta['Name'] ?? ''));
+                if ($name === '' || in_array($name, $allContainerNames, true)) {
+                    continue;
+                }
+                $allContainerNames[] = $name;
             }
-            $allContainerNames[] = $name;
         }
         $prefs = readTypePrefs('docker');
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $infoByName = readInfoState('docker');
+        $infoByName = $verifiedInventory ?? readInfoState('docker');
         if (count($allContainerNames) <= 0) {
             $allContainerNames = array_keys($infoByName);
         }
@@ -123,11 +125,12 @@ function dockerSyncOrderLockPath(): string {
 
         $autoStartFile = fvplusEnvironmentDockerAutostartPath();
         $autoStartLines = file_exists($autoStartFile)
-            ? (@file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [])
+            ? @file($autoStartFile)
             : [];
+        $autoStartContent = is_array($autoStartLines) ? implode('', $autoStartLines) : null;
         $autoStartMap = [];
         $staleAutostart = [];
-        foreach ($autoStartLines as $line) {
+        foreach ($autoStartLines ?: [] as $line) {
             $parts = preg_split('/\s+/', trim((string)$line), 2);
             $name = (string)($parts[0] ?? '');
             if ($name === '') {
@@ -151,6 +154,7 @@ function dockerSyncOrderLockPath(): string {
             'assignedContainers' => array_values(array_unique($assignedContainers)),
             'allContainerNames' => array_values($allContainerNames),
             'autoStartFile' => $autoStartFile,
+            'autoStartContent' => $autoStartContent,
             'autoStartMap' => $autoStartMap,
             'staleAutostart' => $staleAutostart
         ];
@@ -350,7 +354,13 @@ function dockerSyncOrderLockPath(): string {
     function syncContainerOrderUnlocked(): void {
         // Rewrites the autostart file to match the configured FolderView Plus start order.
         // Docker userprefs.cfg is owned by Unraid and is only read here.
-        $context = buildDockerStartOrderContext();
+        try {
+            $context = buildDockerStartOrderContext(fvplusReadRepairInventory('docker'));
+        } catch (Throwable $error) {
+            // Sync is also a post-save hook: retain native records without rejecting committed configuration.
+            fv3_debug_log('syncContainerOrder: skipped because inventory or context could not be verified');
+            return;
+        }
         $plan = buildDockerStartOrderPlan($context);
         if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return; }
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
@@ -372,6 +382,10 @@ function dockerSyncOrderLockPath(): string {
                 ? implode("\n", $newAutoStart) . "\n"
                 : '';
             $currentAutoStartContent = @file_get_contents($autoStartFile);
+            if ($currentAutoStartContent !== ($context['autoStartContent'] ?? null)) {
+                fv3_debug_log('syncContainerOrder: native autostart changed during planning; skipped');
+                return;
+            }
             if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
                 writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
                 fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries using " . (string)($plan['mode'] ?? 'docker-page') . " mode");

@@ -39,7 +39,7 @@ test('Docker start-order preferences are normalized and accepted', () => {
 });
 
 test('server builds preview and sync order from Docker page or custom batches', () => {
-    assert.match(libPhp, /function buildDockerStartOrderContext\(\): array/);
+    assert.match(libPhp, /function buildDockerStartOrderContext\(\?array \$verifiedInventory = null\): array/);
     assert.match(libPhp, /function buildDockerPageStartOrder\(array \$context\): array/);
     assert.match(libPhp, /function buildDockerCustomStartOrder\(array \$context, array \$plan\): array/);
     assert.match(libPhp, /function buildDockerStartOrderPlan\(array \$context = null\): array/);

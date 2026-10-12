@@ -226,7 +226,7 @@ test('docker read order response preserves mixed slots while applying folder sor
 });
 
 test('docker order sync reads but does not write Docker userprefs', () => {
-    const contextMatch = libPhp.match(/function buildDockerStartOrderContext\(\): array \{([\s\S]*?)\n    \}\n\n    function buildDockerPageStartOrder/);
+    const contextMatch = libPhp.match(/function buildDockerStartOrderContext\(\?array \$verifiedInventory = null\): array \{([\s\S]*?)\n    \}\n\n    function buildDockerPageStartOrder/);
     assert.ok(contextMatch, 'buildDockerStartOrderContext body should be present');
     const body = contextMatch[1];
     assert.match(body, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);

@@ -183,7 +183,7 @@ test('lib.php coalesces docker order sync and uses lightweight state snapshots',
     assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
     assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
     assert.match(libPhp, /function syncContainerOrderUnlocked\(\): void/);
-    assert.match(libPhp, /\$infoByName = readInfoState\('docker'\);/);
+    assert.match(libPhp, /\$infoByName = \$verifiedInventory \?\? readInfoState\('docker'\);/);
     assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB\)/);
     assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return;/);
     assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);

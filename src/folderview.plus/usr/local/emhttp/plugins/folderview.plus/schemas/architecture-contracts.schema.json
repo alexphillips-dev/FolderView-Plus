@@ -548,7 +548,7 @@
       "owner": "server-docker-start-order",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php"],
+      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 14, "sha256": "b3528416cb8b15ba5915ec62ca817f16b607a346bf511a352bab9de38ff576c6" }

@@ -2,8 +2,22 @@
 namespace InventoryRepairFixture {
     function syncContainerOrder(string $type): void { $GLOBALS['inventory_order_calls'][] = $type; }
 }
+namespace InventorySyncFixture {
+    function applyDockerStartOrderSequenceWaits(array $lines, array $sequence): array {
+        if (!empty($GLOBALS['inventory_request']['hostChange'])) {
+            $path = $GLOBALS['inventory_native_path'];
+            $code = 'file_put_contents(' . var_export($path, true) . ', "docker-extra 88\\ndocker-present 99\\n");';
+            $process = proc_open([PHP_BINARY, '-r', $code], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+            if (!is_resource($process)) throw new \RuntimeException('Fixture native writer unavailable');
+            foreach ($pipes as $pipe) { stream_get_contents($pipe); fclose($pipe); }
+            if (proc_close($process) !== 0) throw new \RuntimeException('Fixture native writer failed');
+            $GLOBALS['inventory_host_written'] = file_get_contents($path);
+        }
+        return \applyDockerStartOrderSequenceWaits($lines, $sequence);
+    }
+}
 namespace {
-    function var_split($line): array { return explode(' ', $line, 2); }
+    function var_split($line, $index = 0): string { return array_pad(explode(' ', $line), $index + 1, '')[$index]; }
     class DockerUtil {
         public static function loadJSON($path): array { return is_file($path) ? (json_decode(file_get_contents($path), true) ?: []) : []; }
         public static function ensureImageTag(string $image): string { return $image; }
@@ -13,6 +27,11 @@ namespace {
     class DockerTemplates { public function getTemplates(string $scope): array { return []; } }
     class DockerUpdate {}
     class DockerClient {
+        public function getDockerContainers(): array {
+            $GLOBALS['inventory_calls'][] = ['docker-cached-list'];
+            if ($GLOBALS['inventory_request']['scenario'] === 'stale-cache') return [['Name' => 'cached-gone']];
+            return array_map(static fn ($item) => ['Name' => ltrim($item['Names'][0] ?? '', '/')], $GLOBALS['inventory_docker']);
+        }
         public function getDockerJSON($url, $method = 'GET', &$code = null, $callback = null, $unchunk = false) {
             $request = $GLOBALS['inventory_request']; $scenario = $request['scenario'];
             $GLOBALS['inventory_calls'][] = ['docker-list', func_num_args(), $unchunk];
@@ -33,7 +52,9 @@ namespace {
         public function getContainerDetails($id) {
             $GLOBALS['inventory_calls'][] = ['docker-detail'];
             if ($GLOBALS['inventory_request']['scenario'] === 'failed-detail') return [];
-            return ['Name' => '/docker-present', 'Config' => ['Image' => 'fixture/image:latest'],
+            $name = 'docker-present';
+            foreach ($GLOBALS['inventory_docker'] as $item) if (($item['Id'] ?? '') === $id) $name = ltrim($item['Names'][0] ?? '', '/');
+            return ['Name' => "/$name", 'Config' => ['Image' => 'fixture/image:latest'],
                 'State' => ['Running' => false], 'HostConfig' => ['NetworkMode' => 'host']];
         }
     }
@@ -84,15 +105,23 @@ namespace {
     $GLOBALS['inventory_request'] = json_decode(file_get_contents("$root/request.json"), true, 512, JSON_THROW_ON_ERROR);
     $GLOBALS['inventory_calls'] = []; $GLOBALS['inventory_order_calls'] = [];
     $request = $GLOBALS['inventory_request']; $type = $request['type'];
+    $operation = $request['operation'] ?? 'repair';
     $name = $request['scenario'] === 'renamed' ? 'docker-renamed' : 'docker-present';
     $GLOBALS['inventory_docker'] = [['Id' => str_repeat('a', 64), 'Names' => ["/$name"],
         'Labels' => ['net.unraid.docker.managed' => 'composeman'], 'Image' => 'fixture/image:latest', 'State' => 'exited']];
     if ($request['scenario'] === 'malformed-list') $GLOBALS['inventory_docker'][] = ['Names' => []];
     if ($request['scenario'] === 'duplicate') $GLOBALS['inventory_docker'][] = $GLOBALS['inventory_docker'][0];
+    if ($operation !== 'repair' && !in_array($request['scenario'], ['empty', 'malformed-list', 'duplicate'], true)) {
+        $extra = $GLOBALS['inventory_docker'][0]; $extra['Id'] = str_repeat('b', 64); $extra['Names'] = ['/docker-extra'];
+        $GLOBALS['inventory_docker'][] = $extra;
+    }
     $_SERVER['DOCUMENT_ROOT'] = "$root/host";
+    putenv("FVPLUS_TEST_SECURITY_STATE_PATH=$root/config/fixture-security.json");
     require "$server/lib.php"; require "$server/lib.i18n.php";
     eval('namespace InventoryRepairFixture; use \\RuntimeException; use \\Throwable;' . substr(file_get_contents("$server/lib.custom-icon-storage.php"), 5));
     $dockerManPaths = ['autostart-file' => "$root/config/native-autostart", 'webui-info' => "$root/config/docker-ui.json"];
+    $GLOBALS['inventory_native_path'] = "$root/config/native-autostart";
+    putenv("FVPLUS_TEST_DOCKER_AUTOSTART_FILE=$root/config/native-autostart");
     foreach (['docker', 'vm'] as $seedType) {
         $members = ["$seedType-present", "$seedType-missing"];
         if ($request['scenario'] === 'failed-detail' && $seedType === 'vm') $members[] = 'vm-extra';
@@ -101,9 +130,12 @@ namespace {
             ? ['kind' => 'docker', 'containerId' => str_repeat('a', 64)]
             : ['kind' => 'vm', 'uuid' => '00000000-0000-0000-0000-000000000001'];
         writeRawFolderMap($seedType, ['fixture' => $folder]);
-        writeTypePrefs($seedType, ['backupSchedule' => ['enabled' => false]]);
+        $prefs = ['backupSchedule' => ['enabled' => false]];
+        if ($operation !== 'repair' && $seedType === 'docker') $prefs['dockerStartOrder'] = $request['plan'] ?? ['mode' => 'docker-page'];
+        writeTypePrefs($seedType, $prefs);
     }
     file_put_contents("$root/config/native-autostart", "docker-present 0\nstale-host-entry 0\n");
+    if ($operation !== 'repair') file_put_contents("$root/config/native-autostart", "docker-extra 19\r\n\r\ndocker-present 7\nstale-host-entry 31\n");
     if ($request['scenario'] === 'stale-cache') {
         writeReadInfoCache($type, 'state', ['cached-gone' => []]);
         writeReadInfoCache($type, 'full', ['cached-gone' => []]);
@@ -121,9 +153,38 @@ namespace {
         ksort($result); return $result;
     }
     $before = fixtureInventoryFiles("$root/config"); $error = ''; $repair = null;
-    try { $repair = \InventoryRepairFixture\fvplusRepairOrphanedMemberReferences($type); }
+    $response = null; $nativeBefore = file_get_contents("$root/config/native-autostart");
+    $nativeModeBefore = fileperms("$root/config/native-autostart") & 0777;
+    try {
+        if ($operation === 'repair') $repair = \InventoryRepairFixture\fvplusRepairOrphanedMemberReferences($type);
+        elseif ($operation === 'sync-race') {
+            eval('namespace InventorySyncFixture; use \\Throwable; use \\DockerClient;' . substr(file_get_contents("$server/lib.docker-order.php"), 5));
+            \InventorySyncFixture\syncContainerOrder('docker');
+        } else {
+            $_SERVER['REQUEST_METHOD'] = $operation === 'sync' ? 'POST' : 'GET';
+            $endpoint = ['read' => 'read_info.php', 'snapshot' => 'runtime_snapshot.php',
+                'diagnostics' => 'diagnostics.php', 'sync' => 'sync_order.php', 'preview' => 'docker_start_order.php'][$operation];
+            $_SERVER['SCRIPT_NAME'] = "/plugins/folderview.plus/server/$endpoint";
+            $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
+            $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
+            $_GET = ['type' => $type, 'mode' => $request['mode'] ?? 'full', 'nocache' => ($request['force'] ?? true) ? '1' : '0'];
+            if ($operation === 'diagnostics') $_GET['action'] = 'report';
+            if ($operation === 'preview') $_GET['action'] = 'preview';
+            $_POST = $operation === 'sync' ? ['type' => $type] : [];
+            $_REQUEST = array_merge($_GET, $_POST);
+            if ($operation === 'sync') {
+                $token = getConfiguredRequestToken();
+                $_SERVER['HTTP_X_FV_REQUEST'] = '1'; $_SERVER['HTTP_X_FV_TOKEN'] = $token;
+                $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint)['nonce'];
+            }
+            $body = substr(file_get_contents("$server/$endpoint"), 5);
+            $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace('\\', '/', $server) . '/', $body);
+            ob_start(); eval($body); $response = json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR);
+        }
+    }
     catch (Throwable $failure) { $error = $failure->getMessage(); }
     $after = fixtureInventoryFiles("$root/config");
+    clearstatcache(true, "$root/config/native-autostart");
     $localized = $error === '' ? null : fvplus_localize_response_keys(['ok' => false, 'error' => $error]);
     $retry = null;
     if (!empty($request['retry'])) {
@@ -133,6 +194,8 @@ namespace {
     echo json_encode(['before' => $before, 'after' => $after, 'error' => $error, 'repair' => $repair,
         'calls' => $GLOBALS['inventory_calls'], 'orderCalls' => $GLOBALS['inventory_order_calls'],
         'localized' => $localized, 'legacy' => $legacy, 'retry' => $retry,
+        'response' => $response, 'nativeBefore' => $nativeBefore, 'hostWritten' => $GLOBALS['inventory_host_written'] ?? null,
+        'nativeModeBefore' => $nativeModeBefore, 'nativeMode' => fileperms("$root/config/native-autostart") & 0777,
         'folders' => readRawFolderMap($type), 'otherFolders' => readRawFolderMap($type === 'docker' ? 'vm' : 'docker'),
         'metadata' => readConfigMetadata($type, false), 'backups' => listBackupSnapshots($type),
         'native' => file_get_contents("$root/config/native-autostart")], JSON_UNESCAPED_SLASHES);

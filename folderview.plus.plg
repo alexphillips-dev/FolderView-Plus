@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.05">
-<!ENTITY md5 "d0a76b3d6415eafd2675fb7a73a17d2b">
-<!ENTITY sha256 "44b07b638ac9014676fc1e531bada971dd75d64b58ef430753c7a152e270522e">
+<!ENTITY version "2026.10.12.06">
+<!ENTITY md5 "570fbf1b536f3c71c5eca600a51b55d5">
+<!ENTITY sha256 "05d9bfb4e89803265baba53097090684cf4be151220d9d5b786af93d7791a4ee">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.06
+- Fix: Docker folder actions in Settings now correctly distinguish running, paused, and stopped containers when using lightweight runtime snapshots. Action previews, skipped-item explanations, confirmation counts, and submitted items agree with full runtime records.
+- Compatibility: Existing full Docker records and VM action behavior are preserved. No settings or configuration migration is required.
+
 
 ###2026.10.12.05
 - Fix: Custom icons cannot be renamed while referenced by Docker or VM folders, saved folder defaults, custom folder-group templates, or the current editor selection. The refusal explains how to remove or replace those references first.

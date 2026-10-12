@@ -2,12 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const require = createRequire(import.meta.url);
+const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+
+test('VM action eligibility and suspended-state interpretation remain unchanged', () => {
+    const names = ['running', 'paused', 'unknown', 'pmsuspended', 'stopped', 'missing'];
+    const infoByName = Object.fromEntries(names.map(name => [name, name === 'missing' ? {} : { state: name }]));
+    const expected = { start: ['missing', 'stopped'], stop: ['paused', 'pmsuspended', 'running', 'unknown'],
+        pause: ['running'], resume: ['paused', 'pmsuspended', 'unknown'] };
+    for (const action of Object.keys(expected)) {
+        const plan = utils.planFolderRuntimeAction({ type: 'vm', folderId: 'vms', folder: { containers: names }, names, infoByName, rules: [], action });
+        assert.deepEqual(plan.eligible.map(row => row.name).sort(), expected[action]);
+        assert.deepEqual(plan.countsByState, { started: 1, paused: 3, stopped: 2 });
+    }
+});
 
 test('dashboard docker folder action keeps restart distinct from resume', () => {
     assert.doesNotMatch(dashboardJs, /actionFolderDocker\(/);

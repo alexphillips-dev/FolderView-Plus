@@ -1230,6 +1230,56 @@ test('planFolderRuntimeAction filters eligible docker items by current state', (
     });
 });
 
+test('Docker action states decode lightweight strings and preserve full-record precedence', () => {
+    const { dockerRuntimeStateKind } = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js');
+    const cases = [
+        [{ state: 'running', running: true, paused: false }, 'started'],
+        [{ state: 'paused', running: true, paused: true }, 'paused'],
+        [{ state: 'stopped', running: false, paused: false }, 'stopped'],
+        [{ state: 'exited', running: false }, 'stopped'],
+        [{ state: ' Running ' }, 'started'], [{ state: 'STARTED' }, 'started'],
+        [{ state: 'PAUSED' }, 'paused'], [{ state: 'stopped' }, 'stopped'],
+        [{ state: 'exited' }, 'stopped'], [{ state: 'created' }, 'stopped'],
+        [{ state: 'dead' }, 'stopped'], [{ state: 'unknown' }, 'stopped'],
+        [{ state: 'false' }, 'stopped'], [{}, 'stopped'], [null, 'stopped'],
+        [{ state: true, pause: false }, 'started'], [{ state: false }, 'stopped'],
+        [{ state: true, pause: true }, 'paused'], [{ running: true }, 'started'],
+        [{ state: 'running', running: false }, 'stopped'],
+        [{ state: 'stopped', running: true }, 'started'],
+        [{ state: 'stopped', running: false, paused: true }, 'paused'],
+        [{ state: 'paused', running: false }, 'paused'],
+        [{ state: false, running: true }, 'stopped'], [{ state: false, pause: true }, 'stopped'],
+        [{ state: 'running', running: 'false' }, 'started'],
+        [{ state: 'stopped', running: 'false' }, 'stopped'],
+        [{ info: { State: { Running: false, Paused: true } }, state: 'running' }, 'stopped'],
+        [{ info: { State: { Running: true, Paused: false } }, state: 'paused', paused: true }, 'started'],
+        [{ info: { State: { Running: true, Paused: true } }, state: 'stopped' }, 'paused']
+    ];
+    for (const [input, expected] of cases) assert.equal(dockerRuntimeStateKind(input), expected, JSON.stringify(input));
+});
+
+test('all Docker action plans match full and lightweight records across membership sources', () => {
+    const names = ['manual-running', 'regex-paused', 'rule-stopped', 'label-exited'];
+    const states = ['running', 'paused', 'stopped', 'exited'];
+    const full = {}, light = {};
+    names.forEach((name, index) => {
+        const running = index < 2, paused = index === 1, Labels = index === 3 ? { 'folderview.plus': 'Apps' } : {};
+        full[name] = { Labels, info: { State: { Running: running, Paused: paused } } };
+        light[name] = { Labels, state: states[index], running, paused };
+    });
+    const common = { type: 'docker', folderId: 'apps', folder: { name: 'Apps', containers: [names[0]], regex: '^regex-' }, names,
+        rules: [{ id: 'rule-stopped', enabled: true, folderId: 'apps', effect: 'include', kind: 'name_regex', pattern: '^rule-' }] };
+    const expected = { start: names.slice(2), stop: names.slice(0, 2), pause: [names[0]], resume: [names[1]] };
+    for (const action of Object.keys(expected)) {
+        const before = utils.planFolderRuntimeAction({ ...common, infoByName: full, action });
+        const after = utils.planFolderRuntimeAction({ ...common, infoByName: light, action });
+        assert.deepEqual(after, before, action);
+        assert.deepEqual(after.eligible.map(row => row.name).sort(), expected[action].slice().sort(), action);
+        assert.deepEqual(after.countsByState, { started: 1, paused: 1, stopped: 2 });
+        assert.equal(after.requestedCount, 4);
+    }
+});
+
 test('performance utility helpers are exported and writable in node runtime', async () => {
     assert.equal(typeof utils.createFrameScheduler, 'function');
     assert.equal(typeof utils.createIdleTaskQueue, 'function');

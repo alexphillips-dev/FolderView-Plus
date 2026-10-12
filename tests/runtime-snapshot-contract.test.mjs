@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -28,6 +29,28 @@ const runtimeSnapshotPhpEnv = {
     FVPLUS_TEST_RUNTIME_SNAPSHOT_LIB: path.join(repoRoot, runtimeSnapshotLibPath)
 };
 const requireRuntimeSnapshotLibPhp = "require getenv('FVPLUS_TEST_RUNTIME_SNAPSHOT_LIB');";
+
+test('Docker full and projected state snapshots agree with the actual backend action policy', () => {
+    const lib = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+    const policy = lib.slice(lib.indexOf('    function runtimeActionAllowed('), lib.indexOf('    function executeFolderRuntimeAction('));
+    const summary = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics-summary.php');
+    const states = summary.slice(summary.indexOf('function diagnosticsStateKindForDockerItem('), summary.indexOf('    function diagnosticsBuildStateSnapshot('));
+    const php = "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; } "
+        + requireRuntimeSnapshotLibPhp + policy + states
+        + "$full = ['running' => ['info' => ['State' => ['Running' => true, 'Paused' => false]]], 'paused' => ['info' => ['State' => ['Running' => true, 'Paused' => true]]], 'stopped' => ['info' => ['State' => ['Running' => false, 'Paused' => false]]]]; "
+        + "$allowed = []; foreach (['start', 'stop', 'pause', 'resume'] as $action) foreach ($full as $name => $item) if (runtimeActionAllowed('docker', $action, diagnosticsStateKindForDockerItem($item))) $allowed[$action][] = $name; "
+        + "echo json_encode(['full' => $full, 'state' => runtimeSnapshotStateProjection('docker', $full), 'allowed' => $allowed]);";
+    const response = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
+    const require = createRequire(import.meta.url);
+    const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+    for (const action of ['start', 'stop', 'pause', 'resume']) {
+        const base = { type: 'docker', folderId: 'apps', folder: { containers: Object.keys(response.full) }, rules: [], action };
+        const full = utils.planFolderRuntimeAction({ ...base, infoByName: response.full });
+        const light = utils.planFolderRuntimeAction({ ...base, infoByName: response.state });
+        assert.deepEqual(light, full, action);
+        assert.deepEqual(light.eligible.map(row => row.name).sort(), response.allowed[action].slice().sort(), action);
+    }
+});
 
 const loadClientApi = () => {
     const context = {

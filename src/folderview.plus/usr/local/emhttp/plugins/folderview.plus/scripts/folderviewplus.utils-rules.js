@@ -294,19 +294,18 @@
     const dockerRuntimeStateKind = (item) => {
         const source = isPlainObject(item) ? item : {};
         const nestedState = isPlainObject(source.info?.State) ? source.info.State : {};
-        const running = Boolean(
-            nestedState.Running
-            ?? source.state
-            ?? source.running
-        );
-        const paused = Boolean(
-            nestedState.Paused
-            ?? source.pause
-            ?? source.paused
-        );
-        if (running && paused) {
+        const paused = nestedState.Paused ?? source.pause ?? source.paused;
+        const explicitRunning = nestedState.Running ?? (typeof source.state === 'boolean' ? source.state : null);
+        if (explicitRunning != null) {
+            return Boolean(explicitRunning)
+                ? (Boolean(paused) ? 'paused' : 'started')
+                : 'stopped';
+        }
+        const state = typeof source.state === 'string' ? source.state.trim().toLowerCase() : '';
+        if (paused === true || state === 'paused') {
             return 'paused';
         }
+        const running = typeof source.running === 'boolean' ? source.running : ['running', 'started'].includes(state);
         if (running) {
             return 'started';
         }

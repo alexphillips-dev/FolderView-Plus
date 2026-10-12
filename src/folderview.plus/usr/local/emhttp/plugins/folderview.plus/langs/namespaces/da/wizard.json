@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "wizard",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "wizard.title": "Opsætningsassistent",
     "wizard.welcome.kicker": "Opsætningsassistent til FolderView Plus",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "Підготовка збережених тек і налаштувань…",
     "common.startup.timeout": "Час очікування завантаження налаштувань минув",
     "common.startup.timeout-detail": "FolderView Plus не вдалося завершити завантаження налаштувань. Оновіть сторінку, щоб повторити спробу.",
+    "common.server.repair-members-unverified": "Не вдалося безпечно перевірити збережених учасників. Перевірте вибрану службу, оновіть сторінку та повторіть відновлення.",
     "common.server.custom-icon-directory-unwritable": "Користувацький каталог значків не доступний для запису. Запустити: $1",
     "common.server.custom-icon-lock-unavailable": "Не вдалося відкрити спеціальний файл блокування значка. Запустити: $1",
     "common.server.custom-icon-directory-missing": "Спеціальний каталог значків не існує. Запустити: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "Kayıtlı klasörler ve tercihler hazırlanıyor…",
     "common.startup.timeout": "Ayarların yüklenmesi zaman aşımına uğradı",
     "common.startup.timeout-detail": "FolderView Plus, ayarları yüklemeyi tamamlayamadı. Tekrar denemek için sayfayı yeniden yükleyin.",
+    "common.server.repair-members-unverified": "Kaydedilen üyeler güvenli bir şekilde doğrulanamadı. Seçili hizmeti kontrol edin, sayfayı yenileyin ve onarımı yeniden deneyin.",
     "common.server.custom-icon-directory-unwritable": "Özel simge dizini yazılabilir değildir. Çalıştır: $1",
     "common.server.custom-icon-lock-unavailable": "Özel simge kilit dosyası açılamıyor. Çalıştır: $1",
     "common.server.custom-icon-directory-missing": "Özel simge dizini mevcut değil. Çalıştır: $1",

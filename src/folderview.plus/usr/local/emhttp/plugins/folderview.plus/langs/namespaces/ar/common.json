@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "جارٍ تجهيز المجلدات والتفضيلات المحفوظة…",
     "common.startup.timeout": "انتهت مهلة تحميل الإعدادات",
     "common.startup.timeout-detail": "تعذّر على FolderView Plus إكمال تحميل الإعدادات. أعد تحميل الصفحة للمحاولة مرة أخرى.",
+    "common.server.repair-members-unverified": "تعذر التحقق من العناصر المحفوظة بأمان. تحقق من الخدمة المحددة، ثم حدّث الصفحة وأعد محاولة الإصلاح.",
     "common.server.custom-icon-directory-unwritable": "دليل الأيقونة المخصصة غير قابل للكتابة. تشغيل: $1",
     "common.server.custom-icon-lock-unavailable": "غير قادر على فتح ملف قفل الرمز المخصص. تشغيل: $1",
     "common.server.custom-icon-directory-missing": "دليل الأيقونة المخصصة غير موجود. تشغيل: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "diagnostics.title": "ডায়াগনস্টিকস",
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",

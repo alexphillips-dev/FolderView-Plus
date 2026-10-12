@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.01">
-<!ENTITY md5 "2aacde59fa5b83e570f96619ecd04b23">
-<!ENTITY sha256 "375758a1af1048cf171b89189c867a08c8cb29fdb96ed7eabe9b8111e50b20a0">
+<!ENTITY version "2026.10.12.02">
+<!ENTITY md5 "c1a0e7f8174a912686e26a1353c2e04b">
+<!ENTITY sha256 "5e55b618f1c3af11b62f9cd360e326d6b295b704152c1d92184e931c1ec95d6b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.02
+- Fix: Saved-member repair now verifies a fresh, complete Docker or VM inventory before removing references. Unavailable services and incomplete responses leave saved membership unchanged.
+- Fix: Repair still supports services with no containers or VMs. Listed Docker containers remain protected when optional detail retrieval fails.
+- Fix: Recognized renamed members are preserved until normal folder reconciliation completes. Refused repairs show localized guidance to check the service, refresh the page, and retry.
+- Compatibility: Existing folder data, backups, revision checks, and runtime display responses remain compatible. No configuration migration is required.
+
 
 ###2026.10.12.01
 - Fix: Restore the original Docker or VM folders, preferences and revision metadata when a configuration save fails partway through. Failed saves can be retried without silently retaining the rejected change.

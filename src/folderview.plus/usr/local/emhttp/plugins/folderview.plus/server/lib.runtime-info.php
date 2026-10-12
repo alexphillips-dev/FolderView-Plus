@@ -73,7 +73,7 @@ function getDockerTemplateCachePath(): string {
         return $allXmlTemplates;
     }
 
-    function readInfoState(string $type, bool $preferLiveUpdateStatus = false): array {
+    function readInfoState(string $type, bool $preferLiveUpdateStatus = false, bool $requireComplete = false): array {
         $type = ensureType($type);
         $info = [];
 
@@ -81,7 +81,7 @@ function getDockerTemplateCachePath(): string {
             global $dockerManPaths;
             $dockerClient = new DockerClient();
             $dockerUpdate = $preferLiveUpdateStatus ? new DockerUpdate() : null;
-            $containers = $dockerClient->getDockerJSON("/containers/json?all=1");
+            $containers = fvplusReadRuntimeEntityList('docker', $dockerClient, $requireComplete);
             if (!is_array($containers)) {
                 return [];
             }
@@ -149,46 +149,22 @@ function getDockerTemplateCachePath(): string {
         }
 
         if ($type === 'vm') {
-            global $lv;
-            if (!isset($lv)) {
-                $lv = new Libvirt();
-                if (!$lv->connect()) {
-                    return [];
-                }
-            }
-            $vms = $lv->get_domains();
-            if (!is_array($vms)) {
-                return [];
-            }
-            foreach ($vms as $vm) {
-                $res = $lv->get_domain_by_name($vm);
-                if (!$res) {
-                    continue;
-                }
-                $dom = $lv->domain_get_info($res);
-                if (!is_array($dom)) {
-                    continue;
-                }
-                $state = strtolower(trim((string)$lv->domain_state_translate($dom['state'] ?? '')));
-                if ($state === '') {
-                    $state = 'stopped';
-                }
-                $name = trim((string)$vm);
-                if ($name === '') {
-                    continue;
-                }
-                $info[$name] = [
-                    'name' => $name,
-                    'uuid' => (string)$lv->domain_get_uuid($res),
-                    'state' => $state,
-                    'autostart' => (bool)$lv->domain_get_autostart($res)
-                ];
-            }
-            ksort($info);
-            return $info;
+            return fvplusReadVmInfoState($requireComplete);
         }
 
         return [];
+    }
+
+    function fvplusReadRepairInventory(string $type): array {
+        // Host SDK errors can echo private transport details. Return only safe recovery guidance.
+        ob_start();
+        try {
+            return readInfoState($type, false, true);
+        } catch (Throwable $error) {
+            fvplusRuntimeInventoryFailure();
+        } finally {
+            ob_end_clean();
+        }
     }
 
     function readInfo(string $type): array {
@@ -204,7 +180,7 @@ function getDockerTemplateCachePath(): string {
             $DockerUpdate = new DockerUpdate();
             $dockerTemplates = new DockerTemplates();
 
-            $cts = $dockerClient->getDockerJSON("/containers/json?all=1");
+            $cts = fvplusReadRuntimeEntityList('docker', $dockerClient);
             if (!is_array($cts)) {
                 fv3_debug_log("readInfo: Docker container list unavailable.");
                 return [];

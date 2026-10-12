@@ -127,7 +127,7 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
 
 test('lib.php can prune orphaned member references from saved folders', () => {
     assert.match(libPhp, /function fvplusRepairOrphanedMemberReferences\(string \$type\): array/);
-    assert.match(libPhp, /\$infoByName = readInfo\(\$type\);/);
+    assert.match(libPhp, /\$infoByName = fvplusReadRepairInventory\(\$type\);\s*\$folders = readRawFolderMap\(\$type\);/);
     assert.match(libPhp, /\$normalizedFolder\['containers'\] = array_values\(array_filter\(\$members,/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-orphaned-members'\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_orphaned_members'/);
@@ -168,7 +168,7 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*?resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)[\s\S]*?: null,/
+        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false,\s*bool \$requireComplete = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*?resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)[\s\S]*?: null,/
     );
     assert.match(
         readInfoPhp,

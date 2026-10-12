@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "저장된 폴더와 환경설정을 준비하는 중…",
     "common.startup.timeout": "설정 로딩 시간이 초과되었습니다",
     "common.startup.timeout-detail": "FolderView Plus에서 설정을 끝까지 불러오지 못했습니다. 페이지를 새로고침하여 다시 시도하세요.",
+    "common.server.repair-members-unverified": "저장된 구성원을 안전하게 확인할 수 없습니다. 선택한 서비스를 확인하고 페이지를 새로 고친 후 복구를 다시 시도하세요.",
     "common.server.custom-icon-directory-unwritable": "사용자 정의 아이콘 디렉토리는 쓸 수 없습니다. 실행: $1",
     "common.server.custom-icon-lock-unavailable": "사용자 정의 아이콘 잠금 파일을 열 수 없습니다. 실행: $1",
     "common.server.custom-icon-directory-missing": "사용자 정의 아이콘 디렉토리가 존재하지 않습니다. 실행: $1",

@@ -1,4 +1,5 @@
 {
+  "common.server.repair-members-unverified": "Saved members could not be verified safely. Check the selected service, refresh the page, and retry the repair.",
   "common.server.custom-icon-directory-unwritable": "Custom icon directory is not writable. Run: $1",
   "common.server.custom-icon-lock-unavailable": "Unable to open custom icon lock file. Run: $1",
   "common.server.custom-icon-directory-missing": "Custom icon directory does not exist. Run: $1",

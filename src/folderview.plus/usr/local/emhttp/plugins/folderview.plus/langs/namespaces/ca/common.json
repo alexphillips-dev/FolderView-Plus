@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "S’estan preparant les carpetes i les preferències desades…",
     "common.startup.timeout": "S’ha esgotat el temps de càrrega de la configuració",
     "common.startup.timeout-detail": "FolderView Plus no ha pogut acabar de carregar la configuració. Torneu a carregar la pàgina per tornar-ho a provar.",
+    "common.server.repair-members-unverified": "No s'han pogut verificar amb seguretat els membres desats. Comproveu el servei seleccionat, actualitzeu la pàgina i torneu a provar la reparació.",
     "common.server.custom-icon-directory-unwritable": "El directori d'icones personalitzades no es pot escriure. Executar: $1",
     "common.server.custom-icon-lock-unavailable": "No es pot obrir el fitxer de bloqueig de la icona personalitzada. Executar: $1",
     "common.server.custom-icon-directory-missing": "El directori d'icones personalitzats no existeix. Executar: $1",

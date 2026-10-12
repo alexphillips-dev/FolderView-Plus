@@ -2583,3 +2583,4 @@
     require_once(__DIR__ . '/lib.custom-icon-storage.php');
 
     require_once(__DIR__ . '/lib.runtime-info.php');
+    require_once(__DIR__ . '/lib.runtime-inventory.php');

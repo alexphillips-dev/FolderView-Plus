@@ -410,7 +410,7 @@ test('docker first paint keeps a lightweight loading shell and enriches state pa
     assert.match(dockerCss, /\.fvplus-docker-runtime-loading-overlay\s*\{/);
     assert.match(libPhp, /\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);/);
     assert.match(libPhp, /resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
-    assert.match(libPhp, /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false\): array/);
+    assert.match(libPhp, /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false,\s*bool \$requireComplete = false\): array/);
     assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)/);
     assert.match(libPhp, /'Labels'\s*=>\s*\$labels/);
     assert.match(libPhp, /'Image'\s*=>\s*trim\(\(string\)\(\$container\['Image'\] \?\? ''\)\)/);

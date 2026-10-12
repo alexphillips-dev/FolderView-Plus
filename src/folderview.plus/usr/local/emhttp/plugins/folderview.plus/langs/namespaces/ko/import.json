@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "import",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "import.subtitle": "기존 폴더를 처리할 방법을 선택하십시오. '가져오기 적용'을 선택할 때까지 아무 것도 변경되지 않습니다.",
     "import.behavior.question": "기존 폴더를 어떻게 처리해야 합니까?",

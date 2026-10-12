@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "সংরক্ষিত ফোল্ডার ও পছন্দসমূহ প্রস্তুত করা হচ্ছে…",
     "common.startup.timeout": "সেটিংস লোড করার সময়সীমা শেষ হয়েছে",
     "common.startup.timeout-detail": "FolderView Plus সেটিংস লোড করা শেষ করতে পারেনি। আবার চেষ্টা করতে পৃষ্ঠাটি পুনরায় লোড করুন।",
+    "common.server.repair-members-unverified": "সংরক্ষিত সদস্যদের নিরাপদে যাচাই করা যায়নি। নির্বাচিত পরিষেবাটি পরীক্ষা করুন, পৃষ্ঠাটি রিফ্রেশ করুন এবং মেরামতের চেষ্টা আবার করুন।",
     "common.server.custom-icon-directory-unwritable": "কাস্টম আইকন ডিরেক্টরি লেখার যোগ্য নয়। রান: $1",
     "common.server.custom-icon-lock-unavailable": "কাস্টম আইকন লক ফাইল খুলতে অক্ষম। রান: $1",
     "common.server.custom-icon-directory-missing": "কাস্টম আইকন ডিরেক্টরি বিদ্যমান নেই৷ রান: $1",

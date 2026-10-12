@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "diagnostics",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "diagnostics.title": "진단",
     "diagnostics.workspace.description": "플러그인 상태를 모니터링하고, 문제를 해결하고, 지원 데이터를 공유하세요.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "正在准备已保存的文件夹和偏好设置…",
     "common.startup.timeout": "设置加载超时",
     "common.startup.timeout-detail": "FolderView Plus 未能完成设置加载。请重新加载页面以重试。",
+    "common.server.repair-members-unverified": "无法安全验证已保存的成员。请检查所选服务，刷新页面，然后重试修复。",
     "common.server.custom-icon-directory-unwritable": "自定义图标目录不可写。运行：$1",
     "common.server.custom-icon-lock-unavailable": "无法打开自定义图标锁定文件。运行：$1",
     "common.server.custom-icon-directory-missing": "自定义图标目录不存在。运行：$1",

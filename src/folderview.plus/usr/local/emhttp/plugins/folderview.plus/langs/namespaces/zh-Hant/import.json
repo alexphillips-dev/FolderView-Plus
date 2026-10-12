@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "import",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "import.subtitle": "選擇如何處理現有資料夾。在您選擇“套用匯入”之前，不會發生任何變化。",
     "import.behavior.question": "現有的資料夾應該如何處理？",

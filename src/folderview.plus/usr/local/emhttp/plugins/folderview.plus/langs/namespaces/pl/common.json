@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "Przygotowywanie zapisanych folderów i preferencji…",
     "common.startup.timeout": "Przekroczono czas ładowania ustawień",
     "common.startup.timeout-detail": "FolderView Plus nie mógł zakończyć ładowania ustawień. Odśwież stronę, aby spróbować ponownie.",
+    "common.server.repair-members-unverified": "Nie udało się bezpiecznie zweryfikować zapisanych członków. Sprawdź wybraną usługę, odśwież stronę i ponów naprawę.",
     "common.server.custom-icon-directory-unwritable": "Niestandardowy katalog ikon nie jest przeznaczony do zapisu. Uruchom: $1",
     "common.server.custom-icon-lock-unavailable": "Nie można otworzyć pliku blokady niestandardowej ikony. Uruchom: $1",
     "common.server.custom-icon-directory-missing": "Niestandardowy katalog ikon nie istnieje. Uruchom: $1",

@@ -75,7 +75,7 @@ test('docker and vm runtimes report host-page structure drift explicitly', () =>
 });
 
 test('read_info hardens Docker and VM data reads against missing host fields', () => {
-    assert.match(libPhp, /\$cts = \$dockerClient->getDockerJSON\(\"\/containers\/json\?all=1\"\);[\s\S]*if \(!is_array\(\$cts\)\) \{/);
+    assert.match(libPhp, /\$cts = fvplusReadRuntimeEntityList\('docker', \$dockerClient\);[\s\S]*if \(!is_array\(\$cts\)\) \{/);
     assert.match(dockerRuntimeLibPhp, /function getDockerTemplateIndexCached\(DockerTemplates \$dockerTemplates\): array \{[\s\S]*try \{[\s\S]*\$templateFiles = \$dockerTemplates->getTemplates\('all'\);[\s\S]*\} catch \(Throwable \$error\) \{/);
     assert.match(dockerRuntimeLibPhp, /getDockerTemplateIndexCached: DockerTemplates->getTemplates\('all'\) failed:/);
     assert.match(dockerRuntimeLibPhp, /try \{[\s\S]*\$templates = buildDockerTemplateIndex\(\$templateFiles\);[\s\S]*\} catch \(Throwable \$error\) \{/);

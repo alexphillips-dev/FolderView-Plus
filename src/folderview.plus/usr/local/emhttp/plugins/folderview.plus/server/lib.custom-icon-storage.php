@@ -383,8 +383,9 @@ function fvplusAllowedCustomIconExtensions(): array {
             $repairedFolders = [];
             $repairedMembers = [];
             $typeCounts = ['docker' => 0, 'vm' => 0];
+            $infoByName = fvplusReadRepairInventory($type);
             $folders = readRawFolderMap($type);
-            $infoByName = readInfo($type);
+            fvplusAssertRepairMembersNotRenamed($type, $folders, $infoByName);
             $validNames = array_fill_keys(array_keys(is_array($infoByName) ? $infoByName : []), true);
             $updated = false;
             $typeFolderCount = 0;

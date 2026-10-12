@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
+        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -192,6 +192,7 @@
     "common.startup.preparing": "Preparazione delle cartelle e delle preferenze salvate…",
     "common.startup.timeout": "Tempo scaduto per il caricamento delle impostazioni",
     "common.startup.timeout-detail": "FolderView Plus non ha potuto completare il caricamento delle impostazioni. Ricarica la pagina per riprovare.",
+    "common.server.repair-members-unverified": "Non è stato possibile verificare in modo sicuro i membri salvati. Controlla il servizio selezionato, aggiorna la pagina e riprova la riparazione.",
     "common.server.custom-icon-directory-unwritable": "La directory delle icone personalizzate non è scrivibile. Esegui: $1",
     "common.server.custom-icon-lock-unavailable": "Impossibile aprire il file di blocco dell'icona personalizzata. Esegui: $1",
     "common.server.custom-icon-directory-missing": "La directory delle icone personalizzate non esiste. Esegui: $1",

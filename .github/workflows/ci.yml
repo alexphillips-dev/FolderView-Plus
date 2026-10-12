@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 2
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
       - name: Select validation profile
@@ -188,7 +188,7 @@ jobs:
         run: bash scripts/run_ci_suite.sh --lane fixture-browser
       - name: Upload fixture browser artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ci-fixture-browser-${{ github.run_id }}-${{ matrix.browser }}
           path: tmp/fixture-browser-artifacts/**
@@ -207,7 +207,7 @@ jobs:
         with:
           browsers: chromium
       - run: bash scripts/run_ci_suite.sh --lane layout-checks
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: ci-layout-${{ github.run_id }}
@@ -229,7 +229,7 @@ jobs:
         with:
           browsers: chromium
       - run: bash scripts/run_ci_suite.sh --lane performance
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: ci-performance-${{ github.run_id }}
@@ -256,7 +256,7 @@ jobs:
         run: bash scripts/run_ci_suite.sh --lane theme-matrix
       - name: Upload synthetic theme artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: exhaustive-layout-${{ github.run_id }}-${{ matrix.browser }}
           path: tmp/fixture-browser-artifacts/theme-matrix/**
@@ -275,7 +275,7 @@ jobs:
       - uses: ./.github/actions/setup-ci-env
       - name: Verify current dev package and prepare preview
         run: node scripts/dev_release_preview.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dev-release-preview-${{ github.run_id }}
           path: tmp/dev-release-preview/
@@ -289,7 +289,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
       - name: Enforce required CI job results
@@ -310,7 +310,7 @@ jobs:
           else
             node scripts/release_validation.mjs write
           fi
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: needs.detect-changes.outputs.release_profile == 'true'
         with:
           name: release-validation-${{ github.sha }}
@@ -324,7 +324,7 @@ jobs:
           RESULTS: ${{ toJSON(needs) }}
           GH_TOKEN: ${{ github.token }}
         run: node scripts/ci_duration_report.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: ci-duration-report-${{ github.run_id }}

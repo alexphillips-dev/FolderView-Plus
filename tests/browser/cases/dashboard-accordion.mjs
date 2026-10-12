@@ -30,6 +30,7 @@ const hydrateFixture = async (page, baseUrl) => {
     const restoreDocker = extract('const dockerExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('docker');");
     const restoreVm = extract('const vmExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('vm');");
     await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.utils-foundation.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/dashboard.state-store.js` });
     await page.addScriptTag({ content: `(() => {
         const $ = window.jQuery;

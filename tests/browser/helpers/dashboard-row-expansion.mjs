@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 export const installDashboardRowExpansion = async (page, baseUrl, type) => {
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
     await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.utils-foundation.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/dashboard.state-store.js` });
     const response = await page.request.get(`${baseUrl}/plugin/scripts/dashboard.js`);
     assert.equal(response.ok(), true);

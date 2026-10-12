@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.03">
-<!ENTITY md5 "07e8152db81463784943b5ba1d20899a">
-<!ENTITY sha256 "856679fa5936ba767f1fc8e2b68677bcc2c9b8b395ac5e0479e59e8e90c764b9">
+<!ENTITY version "2026.10.12.04">
+<!ENTITY md5 "9df86c4ddbf83030c6e0758d54390014">
+<!ENTITY sha256 "369b0740aa4815bf4f792f5e9460c8105f8b3d9a1bc2124c69a51783b8b4538c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.04
+- Fix: Settings, Docker, VM, and Dashboard now finish initializing when browser privacy settings block local storage, when storage is unavailable, or when its reads and writes fail.
+- Fix: Browser storage failures no longer interrupt delayed UI-state writes or server preference saves. Settings uses its normal startup defaults when saved browser UI state cannot be read.
+- Compatibility: Existing server preferences, normal browser state, and pending preference replay remain supported. When browser storage is blocked, local UI state and offline preference replay cannot survive a reload. No configuration migration is required.
+
 
 ###2026.10.12.03
 - Fix: Docker inventory refreshes, runtime snapshots, and diagnostics reports now preserve native autostart records exactly, including stale entries and saved waits.

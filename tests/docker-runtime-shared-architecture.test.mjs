@@ -180,7 +180,7 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerRuntimeHostGuardsJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeDiagnosticsJs, /^\/\/ @ts-check/m);
     assert.match(dockerRuntimeDiagnosticsJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
-    assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnostics = factory\(fallbackWindow, fallbackWindow\.FolderViewPlusFoundationModules\?\.dockerRefreshDiagnostics\);/);
+    assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnostics = factory\(fallbackWindow, fallbackWindow\.FolderViewPlusFoundationModules\?\.dockerRefreshDiagnostics, fallbackWindow\.FolderViewPlusFoundationModules\?\.utilityFoundation\);/);
     assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;/);
     assert.match(dockerRuntimeDiagnosticsJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerRuntimeReconcileJs, /^\/\/ @ts-check/m);

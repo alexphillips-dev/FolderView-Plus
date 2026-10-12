@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
     { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
@@ -92,6 +93,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
@@ -153,10 +155,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 103,
-      "assertionCount": 1309,
-      "pageEvaluateCount": 329,
-      "orderedTitleSha256": "e7598661646008fbd926d7fb1bb1f0a91b811302144bc80a1c944905de8e19e5"
+      "testCount": 104,
+      "assertionCount": 1312,
+      "pageEvaluateCount": 330,
+      "orderedTitleSha256": "905216010179981380be95a9be7611c06464645f4cb6c4ff5541cf867b709b98"
     }
   }
 }

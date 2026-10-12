@@ -410,8 +410,9 @@ const ensureVmHostPageStructure = () => {
 markVmFatalBannerStep('VM runtime modules resolved');
 ensureVmHostPageStructure();
 markVmFatalBannerStep('VM host page signature verified');
-const vmStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
-    ? utils.createBatchedStorageWriter(window.localStorage, {
+const vmBrowserStorage = utils.resolveBrowserStorage(undefined, window),
+    vmStorageWriter = vmBrowserStorage && typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(vmBrowserStorage, {
         defaultDelayMs: 72,
         idleTimeoutMs: 900
     })

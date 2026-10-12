@@ -4,12 +4,12 @@
         ? globalThis
         : (typeof window !== 'undefined' ? window : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory(fallbackWindow, require('./folderviewplus.utils-foundation.js'));
         return;
     }
-    root.FolderViewPlusDashboardStateStore = factory(fallbackWindow);
+    root.FolderViewPlusDashboardStateStore = factory(fallbackWindow, root.FolderViewPlusFoundationModules?.utilityFoundation);
     root.FolderViewPlusDashboardStateStoreModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function dashboardStateStoreFactory(fallbackWindow) {
+}(typeof window !== 'undefined' ? window : {}, function dashboardStateStoreFactory(fallbackWindow, utilityFoundation) {
     'use strict';
 
     const EXPANDED_STATE_STORAGE_KEYS = Object.freeze({
@@ -27,7 +27,7 @@
 
     const createStore = (deps = {}) => {
         const win = deps.window || fallbackWindow;
-        const storage = deps.storage || win.localStorage || null;
+        const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const writer = deps.writer || null;
 
         const read = (type) => {
@@ -41,6 +41,7 @@
         };
 
         const write = (type, map) => {
+            if (!storage) return false;
             const storageKey = EXPANDED_STATE_STORAGE_KEYS[normalizeType(type)];
             const payload = JSON.stringify(normalizeExpandedStateMap(map));
             try {
@@ -71,6 +72,7 @@
         };
 
         const clear = (type) => {
+            if (!storage) return false;
             const storageKey = EXPANDED_STATE_STORAGE_KEYS[normalizeType(type)];
             try {
                 storage?.removeItem?.(storageKey);

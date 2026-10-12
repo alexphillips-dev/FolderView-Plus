@@ -257,15 +257,16 @@ const normalizeDashboardPrefsResponse = (type, response = {}) => {
         ? dashboardPrefsCoordinator.reconcile(resolvedType, normalized)
         : normalized;
 };
-const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
-    ? utils.createBatchedStorageWriter(window.localStorage, {
+const dashboardBrowserStorage = utils.resolveBrowserStorage(undefined, window),
+    dashboardStorageWriter = dashboardBrowserStorage && typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(dashboardBrowserStorage, {
         defaultDelayMs: 84,
         idleTimeoutMs: 900
     })
     : null;
 const dashboardExpandedStateStore = dashboardStateStoreModule?.createStore?.({
     window,
-    storage: window.localStorage,
+    storage: dashboardBrowserStorage,
     writer: dashboardStorageWriter
 }) || null;
 const persistDashboardLayoutTelemetry = (type, snapshot = {}) => {

@@ -142,16 +142,13 @@
         };
     };
 
-    const createBatchedStorageWriter = (storageRef = null, options = {}) => {
-        const getStorage = () => {
-            if (storageRef) {
-                return storageRef;
-            }
-            if (typeof window !== 'undefined' && window.localStorage) {
-                return window.localStorage;
-            }
-            return null;
-        };
+    const resolveBrowserStorage = (storageRef = undefined, win = typeof window !== 'undefined' ? window : null) => {
+        if (storageRef !== undefined) return storageRef;
+        try { return win?.localStorage || null; }
+        catch (_error) { return null; }
+    };
+
+    const createBatchedStorageWriter = (storageRef = undefined, options = {}) => {
         const defaultDelayMs = Math.max(0, Number(options.defaultDelayMs) || 80);
         const idleQueue = createIdleTaskQueue({
             timeout: Math.max(80, Number(options.idleTimeoutMs) || 900),
@@ -166,7 +163,7 @@
             }
             const entry = pendingByKey.get(safeKey);
             pendingByKey.delete(safeKey);
-            const storage = getStorage();
+            const storage = resolveBrowserStorage(storageRef);
             if (!storage) {
                 return;
             }
@@ -327,6 +324,7 @@
         escapeHtml,
         isPlainObject,
         normalizeFolderId,
+        resolveBrowserStorage,
         normalizeHexColor,
         sanitizeImageSrc,
         sanitizeImageUrl

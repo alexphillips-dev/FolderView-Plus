@@ -1,12 +1,12 @@
 // @ts-check
 (function dockerRefreshDiagnosticsModule(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'));
         return;
     }
     root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    root.FolderViewPlusFoundationModules.dockerRefreshDiagnostics = factory();
-}(typeof window !== 'undefined' ? window : {}, function dockerRefreshDiagnosticsFactory() {
+    root.FolderViewPlusFoundationModules.dockerRefreshDiagnostics = factory(root.FolderViewPlusFoundationModules.utilityFoundation);
+}(typeof window !== 'undefined' ? window : {}, function dockerRefreshDiagnosticsFactory(utilityFoundation) {
     'use strict';
 
     const STORAGE_KEY = 'fv.support.bundle.docker.refreshDiagnostics.v1';
@@ -104,7 +104,7 @@
     };
     const createTracker = (deps = {}) => {
         const win = deps.window || null;
-        const storage = deps.storage || win?.localStorage || null;
+        const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const now = typeof deps.now === 'function' ? deps.now : Date.now;
         const readStored = () => {
             try {

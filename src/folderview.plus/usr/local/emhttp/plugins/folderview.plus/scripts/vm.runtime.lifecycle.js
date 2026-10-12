@@ -4,12 +4,12 @@
         ? globalThis
         : (typeof window !== 'undefined' ? window : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory(fallbackWindow, require('./folderviewplus.utils-foundation.js'));
         return;
     }
-    root.FolderViewPlusVmRuntimeLifecycle = factory(fallbackWindow);
+    root.FolderViewPlusVmRuntimeLifecycle = factory(fallbackWindow, root.FolderViewPlusFoundationModules?.utilityFoundation);
     root.FolderViewPlusVmRuntimeLifecycleModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function vmRuntimeLifecycleFactory(fallbackWindow) {
+}(typeof window !== 'undefined' ? window : {}, function vmRuntimeLifecycleFactory(fallbackWindow, utilityFoundation) {
     'use strict';
 
     const VM_LIFECYCLE_STORAGE_KEY = 'fv.support.bundle.vm.lifecycle.v1';
@@ -108,7 +108,7 @@
         const shouldTrackRequest = typeof deps.shouldTrackRequest === 'function'
             ? deps.shouldTrackRequest
             : (() => true);
-        const storage = deps.storage || win.localStorage || null;
+        const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const requestedCallbackName = String(deps.callbackName || '').trim();
         const callbackName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(requestedCallbackName)
             ? requestedCallbackName

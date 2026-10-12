@@ -565,8 +565,9 @@ const ensureDockerHostPageStructure = () => {
 };
 ensureDockerHostPageStructure();
 markDockerFatalBannerStep('Docker host page signature verified');
-const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
-    ? utils.createBatchedStorageWriter(window.localStorage, {
+const dockerBrowserStorage = utils.resolveBrowserStorage(undefined, window),
+    dockerStorageWriter = dockerBrowserStorage && typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(dockerBrowserStorage, {
         defaultDelayMs: 72,
         idleTimeoutMs: 900
     })
@@ -741,7 +742,7 @@ const dockerRuntimeColumnControllerApi = dockerRuntimeColumnControllerModule.cre
     document,
     $,
     utils,
-    localStorage: window.localStorage,
+    localStorage: dockerBrowserStorage,
     storageWriter: dockerStorageWriter,
     columnLayoutEngine: dockerRuntimeColumnLayoutEngine,
     widthState: dockerRuntimeWidthState,
@@ -1068,7 +1069,7 @@ const getDockerRuntimeDiagnosticsApi = () => {
         dockerRuntimeDiagnosticsApi = dockerRuntimeDiagnosticsModule.createApi({
             window,
             document,
-            localStorage,
+            localStorage: dockerBrowserStorage,
             $,
             readDockerListViewMode: () => readDockerListViewMode(),
             resolveExpectedFolderActionToken: (folderId) => resolveDockerSupportBundleExpectedFolderActionToken(folderId),

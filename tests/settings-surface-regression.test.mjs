@@ -378,7 +378,7 @@ test('rules and bulk assignment use source-switched workspaces', () => {
     assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rule-test-output"[\s\S]*id="vm-conflict-output"/);
     assert.match(settingsJs, /const normalizeRulesWorkspaceType = \(value\) =>/);
     assert.match(settingsJs, /const setRulesWorkspaceType = \(type, persist = true\) =>/);
-    assert.match(settingsJs, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(localStorage\.getItem\(RULES_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
+    assert.match(settingsJs, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(readSettingsStorage\(RULES_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(settingsPage, /data-fv-bulk-source="docker" aria-pressed="true"[\s\S]*data-fv-bulk-source="vm" aria-pressed="false"/);
     assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="vm" hidden/);
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
@@ -412,7 +412,7 @@ test('recovery tab presents restore, history, policy, and environment actions in
     assert.match(settingsJs, /class="fv-recovery-snapshot-row\$\{activeClass\}"/);
     assert.match(settingsJs, /toggleAllRecoverySnapshots/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
-    assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
+    assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(readSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(diagnosticsJs, /const renderChangeHistory = \(diagnostics = lastDiagnostics\) =>/);
     assert.match(diagnosticsJs, /const events = Array\.isArray\(diagnostics\?\.importExportHistory\?\.events\)/);
     assert.doesNotMatch(diagnosticsJs, /renderServerChangeHistory|fv-recovery-timeline-card/);

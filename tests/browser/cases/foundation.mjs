@@ -1,6 +1,6 @@
-import assert from 'node:assert/strict';
-
+import assert from 'node:assert/strict'; import { registerBrowserStorageCases } from './browser-storage.mjs';
 export const registerFoundationFixtureCases = ({ test, baseUrl, surfaceKeyFor, germanSurfaceCatalog }) => {
+registerBrowserStorageCases({ test });
 test('CSP and Trusted Types fixture renders malicious persisted values as inert text', async ({ page }) => {
     await page.goto(`${baseUrl}/csp-hardening`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.__fvCspFixtureReady === true);

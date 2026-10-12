@@ -323,7 +323,7 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
     assert.match(script, /const normalizeOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
-    assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(localStorage\.getItem\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
+    assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(readSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
     assert.match(script, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /const selectOperationsTemplate = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.selectOperationsTemplate\(\.\.\.args\);/);
@@ -627,7 +627,7 @@ test('settings mode switches persist the user basic or advanced view choice', ()
     assert.match(script, /const previousMode = settingsUiState\.mode === 'advanced' \? 'advanced' : 'basic';/);
     assert.match(script, /writeSettingsStorage\(UI_MODE_STORAGE_KEY, settingsUiState\.mode, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /if \(persistServer === true && previousMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
-    assert.match(script, /const storedMode = String\(localStorage\.getItem\(UI_MODE_STORAGE_KEY\) \|\| ''\)\.trim\(\);/);
+    assert.match(script, /const storedMode = readSettingsStorage\(UI_MODE_STORAGE_KEY\);/);
     assert.match(script, /const hasLocalModePreference = storedMode === 'advanced' \|\| storedMode === 'basic';/);
     assert.match(script, /if \(!hasLocalModePreference && serverMode && !settingsLaunchOverrides\?\.mode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
     assert.match(script, /if \(hasLocalModePreference && serverMode && serverMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);

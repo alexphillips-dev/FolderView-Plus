@@ -34,7 +34,7 @@ test('resolved-banner lifecycle covers both install orders (before/after conflic
     assert.match(settingsJs, /const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv\.runtimeConflict\.resolvedPending\.v1';/);
     assert.match(settingsJs, /const syncRuntimeConflictResolutionBanner = \(\) =>/);
     assert.match(settingsJs, /if \(activeBanner\) \{[\s\S]*writeConflictStorageValue\(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY, activeKey\);[\s\S]*writeConflictStorageValue\(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, ''\);/);
-    assert.match(settingsJs, /const previousActiveKey = readConflictStorageValue\(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY\);/);
+    assert.match(settingsJs, /const previousActiveKey = readSettingsStorage\(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY\);/);
     assert.match(settingsJs, /writeConflictStorageValue\(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, previousActiveKey\);/);
     assert.match(settingsJs, /writeConflictStorageValue\(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY, ''\);/);
     assert.match(settingsJs, /Conflict removed\. FolderView Plus is active again\./);

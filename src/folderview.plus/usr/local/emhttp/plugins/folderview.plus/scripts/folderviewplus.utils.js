@@ -48,7 +48,7 @@
         bindEventOnce: api.bindEventOnce,
         createFrameScheduler: api.createFrameScheduler,
         createIdleTaskQueue: api.createIdleTaskQueue,
-        createBatchedStorageWriter: api.createBatchedStorageWriter,
+        createBatchedStorageWriter: api.createBatchedStorageWriter, resolveBrowserStorage: api.resolveBrowserStorage,
         createSecureRuntimeId: api.createSecureRuntimeId,
         escapeHtml: api.escapeHtml,
         sanitizeImageUrl: api.sanitizeImageUrl,

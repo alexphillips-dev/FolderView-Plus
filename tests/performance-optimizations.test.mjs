@@ -539,11 +539,11 @@ test('import apply uses one atomic batch and performance diagnostics stay intern
 });
 
 test('settings/runtime scripts use batched localStorage writes', () => {
-    assert.match(utilsFoundationJs, /const createBatchedStorageWriter = \(storageRef = null,\s*options = \{\}\) =>/);
-    assert.match(dockerJs, /const dockerStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
-    assert.match(vmJs, /const vmStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
-    assert.match(dashboardJs, /const dashboardStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
-    assert.match(settingsJs, /const settingsStorageWriter = utils && typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(utilsFoundationJs, /const createBatchedStorageWriter = \(storageRef = undefined,\s*options = \{\}\) =>/);
+    assert.match(dockerJs, /dockerStorageWriter = dockerBrowserStorage && typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(vmJs, /vmStorageWriter = vmBrowserStorage && typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(dashboardJs, /dashboardStorageWriter = dashboardBrowserStorage && typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(settingsJs, /settingsStorageWriter = settingsBrowserStorage && typeof utils\.createBatchedStorageWriter === 'function'/);
 });
 
 test('settings health treats lightweight docker state strings as runtime states', () => {

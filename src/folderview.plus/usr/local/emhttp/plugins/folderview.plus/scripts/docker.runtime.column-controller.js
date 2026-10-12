@@ -1,13 +1,13 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules || {};
-    modules.dockerColumnController = factory();
+    modules.dockerColumnController = factory(modules.utilityFoundation);
     root.FolderViewPlusFoundationModules = modules;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(utilityFoundation) {
     'use strict';
 
     const createController = (deps = {}) => {
@@ -15,7 +15,7 @@
         const document = deps.document || window.document || null;
         const $ = deps.$ || window.jQuery || window.$ || null;
         const utils = deps.utils || {};
-        const localStorage = deps.localStorage || window.localStorage || null;
+        const localStorage = utilityFoundation.resolveBrowserStorage(deps.localStorage, window);
         const dockerStorageWriter = deps.storageWriter || null;
         const dockerRuntimeColumnLayoutEngine = deps.columnLayoutEngine || null;
         const dockerRuntimeWidthState = deps.widthState || {};

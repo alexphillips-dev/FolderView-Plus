@@ -264,8 +264,9 @@ markSettingsBootstrapState({
     lastAction: 'Load Settings runtime',
     lastStep: 'Loaded settings runtime'
 });
-const settingsStorageWriter = utils && typeof utils.createBatchedStorageWriter === 'function'
-    ? utils.createBatchedStorageWriter(window.localStorage, {
+const settingsBrowserStorage = utils.resolveBrowserStorage(undefined, window),
+    settingsStorageWriter = settingsBrowserStorage && typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(settingsBrowserStorage, {
         defaultDelayMs: 80,
         idleTimeoutMs: 900
     })
@@ -3989,7 +3990,7 @@ const buildTableUiStatePayload = () => ({
 });
 
 const viewSettingsUiStateStore = viewSettingsModule?.createUiStateStore?.({
-    storage: window.localStorage,
+    storage: settingsBrowserStorage,
     writer: settingsStorageWriter,
     storageKey: TABLE_UI_STATE_STORAGE_KEY,
     normalizers: {
@@ -4916,9 +4917,9 @@ const setUpdateNotesSeenVersion = (version) => {
     }
 };
 
-const readConflictStorageValue = (key) => {
+const readSettingsStorage = (key) => {
     try {
-        return String(localStorage.getItem(key) || '').trim();
+        return String(settingsBrowserStorage?.getItem(key) || '').trim();
     } catch (_error) {
         return '';
     }
@@ -4953,7 +4954,7 @@ const getRuntimeConflictContext = () => {
             plugins
         };
     }
-    const key = readConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
+    const key = readSettingsStorage(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
     return {
         active: key !== '',
         key,
@@ -5026,7 +5027,7 @@ const showConflictResolvedPanel = (conflictKey = '') => {
     `).show();
 
     $('#fv-runtime-resolved-dismiss').off('click').on('click', () => {
-        if (readConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY) === String(conflictKey || '').trim()) {
+        if (readSettingsStorage(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY) === String(conflictKey || '').trim()) {
             writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, '');
         } else if (!String(conflictKey || '').trim()) {
             writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, '');
@@ -5045,13 +5046,13 @@ const syncRuntimeConflictResolutionBanner = () => {
         return;
     }
 
-    const previousActiveKey = readConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
+    const previousActiveKey = readSettingsStorage(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
     if (previousActiveKey) {
         writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, previousActiveKey);
         writeConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY, '');
     }
 
-    const pendingResolvedKey = readConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY);
+    const pendingResolvedKey = readSettingsStorage(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY);
     if (!pendingResolvedKey) {
         hideConflictResolvedPanel();
         return;
@@ -11174,13 +11175,13 @@ if (window.FolderViewPlusUI?.registerAction) {
             action: 'Restore local Settings UI state',
             category: 'bootstrap-state'
         }, async () => {
-            settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
-            activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(localStorage.getItem(OPERATIONS_WORKSPACE_STORAGE_KEY) || 'docker');
-            activeRulesWorkspaceType = normalizeRulesWorkspaceType(localStorage.getItem(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
-            activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(localStorage.getItem(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
-            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'operations', false);
-            settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
-            settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
+            settingsUiState.mode = readSettingsStorage(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
+            activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(readSettingsStorage(OPERATIONS_WORKSPACE_STORAGE_KEY) || 'docker');
+            activeRulesWorkspaceType = normalizeRulesWorkspaceType(readSettingsStorage(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
+            activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(readSettingsStorage(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
+            setAdvancedTab(readSettingsStorage(ADVANCED_TAB_STORAGE_KEY) || 'operations', false);
+            settingsUiState.searchAllAdvanced = readSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
+            settingsUiState.activeSectionKey = readSettingsStorage(ADVANCED_SECTION_STORAGE_KEY);
             removeSettingsStorage('fv.settings.advancedExpanded.v2');
             removeSettingsStorage('fv.settings.advancedKnown.v1');
             restoreTableUiState();
@@ -11246,7 +11247,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             action: 'Finalize Settings bootstrap',
             category: 'render-failed'
         }, async () => {
-            const storedMode = String(localStorage.getItem(UI_MODE_STORAGE_KEY) || '').trim();
+            const storedMode = readSettingsStorage(UI_MODE_STORAGE_KEY);
             const hasLocalModePreference = storedMode === 'advanced' || storedMode === 'basic';
             const serverMode = getServerSettingsMode();
             if (!hasLocalModePreference && serverMode && !settingsLaunchOverrides?.mode) {

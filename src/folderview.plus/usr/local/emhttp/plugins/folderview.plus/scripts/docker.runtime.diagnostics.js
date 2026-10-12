@@ -4,12 +4,12 @@
         ? globalThis
         : (typeof window !== 'undefined' ? window : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow, require('./docker.runtime.refresh-diagnostics.js'));
+        module.exports = factory(fallbackWindow, require('./docker.runtime.refresh-diagnostics.js'), require('./folderviewplus.utils-foundation.js'));
         return;
     }
-    root.FolderViewPlusDockerRuntimeDiagnostics = factory(fallbackWindow, fallbackWindow.FolderViewPlusFoundationModules?.dockerRefreshDiagnostics);
+    root.FolderViewPlusDockerRuntimeDiagnostics = factory(fallbackWindow, fallbackWindow.FolderViewPlusFoundationModules?.dockerRefreshDiagnostics, fallbackWindow.FolderViewPlusFoundationModules?.utilityFoundation);
     root.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeDiagnosticsFactory(fallbackWindow, refreshDiagnosticsModule) {
+}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeDiagnosticsFactory(fallbackWindow, refreshDiagnosticsModule, utilityFoundation) {
     'use strict';
     const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
     const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
@@ -282,7 +282,7 @@
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win.document || null;
         const $ = deps.$ || fallbackWindow.jQuery || fallbackWindow.$;
-        const localStorageRef = deps.localStorage || win.localStorage || null;
+        const localStorageRef = utilityFoundation.resolveBrowserStorage(deps.localStorage, win);
         const readDockerListViewMode = typeof deps.readDockerListViewMode === 'function'
             ? deps.readDockerListViewMode
             : (() => 'basic');

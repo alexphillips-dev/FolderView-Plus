@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "バックアップ: $1",
     "common.repair.planned-operations-1-a6783c": "計画された操作: $1",
     "common.server.missing-required-parameters-0aba57": "必須パラメータが欠落しています。",
+    "common.server.transaction-capture-read-failed": "トランザクションのキャプチャに失敗しました: ファイルを読み取ることができません。",
+    "common.server.transaction-capture-file-type": "トランザクションのキャプチャに失敗しました: ファイルは通常のファイルではありません。",
+    "common.server.transaction-rollback-permissions": "トランザクションのロールバックに失敗しました: ファイルのアクセス許可を復元できません。",
+    "common.server.transaction-rollback-incomplete": "トランザクションのロールバックが不完全でした: $1",
     "common.server.invalid-target-folder-list-354e85": "ターゲットフォルダリストが無効です。",
     "common.server.invalid-folder-settings-payload-f8f3ac": "無効なフォルダー設定ペイロードです。",
     "common.server.unsupported-action-cda409": "サポートされていないアクションです。",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Sikkerhedskopier: $1",
     "common.repair.planned-operations-1-a6783c": "Planlagte operationer: $1",
     "common.server.missing-required-parameters-0aba57": "Mangler nødvendige parametre.",
+    "common.server.transaction-capture-read-failed": "Transaktionsregistrering mislykkedes: filen kunne ikke læses.",
+    "common.server.transaction-capture-file-type": "Transaktionsregistrering mislykkedes: filen er ikke en almindelig fil.",
+    "common.server.transaction-rollback-permissions": "Tilbagerulning af transaktionen mislykkedes: filtilladelserne kunne ikke gendannes.",
+    "common.server.transaction-rollback-incomplete": "Tilbagerulning af transaktionen var ufuldstændig: $1",
     "common.server.invalid-target-folder-list-354e85": "Ugyldig målmappeliste.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Ugyldig nyttelast for mappeindstillinger.",
     "common.server.unsupported-action-cda409": "Ikke-understøttet handling.",
@@ -466,7 +470,7 @@
     "common.server.environment-snapshot-is-missing-required-type-data-022a2c": "Miljøøjebliksbillede mangler nødvendige typedata.",
     "common.server.environment-snapshot-payload-is-empty-61e471": "Miljøsnapshot-nyttelasten er tom.",
     "common.server.environment-snapshot-is-not-valid-json-730811": "Snapshot af miljøet er ikke gyldigt JSON.",
-    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Kan ikke fjerne nyoprettet transaktionsfil.",
+    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Den nyoprettede transaktionsfil kunne ikke fjernes.",
     "common.server.environment-transaction-verification-failed-for-theme-workspace-6ef62b": "Miljøtransaktionsbekræftelse mislykkedes for Theme Workspace.",
     "common.server.durable-storage-target-path-is-invalid-cbcefa": "Holdbar lagermålsti er ugyldig.",
     "common.server.folder-payload-exceeds-raw-upload-limit-32eb02": "Mappernes nyttelast overstiger grænsen for rå upload.",

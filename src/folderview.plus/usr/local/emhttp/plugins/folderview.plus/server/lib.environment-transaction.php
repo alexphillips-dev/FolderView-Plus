@@ -25,36 +25,13 @@ function fvplusEnvironmentTransactionPaths(array $extraPaths = []): array {
 function fvplusEnvironmentCaptureFiles(array $paths): array {
     $snapshots = [];
     foreach ($paths as $path) {
-        $safePath = (string)$path;
-        $snapshots[] = [
-            'path' => $safePath,
-            'exists' => is_file($safePath),
-            'content' => is_file($safePath) ? (string)@file_get_contents($safePath) : ''
-        ];
+        $snapshots[] = fvplusTransactionCaptureFile((string)$path);
     }
     return $snapshots;
 }
 
 function fvplusEnvironmentRestoreFiles(array $snapshots): void {
-    $errors = [];
-    foreach ($snapshots as $snapshot) {
-        $path = (string)($snapshot['path'] ?? '');
-        if ($path === '') {
-            continue;
-        }
-        try {
-            if (!empty($snapshot['exists'])) {
-                writeDurableFileAtomic($path, (string)($snapshot['content'] ?? ''));
-            } elseif (file_exists($path) && !@unlink($path)) {
-                throw new RuntimeException('Unable to remove newly-created transaction file.');
-            }
-        } catch (Throwable $error) {
-            $errors[] = basename($path) . ': ' . $error->getMessage();
-        }
-    }
-    if (count($errors) > 0) {
-        throw new RuntimeException('Transaction rollback was incomplete: ' . implode('; ', $errors));
-    }
+    fvplusTransactionRestoreFiles($snapshots);
 }
 
 function fvplusEnvironmentTransactionStage(array $options, string $stage): void {
@@ -119,11 +96,6 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
     $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
     $reason = trim((string)($options['reason'] ?? 'environment-import')) ?: 'environment-import';
     return withConfigMutationLock(static function() use ($normalized, $sourceName, $options, $reason): array {
-        $rollback = createGlobalRollbackSnapshot('before-' . $reason);
-        $typeResults = [];
-        foreach (FVPLUS_ALLOWED_TYPES as $type) {
-            $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason)];
-        }
         $extraPaths = (array)($options['extraPaths'] ?? []);
         if (($options['syncDockerOrder'] ?? true) !== false) {
             $extraPaths[] = fvplusEnvironmentDockerAutostartPath();
@@ -131,6 +103,11 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
         $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($extraPaths));
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
+            $rollback = createGlobalRollbackSnapshot('before-' . $reason);
+            $typeResults = [];
+            foreach (FVPLUS_ALLOWED_TYPES as $type) {
+                $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason)];
+            }
             $written = fvplusEnvironmentWriteTarget($normalized, $options);
             fvplusEnvironmentVerifyTarget($normalized);
             fvplusEnvironmentTransactionStage($options, 'verified');

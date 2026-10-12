@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Sigurnosne kopije: $1",
     "common.repair.planned-operations-1-a6783c": "Planirane operacije: $1",
     "common.server.missing-required-parameters-0aba57": "Nedostaju potrebni parametri.",
+    "common.server.transaction-capture-read-failed": "Snimanje transakcije nije uspjelo: nije moguće pročitati datoteku.",
+    "common.server.transaction-capture-file-type": "Snimanje transakcije nije uspjelo: datoteka nije obična datoteka.",
+    "common.server.transaction-rollback-permissions": "Vraćanje transakcije nije uspjelo: nije moguće vratiti dopuštenja datoteke.",
+    "common.server.transaction-rollback-incomplete": "Vraćanje transakcije nije dovršeno: $1",
     "common.server.invalid-target-folder-list-354e85": "Nevažeći popis ciljnih mapa.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Nevažeći sadržaj postavki mape.",
     "common.server.unsupported-action-cda409": "Nepodržana radnja.",

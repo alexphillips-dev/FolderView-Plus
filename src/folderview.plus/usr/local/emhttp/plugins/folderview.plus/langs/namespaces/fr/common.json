@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Sauvegardes : $1",
     "common.repair.planned-operations-1-a6783c": "Opérations prévues : $1",
     "common.server.missing-required-parameters-0aba57": "Paramètres requis manquants.",
+    "common.server.transaction-capture-read-failed": "Échec de la capture de transaction : impossible de lire le fichier.",
+    "common.server.transaction-capture-file-type": "Échec de la capture de la transaction : le fichier n'est pas un fichier normal.",
+    "common.server.transaction-rollback-permissions": "Échec de l'annulation de la transaction : impossible de restaurer les autorisations du fichier.",
+    "common.server.transaction-rollback-incomplete": "L'annulation de la transaction était incomplète : $1",
     "common.server.invalid-target-folder-list-354e85": "Liste de dossiers cible non valide.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Charge utile des paramètres de dossier non valide.",
     "common.server.unsupported-action-cda409": "Action non prise en charge.",

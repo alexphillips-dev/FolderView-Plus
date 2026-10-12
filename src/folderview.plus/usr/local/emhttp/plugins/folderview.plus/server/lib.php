@@ -1448,6 +1448,7 @@
     require_once(__DIR__ . '/lib.release-notes.php'); require_once(__DIR__ . '/lib.update-channel.php');
 
     require_once(__DIR__ . '/lib.storage.php');
+    require_once(__DIR__ . '/lib.transaction-files.php');
 
     require_once(__DIR__ . '/lib.theme-profiles.php'); require_once(__DIR__ . '/lib.theme-update-plan.php'); require_once(__DIR__ . '/lib.theme-workspace.php');
 

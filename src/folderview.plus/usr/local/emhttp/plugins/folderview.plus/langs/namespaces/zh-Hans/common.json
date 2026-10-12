@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "备份：$1",
     "common.repair.planned-operations-1-a6783c": "计划操作：$1",
     "common.server.missing-required-parameters-0aba57": "缺少必需的参数。",
+    "common.server.transaction-capture-read-failed": "事务捕获失败：无法读取文件。",
+    "common.server.transaction-capture-file-type": "事务捕获失败：文件不是常规文件。",
+    "common.server.transaction-rollback-permissions": "事务回滚失败：无法恢复文件权限。",
+    "common.server.transaction-rollback-incomplete": "事务回滚未完成：$1",
     "common.server.invalid-target-folder-list-354e85": "目标文件夹列表无效。",
     "common.server.invalid-folder-settings-payload-f8f3ac": "文件夹设置负载无效。",
     "common.server.unsupported-action-cda409": "不受支持的操作。",

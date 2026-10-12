@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 
 const require = createRequire(import.meta.url);
 const themeWorkspaceModule = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
@@ -33,9 +34,37 @@ test('profile customization previews the update plan before its atomic save', as
 
 test('theme update transaction snapshots workspace and all generated assets and restores on failure', () => {
     assert.match(updatePlanPhp, /fvplusThemeUpdateSnapshotPaths\(\$persistWorkspace\)/);
-    assert.match(updatePlanPhp, /catch \(Throwable \$error\) \{\s*fvplusThemeUpdateRestoreFiles\(\$snapshots\);/);
+    assert.match(updatePlanPhp, /fvplusTransactionRestoreAfterFailure\(\$snapshots, \$error,/);
     assert.match(updatePlanPhp, /withConfigMutationLock/);
     assert.match(updatePlanPhp, /writeThemeWorkspaceManagedAssetsUnprotected/);
+});
+
+test('theme capture rejects failed reads and non-files before workspace or CSS mutation', () => {
+    for (const operation of ['failed-read', 'short-read', 'stat-failure']) {
+        const failed = runCaptureFixture(operation, 'theme');
+        assert.equal(failed.rejected, true, operation);
+        assert.equal(failed.unchanged, true, operation);
+        assert.equal(failed.translation.errorKey, 'common.server.transaction-capture-read-failed');
+    }
+    assert.equal(runCaptureFixture('unsupported', 'theme').rejected, true);
+    const entry = runCaptureFixture('entry-abort', 'theme');
+    assert.equal(entry.rejected, true);
+    assert.equal(entry.unchanged, true);
+    const assets = runCaptureFixture('entry-abort', 'theme-assets');
+    assert.equal(assets.rejected, true);
+    assert.equal(assets.unchanged, true);
+});
+
+test('theme rollback reports all failed removals and writes and retains the original exception', () => {
+    const result = runCaptureFixture('rollback-errors', 'theme');
+    assert.match(result.error, /rollback was incomplete.*new-a.*new-b.*present.*mode-file/i);
+    assert.equal(result.continued, true);
+    assert.equal(result.remaining, true);
+    assert.equal(result.translation.errorKey, 'common.server.transaction-rollback-incomplete');
+    assert.match(result.translation.errorParams[0], /new-a.*new-b.*mode-file/);
+    const entry = runCaptureFixture('entry-rollback', 'theme');
+    assert.match(entry.error, /Synthetic original theme failure.*rollback was incomplete/i);
+    assert.equal(entry.previous, 'Synthetic original theme failure.');
 });
 
 test('profile endpoint exposes preview separately from guarded mutations', () => {

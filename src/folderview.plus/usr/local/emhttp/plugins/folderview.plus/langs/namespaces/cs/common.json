@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Zálohy: $1",
     "common.repair.planned-operations-1-a6783c": "Plánované operace: $1",
     "common.server.missing-required-parameters-0aba57": "Chybí požadované parametry.",
+    "common.server.transaction-capture-read-failed": "Zachycení transakce se nezdařilo: nelze číst soubor.",
+    "common.server.transaction-capture-file-type": "Zachycení transakce se nezdařilo: soubor není běžný soubor.",
+    "common.server.transaction-rollback-permissions": "Vrácení transakce se nezdařilo: nelze obnovit oprávnění souboru.",
+    "common.server.transaction-rollback-incomplete": "Vrácení transakce nebylo dokončeno: $1",
     "common.server.invalid-target-folder-list-354e85": "Neplatný seznam cílových složek.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Neplatná datová část nastavení složky.",
     "common.server.unsupported-action-cda409": "Nepodporovaná akce.",

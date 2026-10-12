@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -179,3 +180,16 @@ for (const type of ['docker', 'vm']) {
         for (const [kind, rejected] of Object.entries(result.invalid)) assert.equal(rejected, true, kind);
     });
 }
+test('backup restore rejects unreadable rollback material before safety backup or writes', () => {
+    const result = runCaptureFixture('entry-abort', 'restore');
+    assert.equal(result.rejected, true);
+    assert.equal(result.unchanged, true);
+    assert.deepEqual(result.stages, []);
+});
+
+test('backup restore preserves its original failure when compensation also fails', () => {
+    const result = runCaptureFixture('entry-rollback', 'restore');
+    assert.match(result.error, /Synthetic original apply failure.*rollback was incomplete/i);
+    assert.equal(result.previous, 'Synthetic original apply failure.');
+    assert.equal(result.nativeUnchanged, true);
+});

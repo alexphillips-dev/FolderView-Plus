@@ -4,11 +4,56 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 
 const repoRoot = path.resolve(process.cwd());
 const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
 const libPath = path.join(serverRoot, 'lib.php');
 const phpString = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+
+test('environment capture rejects failed reads and non-files without empty compensation', () => {
+    for (const operation of ['failed-read', 'short-read', 'stat-failure']) {
+        const failed = runCaptureFixture(operation);
+        assert.equal(failed.rejected, true, operation);
+        assert.equal(failed.unchanged, true, operation);
+    }
+    assert.equal(runCaptureFixture('unsupported').rejected, true);
+});
+
+test('Linux capture and compensation respect actual permissions and symlink boundaries', {
+    skip: process.platform === 'win32' || (typeof process.getuid === 'function' && process.getuid() === 0)
+        ? 'Real permissions require an unprivileged POSIX process.' : false
+}, () => {
+    const output = execFileSync('php', [path.resolve('tests/fixtures/transaction-capture-linux.php'), serverRoot], { encoding: 'utf8' });
+    assert.match(output, /Linux capture\/rollback checks passed:/);
+});
+
+test('environment rollback preserves empty/missing files and captured permissions', () => {
+    const result = runCaptureFixture('roundtrip');
+    assert.equal(result.same, true);
+    assert.equal(result.emptyExists, true);
+    assert.equal(result.emptyBytes, '');
+    assert.equal(result.missingExists, false);
+});
+
+test('environment capture failure precedes backups and all configuration mutation', () => {
+    const result = runCaptureFixture('entry-abort');
+    assert.equal(result.rejected, true);
+    assert.equal(result.unchanged, true);
+    assert.deepEqual(result.stages, []);
+    assert.equal(result.nativeUnchanged, true);
+});
+
+test('environment incomplete rollback reports every failed target and continues restoration', () => {
+    const result = runCaptureFixture('rollback-errors');
+    assert.match(result.error, /rollback was incomplete.*new-a.*new-b.*present.*mode-file/i);
+    assert.equal(result.continued, true);
+    assert.equal(result.remaining, true);
+    const transaction = runCaptureFixture('entry-rollback');
+    assert.match(transaction.error, /Synthetic original apply failure.*rollback was incomplete/i);
+    assert.equal(transaction.previous, 'Synthetic original apply failure.');
+    assert.equal(transaction.vmRestored, true);
+});
 
 const fixture = {
     fv3_export_version: 1,

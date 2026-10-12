@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Còpies de seguretat: $1",
     "common.repair.planned-operations-1-a6783c": "Operacions previstes: $1",
     "common.server.missing-required-parameters-0aba57": "Falten els paràmetres obligatoris.",
+    "common.server.transaction-capture-read-failed": "La captura de la transacció ha fallat: no es pot llegir el fitxer.",
+    "common.server.transaction-capture-file-type": "La captura de la transacció ha fallat: el fitxer no és un fitxer normal.",
+    "common.server.transaction-rollback-permissions": "La recuperació de la transacció ha fallat: no s'han pogut restaurar els permisos dels fitxers.",
+    "common.server.transaction-rollback-incomplete": "La recuperació de la transacció estava incompleta: $1",
     "common.server.invalid-target-folder-list-354e85": "La llista de carpetes de destinació no és vàlida.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Càrrega útil de configuració de la carpeta no vàlida.",
     "common.server.unsupported-action-cda409": "Acció no admesa.",

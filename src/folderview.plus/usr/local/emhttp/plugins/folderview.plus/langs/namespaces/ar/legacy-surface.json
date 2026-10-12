@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "legacy-surface",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "legacy.surface.0008eb7acd3f7a56": "النقل المجمع غير متاح",
     "legacy.surface.0012950979762d8c": "اختر لقطة لاستعادتها أو تنزيلها أو حذفها.",

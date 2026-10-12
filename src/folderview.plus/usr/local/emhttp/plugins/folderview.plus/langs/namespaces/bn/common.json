@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "ব্যাকআপ: $1",
     "common.repair.planned-operations-1-a6783c": "পরিকল্পিত ক্রিয়াকলাপ: $1",
     "common.server.missing-required-parameters-0aba57": "প্রয়োজনীয় পরামিতি অনুপস্থিত।",
+    "common.server.transaction-capture-read-failed": "লেনদেন ক্যাপচার ব্যর্থ হয়েছে: ফাইল পড়তে অক্ষম৷",
+    "common.server.transaction-capture-file-type": "লেনদেন ক্যাপচার ব্যর্থ হয়েছে: ফাইল একটি নিয়মিত ফাইল নয়।",
+    "common.server.transaction-rollback-permissions": "লেনদেন রোলব্যাক ব্যর্থ হয়েছে: ফাইলের অনুমতিগুলি পুনরুদ্ধার করতে অক্ষম৷",
+    "common.server.transaction-rollback-incomplete": "লেনদেন রোলব্যাক অসম্পূর্ণ ছিল: $1",
     "common.server.invalid-target-folder-list-354e85": "অবৈধ লক্ষ্য ফোল্ডার তালিকা.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "অবৈধ ফোল্ডার সেটিংস পেলোড৷",
     "common.server.unsupported-action-cda409": "অসমর্থিত কর্ম।",

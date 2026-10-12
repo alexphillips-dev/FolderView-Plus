@@ -1,20 +1,10 @@
 <?php
 function fvplusThemeUpdateCaptureFile(string $path): array {
-    return ['path' => $path, 'exists' => file_exists($path), 'content' => file_exists($path) ? (string)@file_get_contents($path) : ''];
+    return fvplusTransactionCaptureFile($path);
 }
 
 function fvplusThemeUpdateRestoreFiles(array $snapshots): void {
-    foreach ($snapshots as $snapshot) {
-        $path = (string)($snapshot['path'] ?? '');
-        if ($path === '') {
-            continue;
-        }
-        if (!empty($snapshot['exists'])) {
-            writeDurableFileAtomic($path, (string)($snapshot['content'] ?? ''));
-        } elseif (file_exists($path)) {
-            @unlink($path);
-        }
-    }
+    fvplusTransactionRestoreFiles($snapshots);
 }
 
 function fvplusThemeUpdateSnapshotPaths(bool $includeWorkspace): array {
@@ -57,7 +47,7 @@ function fvplusThemeWorkspaceApplyAtomic(array $workspace, bool $persistWorkspac
             writeThemeWorkspaceManagedAssetsUnprotected($normalized);
             return $normalized;
         } catch (Throwable $error) {
-            fvplusThemeUpdateRestoreFiles($snapshots);
+            fvplusTransactionRestoreAfterFailure($snapshots, $error, static function(array $files): void { fvplusThemeUpdateRestoreFiles($files); });
             throw $error;
         }
     });

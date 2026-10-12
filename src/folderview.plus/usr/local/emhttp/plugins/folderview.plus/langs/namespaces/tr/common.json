@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Yedeklemeler: $1",
     "common.repair.planned-operations-1-a6783c": "Planlanan operasyonlar: $1",
     "common.server.missing-required-parameters-0aba57": "Gerekli parametreler eksik.",
+    "common.server.transaction-capture-read-failed": "İşlem yakalama başarısız oldu: dosya okunamıyor.",
+    "common.server.transaction-capture-file-type": "İşlem yakalama başarısız oldu: dosya normal bir dosya değil.",
+    "common.server.transaction-rollback-permissions": "İşlem geri alınamadı: dosya izinleri geri yüklenemedi.",
+    "common.server.transaction-rollback-incomplete": "İşlemin geri alınması tamamlanmadı: $1",
     "common.server.invalid-target-folder-list-354e85": "Geçersiz hedef klasör listesi.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Geçersiz klasör ayarları verisi.",
     "common.server.unsupported-action-cda409": "Desteklenmeyen eylem.",

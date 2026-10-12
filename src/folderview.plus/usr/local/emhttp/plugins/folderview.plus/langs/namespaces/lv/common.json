@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Dublējumkopijas: $1",
     "common.repair.planned-operations-1-a6783c": "Plānotās darbības: $1",
     "common.server.missing-required-parameters-0aba57": "Trūkst nepieciešamo parametru.",
+    "common.server.transaction-capture-read-failed": "Darījuma tveršana neizdevās: nevar nolasīt failu.",
+    "common.server.transaction-capture-file-type": "Darījuma tveršana neizdevās: fails nav parasts fails.",
+    "common.server.transaction-rollback-permissions": "Darījuma atcelšana neizdevās: nevar atjaunot faila atļaujas.",
+    "common.server.transaction-rollback-incomplete": "Darījuma atcelšana bija nepilnīga: $1",
     "common.server.invalid-target-folder-list-354e85": "Nederīgs mērķa mapju saraksts.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Nederīga mapes iestatījumu slodze.",
     "common.server.unsupported-action-cda409": "Neatbalstīta darbība.",

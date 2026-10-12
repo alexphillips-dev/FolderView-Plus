@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Резервные копии: $1",
     "common.repair.planned-operations-1-a6783c": "Планируемые операции: $1",
     "common.server.missing-required-parameters-0aba57": "Отсутствуют необходимые параметры.",
+    "common.server.transaction-capture-read-failed": "Не удалось захватить транзакцию: невозможно прочитать файл.",
+    "common.server.transaction-capture-file-type": "Не удалось выполнить захват транзакции: файл не является обычным файлом.",
+    "common.server.transaction-rollback-permissions": "Не удалось откатить транзакцию: невозможно восстановить права доступа к файлу.",
+    "common.server.transaction-rollback-incomplete": "Откат транзакции не завершен: $1",
     "common.server.invalid-target-folder-list-354e85": "Неверный список целевых папок.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Неверные полезные данные настроек папки.",
     "common.server.unsupported-action-cda409": "Неподдерживаемое действие.",

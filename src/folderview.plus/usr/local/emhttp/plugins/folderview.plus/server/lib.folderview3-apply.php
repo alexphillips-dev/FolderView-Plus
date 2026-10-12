@@ -17,6 +17,8 @@ function fvplusFolderView3NativeAutostartContent(array $entries): string {
 }
 
 function applyFolderView3Migration(array $bundle, string $sourceName, string $expectedDigest, bool $includeNativeAutostart = false, array $options = []): array {
+    // Planning can recover Theme Workspace; validate rollback inputs first.
+    fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($includeNativeAutostart ? [fvplusFolderView3NativeAutostartPath()] : []));
     $plan = buildFolderView3MigrationPlan($bundle, $sourceName);
     $actualDigest = strtolower(trim((string)($plan['source']['digest'] ?? '')));
     $expected = strtolower(trim($expectedDigest));

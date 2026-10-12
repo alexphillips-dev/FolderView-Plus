@@ -279,6 +279,7 @@ function getThemeWorkspacePath(): string {
 
     function readThemeWorkspace(): array {
         $path = getThemeWorkspacePath();
+        fvplusTransactionCaptureFile($path);
         if (!file_exists($path)) {
             return writeThemeWorkspace(defaultThemeWorkspace());
         }

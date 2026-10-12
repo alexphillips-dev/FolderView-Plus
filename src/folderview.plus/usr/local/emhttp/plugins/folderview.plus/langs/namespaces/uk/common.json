@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Резервні копії: $1",
     "common.repair.planned-operations-1-a6783c": "Заплановані операції: $1",
     "common.server.missing-required-parameters-0aba57": "Відсутні необхідні параметри.",
+    "common.server.transaction-capture-read-failed": "Помилка запису транзакції: неможливо прочитати файл.",
+    "common.server.transaction-capture-file-type": "Помилка запису транзакції: файл не є звичайним файлом.",
+    "common.server.transaction-rollback-permissions": "Помилка відкоту транзакції: неможливо відновити права доступу до файлу.",
+    "common.server.transaction-rollback-incomplete": "Відкат транзакції не завершено: $1",
     "common.server.invalid-target-folder-list-354e85": "Недійсний список цільових папок.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Недійсне корисне навантаження параметрів папки.",
     "common.server.unsupported-action-cda409": "Непідтримувана дія.",

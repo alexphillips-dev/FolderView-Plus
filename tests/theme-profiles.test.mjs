@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -89,4 +90,11 @@ test('save-as-profile copies other scopes, persists the selected draft and rejec
         assert.equal(result.rejected, true);
         assert.equal(result.unchanged, true);
     } finally { fs.rmSync(sandbox, { recursive: true, force: true }); }
+});
+test('theme rollback distinguishes empty/missing assets and restores captured modes', () => {
+    const result = runCaptureFixture('roundtrip', 'theme');
+    assert.equal(result.same, true);
+    assert.equal(result.emptyExists, true);
+    assert.equal(result.emptyBytes, '');
+    assert.equal(result.missingExists, false);
 });

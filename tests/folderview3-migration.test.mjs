@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { runCaptureFixture } from './helpers/transaction-capture.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -301,4 +302,18 @@ test('FolderView3 browser apply requires confirmation, reuses the preview digest
     assert.equal(posts[1].expectedDigest, 'a'.repeat(64));
     assert.equal(posts[1].includeNativeAutostart, '0');
     assert.match(host.innerHTML, /Applied and verified/);
+});
+test('FolderView3 apply rejects unavailable rollback bytes without changing native or plugin state', () => {
+    const result = runCaptureFixture('entry-abort', 'migration');
+    assert.equal(result.rejected, true);
+    assert.equal(result.unchanged, true);
+    assert.equal(result.nativeUnchanged, true);
+    assert.deepEqual(result.stages, []);
+});
+
+test('FolderView3 rejects failed capture before planning can normalize legacy appearance data', () => {
+    const result = runCaptureFixture('entry-abort', 'migration', { legacyWorkspace: true });
+    assert.equal(result.rejected, true);
+    assert.equal(result.unchanged, true);
+    assert.deepEqual(result.stages, []);
 });

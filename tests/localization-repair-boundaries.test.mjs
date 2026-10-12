@@ -146,7 +146,7 @@ test('actual PHP upload and backup validators return localized keys without chan
 test('server detail templates retain opaque parameters and original diagnostic fields', () => {
     const messages = read('scripts/lib/i18n_repair_messages.json');
     const templates = Object.entries(messages).filter(([key, value]) => key.startsWith('common.server.') && value.endsWith('$1'));
-    assert.equal(templates.length, 5);
+    assert.equal(templates.length, 6);
     const detail = "printf '%s' '/fixture/<custom>' $HOME";
     const input = templates.map(([, value]) => ({ error: value.replace('$1', detail), ok: false, traceId: 'fixture', details: { original: detail } }));
     const php = `require ${JSON.stringify(path.join(plugin, 'server/lib.i18n.php').replaceAll('\\', '/'))}; $rows=json_decode(base64_decode('${Buffer.from(JSON.stringify(input)).toString('base64')}'),true); echo json_encode(array_map('fvplus_localize_response_keys',$rows));`;

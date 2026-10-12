@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Backups: $1",
     "common.repair.planned-operations-1-a6783c": "Operações planejadas: $1",
     "common.server.missing-required-parameters-0aba57": "Parâmetros obrigatórios ausentes.",
+    "common.server.transaction-capture-read-failed": "Falha na captura da transação: não foi possível ler o ficheiro.",
+    "common.server.transaction-capture-file-type": "Falha na captura da transação: o ficheiro não é um ficheiro normal.",
+    "common.server.transaction-rollback-permissions": "Falha na reversão da transação: não foi possível restaurar as permissões do ficheiro.",
+    "common.server.transaction-rollback-incomplete": "A reversão da transação ficou incompleta: $1",
     "common.server.invalid-target-folder-list-354e85": "Lista de pastas de destino inválida.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Carga útil de configurações de pasta inválida.",
     "common.server.unsupported-action-cda409": "Ação não suportada.",
@@ -466,7 +470,7 @@
     "common.server.environment-snapshot-is-missing-required-type-data-022a2c": "Faltam dados de tipo necessários no instantâneo do ambiente.",
     "common.server.environment-snapshot-payload-is-empty-61e471": "A carga útil do snapshot do ambiente está vazia.",
     "common.server.environment-snapshot-is-not-valid-json-730811": "O instantâneo do ambiente não é JSON válido.",
-    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Não foi possível remover o arquivo de transação recém-criado.",
+    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Não foi possível remover o ficheiro de transação recém-criado.",
     "common.server.environment-transaction-verification-failed-for-theme-workspace-6ef62b": "A verificação da transação do ambiente falhou para o Theme Workspace.",
     "common.server.durable-storage-target-path-is-invalid-cbcefa": "O caminho de destino do armazenamento durável é inválido.",
     "common.server.folder-payload-exceeds-raw-upload-limit-32eb02": "A carga útil da pasta excede o limite de upload bruto.",

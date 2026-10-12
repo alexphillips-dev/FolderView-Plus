@@ -5,7 +5,6 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         // Resolve and validate the target before creating or pruning any backup.
         $snapshot = readBackupSnapshot($type, $name);
         $folders = normalizeFolderMapPayload($snapshot['folders']);
-        $prefs = reconcileManualOrderPrefs($snapshot['prefs'] ?? readTypePrefs($type), $folders);
         $paths = [];
         foreach ([getFolderFilePath($type), getTypePrefsPath($type), getConfigMetadataPath($type)] as $path) {
             $paths[] = $path;
@@ -13,10 +12,11 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         }
         if ($type === 'docker') $paths[] = fvplusEnvironmentDockerAutostartPath();
         $before = fvplusEnvironmentCaptureFiles($paths);
-        $backup = ($options['createSafetyBackup'] ?? false) === true
-            ? createBackupSnapshot($type, 'before-restore-' . bin2hex(random_bytes(6)), false)
-            : null;
         try {
+            $prefs = reconcileManualOrderPrefs($snapshot['prefs'] ?? readTypePrefs($type), $folders);
+            $backup = ($options['createSafetyBackup'] ?? false) === true
+                ? createBackupSnapshot($type, 'before-restore-' . bin2hex(random_bytes(6)), false)
+                : null;
             writeRawFolderMap($type, $folders);
             fvplusEnvironmentTransactionStage($options, 'folders');
             writeTypePrefs($type, $prefs);
@@ -29,7 +29,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
                 throw new RuntimeException('Restore failed.');
             }
         } catch (Throwable $error) {
-            fvplusEnvironmentRestoreFiles($before);
+            fvplusTransactionRestoreAfterFailure($before, $error, static function(array $files): void { fvplusEnvironmentRestoreFiles($files); });
             throw $error;
         }
         // The safety snapshot must remain usable even when restored retention is one.

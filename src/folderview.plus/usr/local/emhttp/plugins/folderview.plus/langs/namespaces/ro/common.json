@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Backup-uri: $1",
     "common.repair.planned-operations-1-a6783c": "Operațiuni planificate: $1",
     "common.server.missing-required-parameters-0aba57": "Lipsesc parametrii necesari.",
+    "common.server.transaction-capture-read-failed": "Capturarea tranzacției a eșuat: fișierul nu a putut fi citit.",
+    "common.server.transaction-capture-file-type": "Capturarea tranzacției a eșuat: fișierul nu este un fișier obișnuit.",
+    "common.server.transaction-rollback-permissions": "Revenirea tranzacției a eșuat: permisiunile fișierului nu au putut fi restabilite.",
+    "common.server.transaction-rollback-incomplete": "Revenirea tranzacției a fost incompletă: $1",
     "common.server.invalid-target-folder-list-354e85": "Lista de foldere țintă nevalidă.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Sarcină utilă a setărilor folderului nevalid.",
     "common.server.unsupported-action-cda409": "Acțiune neacceptată.",
@@ -466,7 +470,7 @@
     "common.server.environment-snapshot-is-missing-required-type-data-022a2c": "Din instantaneul de mediu lipsesc datele de tip obligatoriu.",
     "common.server.environment-snapshot-payload-is-empty-61e471": "Sarcina utilă a instantaneului de mediu este goală.",
     "common.server.environment-snapshot-is-not-valid-json-730811": "Instantaneul de mediu nu este JSON valid.",
-    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Nu se poate elimina fișierul de tranzacție nou creat.",
+    "common.server.unable-to-remove-newly-created-transaction-file-bab24a": "Fișierul de tranzacție nou creat nu a putut fi eliminat.",
     "common.server.environment-transaction-verification-failed-for-theme-workspace-6ef62b": "Verificarea tranzacției de mediu a eșuat pentru Theme Workspace.",
     "common.server.durable-storage-target-path-is-invalid-cbcefa": "Calea destinației de stocare durabilă este nevalidă.",
     "common.server.folder-payload-exceeds-raw-upload-limit-32eb02": "Sarcina utilă a folderului depășește limita de încărcare brută.",

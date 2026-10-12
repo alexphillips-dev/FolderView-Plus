@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Säkerhetskopiering: $1",
     "common.repair.planned-operations-1-a6783c": "Planerade operationer: $1",
     "common.server.missing-required-parameters-0aba57": "Nödvändiga parametrar saknas.",
+    "common.server.transaction-capture-read-failed": "Transaktionsfångst misslyckades: det gick inte att läsa filen.",
+    "common.server.transaction-capture-file-type": "Transaktionsfångst misslyckades: filen är inte en vanlig fil.",
+    "common.server.transaction-rollback-permissions": "Återställning av transaktion misslyckades: det gick inte att återställa filbehörigheter.",
+    "common.server.transaction-rollback-incomplete": "Återställning av transaktionen var ofullständig: $1",
     "common.server.invalid-target-folder-list-354e85": "Ogiltig målmapplista.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Ogiltig nyttolast för mappinställningar.",
     "common.server.unsupported-action-cda409": "Åtgärd som inte stöds.",

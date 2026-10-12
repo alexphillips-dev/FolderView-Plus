@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Backup: $1",
     "common.repair.planned-operations-1-a6783c": "Operazioni pianificate: $1",
     "common.server.missing-required-parameters-0aba57": "Parametri obbligatori mancanti.",
+    "common.server.transaction-capture-read-failed": "Acquisizione della transazione non riuscita: impossibile leggere il file.",
+    "common.server.transaction-capture-file-type": "Acquisizione della transazione non riuscita: il file non è un file normale.",
+    "common.server.transaction-rollback-permissions": "Rollback della transazione non riuscito: impossibile ripristinare le autorizzazioni del file.",
+    "common.server.transaction-rollback-incomplete": "Il rollback della transazione era incompleto: $1",
     "common.server.invalid-target-folder-list-354e85": "Elenco delle cartelle di destinazione non valido.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Payload delle impostazioni della cartella non valido.",
     "common.server.unsupported-action-cda409": "Azione non supportata.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "백업: $1",
     "common.repair.planned-operations-1-a6783c": "계획된 작업: $1",
     "common.server.missing-required-parameters-0aba57": "필수 매개변수가 누락되었습니다.",
+    "common.server.transaction-capture-read-failed": "트랜잭션 캡처 실패: 파일을 읽을 수 없습니다.",
+    "common.server.transaction-capture-file-type": "트랜잭션 캡처 실패: 파일이 일반 파일이 아닙니다.",
+    "common.server.transaction-rollback-permissions": "트랜잭션 롤백 실패: 파일 권한을 복원할 수 없습니다.",
+    "common.server.transaction-rollback-incomplete": "거래 롤백이 완료되지 않았습니다: $1",
     "common.server.invalid-target-folder-list-354e85": "대상 폴더 목록이 잘못되었습니다.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "폴더 설정 페이로드가 잘못되었습니다.",
     "common.server.unsupported-action-cda409": "지원되지 않는 작업입니다.",

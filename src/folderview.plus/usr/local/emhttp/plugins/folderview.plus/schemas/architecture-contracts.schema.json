@@ -74,6 +74,7 @@
       "server/lib.update-channel.php": { "limit": 22, "target": 22, "history": [22] },
       "server/lib.runtime-info.php": { "limit": 619, "target": 400, "history": [619] },
       "server/lib.storage.php": { "limit": 479, "target": 400, "history": [479] },
+      "server/lib.transaction-files.php": { "limit": 61, "target": 61, "history": [61] },
       "server/lib.theme-github.php": { "limit": 425, "target": 380, "history": [425] },
       "server/lib.theme-workspace.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.theme-profiles.php": { "limit": 109, "target": 109, "history": [109] },
@@ -213,7 +214,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["server/lib.i18n.php", "server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-batch-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.i18n.php", "server/lib.remote.php", "server/lib.process.php", "server/lib.filesystem-security.php", "server/lib.security.php", "server/lib.request-authority.php", "server/lib.api-contract.php", "server/lib.preflight.php", "server/lib.webui-profiles.php", "server/lib.prefs.php", "server/lib.diagnostics.php", "server/lib.docker-runtime.php", "server/lib.input-security.php", "server/lib.release-notes.php", "server/lib.update-channel.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php", "server/lib.theme-workspace.php", "server/lib.environment-snapshot.php", "server/lib.environment-transaction.php", "server/lib.folderview3-migration.php", "server/lib.folderview3-apply.php", "server/lib.theme-github.php", "server/lib.theme-profile-actions.php", "server/lib.theme-bulk-update.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.folder-rules.php", "server/lib.docker-start-order-sequence.php", "server/lib.docker-order.php", "server/lib.folder-batch-order.php", "server/lib.folder-mutations.php", "server/lib.custom-icon-storage.php", "server/lib.runtime-info.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -361,6 +362,16 @@
       "functionInventory": { "count": 27, "sha256": "fdd98614a0fabe6770a03ee51a208b69530b9325bc5287e7076f39cb3a23ffb0" }
     },
     {
+      "file": "server/lib.transaction-files.php",
+      "owner": "server-transaction-file-capture-and-compensation",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.filesystem-security.php", "server/lib.storage.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 3, "sha256": "2175590ba49679c14a1dc3b5f14ca7db5ab8cb30ba1950c2f24ce535642cf24c" }
+    },
+    {
       "file": "server/lib.theme-profiles.php",
       "owner": "server-theme-profile-schema",
       "consumers": ["plugin-pages", "server-endpoints"],
@@ -375,7 +386,7 @@
       "owner": "server-theme-update-transaction",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.theme-profiles.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.theme-profiles.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 5, "sha256": "1144fe726cd32b70b8134e82073b9b04921f98e14d4a6ea7fc271580aba32798" }
@@ -385,7 +396,7 @@
       "owner": "server-theme-workspace-storage",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.theme-profiles.php", "server/lib.theme-update-plan.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 15, "sha256": "8ba7c8c7cdf66842d8550b98af6af2c9f54fdf90707f10b255c1b7aa8637f217" }
@@ -415,7 +426,7 @@
       "owner": "server-environment-transaction",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php"],
+      "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 8, "sha256": "bc3468f590c2bbb3b212290162aa27cf9639ea168f2b7063efcaa60361176713" }
@@ -485,7 +496,7 @@
       "owner": "server-backup-restore",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.backup-snapshots.php", "server/lib.storage.php", "server/lib.prefs.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php"],
+      "dependsOn": ["server/lib.backup-snapshots.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.prefs.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.backup-snapshots.php",
       "functionInventory": { "count": 4, "sha256": "a57424ba21dcd1537f13e00a2bb886d8a64f3ff07dfa776627470b28b92cb13c" }

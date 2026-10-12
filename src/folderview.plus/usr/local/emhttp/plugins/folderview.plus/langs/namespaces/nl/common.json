@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "a88ec599e06d7ac6ca9cc1e105654d67a73f73bc2891f8bb0b036693c0c433e6"
+        "translation-context-revision": "bdc55c93c563c4c494b73d0030341cfb50562855de58469b51318c2a46c8933c"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -393,6 +393,10 @@
     "common.repair.backups-1-69d513": "Back-ups: $1",
     "common.repair.planned-operations-1-a6783c": "Geplande bewerkingen: $1",
     "common.server.missing-required-parameters-0aba57": "Er ontbreken vereiste parameters.",
+    "common.server.transaction-capture-read-failed": "Vastlegging van transactie mislukt: bestand kan niet worden gelezen.",
+    "common.server.transaction-capture-file-type": "Transactie vastleggen mislukt: bestand is geen normaal bestand.",
+    "common.server.transaction-rollback-permissions": "Het terugdraaien van de transactie is mislukt: de bestandsrechten kunnen niet worden hersteld.",
+    "common.server.transaction-rollback-incomplete": "Het terugdraaien van de transactie is onvolledig: $1",
     "common.server.invalid-target-folder-list-354e85": "Ongeldige doelmappenlijst.",
     "common.server.invalid-folder-settings-payload-f8f3ac": "Ongeldige payload voor mapinstellingen.",
     "common.server.unsupported-action-cda409": "Niet-ondersteunde actie.",

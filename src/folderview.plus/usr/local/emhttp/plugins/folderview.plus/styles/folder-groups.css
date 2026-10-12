@@ -42,6 +42,202 @@
 .fv-group-template img { width: 28px; height: 28px; object-fit: contain; }
 .fv-group-feedback { padding: .7rem; border-inline-start: 3px solid var(--fv-ui-success); background: var(--fvplus-ui-strong); }
 .fv-group-feedback.is-error { border-color: var(--fv-ui-danger); }
+
+/* Basic hierarchy cards retain the shared table's row identity and actions. */
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .table-wrap {
+    padding: 0;
+    background: transparent;
+    overflow-x: auto;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table table {
+    --fv-hierarchy-step: 64px;
+    --fv-hierarchy-gap: 12px;
+    --fv-hierarchy-rail: 156px;
+    display: block;
+    width: 100%;
+    min-width: calc(var(--fv-hierarchy-rail) + 320px + var(--fv-hierarchy-max-depth, 0) * var(--fv-hierarchy-step));
+    border-spacing: 0;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table :is(thead, colgroup) { display: none; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tbody { display: grid; gap: var(--fv-hierarchy-gap); }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] {
+    display: grid;
+    grid-template-columns: var(--fv-hierarchy-rail) minmax(0, 1fr) 84px;
+    position: relative;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-card);
+    color: var(--fvplus-settings-text-primary);
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > td {
+    box-sizing: border-box;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > :not(.order-cell, .name-cell, .actions-cell) { display: none !important; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .order-cell {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    padding: 16px;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .row-order-actions {
+    display: grid;
+    grid-template-columns: 40px 32px 32px;
+    gap: 8px;
+    background: linear-gradient(var(--fvplus-settings-border-subtle), var(--fvplus-settings-border-subtle)) 40px center / 1px 32px no-repeat;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-drag-handle {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    grid-template-columns: repeat(2, 5px);
+    grid-auto-rows: 5px;
+    gap: 4px;
+    color: var(--fvplus-settings-title-accent);
+    position: relative;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-drag-handle > span { width: 5px; height: 5px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-action {
+    width: 32px;
+    min-width: 32px;
+    height: 40px;
+    min-height: 40px;
+    font-size: 20px;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-action:last-child { grid-column: 3; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-action > svg { width: 22px; height: 22px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .name-cell {
+    grid-column: 2;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    padding-inline-start: calc(var(--fv-hierarchy-depth, 0) * var(--fv-hierarchy-step));
+    overflow: visible;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 44px 64px minmax(0, 1fr);
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    padding: 20px 16px 20px 0;
+    min-height: 112px;
+    text-align: start;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested {
+    border-inline-start: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 64px minmax(0, 1fr); padding-inline-start: 20px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested > .folder-tree-toggle-spacer { display: none; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content:is(.is-nested, .is-root)::before,
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content:is(.is-nested, .is-root)::after { content: none; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 64px; height: 64px; object-fit: contain; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text-wrap { gap: 4px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text { font-size: 24px; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-breadcrumb, .name-cell-members-meta, .name-cell-nested-meta) {
+    font-size: 17px;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    color: var(--fvplus-settings-text-muted);
+    opacity: 1;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-metrics { gap: 4px 16px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-members-meta, .name-cell-nested-meta) { gap: 8px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle {
+    --fv-settings-tree-toggle-size: 44px;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    background: var(--fvplus-settings-surface-field) !important;
+    justify-self: center;
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle > i { display: none; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle::after {
+    content: '' !important;
+    width: 10px;
+    height: 10px;
+    border: solid currentColor !important;
+    border-width: 0 3px 3px 0 !important;
+    transform: translateY(-3px) rotate(45deg);
+}
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle.is-collapsed::after { transform: rotate(-45deg); }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle-spacer { width: 44px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .actions-cell { grid-column: 3; display: flex; align-items: center; justify-content: center; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-actions-group { display: flex; gap: 6px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-action-btn > svg { width: 18px; height: 18px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id]:hover { background: var(--fvplus-settings-surface-strong); }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table :is(tr[data-folder-id], button):focus-visible {
+    outline: 2px solid var(--fvplus-settings-accent) !important;
+    outline-offset: 2px;
+}
+.fv-hierarchy-guides { display: none; }
+#fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-rail: 0px; }
+#fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table tr[data-folder-id] { grid-template-columns: 0 minmax(0, 1fr) 48px; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-guides {
+    position: absolute;
+    display: flex;
+    inset-block: calc(-1 * var(--fv-hierarchy-gap) - 2px) -2px;
+    inset-inline-start: 22px;
+    pointer-events: none;
+    color: var(--fvplus-settings-text-muted);
+}
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane { position: relative; width: var(--fv-hierarchy-step); flex: none; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-connected::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-inline-start: 2px solid currentColor;
+}
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: calc(var(--fv-hierarchy-step) - 34px);
+    height: calc(50% + var(--fv-hierarchy-gap) / 2);
+    border-inline-start: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
+    border-end-start-radius: 16px;
+}
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-last::before { content: none; }
+#fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch {
+    background: radial-gradient(circle at center, var(--fvplus-settings-text-muted) 3px, var(--fvplus-settings-surface-card) 4px, var(--fvplus-settings-text-muted) 5px, transparent 6px) calc(100% - 28px) calc(50% + var(--fv-hierarchy-gap) / 2 - 5px) / 12px 12px no-repeat;
+}
+@media (max-width: 900px) {
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-step: 40px; --fv-hierarchy-rail: 128px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .order-cell { padding: 8px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .row-order-actions { gap: 2px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { grid-template-columns: 44px 48px minmax(0, 1fr); gap: 8px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 48px; height: 48px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 48px minmax(0, 1fr); padding-inline-start: 16px; }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch::after { width: calc(var(--fv-hierarchy-step) - 26px); }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch { background-position-x: calc(100% - 20px); }
+}
+@media (max-width: 720px) {
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-step: 20px; --fv-hierarchy-rail: 0px; min-width: calc(280px + var(--fv-hierarchy-max-depth, 0) * var(--fv-hierarchy-step)); }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] { grid-template-columns: 0 minmax(0, 1fr) 48px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .order-cell { display: none; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { grid-template-columns: 44px 36px minmax(0, 1fr); gap: 6px; padding-block: 14px; padding-inline-end: 4px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 36px; height: 36px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 36px minmax(0, 1fr); padding-inline-start: 12px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text { font-size: 19px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-breadcrumb, .name-cell-members-meta, .name-cell-nested-meta) { font-size: 14px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-actions-group { flex-direction: column; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table td.actions-cell .folder-action-btn { width: 40px !important; height: 40px !important; min-height: 40px !important; }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-guides { inset-inline-start: 6px; }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch::after { width: 10px; border-end-start-radius: 8px; }
+    #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch { background-position-x: 6px; }
+    #fv-settings-root:not(.fv-advanced-mode):is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table tr[data-folder-id] > .order-cell { display: flex; grid-column: 1 / -1; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .fv-mobile-reorder-step { grid-column: auto; }
+}
 @media (max-width: 1400px) {
     #fv-settings-root .folder-toolbar .fv-basic-search { flex-basis: 100%; }
     .fv-basic-toolbar-divider { display: none; }

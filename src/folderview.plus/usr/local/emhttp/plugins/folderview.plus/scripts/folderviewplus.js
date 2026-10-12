@@ -1875,6 +1875,8 @@ const setSettingsMode = (mode, { persistServer = false } = {}) => {
     persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
+    applyColumnWidths('docker');
+    applyColumnWidths('vm');
     refreshSectionHealthBadges();
     hydrateActiveDiagnosticsPreview();
     if (persistServer === true && previousMode !== settingsUiState.mode) {
@@ -4061,7 +4063,7 @@ const applySingleColumnWidth = (type, key, widthPx) => {
     const targets = table.querySelectorAll(`${config.header}, ${config.cell}`);
     const width = normalizeSingleColumnWidth(resolvedType, key, widthPx);
     targets.forEach((element) => {
-        if (!width || shouldUseCompactMobileLayout()) {
+        if (!width || settingsUiState.mode !== 'advanced' || shouldUseCompactMobileLayout()) {
             element.style.removeProperty('width');
             element.style.removeProperty('min-width');
             element.style.removeProperty('max-width');
@@ -6429,7 +6431,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? `Expand nested folders in ${folderNameRaw}`
             : `Collapse nested folders in ${folderNameRaw}`;
         const treeToggleHtml = hasChildren
-            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" data-fv-onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
+            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" aria-expanded="${!isCollapsed}" data-fv-onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
             : '<span class="folder-tree-toggle-spacer" aria-hidden="true"></span>';
         const parentFolderId = String(hierarchyMeta?.parentById?.[id] || '').trim();
         const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
@@ -6721,7 +6723,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? ''
             : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to move or reorder" aria-label="Drag ${safeNameText} to move or reorder"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
-            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')">${window.FolderViewPlusUI.svgIcon('upload')}</button>`
             : '';
         const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
         const treeMoveTitle = treeMoveAvailable
@@ -6729,11 +6731,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : 'Tree move unavailable: no valid target folders.';
         const treeMoveButtonHtml = hideOrderControls
             ? ''
-            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" data-fv-onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
+            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" data-fv-onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}>${window.FolderViewPlusUI.svgIcon('hierarchy')}</button>`;
         const orderCellHtml = hideOrderControls
             ? ''
             : (''
-                + `<div class="row-order-stack">`
+                + (treeErrorText ? `<div class="row-order-stack">` : '')
                 + `<span class="row-order-actions">`
                 + mobileMoveStepHtml
                 + dragHandleHtml
@@ -6741,7 +6743,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + treeMoveButtonHtml
                 + `</span>`
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
-                + `</div>`);
+                + (treeErrorText ? `</div>` : ''));
         renderedDiagnostics.displayedFolders += 1;
         if (hideEmptyFolders && directMemberCount === 0 && totalMemberCount > 0) renderedDiagnostics.parentsKeptByDescendants += 1;
         rows.push(
@@ -6754,7 +6756,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" data-fv-onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><span class="folder-actions-group"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" data-fv-onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></span></td>`
+            + `<td class="actions-cell"><span class="folder-actions-group"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" data-fv-onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')">${window.FolderViewPlusUI.svgIcon('settings')}</button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}">${window.FolderViewPlusUI.svgIcon('more')}</button></span></td>`
             + '</tr>'
         );
     }
@@ -8502,6 +8504,7 @@ const renderTable = (type) => {
         collapsedParents
     }));
     statusSnapshotByType[type] = nextStatusSnapshot;
+    decorateSettingsHierarchyRows(document.getElementById(tbodyId), hierarchyMeta);
     bindRowTouchQuickActions(type);
     bindBasicFolderDragHandles(type);
     syncSettingsTableStateFromPrefs(type);

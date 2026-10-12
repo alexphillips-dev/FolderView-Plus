@@ -1,11 +1,11 @@
 import path from 'node:path';
 import { createProductionPerfFixture } from '../../../scripts/lib/production-perf-fixture.mjs';
 
-export const createHideEmptySettingsHost = async (page, type) => {
+export const createHideEmptySettingsHost = async (page, type, options = {}) => {
     const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, 'en');
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
         icon: '/plugins/folderview.plus/images/folder-icon.png', settings: {}, actions: [] });
-    const folders = {
+    const folders = options.folders || {
         parent: folder('Populated branch'),
         child: folder('Child branch', 'parent'),
         leaf: folder('Manual leaf', 'child', ['fixture-manual']),
@@ -19,12 +19,12 @@ export const createHideEmptySettingsHost = async (page, type) => {
         running: true, State: { Running: true, Paused: false }, icon: '/plugins/folderview.plus/images/folder-icon.png'
     }]));
     let prefs = { hideEmptyFolders: true, sortMode: 'alpha', setupWizardCompleted: true,
-        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], _metadata: { prefsRevision: 1 } };
+        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], ...options.prefs, _metadata: { prefsRevision: 1, folderRevision: 1 } };
     let releaseRuntime;
     const runtimeGate = new Promise(resolve => { releaseRuntime = resolve; });
     const snapshot = (target, configOnly = false) => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type: target,
         folders: target === type ? folders : {}, runtime: target === type && !configOnly ? runtime : {}, runtimeIncluded: !configOnly, order: [],
-        prefs: target === type ? prefs : { setupWizardCompleted: true }, metadata: {}, revision: 'a'.repeat(64) });
+        prefs: target === type ? prefs : { setupWizardCompleted: true }, metadata: target === type ? prefs._metadata : {}, revision: 'a'.repeat(64) });
     await page.route('**/server/runtime_snapshot.php?**', async route => {
         const url = new URL(route.request().url());
         const target = url.searchParams.get('type');
@@ -40,10 +40,11 @@ export const createHideEmptySettingsHost = async (page, type) => {
         const request = route.request();
         const payload = request.method() === 'POST' ? Object.fromEntries(new URLSearchParams(request.postData())) : {};
         if (request.method() === 'POST' && payload.type === type) {
-            prefs = { ...prefs, ...JSON.parse(payload.prefs), _metadata: { prefsRevision: prefs._metadata.prefsRevision + 1 } };
+            prefs = { ...prefs, ...JSON.parse(payload.prefs), _metadata: { ...prefs._metadata, prefsRevision: prefs._metadata.prefsRevision + 1 } };
         }
         await route.fulfill({ json: { ok: true, prefs, metadata: prefs._metadata, clientMutationId: payload.clientMutationId } });
     });
+    await page.route('**/server/templates.php**', route => route.fulfill({ json: { ok: true, templates: [] } }));
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
         const dark = matchMedia('(prefers-color-scheme: dark)').matches;
         window.display.theme = dark ? 'black' : 'white';

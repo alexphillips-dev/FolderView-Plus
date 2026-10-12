@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.07">
-<!ENTITY md5 "72903e82f3f924f58f75cec90fbc11d5">
-<!ENTITY sha256 "36b4734189bdd8c17fab51dee7ba5ebafa2faf3f22db8b770e552f6973e49df7">
+<!ENTITY version "2026.10.12.08">
+<!ENTITY md5 "28215de035771d76997ae947247a2968">
+<!ENTITY sha256 "0286fefb4066c260974abe1a58f44e00945a814f0f4050098ffb4ea90bb01c85">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.08
+- UX: Basic settings displays Docker and VM folders as themed hierarchy cards with larger folder icons, readable member counts and paths, and aligned move and action controls.
+- UX: Nested folders use connected vertical guides, rounded branches, and connection points that follow visible folders at every depth. Guides update when folders are moved, filtered, expanded, or collapsed.
+- UX: Cards adapt to compact and phone layouts, with reachable collapse and action controls. Deep trees scroll within the folder workspace without widening the page.
+- Compatibility: Existing folders, assignments, ordering, saved collapse states, and guarded drag-and-drop moves are preserved. Advanced settings retains its table layout and saved column widths. No configuration migration is required.
+
 
 ###2026.10.12.07
 - Fix: Dashboard now remembers rapid expansion and collapse changes across Docker and VM folders, including nested folders and Accordion transitions. Pending changes are saved when leaving the page so they survive refresh and navigation.

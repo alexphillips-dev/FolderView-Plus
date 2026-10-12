@@ -48,6 +48,55 @@ const buildFolderHierarchyMeta = (foldersInput) => {
     return utils.buildFolderHierarchyModel(utils.normalizeFolderMap(foldersInput || {}));
 };
 
+// Draw only the visible tree. CSS stretches each lane across its row, so wrapped
+// labels, filtering and collapsed branches need no geometry observer or timer.
+const decorateSettingsHierarchyRows = (tbody, hierarchyMeta) => {
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr[data-folder-id]'));
+    const visible = new Set(rows.map(row => row.dataset.folderId));
+    const lastChildByParent = new Map();
+    rows.forEach(row => {
+        const parent = hierarchyMeta.parentById[row.dataset.folderId];
+        if (parent && visible.has(parent)) lastChildByParent.set(parent, row.dataset.folderId);
+    });
+    let maxDepth = 0;
+    rows.forEach(row => {
+        const id = row.dataset.folderId;
+        const ancestors = [];
+        const seen = new Set([id]);
+        let child = id;
+        let parent = hierarchyMeta.parentById[child];
+        while (parent && !seen.has(parent)) {
+            seen.add(parent);
+            ancestors.unshift({ parent, child });
+            child = parent;
+            parent = hierarchyMeta.parentById[child];
+        }
+        const depth = ancestors.length;
+        maxDepth = Math.max(maxDepth, depth);
+        row.style.setProperty('--fv-hierarchy-depth', String(depth));
+        const cell = row.querySelector('.name-cell');
+        if (!cell) return;
+        cell.querySelector('.fv-hierarchy-guides')?.remove();
+        if (!depth) return;
+        const guides = tbody.ownerDocument.createElement('span');
+        guides.className = 'fv-hierarchy-guides';
+        guides.setAttribute('aria-hidden', 'true');
+        ancestors.forEach(({ parent, child }, index) => {
+            const lane = tbody.ownerDocument.createElement('span');
+            const last = lastChildByParent.get(parent) === child;
+            const branch = index === depth - 1 && visible.has(parent);
+            lane.className = 'fv-hierarchy-lane'
+                + (branch ? ' is-branch' : '')
+                + (visible.has(parent) && (!last || branch) ? ' is-connected' : '')
+                + (last ? ' is-last' : '');
+            guides.appendChild(lane);
+        });
+        cell.prepend(guides);
+    });
+    tbody.closest('table')?.style.setProperty('--fv-hierarchy-max-depth', String(maxDepth));
+};
+
 const bindTreeMoveDialogPreview = (type, sourceId, folders, hierarchyMeta, modeInsideOnly, translate) => {
     window.setTimeout(() => {
         const target = document.querySelector('#fv-tree-move-target');
@@ -731,6 +780,7 @@ window.FolderViewPlusSettingsTree = Object.freeze({
     normalizeTreeMovePlacement,
     buildFolderPathLabel,
     buildFolderHierarchyMeta,
+    decorateSettingsHierarchyRows,
     normalizeCollapsedTreeParentsForType,
     syncCollapsedTreeParentsForType,
     isFolderHiddenByCollapsedAncestor,

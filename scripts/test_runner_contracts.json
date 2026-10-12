@@ -43,6 +43,7 @@
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
     { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
     { "file": "tests/browser/cases/settings-hide-empty.mjs", "limit": 65, "owner": "Manage Folders descendant visibility regression" },
+    { "file": "tests/browser/cases/settings-hierarchy.mjs", "limit": 120, "owner": "Basic folder cards, responsive hierarchy and control preservation" },
     { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 85, "owner": "isolated production Settings hierarchy host" },
     { "file": "tests/browser/cases/docker-hide-empty.mjs", "limit": 85, "owner": "Docker runtime descendant visibility and refresh regression" },
     { "file": "tests/browser/helpers/docker-hide-empty-host.mjs", "limit": 80, "owner": "isolated production Docker hierarchy host" },
@@ -133,6 +134,7 @@
         "tests/browser/cases/dashboard-row-expansion.mjs",
         "tests/browser/cases/folder-hover-effects.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
+        "tests/browser/cases/settings-hierarchy.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
@@ -162,8 +164,8 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 107,
-      "assertionCount": 1344,
-      "pageEvaluateCount": 353,
+      "assertionCount": 1365,
+      "pageEvaluateCount": 356,
       "orderedTitleSha256": "5762abb402678300b883c403ae37fa3db010c1b073604baf28ab942c59fc9370"
     }
   }

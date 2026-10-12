@@ -57,11 +57,9 @@ const withRulesFixture = async (page, run) => {
         await page.evaluate(() => { if (matchMedia('(prefers-color-scheme: light)').matches) document.getElementById('fv-settings-root').dataset.fvThemeClass = 'light'; });
         await run(state);
     } finally {
-        await page.unroute('**/server/prefs.php');
-        await page.unroute('**/server/runtime_snapshot.php?*');
-        await page.unroute('**/server/templates.php?*');
-        server.closeAllConnections();
-        await new Promise(resolve => server.close(resolve));
+        await page.unrouteAll({ behavior: 'wait' });
+        // Keep the host available for the runner's final accessibility check.
+        page.once('close', () => { server.closeAllConnections(); server.close(); });
     }
 };
 const waitWrites = async (page, state, count) => {
@@ -113,13 +111,13 @@ test('Rules workspace creates, edits, filters and reorders through guarded produ
         const transfer = await page.evaluateHandle(() => new DataTransfer());
         await row('rule-1').locator('[data-rule-drag]').dispatchEvent('dragstart', {dataTransfer:transfer});
         await row('rule-3').dispatchEvent('drop', {dataTransfer:transfer, clientY:0});
+        await row('rule-1').locator('[data-rule-drag]').dispatchEvent('dragend', {dataTransfer:transfer});
         await page.waitForFunction(() => document.querySelector('#docker-rules [data-fv-rule-id]').dataset.fvRuleId === 'rule-0');
         const dragDeadline = Date.now() + 5000;
         while (state.saved.docker.autoRules.slice(0,4).map(rule => rule.id).join(',') !== 'rule-0,rule-2,rule-1,rule-3' && Date.now() < dragDeadline) await page.waitForTimeout(20);
         assert.deepEqual(state.saved.docker.autoRules.slice(0,4).map(rule => rule.id), ['rule-0','rule-2','rule-1','rule-3']);
         await page.waitForFunction(() => !diagnosticsPrefsCoordinator.getSnapshot('docker').pending && pendingTableRenderFrameByType.docker === null);
-        await row('rule-0').locator('input').focus();
-        await page.keyboard.press('Space');
+        await row('rule-0').locator('input').press('Space');
         assert.equal(await page.evaluate(() => document.activeElement.matches('input[type="checkbox"]') && document.activeElement.closest('[data-fv-rule-id]').dataset.fvRuleId === 'rule-0'), true);
         await page.waitForFunction(() => document.getElementById('docker-rules-select-all').indeterminate);
         assert.equal(await page.locator('#docker-rules-select-all').evaluate(el => el.indeterminate), true);

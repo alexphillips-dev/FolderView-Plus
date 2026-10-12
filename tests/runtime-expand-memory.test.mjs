@@ -10,6 +10,11 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
+const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+
+test('Dashboard pagehide flushes its shared pending writer before lifecycle disposal', () => {
+    assert.match(dashboardJs, /window\.addEventListener\('pagehide', \(\) => \{\s*dashboardStorageWriter\?\.flush\?\.\(\);\s*dashboardLiveRefreshController\.dispose\(\);/);
+});
 
 test('docker runtime persists expanded/collapsed folder state and restores it during render', () => {
     assert.match(dockerJs, /DOCKER_EXPANDED_STATE_KEY/);

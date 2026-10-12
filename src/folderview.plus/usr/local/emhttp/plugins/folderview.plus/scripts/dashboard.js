@@ -3138,8 +3138,8 @@ window.addEventListener("keydown", (e) => {
         loadlist();
     }
 });
-
 window.addEventListener('pagehide', () => {
+    dashboardStorageWriter?.flush?.();
     dashboardLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dashboardThemeReflowTimer);

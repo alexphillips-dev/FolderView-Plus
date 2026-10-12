@@ -29,21 +29,34 @@
         const win = deps.window || fallbackWindow;
         const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const writer = deps.writer || null;
+        const maps = {}, stored = {};
 
         const read = (type) => {
-            const storageKey = EXPANDED_STATE_STORAGE_KEYS[normalizeType(type)];
+            const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
             try {
-                const raw = storage?.getItem?.(storageKey);
-                return raw ? normalizeExpandedStateMap(JSON.parse(raw)) : {};
+                let raw = storage?.getItem?.(storageKey) ?? null;
+                if (maps[resolvedType] && raw !== stored[resolvedType]) {
+                    // Settle queued local writes before adopting current external storage.
+                    writer?.flush?.(storageKey);
+                    raw = storage?.getItem?.(storageKey) ?? null;
+                }
+                if (!maps[resolvedType] || raw !== stored[resolvedType]) {
+                    try { maps[resolvedType] = raw ? normalizeExpandedStateMap(JSON.parse(raw)) : {}; }
+                    catch (_error) { maps[resolvedType] = {}; }
+                    stored[resolvedType] = raw;
+                }
             } catch (_error) {
-                return {};
+                // Keep the current session usable when browser storage becomes unavailable.
             }
+            return { ...(maps[resolvedType] || {}) };
         };
 
         const write = (type, map) => {
             if (!storage) return false;
-            const storageKey = EXPANDED_STATE_STORAGE_KEYS[normalizeType(type)];
-            const payload = JSON.stringify(normalizeExpandedStateMap(map));
+            const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
+            read(resolvedType);
+            maps[resolvedType] = normalizeExpandedStateMap(map);
+            const payload = JSON.stringify(maps[resolvedType]);
             try {
                 if (writer && typeof writer.setItem === 'function') {
                     writer.setItem(storageKey, payload, { delayMs: 80, idle: true });
@@ -73,9 +86,12 @@
 
         const clear = (type) => {
             if (!storage) return false;
-            const storageKey = EXPANDED_STATE_STORAGE_KEYS[normalizeType(type)];
+            const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
+            maps[resolvedType] = {};
             try {
+                writer?.removeItem?.(storageKey, { delayMs: 0, idle: false });
                 storage?.removeItem?.(storageKey);
+                stored[resolvedType] = null;
                 return true;
             } catch (_error) {
                 return false;

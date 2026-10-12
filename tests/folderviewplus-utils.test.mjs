@@ -1300,4 +1300,8 @@ test('performance utility helpers are exported and writable in node runtime', as
     storageWriter.flush();
     assert.equal(storage.get('beta'), '2');
     assert.equal(storage.has('alpha'), false);
+    storageWriter.setItem('removed-before-flush', 'stale', { delayMs: 80, idle: true });
+    storageWriter.removeItem('removed-before-flush', { delayMs: 0, idle: false });
+    storageWriter.flush('removed-before-flush');
+    assert.equal(storage.has('removed-before-flush'), false);
 });

@@ -34,6 +34,7 @@
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
     { "file": "tests/browser/cases/settings-runtime-actions.mjs", "limit": 85, "owner": "lightweight Docker action plans and Settings requests" },
+    { "file": "tests/browser/cases/dashboard-expansion-memory.mjs", "limit": 70, "owner": "buffered Dashboard expansion, clear and pagehide memory" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
     { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
@@ -99,6 +100,7 @@
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
+        "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/runtime-quick-finder.mjs",
@@ -159,10 +161,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 106,
-      "assertionCount": 1329,
-      "pageEvaluateCount": 340,
-      "orderedTitleSha256": "b2782a001cfbae0069d3b92c882fd72320914d2e51040d542cbee53406068c9d"
+      "testCount": 107,
+      "assertionCount": 1344,
+      "pageEvaluateCount": 353,
+      "orderedTitleSha256": "5762abb402678300b883c403ae37fa3db010c1b073604baf28ab942c59fc9370"
     }
   }
 }

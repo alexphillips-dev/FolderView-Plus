@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerDashboardExpansionMemoryCase } from './dashboard-expansion-memory.mjs';
 
 // Exercise the shipped expansion handlers and state store with synthetic host markup.
 // Unrelated styling, filtering, and layout scheduling are isolated from this fixture.
@@ -29,13 +30,18 @@ const hydrateFixture = async (page, baseUrl) => {
     ].join('\n');
     const restoreDocker = extract('const dockerExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('docker');");
     const restoreVm = extract('const vmExpandedStateMap =', "applyDashboardStartedOnlyFilterForType('vm');");
+    const pagehide = extract("window.addEventListener('pagehide',", '})(window,');
     await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.utils-foundation.js` });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/dashboard.state-store.js` });
     await page.addScriptTag({ content: `(() => {
         const $ = window.jQuery;
         const folderEvents = new EventTarget();
-        const dashboardExpandedStateStore = window.FolderViewPlusDashboardStateStore.createStore({ window });
+        const dashboardStorageWriter = window.FolderViewPlusFoundationModules.utilityFoundation.createBatchedStorageWriter(window.localStorage);
+        const dashboardExpandedStateStore = window.FolderViewPlusDashboardStateStore.createStore({ window, writer: dashboardStorageWriter });
+        const dashboardLiveRefreshController = { dispose() {} }, queuedLoadlistTimer = null, dashboardThemeReflowTimer = null;
+        const dashboardHostAdapterModule = null, runtimeHostAdapters = null, dashboardDockerProviderRegistry = null;
+        ${pagehide}
         const globalFolders = { docker: {}, vms: {} };
         let layout = 'accordion';
         const normalizeDashboardPrefsForType = () => ({ layout });
@@ -67,6 +73,9 @@ const hydrateFixture = async (page, baseUrl) => {
         render('vm');
         window.fixtureDashboardAccordion = {
             toggle: toggleFolderExpansion,
+            clear: type => dashboardExpandedStateStore.clear(type),
+            flush: () => dashboardStorageWriter.flush(),
+            disk: type => JSON.parse(localStorage.getItem(window.FolderViewPlusDashboardStateStore.EXPANDED_STATE_STORAGE_KEYS[type]) || '{}'),
             reset(nextLayout) {
                 layout = nextLayout;
                 for (const type of ['docker', 'vm']) {
@@ -155,4 +164,5 @@ export const registerDashboardAccordionFixtureCases = ({ test, baseUrl }) => {
             }
         });
     }
+    registerDashboardExpansionMemoryCase({ test, baseUrl, installFixture, hydrateFixture });
 };

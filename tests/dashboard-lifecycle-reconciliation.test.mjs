@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(process.cwd());
@@ -22,6 +23,32 @@ const dashboardPage = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page'
 ), 'utf8');
+
+test('Dashboard pagehide commits both pending expansion maps before releasing host lifecycle owners', () => {
+    const scripts = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
+    const foundation = require(path.join(scripts, 'folderviewplus.utils-foundation.js'));
+    const api = require(path.join(scripts, 'dashboard.state-store.js'));
+    const values = new Map(), events = [], hooks = [];
+    const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    const writer = foundation.createBatchedStorageWriter(storage), store = api.createStore({ storage, writer });
+    store.patch('docker', { parent: true }); store.patch('docker', { child: true });
+    store.patch('vm', { vmParent: true }); store.patch('vm', { vmChild: true });
+    assert.equal(values.size, 0);
+    const start = dashboardSource.lastIndexOf("window.addEventListener('pagehide',");
+    const end = dashboardSource.indexOf('})(window,', start);
+    assert.ok(start >= 0 && end > start);
+    vm.runInNewContext(dashboardSource.slice(start, end), {
+        window: { addEventListener: (name, callback, options) => hooks.push({ name, callback, options }) },
+        dashboardStorageWriter: writer, queuedLoadlistTimer: null, dashboardThemeReflowTimer: null, clearTimeout,
+        dashboardLiveRefreshController: { dispose() {
+            assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
+            assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.vm)), { vmParent: true, vmChild: true });
+            events.push('dispose');
+        } }, dashboardHostAdapterModule: null, runtimeHostAdapters: null, dashboardDockerProviderRegistry: null
+    });
+    assert.equal(hooks.length, 1); assert.equal(hooks[0].name, 'pagehide'); assert.equal(hooks[0].options.once, true);
+    hooks[0].callback(); assert.deepEqual(events, ['dispose']);
+});
 
 const flushPromises = async () => {
     await Promise.resolve();

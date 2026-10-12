@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.06">
-<!ENTITY md5 "570fbf1b536f3c71c5eca600a51b55d5">
-<!ENTITY sha256 "05d9bfb4e89803265baba53097090684cf4be151220d9d5b786af93d7791a4ee">
+<!ENTITY version "2026.10.12.07">
+<!ENTITY md5 "72903e82f3f924f58f75cec90fbc11d5">
+<!ENTITY sha256 "36b4734189bdd8c17fab51dee7ba5ebafa2faf3f22db8b770e552f6973e49df7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.07
+- Fix: Dashboard now remembers rapid expansion and collapse changes across Docker and VM folders, including nested folders and Accordion transitions. Pending changes are saved when leaving the page so they survive refresh and navigation.
+- Fix: Clearing or resetting Dashboard expansion memory can no longer be undone by an older queued write. Docker and VM expansion memory remain independent.
+- Compatibility: Existing expansion keys and folder defaults are unchanged. No configuration migration is required; browser storage remains optional.
+
 
 ###2026.10.12.06
 - Fix: Docker folder actions in Settings now correctly distinguish running, paused, and stopped containers when using lightweight runtime snapshots. Action previews, skipped-item explanations, confirmation counts, and submitted items agree with full runtime records.

@@ -142,7 +142,7 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-quick-action')), 'view-options');
     assert.equal(await page.evaluate(() => window.fixtureDashboardLayout.state.captureCount), 1);
     assert.equal(
-        await page.evaluate(() => window.fixtureDashboardLayout.visualRecord().latest.trigger),
+        await page.evaluate(() => window.fixtureDashboardLayout.state.manualCapture.trigger), // Later resize captures may replace the stored latest entry.
         'manual'
     );
     await rail.locator('[data-fv-quick-action="view-options"]').click();

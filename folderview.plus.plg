@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.04">
-<!ENTITY md5 "9df86c4ddbf83030c6e0758d54390014">
-<!ENTITY sha256 "369b0740aa4815bf4f792f5e9460c8105f8b3d9a1bc2124c69a51783b8b4538c">
+<!ENTITY version "2026.10.12.05">
+<!ENTITY md5 "d0a76b3d6415eafd2675fb7a73a17d2b">
+<!ENTITY sha256 "44b07b638ac9014676fc1e531bada971dd75d64b58ef430753c7a152e270522e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.12.05
+- Fix: Custom icons cannot be renamed while referenced by Docker or VM folders, saved folder defaults, custom folder-group templates, or the current editor selection. The refusal explains how to remove or replace those references first.
+- Fix: Unused icon renames now preserve icon files, metadata, and public copies when an update fails. Systems using copied public icons no longer restore the old filename during a successful rename.
+- Compatibility: Unused icon renames and same-name requests remain supported. Existing folder preferences and configuration formats are unchanged; no migration is required.
+
 
 ###2026.10.12.04
 - Fix: Settings, Docker, VM, and Dashboard now finish initializing when browser privacy settings block local storage, when storage is unavailable, or when its reads and writes fail.

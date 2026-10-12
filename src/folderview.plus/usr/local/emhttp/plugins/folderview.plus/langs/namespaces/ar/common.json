@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "الرمز قيد الاستخدام بواسطة مراجع المجلدات ولا يمكن حذفه.",
     "common.server.failed-to-delete-icon-f97fd8": "فشل في حذف الأيقونة.",
     "common.server.failed-to-rename-icon-98fa9a": "فشلت إعادة تسمية الأيقونة.",
+    "common.server.icon-rename-referenced": "قم بإزالة مراجع الأيقونة المحفوظة أو استبدالها واختر أيقونة محرر مختلفة قبل إعادة التسمية.",
+    "common.server.icon-rename-unverified": "لا يمكن التحقق من مراجع الرمز. أعد تحميل الإعدادات وحاول مرة أخرى.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "متجر الأيقونات المخصصة مشغول. يرجى المحاولة مرة أخرى.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "تم الوصول إلى الحد الأقصى لتخزين الأيقونة المخصصة. قم بإزالة الرموز القديمة قبل تحميل المزيد.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "تم الوصول إلى حد بايت تخزين الرمز المخصص. قم بإزالة الرموز القديمة قبل تحميل المزيد.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "图标正在被文件夹引用使用，无法删除。",
     "common.server.failed-to-delete-icon-f97fd8": "删除图标失败。",
     "common.server.failed-to-rename-icon-98fa9a": "重命名图标失败。",
+    "common.server.icon-rename-referenced": "删除或替换已保存的图标引用，并在重命名之前选择不同的编辑器图标。",
+    "common.server.icon-rename-unverified": "无法验证图标引用。重新加载设置并重试。",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "自定义图标商店很忙。请再试一次。",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "已达到自定义图标存储限制。在上传更多图标之前删除旧图标。",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "已达到自定义图标存储字节限制。在上传更多图标之前删除旧图标。",

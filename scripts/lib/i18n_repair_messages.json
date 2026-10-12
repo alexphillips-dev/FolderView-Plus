@@ -247,6 +247,8 @@
   "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Icon is in use by folder references and cannot be deleted.",
   "common.server.failed-to-delete-icon-f97fd8": "Failed to delete icon.",
   "common.server.failed-to-rename-icon-98fa9a": "Failed to rename icon.",
+  "common.server.icon-rename-referenced": "Remove or replace saved icon references and choose a different editor icon before renaming.",
+  "common.server.icon-rename-unverified": "Icon references could not be verified. Reload Settings and try again.",
   "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Custom icon store is busy. Please try again.",
   "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Custom icon storage limit reached. Remove old icons before uploading more.",
   "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Custom icon storage byte limit reached. Remove old icons before uploading more.",

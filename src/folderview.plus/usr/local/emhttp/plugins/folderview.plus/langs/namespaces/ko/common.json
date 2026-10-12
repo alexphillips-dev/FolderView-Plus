@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "아이콘은 폴더 참조에 사용 중이므로 삭제할 수 없습니다.",
     "common.server.failed-to-delete-icon-f97fd8": "아이콘을 삭제하지 못했습니다.",
     "common.server.failed-to-rename-icon-98fa9a": "아이콘 이름을 바꾸지 못했습니다.",
+    "common.server.icon-rename-referenced": "저장된 아이콘 참조를 제거하거나 교체하고 이름을 바꾸기 전에 다른 편집기 아이콘을 선택하세요.",
+    "common.server.icon-rename-unverified": "아이콘 참조를 확인할 수 없습니다. 설정을 새로고침하고 다시 시도하세요.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "사용자 정의 아이콘 저장소가 사용 중입니다. 다시 시도해 주세요.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "맞춤 아이콘 저장 한도에 도달했습니다. 더 업로드하기 전에 이전 아이콘을 제거하세요.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "맞춤 아이콘 저장 바이트 한도에 도달했습니다. 더 업로드하기 전에 이전 아이콘을 제거하세요.",

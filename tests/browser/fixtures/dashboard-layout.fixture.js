@@ -5,7 +5,8 @@
         health: false,
         density: false,
         settingsOpened: false,
-        captureCount: 0
+        captureCount: 0,
+        manualCapture: null
     };
     const visualController = window.FolderViewPlusDashboardVisualDiagnostics.createController({
         window,
@@ -65,7 +66,7 @@
         onVisualDiagnostics: (type, options) => visualController.scheduleCapture(type, options),
         onCaptureDiagnostics: (type) => {
             state.captureCount += 1;
-            return visualController.capture(type, { trigger: 'manual' });
+            return (state.manualCapture = visualController.capture(type, { trigger: 'manual' }));
         }
     });
     controller.bindDashboardQuickActionSyncHandlers();

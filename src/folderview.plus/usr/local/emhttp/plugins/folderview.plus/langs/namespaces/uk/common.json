@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Піктограма використовується посиланнями на папку, і її неможливо видалити.",
     "common.server.failed-to-delete-icon-f97fd8": "Не вдалося видалити значок.",
     "common.server.failed-to-rename-icon-98fa9a": "Не вдалося перейменувати значок.",
+    "common.server.icon-rename-referenced": "Видаліть або замініть збережені посилання на значок і виберіть інший значок редактора перед перейменуванням.",
+    "common.server.icon-rename-unverified": "Не вдалося перевірити посилання на піктограми. Перезавантажте налаштування та повторіть спробу.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Магазин ікон на замовлення зайнятий. Спробуйте ще раз.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Досягнуто ліміту пам’яті спеціальної піктограми. Видаліть старі значки, перш ніж завантажувати нові.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Досягнуто ліміту в байтах для зберігання спеціальної піктограми. Видаліть старі значки, перш ніж завантажувати нові.",

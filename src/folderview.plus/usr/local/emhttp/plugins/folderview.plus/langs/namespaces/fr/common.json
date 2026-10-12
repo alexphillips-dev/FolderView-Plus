@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "L'icône est utilisée par les références de dossier et ne peut pas être supprimée.",
     "common.server.failed-to-delete-icon-f97fd8": "Échec de la suppression de l'icône.",
     "common.server.failed-to-rename-icon-98fa9a": "Échec du renommage de l'icône.",
+    "common.server.icon-rename-referenced": "Supprimez ou remplacez les références d'icônes enregistrées et choisissez une autre icône d'éditeur avant de la renommer.",
+    "common.server.icon-rename-unverified": "Les références aux icônes n'ont pas pu être vérifiées. Rechargez les paramètres et réessayez.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Le magasin d'icônes personnalisées est occupé. Veuillez réessayer.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Limite de stockage des icônes personnalisées atteinte. Supprimez les anciennes icônes avant d’en télécharger d’autres.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Limite d'octets de stockage des icônes personnalisées atteinte. Supprimez les anciennes icônes avant d’en télécharger d’autres.",

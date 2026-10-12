@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Ikona jest używana przez odniesienia do folderów i nie można jej usunąć.",
     "common.server.failed-to-delete-icon-f97fd8": "Nie udało się usunąć ikony.",
     "common.server.failed-to-rename-icon-98fa9a": "Nie udało się zmienić nazwy ikony.",
+    "common.server.icon-rename-referenced": "Usuń lub zastąp zapisane odniesienia do ikon i wybierz inną ikonę edytora przed zmianą nazwy.",
+    "common.server.icon-rename-unverified": "Nie udało się zweryfikować odniesień do ikon. Załaduj ponownie ustawienia i spróbuj ponownie.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Niestandardowy sklep z ikonami jest zajęty. Spróbuj ponownie.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Osiągnięto limit przechowywania ikon niestandardowych. Usuń stare ikony przed przesłaniem kolejnych.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Osiągnięto limit bajtów przechowywania ikon niestandardowych. Usuń stare ikony przed przesłaniem kolejnych.",

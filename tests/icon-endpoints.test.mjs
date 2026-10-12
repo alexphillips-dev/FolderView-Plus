@@ -23,7 +23,8 @@ const uploadPhp = [
     'upload_custom_icon.php',
     'lib.custom-icon-endpoint-foundation.php',
     'lib.custom-icon-validation.php',
-    'lib.custom-icon-actions.php'
+    'lib.custom-icon-actions.php',
+    'lib.custom-icon-rename.php'
 ].map((name) => fs.readFileSync(path.join(path.dirname(uploadEndpointPath), name), 'utf8')).join('\n');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');

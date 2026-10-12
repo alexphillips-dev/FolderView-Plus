@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . '/lib.custom-icon-rename.php');
 function normalizeCustomIconFileNameInput(string $value): string {
     $name = basename(trim($value));
     if ($name === '' || $name !== trim($value)) {
@@ -382,54 +383,7 @@ function handleCustomIconDeleteAction(): array {
 }
 
 function handleCustomIconRenameAction(): array {
-    return withCustomIconLock(true, static function (): array {
-        $customDir = ensureCustomIconDirExists();
-        $from = normalizeCustomIconFileNameInput((string)($_POST['from'] ?? ''));
-        $toRaw = (string)($_POST['to'] ?? '');
-        $fromPath = "$customDir/$from";
-        if (!is_file($fromPath) || is_link($fromPath)) {
-            throw new RuntimeException('Icon not found.');
-        }
-        $fromExt = strtolower((string)pathinfo($from, PATHINFO_EXTENSION));
-        $to = sanitizeCustomIconTargetName($toRaw, $fromExt);
-        if ($from === $to) {
-            $meta = syncCustomIconMetadataIndex($customDir);
-            $usageMap = customIconUsageMap();
-            return [
-                'icon' => buildCustomIconUploadResponse($from, $meta, false, false, '', 'multipart', $usageMap),
-                'health' => customIconDirectoryHealth()
-            ];
-        }
-        $toPath = "$customDir/$to";
-        if (is_file($toPath) || is_link($toPath)) {
-            throw new RuntimeException('An icon with that name already exists.');
-        }
-        if (!@rename($fromPath, $toPath)) {
-            throw new RuntimeException('Failed to rename icon.');
-        }
-        $meta = readCustomIconMetadataIndex();
-        $entry = is_array($meta[$from] ?? null) ? $meta[$from] : [];
-        unset($meta[$from]);
-        $entry['updatedAt'] = gmdate('c');
-        $entry['size'] = max(0, (int)@filesize($toPath));
-        $entry['mime'] = detectUploadedMimeType($toPath);
-        if (trim((string)($entry['originalName'] ?? '')) === '') {
-            $entry['originalName'] = $from;
-        }
-        $meta[$to] = $entry;
-        writeCustomIconMetadataIndex($meta);
-        syncCustomIconPublicRuntime();
-        appendCustomIconAuditEvent('icon_rename', 'ok', ['from' => $from, 'to' => $to]);
-        $usageMap = customIconUsageMap();
-        if (isset($usageMap[$from])) {
-            $usageMap[$to] = $usageMap[$from];
-            unset($usageMap[$from]);
-        }
-        return [
-            'icon' => buildCustomIconUploadResponse($to, $meta, false, false, '', 'multipart', $usageMap),
-            'health' => customIconDirectoryHealth()
-        ];
-    });
+    return withCustomIconLock(true, static fn(): array => withConfigMutationLock(static fn(): array => renameCustomIconUnlocked()));
 }
 
 function handleCustomIconUsageAction(): array {

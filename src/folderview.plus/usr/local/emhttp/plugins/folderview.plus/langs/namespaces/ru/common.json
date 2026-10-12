@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Значок используется ссылками на папки и не может быть удален.",
     "common.server.failed-to-delete-icon-f97fd8": "Не удалось удалить значок.",
     "common.server.failed-to-rename-icon-98fa9a": "Не удалось переименовать значок.",
+    "common.server.icon-rename-referenced": "Удалите или замените сохраненные ссылки на значки и выберите другой значок редактора перед переименованием.",
+    "common.server.icon-rename-unverified": "Ссылки на значки не удалось проверить. Перезагрузите настройки и повторите попытку.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Хранилище пользовательских значков занято. Пожалуйста, попробуйте еще раз.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Достигнут предел хранения пользовательских значков. Удалите старые значки, прежде чем загружать новые.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Достигнут предел в байтах хранения пользовательских значков. Удалите старые значки, прежде чем загружать новые.",

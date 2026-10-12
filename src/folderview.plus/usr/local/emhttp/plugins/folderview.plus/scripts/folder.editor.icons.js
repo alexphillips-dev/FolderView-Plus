@@ -526,7 +526,7 @@
                         return;
                     }
                     try {
-                        await requestCustomIconApi('rename', { from: name, to: nextName }, 'POST');
+                        await requestCustomIconApi('rename', { from: name, to: nextName, selectedIcon: getCurrentIconValue() }, 'POST');
                         await refreshCustomIconManager();
                         setCustomIconStatus(`Renamed "${name}" to "${nextName}".`);
                     } catch (error) {

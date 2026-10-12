@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Das Symbol wird von Ordnerverweisen verwendet und kann nicht gelöscht werden.",
     "common.server.failed-to-delete-icon-f97fd8": "Das Symbol konnte nicht gelöscht werden.",
     "common.server.failed-to-rename-icon-98fa9a": "Das Symbol konnte nicht umbenannt werden.",
+    "common.server.icon-rename-referenced": "Entfernen oder ersetzen Sie gespeicherte Symbolverweise und wählen Sie vor dem Umbenennen ein anderes Editor-Symbol aus.",
+    "common.server.icon-rename-unverified": "Symbolverweise konnten nicht überprüft werden. Laden Sie die Einstellungen neu und versuchen Sie es erneut.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Der benutzerdefinierte Icon-Store ist ausgelastet. Bitte versuchen Sie es erneut.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Das Speicherlimit für benutzerdefinierte Symbole wurde erreicht. Entfernen Sie alte Symbole, bevor Sie weitere hochladen.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Das Byte-Limit für den Speicher des benutzerdefinierten Symbols wurde erreicht. Entfernen Sie alte Symbole, bevor Sie weitere hochladen.",

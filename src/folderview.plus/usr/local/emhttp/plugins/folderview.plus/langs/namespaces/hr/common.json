@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Ikona se koristi prema referencama mape i ne može se izbrisati.",
     "common.server.failed-to-delete-icon-f97fd8": "Brisanje ikone nije uspjelo.",
     "common.server.failed-to-rename-icon-98fa9a": "Promjena naziva ikone nije uspjela.",
+    "common.server.icon-rename-referenced": "Uklonite ili zamijenite spremljene reference ikone i odaberite drugu ikonu uređivača prije preimenovanja.",
+    "common.server.icon-rename-unverified": "Reference ikona nisu se mogle provjeriti. Ponovno učitajte postavke i pokušajte ponovno.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Trgovina prilagođenih ikona je zauzeta. Molimo pokušajte ponovo.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Dosegnuto je ograničenje pohrane prilagođenih ikona. Uklonite stare ikone prije učitavanja novih.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Dosegnuto je ograničenje bajtova za pohranu prilagođene ikone. Uklonite stare ikone prije učitavanja novih.",

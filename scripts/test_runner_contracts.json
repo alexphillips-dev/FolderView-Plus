@@ -32,6 +32,7 @@
   ],
   "modules": [
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
+    { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
     { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
@@ -116,6 +117,7 @@
         "tests/browser/cases/settings-advanced-navigation.mjs",
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
+        "tests/browser/cases/custom-icon-rename.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
@@ -155,10 +157,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 104,
-      "assertionCount": 1312,
-      "pageEvaluateCount": 330,
-      "orderedTitleSha256": "905216010179981380be95a9be7611c06464645f4cb6c4ff5541cf867b709b98"
+      "testCount": 105,
+      "assertionCount": 1320,
+      "pageEvaluateCount": 336,
+      "orderedTitleSha256": "fe50883f6b1141e183364b876b73590914395c22370dde2926a71a5b2a1a4218"
     }
   }
 }

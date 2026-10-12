@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "アイコンはフォルダー参照によって使用されているため、削除できません。",
     "common.server.failed-to-delete-icon-f97fd8": "アイコンの削除に失敗しました。",
     "common.server.failed-to-rename-icon-98fa9a": "アイコンの名前変更に失敗しました。",
+    "common.server.icon-rename-referenced": "名前を変更する前に、保存されたアイコン参照を削除または置換し、別のエディタ アイコンを選択してください。",
+    "common.server.icon-rename-unverified": "アイコンの参照を確認できませんでした。設定をリロードして、もう一度試してください。",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "カスタム アイコン ストアがビジー状態です。もう一度試してください。",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "カスタム アイコンのストレージ制限に達しました。さらにアップロードする前に古いアイコンを削除してください。",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "カスタム アイコンのストレージのバイト制限に達しました。さらにアップロードする前に古いアイコンを削除してください。",

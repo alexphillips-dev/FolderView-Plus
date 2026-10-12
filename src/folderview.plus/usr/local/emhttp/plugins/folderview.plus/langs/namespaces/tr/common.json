@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Simge, klasör referansları tarafından kullanılıyor ve silinemiyor.",
     "common.server.failed-to-delete-icon-f97fd8": "Simge silinemedi.",
     "common.server.failed-to-rename-icon-98fa9a": "Simge yeniden adlandırılamadı.",
+    "common.server.icon-rename-referenced": "Kaydedilen simge referanslarını kaldırın veya değiştirin ve yeniden adlandırmadan önce farklı bir düzenleyici simgesi seçin.",
+    "common.server.icon-rename-unverified": "Simge referansları doğrulanamadı. Ayarları yeniden yükleyin ve tekrar deneyin.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Özel simge mağazası meşgul. Lütfen tekrar deneyin.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Özel simge depolama sınırına ulaşıldı. Daha fazlasını yüklemeden önce eski simgeleri kaldırın.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Özel simge depolama bayt sınırına ulaşıldı. Daha fazlasını yüklemeden önce eski simgeleri kaldırın.",

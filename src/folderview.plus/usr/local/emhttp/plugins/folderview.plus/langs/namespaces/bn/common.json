@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "আইকন ফোল্ডার রেফারেন্স দ্বারা ব্যবহার করা হয় এবং মুছে ফেলা যাবে না.",
     "common.server.failed-to-delete-icon-f97fd8": "আইকন মুছে ফেলতে ব্যর্থ হয়েছে৷",
     "common.server.failed-to-rename-icon-98fa9a": "আইকনের নাম পরিবর্তন করতে ব্যর্থ হয়েছে৷",
+    "common.server.icon-rename-referenced": "সংরক্ষিত আইকন রেফারেন্সগুলি সরান বা প্রতিস্থাপন করুন এবং পুনঃনামকরণের আগে একটি ভিন্ন সম্পাদক আইকন চয়ন করুন৷",
+    "common.server.icon-rename-unverified": "আইকন রেফারেন্স যাচাই করা যায়নি. সেটিংস পুনরায় লোড করুন এবং আবার চেষ্টা করুন।",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "কাস্টম আইকন দোকান ব্যস্ত. আবার চেষ্টা করুন.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "কাস্টম আইকন স্টোরেজ সীমা পৌঁছেছে। আরও আপলোড করার আগে পুরানো আইকনগুলি সরান৷",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "কাস্টম আইকন স্টোরেজ বাইট সীমা পৌঁছেছে। আরও আপলোড করার আগে পুরানো আইকনগুলি সরান৷",

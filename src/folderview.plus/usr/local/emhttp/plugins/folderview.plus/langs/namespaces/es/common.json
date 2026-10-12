@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "El icono está siendo utilizado por referencias de carpetas y no se puede eliminar.",
     "common.server.failed-to-delete-icon-f97fd8": "No se pudo eliminar el icono.",
     "common.server.failed-to-rename-icon-98fa9a": "No se pudo cambiar el nombre del ícono.",
+    "common.server.icon-rename-referenced": "Elimine o reemplace las referencias de íconos guardados y elija un ícono de editor diferente antes de cambiar el nombre.",
+    "common.server.icon-rename-unverified": "No se pudieron verificar las referencias de iconos. Vuelva a cargar la configuración e inténtelo de nuevo.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "La tienda de iconos personalizados está ocupada. Por favor inténtalo de nuevo.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Se alcanzó el límite de almacenamiento de íconos personalizados. Elimina los íconos antiguos antes de subir más.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Se alcanzó el límite de bytes de almacenamiento de iconos personalizados. Elimina los íconos antiguos antes de subir más.",

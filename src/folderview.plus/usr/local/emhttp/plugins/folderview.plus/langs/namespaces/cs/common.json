@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "14bbaa05576092e8d082dd2d13eaf26695e466bb672a4cab93774426250de770"
+        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -440,6 +440,8 @@
     "common.server.icon-is-in-use-by-folder-references-and-cannot-be-deleted-e126e5": "Ikona je používána odkazy na složku a nelze ji smazat.",
     "common.server.failed-to-delete-icon-f97fd8": "Ikonu se nepodařilo odstranit.",
     "common.server.failed-to-rename-icon-98fa9a": "Ikonu se nepodařilo přejmenovat.",
+    "common.server.icon-rename-referenced": "Před přejmenováním odstraňte nebo nahraďte uložené odkazy na ikony a vyberte jinou ikonu editoru.",
+    "common.server.icon-rename-unverified": "Odkazy na ikony se nepodařilo ověřit. Znovu načtěte nastavení a zkuste to znovu.",
     "common.server.custom-icon-store-is-busy-please-try-again-c5e7cb": "Vlastní obchod s ikonami je zaneprázdněn. Zkuste to prosím znovu.",
     "common.server.custom-icon-storage-limit-reached-remove-old-icons-before-uploadi-699cac": "Byl dosažen limit úložiště vlastní ikony. Před nahráním dalších odstraňte staré ikony.",
     "common.server.custom-icon-storage-byte-limit-reached-remove-old-icons-before-up-8921fc": "Byl dosažen limit bajtů úložiště vlastní ikony. Před nahráním dalších odstraňte staré ikony.",

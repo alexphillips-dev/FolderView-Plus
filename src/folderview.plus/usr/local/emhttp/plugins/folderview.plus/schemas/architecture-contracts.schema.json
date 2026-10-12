@@ -52,6 +52,7 @@
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
       "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
       "server/lib.custom-icon-actions.php": { "limit": 448, "target": 380, "history": [448] },
+      "server/lib.custom-icon-rename.php": { "limit": 90, "target": 90, "history": [90] },
       "server/lib.custom-icon-endpoint-foundation.php": { "limit": 513, "target": 420, "history": [513] },
       "server/lib.custom-icon-storage.php": { "limit": 499, "target": 420, "history": [499] },
       "server/lib.custom-icon-validation.php": { "limit": 492, "target": 420, "history": [492] },
@@ -668,10 +669,20 @@
       "owner": "custom-icon-endpoint-actions",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-validation.php"],
+      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-validation.php", "server/lib.custom-icon-rename.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/upload_custom_icon.php",
       "functionInventory": { "count": 15, "sha256": "a2fa8c9349d1ff49159f03255dff0c7b50e8232d1f24f8ca231f4877be7bfd4d" }
+    },
+    {
+      "file": "server/lib.custom-icon-rename.php",
+      "owner": "custom-icon-rename",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.custom-icon-actions.php", "server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-validation.php", "server/lib.prefs.php", "server/lib.preflight.php", "server/lib.transaction-files.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.custom-icon-actions.php",
+      "functionInventory": { "count": 1, "sha256": "5339c6ee3c56e38ffdf049ffbbfdd4b5417dfae2520aeaa0ee88ccb9dc867539" }
     }
   ],
   "moduleContracts": [

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.04">
-<!ENTITY md5 "0c61c81517c209f4c920209ea57c384a">
-<!ENTITY sha256 "b9c4f5365082d8dcc7ad8cb3afc638b84e0c4b36f5d2643cdcf2d0e2f31d4ffe">
+<!ENTITY version "2026.10.13.05">
+<!ENTITY md5 "f813b8a6e217715fe0ac22a0f1959ff9">
+<!ENTITY sha256 "0880e976ae43a92bd92cdb0d8c5d82f71f0c25278f8023d43ee811aa595b10f1">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.05
+- UX: Remove obsolete styles for retired Rules chips, wide-field overrides, and card-action controls.
+- Test: Use validated native image URL assignment in the icon preview fixture and verify current Rules controls, failed-save handling, image selection, and Dashboard diagnostics across supported browsers.
+- Compatibility: Hard-refresh the webGUI after updating to load the current styles and language catalogs.
+
 
 ###2026.10.13.04
 - Localization: Remove obsolete Rules and Clear messages from all 27 language catalogs while preserving active translations and placeholders.

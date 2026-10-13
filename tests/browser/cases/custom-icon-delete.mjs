@@ -25,13 +25,15 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
                 const form = { icon: input, name: { value: 'Example' }, preview: { value: '1' } };
                 const defaultIcon = '/plugins/folderview.plus/images/folder-icon.png';
                 const escapeHtml = window.FolderViewPlusFoundationModules.utilityFoundation.escapeHtml;
+                const sanitizeImageUrl = window.FolderViewPlusFoundationModules.utilityFoundation.sanitizeImageUrl;
                 const preview = window.FolderViewPlusFolderEditorPreview.createApi({ $: window.jQuery, type,
                     getForm: () => form, defaultFolderIconPath: defaultIcon, escapeHtml });
                 const setIconInputValue = value => {
+                    const image = document.getElementById('fixture-field-preview');
+                    if (image instanceof HTMLImageElement) image.src = sanitizeImageUrl(value, defaultIcon);
                     window.jQuery(input).val(value).trigger('input').trigger('change');
                 };
                 window.jQuery(input).on('input change', () => {
-                    window.jQuery('#fixture-field-preview').attr('src', input.value);
                     preview.updateLiveSummary();
                 });
                 const requestClient = {
@@ -53,7 +55,7 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
                         return { name: 'uploaded.png', url: custom + '?v=1' };
                     } };
                 const api = window.FolderViewPlusFolderEditorIcons.createApi({ window, document, $: window.jQuery,
-                    folderIconApi, escapeHtml, getForm: () => form, getIconInput: () => window.jQuery(input),
+                    folderIconApi, escapeHtml, sanitizeImageUrl, getForm: () => form, getIconInput: () => window.jQuery(input),
                     getCurrentIconValue: () => input.value, setIconInputValue, defaultFolderIconPath: defaultIcon,
                     swal: (_options, callback) => callback(state.confirm), fetchJson: async () => [] });
                 window.fixtureIconDelete = Object.assign(state, { setIconInputValue, custom, defaultIcon });

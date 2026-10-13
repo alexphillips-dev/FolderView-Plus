@@ -4134,25 +4134,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.4rem;
 }
 
-.fv-rules-issue-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    padding: 0.14rem 0.52rem;
-    border-radius: 999px;
-    border: 1px solid var(--fvplus-settings-border-faint);
-    background: var(--fvplus-settings-surface-strong);
-    color: var(--fvplus-settings-text-primary);
-    font-size: 0.92rem;
-    font-weight: 600;
-}
-
-.fv-rules-issue-chip.is-invalid {
-    border-color: var(--fvplus-settings-chip-danger-border);
-    background: var(--fvplus-settings-chip-danger-bg);
-    color: var(--fvplus-settings-chip-danger);
-}
-
 .fv-rule-stage {
     display: grid;
     gap: 0.75rem;
@@ -4365,10 +4346,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.45rem;
 }
 
-.fv-rule-builder-field-wide {
-    grid-column: span 2;
-}
-
 .fv-rule-preview-output {
     display: grid;
     gap: 0.65rem;
@@ -4469,10 +4446,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 @media (max-width: 980px) {
-    .fv-rule-builder-field-wide {
-        grid-column: span 1;
-    }
-
     .fv-rule-toolbar {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -12923,7 +12896,6 @@ h2[data-fv-section].fv-search-match {
     .setting-button-row-compact > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
-    .fv-rule-card-actions > button,
     .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
@@ -12979,7 +12951,6 @@ h2[data-fv-section].fv-search-match {
     .setting-button-row-compact > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
-    .fv-rule-card-actions > button,
     .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
@@ -13023,7 +12994,6 @@ h2[data-fv-section].fv-search-match {
     .setting-button-row-compact > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
-    .fv-rule-card-actions > button,
     .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
@@ -13076,7 +13046,6 @@ h2[data-fv-section].fv-search-match {
     .setting-button-row-compact > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
-    .fv-rule-card-actions > button,
     .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
@@ -13127,7 +13096,6 @@ h2[data-fv-section].fv-search-match {
     .setting-button-row-compact > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
-    .fv-rule-card-actions > button,
     .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,

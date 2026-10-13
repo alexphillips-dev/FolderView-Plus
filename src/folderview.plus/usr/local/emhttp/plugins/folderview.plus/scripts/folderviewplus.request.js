@@ -15,6 +15,8 @@
     const NONCE_ENDPOINT = '/plugins/folderview.plus/server/security.php';
     const requestDiagnostics = [];
     let securityPrefilterConfigured = false;
+    const transport = window.FolderViewPlusFoundationModules.requestTransport.createApi({ window });
+    const { toAjaxPromise } = transport;
 
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
     const newTraceId = () => {
@@ -206,55 +208,12 @@
         }
         securityPrefilterConfigured = true;
         window.$.ajaxPrefilter((options = {}) => {
-            const endpoint = sanitizeDiagnosticUrl(options.url);
-            if (!endpoint.startsWith('/plugins/folderview.plus/')) {
+            if (!transport.isPluginUrl(options.url)) {
                 return;
             }
             options.headers = buildHeaders(options.headers || {}, tokenStorageKey);
         });
     };
-
-    const toAjaxPromise = (options, signal = null, onRequest = null) => new Promise((resolve, reject) => {
-        if (!window.$ || typeof window.$.ajax !== 'function') {
-            reject(new Error('jQuery.ajax is not available.'));
-            return;
-        }
-
-        const request = window.$.ajax(options);
-        if (typeof onRequest === 'function') {
-            onRequest(request);
-        }
-        const abortRequest = () => {
-            if (request && typeof request.abort === 'function') {
-                request.abort();
-            }
-        };
-        if (signal?.aborted === true) {
-            abortRequest();
-        } else if (signal && typeof signal.addEventListener === 'function') {
-            signal.addEventListener('abort', abortRequest, { once: true });
-        }
-        const cleanup = () => {
-            if (signal && typeof signal.removeEventListener === 'function') {
-                signal.removeEventListener('abort', abortRequest);
-            }
-        };
-
-        request
-            .done((data, textStatus, jqXHR) => {
-                cleanup();
-                resolve({ data, textStatus, jqXHR });
-            })
-            .fail(async (jqXHR, textStatus, errorThrown) => {
-                cleanup();
-                // Decode bounded JSON errors from binary requests before classification.
-                const body = jqXHR.response;
-                if (body?.size <= 65536 && typeof body.text === 'function' && /json/i.test(body.type)) {
-                    try { jqXHR.responseJSON = JSON.parse(await body.text()); } catch (_error) { /* Keep the HTTP failure. */ }
-                }
-                reject({ jqXHR, textStatus, errorThrown });
-            });
-    });
 
     const requestValue = (data, name) => {
         if (typeof FormData !== 'undefined' && data instanceof FormData) {
@@ -292,7 +251,7 @@
             method: 'POST',
             data: noncePayload,
             timeout: timeoutMs,
-            headers: buildHeaders({}, DEFAULT_TOKEN_STORAGE_KEY, token, traceId),
+            headers: transport.mutationHeaders(NONCE_ENDPOINT, buildHeaders({}, DEFAULT_TOKEN_STORAGE_KEY, token, traceId)),
             dataType: 'json'
         }, signal);
         const payload = response?.data;
@@ -387,7 +346,8 @@
         xhr = undefined,
         xhrFields = undefined,
         signal = null,
-        onRequest = null
+        onRequest = null,
+        onProgress = null
     }) => {
         if (!url) {
             throw new Error('Request URL is required.');
@@ -410,8 +370,10 @@
         let phase = normalizedMethod === 'POST' ? 'token' : 'request';
         try {
             if (signal?.aborted === true) throw { textStatus: 'abort' };
+            if (!transport.isSameOrigin(url)) throw Object.assign(new Error(), { reasonCode: 'origin-mismatch' });
             if (normalizedMethod === 'POST') {
                 if (!token) throw Object.assign(new Error('A mutation request token is required.'), { reasonCode: 'plugin-token-missing' });
+                transport.requireMutationContext(url);
                 phase = 'nonce';
                 nonce = await requestMutationNonce(url, data, token, signal, traceId, safeTimeoutMs);
             }
@@ -426,9 +388,11 @@
                 const ajaxOptions = {
                     url,
                     method: normalizedMethod,
-                    data: payload,
+                    data: payload instanceof URLSearchParams ? payload.toString() : payload,
                     timeout: safeTimeoutMs,
-                    headers: buildHeaders(headers, tokenStorageKey, token, traceId, nonce)
+                    headers: normalizedMethod === 'POST'
+                        ? transport.mutationHeaders(url, buildHeaders(headers, tokenStorageKey, token, traceId, nonce))
+                        : buildHeaders(headers, tokenStorageKey, token, traceId, nonce)
                 };
                 if (typeof cache === 'boolean') ajaxOptions.cache = cache;
                 if (typeof processData === 'boolean') ajaxOptions.processData = processData;
@@ -437,7 +401,10 @@
                 if (typeof xhr === 'function') ajaxOptions.xhr = xhr;
                 if (xhrFields && typeof xhrFields === 'object') ajaxOptions.xhrFields = { ...xhrFields };
                 if (xhrFields?.responseType === 'blob') ajaxOptions.responseFields = { binary: 'response' };
-                const response = await toAjaxPromise(ajaxOptions, signal, onRequest);
+                const multipart = typeof FormData !== 'undefined' && payload instanceof FormData;
+                const response = multipart
+                    ? await transport.toMultipartPromise(ajaxOptions, signal, onRequest, onProgress)
+                    : await toAjaxPromise(ajaxOptions, signal, onRequest);
                 response.traceId = traceId;
                 response.transactionId = transactionId;
                 recordDiagnostic({
@@ -646,85 +613,41 @@
             dataType: 'text',
             signal,
             onRequest,
-            xhr: () => {
-                const xhr = window.$?.ajaxSettings?.xhr?.();
-                if (xhr?.upload && typeof onProgress === 'function') {
-                    xhr.upload.addEventListener('progress', (event) => {
-                        if (event?.lengthComputable === true) {
-                            onProgress(Number(event.loaded || 0), Number(event.total || 0));
-                        }
-                    });
-                }
-                return xhr;
-            }
+            onProgress
         });
         return parseResponseJson(response, url);
     };
 
     const sendKeepalive = (url, data = {}, {
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        nonce = requestValue(data, NONCE_PAYLOAD_KEY) || ''
     } = {}) => {
         if (!url) {
             return false;
         }
         const startedAt = Date.now();
         const token = getOptionalRequestToken(tokenStorageKey);
-        if (!token) {
-            recordDiagnostic({
-                method: 'POST',
-                url,
-                outcome: 'blocked-missing-token',
-                durationMs: 0,
-                attempts: 1
-            });
-            return false;
-        }
         const traceId = newTraceId();
         const transactionId = transactionIdForTrace(traceId);
-        const markedPayload = addMutationPayloadMarkers('POST', data, token, traceId);
+        try {
+            if (!token) throw Object.assign(new Error(), { reasonCode: 'plugin-token-missing' });
+            transport.requireMutationContext(url);
+            // Synchronous keepalive callers must supply an already issued one-time nonce.
+            if (!/^[a-f0-9]{64}$/.test(nonce)) throw Object.assign(new Error(), { reasonCode: 'nonce-invalid' });
+        } catch (error) {
+            reportFailure(error, { method: 'POST', url: transport.isPluginUrl(url) ? url : '', traceId, transactionId, phase: 'token', startedAt });
+            return false;
+        }
+        const markedPayload = addMutationPayloadMarkers('POST', data, token, traceId, nonce);
         const body = (
             (typeof FormData !== 'undefined' && markedPayload instanceof FormData)
             || (typeof URLSearchParams !== 'undefined' && markedPayload instanceof URLSearchParams)
         ) ? markedPayload : new URLSearchParams(Object.entries(markedPayload || {}).map(([key, value]) => [key, String(value)]));
-        try {
-            if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-                const accepted = navigator.sendBeacon(url, body);
-                recordDiagnostic({
-                    method: 'POST', url, outcome: accepted ? 'queued' : 'rejected',
-                    durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId
-                });
-                if (accepted) {
-                    return true;
-                }
-            }
-        } catch (_error) {
-            // Continue to the fetch keepalive fallback.
-        }
-        if (typeof window.fetch !== 'function') {
-            recordDiagnostic({ method: 'POST', url, outcome: 'unavailable', durationMs: 0, attempts: 1, traceId, transactionId });
-            return false;
-        }
-        try {
-            window.fetch(url, {
-                method: 'POST',
-                body,
-                keepalive: true,
-                credentials: 'same-origin',
-                headers: buildHeaders(headers, tokenStorageKey, token, traceId)
-            }).then((response) => {
-                recordDiagnostic({
-                    method: 'POST', url, outcome: response?.ok ? 'ok' : 'error', status: response?.status,
-                    durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId
-                });
-            }).catch(() => {
-                recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId });
-            });
-            return true;
-        } catch (_error) {
-            recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId });
-            return false;
-        }
+        return transport.queueKeepalive(url, body, buildHeaders(headers, tokenStorageKey, token, traceId, nonce), (outcome) => {
+            recordDiagnostic({ method: 'POST', url, ...outcome,
+                durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId });
+        });
     };
 
     window.FolderViewPlusRequest = Object.freeze({

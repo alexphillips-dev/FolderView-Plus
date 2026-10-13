@@ -13,6 +13,7 @@
       "server/lib.folderview3-appearance.php": { "limit": 102, "target": 102, "history": [102] },
       "server/lib.theme-profile-create.php": { "limit": 27, "target": 27, "history": [27] },
       "scripts/folderviewplus.request-diagnostics.js": { "limit": 132, "target": 132, "history": [132] },
+      "scripts/folderviewplus.request-transport.js": { "limit": 150, "target": 150, "history": [150] },
       "scripts/folderviewplus.folderview3-report.js": { "limit": 87, "target": 87, "history": [87] },
       "scripts/folderviewplus.js": { "limit": 11793, "target": 1200, "history": [12092, 11793] },
       "scripts/docker.js": { "limit": 7986, "target": 1000, "history": [8839, 8045, 8028, 7986] },
@@ -737,6 +738,21 @@
       "loader": "commonjs",
       "typeChecked": false,
       "exports": ["configure", "save", "readProfile"]
+    },
+    {
+      "file": "scripts/folderviewplus.request-transport.js",
+      "owner": "shared-request-transport",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "requestTransport",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["createApi"],
+      "apiFactory": "createApi",
+      "apiExports": ["isSameOrigin", "isPluginUrl", "requireMutationContext", "mutationHeaders", "toAjaxPromise", "toMultipartPromise", "queueKeepalive"]
     },
     {
       "file": "scripts/folderviewplus.request-diagnostics.js",

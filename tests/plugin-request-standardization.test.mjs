@@ -49,7 +49,7 @@ test('the shared client owns mutation safety, keepalive, tracing, and diagnostic
     assert.match(request, /X-FV-Transaction/);
     assert.match(request, /_fv_transaction/);
     assert.match(request, /sanitizeDiagnosticUrl/);
-    assert.match(request, /endpoint\.startsWith\('\/plugins\/folderview\.plus\/'\)/);
+    assert.match(request, /transport\.isPluginUrl\(options\.url\)/);
     assert.doesNotMatch(request, /ajaxSetup\s*\(/);
 
     const retryViolations = scriptFiles

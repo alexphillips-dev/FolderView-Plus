@@ -177,14 +177,9 @@
         });
 
         const shouldUseInlineUploadFallback = (error) => {
-            const message = String(error?.message || '').toLowerCase();
-            if (!message) {
-                return false;
-            }
-            return message.includes('empty response')
-                || /json response .* was empty/.test(message)
-                || message.includes('invalid json')
-                || message.includes('unexpected');
+            // Retry only a definite refusal before file processing, never an ambiguous response.
+            return Number(error?.status) === 415
+                || (Number(error?.status) === 400 && error?.response?.error === 'No icon file uploaded.');
         };
 
         const uploadCustomIconFileInline = async (file, options = {}) => {
@@ -227,7 +222,7 @@
                     }
                 });
             } catch (error) {
-                const aborted = String(error?.textStatus || '').toLowerCase() === 'abort'
+                const aborted = error?.reasonCode === 'aborted' || String(error?.textStatus || '').toLowerCase() === 'abort'
                     || String(error?.statusText || '').toLowerCase() === 'abort'
                     || String(error?.message || '').toLowerCase().includes('abort');
                 if (aborted) {

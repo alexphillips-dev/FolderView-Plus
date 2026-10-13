@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
     { "file": "tests/browser/cases/settings-runtime-actions.mjs", "limit": 85, "owner": "lightweight Docker action plans and Settings requests" },
@@ -122,6 +123,7 @@
         "tests/browser/cases/settings-start-order.mjs",
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/custom-icon-rename.mjs",
+        "tests/browser/cases/csrf-requests.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
@@ -161,10 +163,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 107,
-      "assertionCount": 1344,
-      "pageEvaluateCount": 353,
-      "orderedTitleSha256": "5762abb402678300b883c403ae37fa3db010c1b073604baf28ab942c59fc9370"
+      "testCount": 108,
+      "assertionCount": 1363,
+      "pageEvaluateCount": 355,
+      "orderedTitleSha256": "f3edee0935a6549b25b9016a3b7952b21aed6ae2c4d2a23b70f38e1567f57929"
     }
   }
 }

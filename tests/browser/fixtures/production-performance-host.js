@@ -1,4 +1,5 @@
 /* Synthetic Unraid host only. All FolderView Plus scripts remain unmodified. */
+window.csrf_token = 'fixture-unraid-token';
 window.autostart = []; window.docker = []; window.advanced = false;
 window.Docker = []; window.display = { theme: 'black' };
 window.listview = () => {};

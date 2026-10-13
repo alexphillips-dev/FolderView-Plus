@@ -119,7 +119,8 @@ test('Rules workspace creates, edits, filters and reorders through guarded produ
         assert.deepEqual(state.saved.docker.autoRules.slice(0,4).map(rule => rule.id), ['rule-0','rule-2','rule-1','rule-3']);
         await page.waitForFunction(() => !diagnosticsPrefsCoordinator.getSnapshot('docker').pending && pendingTableRenderFrameByType.docker === null);
         await row('rule-0').locator('input').focus();
-        await page.keyboard.press('Space');
+        await page.bringToFront();
+        await row('rule-0').locator('input').press('Space');
         assert.equal(await page.evaluate(() => document.activeElement.matches('input[type="checkbox"]') && document.activeElement.closest('[data-fv-rule-id]').dataset.fvRuleId === 'rule-0'), true);
         await page.waitForFunction(() => document.getElementById('docker-rules-select-all').indeterminate);
         assert.equal(await page.locator('#docker-rules-select-all').evaluate(el => el.indeterminate), true);

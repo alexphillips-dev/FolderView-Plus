@@ -105,6 +105,20 @@ const fixtureServer = http.createServer(async (request, response) => {
             return;
         }
 
+        if (requestUrl.pathname === '/api/csrf-upload.php') {
+            const rawBody = await readRequestBody(request);
+            assert.equal(request.method, 'POST');
+            assert.equal(request.headers['x-csrf-token'], 'fixture-unraid-token');
+            assert.equal(request.headers['x-fv-token'], 'fixture-plugin-token');
+            assert.equal(request.headers['x-fv-nonce'], 'a'.repeat(64));
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ ok: true, url: '/fixture.png', name: 'fixture.png', evidence: {
+                contentType: request.headers['content-type'], file: rawBody.includes('fixture-file-bytes'),
+                filename: rawBody.includes('filename="fixture.png"'), nonce: rawBody.includes('name="_fv_nonce"'),
+                csrf: rawBody.includes('name="csrf_token"') && rawBody.includes('\r\nfixture-unraid-token\r\n'),
+                corrupted: rawBody.includes('[object FormData]')
+            } })); return;
+        }
         if (requestUrl.pathname === '/api/echo.php') {
             const rawBody = await readRequestBody(request);
             const body = Object.fromEntries(new URLSearchParams(rawBody));

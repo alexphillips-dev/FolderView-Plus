@@ -225,7 +225,7 @@ test('strict request guard requires the mutation marker, token, and same-origin 
     assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = '', nonce = ''\) =>/);
     assert.match(requestClientJs, /payload\._fv_request = '1';/);
     assert.match(requestClientJs, /if \(!token\) throw .*reasonCode: 'plugin-token-missing'/);
-    assert.match(requestClientJs, /outcome: 'blocked-missing-token'/);
+    assert.match(requestClientJs, /reportFailure\(error, \{ method: 'POST'/);
     assert.doesNotMatch(requestClientJs, /localStorage\.getItem\(tokenStorageKey\)/);
     assert.match(folderViewPlusJs, /requestClient\.postBlob\('\/plugins\/folderview\.plus\/server\/backup\.php'/);
     assert.match(folderViewPlusJs, /requestClient\.postJson\(url, data, options\)/);

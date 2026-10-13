@@ -14,9 +14,6 @@
         const normalizeFolderRecordForEditor = typeof deps.normalizeFolderRecordForEditor === 'function'
             ? deps.normalizeFolderRecordForEditor
             : ((folder) => (folder && typeof folder === 'object' ? folder : {}));
-        const queueBackgroundMutationPost = typeof deps.queueBackgroundMutationPost === 'function'
-            ? deps.queueBackgroundMutationPost
-            : (() => false);
         const securePost = typeof deps.securePost === 'function'
             ? deps.securePost
             : (async () => {});
@@ -77,10 +74,6 @@
 
         const flushPostSaveSync = async (options = {}) => {
             if (!shouldSyncAfterSave(options.folder, options)) {
-                return;
-            }
-            const scheduled = queueBackgroundMutationPost(SYNC_ORDER_PATH, { type: syncType });
-            if (scheduled) {
                 return;
             }
             await securePost(SYNC_ORDER_PATH, { type: syncType });

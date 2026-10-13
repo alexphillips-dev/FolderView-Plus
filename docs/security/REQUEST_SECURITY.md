@@ -3,6 +3,32 @@
 FolderView Plus layers its own request controls over the authenticated Unraid
 webGUI session. These controls do not replace Unraid authentication.
 
+## Unraid CSRF compatibility
+
+The shared request client obtains Unraid's current CSRF token from the host
+page's `window.csrf_token`. This token is separate from the FolderView Plus
+install token, one-time nonce, and transaction ID. Missing page security
+information blocks mutations and instructs the user to refresh the webGUI.
+Credentials are restricted to requests on the current origin.
+
+Normal POSTs retain Unraid's native jQuery token injection. Multipart uploads
+use native XMLHttpRequest so that the host prefilter cannot turn FormData into
+a string. Native uploads send both the `csrf_token` POST field and the
+`X-CSRF-Token` header with the same value: the field preserves compatibility
+with earlier supported Unraid versions. The browser supplies the multipart
+boundary. Progress, cancellation, timeout, and plugin authorization still apply.
+
+Docker folder saves await a nonce-protected order-sync response before leaving
+the editor. Beacon acceptance is only a queued request, never proof of success.
+The synchronous keepalive helper requires a previously issued nonce, sends the
+CSRF field in the beacon body, and retains it with the header in a fetch fallback.
+Inline icon fallback only follows an explicit unsupported-payload or no-file
+refusal; empty responses, timeouts, and security failures are not replayed.
+
+Native Unraid File Manager copy, move, and delete failures require the exact
+failing endpoint and reproduction steps. FolderView Plus's Browse navigation
+helper does not establish the cause of those failures.
+
 ## Mutation authorization
 
 Every plugin-owned mutation must:

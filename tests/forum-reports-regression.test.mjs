@@ -73,21 +73,26 @@ test('stopped preview icons receive grayscale in icon-and-label and icon-only mo
     }
 });
 
-test('empty multipart response recovers through inline upload exactly once; ordinary errors do not retry', async () => {
+test('explicit multipart refusal recovers once; ambiguous responses and permission failures never replay', async () => {
     const sandbox = {
         module: { exports: {} }, Error, FormData, File,
         FileReader: class { readAsDataURL() { this.result = 'data:image/png;base64,aWNvbg=='; this.onload(); } }
     };
     vm.runInNewContext(read('scripts/folder.editor.icon-api.js'), sandbox);
     const file = new File(['icon'], 'test.png', { type: 'image/png' });
-    for (const recoverable of [true, false]) {
+    for (const kind of ['no-file', 'empty', 'denied']) {
+        const recoverable = kind === 'no-file';
         let uploads = 0; let fallbacks = 0;
         const api = sandbox.module.exports.createApi({ allowedExtensions: ['png'], iconUploadApiPath: '/upload', requestClient: {
-            uploadJson: async () => { uploads++; throw new Error(recoverable ? 'JSON response from /upload was empty.' : 'Permission denied.'); },
+            uploadJson: async () => {
+                uploads++;
+                if (recoverable) throw Object.assign(new Error('No icon file uploaded.'), { status: 400, response: { error: 'No icon file uploaded.' } });
+                throw new Error(kind === 'empty' ? 'JSON response from /upload was empty.' : 'Permission denied.');
+            },
             postJson: async (_url, body) => { fallbacks++; assert.equal(body.icon_inline_name, 'test.png'); return { ok: true, url: '/test.png' }; }
         } });
         if (recoverable) assert.equal((await api.uploadCustomIconFile(file)).url, '/test.png');
-        else await assert.rejects(api.uploadCustomIconFile(file), /Permission denied/);
+        else await assert.rejects(api.uploadCustomIconFile(file), kind === 'empty' ? /was empty/ : /Permission denied/);
         assert.equal(uploads, 1); assert.equal(fallbacks, recoverable ? 1 : 0);
     }
 });

@@ -9,7 +9,8 @@ const requestScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js'
 );
-const requestScript = fs.readFileSync(requestScriptPath.replace('request.js', 'request-diagnostics.js'), 'utf8') + '\n' + fs.readFileSync(requestScriptPath, 'utf8');
+const requestScript = ['request-diagnostics', 'request-transport', 'request']
+    .map(name => fs.readFileSync(requestScriptPath.replace('request.js', `${name}.js`), 'utf8')).join('\n');
 
 const createJQueryMock = (plan = [], noncePlan = []) => {
     const ajaxSetupCalls = [];
@@ -112,6 +113,7 @@ const loadRequestClient = ({ token = '', plan = [], noncePlan = [], metaToken = 
         URLSearchParams
     };
     context.window.$ = $;
+    context.window.csrf_token = 'fixture-unraid-token';
     context.window.sessionStorage = sessionStorage;
     context.window.FolderViewPlusI18n = translate ? { t: translate } : null;
     context.window.document = context.document;

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.10">
-<!ENTITY md5 "40758515a28df4c348d29e8bd7e9343a">
-<!ENTITY sha256 "2c635880de92d124b8d146ade3e606f47b6b5152dc77c278aca2154294a9244e">
+<!ENTITY version "2026.10.13.01">
+<!ENTITY md5 "417e969f5ec769ba7467b3c64aae5055">
+<!ENTITY sha256 "a91daeb30b52c50a1c0edbdd996b5a963e75008076e1c228a78cb86a137d2529">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.01
+- Fix: Docker folder saves now confirm order synchronization through a request carrying Unraid's CSRF token and the plugin's one-time authorization nonce before leaving the editor. Creating folders and changing their names, matching expressions, or membership no longer queues an unprotected synchronization request.
+- Fix: Custom-icon uploads preserve their multipart file payload on Unraid 7.3.3 while retaining progress, cancellation, timeout, validation, duplicate detection, and replacement behavior. Inline fallback only follows a definite payload refusal; ambiguous failures are not replayed.
+- Security: Shared plugin requests block mutations when page security information is missing and prevent request credentials from being attached to foreign origins. Background requests include Unraid's CSRF token separately from the plugin's authorization token and nonce.
+- Compatibility: Native upload requests retain the POST token field required by earlier supported Unraid releases. Existing folder data and configuration are preserved; no migration is required. Hard-refresh the webGUI after updating. Native Unraid File Manager copy, move, and delete problems remain unconfirmed and require the failing endpoint and reproduction steps.
+
 
 ###2026.10.12.10
 - Fix: Fully revert the Basic settings folder hierarchy redesign and its follow-up sizing changes, restoring the working folder view from before the mockup work.

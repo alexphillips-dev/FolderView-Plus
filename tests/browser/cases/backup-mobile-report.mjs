@@ -14,10 +14,10 @@ const loadDownload = async (page, baseUrl) => {
     await page.evaluate(() => {
         const meta = document.createElement('meta');
         meta.name = 'fv-request-token'; meta.content = 'synthetic-download-token'; document.head.append(meta);
-        window.downloadErrors = [];
+        window.downloadErrors = []; window.csrf_token = 'synthetic-unraid-token';
         window.downloadActivity = [];
     });
-    for (const file of ['folderviewplus.request-diagnostics', 'folderviewplus.request']) {
+    for (const file of ['folderviewplus.request-diagnostics', 'folderviewplus.request-transport', 'folderviewplus.request']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${file}.js` });
     }
     await page.addScriptTag({ content: `(() => {

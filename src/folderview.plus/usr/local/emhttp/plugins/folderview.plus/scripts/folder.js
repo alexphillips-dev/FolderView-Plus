@@ -1251,14 +1251,6 @@ const filterIconItems = (icons, query) => iconPickerRuntime.filterIconsByQuery(i
 
 const securePost = async (url, data = {}) => folderIconApi.securePost(url, data);
 
-const queueBackgroundMutationPost = (url, data = {}) => {
-    const safeUrl = String(url || '').trim();
-    if (!safeUrl || !requestClient || typeof requestClient.sendKeepalive !== 'function') {
-        return false;
-    }
-    return requestClient.sendKeepalive(safeUrl, data);
-};
-
 const getIconInput = () => $(getForm()?.icon);
 
 const getCurrentIconValue = () => String(getIconInput().val() || '').trim();
@@ -2080,7 +2072,6 @@ const getFolderEditorTypeApi = () => {
     }
     folderEditorTypeApi = typeModule.createApi({
         normalizeFolderRecordForEditor,
-        queueBackgroundMutationPost,
         securePost,
         syncType: type,
         getFolderLabelValue,

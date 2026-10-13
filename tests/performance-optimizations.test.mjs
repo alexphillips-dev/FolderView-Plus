@@ -628,16 +628,15 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
     assert.doesNotMatch(folderEditorJs, /const getRegexWorker|const runRegexMatch|let memberListRenderToken/);
 });
 
-test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {
-    assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
-    assert.match(folderEditorJs, /requestClient\.sendKeepalive\(safeUrl, data\)/);
+test('folder editor save confirms nonce-protected Docker order sync before navigation', () => {
+    assert.doesNotMatch(folderEditorJs, /queueBackgroundMutationPost|requestClient\.sendKeepalive/);
     assert.match(folderEditorJs, /const resolveFolderEditorTypeModule = \(\) =>/);
     assert.match(folderEditorJs, /const getFolderEditorTypeApi = \(\) =>/);
     assert.match(folderEditorJs, /const flushPostSaveTypeSync = async \(options = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /const buildComparableFolder = \(folderRecord\) =>/);
     assert.match(folderEditorTypeDockerJs, /const shouldSyncAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /const flushPostSaveSync = async \(options = \{\}\) =>/);
-    assert.match(folderEditorTypeDockerJs, /queueBackgroundMutationPost\(SYNC_ORDER_PATH,\s*\{\s*type:\s*syncType\s*\}\)/);
+    assert.match(folderEditorTypeDockerJs, /await securePost\(SYNC_ORDER_PATH,\s*\{\s*type:\s*syncType\s*\}\)/);
     assert.match(folderEditorTypeVmJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorTypeVmJs, /applyPreviewConstraints:/);
     const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';

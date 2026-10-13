@@ -6629,7 +6629,7 @@
     "phrase": "jQuery.ajax is not available.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.request.js",
+        "file": "scripts/folderviewplus.request-transport.js",
         "anchor": "'jQuery.ajax is not available.'"
       }
     ]

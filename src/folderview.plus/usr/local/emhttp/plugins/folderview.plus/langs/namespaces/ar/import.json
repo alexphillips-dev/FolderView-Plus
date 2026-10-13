@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "اختر كيفية التعامل مع المجلدات الموجودة. لن يتغير أي شيء حتى تقوم بتحديد تطبيق الاستيراد.",
     "import.behavior.question": "كيف ينبغي التعامل مع المجلدات الموجودة؟",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "استيراد مجلدات VM",
     "import.actions.apply": "تطبيق الاستيراد",
     "import.folderview3.preview-title": "معاينة ترحيل FolderView3",
+    "import.folderview3.detect-button": "كشف FolderView3",
+    "import.folderview3.export-button": "معاينة النسخة الاحتياطية الكاملة لـ FolderView3",
+    "import.folderview3.style-count": "الأنماط المخصصة: $1",
     "import.folderview3.read-only-title": "يكون ترحيل FolderView3 للقراءة فقط حتى توافق على تطبيق الخطة.",
     "import.folderview3.read-only-preview-help": "اكتشف تكوين FolderView3 المثبت أو قم بمعاينة تصدير FolderView3. لا تؤدي المعاينة أبدًا إلى كتابة مكون إضافي أو تكوين Unraid.",
     "import.folderview3.not-detected": "لم يتم اكتشاف تكوين FolderView3 المثبت.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "اقرأ فقط",
     "import.folderview3.preview-ready": "معاينة FolderView3 جاهزة",
     "import.folderview3.preview-created": "تم إنشاء تقرير الترحيل دون تغيير التكوين.",
+    "import.folderview3.assignment-summary": "المهام الصريحة: Docker $1; الأجهزة الافتراضية $2.",
+    "import.folderview3.settings-summary": "تم تحويل الإعدادات العامة: $1؛ غير مدعوم: $2.",
     "import.folderview3.applied": "تم تطبيق ترحيل FolderView3",
     "import.folderview3.applied-help": "تم التحقق من الترحيل وتتوفر نقاط فحص التراجع في الاسترداد.",
     "import.folderview3.native-autostart": "قم أيضًا باستبدال إدخالات التشغيل التلقائي لـ Docker الأصلية والانتظار",

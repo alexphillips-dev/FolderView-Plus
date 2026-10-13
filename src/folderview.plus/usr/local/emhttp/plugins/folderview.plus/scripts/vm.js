@@ -1193,7 +1193,7 @@ const buildVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
             rules: ruleMatches
         };
     }
-    return cache;
+    return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'vm', rules }) || cache;
 };
 
 const removeRuntimeHealthBadge = () => {

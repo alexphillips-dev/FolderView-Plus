@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "既存のフォルダの処理方法を選択してください。［インポートを適用］を選択するまでは、何も変更されません。",
     "import.behavior.question": "既存のフォルダはどのように処理しますか？",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "VM フォルダーをインポート",
     "import.actions.apply": "インポートを適用",
     "import.folderview3.preview-title": "FolderView3 移行プレビュー",
+    "import.folderview3.detect-button": "FolderView3 の検出",
+    "import.folderview3.export-button": "FolderView3 の完全バックアップをプレビューする",
+    "import.folderview3.style-count": "カスタム スタイル: $1",
     "import.folderview3.read-only-title": "FolderView3 の移行は、適用プランが承認されるまで読み取り専用です。",
     "import.folderview3.read-only-preview-help": "インストールされている FolderView3 構成を検出するか、FolderView3 エクスポートをプレビューします。プレビューではプラグインや Unraid 設定が書き込まれることはありません。",
     "import.folderview3.not-detected": "インストールされた FolderView3 構成が検出されませんでした。",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "読み取り専用",
     "import.folderview3.preview-ready": "FolderView3 プレビューの準備ができました",
     "import.folderview3.preview-created": "構成を変更せずに作成された移行レポート。",
+    "import.folderview3.assignment-summary": "明示的な割り当て: Docker $1; VM $2。",
+    "import.folderview3.settings-summary": "変換されたグローバル設定: $1;サポートされていません: $2。",
     "import.folderview3.applied": "FolderView3 移行が適用されました",
     "import.folderview3.applied-help": "移行が検証され、ロールバック チェックポイントがリカバリで使用できるようになりました。",
     "import.folderview3.native-autostart": "ネイティブの Docker 自動開始エントリと待機も置き換えます",

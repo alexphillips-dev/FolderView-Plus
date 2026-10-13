@@ -40,7 +40,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 43);
+    assert.equal(architecture.serverModuleContracts.length, 47);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -66,6 +66,13 @@ test('decomposition preserves every historical public PHP function name', () => 
         // New helpers are inventoried separately; retain the original API fingerprint.
         const additions = new Set(['fvplusFolderView3ResolveOrder', 'fvplusFolderView3GroupStyles', 'fvplus_localize_response_keys', 'fvplus_attach_response_translations', 'parseBatchManualOrder', 'assertBatchFolderOperationCount', 'assertBatchManualOrderRevision', 'applyBatchManualOrderPrefs', 'diagnosticsRuntimeConnectivity', 'diagnosticsBackupReadiness', 'diagnosticsBuildBackupReadinessCard', 'diagnosticsBuildRuntimeConnectivityCard', 'diagnosticsBuildSummaryOutcome']);
         additions.add('fvplusTransactionCaptureFile');
+        for (const name of ['folderNormalizationCollectionLimit', 'folderNormalizationKeyLimit',
+            'fvplusFolderView3AssertMap', 'fvplusFolderView3AssertText', 'fvplusFolderView3AssertNames', 'fvplusFolderView3AssertNested',
+            'fvplusFolderView3AssertFolder', 'fvplusFolderView3ValidateBundle', 'fvplusFolderView3AssertUniqueJsonKeys',
+            'fvplusFolderView3VerifyPreviewUnderLock', 'fvplusFolderView3Overflow', 'fvplusFolderView3DefaultSettings',
+            'fvplusFolderView3FolderSettings', 'fvplusFolderView3SettingsWarnings', 'fvplusFolderView3InspectWorkspace',
+            'fvplusFolderView3PreviewDigest', 'fvplusFolderView3ValidateCssSize', 'fvplusFolderView3PreserveAppearanceMetadata',
+            'fvplusFolderView3PresetProfiles', 'preserveMigratedFolderReferences', 'buildLegacyFolderMembership']) additions.add(name);
         additions.add('fvplusTransactionRestoreFiles');
         additions.add('fvplusTransactionRestoreAfterFailure');
         additions.add('fvplusWriteConfigPayload');

@@ -1108,7 +1108,16 @@
         return substr($value, 0, $maxBytes);
     }
 
-    function normalizeFolderNestedValue($value, int $depth = 0) {
+    function folderNormalizationCollectionLimit(string $path): int {
+        return preg_match('/^(?:containers|hidden_preview|hiddenPreviewMembers|memberIdentities|containerIds|containerImages)$|^actions\.[0-9]+\.(?:containers|conatiners)$/', $path)
+            ? 5000 : ($path === 'actions' ? 200 : FVPLUS_MAX_FOLDER_ARRAY_ITEMS);
+    }
+
+    function folderNormalizationKeyLimit(string $path): int {
+        return in_array($path, ['memberIdentities', 'containerIds', 'containerImages'], true) ? 255 : 64;
+    }
+
+    function normalizeFolderNestedValue($value, int $depth = 0, string $path = '') {
         if ($depth > FVPLUS_MAX_FOLDER_NESTED_DEPTH) {
             return null;
         }
@@ -1118,15 +1127,15 @@
             $isList = array_keys($value) === range(0, count($value) - 1);
             foreach ($value as $key => $item) {
                 $count++;
-                if ($count > FVPLUS_MAX_FOLDER_ARRAY_ITEMS) {
+                if ($count > folderNormalizationCollectionLimit($path)) {
                     break;
                 }
-                $normalized = normalizeFolderNestedValue($item, $depth + 1);
+                $normalized = normalizeFolderNestedValue($item, $depth + 1, $path === '' ? (string)$key : $path . '.' . $key);
                 if ($isList) {
                     $out[] = $normalized;
                     continue;
                 }
-                $safeKey = truncateUtf8String(trim((string)$key), 64);
+                $safeKey = truncateUtf8String(trim((string)$key), folderNormalizationKeyLimit($path));
                 if ($safeKey === '') {
                     continue;
                 }
@@ -1156,10 +1165,7 @@
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
         $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
         $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
-        $normalized['hiddenPreviewMembers'] = array_values(array_intersect(
-            $normalized['containers'],
-            array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000)
-        ));
+        $normalized['hiddenPreviewMembers'] = array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000);
         unset($normalized['hidden_preview']);
         $rawMemberIdentities = is_array($normalized['memberIdentities'] ?? null)
             ? $normalized['memberIdentities']
@@ -1603,6 +1609,8 @@
 
         $legacyName = $safeKind === 'prefs' ? "$type.prefs.json" : "$type.json";
         foreach (getLegacyConfigDirCandidates() as $legacyDir) {
+            // FV3 needs the complete, reviewed converter; raw adoption loses global settings and identities.
+            if (basename($legacyDir) === 'folder.view3') continue;
             $legacyPath = "$legacyDir/$legacyName";
             $legacyData = readJsonObjectFile($legacyPath);
             if (!is_array($legacyData)) {

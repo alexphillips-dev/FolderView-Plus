@@ -312,7 +312,7 @@
   "common.server.bulk-assignment-contains-an-invalid-folder-id-9ee6fe": "Bulk assignment contains an invalid folder ID.",
   "common.server.bulk-assignment-items-must-be-an-array-6cdd7c": "Bulk assignment items must be an array.",
   "common.server.bulk-assignment-exceeds-the-maximum-item-count-3286f2": "Bulk assignment exceeds the maximum item count.",
-  "common.server.folderview3-source-changed-after-preview-preview-it-again-before--b8b904": "FolderView3 source changed after preview. Preview it again before applying.",
+  "common.server.folderview3-source-changed-after-preview-preview-it-again-before--b8b904": "FolderView3 source or current configuration changed after preview. Preview it again before applying.",
   "common.server.no-native-docker-autostart-entries-are-available-to-include-005016": "No native Docker autostart entries are available to include.",
   "common.server.native-docker-autostart-verification-failed-4d9c52": "Native Docker autostart verification failed.",
   "common.server.the-migration-would-exceed-the-appearance-profile-limit-remove-un-0a4210": "The migration would exceed the appearance profile limit. Remove unused profiles before importing.",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.05">
-<!ENTITY md5 "f813b8a6e217715fe0ac22a0f1959ff9">
-<!ENTITY sha256 "0880e976ae43a92bd92cdb0d8c5d82f71f0c25278f8023d43ee811aa595b10f1">
+<!ENTITY version "2026.10.13.07">
+<!ENTITY md5 "e9ca21f774e5c803731acd33e3196b92">
+<!ENTITY sha256 "75f62bd934e70985928d627a6e77df885de0c029b3c6da5fef38e01d49a84f02">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.07
+- Fix: Validate complete FolderView3 backups before replacement; reject malformed sections, duplicate JSON keys, ambiguous names, invalid expressions and oversized data without silent truncation.
+- Compatibility: Restore the full Recovery preview, route complete backups correctly, preserve inherited settings, overflow modes, VM UUIDs and hidden preview preferences, and retain presets and notes in inactive appearance profiles.
+- Compatibility: Preserve FolderView3 manual/label/regex ownership across runtime pages, actions, conflict reports and Docker start order without changing native Plus rules.
+- Reliability: Keep previews read-only, use stable installed-source identities, reject stale source or destination state under the mutation lock, and verify persistence before success and refresh.
+- Test: Add production PHP persistence/rollback fixtures, unchanged upstream ownership comparisons and browser file-selection/cancel/apply/reload coverage across Chromium, Firefox and WebKit.
+- Compatibility: Hard-refresh after updating. Review migration warnings, verify source icons/scripts locally, and complete the documented Unraid acceptance checklist before stable promotion.
+
 
 ###2026.10.13.05
 - UX: Remove obsolete styles for retired Rules chips, wide-field overrides, and card-action controls.

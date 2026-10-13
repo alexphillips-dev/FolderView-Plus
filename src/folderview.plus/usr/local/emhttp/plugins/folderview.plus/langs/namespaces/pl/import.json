@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Wybierz, jak obsługiwać istniejące foldery. Nic się nie zmieni, dopóki nie wybierzesz Zastosuj import.",
     "import.behavior.question": "Jak należy obsługiwać istniejące foldery?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Import VM folderów",
     "import.actions.apply": "Zastosuj import",
     "import.folderview3.preview-title": "Podgląd migracji FolderView3",
+    "import.folderview3.detect-button": "Wykryj FolderView3",
+    "import.folderview3.export-button": "Podgląd pełnej kopii zapasowej FolderView3",
+    "import.folderview3.style-count": "Style niestandardowe: $1",
     "import.folderview3.read-only-title": "Migracja FolderView3 jest dostępna tylko do odczytu, dopóki nie zatwierdzisz planu zastosowania.",
     "import.folderview3.read-only-preview-help": "Wykryj zainstalowaną konfigurację FolderView3 lub wyświetl podgląd eksportu FolderView3. Podgląd nigdy nie zapisuje konfiguracji wtyczki ani Unraid.",
     "import.folderview3.not-detected": "Nie wykryto zainstalowanej konfiguracji FolderView3.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Tylko do odczytu",
     "import.folderview3.preview-ready": "Gotowy podgląd FolderView3",
     "import.folderview3.preview-created": "Raport migracji utworzony bez zmiany konfiguracji.",
+    "import.folderview3.assignment-summary": "Jawne przypisania: Docker $1; Maszyny wirtualne $2.",
+    "import.folderview3.settings-summary": "Konwertowane ustawienia globalne: $1; nieobsługiwane: $2.",
     "import.folderview3.applied": "Zastosowano migrację FolderView3",
     "import.folderview3.applied-help": "Migracja została zweryfikowana, a punkty kontrolne wycofania są dostępne w trybie odzyskiwania.",
     "import.folderview3.native-autostart": "Zastąp także natywne wpisy autostartu Dockera i poczekaj",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até selecionar Aplicar importação.",
     "import.behavior.question": "Como devem ser tratadas as pastas existentes?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importar VM Pastas",
     "import.actions.apply": "Aplicar importação",
     "import.folderview3.preview-title": "Visualização da migração do FolderView3",
+    "import.folderview3.detect-button": "Detectar FolderView3",
+    "import.folderview3.export-button": "Visualizar backup completo do FolderView3",
+    "import.folderview3.style-count": "Estilos personalizados: $1",
     "import.folderview3.read-only-title": "A migração do FolderView3 é somente leitura até que você aprove um plano de aplicação.",
     "import.folderview3.read-only-preview-help": "Detecte uma configuração do FolderView3 instalada ou visualize uma exportação do FolderView3. A visualização nunca grava o plugin ou a configuração do Unraid.",
     "import.folderview3.not-detected": "Nenhuma configuração instalada do FolderView3 foi detectada.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Somente leitura",
     "import.folderview3.preview-ready": "Pré-visualização do FolderView3 pronta",
     "import.folderview3.preview-created": "Relatório de migração criado sem alterar a configuração.",
+    "import.folderview3.assignment-summary": "Atribuições explícitas: Docker $1; VMs $2.",
+    "import.folderview3.settings-summary": "Configurações globais convertidas: $1; não suportado: $2.",
     "import.folderview3.applied": "Migração do FolderView3 aplicada",
     "import.folderview3.applied-help": "A migração foi verificada e os pontos de verificação de reversão estão disponíveis no Recovery.",
     "import.folderview3.native-autostart": "Substitua também as entradas e esperas de inicialização automática nativa do Docker",

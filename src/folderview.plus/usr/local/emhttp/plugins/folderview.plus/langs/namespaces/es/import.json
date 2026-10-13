@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Elija cómo manejar las carpetas existentes. Nada cambia hasta que seleccione Aplicar importación.",
     "import.behavior.question": "¿Cómo se deben manejar las carpetas existentes?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importar VM Carpetas",
     "import.actions.apply": "Aplicar importación",
     "import.folderview3.preview-title": "Vista previa de la migración de FolderView3",
+    "import.folderview3.detect-button": "Detectar FolderView3",
+    "import.folderview3.export-button": "Vista previa de la copia de seguridad completa de FolderView3",
+    "import.folderview3.style-count": "Estilos personalizados: $1",
     "import.folderview3.read-only-title": "La migración de FolderView3 es de solo lectura hasta que apruebe un plan de aplicación.",
     "import.folderview3.read-only-preview-help": "Detecte una configuración de FolderView3 instalada o obtenga una vista previa de una exportación de FolderView3. La vista previa nunca escribe complementos o configuración Unraid.",
     "import.folderview3.not-detected": "No se detectó ninguna configuración de FolderView3 instalada.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Sólo lectura",
     "import.folderview3.preview-ready": "Vista previa de FolderView3 lista",
     "import.folderview3.preview-created": "Informe de migración creado sin cambiar la configuración.",
+    "import.folderview3.assignment-summary": "Asignaciones explícitas: Docker $1; Máquinas virtuales $2.",
+    "import.folderview3.settings-summary": "Configuración global convertida: $1; no compatible: $2.",
     "import.folderview3.applied": "Migración de FolderView3 aplicada",
     "import.folderview3.applied-help": "La migración se verificó y los puntos de control de reversión están disponibles en Recuperación.",
     "import.folderview3.native-autostart": "También reemplace las entradas y esperas de inicio automático nativo de Docker",

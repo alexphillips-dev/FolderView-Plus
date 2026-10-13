@@ -1,16 +1,17 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.folderview3-apply.js'), require('./folderviewplus.folderview3-model.js'));
         return;
     }
     root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    const moduleApi = factory();
+    const moduleApi = factory(root.FolderViewPlusFoundationModules.folderView3Apply, root.FolderViewPlusFoundationModules.folderView3Model);
     root.FolderViewPlusFoundationModules.folderView3Migration = moduleApi;
     const request = root.FolderViewPlusRequest;
     const bootstrap = () => {
         if (!request?.getJson || !request?.postJson || !root.document) {
             return;
         }
+        root.FolderViewPlusFoundationModules.folderView3MigrationApi?.disconnect?.();
         const api = moduleApi.createApi({ window: root, document: root.document });
         root.FolderViewPlusFoundationModules.folderView3MigrationApi = api;
         api.bind();
@@ -20,7 +21,7 @@
     } else {
         bootstrap();
     }
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(defaultApply, model) {
     const createApi = (deps = {}) => {
     const repairT9b1afc29 = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const windowRef = deps.window || (typeof window !== 'undefined' ? window : null);
@@ -28,23 +29,25 @@
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? '')
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'));
         const request = windowRef?.FolderViewPlusRequest;
-        const applyModule = deps.applyModule || windowRef?.FolderViewPlusFoundationModules?.folderView3Apply;
+        const applyModule = deps.applyModule || windowRef?.FolderViewPlusFoundationModules?.folderView3Apply || defaultApply;
         const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : ((url, options = {}) => request.getJson(url, options));
         const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : ((url, data = {}, options = {}) => request.postJson(url, data, options));
         const selectJsonFile = typeof deps.selectJsonFile === 'function' ? deps.selectJsonFile : (() => new Promise((resolve, reject) => {
             const input = documentRef.createElement('input');
             input.type = 'file';
             input.accept = '.json,application/json';
+            input.addEventListener('cancel', () => resolve(null), { once: true });
             input.addEventListener('change', () => {
                 const file = input.files?.[0];
                 if (!file) {
                     resolve(null);
                     return;
                 }
+                if (file.size > 5242880) { reject(new Error('FolderView3 export exceeds the 5 MB migration limit.')); return; }
                 const reader = new windowRef.FileReader();
-                reader.onload = () => resolve({ name: file.name, text: String(reader.result || '') });
+                reader.onload = () => { try { resolve({ name: file.name, text: new windowRef.TextDecoder('utf-8', { fatal: true }).decode(reader.result) }); } catch (_) { reject(new Error('FolderView3 export is not valid JSON.')); } };
                 reader.onerror = () => reject(reader.error || new Error('Unable to read the selected JSON file.'));
-                reader.readAsText(file);
+                reader.readAsArrayBuffer(file);
             }, { once: true });
             input.click();
         }));
@@ -75,65 +78,13 @@
         let report = null;
         let selectedSource = null;
         let migrationResult = null;
+        let generation = 0;
+        let reveal = deps.reveal || (() => {});
+        let afterApply = deps.afterApply || (async () => {});
 
-        const normalizeDetection = (value) => {
-            const source = value && typeof value === 'object' ? value : {};
-            return {
-                available: source.available === true,
-                pluginVersion: String(source.pluginVersion || '').trim(),
-                componentCount: Math.max(0, Number(source.componentCount) || 0),
-                components: Array.isArray(source.components) ? source.components.map(String) : [],
-                canPreview: source.canPreview === true,
-                dockerFolderCount: Math.max(0, Number(source.dockerFolderCount) || 0),
-                vmFolderCount: Math.max(0, Number(source.vmFolderCount) || 0),
-                customStyleCount: Math.max(0, Number(source.customStyleCount) || 0),
-                nativeAutostartCount: Math.max(0, Number(source.nativeAutostartCount) || 0)
-            };
-        };
+        const normalizeDetection = model.normalizeDetection;
 
-        const normalizeReport = (value) => {
-            const source = value && typeof value === 'object' ? value : {};
-            const summary = source.summary && typeof source.summary === 'object' ? source.summary : {};
-            const sourceMeta = source.source && typeof source.source === 'object' ? source.source : {};
-            return {
-                kind: String(source.kind || 'folderview3_migration_plan'),
-                schemaVersion: Math.max(1, Number(source.schemaVersion) || 1),
-                createdAt: String(source.createdAt || '').trim(),
-                source: {
-                    kind: String(sourceMeta.kind || 'export').trim(),
-                    sourceName: String(sourceMeta.sourceName || '').trim(),
-                    pluginVersion: String(sourceMeta.pluginVersion || '').trim(),
-                    unraidVersion: String(sourceMeta.unraidVersion || '').trim(),
-                    exportedAt: String(sourceMeta.exportedAt || '').trim(),
-                    digest: String(sourceMeta.digest || '').trim()
-                },
-                summary: {
-                    dockerFolderCount: Math.max(0, Number(summary.dockerFolderCount) || 0),
-                    vmFolderCount: Math.max(0, Number(summary.vmFolderCount) || 0),
-                    dockerRuleCount: Math.max(0, Number(summary.dockerRuleCount) || 0),
-                    vmRuleCount: Math.max(0, Number(summary.vmRuleCount) || 0),
-                    dockerOrderStatus: ['imported', 'missing', 'empty', 'invalid'].includes(summary.dockerOrderStatus) ? summary.dockerOrderStatus : 'missing',
-                    vmOrderStatus: ['imported', 'missing', 'empty', 'invalid'].includes(summary.vmOrderStatus) ? summary.vmOrderStatus : 'missing',
-                    appearanceProfileCount: Math.max(1, Number(summary.appearanceProfileCount) || 1),
-                    disabledAppearanceProfileCount: Math.max(0, Number(summary.disabledAppearanceProfileCount) || 0),
-                    appearanceProfileId: String(summary.appearanceProfileId || '').trim(),
-                    appearanceProfileActive: summary.appearanceProfileActive === true,
-                    startOrderMode: String(summary.startOrderMode || 'docker-page').trim(),
-                    nativeAutostartCount: Math.max(0, Number(summary.nativeAutostartCount) || 0),
-                    organizerRegistryCount: Math.max(0, Number(summary.organizerRegistryCount) || 0)
-                },
-                operations: Array.isArray(source.operations) ? source.operations.map((entry) => ({
-                    id: String(entry?.id || '').trim(),
-                    category: String(entry?.category || '').trim(),
-                    label: String(entry?.label || '').trim(),
-                    selected: entry?.selected === true,
-                    count: Math.max(0, Number(entry?.count) || 0)
-                })).filter((entry) => entry.id && entry.label) : [],
-                warnings: Array.isArray(source.warnings)
-                    ? source.warnings.map((entry) => String(entry || '').trim()).filter(Boolean)
-                    : []
-            };
-        };
+        const normalizeReport = model.normalizeReport;
 
         const emptyHtml = () => `
             <div class="fv-recovery-empty-state">
@@ -167,10 +118,10 @@
                         <span class="fv-recovery-history-badge">${escapeHtml(translate('import.folderview3.read-only-badge', 'Read only'))}</span>
                     </div>
                     <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(`Docker ${detection.dockerFolderCount} folders`)}</span>
-                        <span>${escapeHtml(`VM ${detection.vmFolderCount} folders`)}</span>
-                        <span>${escapeHtml(`${detection.customStyleCount} custom styles`)}</span>
-                        <span>${escapeHtml(`${detection.nativeAutostartCount} native autostart entries`)}</span>
+                        <span>${escapeHtml('Docker · ' + translate('common.runtime.folders-1', 'Folders: $1', detection.dockerFolderCount))}</span>
+                        <span>${escapeHtml('VM · ' + translate('common.runtime.folders-1', 'Folders: $1', detection.vmFolderCount))}</span>
+                        <span>${escapeHtml(translate('import.folderview3.style-count', 'Custom styles: $1', detection.customStyleCount))}</span>
+                        <span>${escapeHtml(translate('common.repair.optional-native-autostart-entries-1-d67df3', 'Optional native autostart entries: $1', detection.nativeAutostartCount))}</span>
                     </div>
                     <div class="backup-actions fv-recovery-environment-actions">${previewButton}</div>
                 </article>
@@ -192,6 +143,8 @@
         };
 
         const detectInstalled = async () => {
+            if (mode === 'applying') return null;
+            const currentGeneration = ++generation;
             mode = 'loading';
             report = null;
             migrationResult = null;
@@ -200,11 +153,13 @@
                 const response = await apiGetJson('/plugins/folderview.plus/server/environment_snapshot.php', {
                     data: { action: 'detect_folderview3' }
                 });
+                if (currentGeneration !== generation) return null;
                 detection = normalizeDetection(response?.detection || {});
                 mode = 'detection';
                 render();
                 return detection;
             } catch (error) {
+                if (currentGeneration !== generation) return null;
                 mode = 'idle';
                 render();
                 showError(repairT9b1afc29("common.repair.folderview3-detection-failed-327513", "FolderView3 detection failed"), error);
@@ -213,17 +168,24 @@
         };
 
         const previewSource = async (source) => {
+            if (mode === 'applying') return null;
+            reveal();
+            const currentGeneration = ++generation;
             mode = 'loading';
             report = null;
+            selectedSource = null;
             migrationResult = null;
             render();
             try {
+                model.validateSource(source);
                 const response = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
                     action: 'preview_folderview3',
                     sourceKind: source.kind,
                     payload: String(source.text || ''),
                     fileName: String(source.name || '')
                 });
+                if (currentGeneration !== generation) return null;
+                if (!/^[a-f0-9]{64}$/.test(String(response?.report?.source?.digest || ''))) throw new Error('The server returned an incomplete migration preview.');
                 report = normalizeReport(response?.report || {});
                 selectedSource = source;
                 mode = 'preview';
@@ -236,6 +198,7 @@
                 });
                 return report;
             } catch (error) {
+                if (currentGeneration !== generation) return null;
                 mode = 'idle';
                 render();
                 showError(repairT9b1afc29("common.repair.folderview3-migration-preview-failed-cb2fa9", "FolderView3 migration preview failed"), error);
@@ -250,14 +213,21 @@
         });
 
         const previewExport = async () => {
+            if (mode === 'applying') return null;
+            const currentGeneration = ++generation, previousMode = mode;
+            mode = 'loading'; render();
             let selected = null;
             try {
                 selected = await selectJsonFile();
             } catch (error) {
+                if (currentGeneration !== generation) return null;
+                mode = 'idle'; report = null; selectedSource = null; migrationResult = null; render();
                 showError(repairT9b1afc29("common.repair.folderview3-export-selection-failed-ad42da", "FolderView3 export selection failed"), error);
                 return null;
             }
+            if (currentGeneration !== generation) return null;
             if (!selected) {
+                mode = previousMode === 'loading' ? 'idle' : previousMode; render();
                 return null;
             }
             return previewSource({ kind: 'export', name: selected.name, text: selected.text });
@@ -272,16 +242,22 @@
         };
 
         const applyMigration = async () => {
+            if (mode !== 'preview') return null;
+            const currentGeneration = generation;
             const includeNativeAutostart = Boolean(documentRef?.querySelector?.('[data-fv-folderview3-native-autostart]')?.checked);
             mode = 'applying';
             render();
             try {
                 const response = await applyModule.runApply({ report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef), postJson: apiPostJson, translate });
+                if (currentGeneration !== generation) return response?.migration?.transaction?.verified === true ? response.migration : null;
                 if (!response) { mode = 'preview'; render(); return null; }
+                if (response.migration?.transaction?.verified !== true) throw new Error('Migration verification did not complete. No successful migration was reported.');
                 migrationResult = response?.migration || null;
                 report = normalizeReport(migrationResult?.report || report);
                 mode = 'applied';
                 render();
+                try { await afterApply(); }
+                catch (error) { showError('Migration was saved; refresh failed', error); return migrationResult; }
                 showToastMessage({
                     title: translate('import.folderview3.applied', 'FolderView3 migration applied'),
                     message: translate('import.folderview3.applied-help', 'The migration was verified and rollback checkpoints are available in Recovery.'),
@@ -290,6 +266,7 @@
                 });
                 return migrationResult;
             } catch (error) {
+                if (currentGeneration !== generation) return null;
                 mode = 'preview';
                 render();
                 showError(repairT9b1afc29("common.repair.folderview3-migration-failed-3a876a", "FolderView3 migration failed"), error);
@@ -304,15 +281,15 @@
             }
             const action = String(button.getAttribute('data-fv-folderview3-action') || '');
             if (action === 'detect') {
-                detectInstalled();
+                void detectInstalled().catch(() => {});
             } else if (action === 'preview-installed') {
-                previewInstalled();
+                void previewInstalled().catch(() => {});
             } else if (action === 'preview-export') {
-                previewExport();
+                void previewExport().catch(() => {});
             } else if (action === 'download-report') {
                 downloadReport();
             } else if (action === 'apply') {
-                applyMigration();
+                void applyMigration().catch(() => {});
             }
         };
 
@@ -327,6 +304,7 @@
         };
 
         const disconnect = () => {
+            generation += 1;
             controller?.abort?.();
             controller = null;
         };
@@ -338,6 +316,8 @@
             detectInstalled,
             previewInstalled,
             previewExport,
+            previewSelection: (selected) => previewSource({ kind: 'export', name: selected.name, text: selected.text }),
+            configureHooks: (hooks = {}) => { reveal = hooks.reveal || reveal; afterApply = hooks.afterApply || afterApply; },
             downloadReport,
             applyMigration,
             getReport: () => report,

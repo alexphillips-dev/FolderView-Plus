@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Válassza ki a meglévő mappák kezelésének módját. Semmi sem változik, amíg ki nem választja az Importálás alkalmazása lehetőséget.",
     "import.behavior.question": "Hogyan kell kezelni a meglévő mappákat?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "VM-mappák importálása",
     "import.actions.apply": "Importálás alkalmazása",
     "import.folderview3.preview-title": "FolderView3 migrációs előnézet",
+    "import.folderview3.detect-button": "Mappanézet észlelése3",
+    "import.folderview3.export-button": "Tekintse meg a teljes FolderView3 biztonsági másolatot",
+    "import.folderview3.style-count": "Egyéni stílusok: $1",
     "import.folderview3.read-only-title": "A FolderView3 migráció írásvédett, amíg jóvá nem hagyja az alkalmazási tervet.",
     "import.folderview3.read-only-preview-help": "Keressen egy telepített FolderView3 konfigurációt, vagy tekintse meg a FolderView3 exportálás előnézetét. Az előnézet soha nem írja be a bővítményt vagy az Unraid konfigurációt.",
     "import.folderview3.not-detected": "Nem észlelhető telepített FolderView3 konfiguráció.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Csak olvasható",
     "import.folderview3.preview-ready": "FolderView3 előnézet készen áll",
     "import.folderview3.preview-created": "Az áttelepítési jelentés a konfiguráció módosítása nélkül készült.",
+    "import.folderview3.assignment-summary": "Explicit hozzárendelések: Docker $1; Virtuális gépek $2.",
+    "import.folderview3.settings-summary": "Globális beállítások konvertálva: $1; nem támogatott: $2.",
     "import.folderview3.applied": "FolderView3 migráció alkalmazva",
     "import.folderview3.applied-help": "Az áttelepítés ellenőrzése megtörtént, és a visszaállítási ellenőrzőpontok elérhetők a helyreállításban.",
     "import.folderview3.native-autostart": "Cserélje le a natív Docker automatikus indítási bejegyzéseit és vár",

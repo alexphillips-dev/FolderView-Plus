@@ -1347,6 +1347,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-download"></i> Import Environment</button>
                 </div>
                 <div id="fv-recovery-environment-summary" class="fv-recovery-history-list" aria-live="polite"></div>
+                <h3 data-i18n="import.folderview3.preview-title">FolderView3 migration preview</h3>
+                <p data-i18n="import.folderview3.read-only-preview-help">Detect an installed FolderView3 configuration or preview a FolderView3 export. Previewing never writes plugin or Unraid configuration.</p>
+                <div class="fv-recovery-environment-actions">
+                    <button type="button" data-fv-folderview3-action="detect" data-i18n="import.folderview3.detect-button">Detect FolderView3</button>
+                    <button type="button" data-fv-folderview3-action="preview-export" data-i18n="import.folderview3.export-button">Preview full FolderView3 backup</button>
+                </div>
+                <div id="fv-recovery-folderview3-summary" class="fv-recovery-history-list" aria-live="polite"></div>
             </section>
             <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
                 <select id="docker-backup-compare-left"></select>
@@ -1560,7 +1567,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <?php
 $fvplusSettingsFoundationAssets = [
-        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.folder-groups-model.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.folder-groups-model.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.membership.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.rules-workspace.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',
@@ -1597,7 +1604,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js',
         '/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
         '/plugins/folderview.plus/scripts/folderviewplus.row-details.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-report.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.settings-health.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js', '/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-report.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-model.js', '/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js',
         '/plugins/folderview.plus/scripts/folderviewplus.environment.js', '/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
         '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.view.js',

@@ -7,6 +7,12 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "server/lib.folderview3-validation.php": {"limit": 220, "target": 220, "history": [220]},
+      "server/lib.folderview3-settings.php": {"limit": 110, "target": 110, "history": [110]},
+      "server/lib.folderview3-presets.php": {"limit": 30, "target": 30, "history": [30]},
+      "server/lib.folder-membership.php": {"limit": 50, "target": 50, "history": [50]},
+      "scripts/folderviewplus.membership.js": {"limit": 50, "target": 50, "history": [50]},
+      "scripts/folderviewplus.folderview3-model.js": {"limit": 90, "target": 90, "history": [90]},
       "server/lib.i18n.php": { "limit": 22, "target": 22, "history": [22] },
       "server/lib.i18n-response.php": { "limit": 24, "target": 24, "history": [24] },
       "server/lib.folderview3-order.php": { "limit": 42, "target": 42, "history": [42] },
@@ -245,6 +251,10 @@
     }
   ],
   "serverModuleContracts": [
+    {"file": "server/lib.folderview3-validation.php", "owner": "lib.folderview3-validation.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": {"count": 7, "sha256": "1341c064027882742e95bb4bda093ff7bd87c5cca818e23151e34f3d2f06d1b8"}},
+    {"file": "server/lib.folderview3-settings.php", "owner": "lib.folderview3-settings.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": {"count": 7, "sha256": "fd61eb37545f6e03f8901cd417151d1a227b726c264b445aaa113f1d35e1014b"}},
+    {"file": "server/lib.folderview3-presets.php", "owner": "lib.folderview3-presets.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.theme-profiles.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-appearance.php", "functionInventory": {"count": 3, "sha256": "48a486836bb34fc2f00ba2fe1dbc2360b1f691259161526cd19a523493bc09e4"}},
+    {"file": "server/lib.folder-membership.php", "owner": "lib.folder-membership.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.folder-rules.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.docker-order.php", "functionInventory": {"count": 2, "sha256": "4d30ecfd3856f20d1bdcaa94a55da20f50b175901f42be8e2021d7a2bf0981b5"}},
     {
       "file": "server/lib.runtime-inventory.php",
       "owner": "server-runtime-inventory-authority",
@@ -698,6 +708,8 @@
     }
   ],
   "moduleContracts": [
+    {"file": "scripts/folderviewplus.membership.js", "owner": "legacyMembership", "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"], "stateModel": "pure", "dependsOn": [], "compatibilityGlobals": ["FolderViewPlusFoundationModules"], "global": "FolderViewPlusFoundationModules", "globalMember": "legacyMembership", "loader": "commonjs", "typeChecked": false, "exports": ["build", "reconcileCache", "labelValue", "effective", "appendConflict"]},
+    {"file": "scripts/folderviewplus.folderview3-model.js", "owner": "folderView3Model", "consumers": ["settings"], "stateModel": "pure", "dependsOn": [], "compatibilityGlobals": ["FolderViewPlusFoundationModules"], "global": "FolderViewPlusFoundationModules", "globalMember": "folderView3Model", "loader": "commonjs", "typeChecked": false, "exports": ["normalizeDetection", "normalizeReport", "validateSource"]},
     {
       "file": "scripts/folderviewplus.bulk-assignment.view.js",
       "owner": "settings-bulk-move-workspace",

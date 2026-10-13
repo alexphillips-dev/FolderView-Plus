@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Alegeți cum să gestionați folderele existente. Nimic nu se schimbă până când selectați Aplică importul.",
     "import.behavior.question": "Cum ar trebui gestionate folderele existente?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importă VM foldere",
     "import.actions.apply": "Aplică import",
     "import.folderview3.preview-title": "Previzualizarea migrației FolderView3",
+    "import.folderview3.detect-button": "Detectează FolderView3",
+    "import.folderview3.export-button": "Previzualizează backup complet FolderView3",
+    "import.folderview3.style-count": "Stiluri personalizate: $1",
     "import.folderview3.read-only-title": "Migrarea FolderView3 este doar în citire până când aprobați un plan de aplicare.",
     "import.folderview3.read-only-preview-help": "Detectați o configurație FolderView3 instalată sau previzualizați un export FolderView3. Previzualizarea nu scrie niciodată pluginul sau configurația Unraid.",
     "import.folderview3.not-detected": "Nu a fost detectată nicio configurație FolderView3 instalată.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Numai citire",
     "import.folderview3.preview-ready": "Previzualizarea FolderView3 este gata",
     "import.folderview3.preview-created": "Raport de migrare creat fără modificarea configurației.",
+    "import.folderview3.assignment-summary": "Atribuții explicite: Docker $1; VM-uri $2.",
+    "import.folderview3.settings-summary": "Setări globale convertite: $1; neacceptat: $2.",
     "import.folderview3.applied": "Migrarea FolderView3 a fost aplicată",
     "import.folderview3.applied-help": "Migrarea a fost verificată și punctele de control pentru derulare înapoi sunt disponibile în Recuperare.",
     "import.folderview3.native-autostart": "Înlocuiți, de asemenea, intrările și așteptările native de pornire automată Docker",

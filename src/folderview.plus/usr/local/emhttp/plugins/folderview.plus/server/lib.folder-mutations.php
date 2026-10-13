@@ -25,7 +25,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $existingFolder = is_array($fileData[$id] ?? null)
             ? normalizeFolderContentPayload((array)$fileData[$id])
             : null;
-        $nextFolder = normalizeFolderContentPayload($decodedContent);
+        $nextFolder = preserveMigratedFolderReferences(normalizeFolderContentPayload($decodedContent), $existingFolder ?? []);
         $normalizedPreview = json_encode($nextFolder, JSON_UNESCAPED_SLASHES);
         if (!is_string($normalizedPreview)) {
             throw new RuntimeException('Failed to normalize folder payload.');

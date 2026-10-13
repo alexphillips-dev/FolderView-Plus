@@ -317,6 +317,12 @@
             }
 
             try {
+                let parsed;
+                try { parsed = JSON.parse(selected.text); } catch (_) { parsed = null; }
+                if (parsed && Object.prototype.hasOwnProperty.call(parsed, 'fv3_export_version')) {
+                    await windowRef.FolderViewPlusFoundationModules.folderView3MigrationApi.previewSelection(selected);
+                    return;
+                }
                 const previewResponse = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
                     action: 'preview',
                     payload: String(selected.text || ''),
@@ -972,6 +978,10 @@
             renderRecoveryEnvironmentSummary,
             exportEnvironmentSnapshot,
             importEnvironmentSnapshot,
+            refreshAfterMigration: async () => {
+                const results = await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker', { quiet: true }), refreshBackups('vm', { quiet: true }), refreshThemeWorkspace()]);
+                if (results.some((result) => result?.hasErrors === true)) throw new Error('Configuration was saved, but a view could not refresh. Reload Settings before continuing.');
+            },
             runActiveRecoveryScheduler,
             compareActiveRecoverySnapshots,
             changeActiveBackupSchedulePref,

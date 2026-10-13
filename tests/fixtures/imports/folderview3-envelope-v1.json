@@ -1,0 +1,19 @@
+{
+  "fv3_export_version": 1,
+  "plugin_version": "2026.08.28",
+  "unraid_version": "7.2.0",
+  "exported": "2026-10-01T00:00:00Z",
+  "docker": {
+    "regex": { "name": "Automatic", "regex": "^service-", "containers": [], "hidden_preview": ["service-hidden"], "settings": { "preview_overflow": 1 } },
+    "manual": { "name": "Manual", "containers": ["service-manual"], "containerImages": { "service-manual": "synthetic/image" }, "settings": { "preview": 0, "preview_hover": false, "preview_update_folder": true } },
+    "label": { "name": "Label", "containers": [], "settings": {} }
+  },
+  "vm": {
+    "lab": { "name": "Lab", "containers": ["Synthetic VM"], "containerIds": { "Synthetic VM": "11111111-2222-3333-4444-555555555555" }, "settings": { "preview_overflow": 2 } }
+  },
+  "settings": { "default_preview": "4", "default_preview_hover": "yes", "default_context_trigger": "1", "default_context_graph": "4", "default_context_graph_time": "180", "default_preview_update_folder": "yes", "default_overflow": "expand" },
+  "autostart": { "mode": "off", "sequence": [] },
+  "css_config": { "custom_presets": [{ "name": "Synthetic reusable preset", "values": { "fv3-accent-color": "#123456" } }], "user_notes": "Synthetic recovery note", "toggle_style": "pill", "page_presets": { "docker": "Synthetic reusable preset" } },
+  "custom_styles": {},
+  "order_docker": { "fv3_order_version": 1, "entries": ["folder-manual", "folder-label", "folder-regex"] }
+}

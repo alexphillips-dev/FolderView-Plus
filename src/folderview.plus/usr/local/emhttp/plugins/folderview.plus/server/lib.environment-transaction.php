@@ -96,6 +96,7 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
     $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
     $reason = trim((string)($options['reason'] ?? 'environment-import')) ?: 'environment-import';
     return withConfigMutationLock(static function() use ($normalized, $sourceName, $options, $reason): array {
+        if (is_callable($options['beforeWrite'] ?? null)) $options['beforeWrite']();
         $extraPaths = (array)($options['extraPaths'] ?? []);
         if (($options['syncDockerOrder'] ?? true) !== false) {
             $extraPaths[] = fvplusEnvironmentDockerAutostartPath();

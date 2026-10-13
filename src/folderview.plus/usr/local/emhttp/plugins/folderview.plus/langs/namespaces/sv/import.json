@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Välj hur befintliga mappar ska hanteras. Inget ändras förrän du väljer Använd import.",
     "import.behavior.question": "Hur ska befintliga mappar hanteras?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importera VM mappar",
     "import.actions.apply": "Tillämpa import",
     "import.folderview3.preview-title": "FolderView3 migreringsförhandsgranskning",
+    "import.folderview3.detect-button": "Upptäck FolderView3",
+    "import.folderview3.export-button": "Förhandsgranska fullständig backup av FolderView3",
+    "import.folderview3.style-count": "Anpassade stilar: $1",
     "import.folderview3.read-only-title": "FolderView3-migrering är skrivskyddad tills du godkänner en ansökningsplan.",
     "import.folderview3.read-only-preview-help": "Upptäck en installerad FolderView3-konfiguration eller förhandsgranska en FolderView3-export. Förhandsgranskning skriver aldrig plugin eller Unraid-konfiguration.",
     "import.folderview3.not-detected": "Ingen installerad FolderView3-konfiguration upptäcktes.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Endast läs",
     "import.folderview3.preview-ready": "FolderView3 förhandsvisning klar",
     "import.folderview3.preview-created": "Migreringsrapport skapad utan att ändra konfiguration.",
+    "import.folderview3.assignment-summary": "Explicita uppdrag: Docker $1; virtuella datorer $2.",
+    "import.folderview3.settings-summary": "Globala inställningar konverterade: $1; stöds inte: $2.",
     "import.folderview3.applied": "FolderView3-migrering tillämpas",
     "import.folderview3.applied-help": "Migreringen verifierades och återställningskontrollpunkter är tillgängliga i Recovery.",
     "import.folderview3.native-autostart": "Ersätt också inbyggda Docker-autostartposter och väntar",

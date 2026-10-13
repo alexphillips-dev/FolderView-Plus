@@ -3741,6 +3741,7 @@ const buildFolderPayloadFromForm = (e) => {
         const name = String($row.attr('data-name') || '').trim();
         return name && includedMemberSet.has(name) && $row.find('input.member-preview-switch').prop('checked') !== true ? name : null;
     }).get().filter(Boolean);
+    const preservedHiddenPreviewMembers = [...new Set([...nextHiddenPreviewMembers, ...hiddenPreviewMembers])];
     const memberIdentities = {};
     const memberMap = getMemberMapByName();
     includedMemberNames.forEach((name) => {
@@ -3826,7 +3827,7 @@ const buildFolderPayloadFromForm = (e) => {
         },
         regex: e.regex.value.toString(),
         containers: includedMemberNames,
-        hiddenPreviewMembers: nextHiddenPreviewMembers,
+        hiddenPreviewMembers: preservedHiddenPreviewMembers,
         memberIdentities,
         actions
     };

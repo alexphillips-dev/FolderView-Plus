@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-transfer.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-transfer.js'), require('./folderviewplus.membership.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.utilityRules = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityTransfer);
-}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer) {
+    modules.utilityRules = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityTransfer, modules.legacyMembership);
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer, membership) {
     'use strict';
     const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer);
     const {
@@ -94,15 +94,7 @@
         return getComposeProjectFromLabels(labels);
     };
 
-    const getFolderLabelValue = (labels) => {
-        const source = isPlainObject(labels) ? labels : {};
-        for (const key of LEGACY_FOLDER_LABEL_KEYS) {
-            if (typeof source[key] === 'string' && source[key].trim() !== '') {
-                return source[key].trim();
-            }
-        }
-        return '';
-    };
+    const getFolderLabelValue = (labels) => membership.labelValue(isPlainObject(labels) ? labels : {}, LEGACY_FOLDER_LABEL_KEYS);
 
     const ruleMatchesItem = (rule, name, infos, type) => {
         if (!isPlainObject(rule)) {
@@ -223,7 +215,9 @@
         return Array.from(new Set(matches));
     };
 
-    const getEffectiveFolderMembers = ({ type, folderId, folder, names, infoByName, rules }) => {
+    const buildLegacyMembership = (options) => membership.build({ ...options, getAutoRuleDecision, getFolderLabelValue, getDockerLabels, normalizeMemberList });
+    const reconcileLegacyMatchCache = (cache, options) => membership.reconcileCache(cache, buildLegacyMembership(options));
+    const getEffectiveFolderMembers = ({ type, folderId, folder, folders, names, infoByName, rules }) => {
         const normalizedType = type === 'vm' ? 'vm' : 'docker';
         const targetFolderId = String(folderId || '');
         const targetFolder = isPlainObject(folder) ? folder : {};
@@ -232,6 +226,8 @@
             ? Array.from(new Set(names.map((name) => String(name || '')).filter((name) => name !== '')))
             : Object.keys(infos);
         const reasonsByName = {};
+        const legacy = membership.effective(buildLegacyMembership({ type, folders, names: allNames, infoByName: infos, rules }), targetFolderId);
+        if (legacy) return legacy;
         const addReason = (name, reason) => {
             if (!name || !reason) {
                 return;
@@ -368,7 +364,7 @@
         return 'Action is not supported for this item.';
     };
 
-    const planFolderRuntimeAction = ({ type, folderId, folder, names, infoByName, rules, action }) => {
+    const planFolderRuntimeAction = ({ type, folderId, folder, folders, names, infoByName, rules, action }) => {
         const normalizedType = type === 'vm' ? 'vm' : 'docker';
         const normalizedAction = String(action || '').toLowerCase();
         const validActions = RUNTIME_ACTIONS_BY_TYPE[normalizedType] || [];
@@ -389,6 +385,7 @@
             type: normalizedType,
             folderId,
             folder,
+            folders,
             names,
             infoByName,
             rules
@@ -444,6 +441,7 @@
 
         const rows = [];
         let conflictCount = 0;
+        const legacy = buildLegacyMembership({ type: normalizedType, folders: folderMap, names, infoByName: infos, rules: normalizedPrefs.autoRules });
 
         for (const name of names) {
             const matchedFolders = [];
@@ -458,6 +456,7 @@
 
             for (const [folderId, folder] of Object.entries(folderMap)) {
                 const reasons = [];
+                if (membership.appendConflict(legacy, folderId, name, folder, matchedFolders)) continue;
                 const members = Array.isArray(folder.containers) ? folder.containers.map((item) => String(item)) : [];
                 if (members.includes(name)) {
                     reasons.push('manual');
@@ -520,6 +519,7 @@
         getAutoRuleDecision,
         getAutoRuleFirstMatch,
         getAutoRuleMatches,
+        buildLegacyMembership, reconcileLegacyMatchCache,
         getEffectiveFolderMembers,
         dockerRuntimeStateKind,
         vmRuntimeStateKind,

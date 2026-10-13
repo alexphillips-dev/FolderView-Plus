@@ -17,13 +17,13 @@ function fvplusFolderView3NativeAutostartContent(array $entries): string {
 }
 
 function applyFolderView3Migration(array $bundle, string $sourceName, string $expectedDigest, bool $includeNativeAutostart = false, array $options = []): array {
-    // Planning can recover Theme Workspace; validate rollback inputs first.
+    // Validate rollback inputs and the read-only plan before entering the transaction.
     fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($includeNativeAutostart ? [fvplusFolderView3NativeAutostartPath()] : []));
     $plan = buildFolderView3MigrationPlan($bundle, $sourceName);
     $actualDigest = strtolower(trim((string)($plan['source']['digest'] ?? '')));
     $expected = strtolower(trim($expectedDigest));
     if (!preg_match('/^[a-f0-9]{64}$/', $expected) || !hash_equals($actualDigest, $expected)) {
-        throw new RuntimeException('FolderView3 source changed after preview. Preview it again before applying.');
+        throw new RuntimeException('FolderView3 source or current configuration changed after preview. Preview it again before applying.');
     }
     $nativeEntries = (array)($plan['nativeAutostart'] ?? []);
     $nativePath = fvplusFolderView3NativeAutostartPath();
@@ -36,6 +36,7 @@ function applyFolderView3Migration(array $bundle, string $sourceName, string $ex
         'afterStage' => $options['afterStage'] ?? null,
         'syncDockerOrder' => $includeNativeAutostart
     ];
+    $transactionOptions['beforeWrite'] = static fn() => fvplusFolderView3VerifyPreviewUnderLock($bundle, $sourceName, $expected);
     if ($includeNativeAutostart) {
         $transactionOptions['extraPaths'] = [$nativePath];
         $transactionOptions['externalApply'] = static function() use ($nativePath, $nativeContent): void {

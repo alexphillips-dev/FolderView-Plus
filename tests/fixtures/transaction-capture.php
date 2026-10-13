@@ -104,6 +104,7 @@ namespace {
         file_put_contents(fvplusEnvironmentDockerAutostartPath(), "fixture-native 5\n");
         $backup = createBackupSnapshot('docker', 'fixture-target');
         $bundle = ['fv3_export_version' => 1, 'docker' => ['new' => ['name' => 'New fixture']], 'vm' => [],
+            'settings' => [], 'css_config' => [], 'custom_styles' => [],
             'native_autostart' => ['fixture-native 10']];
         $digest = buildFolderView3MigrationPlan($bundle, 'fixture.json')['source']['digest'];
         $target = normalizeEnvironmentSnapshotPayload(['types' => ['docker' => ['folders' => ['new' => ['name' => 'New fixture']]],

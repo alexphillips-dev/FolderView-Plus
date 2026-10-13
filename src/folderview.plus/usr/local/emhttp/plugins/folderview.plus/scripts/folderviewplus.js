@@ -3421,6 +3421,10 @@ const getThemeWorkspaceApi = (() => {
 const getSettingsWorkspacesApi = (() => {
     let cachedApi = null;
     return () => {
+        window.FolderViewPlusFoundationModules?.folderView3MigrationApi?.configureHooks?.({
+            reveal: () => { setSettingsMode('advanced'); setAdvancedTab('recovery'); applySettingsSectionVisibility(); scrollToSectionKey('recovery'); },
+            afterApply: () => getSettingsWorkspacesApi().refreshAfterMigration()
+        });
         if (cachedApi) {
             return cachedApi;
         }
@@ -3765,6 +3769,7 @@ const getEffectiveMemberSnapshot = (type, folders) => {
             type,
             folderId,
             folder,
+            folders,
             names,
             infoByName: info,
             rules
@@ -3784,6 +3789,7 @@ const getRuntimePlanForFolder = (type, folderId, action) => {
         type,
         folderId,
         folder,
+        folders,
         names: Object.keys(infoByType[type] || {}),
         infoByName: infoByType[type] || {},
         rules: prefsByType[type]?.autoRules || [],
@@ -9106,6 +9112,12 @@ const importType = async (type) => {
     }
 
     const parsed = utils.parseImportPayload(parsedFile, resolvedType);
+    if (parsed.migration) {
+        getSettingsWorkspacesApi();
+        try { await window.FolderViewPlusFoundationModules.folderView3MigrationApi.previewSelection(selected); }
+        catch (error) { showError('FolderView3 migration preview failed', error); }
+        return;
+    }
     if (!parsed.ok) {
         swal({
             title: 'Error',

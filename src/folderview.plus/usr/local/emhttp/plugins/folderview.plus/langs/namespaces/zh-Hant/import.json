@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "選擇如何處理現有資料夾。在您選擇“套用匯入”之前，不會發生任何變化。",
     "import.behavior.question": "現有的資料夾應該如何處理？",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "匯入虛擬機器資料夾",
     "import.actions.apply": "申請匯入",
     "import.folderview3.preview-title": "FolderView3 遷移預覽",
+    "import.folderview3.detect-button": "檢測FolderView3",
+    "import.folderview3.export-button": "預覽完整的FolderView3備份",
+    "import.folderview3.style-count": "自定義樣式：$1",
     "import.folderview3.read-only-title": "在您批准應用程式計劃之前，FolderView3 遷移是唯讀的。",
     "import.folderview3.read-only-preview-help": "偵測已安裝的FolderView3配置或預覽FolderView3匯出。預覽永遠不會寫入外掛或 Unraid 配置。",
     "import.folderview3.not-detected": "未偵測到已安裝的FolderView3 配置。",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "只讀",
     "import.folderview3.preview-ready": "FolderView3 預覽就緒",
     "import.folderview3.preview-created": "在不更改配置的情況下建立遷移報告。",
+    "import.folderview3.assignment-summary": "明確賦值：Docker $1； VM $2。",
+    "import.folderview3.settings-summary": "轉換後的全域設定：$1；不支援：$2。",
     "import.folderview3.applied": "已應用FolderView3遷移",
     "import.folderview3.applied-help": "遷移已經過驗證，並且回滾檢查點在恢復中可用。",
     "import.folderview3.native-autostart": "也替換本機 Docker 自動啟動條目並等待",

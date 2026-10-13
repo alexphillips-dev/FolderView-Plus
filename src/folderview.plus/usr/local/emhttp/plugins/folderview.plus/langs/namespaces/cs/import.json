@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Vyberte, jak zacházet se stávajícími složkami. Nic se nezmění, dokud nevyberete možnost Použít import.",
     "import.behavior.question": "Jak by se mělo zacházet se stávajícími složkami?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Import VM složek",
     "import.actions.apply": "Použít import",
     "import.folderview3.preview-title": "Náhled migrace FolderView3",
+    "import.folderview3.detect-button": "Detekce FolderView3",
+    "import.folderview3.export-button": "Náhled celé zálohy FolderView3",
+    "import.folderview3.style-count": "Vlastní styly: $1",
     "import.folderview3.read-only-title": "Migrace FolderView3 je pouze pro čtení, dokud neschválíte plán použití.",
     "import.folderview3.read-only-preview-help": "Zjistěte nainstalovanou konfiguraci FolderView3 nebo zobrazte náhled exportu FolderView3. Náhled nikdy nezapíše konfiguraci pluginu nebo Unraid.",
     "import.folderview3.not-detected": "Nebyla zjištěna žádná nainstalovaná konfigurace FolderView3.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Pouze pro čtení",
     "import.folderview3.preview-ready": "Náhled FolderView3 je připraven",
     "import.folderview3.preview-created": "Zpráva o migraci vytvořena bez změny konfigurace.",
+    "import.folderview3.assignment-summary": "Explicitní přiřazení: Docker $1; VM $2.",
+    "import.folderview3.settings-summary": "Globální nastavení převedeno: $1; nepodporováno: $2.",
     "import.folderview3.applied": "Byla použita migrace FolderView3",
     "import.folderview3.applied-help": "Migrace byla ověřena a kontrolní body vrácení jsou k dispozici v Recovery.",
     "import.folderview3.native-autostart": "Nahraďte také nativní položky automatického spuštění a čekání Dockeru",

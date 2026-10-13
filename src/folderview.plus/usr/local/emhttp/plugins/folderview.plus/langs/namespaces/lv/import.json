@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Izvēlieties, kā rīkoties ar esošajām mapēm. Nekas nemainās, kamēr nav atlasīta opcija Lietot importēšanu.",
     "import.behavior.question": "Kā rīkoties ar esošajām mapēm?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importēt VM mapes",
     "import.actions.apply": "Lietot importēšanu",
     "import.folderview3.preview-title": "FolderView3 migrācijas priekšskatījums",
+    "import.folderview3.detect-button": "Noteikt FolderView3",
+    "import.folderview3.export-button": "Priekšskatiet pilnu FolderView3 dublējumu",
+    "import.folderview3.style-count": "Pielāgoti stili: $1",
     "import.folderview3.read-only-title": "FolderView3 migrācija ir tikai lasāma, līdz apstiprināsiet pieteikuma plānu.",
     "import.folderview3.read-only-preview-help": "Atklājiet instalēto FolderView3 konfigurāciju vai priekšskatiet FolderView3 eksportu. Priekšskatīšanā nekad netiek ierakstīts spraudnis vai Unraid konfigurācija.",
     "import.folderview3.not-detected": "Nav atrasta neviena instalēta FolderView3 konfigurācija.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Tikai lasāms",
     "import.folderview3.preview-ready": "FolderView3 priekšskatījums ir gatavs",
     "import.folderview3.preview-created": "Migrācijas pārskats izveidots, nemainot konfigurāciju.",
+    "import.folderview3.assignment-summary": "Skaidri uzdevumi: Docker $1; Virtuālās mašīnas $2.",
+    "import.folderview3.settings-summary": "Pārveidotie globālie iestatījumi: $1; neatbalstīts: $2.",
     "import.folderview3.applied": "Lietota FolderView3 migrācija",
     "import.folderview3.applied-help": "Migrācija tika pārbaudīta, un atkopšanas kontrolpunkti ir pieejami.",
     "import.folderview3.native-autostart": "Aizstāt arī vietējos Docker automātiskās palaišanas ierakstus un gaida",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করবেন তা চয়ন করুন। আপনি আমদানি প্রয়োগ করুন নির্বাচন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।",
     "import.behavior.question": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করা উচিত?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "VM ফোল্ডার আমদানি করুন",
     "import.actions.apply": "আমদানি প্রয়োগ করুন",
     "import.folderview3.preview-title": "FolderView3 মাইগ্রেশন পূর্বরূপ",
+    "import.folderview3.detect-button": "FolderView3 সনাক্ত করুন",
+    "import.folderview3.export-button": "সম্পূর্ণ FolderView3 ব্যাকআপের পূর্বরূপ দেখুন",
+    "import.folderview3.style-count": "কাস্টম শৈলী: $1",
     "import.folderview3.read-only-title": "আপনি একটি প্রয়োগ পরিকল্পনা অনুমোদন না করা পর্যন্ত FolderView3 মাইগ্রেশন শুধুমাত্র পঠনযোগ্য।",
     "import.folderview3.read-only-preview-help": "একটি ইনস্টল করা FolderView3 কনফিগারেশন সনাক্ত করুন বা FolderView3 এক্সপোর্টের পূর্বরূপ দেখুন। পূর্বরূপ কখনও প্লাগইন বা Unraid কনফিগারেশন লেখে না।",
     "import.folderview3.not-detected": "কোনো ইনস্টল করা FolderView3 কনফিগারেশন সনাক্ত করা যায়নি।",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "শুধু পড়ুন",
     "import.folderview3.preview-ready": "FolderView3 পূর্বরূপ প্রস্তুত",
     "import.folderview3.preview-created": "কনফিগারেশন পরিবর্তন না করেই মাইগ্রেশন রিপোর্ট তৈরি করা হয়েছে।",
+    "import.folderview3.assignment-summary": "স্পষ্ট অ্যাসাইনমেন্ট: ডকার $1; VMs $2।",
+    "import.folderview3.settings-summary": "গ্লোবাল সেটিংস রূপান্তরিত: $1; অসমর্থিত: $2।",
     "import.folderview3.applied": "FolderView3 মাইগ্রেশন প্রয়োগ করা হয়েছে",
     "import.folderview3.applied-help": "মাইগ্রেশন যাচাই করা হয়েছে এবং রিকভারিতে রোলব্যাক চেকপয়েন্ট পাওয়া যায়।",
     "import.folderview3.native-autostart": "এছাড়াও নেটিভ ডকার অটোস্টার্ট এন্ট্রি এবং অপেক্ষা প্রতিস্থাপন করুন",

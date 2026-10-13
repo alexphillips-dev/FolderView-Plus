@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "4993cfeeccd8e678e982f82b4610c6b5d06e1e13d87cacfe5dbe34e5797d736b"
     },
     "import.subtitle": "Виберіть, як обробляти існуючі папки. Нічого не змінюється, поки ви не натиснете Застосувати імпорт.",
     "import.behavior.question": "Як слід обробляти існуючі папки?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Імпорт VM папок",
     "import.actions.apply": "Застосувати імпорт",
     "import.folderview3.preview-title": "Попередній перегляд міграції FolderView3",
+    "import.folderview3.detect-button": "Визначити FolderView3",
+    "import.folderview3.export-button": "Попередній перегляд повної резервної копії FolderView3",
+    "import.folderview3.style-count": "Власні стилі: $1",
     "import.folderview3.read-only-title": "Перенесення FolderView3 доступне лише для читання, доки ви не схвалите план застосування.",
     "import.folderview3.read-only-preview-help": "Виявлення встановленої конфігурації FolderView3 або попередній перегляд експорту FolderView3. Попередній перегляд ніколи не записує плагін або конфігурацію Unraid.",
     "import.folderview3.not-detected": "Не виявлено встановленої конфігурації FolderView3.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Тільки для читання",
     "import.folderview3.preview-ready": "Готовий попередній перегляд FolderView3",
     "import.folderview3.preview-created": "Звіт про міграцію створено без зміни конфігурації.",
+    "import.folderview3.assignment-summary": "Явні призначення: Docker $1; Віртуальні машини $2.",
+    "import.folderview3.settings-summary": "Перетворено глобальні налаштування: $1; не підтримується: $2.",
     "import.folderview3.applied": "Переміщення FolderView3 застосовано",
     "import.folderview3.applied-help": "Міграцію було перевірено, і контрольні точки відкату доступні в Recovery.",
     "import.folderview3.native-autostart": "Також замініть власні записи автозапуску та очікування Docker",

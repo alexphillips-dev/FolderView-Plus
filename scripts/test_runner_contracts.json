@@ -31,6 +31,8 @@
     }
   ],
   "modules": [
+    {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
+    {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
@@ -132,6 +134,7 @@
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/snapshot-compare.mjs",
         "tests/browser/cases/import.mjs",
+        "tests/browser/cases/folderview3-migration.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
         "tests/browser/cases/forum-reports.mjs",
         "tests/browser/cases/dashboard-row-spacing.mjs",
@@ -146,6 +149,7 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/folderview3-host.mjs",
         "tests/browser/helpers/settings-workspace-controls.mjs",
         "tests/browser/helpers/quick-finder-toolbar.mjs",
         "tests/browser/helpers/quick-finder-privacy.mjs",
@@ -167,10 +171,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 109,
-      "assertionCount": 1375,
-      "pageEvaluateCount": 367,
-      "orderedTitleSha256": "c14b75797568abaacc8bf5cde6f03fbd0692ef344699ef620ed2d1e81674e79e"
+      "testCount": 111,
+      "assertionCount": 1391,
+      "pageEvaluateCount": 373,
+      "orderedTitleSha256": "6c2ce82bdbcc673085e36f7254940c7b35f3e7d67d7ad226a8d8f3d5c157d728"
     }
   }
 }

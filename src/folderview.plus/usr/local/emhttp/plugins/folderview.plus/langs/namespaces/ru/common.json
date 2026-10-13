@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG содержит атрибуты обработчика заблокированных событий.",
     "common.server.svg-references-external-resources-44bc7d": "SVG ссылается на внешние ресурсы.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG содержит заблокированный контент URI.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Размер значка SVG превышает лимит в 4 МБ.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Размер значка SVG превышает лимит в 16 МБ.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG содержит заблокированный контент.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Невозможно обработать загруженный значок SVG.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Тип загруженного файла не соответствует расширению.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Полезная нагрузка значка не предоставлена.",
     "common.server.invalid-inline-icon-payload-53248b": "Недопустимая полезная нагрузка встроенного значка.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Загруженный файл пуст.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Загруженный файл превышает лимит в 4 МБ.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Загруженный файл превышает лимит в 16 МБ.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Загружать промежуточный каталог небезопасно.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Не удалось создать частный промежуточный каталог загрузки.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Невозможно выделить временный файл загрузки.",

@@ -56,6 +56,7 @@
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
     { "file": "scripts/lib/fixture-browser-server.mjs", "limit": 200, "owner": "fixture HTTP serving" },
+    { "file": "scripts/lib/fixture-icon-upload.mjs", "limit": 60, "owner": "fixture form uploads and bounded part assembly" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
@@ -150,6 +151,7 @@
         "tests/browser/helpers/quick-finder-native-sizing.mjs",
         "scripts/fixture_browser_tests.mjs",
         "scripts/lib/fixture-browser-server.mjs",
+        "scripts/lib/fixture-icon-upload.mjs",
         "scripts/lib/fixture-browser-runner.mjs",
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
@@ -164,9 +166,9 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 108,
-      "assertionCount": 1363,
+      "assertionCount": 1369,
       "pageEvaluateCount": 355,
-      "orderedTitleSha256": "f3edee0935a6549b25b9016a3b7952b21aed6ae2c4d2a23b70f38e1567f57929"
+      "orderedTitleSha256": "a6d5c4d8347506fc5091ca8bed9958005f07ef42a6a744b6b7f9883e19b61fc3"
     }
   }
 }

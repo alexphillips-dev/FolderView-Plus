@@ -204,10 +204,10 @@ function buildCustomIconUploadResponse(string $name, array $meta, bool $duplicat
 }
 
 function handleCustomIconUploadAction(): array {
-    enforceCustomIconUploadRateLimit();
+    $uploadSource = resolveCustomIconUploadSource();
+    if (($uploadSource['complete'] ?? true) === false) return $uploadSource;
     $replaceExisting = normalizeBool($_POST['replace'] ?? false, false);
     $dedupeByHash = normalizeBool($_POST['dedupe'] ?? true, true);
-    $uploadSource = resolveCustomIconUploadInput();
     $tmpPath = (string)($uploadSource['tmpPath'] ?? '');
     $extension = strtolower((string)($uploadSource['extension'] ?? ''));
     $originalName = (string)($uploadSource['originalName'] ?? 'icon');

@@ -22,8 +22,16 @@ Docker folder saves await a nonce-protected order-sync response before leaving
 the editor. Beacon acceptance is only a queued request, never proof of success.
 The synchronous keepalive helper requires a previously issued nonce, sends the
 CSRF field in the beacon body, and retains it with the header in a fetch fallback.
-Inline icon fallback only follows an explicit unsupported-payload or no-file
-refusal; empty responses, timeouts, and security failures are not replayed.
+Custom icons use form-encoded URL-safe Base64 instead of multipart. The 16 MiB
+file cap is enforced in the browser and backend. Larger icons use ordered parts
+whose encoded requests stay below 1 MiB; each part obtains its own nonce and
+transaction ID. Private staging binds the upload to its owner, filename, size,
+and replacement/deduplication options, limits active sessions to four, and
+expires abandoned parts after five minutes. Only complete transfers enter the
+existing image validation and atomic save pipeline. Empty responses, timeouts,
+and security failures stop the transfer without replaying requests. Cancel
+covers file reading, nonce acquisition, and transfer; partial files remain
+private until expiry and never become saved icons.
 
 Native Unraid File Manager copy, move, and delete failures require the exact
 failing endpoint and reproduction steps. FolderView Plus's Browse navigation

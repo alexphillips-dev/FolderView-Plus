@@ -26,17 +26,33 @@
             result['X-CSRF-Token'] = token;
             return result;
         };
-        const toAjaxPromise = (options, signal = null, onRequest = null) => new Promise((resolve, reject) => {
+        const toAjaxPromise = (options, signal = null, onRequest = null, onProgress = null) => new Promise((resolve, reject) => {
             if (!win.$ || typeof win.$.ajax !== 'function') {
                 reject(new Error('jQuery.ajax is not available.'));
                 return;
+            }
+            let upload;
+            const progress = event => {
+                if (event.lengthComputable) onProgress(Number(event.loaded || 0), Number(event.total || 0));
+            };
+            if (typeof onProgress === 'function') {
+                const factory = options.xhr || win.$.ajaxSettings?.xhr || (() => new win.XMLHttpRequest());
+                options = { ...options, xhr: function() {
+                    const xhr = factory.call(this);
+                    upload = xhr.upload;
+                    upload?.addEventListener?.('progress', progress);
+                    return xhr;
+                } };
             }
             const request = win.$.ajax(options);
             if (typeof onRequest === 'function') onRequest(request);
             const abortRequest = () => request?.abort?.();
             if (signal?.aborted === true) abortRequest();
             else signal?.addEventListener?.('abort', abortRequest, { once: true });
-            const cleanup = () => signal?.removeEventListener?.('abort', abortRequest);
+            const cleanup = () => {
+                signal?.removeEventListener?.('abort', abortRequest);
+                upload?.removeEventListener?.('progress', progress);
+            };
             request.done((data, textStatus, jqXHR) => {
                 cleanup(); resolve({ data, textStatus, jqXHR });
             }).fail(async (jqXHR, textStatus, errorThrown) => {

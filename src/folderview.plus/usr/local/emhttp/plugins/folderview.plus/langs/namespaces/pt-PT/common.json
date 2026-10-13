@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG contém atributos de manipulador de eventos bloqueados.",
     "common.server.svg-references-external-resources-44bc7d": "SVG faz referência a recursos externos.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG contém conteúdo de URI bloqueado.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "O ícone SVG excede o limite de 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "O ícone SVG excede o limite de 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG contém conteúdo bloqueado.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Não foi possível processar o ícone SVG carregado.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "O tipo de arquivo enviado não corresponde à extensão.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Nenhuma carga de ícone fornecida.",
     "common.server.invalid-inline-icon-payload-53248b": "Carga útil do ícone embutido inválida.",
     "common.server.uploaded-file-is-empty-d6c6d9": "O arquivo enviado está vazio.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "O arquivo enviado excede o limite de 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "O arquivo enviado excede o limite de 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "O diretório de teste de upload não é seguro.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Não foi possível criar um diretório temporário de upload privado.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Não foi possível alocar o arquivo de upload temporário.",

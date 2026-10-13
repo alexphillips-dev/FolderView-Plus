@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG 包含阻塞事件处理程序属性。",
     "common.server.svg-references-external-resources-44bc7d": "SVG 引用外部资源。",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG 包含被阻止的 URI 内容。",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 图标超过 4MB 限制。",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 图标超过 16MB 限制。",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG 包含被阻止的内容。",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "无法处理上传的 SVG 图标。",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "上传的文件类型与扩展名不匹配。",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "未提供图标有效负载。",
     "common.server.invalid-inline-icon-payload-53248b": "内联图标有效负载无效。",
     "common.server.uploaded-file-is-empty-d6c6d9": "上传的文件是空的。",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "上传的文件超过 4MB 限制。",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "上传的文件超过 16MB 限制。",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "上传暂存目录不安全。",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "无法创建私有上传暂存目录。",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "无法分配临时上传文件。",

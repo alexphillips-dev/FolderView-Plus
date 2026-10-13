@@ -14,7 +14,7 @@
         const surfaceT = (key, fallback, ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : ((value) => Array.isArray(value) ? value : []);
         const uploadApiPath = String(deps.iconUploadApiPath || '').trim();
-        const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 4194304;
+        const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 16777216;
         const allowedExtensions = Array.isArray(deps.allowedExtensions) ? deps.allowedExtensions.map((entry) => String(entry || '').toLowerCase()) : [];
         const uploadContext = String(deps.uploadContext || 'icon upload endpoint').trim() || 'icon upload endpoint';
         const builtInIconFallback = Array.isArray(deps.builtInIconFallback) ? deps.builtInIconFallback : [];
@@ -154,47 +154,75 @@
                 throw new Error('Uploaded file is empty.');
             }
             if (size > uploadMaxBytes) {
-                throw new Error('Uploaded file exceeds 4MB limit.');
+                throw new Error('Uploaded file exceeds 16MB limit.');
             }
         };
 
-        const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+        const readFileAsDataUrl = (file, { signal = null } = {}) => new Promise((resolve, reject) => {
             if (!(file instanceof File)) {
                 reject(new Error('No icon file selected.'));
                 return;
             }
             const reader = new FileReader();
-            reader.onerror = () => reject(new Error('Unable to read selected file.'));
+            const cleanup = () => {
+                signal?.removeEventListener('abort', abort);
+                reader.onload = reader.onerror = reader.onabort = null;
+            };
+            const cancelled = () => { cleanup(); reject(new Error('Upload cancelled.')); };
+            const abort = () => { reader.abort(); cancelled(); };
+            reader.onabort = cancelled;
+            reader.onerror = () => { cleanup(); reject(new Error('Unable to read selected file.')); };
             reader.onload = () => {
                 const result = String(reader.result || '').trim();
+                cleanup();
                 if (!result) {
                     reject(new Error('Unable to read selected file.'));
                     return;
                 }
                 resolve(result);
             };
+            if (signal?.aborted) { cancelled(); return; }
+            signal?.addEventListener('abort', abort, { once: true });
             reader.readAsDataURL(file);
         });
 
-        const shouldUseInlineUploadFallback = (error) => {
-            // Retry only a definite refusal before file processing, never an ambiguous response.
-            return Number(error?.status) === 415
-                || (Number(error?.status) === 400 && error?.response?.error === 'No icon file uploaded.');
-        };
-
         const uploadCustomIconFileInline = async (file, options = {}) => {
-            const inlinePayload = await readFileAsDataUrl(file);
+            validateCustomIconFileBeforeUpload(file);
+            const inlinePayload = await readFileAsDataUrl(file, options);
             const body = {
                 action: 'upload',
                 icon_inline_name: String(file.name || 'icon').trim() || 'icon',
-                icon_inline_data: inlinePayload,
+                // URL-safe Base64 bounds form overhead even for files containing mostly + or /.
+                icon_inline_data: inlinePayload.slice(inlinePayload.indexOf('base64,') + 7).replace(/\+/g, '-').replace(/\//g, '_'),
                 replace: options?.replace ? '1' : '0',
                 dedupe: options?.dedupe === false ? '0' : '1'
             };
-            return requestClient.postJson(uploadApiPath, body, {
-                retries: 0,
-                timeoutMs: 30000
-            });
+            const chunkBytes = 524286;
+            const chunkChars = chunkBytes / 3 * 4;
+            const encoded = body.icon_inline_data;
+            const count = Math.ceil(file.size / chunkBytes);
+            if (count > 1) {
+                const random = new Uint8Array(16);
+                win.crypto.getRandomValues(random);
+                Object.assign(body, { icon_upload_id: Array.from(random, byte => byte.toString(16).padStart(2, '0')).join(''),
+                    icon_chunk_count: String(count), icon_total_bytes: String(file.size) });
+            }
+            let payload;
+            for (let index = 0; index < count; index++) {
+                if (count > 1) body.icon_chunk_index = String(index);
+                body.icon_inline_data = encoded.slice(index * chunkChars, (index + 1) * chunkChars);
+                payload = await requestClient.uploadJson(uploadApiPath, body, {
+                    timeoutMs: 30000, signal: options.signal,
+                    onProgress: typeof options.onProgress === 'function' ? (loaded, total) => {
+                        const partBytes = Math.min(chunkBytes, file.size - index * chunkBytes);
+                        if (total > 0) options.onProgress(Math.min(file.size, index * chunkBytes + Math.round(partBytes * loaded / total)), file.size);
+                    } : null
+                });
+                if (index < count - 1 && (payload?.ok !== true || payload.chunkAccepted !== true || payload.nextChunk !== index + 1)) {
+                    throw new Error('Upload was incomplete. Try again.');
+                }
+            }
+            return payload;
         };
 
         const uploadCustomIconFile = async (file, options = {}) => {
@@ -203,24 +231,11 @@
             }
             validateCustomIconFileBeforeUpload(file);
 
-            const formData = new FormData();
-            formData.append('action', 'upload');
-            formData.append('icon', file);
-            formData.append('replace', options?.replace ? '1' : '0');
-            formData.append('dedupe', options?.dedupe === false ? '0' : '1');
-
+            const controller = new AbortController();
             let payload;
-            const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
             try {
-                payload = await requestClient.uploadJson(uploadApiPath, formData, {
-                    timeoutMs: 30000,
-                    onProgress,
-                    onRequest: (request) => {
-                        if (typeof options?.setActiveRequest === 'function') {
-                            options.setActiveRequest(request);
-                        }
-                    }
-                });
+                options.setActiveRequest?.({ abort: () => controller.abort() });
+                payload = await uploadCustomIconFileInline(file, { ...options, signal: controller.signal });
             } catch (error) {
                 const aborted = error?.reasonCode === 'aborted' || String(error?.textStatus || '').toLowerCase() === 'abort'
                     || String(error?.statusText || '').toLowerCase() === 'abort'
@@ -228,17 +243,7 @@
                 if (aborted) {
                     throw new Error('Upload cancelled.');
                 }
-                const primaryError = error instanceof Error
-                    ? error
-                    : new Error(extractAjaxErrorMessage(error, uploadContext));
-                if (!shouldUseInlineUploadFallback(primaryError)) {
-                    throw new Error(extractAjaxErrorMessage(error, uploadContext));
-                }
-                try {
-                    payload = await uploadCustomIconFileInline(file, options);
-                } catch (inlineError) {
-                    throw new Error(extractAjaxErrorMessage(inlineError, uploadContext));
-                }
+                throw new Error(extractAjaxErrorMessage(error, uploadContext));
             } finally {
                 if (typeof options?.setActiveRequest === 'function') {
                     options.setActiveRequest(null);
@@ -295,7 +300,6 @@
             formatByteCount,
             validateCustomIconFileBeforeUpload,
             readFileAsDataUrl,
-            shouldUseInlineUploadFallback,
             uploadCustomIconFileInline,
             uploadCustomIconFile,
             requestCustomIconApi

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 export const registerCsrfRequestCases = ({ test, baseUrl }) => {
-    test('Unraid 7.3.3 prefilter preserves native multipart upload and standard plugin POSTs', async ({ page }) => {
+    test('Unraid 7.3.3 prefilter preserves form icon uploads through 16 MiB and standard plugin POSTs', async ({ page }) => {
         const requests = [];
         await page.route('**/plugins/folderview.plus/server/**', async route => {
             const request = route.request();
@@ -37,18 +37,26 @@ export const registerCsrfRequestCases = ({ test, baseUrl }) => {
             } };
             const api = window.FolderViewPlusFolderIconApi.createApi({ window, requestClient,
                 iconUploadApiPath: '/api/csrf-upload.php', allowedExtensions: ['png'] });
-            const file = new File(['fixture-file-bytes'], 'fixture.png', { type: 'image/png' });
-            const upload = await api.uploadCustomIconFile(file, { onProgress: () => { progress++; } });
+            const uploads = [];
+            for (const size of [22528, 1060000, 16777216]) {
+                const file = new File([new Uint8Array(size).fill(255)], 'fixture.png', { type: 'image/png' });
+                const upload = await api.uploadCustomIconFile(file, { onProgress: () => { progress++; } });
+                uploads.push({ url: upload.url, evidence });
+            }
             await client.postJson('/plugins/folderview.plus/server/prefs.php', new URLSearchParams('type=docker&prefs=%7B%7D'));
-            return { url: upload.url, evidence, progress, diagnostics: client.diagnostics() };
+            return { uploads, progress, diagnostics: client.diagnostics() };
         });
-        assert.equal(result.url, '/fixture.png');
-        assert.match(result.evidence.contentType, /^multipart\/form-data; boundary=/);
-        assert.equal(result.evidence.file, true, 'verify file bytes at the receiving HTTP server');
-        assert.equal(result.evidence.filename, true);
-        assert.equal(result.evidence.nonce, true);
-        assert.equal(result.evidence.csrf, true);
-        assert.equal(result.evidence.corrupted, false);
+        for (const [index, upload] of result.uploads.entries()) {
+            assert.equal(upload.url, '/fixture.png');
+            assert.match(upload.evidence.contentType, /^application\/x-www-form-urlencoded/);
+            assert.equal(upload.evidence.bytes, [22528, 1060000, 16777216][index]);
+            assert.ok(upload.evidence.bodyBytes < 1024 * 1024);
+            assert.equal(upload.evidence.file, true, 'verify decoded file bytes at the receiving HTTP server');
+            assert.equal(upload.evidence.filename, true);
+            assert.equal(upload.evidence.nonce, true);
+            assert.equal(upload.evidence.csrf, true);
+            assert.equal(upload.evidence.corrupted, false);
+        }
         assert.ok(result.progress > 0);
         const prefs = requests.find(request => request.path.endsWith('/prefs.php'));
         const fields = new URLSearchParams(prefs.body);
@@ -56,5 +64,5 @@ export const registerCsrfRequestCases = ({ test, baseUrl }) => {
         assert.equal(fields.get('csrf_token'), 'fixture-unraid-token');
         assert.equal(fields.get('_fv_nonce'), 'a'.repeat(64));
         assert.doesNotMatch(JSON.stringify(result.diagnostics), /fixture-unraid-token|fixture-plugin-token|fixture-file-bytes/);
-    });
+    }, { timeoutMs: 60000 });
 };

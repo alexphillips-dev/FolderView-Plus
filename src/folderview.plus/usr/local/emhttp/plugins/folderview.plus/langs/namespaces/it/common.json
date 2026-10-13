@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG contiene attributi del gestore eventi bloccati.",
     "common.server.svg-references-external-resources-44bc7d": "SVG fa riferimento a risorse esterne.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG contiene contenuto URI bloccato.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "L'icona SVG supera il limite di 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "L'icona SVG supera il limite di 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG contiene contenuti bloccati.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Impossibile elaborare l'icona SVG caricata.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Il tipo di file caricato non corrisponde all'estensione.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Nessun payload di icone fornito.",
     "common.server.invalid-inline-icon-payload-53248b": "Payload dell'icona in linea non valido.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Il file caricato è vuoto.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Il file caricato supera il limite di 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Il file caricato supera il limite di 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "La directory di caricamento temporaneo non è sicura.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Impossibile creare una directory di gestione temporanea del caricamento privata.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Impossibile allocare il file di caricamento temporaneo.",

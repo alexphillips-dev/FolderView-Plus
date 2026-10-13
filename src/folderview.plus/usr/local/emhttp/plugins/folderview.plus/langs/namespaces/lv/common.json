@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG satur bloķētus notikumu apstrādātāja atribūtus.",
     "common.server.svg-references-external-resources-44bc7d": "SVG atsaucas uz ārējiem resursiem.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG satur bloķētu URI saturu.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG ikona pārsniedz 4 MB ierobežojumu.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG ikona pārsniedz 16 MB ierobežojumu.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG satur bloķētu saturu.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Nevar apstrādāt augšupielādēto SVG ikonu.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Augšupielādētā faila veids neatbilst paplašinājumam.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Nav nodrošināta ikonu kravnesība.",
     "common.server.invalid-inline-icon-payload-53248b": "Nederīga iekļautā ikonas kravnesība.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Augšupielādētais fails ir tukšs.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Augšupielādētais fails pārsniedz 4 MB ierobežojumu.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Augšupielādētais fails pārsniedz 16 MB ierobežojumu.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Augšupielādes izlaiduma direktorija nav droša.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Nevar izveidot privātu augšupielādes posmu direktoriju.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Nevar piešķirt pagaidu augšupielādes failu.",

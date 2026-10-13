@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "wizard",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "wizard.title": "Помощник настройки",
     "wizard.welcome.kicker": "FolderView Plus Помощник настройки",

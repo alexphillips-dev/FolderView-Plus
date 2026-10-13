@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.custom-icon-chunks.php';
 function sanitizeCustomIconBasename(string $value): string {
     $name = trim($value);
     $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', $name);
@@ -134,7 +135,7 @@ function validateAndNormalizeSvgContent(string $tmpPath): void {
         throw new RuntimeException('Invalid SVG icon file.');
     }
     if (strlen($raw) > FVPLUS_CUSTOM_ICON_MAX_BYTES) {
-        throw new RuntimeException('SVG icon exceeds 4MB limit.');
+        throw new RuntimeException('SVG icon exceeds 16MB limit.');
     }
     if (strncmp($raw, "\xEF\xBB\xBF", 3) === 0) {
         $raw = substr($raw, 3);
@@ -367,63 +368,10 @@ function uploadErrorMessage(int $errorCode): string {
     }
 }
 
-function decodeInlineIconPayload(string $payload): string {
-    $raw = trim($payload);
-    if ($raw === '') {
-        throw new RuntimeException('No icon payload provided.');
-    }
-
-    $base64 = $raw;
-    if (strpos($raw, 'base64,') !== false) {
-        $parts = explode('base64,', $raw, 2);
-        $base64 = (string)($parts[1] ?? '');
-    }
-    $base64 = preg_replace('/\s+/', '', $base64);
-    if (!is_string($base64) || $base64 === '') {
-        throw new RuntimeException('Invalid inline icon payload.');
-    }
-
-    $decoded = base64_decode($base64, true);
-    if (!is_string($decoded) || $decoded === '') {
-        throw new RuntimeException('Invalid inline icon payload.');
-    }
-    return $decoded;
-}
-
-function writeInlineIconTempFile(string $payload): array {
-    $decoded = decodeInlineIconPayload($payload);
-    $size = strlen($decoded);
-    if ($size <= 0) {
-        throw new RuntimeException('Uploaded file is empty.');
-    }
-    if ($size > FVPLUS_CUSTOM_ICON_MAX_BYTES) {
-        throw new RuntimeException('Uploaded file exceeds 4MB limit.');
-    }
-
-    $tmpRoot = is_dir('/tmp') ? '/tmp' : (string)sys_get_temp_dir();
-    $tmpDir = rtrim($tmpRoot, '/\\') . '/folderview-plus-uploads';
-    if (is_link($tmpDir)) {
-        throw new RuntimeException('Upload staging directory is unsafe.');
-    }
-    if (!is_dir($tmpDir) && !@mkdir($tmpDir, 0700, true) && !is_dir($tmpDir)) {
-        throw new RuntimeException('Unable to create private upload staging directory.');
-    }
-    @chmod($tmpDir, 0700);
-    $tmpPath = @tempnam($tmpDir, 'fvplus-icon-');
-    if (!is_string($tmpPath) || $tmpPath === '') {
-        throw new RuntimeException('Unable to allocate temporary upload file.');
-    }
-
-    if (@file_put_contents($tmpPath, $decoded, LOCK_EX) === false) {
-        @unlink($tmpPath);
-        throw new RuntimeException('Unable to write temporary upload data.');
-    }
-    @chmod($tmpPath, 0600);
-
-    return [
-        'tmpPath' => $tmpPath,
-        'size' => $size
-    ];
+function resolveCustomIconUploadSource(): array {
+    if (isset($_POST['icon_upload_id'])) return stageCustomIconUploadChunk();
+    enforceCustomIconUploadRateLimit();
+    return resolveCustomIconUploadInput();
 }
 
 function resolveCustomIconUploadInput(): array {
@@ -439,7 +387,7 @@ function resolveCustomIconUploadInput(): array {
             throw new RuntimeException('Uploaded file is empty.');
         }
         if ($size > FVPLUS_CUSTOM_ICON_MAX_BYTES) {
-            throw new RuntimeException('Uploaded file exceeds 4MB limit.');
+            throw new RuntimeException('Uploaded file exceeds 16MB limit.');
         }
 
         $tmpPath = (string)($upload['tmp_name'] ?? '');

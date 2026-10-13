@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG contient des attributs de gestionnaire d'événements bloqués.",
     "common.server.svg-references-external-resources-44bc7d": "SVG fait référence à des ressources externes.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG contient du contenu URI bloqué.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "L'icône SVG dépasse la limite de 4 Mo.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "L'icône SVG dépasse la limite de 16 Mo.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG contient du contenu bloqué.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Impossible de traiter l'icône SVG téléchargée.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Le type de fichier téléchargé ne correspond pas à l'extension.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Aucune charge utile d'icône fournie.",
     "common.server.invalid-inline-icon-payload-53248b": "Charge utile d'icône en ligne non valide.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Le fichier téléchargé est vide.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Le fichier téléchargé dépasse la limite de 4 Mo.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Le fichier téléchargé dépasse la limite de 16 Mo.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Le répertoire intermédiaire de téléchargement n’est pas sécurisé.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Impossible de créer un répertoire intermédiaire de téléchargement privé.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Impossible d'attribuer le fichier de téléchargement temporaire.",

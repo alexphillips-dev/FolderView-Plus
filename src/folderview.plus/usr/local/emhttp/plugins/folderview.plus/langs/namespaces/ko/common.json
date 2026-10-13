@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG에는 차단된 이벤트 핸들러 속성이 포함되어 있습니다.",
     "common.server.svg-references-external-resources-44bc7d": "SVG는 외부 리소스를 참조합니다.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG에는 차단된 URI 콘텐츠가 포함되어 있습니다.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 아이콘이 4MB 제한을 초과했습니다.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 아이콘이 16MB 제한을 초과했습니다.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG에는 차단된 콘텐츠가 포함되어 있습니다.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "업로드된 SVG 아이콘을 처리할 수 없습니다.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "업로드한 파일 형식이 확장자와 일치하지 않습니다.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "아이콘 페이로드가 제공되지 않았습니다.",
     "common.server.invalid-inline-icon-payload-53248b": "인라인 아이콘 페이로드가 잘못되었습니다.",
     "common.server.uploaded-file-is-empty-d6c6d9": "업로드한 파일이 비어 있습니다.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "업로드한 파일이 4MB 제한을 초과했습니다.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "업로드한 파일이 16MB 제한을 초과했습니다.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "업로드 준비 디렉터리가 안전하지 않습니다.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "개인 업로드 준비 디렉터리를 생성할 수 없습니다.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "임시 업로드 파일을 할당할 수 없습니다.",

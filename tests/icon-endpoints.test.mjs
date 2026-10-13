@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const repoRoot = path.resolve(process.cwd());
 const thirdPartyEndpointPath = path.join(
@@ -23,11 +24,37 @@ const uploadPhp = [
     'upload_custom_icon.php',
     'lib.custom-icon-endpoint-foundation.php',
     'lib.custom-icon-validation.php',
+    'lib.custom-icon-chunks.php',
     'lib.custom-icon-actions.php',
     'lib.custom-icon-rename.php'
 ].map((name) => fs.readFileSync(path.join(path.dirname(uploadEndpointPath), name), 'utf8')).join('\n');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
+
+test('inline PHP input preserves URL-safe bytes through 16 MiB and rejects larger files', () => {
+    const server = path.dirname(uploadEndpointPath).replaceAll('\\', '/');
+    const result = execFileSync('php', ['-d', 'memory_limit=256M', '-r', `
+        require ${JSON.stringify(server + '/lib.custom-icon-endpoint-foundation.php')};
+        require ${JSON.stringify(server + '/lib.custom-icon-validation.php')};
+        $GLOBALS['fvplus_custom_icon_response_sent']=true;
+        $rows=[];
+        foreach([22528,1060000,16777216,16777217] as $size) {
+            $bytes=str_repeat("\\xff",$size);
+            $_FILES=[]; $_POST=['icon_inline_name'=>'fixture.png','icon_inline_data'=>strtr(base64_encode($bytes),'+/','-_')];
+            try {
+                $input=resolveCustomIconUploadInput();
+                $rows[]=['size'=>$size,'bytes'=>(int)filesize($input['tmpPath']),'match'=>hash_file('sha256',$input['tmpPath'])===hash('sha256',$bytes)];
+                unlink($input['cleanupPath']);
+            } catch(Throwable $error) { $rows[]=['size'=>$size,'error'=>$error->getMessage()]; }
+        }
+        $rows[]=['legacy'=>decodeInlineIconPayload('data:image/png;base64,+/8=')===hex2bin('fbff')];
+        echo json_encode($rows);
+    `], { encoding: 'utf8' });
+    const rows = JSON.parse(result);
+    for (const row of rows.slice(0, 3)) { assert.equal(row.bytes, row.size); assert.equal(row.match, true); }
+    assert.match(rows[3].error, /16MB limit/);
+    assert.equal(rows[4].legacy, true);
+});
 
 const parsePhpStringArray = (source, constantName) => {
     const pattern = new RegExp(`${constantName}\\s*=\\s*\\[([^\\]]+)\\]`, 'm');
@@ -64,7 +91,7 @@ test('upload endpoint enforces request guard and uploads into images\\/custom', 
     assert.match(uploadPhp, /return fvplusCustomIconDirPath\(\);/);
     assert.match(uploadPhp, /fvplusEnsureCustomIconStorageReady\(\$requireWritable\)/);
     assert.match(uploadPhp, /return \(string\)\(\$health\['storageDir'\] \?\? customIconDirPath\(\)\);/);
-    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_BYTES = 16777216;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_TOTAL_BYTES = 268435456;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;/);

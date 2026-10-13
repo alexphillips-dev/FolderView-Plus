@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",

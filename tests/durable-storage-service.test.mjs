@@ -88,9 +88,10 @@ const directWriteAllowlist = new Map([
     ['lib.custom-icon-endpoint-foundation.php', new Map([
         ['writeCustomIconUploadRateBucket', 2],
     ])],
+    // Expiring part metadata is private temporary staging, never durable icon/config state.
+    ['lib.custom-icon-chunks.php', new Map([['stageCustomIconUploadChunk', 1], ['writeInlineIconTempFile', 1]])],
     ['lib.custom-icon-validation.php', new Map([
         ['validateAndNormalizeSvgContent', 1],
-        ['writeInlineIconTempFile', 1]
     ])]
 ]);
 

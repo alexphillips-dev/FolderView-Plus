@@ -40,7 +40,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 42);
+    assert.equal(architecture.serverModuleContracts.length, 43);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -70,6 +70,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('fvplusTransactionRestoreAfterFailure');
         additions.add('fvplusWriteConfigPayload');
         additions.add('fvplusWriteJsonLastGood');
+        for (const name of ['customIconUploadStageDirectory', 'stageCustomIconUploadChunk', 'resolveCustomIconUploadSource']) additions.add(name);
         for (const name of ['fvplusRuntimeInventoryFailure', 'fvplusReadRuntimeEntityList', 'fvplusReadVmInfoState',
             'fvplusReadRepairInventory', 'fvplusAssertRepairMembersNotRenamed', 'renameCustomIconUnlocked']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {

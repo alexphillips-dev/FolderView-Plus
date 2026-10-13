@@ -126,10 +126,10 @@ test('aliased clone prompts preserve the suggested name and cancel before creati
 test('actual PHP upload and backup validators return localized keys without changing diagnostic errors', () => {
     const server = path.join(plugin, 'server').replaceAll('\\', '/');
     const code = `require ${JSON.stringify(server + '/lib.custom-icon-validation.php')}; require ${JSON.stringify(server + '/lib.backup-snapshots.php')}; require ${JSON.stringify(server + '/lib.i18n.php')};
-        const FVPLUS_CUSTOM_ICON_MAX_BYTES=4194304; const FVPLUS_CUSTOM_ICON_EXTENSIONS=['png','svg','ico']; function ensureType($type){return $type;}
+        const FVPLUS_CUSTOM_ICON_MAX_BYTES=16777216; const FVPLUS_CUSTOM_ICON_EXTENSIONS=['png','svg','ico']; function ensureType($type){return $type;}
         $rows=[]; foreach(['no-file','empty','oversized','unsupported','backup-name'] as $case){$_FILES=[];$_POST=[];try{
         if($case==='empty')$_FILES=['icon'=>['error'=>0,'size'=>0]];
-        if($case==='oversized')$_FILES=['icon'=>['error'=>0,'size'=>4194305]];
+        if($case==='oversized')$_FILES=['icon'=>['error'=>0,'size'=>16777217]];
         if($case==='unsupported')$_POST=['icon_inline_data'=>'fixture','icon_inline_name'=>'fixture.exe'];
         if($case==='backup-name')getBackupSnapshotPath('docker','invalid.json');else resolveCustomIconUploadInput();
         }catch(Throwable $error){$rows[]=fvplus_localize_response_keys(['ok'=>false,'error'=>$error->getMessage(),'traceId'=>'fixture']);}} echo json_encode($rows);`;

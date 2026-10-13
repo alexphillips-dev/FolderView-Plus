@@ -404,7 +404,7 @@
                 const multipart = typeof FormData !== 'undefined' && payload instanceof FormData;
                 const response = multipart
                     ? await transport.toMultipartPromise(ajaxOptions, signal, onRequest, onProgress)
-                    : await toAjaxPromise(ajaxOptions, signal, onRequest);
+                    : await toAjaxPromise(ajaxOptions, signal, onRequest, onProgress);
                 response.traceId = traceId;
                 response.transactionId = transactionId;
                 recordDiagnostic({
@@ -591,7 +591,7 @@
         return response.data;
     };
 
-    const uploadJson = async (url, formData, {
+    const uploadJson = async (url, data, {
         timeoutMs = 30000,
         headers = {},
         tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
@@ -599,17 +599,18 @@
         onProgress = null,
         onRequest = null
     } = {}) => {
+        const multipart = typeof FormData !== 'undefined' && data instanceof FormData;
         const response = await request({
             method: 'POST',
             url,
-            data: formData,
+            data,
             timeoutMs,
             retries: 0,
             headers,
             tokenStorageKey,
             cache: false,
-            processData: false,
-            contentType: false,
+            processData: !multipart,
+            contentType: multipart ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
             dataType: 'text',
             signal,
             onRequest,

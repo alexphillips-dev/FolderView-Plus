@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "diagnostics.title": "诊断",
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",

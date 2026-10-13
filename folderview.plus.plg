@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.01">
-<!ENTITY md5 "417e969f5ec769ba7467b3c64aae5055">
-<!ENTITY sha256 "a91daeb30b52c50a1c0edbdd996b5a963e75008076e1c228a78cb86a137d2529">
+<!ENTITY version "2026.10.13.02">
+<!ENTITY md5 "769bb64d566d14b61468bc93a5e8d0a7">
+<!ENTITY sha256 "deeef83ab37419d5ff860dfc4ca8c06e07d9e4d2f5277b50eb6097bdc0baa3bf">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.02
+- Fix: Custom icons now use form-encoded uploads instead of multipart, avoiding the reported Unraid upload stall. Progress and Cancel remain available through file reading, authorization, and transfer; failed or timed-out requests are not automatically replayed.
+- Feature: Raise the custom-icon file cap from 4 MB to 16 MB. Larger files use small, individually authorized parts with URL-safe Base64, staying below PHP's default POST limit without changing Unraid configuration. Partial uploads remain in bounded private staging and expire after five minutes; icons are saved only after complete transfer and validation.
+- Security: Icon uploads retain Unraid CSRF protection, plugin tokens, one-time nonces, image/SVG validation, duplicate handling, storage limits, and atomic writes. Existing icons and folder configuration are preserved.
+- Test: Verify the original small PNG and approximately 1 MB icon, a valid image above 4 MB, cancellation, identical-file deduplication, and replacement. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.13.01
 - Fix: Docker folder saves now confirm order synchronization through a request carrying Unraid's CSRF token and the plugin's one-time authorization nonce before leaving the editor. Creating folders and changing their names, matching expressions, or membership no longer queues an unprotected synchronization request.

@@ -73,27 +73,28 @@ test('stopped preview icons receive grayscale in icon-and-label and icon-only mo
     }
 });
 
-test('explicit multipart refusal recovers once; ambiguous responses and permission failures never replay', async () => {
+test('custom icons start with form data and failed responses never trigger a second upload', async () => {
     const sandbox = {
-        module: { exports: {} }, Error, FormData, File,
+        module: { exports: {} }, Error, FormData, File, AbortController,
         FileReader: class { readAsDataURL() { this.result = 'data:image/png;base64,aWNvbg=='; this.onload(); } }
     };
     vm.runInNewContext(read('scripts/folder.editor.icon-api.js'), sandbox);
     const file = new File(['icon'], 'test.png', { type: 'image/png' });
     for (const kind of ['no-file', 'empty', 'denied']) {
-        const recoverable = kind === 'no-file';
         let uploads = 0; let fallbacks = 0;
         const api = sandbox.module.exports.createApi({ allowedExtensions: ['png'], iconUploadApiPath: '/upload', requestClient: {
-            uploadJson: async () => {
+            uploadJson: async (_url, body) => {
                 uploads++;
-                if (recoverable) throw Object.assign(new Error('No icon file uploaded.'), { status: 400, response: { error: 'No icon file uploaded.' } });
+                assert.equal(body.icon_inline_name, 'test.png');
+                assert.equal(body.icon_inline_data, 'aWNvbg==');
+                assert.equal(body instanceof FormData, false);
+                if (kind === 'no-file') throw Object.assign(new Error('No icon file uploaded.'), { status: 400, response: { error: 'No icon file uploaded.' } });
                 throw new Error(kind === 'empty' ? 'JSON response from /upload was empty.' : 'Permission denied.');
             },
             postJson: async (_url, body) => { fallbacks++; assert.equal(body.icon_inline_name, 'test.png'); return { ok: true, url: '/test.png' }; }
         } });
-        if (recoverable) assert.equal((await api.uploadCustomIconFile(file)).url, '/test.png');
-        else await assert.rejects(api.uploadCustomIconFile(file), kind === 'empty' ? /was empty/ : /Permission denied/);
-        assert.equal(uploads, 1); assert.equal(fallbacks, recoverable ? 1 : 0);
+        await assert.rejects(api.uploadCustomIconFile(file));
+        assert.equal(uploads, 1); assert.equal(fallbacks, 0);
     }
 });
 

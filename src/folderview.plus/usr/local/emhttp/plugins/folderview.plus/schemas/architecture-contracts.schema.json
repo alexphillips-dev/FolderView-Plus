@@ -49,6 +49,7 @@
       "scripts/runtime.shared-controls.js": { "limit": 353, "target": 320, "history": [353] },
       "scripts/folderviewplus.import.js": { "limit": 1486, "target": 500, "history": [1486] },
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
+      "server/lib.custom-icon-chunks.php": { "limit": 150, "target": 150, "history": [150] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
       "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
@@ -660,17 +661,27 @@
       "owner": "custom-icon-validation",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php"],
+      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-chunks.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/upload_custom_icon.php",
-      "functionInventory": { "count": 16, "sha256": "f91b6d2679d52c084c5ddfe2a4d1ef033f9cbe0bf5ac7a9dd2ad6b04f33f9416" }
+      "functionInventory": { "count": 15, "sha256": "0d64cc7fab5fb28faea94899c6bf4a2524ffabfe786f2f78cff02f22a511728b" }
+    },
+    {
+      "file": "server/lib.custom-icon-chunks.php",
+      "owner": "custom-icon-upload-staging",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.security.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.custom-icon-validation.php",
+      "functionInventory": { "count": 4, "sha256": "a09782ea68c72e085f2b462c53b779ec7938707e50056a6310f2ca8f0280f706" }
     },
     {
       "file": "server/lib.custom-icon-actions.php",
       "owner": "custom-icon-endpoint-actions",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-validation.php", "server/lib.custom-icon-rename.php"],
+      "dependsOn": ["server/lib.custom-icon-endpoint-foundation.php", "server/lib.custom-icon-validation.php", "server/lib.custom-icon-chunks.php", "server/lib.custom-icon-rename.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/upload_custom_icon.php",
       "functionInventory": { "count": 15, "sha256": "a2fa8c9349d1ff49159f03255dff0c7b50e8232d1f24f8ca231f4877be7bfd4d" }

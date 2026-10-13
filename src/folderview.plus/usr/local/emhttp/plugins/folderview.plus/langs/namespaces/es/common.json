@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG contiene atributos de controlador de eventos bloqueados.",
     "common.server.svg-references-external-resources-44bc7d": "SVG hace referencia a recursos externos.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG contiene contenido URI bloqueado.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "El icono SVG supera el límite de 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "El icono SVG supera el límite de 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG contiene contenido bloqueado.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "No se puede procesar el icono SVG cargado.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "El tipo de archivo subido no coincide con la extensión.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "No se proporciona ninguna carga útil de icono.",
     "common.server.invalid-inline-icon-payload-53248b": "Carga útil de icono en línea no válida.",
     "common.server.uploaded-file-is-empty-d6c6d9": "El archivo cargado está vacío.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "El archivo cargado supera el límite de 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "El archivo cargado supera el límite de 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Cargar el directorio provisional no es seguro.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "No se puede crear un directorio provisional de carga privado.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "No se puede asignar el archivo de carga temporal.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Választható",
     "common.badges.recommended": "Ajánlott",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "Az SVG blokkolt eseménykezelő attribútumokat tartalmaz.",
     "common.server.svg-references-external-resources-44bc7d": "Az SVG külső forrásokra hivatkozik.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "Az SVG blokkolt URI-tartalmat tartalmaz.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Az SVG ikon meghaladja a 4 MB korlátot.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Az SVG ikon meghaladja a 16 MB korlátot.",
     "common.server.svg-contains-blocked-content-9f5b97": "Az SVG blokkolt tartalmat tartalmaz.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Nem sikerült feldolgozni a feltöltött SVG ikont.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "A feltöltött fájl típusa nem egyezik a kiterjesztéssel.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Nincs megadva ikon rakomány.",
     "common.server.invalid-inline-icon-payload-53248b": "Érvénytelen soron belüli ikon hasznos terhelés.",
     "common.server.uploaded-file-is-empty-d6c6d9": "A feltöltött fájl üres.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "A feltöltött fájl meghaladja a 4 MB korlátot.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "A feltöltött fájl meghaladja a 16 MB korlátot.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "A feltöltési állomáscímtár nem biztonságos.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Nem sikerült létrehozni a privát feltöltési állomáscímtárat.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Nem sikerült kiosztani az ideiglenes feltöltési fájlt.",

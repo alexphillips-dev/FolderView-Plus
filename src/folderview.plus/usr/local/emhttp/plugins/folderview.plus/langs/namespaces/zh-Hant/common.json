@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG 包含阻塞事件處理程序屬性。",
     "common.server.svg-references-external-resources-44bc7d": "SVG 引用外部資源。",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG 包含被阻止的 URI 內容。",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 圖示超過 4MB 限制。",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG 圖示超過 16MB 限制。",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG 包含被封鎖的內容。",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "無法處理上傳的 SVG 圖示。",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "上傳的檔案型別與副檔名不符。",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "未提供圖示有效負載。",
     "common.server.invalid-inline-icon-payload-53248b": "內聯圖示有效負載無效。",
     "common.server.uploaded-file-is-empty-d6c6d9": "上傳的檔案是空的。",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "上傳的檔案超過 4MB 限制。",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "上傳的檔案超過 16MB 限制。",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "上傳暫存目錄不安全。",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "無法建立私有上傳暫存目錄。",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "無法分配臨時上傳檔案。",

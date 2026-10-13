@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG conține atribute blocate pentru gestionarea evenimentelor.",
     "common.server.svg-references-external-resources-44bc7d": "SVG face referire la resurse externe.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG conține conținut URI blocat.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Pictograma SVG depășește limita de 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Pictograma SVG depășește limita de 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG conține conținut blocat.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Nu se poate procesa pictograma SVG încărcată.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Tipul de fișier încărcat nu se potrivește cu extensia.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Nu este furnizată nicio sarcină utilă pentru pictograme.",
     "common.server.invalid-inline-icon-payload-53248b": "Sarcină utilă a pictogramei inline nevalidă.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Fișierul încărcat este gol.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Fișierul încărcat depășește limita de 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Fișierul încărcat depășește limita de 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Încărcarea directorului provizoriu este nesigur.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Imposibil de creat directorul privat de procesare a încărcării.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Nu se poate aloca fișierul de încărcare temporară.",

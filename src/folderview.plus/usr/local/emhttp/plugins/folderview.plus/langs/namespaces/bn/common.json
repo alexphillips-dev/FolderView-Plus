@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG-এ ব্লক করা ইভেন্ট হ্যান্ডলার অ্যাট্রিবিউট রয়েছে।",
     "common.server.svg-references-external-resources-44bc7d": "SVG বাহ্যিক সম্পদের উল্লেখ করে।",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG-এ ব্লক করা URI কন্টেন্ট রয়েছে।",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG আইকন 4MB সীমা অতিক্রম করেছে৷",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG আইকন 16MB সীমা অতিক্রম করেছে৷",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG-এ ব্লক করা কন্টেন্ট রয়েছে।",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "আপলোড করা SVG আইকন প্রক্রিয়া করতে অক্ষম৷",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "আপলোড করা ফাইলের প্রকার এক্সটেনশনের সাথে মেলে না।",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "কোন আইকন পেলোড প্রদান করা হয়.",
     "common.server.invalid-inline-icon-payload-53248b": "অবৈধ ইনলাইন আইকন পেলোড৷",
     "common.server.uploaded-file-is-empty-d6c6d9": "আপলোড করা ফাইল খালি।",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "আপলোড করা ফাইল 4MB সীমা অতিক্রম করেছে৷",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "আপলোড করা ফাইল 16MB সীমা অতিক্রম করেছে৷",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "আপলোড স্টেজিং ডিরেক্টরি অনিরাপদ।",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "ব্যক্তিগত আপলোড স্টেজিং ডিরেক্টরি তৈরি করতে অক্ষম৷",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "অস্থায়ী আপলোড ফাইল বরাদ্দ করতে অক্ষম.",

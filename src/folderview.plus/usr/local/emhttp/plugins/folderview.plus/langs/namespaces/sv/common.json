@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG innehåller blockerade händelsehanterareattribut.",
     "common.server.svg-references-external-resources-44bc7d": "SVG refererar till externa resurser.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG innehåller blockerat URI-innehåll.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG-ikonen överskrider gränsen på 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG-ikonen överskrider gränsen på 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG innehåller blockerat innehåll.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Det gick inte att bearbeta uppladdad SVG-ikon.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Uppladdad filtyp matchar inte tillägget.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Ingen ikonnyttolast tillhandahålls.",
     "common.server.invalid-inline-icon-payload-53248b": "Ogiltig nyttolast för inline-ikon.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Den uppladdade filen är tom.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Uppladdad fil överskrider gränsen på 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Uppladdad fil överskrider gränsen på 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "Uppladdningskatalogen är osäker.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Det gick inte att skapa en privat uppladdningskatalog.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Det gick inte att tilldela en temporär uppladdningsfil.",

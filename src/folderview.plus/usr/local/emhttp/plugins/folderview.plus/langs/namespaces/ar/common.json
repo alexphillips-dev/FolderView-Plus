@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "يحتوي SVG على سمات معالج الأحداث المحظورة.",
     "common.server.svg-references-external-resources-44bc7d": "يشير SVG إلى الموارد الخارجية.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "يحتوي SVG على محتوى URI محظور.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "يتجاوز رمز SVG حد 4 ميغابايت.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "يتجاوز رمز SVG حد 16 ميغابايت.",
     "common.server.svg-contains-blocked-content-9f5b97": "يحتوي SVG على محتوى محظور.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "غير قادر على معالجة أيقونة SVG التي تم تحميلها.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "نوع الملف الذي تم تحميله لا يتطابق مع الامتداد.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "لم يتم توفير حمولة أيقونة.",
     "common.server.invalid-inline-icon-payload-53248b": "حمولة الرمز المضمنة غير صالحة.",
     "common.server.uploaded-file-is-empty-d6c6d9": "الملف الذي تم تحميله فارغ.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "الملف الذي تم تحميله يتجاوز الحد المسموح به وهو 4 ميغابايت.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "الملف الذي تم تحميله يتجاوز الحد المسموح به وهو 16 ميغابايت.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "تحميل الدليل المرحلي غير آمن.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "غير قادر على إنشاء دليل مرحلي خاص للتحميل.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "غير قادر على تخصيص ملف التحميل المؤقت.",

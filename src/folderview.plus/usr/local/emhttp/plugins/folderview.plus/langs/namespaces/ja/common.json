@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG には、ブロックされたイベント ハンドラー属性が含まれています。",
     "common.server.svg-references-external-resources-44bc7d": "SVG は外部リソースを参照します。",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG にはブロックされた URI コンテンツが含まれています。",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG アイコンが 4MB の制限を超えています。",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "SVG アイコンが 16MB の制限を超えています。",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG にはブロックされたコンテンツが含まれています。",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "アップロードされた SVG アイコンを処理できません。",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "アップロードされたファイルの種類が拡張子と一致しません。",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "アイコン ペイロードは提供されません。",
     "common.server.invalid-inline-icon-payload-53248b": "無効なインライン アイコン ペイロードです。",
     "common.server.uploaded-file-is-empty-d6c6d9": "アップロードされたファイルは空です。",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "アップロードされたファイルは 4MB の制限を超えています。",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "アップロードされたファイルは 16MB の制限を超えています。",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "アップロードのステージング ディレクトリは安全ではありません。",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "プライベートアップロードステージングディレクトリを作成できません。",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "一時アップロード ファイルを割り当てることができません。",

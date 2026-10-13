@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "124180d0b2886360cc1f18da492be02cd375f12d1c0692212bef670e3d0bb857"
+        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -451,7 +451,7 @@
     "common.server.svg-contains-blocked-event-handler-attributes-31d5b5": "SVG bevat kenmerken van geblokkeerde gebeurtenishandlers.",
     "common.server.svg-references-external-resources-44bc7d": "SVG verwijst naar externe bronnen.",
     "common.server.svg-contains-blocked-uri-content-24b39a": "SVG bevat geblokkeerde URI-inhoud.",
-    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Het SVG-pictogram overschrijdt de limiet van 4 MB.",
+    "common.server.svg-icon-exceeds-4mb-limit-438abf": "Het SVG-pictogram overschrijdt de limiet van 16 MB.",
     "common.server.svg-contains-blocked-content-9f5b97": "SVG bevat geblokkeerde inhoud.",
     "common.server.unable-to-process-uploaded-svg-icon-aa2154": "Kan het geüploade SVG-pictogram niet verwerken.",
     "common.server.uploaded-file-type-does-not-match-extension-89bcb1": "Het geüploade bestandstype komt niet overeen met de extensie.",
@@ -461,7 +461,7 @@
     "common.server.no-icon-payload-provided-0d18d7": "Er is geen pictogrampayload opgegeven.",
     "common.server.invalid-inline-icon-payload-53248b": "Ongeldige inline pictogrampayload.",
     "common.server.uploaded-file-is-empty-d6c6d9": "Geüploade bestand is leeg.",
-    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Het geüploade bestand overschrijdt de limiet van 4 MB.",
+    "common.server.uploaded-file-exceeds-4mb-limit-4b8766": "Het geüploade bestand overschrijdt de limiet van 16 MB.",
     "common.server.upload-staging-directory-is-unsafe-42b3f2": "De upload-stagingmap is onveilig.",
     "common.server.unable-to-create-private-upload-staging-directory-e711dd": "Kan geen privé-upload-faseringsmap maken.",
     "common.server.unable-to-allocate-temporary-upload-file-5a10d9": "Kan tijdelijk uploadbestand niet toewijzen.",

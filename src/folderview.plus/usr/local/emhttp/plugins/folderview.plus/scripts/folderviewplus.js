@@ -5622,7 +5622,7 @@ const enforceNoHorizontalOverflow = () => {
     tableTargets.forEach((target) => {
         setImportantStyle(target, 'max-width', '100%');
         setImportantStyle(target, 'min-width', '0');
-        setImportantStyle(target, 'overflow-x', compact ? 'hidden' : 'auto');
+        setImportantStyle(target, 'overflow-x', compact && target.closest('#fv-settings-root')?.classList.contains('fv-advanced-mode') !== false ? 'hidden' : 'auto');
         setImportantStyle(target, 'overflow-y', 'visible');
     });
 };

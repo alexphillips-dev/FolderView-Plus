@@ -47,8 +47,10 @@
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .table-wrap {
     padding: 0;
     background: transparent;
-    overflow-x: auto;
+    overflow-x: auto !important;
+    scrollbar-width: auto;
 }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .table-wrap::-webkit-scrollbar { display: block; width: 8px; height: 8px; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table table {
     --fv-hierarchy-step: 64px;
     --fv-hierarchy-gap: 12px;
@@ -74,6 +76,8 @@
     width: auto;
     min-width: 0;
     max-width: none;
+    height: auto;
+    line-height: normal;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -123,33 +127,34 @@
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content {
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 44px 64px minmax(0, 1fr);
-    gap: 16px;
+    grid-template-columns: 44px 34px minmax(0, 1fr);
+    gap: 8px;
     width: 100%;
     min-width: 0;
-    padding: 20px 16px 20px 0;
-    min-height: 112px;
+    padding: 10px 12px 10px 0;
+    min-height: 64px;
     text-align: start;
 }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested {
     border-inline-start: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 12px;
 }
-#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 64px minmax(0, 1fr); padding-inline-start: 20px; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 34px minmax(0, 1fr); padding-inline-start: 12px; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested > .folder-tree-toggle-spacer { display: none; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content:is(.is-nested, .is-root)::before,
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content:is(.is-nested, .is-root)::after { content: none; }
-#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 64px; height: 64px; object-fit: contain; }
-#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text-wrap { gap: 4px; }
-#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text { font-size: 24px; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 34px; height: 34px; object-fit: contain; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text-wrap { gap: .15rem; }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text { font-size: 1.35rem; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-breadcrumb, .name-cell-members-meta, .name-cell-nested-meta) {
-    font-size: 17px;
+    font-size: 1.15rem;
     line-height: 1.3;
     white-space: normal;
     overflow-wrap: anywhere;
     color: var(--fvplus-settings-text-muted);
     opacity: 1;
 }
+#fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-breadcrumb { font-size: .9rem; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-metrics { gap: 4px 16px; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-members-meta, .name-cell-nested-meta) { gap: 8px; }
 #fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-tree-toggle {
@@ -180,6 +185,9 @@
 .fv-hierarchy-guides { display: none; }
 #fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-rail: 0px; }
 #fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table tr[data-folder-id] { grid-template-columns: 0 minmax(0, 1fr) 48px; }
+#fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table .name-cell-content { grid-template-columns: 44px 28px minmax(0, 1fr); }
+#fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 28px; height: 28px; }
+#fv-settings-root.fv-mobile-compact:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 28px minmax(0, 1fr); }
 #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-guides {
     position: absolute;
     display: flex;
@@ -215,9 +223,7 @@
     #fv-settings-root:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-step: 40px; --fv-hierarchy-rail: 128px; }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .order-cell { padding: 8px; }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table .row-order-actions { gap: 2px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { grid-template-columns: 44px 48px minmax(0, 1fr); gap: 8px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 48px; height: 48px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 48px minmax(0, 1fr); padding-inline-start: 16px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { gap: 8px; }
     #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch::after { width: calc(var(--fv-hierarchy-step) - 26px); }
     #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-lane.is-branch { background-position-x: calc(100% - 20px); }
 }
@@ -225,11 +231,7 @@
     #fv-settings-root:not(.fv-advanced-mode) .folder-table table { --fv-hierarchy-step: 20px; --fv-hierarchy-rail: 0px; min-width: calc(280px + var(--fv-hierarchy-max-depth, 0) * var(--fv-hierarchy-step)); }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] { grid-template-columns: 0 minmax(0, 1fr) 48px; }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table tr[data-folder-id] > .order-cell { display: none; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { grid-template-columns: 44px 36px minmax(0, 1fr); gap: 6px; padding-block: 14px; padding-inline-end: 4px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content > img { width: 36px; height: 36px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content.is-nested:has(> .folder-tree-toggle-spacer) { grid-template-columns: 36px minmax(0, 1fr); padding-inline-start: 12px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-text { font-size: 19px; }
-    #fv-settings-root:not(.fv-advanced-mode) .folder-table :is(.name-cell-breadcrumb, .name-cell-members-meta, .name-cell-nested-meta) { font-size: 14px; }
+    #fv-settings-root:not(.fv-advanced-mode) .folder-table .name-cell-content { gap: 6px; padding-block: 10px; padding-inline-end: 4px; }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table .folder-actions-group { flex-direction: column; }
     #fv-settings-root:not(.fv-advanced-mode) .folder-table td.actions-cell .folder-action-btn { width: 40px !important; height: 40px !important; min-height: 40px !important; }
     #fv-settings-root:not(.fv-advanced-mode) .fv-hierarchy-guides { inset-inline-start: 6px; }

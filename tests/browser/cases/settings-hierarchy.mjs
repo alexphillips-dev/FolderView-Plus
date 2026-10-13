@@ -33,18 +33,29 @@ export const registerSettingsHierarchyCases = ({ test }) => {
             for (const width of [1600, 900, 390]) {
                 await page.setViewportSize({ width, height: 900 });
                 await page.emulateMedia({ reducedMotion: 'reduce' });
-                await page.locator('#fv-settings-root').evaluate((root, width) => { root.dir = width === 900 ? 'rtl' : 'ltr'; }, width);
+                await page.locator('#fv-settings-root').evaluate((root, width) => { root.dir = width === 900 ? 'rtl' : 'ltr'; document.documentElement.style.setProperty('--custom-font-size', width === 900 ? '16px' : '10px'); }, width);
                 const layout = await row('child').evaluate(row => {
+                    const card = row.getBoundingClientRect();
                     const name = row.querySelector('.name-cell-content');
                     const box = name.getBoundingClientRect();
                     const control = row.querySelector('.folder-tree-toggle').getBoundingClientRect();
                     return { display: getComputedStyle(row).display, nameInside: [...name.children].filter(child => getComputedStyle(child).display !== 'none').every(child => child.getBoundingClientRect().right <= box.right + 1 && child.getBoundingClientRect().left >= box.left - 1),
                         controlWidth: control.width, pageOverflow: document.documentElement.scrollWidth > innerWidth + 1,
+                        iconWidth: name.querySelector('img').getBoundingClientRect().width, fontScale: parseFloat(getComputedStyle(name.querySelector('.name-cell-text')).fontSize) / parseFloat(getComputedStyle(document.documentElement).fontSize),
+                        contentInside: [...row.querySelectorAll('.name-cell-content, .name-cell-content > *, .name-cell-text-wrap > *, button')].filter(child => child.getClientRects().length).every(child => { const rect = child.getBoundingClientRect(); return rect.top >= card.top - 1 && rect.bottom <= card.bottom + 1; }),
+                        allRowsInside: [...row.parentElement.querySelectorAll('tr[data-folder-id]')].every(folderRow => { const card = folderRow.getBoundingClientRect(); return [...folderRow.querySelectorAll('.name-cell-content, .name-cell-text-wrap > *, img, button')].filter(child => child.getClientRects().length).every(child => { const rect = child.getBoundingClientRect(); return rect.top >= card.top - 1 && rect.bottom <= card.bottom + 1; }); }),
+                        nextTop: row.nextElementSibling?.getBoundingClientRect().top, bottom: card.bottom,
                         guideHeight: row.querySelector('.fv-hierarchy-guides').getBoundingClientRect().height, height: row.getBoundingClientRect().height };
                 });
                 assert.equal(layout.display, 'grid'); assert.equal(layout.nameInside, true, `${width}px: ${JSON.stringify(layout)}`);
                 assert.ok(layout.controlWidth >= 44); assert.equal(layout.pageOverflow, false);
+                assert.equal(layout.contentInside, true, `${width}px: card content must not overlap another row`);
+                assert.equal(layout.allRowsInside, true, `${width}px: every folder depth must contain its content`);
+                assert.ok(layout.nextTop >= layout.bottom, 'folder cards must not overlap');
+                assert.equal(layout.iconWidth, width === 1600 ? 34 : 28, 'retain previous folder icon sizes');
+                assert.ok(Math.abs(layout.fontScale - 1.35) < .01, 'retain the previous name size and respect the Unraid font setting');
                 assert.ok(layout.guideHeight >= layout.height, 'guide spans the row and preceding card gap');
+                if (width === 390) assert.equal(await row('child').evaluate(row => { const pane = row.closest('.table-wrap'); pane.scrollLeft = pane.scrollWidth; return getComputedStyle(pane).overflowX === 'auto' && pane.scrollLeft > 0; }), true, 'deep phone hierarchies must remain scrollable');
             }
             await page.setViewportSize({ width: 1600, height: 900 });
             await row('parent').locator('.folder-tree-toggle').click();

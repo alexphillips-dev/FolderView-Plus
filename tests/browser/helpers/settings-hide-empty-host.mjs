@@ -46,6 +46,11 @@ export const createHideEmptySettingsHost = async (page, type, options = {}) => {
     });
     await page.route('**/server/templates.php**', route => route.fulfill({ json: { ok: true, templates: [] } }));
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+        // Unraid default-base.css fixes table cell heights; grid cards must reset it.
+        // https://github.com/unraid/webgui/blob/26eb1b5c1d547ddbf44a38e63956ba24f659098b/emhttp/plugins/dynamix/styles/default-base.css
+        const hostTableStyle = document.createElement('style');
+        hostTableStyle.textContent = 'html { font-size: var(--custom-font-size, 62.5%); } body { font-size: 1.3rem; } table:where(:not(.unapi *)) tbody td { line-height: 2.6rem; height: 2.6rem; white-space: nowrap; }';
+        document.head.appendChild(hostTableStyle);
         const dark = matchMedia('(prefers-color-scheme: dark)').matches;
         window.display.theme = dark ? 'black' : 'white';
         document.body.style.backgroundColor = dark ? '#1d1d1f' : '#f5f6f8';

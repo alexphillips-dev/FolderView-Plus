@@ -42,7 +42,7 @@
         'play': '<path d="m7 4 14 8-14 8z"></path>',
         'pause': '<path d="M8 5v14M16 5v14"></path>',
         'trash': '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"></path>',
-        'more': '<path d="M5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>',
+        'more': '<circle cx="4" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="20" cy="12" r="1"></circle>',
         'grip': '<path d="M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01"></path>',
         'activity': '<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"></polyline>',
         'alert-triangle': '<path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
@@ -68,8 +68,6 @@
         'shield': '<path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"></path><path d="m9 12 2 2 4-4"></path>',
         'support': '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><path d="m5.6 5.6 4.3 4.3M14.1 14.1l4.3 4.3M18.4 5.6l-4.3 4.3M9.9 14.1l-4.3 4.3"></path>',
         'upload': '<path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path>',
-        'hierarchy': '<path d="M9 3h6v5H9ZM12 8v8M4 16v-4h16v4M1 16h6v5H1Zm8 0h6v5H9Zm8 0h6v5h-6Z"></path>',
-        'settings': '<path d="m10 3-.6 2.4-2 .9-2.2-.8-2 3.4L5 10.6v2.8l-1.8 1.7 2 3.4 2.2-.8 2 .9L10 21h4l.6-2.4 2-.9 2.2.8 2-3.4-1.8-1.7v-2.8l1.8-1.7-2-3.4-2.2.8-2-.9L14 3ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>',
         'x-circle': '<circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path>'
     });
 

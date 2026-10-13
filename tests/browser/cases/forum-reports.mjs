@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerBackupMobileReportCases } from './backup-mobile-report.mjs';
 import { registerDashboardRowSpacingCases } from './dashboard-row-spacing.mjs';
 import { registerDashboardRowExpansionCases } from './dashboard-row-expansion.mjs'; import { registerFolderHoverEffectCases } from './folder-hover-effects.mjs';
-import { registerSettingsHideEmptyCases } from './settings-hide-empty.mjs'; import { registerSettingsHierarchyCases } from './settings-hierarchy.mjs';
+import { registerSettingsHideEmptyCases } from './settings-hide-empty.mjs';
 import { registerDockerHideEmptyCases } from './docker-hide-empty.mjs';
 import { registerDockerHierarchyMoveCases } from './docker-hierarchy-move.mjs';
 import { registerDockerFolderMenuStateCases } from './docker-folder-menu-state.mjs';
@@ -11,7 +11,7 @@ export const registerForumReportFixtureCases = ({ test, baseUrl }) => {
 registerBackupMobileReportCases({ test, baseUrl });
 registerDashboardRowSpacingCases({ test, baseUrl });
 registerDashboardRowExpansionCases({ test, baseUrl }); registerFolderHoverEffectCases({ test, baseUrl });
-registerSettingsHideEmptyCases({ test }); registerSettingsHierarchyCases({ test });
+registerSettingsHideEmptyCases({ test });
 registerDockerHideEmptyCases({ test });
 registerDockerHierarchyMoveCases({ test });
 registerDockerFolderMenuStateCases({ test });

@@ -1,11 +1,11 @@
 import path from 'node:path';
 import { createProductionPerfFixture } from '../../../scripts/lib/production-perf-fixture.mjs';
 
-export const createHideEmptySettingsHost = async (page, type, options = {}) => {
+export const createHideEmptySettingsHost = async (page, type) => {
     const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, 'en');
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
         icon: '/plugins/folderview.plus/images/folder-icon.png', settings: {}, actions: [] });
-    const folders = options.folders || {
+    const folders = {
         parent: folder('Populated branch'),
         child: folder('Child branch', 'parent'),
         leaf: folder('Manual leaf', 'child', ['fixture-manual']),
@@ -19,12 +19,12 @@ export const createHideEmptySettingsHost = async (page, type, options = {}) => {
         running: true, State: { Running: true, Paused: false }, icon: '/plugins/folderview.plus/images/folder-icon.png'
     }]));
     let prefs = { hideEmptyFolders: true, sortMode: 'alpha', setupWizardCompleted: true,
-        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], ...options.prefs, _metadata: { prefsRevision: 1, folderRevision: 1 } };
+        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], _metadata: { prefsRevision: 1 } };
     let releaseRuntime;
     const runtimeGate = new Promise(resolve => { releaseRuntime = resolve; });
     const snapshot = (target, configOnly = false) => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type: target,
         folders: target === type ? folders : {}, runtime: target === type && !configOnly ? runtime : {}, runtimeIncluded: !configOnly, order: [],
-        prefs: target === type ? prefs : { setupWizardCompleted: true }, metadata: target === type ? prefs._metadata : {}, revision: 'a'.repeat(64) });
+        prefs: target === type ? prefs : { setupWizardCompleted: true }, metadata: {}, revision: 'a'.repeat(64) });
     await page.route('**/server/runtime_snapshot.php?**', async route => {
         const url = new URL(route.request().url());
         const target = url.searchParams.get('type');
@@ -40,17 +40,11 @@ export const createHideEmptySettingsHost = async (page, type, options = {}) => {
         const request = route.request();
         const payload = request.method() === 'POST' ? Object.fromEntries(new URLSearchParams(request.postData())) : {};
         if (request.method() === 'POST' && payload.type === type) {
-            prefs = { ...prefs, ...JSON.parse(payload.prefs), _metadata: { ...prefs._metadata, prefsRevision: prefs._metadata.prefsRevision + 1 } };
+            prefs = { ...prefs, ...JSON.parse(payload.prefs), _metadata: { prefsRevision: prefs._metadata.prefsRevision + 1 } };
         }
         await route.fulfill({ json: { ok: true, prefs, metadata: prefs._metadata, clientMutationId: payload.clientMutationId } });
     });
-    await page.route('**/server/templates.php**', route => route.fulfill({ json: { ok: true, templates: [] } }));
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
-        // Unraid default-base.css fixes table cell heights; grid cards must reset it.
-        // https://github.com/unraid/webgui/blob/26eb1b5c1d547ddbf44a38e63956ba24f659098b/emhttp/plugins/dynamix/styles/default-base.css
-        const hostTableStyle = document.createElement('style');
-        hostTableStyle.textContent = 'html { font-size: var(--custom-font-size, 62.5%); } body { font-size: 1.3rem; } table:where(:not(.unapi *)) tbody td { line-height: 2.6rem; height: 2.6rem; white-space: nowrap; }';
-        document.head.appendChild(hostTableStyle);
         const dark = matchMedia('(prefers-color-scheme: dark)').matches;
         window.display.theme = dark ? 'black' : 'white';
         document.body.style.backgroundColor = dark ? '#1d1d1f' : '#f5f6f8';

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.12.09">
-<!ENTITY md5 "287d122e57879d8fb3a516bc22c083ab">
-<!ENTITY sha256 "a69a47bb2ecb0466ce4d6edb0e17814a83fc8162c64d798bd4284afb3a8817da">
+<!ENTITY version "2026.10.12.10">
+<!ENTITY md5 "40758515a28df4c348d29e8bd7e9343a">
+<!ENTITY sha256 "2c635880de92d124b8d146ade3e606f47b6b5152dc77c278aca2154294a9244e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -18,18 +18,10 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.10.12.09
-- Fix: Basic settings folder cards no longer inherit Unraid's fixed table-cell height, which could collapse rows, overlap folder names and icons, and block clicks on neighbouring controls.
-- UX: Restore the previous folder icon and name sizes in Basic settings. Text follows the Unraid font setting, and compact layouts retain smaller folder icons.
-- Fix: Deep folder hierarchies can scroll horizontally inside the Basic workspace without widening the page or clipping controls.
-- Compatibility: Hierarchy connections, folder assignments, ordering, guarded moves, and saved expansion states are preserved. Advanced table layout remains unchanged; no configuration migration is required.
-
-
-###2026.10.12.08
-- UX: Basic settings displays Docker and VM folders as themed hierarchy cards with larger folder icons, readable member counts and paths, and aligned move and action controls.
-- UX: Nested folders use connected vertical guides, rounded branches, and connection points that follow visible folders at every depth. Guides update when folders are moved, filtered, expanded, or collapsed.
-- UX: Cards adapt to compact and phone layouts, with reachable collapse and action controls. Deep trees scroll within the folder workspace without widening the page.
-- Compatibility: Existing folders, assignments, ordering, saved collapse states, and guarded drag-and-drop moves are preserved. Advanced settings retains its table layout and saved column widths. No configuration migration is required.
+###2026.10.12.10
+- Fix: Fully revert the Basic settings folder hierarchy redesign and its follow-up sizing changes, restoring the working folder view from before the mockup work.
+- UX: Restore the original folder layout, icon and name sizes, controls, and nesting presentation for Docker and VM settings.
+- Compatibility: Existing folder data, assignments, ordering, expansion preferences, and earlier fixes are preserved. No configuration migration is required.
 
 
 ###2026.10.12.07

@@ -1584,12 +1584,12 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 }
 
 #fv-settings-root .folder-tree-toggle {
-    width: var(--fv-settings-tree-toggle-size, 14px) !important;
-    min-width: var(--fv-settings-tree-toggle-size, 14px) !important;
-    max-width: var(--fv-settings-tree-toggle-size, 14px) !important;
-    height: var(--fv-settings-tree-toggle-size, 14px) !important;
-    min-height: var(--fv-settings-tree-toggle-size, 14px) !important;
-    max-height: var(--fv-settings-tree-toggle-size, 14px) !important;
+    width: 14px !important;
+    min-width: 14px !important;
+    max-width: 14px !important;
+    height: 14px !important;
+    min-height: 14px !important;
+    max-height: 14px !important;
     padding: 0 !important;
     border: 0 !important;
     background: transparent !important;

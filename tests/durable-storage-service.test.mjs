@@ -262,7 +262,7 @@ writeJsonObjectWithLastGood($configDir . '/vm.prefs.json', $payload);
 writeJsonObjectWithLastGood($configDir . '/docker.metadata.json', $payload);
 writeJsonObjectAtomic($configDir . '//backups///new/snapshot.json', $payload);
 writeDurableFileAtomic($sourceDir . '/styles/generated/theme.css', 'fixture-css');
-writeDurableFileAtomic($sourceDir . '/images/custom/icon.svg', 'fixture-icon');
+writeDurableFileAtomic($configDir . '/images/custom/icon.svg', 'fixture-icon');
 writeDurableFileAtomic(getenv('FVPLUS_TEST_STORAGE_DIR') . '/native/autostart', "fixture-container 5\\n");
 echo json_encode(['rejected' => $rejected]);
 `;
@@ -288,7 +288,7 @@ echo json_encode(['rejected' => $rejected]);
         }
         assert.equal(fs.readFileSync(path.join(config, 'backups/new/snapshot.json'), 'utf8'), jsonBytes);
         assert.equal(fs.readFileSync(path.join(runtime, 'styles/generated/theme.css'), 'utf8'), 'fixture-css');
-        assert.equal(fs.readFileSync(path.join(runtime, 'images/custom/icon.svg'), 'utf8'), 'fixture-icon');
+        assert.equal(fs.readFileSync(path.join(config, 'images/custom/icon.svg'), 'utf8'), 'fixture-icon');
         assert.equal(fs.readFileSync(path.join(tempDir, 'host-fixture/native/autostart'), 'utf8'), 'fixture-container 5\n');
         const tempFiles = fs.readdirSync(tempDir, { recursive: true }).filter(name => name.includes('.tmp.'));
         assert.deepEqual(tempFiles, []);

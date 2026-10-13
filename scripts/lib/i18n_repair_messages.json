@@ -183,8 +183,6 @@
   "common.repair.1-items-2-818040": "$1 � items: $2",
   "common.repair.1-smart-rule-scan-suggestions-found-2-f5de01": "$1 smart rule scan � suggestions found: $2.",
   "common.repair.2-smart-rule-suggestions-saved-1-24da17": "$2 smart rule suggestions saved: $1.",
-  "common.repair.1-rules-matching-the-current-filter-2-of-3-061470": "$1 Rules matching the current filter: $2 of $3.",
-  "common.repair.matching-rules-shown-1-0b0157": "Matching rules shown: $1.",
   "common.repair.creates-1-353b67": "Creates: $1",
   "common.repair.updates-1-27085d": "Updates: $1",
   "common.repair.deletes-1-a0fb91": "Deletes: $1",

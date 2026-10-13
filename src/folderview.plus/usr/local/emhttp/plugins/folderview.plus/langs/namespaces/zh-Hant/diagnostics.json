@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
+        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
     },
     "diagnostics.title": "診斷",
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",

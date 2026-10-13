@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "import",
-        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
+        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
     },
     "import.subtitle": "选择如何处理现有文件夹。只有在您选择“应用导入”后，才会发生更改。",
     "import.behavior.question": "现有文件夹应如何处理？",

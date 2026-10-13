@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "import",
-        "translation-context-revision": "d1424eb1533603096f36b7c55e8661edee0661392d6926544a1e17a7796b75d4"
+        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
     },
     "import.subtitle": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করবেন তা চয়ন করুন। আপনি আমদানি প্রয়োগ করুন নির্বাচন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।",
     "import.behavior.question": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করা উচিত?",

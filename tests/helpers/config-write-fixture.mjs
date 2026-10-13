@@ -6,13 +6,15 @@ import path from 'node:path';
 export const runConfigWriteFixture = (request) => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-config-write-'));
     for (const dir of ['config', 'source', 'host']) fs.mkdirSync(path.join(root, dir));
+    const autostart = path.join(root, 'config', 'fixture-autostart');
+    fs.writeFileSync(autostart, 'fixture-member 0\n');
     fs.writeFileSync(path.join(root, 'request.json'), JSON.stringify(request));
     try {
         const server = process.env.FVPLUS_CONFIG_WRITE_SERVER || path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
         const env = {
             ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(root, 'config'),
             FVPLUS_TEST_SOURCE_DIR: path.join(root, 'source'), FVPLUS_TEST_DOCUMENT_ROOT: path.join(root, 'host'),
-            FVPLUS_TEST_STORAGE_DIR: path.join(root, 'config')
+            FVPLUS_TEST_STORAGE_DIR: path.join(root, 'config'), FVPLUS_TEST_DOCKER_AUTOSTART_FILE: autostart
         };
         const result = JSON.parse(execFileSync('php', [path.resolve('tests/fixtures/config-write.php'),
             server, root], { encoding: 'utf8', timeout: 30000, env

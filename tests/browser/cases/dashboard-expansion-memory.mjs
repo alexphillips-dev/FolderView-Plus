@@ -32,7 +32,7 @@ export const registerDashboardExpansionMemoryCase = ({ test, baseUrl, installFix
         assert.equal(accordion.saved.sibling, true); assert.equal(accordion.saved.parent, true);
         await page.evaluate(() => {
             window.fixtureDashboardAccordion.clear('docker');
-            window.dispatchEvent(new StorageEvent('storage', {
+            window.dispatchEvent(Object.assign(new Event('storage'), {
                 key: window.FolderViewPlusDashboardStateStore.EXPANDED_STATE_STORAGE_KEYS.docker,
                 newValue: '{"stale":true}', storageArea: localStorage
             }));

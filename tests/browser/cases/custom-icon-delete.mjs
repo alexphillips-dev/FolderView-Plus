@@ -7,7 +7,7 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
         });
         for (const type of ['docker', 'vm']) {
             await page.goto(`${baseUrl}/folder-editor`, { waitUntil: 'load' });
-            for (const script of ['folder.editor.icon-api', 'folder.editor.icons', 'folder.editor.preview']) {
+            for (const script of ['folderviewplus.utils-foundation', 'folder.editor.icon-api', 'folder.editor.icons', 'folder.editor.preview']) {
                 await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${script}.js` });
             }
             await page.evaluate(async type => {
@@ -24,8 +24,9 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
                 const input = document.getElementById('fixture-delete-icon');
                 const form = { icon: input, name: { value: 'Example' }, preview: { value: '1' } };
                 const defaultIcon = '/plugins/folderview.plus/images/folder-icon.png';
+                const escapeHtml = window.FolderViewPlusFoundationModules.utilityFoundation.escapeHtml;
                 const preview = window.FolderViewPlusFolderEditorPreview.createApi({ $: window.jQuery, type,
-                    getForm: () => form, defaultFolderIconPath: defaultIcon });
+                    getForm: () => form, defaultFolderIconPath: defaultIcon, escapeHtml });
                 const setIconInputValue = value => {
                     window.jQuery(input).val(value).trigger('input').trigger('change');
                 };
@@ -52,7 +53,7 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
                         return { name: 'uploaded.png', url: custom + '?v=1' };
                     } };
                 const api = window.FolderViewPlusFolderEditorIcons.createApi({ window, document, $: window.jQuery,
-                    folderIconApi, getForm: () => form, getIconInput: () => window.jQuery(input),
+                    folderIconApi, escapeHtml, getForm: () => form, getIconInput: () => window.jQuery(input),
                     getCurrentIconValue: () => input.value, setIconInputValue, defaultFolderIconPath: defaultIcon,
                     swal: (_options, callback) => callback(state.confirm), fetchJson: async () => [] });
                 window.fixtureIconDelete = Object.assign(state, { setIconInputValue, custom, defaultIcon });

@@ -60,8 +60,10 @@ const withRulesFixture = async (page, run) => {
         await page.unroute('**/server/prefs.php');
         await page.unroute('**/server/runtime_snapshot.php?*');
         await page.unroute('**/server/templates.php?*');
-        server.closeAllConnections();
-        await new Promise(resolve => server.close(resolve));
+        page.once('close', () => {
+            server.closeAllConnections();
+            server.close();
+        });
     }
 };
 const waitWrites = async (page, state, count) => {

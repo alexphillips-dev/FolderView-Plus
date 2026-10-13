@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'; import { registerCustomIconRenameCase } from './custom-icon-rename.mjs'; import { registerCsrfRequestCases } from './csrf-requests.mjs';
+import assert from 'node:assert/strict'; import { registerCustomIconRenameCase } from './custom-icon-rename.mjs'; import { registerCsrfRequestCases } from './csrf-requests.mjs'; import { registerCustomIconDeleteCase } from './custom-icon-delete.mjs';
 export const registerFolderEditorFixtureCases = ({ test, baseUrl }) => {
 test('Folder action sheet uses the compact retained action set and accessible dialog', async ({ page }) => {
     await page.goto(`${baseUrl}/folder-editor`, { waitUntil: 'load' });
@@ -40,5 +40,5 @@ test('Folder action sheet traps focus, copies details, and restores trigger focu
     assert.equal(await page.evaluate(() => window.fixtureFolderEditor.calls.includes('delete')), true);
     assert.equal(await page.locator('#fv-folder-action-sheet-backdrop').count(), 0);
 });
-registerCustomIconRenameCase({ test, baseUrl }); registerCsrfRequestCases({ test, baseUrl });
+registerCustomIconRenameCase({ test, baseUrl }); registerCsrfRequestCases({ test, baseUrl }); registerCustomIconDeleteCase({ test, baseUrl });
 };

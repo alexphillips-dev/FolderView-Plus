@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.02">
-<!ENTITY md5 "769bb64d566d14b61468bc93a5e8d0a7">
-<!ENTITY sha256 "deeef83ab37419d5ff860dfc4ca8c06e07d9e4d2f5277b50eb6097bdc0baa3bf">
+<!ENTITY version "2026.10.13.03">
+<!ENTITY md5 "9fe6ef74a80560784236e6597556b1c1">
+<!ENTITY sha256 "84ae7a667d0028c1a033725f54262935b11ce4d80b585935b6db1cbdbe079fd6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.03
+- Fix: Deleting a custom icon that is selected in the folder editor now selects the default folder icon and refreshes the icon field, heading, icon panel, and live preview. A newer icon selection is preserved if it changes while deletion is pending.
+- Test: Cover upload followed by immediate deletion in Docker and VM editors, different cache-version URLs, failed and cancelled deletion, saved-reference protection, a changed selection during deletion, and a failed list refresh after successful deletion. Verify the default previews in desktop and phone layouts with light and dark themes.
+
 
 ###2026.10.13.02
 - Fix: Custom icons now use form-encoded uploads instead of multipart, avoiding the reported Unraid upload stall. Progress and Cancel remain available through file reading, authorization, and transfer; failed or timed-out requests are not automatically replayed.

@@ -34,6 +34,7 @@
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
+    { "file": "tests/browser/cases/custom-icon-delete.mjs", "limit": 130, "owner": "uploaded icon deletion, default previews and asynchronous selection safety" },
     { "file": "tests/browser/cases/settings-runtime-actions.mjs", "limit": 85, "owner": "lightweight Docker action plans and Settings requests" },
     { "file": "tests/browser/cases/dashboard-expansion-memory.mjs", "limit": 70, "owner": "buffered Dashboard expansion, clear and pagehide memory" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
@@ -125,6 +126,7 @@
         "tests/browser/cases/folder-editor.mjs",
         "tests/browser/cases/custom-icon-rename.mjs",
         "tests/browser/cases/csrf-requests.mjs",
+        "tests/browser/cases/custom-icon-delete.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
@@ -165,10 +167,10 @@
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
-      "testCount": 108,
-      "assertionCount": 1369,
-      "pageEvaluateCount": 355,
-      "orderedTitleSha256": "a6d5c4d8347506fc5091ca8bed9958005f07ef42a6a744b6b7f9883e19b61fc3"
+      "testCount": 109,
+      "assertionCount": 1375,
+      "pageEvaluateCount": 367,
+      "orderedTitleSha256": "c14b75797568abaacc8bf5cde6f03fbd0692ef344699ef620ed2d1e81674e79e"
     }
   }
 }

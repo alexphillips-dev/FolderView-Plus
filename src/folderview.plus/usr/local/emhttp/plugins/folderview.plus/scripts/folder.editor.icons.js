@@ -495,7 +495,6 @@
                     setCustomIconStatus(`Selected "${name}".`);
                     return;
                 }
-
                 if (action === 'refs') {
                     try {
                         let refs = asArray(icon?.usage);
@@ -534,7 +533,6 @@
                     }
                     return;
                 }
-
                 if (action === 'delete') {
                     const usageCount = Math.max(0, Number(icon?.usageCount || 0));
                     if (usageCount > 0) {
@@ -554,6 +552,8 @@
                         }
                         try {
                             await requestCustomIconApi('delete', { name }, 'POST');
+                            const selectedPath = getCurrentIconValue().split(/[?#]/, 1)[0];
+                            if (selectedPath && selectedPath === String(icon.url || '').split(/[?#]/, 1)[0]) setIconInputValue(defaultFolderIconPath);
                             await refreshCustomIconManager();
                             setCustomIconStatus(`Deleted "${name}".`);
                         } catch (error) {

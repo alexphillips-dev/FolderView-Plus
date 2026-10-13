@@ -5,18 +5,32 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.05">
-<!ENTITY md5 "f813b8a6e217715fe0ac22a0f1959ff9">
-<!ENTITY sha256 "0880e976ae43a92bd92cdb0d8c5d82f71f0c25278f8023d43ee811aa595b10f1">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.13.06">
+<!ENTITY md5 "da2af84517ad9be1b82ec885ca56cdc6">
+<!ENTITY sha256 "79966fce1197cadb99191588a9274fed18ec2b0bff75506508a14a03ba78a860">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.13.06
+- Feature: Create Docker and VM folders from one Add folder/group popup. Choose a single folder, preconfigured categories and Smart suggestions, or save and reuse your own named folder groups. Groups keep names and icons, create root folders, skip existing matching names, and leave membership assignment to the editor.
+- Feature: Refresh Advanced Rules with Docker/VM tabs, summary cards, a guided Include/Exclude builder, live match counts, smart suggestions, search, selected-rule actions, and mouse or keyboard reordering. Existing rule IDs, priorities, saved formats, conflict testing, and guarded saves remain supported.
+- UX: Align Settings header and Basic toolbar heights, improve folder/member text readability, and give search and Sort one clear focus treatment. Rules and Operations controls share the Bulk Assignment styling; Rules panels use the active theme and long rule lists expand with the page. Phone and touch controls retain larger targets.
+- UX: Open the regular Docker folder menu directly from nested previews, with Focus, Pin, Lock, Hide, Expand to folder, and applicable management actions. Folder shortcuts show their active states. Docker Start, Stop, Pause, Resume, and Restart display progress in the affected folder row, with accessible status breakdowns and dismissible failure details.
+- Fix: Keep Dashboard accent bars beside folder artwork and limit hover effects to folder headers. Preserve rapid Docker/VM expansion changes across refresh and navigation, including nested Accordion transitions; clearing expansion memory cannot be reversed by an older queued write. Docker hover effects remain visible around truncated names.
+- Fix: Restore reliable custom-icon uploads on Unraid 7.3.3 using form requests, progress, cancellation, and individually authorized parts. Raise the icon file cap to 16 MB without changing PHP or Nginx settings. Deleting the currently selected icon resets all editor previews to the default; renaming requires clearing references from folders, defaults, saved groups, and the editor.
+- Fix: Keep Settings, Docker, VMs, and Dashboard usable when browser storage is blocked. Verify a fresh complete inventory before repairing saved membership or synchronizing managed Docker start order; ordinary inventory reads preserve native autostart records. Settings action previews correctly distinguish running, paused, and stopped containers.
+- Security: Preserve Unraid CSRF protection alongside plugin tokens and one-time nonces, restrict credentials to the current origin, and await protected Docker order synchronization when saving folders. Reject unsafe durable-storage paths before creating files. Failed or ambiguous mutations are not automatically replayed.
+- Fix: Preserve complete UTF-8 characters in byte-limited names and metadata. Stop imports and restores before mutation when rollback capture is unsafe, restore captured permissions, compensate configuration/revision failures, and report incomplete rollback while retaining recovery evidence.
+- Compatibility: Update from Plugins and hard-refresh Settings, Docker, VMs, and Dashboard after installation. Existing configuration, folder assignments, rules, defaults, uploaded icons, and backup schedules are preserved; no reset or configuration migration is required. Browser-local UI state cannot survive reload when storage is blocked. Native Unraid File Manager failures still require their own reproduction and failing endpoint.
+- Localization: Remove obsolete Rules messages while retaining complete translations across all 27 supported locales.
+
 
 ###2026.10.13.05
 - UX: Remove obsolete styles for retired Rules chips, wide-field overrides, and card-action controls.
@@ -9601,7 +9615,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

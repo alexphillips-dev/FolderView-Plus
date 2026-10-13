@@ -27,6 +27,12 @@ Groups create root-level folders using the existing folder creation defaults. Th
 
 The modern folder editor separates controls into General, Members, Preview, Chevron, Status, Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
 
+### Custom icons
+
+Upload an allowed image up to 16 MiB from the General tab. A successful upload selects the icon automatically. Progress and Cancel cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication can reuse an existing icon, and replacement uses the selected filename.
+
+Deleting an unused icon that is currently selected returns the editor and its previews to the default icon. A different icon chosen while deletion is pending remains selected. Renaming requires removing or replacing references in saved folders, defaults, custom folder groups, and the current editor selection first. Review the manager's usage information before changing an icon.
+
 ## Build a hierarchy
 
 A folder can be placed under another folder. The parent picker controls the hierarchy, while the Members tab controls containers or VMs assigned directly to the folder.

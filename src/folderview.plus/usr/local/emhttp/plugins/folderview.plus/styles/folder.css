@@ -254,6 +254,29 @@
 
 .fv-icon-browser .fv-third-party-icon-select {
     flex-direction: column;
+    justify-content: center;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.fv-icon-browser .fv-third-party-icon-item {
+    box-sizing: border-box;
+    aspect-ratio: 1;
+    min-height: 0;
+    padding: .5rem;
+}
+
+.fv-icon-browser #fv-third-party-icon-grid {
+    grid-template-columns: repeat(auto-fill, 96px);
+}
+
+.fv-icon-browser .fv-third-party-icon-actions {
+    display: contents;
+}
+
+.fv-icon-browser .fv-third-party-icon-badges:empty {
+    display: none;
 }
 
 .fv-icon-browser .fv-third-party-icon-main {
@@ -284,8 +307,16 @@
     --fv-button-border: transparent;
     --fv-button-fg: var(--fv-editor-dim);
     position: absolute;
-    top: 3px;
-    inset-inline-end: 3px;
+    top: 2px;
+    right: 2px;
+    z-index: 2;
+    width: 32px !important;
+    max-width: none !important;
+    height: 32px !important;
+}
+
+.fv-icon-browser .fv-third-party-icon-fav > i {
+    font-size: 18px !important;
 }
 
 .fv-icon-browser .fv-third-party-icon-fav:is(:hover, .is-active) {
@@ -2036,6 +2067,15 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     opacity: 0.8;
 }
 
+:is(.fv-third-party-preview-action, .fv-third-party-icon-fav) {
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+}
+
 .fv-third-party-preview-action {
     min-width: 24px !important;
     width: 24px !important;
@@ -2047,12 +2087,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    appearance: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
-    letter-spacing: 0 !important;
     color: var(--fv-editor-dim) !important;
     opacity: 0.72;
     transition: color 120ms ease, opacity 120ms ease, transform 120ms ease;
@@ -2118,12 +2152,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    appearance: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
-    letter-spacing: 0 !important;
     overflow: hidden !important;
     flex: 0 0 24px !important;
     color: var(--fv-editor-dim) !important;

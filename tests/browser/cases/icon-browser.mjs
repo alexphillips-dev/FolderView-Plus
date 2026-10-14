@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mountIconBrowser, checkIconDialogAccessibility } from '../helpers/icon-browser-host.mjs';
+import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout } from '../helpers/icon-browser-host.mjs';
 export const registerIconBrowserCases = ({ test, baseUrl }) => {
     test('Icon browser stays inline, matches the parent panel and defaults to built-in icons for Docker and VM', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
@@ -47,6 +47,10 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             await page.locator('.fv-third-party-icon-item').first().waitFor();
             assert.equal(await page.locator('#fv-third-party-view').inputValue(), 'all');
             assert.equal(await page.locator('.fv-third-party-icon-item').count(), 3);
+            await checkIconPackTileLayout(page);
+            await page.locator('.fv-third-party-icon-item').first().locator('.fv-third-party-icon-fav').click();
+            assert.equal(await page.locator('.fv-third-party-icon-item').first().locator('.fv-third-party-icon-fav').evaluate(node => node.classList.contains('is-active')), true);
+            assert.equal(await input.inputValue(), original);
             const controls = await page.locator('#fv-third-party-icon-panel').evaluate(panel => {
                 const boxes = ['fv-third-party-search', 'fv-third-party-view', 'fv-third-party-sort'].map(id => {
                     const box = document.getElementById(id).getBoundingClientRect(); return { top: box.top, width: box.width };
@@ -62,7 +66,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             await page.locator('#fv-third-party-view').selectOption('all');
             await page.locator('#fv-third-party-search').fill('beta');
             await page.waitForFunction(() => document.querySelectorAll('.fv-third-party-icon-item').length === 1);
-            await page.locator('.fv-third-party-icon-item').first().click();
+            await page.locator('.fv-third-party-icon-item').first().locator('[data-icon-select]').click();
             await checkIconDialogAccessibility(page);
             assert.equal(await input.inputValue(), original);
             await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();

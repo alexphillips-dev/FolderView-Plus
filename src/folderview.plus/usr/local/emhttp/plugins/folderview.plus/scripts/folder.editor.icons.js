@@ -1606,6 +1606,7 @@
                     folder.textContent = iconFolder;
                     main.append(name, folder);
                     const actions = doc.createElement('div');
+                    actions.className = 'fv-third-party-icon-actions';
                     const favorite = doc.createElement('button');
                     favorite.type = 'button';
                     favorite.className = `fv-third-party-icon-fav${isFavorite ? ' is-active' : ''}`;

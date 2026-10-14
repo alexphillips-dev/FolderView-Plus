@@ -63,3 +63,12 @@ export const checkIconDialogAccessibility = async page => {
     });
     assert.deepEqual(violations, []);
 };
+export const checkIconPackTileLayout = async page => {
+    const tile = await page.locator('.fv-third-party-icon-item').first().evaluate(node => {
+        const rect = node.getBoundingClientRect(), image = node.querySelector('img').getBoundingClientRect(), button = node.querySelector('[data-icon-select]'), star = node.querySelector('.fv-third-party-icon-fav'), favorite = star.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, centered: Math.abs((image.left + image.right) / 2 - (rect.left + rect.right) / 2), top: favorite.top - rect.top, right: rect.right - favorite.right, target: favorite.width, font: parseFloat(getComputedStyle(star.querySelector('i')).fontSize), border: getComputedStyle(button).borderTopWidth };
+    });
+    assert.ok(Math.abs(tile.width - tile.height) < 2 && tile.height <= 100 && tile.centered < 2);
+    assert.ok(tile.top <= 4 && tile.right <= 4 && tile.target >= 32 && tile.font >= 18);
+    assert.equal(tile.border, '0px');
+};

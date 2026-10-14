@@ -217,6 +217,10 @@
     overflow: visible;
 }
 
+.fv-icon-browser .fv-custom-icon-list {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+}
+
 .fv-icon-browser .fv-icon-picker-item, .fv-icon-browser .fv-third-party-icon-item, .fv-icon-browser .fv-custom-icon-row {
     position: relative;
     display: flex;
@@ -337,12 +341,31 @@
     overflow-wrap: normal;
 }
 
+.fv-icon-browser .fv-custom-icon-row {
+    min-width: 0;
+    justify-content: flex-start;
+    padding: .8rem;
+    box-sizing: border-box;
+}
+
+.fv-icon-browser .fv-custom-icon-meta {
+    width: 100%;
+    gap: .4rem;
+}
+
+.fv-icon-browser .fv-custom-icon-extra {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+}
+
 .fv-icon-browser .fv-custom-icon-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: .4rem;
     justify-content: center;
     width: 100%;
+    margin-top: auto;
 }
 
 .fv-icon-browser .fv-custom-icon-actions > button[data-action="use"] {
@@ -443,7 +466,7 @@
         min-height: 44px;
     }
 
-    .fv-icon-browser .fv-icon-picker-grid, .fv-icon-browser .fv-custom-icon-list {
+    .fv-icon-browser .fv-icon-picker-grid {
         grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
     }
 

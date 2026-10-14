@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout } from '../helpers/icon-browser-host.mjs';
+import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout, checkUploadCardLayout } from '../helpers/icon-browser-host.mjs';
 export const registerIconBrowserCases = ({ test, baseUrl }) => {
     test('Icon browser stays inline, matches the parent panel and defaults to built-in icons for Docker and VM', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
@@ -126,6 +126,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         await page.locator('[data-custom-icon="late.png"]').waitFor();
         assert.equal(await input.inputValue(), original);
         assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Default Folder');
+        await checkUploadCardLayout(page);
         await page.keyboard.press('Escape');
     });
     test('Icon browser asks about upload conflicts and Escape cancels without writing a library file', async ({ page }) => {

@@ -33,6 +33,7 @@
   "modules": [
     { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
     { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
+    { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
     { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
     {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
     {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
@@ -175,11 +176,12 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs",
-        "tests/browser/helpers/icon-browser-host.mjs"
+        "tests/browser/helpers/icon-browser-host.mjs",
+        "tests/browser/helpers/upload-card-layout.mjs"
       ],
       "testCount": 114,
-      "assertionCount": 1461,
-      "pageEvaluateCount": 389,
+      "assertionCount": 1468,
+      "pageEvaluateCount": 390,
       "orderedTitleSha256": "5df1f0bb835b1a178efd1a4f2448a55c7c69c4c2188769d3b53b0804131f63c2"
     }
   }

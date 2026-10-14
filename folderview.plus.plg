@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.10">
-<!ENTITY md5 "89a8a608a4dae38c05ebc33d2bb49e25">
-<!ENTITY sha256 "8ded95e0a0b8748d935e3257ec70df5c49de519a7608ea1c6bbfadad64891d58">
+<!ENTITY version "2026.10.14.11">
+<!ENTITY md5 "d5b46a345a7a6fd2ca52d22547c7754b">
+<!ENTITY sha256 "fc6d742aae4902699a890223622bc244a62aabb8716c9b1db4a00c4333643eeb">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.11
+- Fix: Keep My uploads filenames and file details inside their cards, with references, rename, and delete buttons aligned in one row.
+- UX: Give uploaded icons enough room for readable details and consistent spacing on desktop and touch screens.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised card styles.
+
 
 ###2026.10.14.10
 - UX: Use compact square Icon Packs tiles with centered thumbnails and filenames. Remove the inner button frame, excessive vertical padding, and empty action-row space.

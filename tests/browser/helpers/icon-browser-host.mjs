@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+export { checkUploadCardLayout } from './upload-card-layout.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const markup = fs.readFileSync(`${plugin}/Folder.page`, 'utf8').match(/<dd class="fv-icon-dd">([\s\S]*?)<\/dd>/)[0];
 export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {

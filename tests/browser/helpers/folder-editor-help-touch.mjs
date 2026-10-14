@@ -22,5 +22,10 @@ export const checkFolderHelpTouch = async (original, baseUrl) => {
         await info.tap(); assert.equal(await tooltip.count(), 0);
         await info.tap(); await tooltip.waitFor(); await page.touchscreen.tap(2, 2);
         assert.equal(await tooltip.count(), 0);
+        await page.locator('.fv-section-nav > button[data-target="general"]').click();
+        const parentInfo = page.locator('[data-editor-panel="parent"] h4 [data-fv-setting-info]');
+        const parentBox = await parentInfo.boundingBox(); assert.ok(parentBox.width >= 44 && parentBox.height >= 44);
+        await parentInfo.tap(); await tooltip.waitFor();
+        assert.match(await tooltip.innerText(), /Child folders are nested/);
     } finally { await context.close(); }
 };

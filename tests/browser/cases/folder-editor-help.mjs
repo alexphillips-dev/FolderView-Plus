@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { mountSettingsEditor } from '../helpers/folder-editor-settings-host.mjs';
 import { checkFolderHelpTouch } from '../helpers/folder-editor-help-touch.mjs';
+import { checkFolderHeadings } from '../helpers/folder-editor-headings.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const tooltipAppearance = element => {
     const luminance = color => {
@@ -29,6 +30,7 @@ export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
             }).map(node => node.dataset.i18n), catalog);
             assert.deepEqual(mismatches, [], 'English tooltips and labels must agree with their source fallbacks');
             for (const name of ['folderviewplus.ui', 'folder.editor.help']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
+            await checkFolderHeadings(page, baseUrl, type);
             assert.equal(await page.locator('.inline_help').count(), 0);
             const missing = await page.evaluate(() => Object.values(settingsFixture.schema.SECTION_FIELD_NAMES).flat().filter(name => {
                 const row = settingsFixture.form.elements.namedItem(name)?.closest('.basic');

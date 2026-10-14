@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.18">
-<!ENTITY md5 "9626fc5c9f759258e8c64f37f9f3dd54">
-<!ENTITY sha256 "f51c598ed3ef2a7eeb91fdf1d6c48274e73932a3cdfc033c4c64eed8cf5d2ae0">
+<!ENTITY version "2026.10.14.19">
+<!ENTITY md5 "6f2c2e402533d67e27a2aa59406dbb6c">
+<!ENTITY sha256 "6d14f9844982321d0fbb08e5d892ce2b83340e3165785b3d1da6222948f8eadd">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.19
+- Fix: Remove repeated inner headings from Parent Folder, Folder Members, Chevron Style/Color, Status Colors, WebUI Profiles, Auto-Rules, and Folder Actions. Keep their information icons beside the retained panel headings, consistent with the Icon panel.
+- Fix: Refresh Auto-Rules help when its content changes so rerendering cannot leave an obsolete information icon in the panel heading.
+- Accessibility: Preserve distinct setting labels and existing control names, and associate otherwise unnamed controls with the retained heading text without including the info button label.
+- Compatibility: Saved settings and folder behavior are unchanged. Hard-refresh the webGUI after updating to load the revised folder editor scripts and styles.
+
 
 ###2026.10.14.18
 - Fix: Keep folder editor information tooltips readable in dark and light themes, including when host styles assign their own colors to help text.

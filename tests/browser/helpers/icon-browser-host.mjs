@@ -3,26 +3,28 @@ import assert from 'node:assert/strict';
 import { checkIconPackFilters } from './icon-pack-filters.mjs';
 export { checkUploadCardLayout } from './upload-card-layout.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
-const markup = fs.readFileSync(`${plugin}/Folder.page`, 'utf8').match(/<dd class="fv-icon-dd">([\s\S]*?)<\/dd>/)[0];
+const source = fs.readFileSync(`${plugin}/Folder.page`, 'utf8');
+const markup = source.match(/<dd class="fv-icon-dd">([\s\S]*?)<\/dd>/)[0];
+const help = source.match(/<p data-i18n="\[html\]icon-tooltip">[\s\S]*?<\/p>/)[0];
 export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
     await page.route(`${baseUrl}/folder-editor`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Icon picker</title><link rel="stylesheet" href="/plugin/styles/theme.tokens.css"><link rel="stylesheet" href="/plugin/styles/folder.css"></head><body><script src="/vendor/jquery.js"></script></body></html>' }));
     await page.goto(`${baseUrl}/folder-editor`);
     await page.route('**/plugins/dynamix.docker.manager/images/question.png', route => route.fulfill({ path: `${plugin}/images/folder-icon.png` }));
-    await page.evaluate(({ markup, type }) => {
+    await page.evaluate(({ markup, help, type }) => {
         document.querySelectorAll('style').forEach(node => node.remove());
         document.querySelector('link[href$="/folderviewplus.css"]')?.remove();
         document.body.innerHTML = `<main><h1>Folder icon</h1><div class="canvas"><form class="folder-editor-form" id="icon-test-form" data-type="${type}">
             <div class="basic"><dl><dt>Parent folder</dt><dd><select name="parent_folder_id" aria-label="Parent folder"><option>No parent</option></select><div class="fv-parent-picker-list">${Array.from({ length: 23 }, (_, index) => `<button type="button">Folder ${index + 1}</button>`).join('')}</div></dd></dl></div>
-            <div class="basic"><dl><dt>Icon</dt>${markup}</dl></div></form></div></main>`;
+            <div class="basic"><dl><dt>Icon</dt>${markup}</dl><blockquote class="fv-setting-help">${help}</blockquote></div></form></div></main>`;
         document.body.style.cssText = 'background:var(--fvplus-ui-page);color:var(--fvplus-ui-text-primary);font:14px Arial,sans-serif;margin:20px';
         document.documentElement.style.fontSize = '10px';
         document.documentElement.dataset.fvplusHostTheme = matchMedia('(prefers-color-scheme: light)').matches ? 'white' : 'black';
-    }, { markup, type });
+    }, { markup, help, type });
     for (const style of ['ui.primitives.css', 'ui.host-buttons.css']) {
         const link = await page.addStyleTag({ url: `${baseUrl}/plugin/styles/${style}` });
         await link.evaluate(node => document.head.insertBefore(node, document.querySelector('link[href$="/folder.css"]')));
     }
-    for (const name of ['folderviewplus.ui', 'folderviewplus.utils-foundation', 'folder.editor.chrome', 'folder.editor.icon-browser', 'folder.editor.icons']) {
+    for (const name of ['folderviewplus.ui', 'folderviewplus.utils-foundation', 'folder.editor.chrome', 'folder.editor.help', 'folder.editor.icon-browser', 'folder.editor.icons']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
     }
     await page.evaluate(async () => {

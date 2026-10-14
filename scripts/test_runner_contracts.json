@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/folder-editor-headings.mjs", "limit": 80, "owner": "Folder editor panel heading deduplication, help association and rerender lifecycle" },
     { "file": "tests/browser/helpers/folder-editor-help-touch.mjs", "limit": 45, "owner": "Native touch, RTL and localized folder help interactions", "requiredImports": ["./folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/cases/folder-editor-help.mjs", "limit": 110, "owner": "Folder editor SVG help, disabled fields and dynamic content", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/cases/folder-editor-settings.mjs", "limit": 80, "owner": "Folder settings dependency visibility and stored value regressions", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
@@ -163,6 +164,7 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/folder-editor-headings.mjs",
         "tests/browser/helpers/folder-editor-help-touch.mjs",
         "tests/browser/helpers/folder-editor-settings-host.mjs",
         "tests/browser/helpers/folder-action-settings-host.mjs",
@@ -192,8 +194,8 @@
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
       "testCount": 116,
-      "assertionCount": 1556,
-      "pageEvaluateCount": 408,
+      "assertionCount": 1571,
+      "pageEvaluateCount": 410,
       "orderedTitleSha256": "9a03ef6a4b21418aed499113ea89a2c185bcdc408aebebf0626706a93a6b0a16"
     }
   }

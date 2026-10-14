@@ -50,11 +50,22 @@
             popover.element.addEventListener('focusout', scheduleClose);
         };
         const refresh = () => {
+            form.querySelectorAll('[data-fv-setting-info]').forEach(button => { if (!doc.getElementById(button.dataset.fvSettingInfo)) button.remove(); });
             form.querySelectorAll('.fv-setting-help').forEach(help => {
                 const row = help.closest('.basic');
                 const label = row?.querySelector(':scope > dl > dt');
-                const heading = row?.querySelector('.fv-icon-dd') ? row.closest('.fv-editor-panel')?.querySelector('.fv-editor-panel-head h4') : label;
+                const panel = row?.closest('.fv-editor-panel');
+                const usePanelHeading = panel?.hasAttribute('data-fv-heading-label') && row === panel.querySelector('.basic');
+                const heading = usePanelHeading ? panel.querySelector('.fv-editor-panel-head h4') : label;
                 if (!heading) return;
+                if (usePanelHeading && label) {
+                    label.classList.add('fv-panel-label'); label.hidden = true;
+                    if (!heading.id) heading.id = `fv-panel-${panel.dataset.editorPanelSection}-${panel.dataset.editorPanel}-heading`;
+                    panel.setAttribute('aria-labelledby', `${heading.id}-text`);
+                    row.querySelectorAll('input, select, textarea').forEach(field => {
+                        if (!field.labels?.length && !field.hasAttribute('aria-label') && !field.hasAttribute('aria-labelledby')) field.setAttribute('aria-labelledby', `${heading.id}-text`);
+                    });
+                }
                 help.hidden = true;
                 if (!help.id) { do { help.id = `fv-setting-help-${++sequence}`; } while (doc.querySelectorAll(`#${help.id}`).length > 1); }
                 if (heading.querySelector(`[data-fv-setting-info="${help.id}"]`)) return;
@@ -64,6 +75,7 @@
                     Array.from(heading.attributes).filter(attr => attr.name.startsWith('data-i18n')).forEach(attr => { text.setAttribute(attr.name, attr.value); heading.removeAttribute(attr.name); });
                     heading.appendChild(text);
                 }
+                if (usePanelHeading) heading.querySelector('.fv-setting-label').id = `${heading.id}-text`;
                 const button = doc.createElement('button'); button.type = 'button'; button.className = 'fv-setting-info';
                 button.dataset.fvSettingInfo = help.id; button.setAttribute('aria-disabled', 'false'); button.setAttribute('data-i18n-ignore', '');
                 button.innerHTML = ui.svgIcon('info-circle'); heading.appendChild(button); describe(button);

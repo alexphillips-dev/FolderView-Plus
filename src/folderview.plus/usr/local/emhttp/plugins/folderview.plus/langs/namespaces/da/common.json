@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Tidsgrænsen for indlæsning af indstillinger blev overskredet",
     "common.startup.timeout-detail": "FolderView Plus kunne ikke færdiggøre indlæsningen af indstillinger. Genindlæs siden for at prøve igen.",
     "common.icon-browser.choose": "Vælg ikon",
-    "common.icon-browser.collections": "Samlinger",
+    "common.icon-browser.collections": "Ikonpakker",
     "common.icon-browser.uploads": "Mine uploads",
     "common.icon-browser.external": "Eksternt ikon",
     "common.icon-browser.source": "Ikonkilde",

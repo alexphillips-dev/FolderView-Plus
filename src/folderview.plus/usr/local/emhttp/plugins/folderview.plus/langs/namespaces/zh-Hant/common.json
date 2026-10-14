@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "設定載入逾時",
     "common.startup.timeout-detail": "FolderView Plus 未能完成設定載入。請重新載入頁面以重試。",
     "common.icon-browser.choose": "選擇圖示",
-    "common.icon-browser.collections": "圖示集",
+    "common.icon-browser.collections": "圖示套件",
     "common.icon-browser.uploads": "我的上傳",
     "common.icon-browser.external": "外部圖示",
     "common.icon-browser.source": "圖示來源",

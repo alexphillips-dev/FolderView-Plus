@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "설정 로딩 시간이 초과되었습니다",
     "common.startup.timeout-detail": "FolderView Plus에서 설정을 끝까지 불러오지 못했습니다. 페이지를 새로고침하여 다시 시도하세요.",
     "common.icon-browser.choose": "아이콘 선택",
-    "common.icon-browser.collections": "컬렉션",
+    "common.icon-browser.collections": "아이콘 팩",
     "common.icon-browser.uploads": "내 업로드",
     "common.icon-browser.external": "외부 아이콘",
     "common.icon-browser.source": "아이콘 소스",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Time-out bij het laden van instellingen",
     "common.startup.timeout-detail": "FolderView Plus kon de instellingen niet volledig laden. Laad de pagina opnieuw om het nogmaals te proberen.",
     "common.icon-browser.choose": "Kies icoon",
-    "common.icon-browser.collections": "Collecties",
+    "common.icon-browser.collections": "Pictogrampakketten",
     "common.icon-browser.uploads": "Mijn uploads",
     "common.icon-browser.external": "Extern pictogram",
     "common.icon-browser.source": "Icoon bron",

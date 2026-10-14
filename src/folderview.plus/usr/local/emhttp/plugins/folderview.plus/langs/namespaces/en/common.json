@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Settings loading timed out",
     "common.startup.timeout-detail": "FolderView Plus could not finish loading Settings. Reload the page to try again.",
     "common.icon-browser.choose": "Choose icon",
-    "common.icon-browser.collections": "Collections",
+    "common.icon-browser.collections": "Icon Packs",
     "common.icon-browser.uploads": "My uploads",
     "common.icon-browser.external": "External icon",
     "common.icon-browser.source": "Icon source",

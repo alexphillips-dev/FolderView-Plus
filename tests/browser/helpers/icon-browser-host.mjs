@@ -28,7 +28,7 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
         const input = document.querySelector('[name="icon"]');
         input.value = defaultIcon;
         const builtin = [{ name: 'Default Folder', path: defaultIcon }, { name: 'Tools', path: `${defaultIcon}?tools` }];
-        const icons = ['alpha.png', 'beta.png'].map(name => ({ name, folder: 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder'] }));
+        const icons = ['alpha.png', 'beta.png', 'gamma.png'].map((name, index) => ({ name, folder: index === 2 ? 'Other' : 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder'] }));
         const state = { uploads: [], pending: false, complete: null, uploadOptions: null };
         const api = window.FolderViewPlusFolderEditorIcons.createApi({ window, document, $: window.jQuery,
             getForm: () => document.getElementById('icon-test-form'), getIconInput: () => window.jQuery(input),
@@ -37,7 +37,7 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
             escapeHtml: window.FolderViewPlusFoundationModules.utilityFoundation.escapeHtml,
             sanitizeImageUrl: window.FolderViewPlusFoundationModules.utilityFoundation.sanitizeImageUrl,
             requestClient: { getJson: async (url, options) => url.endsWith('.json') ? builtin :
-                options.data.action === 'list_folders' ? { ok: true, folders: [{ name: 'Example', iconCount: 2 }] } : { ok: true, icons } },
+                options.data.action === 'list_folders' ? { ok: true, folders: [{ name: 'Example', iconCount: 2 }, { name: 'Other', iconCount: 1 }] } : { ok: true, icons } },
             folderIconApi: {
                 requestCustomIconApi: async (action, payload) => {
                     if (action === 'delete') state.uploads = state.uploads.filter(icon => icon.name !== payload.name);

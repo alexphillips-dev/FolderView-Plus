@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Se agotó el tiempo de carga de la configuración",
     "common.startup.timeout-detail": "FolderView Plus no pudo terminar de cargar la configuración. Vuelva a cargar la página para intentarlo de nuevo.",
     "common.icon-browser.choose": "Elegir icono",
-    "common.icon-browser.collections": "Colecciones",
+    "common.icon-browser.collections": "Paquetes de iconos",
     "common.icon-browser.uploads": "Mis cargas",
     "common.icon-browser.external": "Icono externo",
     "common.icon-browser.source": "Fuente del icono",

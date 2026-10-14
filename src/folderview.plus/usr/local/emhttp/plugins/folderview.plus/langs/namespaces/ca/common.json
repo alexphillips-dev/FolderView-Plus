@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "S’ha esgotat el temps de càrrega de la configuració",
     "common.startup.timeout-detail": "FolderView Plus no ha pogut acabar de carregar la configuració. Torneu a carregar la pàgina per tornar-ho a provar.",
     "common.icon-browser.choose": "Tria la icona",
-    "common.icon-browser.collections": "Col·leccions",
+    "common.icon-browser.collections": "Paquets d’icones",
     "common.icon-browser.uploads": "Les meves càrregues",
     "common.icon-browser.external": "Icona externa",
     "common.icon-browser.source": "Font d'icones",

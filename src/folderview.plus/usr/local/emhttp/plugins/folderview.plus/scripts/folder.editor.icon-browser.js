@@ -7,7 +7,7 @@
     const surfaceT = (key, fallback) => globalThis.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
     const labels = () => ({
         builtin: surfaceT('legacy.surface.c55a471f24b6805c', 'Built-in icons'),
-        collections: surfaceT('common.icon-browser.collections', 'Collections'),
+        collections: surfaceT('common.icon-browser.collections', 'Icon Packs'),
         uploads: surfaceT('common.icon-browser.uploads', 'My uploads')
     });
     // The editor field remains authoritative. Browsing only writes it on confirmation.

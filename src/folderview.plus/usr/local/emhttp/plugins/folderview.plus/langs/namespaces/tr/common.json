@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Ayarların yüklenmesi zaman aşımına uğradı",
     "common.startup.timeout-detail": "FolderView Plus, ayarları yüklemeyi tamamlayamadı. Tekrar denemek için sayfayı yeniden yükleyin.",
     "common.icon-browser.choose": "Simge seç",
-    "common.icon-browser.collections": "Koleksiyonlar",
+    "common.icon-browser.collections": "Simge paketleri",
     "common.icon-browser.uploads": "Yüklemelerim",
     "common.icon-browser.external": "Harici simge",
     "common.icon-browser.source": "Simge kaynağı",

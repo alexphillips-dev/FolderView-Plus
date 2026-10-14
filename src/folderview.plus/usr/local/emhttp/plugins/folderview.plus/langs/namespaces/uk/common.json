@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Час очікування завантаження налаштувань минув",
     "common.startup.timeout-detail": "FolderView Plus не вдалося завершити завантаження налаштувань. Оновіть сторінку, щоб повторити спробу.",
     "common.icon-browser.choose": "Виберіть значок",
-    "common.icon-browser.collections": "Колекції",
+    "common.icon-browser.collections": "Набори піктограм",
     "common.icon-browser.uploads": "Мої завантаження",
     "common.icon-browser.external": "Зовнішній значок",
     "common.icon-browser.source": "Джерело значків",

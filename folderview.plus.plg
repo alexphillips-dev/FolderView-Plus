@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.08">
-<!ENTITY md5 "1278eb61b097da00b0b698aa2d65d65b">
-<!ENTITY sha256 "64d3143f35845220ac20f2b2b4a81368dd0175cddc2d967c6bcd29b79a342df5">
+<!ENTITY version "2026.10.14.09">
+<!ENTITY md5 "f61fac51ebcb4191b9a11e39fe549370">
+<!ENTITY sha256 "1411c6e205e23c465b8ab732fd519aeb34b515302762ee05dbdc481e014bf1da">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.09
+- UX: Rename Collections to Icon Packs in the folder editor, with reviewed labels for every supported locale.
+- UX: Place compact Scope and Sort dropdowns to the right of icon search on desktop. Group Filters, Folder icons only, and Refresh into one compact row and remove empty filter spacing and stretched rows. Narrow screens wrap the controls below search.
+- Fix: Default Icon Packs to Scope: all packs so icons from every available pack appear immediately. Preserve scope changes during the editor session.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised layout and translations.
+
 
 ###2026.10.14.08
 - UX: Keep the Icon URL or path field visible directly beneath the folder icon preview and remove the More dropdown.

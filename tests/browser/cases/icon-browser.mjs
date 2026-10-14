@@ -40,11 +40,26 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Tools');
             await dialog.locator('.fv-icon-browser-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
             assert.equal(await input.inputValue(), original);
-            await page.getByRole('tab', { name: 'Collections' }).click();
+            await page.getByRole('tab', { name: 'Icon Packs' }).click();
             assert.equal(await page.locator('#fv-icon-upload').isVisible(), false);
-            const cue = await page.getByRole('tab', { name: 'Collections' }).evaluate(tab => ({ active: getComputedStyle(tab).boxShadow, inactive: getComputedStyle(document.getElementById('fv-icon-picker-toggle')).boxShadow }));
+            const cue = await page.getByRole('tab', { name: 'Icon Packs' }).evaluate(tab => ({ active: getComputedStyle(tab).boxShadow, inactive: getComputedStyle(document.getElementById('fv-icon-picker-toggle')).boxShadow }));
             assert.notEqual(cue.active, cue.inactive);
             await page.locator('.fv-third-party-icon-item').first().waitFor();
+            assert.equal(await page.locator('#fv-third-party-view').inputValue(), 'all');
+            assert.equal(await page.locator('.fv-third-party-icon-item').count(), 3);
+            const controls = await page.locator('#fv-third-party-icon-panel').evaluate(panel => {
+                const boxes = ['fv-third-party-search', 'fv-third-party-view', 'fv-third-party-sort'].map(id => {
+                    const box = document.getElementById(id).getBoundingClientRect(); return { top: box.top, width: box.width };
+                });
+                const rows = Array.from(panel.children).filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect());
+                return { boxes, presets: panel.querySelector('.fv-third-party-presets').getBoundingClientRect().height, gap: Math.max(...rows.slice(1).map((row, index) => row.top - rows[index].bottom)), first: panel.getBoundingClientRect().top - document.querySelector('.fv-icon-source-bar').getBoundingClientRect().bottom };
+            });
+            assert.ok(controls.boxes.slice(1).every(box => box.width <= 150));
+            if (page.viewportSize().width > 600) assert.ok(controls.boxes.every(box => Math.abs(box.top - controls.boxes[0].top) < 2));
+            assert.ok(controls.gap <= 12 && controls.first <= 20 && controls.presets <= 50);
+            await page.locator('#fv-third-party-view').selectOption('folder');
+            assert.equal(await page.locator('.fv-third-party-icon-item').count(), 2);
+            await page.locator('#fv-third-party-view').selectOption('all');
             await page.locator('#fv-third-party-search').fill('beta');
             await page.waitForFunction(() => document.querySelectorAll('.fv-third-party-icon-item').length === 1);
             await page.locator('.fv-third-party-icon-item').first().click();
@@ -54,14 +69,14 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.match(await input.inputValue(), /collection=beta/);
             await bar.getByRole('button', { name: 'Use default icon', exact: true }).click();
             assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Default Folder');
-            assert.equal(await page.getByRole('tab', { name: 'Collections' }).getAttribute('aria-selected'), 'true');
+            assert.equal(await page.getByRole('tab', { name: 'Icon Packs' }).getAttribute('aria-selected'), 'true');
             assert.equal(await page.locator('#fv-third-party-search').inputValue(), 'beta');
             const selected = await input.inputValue();
             await page.keyboard.press('Escape');
             assert.equal(await input.inputValue(), selected);
             await page.evaluate(() => document.dispatchEvent(new CustomEvent('fvplus:editor-section-change', { detail: { previousSection: 'members', section: 'general' } })));
             assert.equal(await page.getByRole('tab', { name: 'Built-in icons' }).getAttribute('aria-selected'), 'true');
-            await page.getByRole('tab', { name: 'Collections' }).focus();
+            await page.getByRole('tab', { name: 'Icon Packs' }).focus();
             await page.keyboard.press('Home');
             assert.equal(await page.getByRole('tab', { name: 'Built-in icons' }).getAttribute('aria-selected'), 'true');
             const overflow = await dialog.evaluate(node => node.scrollWidth > node.clientWidth + 1);

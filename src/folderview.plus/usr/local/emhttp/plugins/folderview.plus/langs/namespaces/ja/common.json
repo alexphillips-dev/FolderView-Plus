@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "設定の読み込みがタイムアウトしました",
     "common.startup.timeout-detail": "FolderView Plus は設定の読み込みを完了できませんでした。ページを再読み込みして、もう一度お試しください。",
     "common.icon-browser.choose": "アイコンを選択",
-    "common.icon-browser.collections": "コレクション",
+    "common.icon-browser.collections": "アイコンパック",
     "common.icon-browser.uploads": "アップロードしたアイコン",
     "common.icon-browser.external": "外部アイコン",
     "common.icon-browser.source": "アイコンソース",

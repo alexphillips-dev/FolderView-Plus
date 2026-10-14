@@ -12,7 +12,7 @@
   ],
   "en": [
     "Choose icon",
-    "Collections",
+    "Icon Packs",
     "My uploads",
     "External icon",
     "Icon source",
@@ -24,7 +24,7 @@
   "locales": {
     "ar": [
       "اختر أيقونة",
-      "المجموعات",
+      "حزم الأيقونات",
       "تحميلاتي",
       "أيقونة خارجية",
       "مصدر الأيقونة",
@@ -35,7 +35,7 @@
     ],
     "bn": [
       "আইকন নির্বাচন করুন",
-      "সংগ্রহ",
+      "আইকন প্যাক",
       "আমার আপলোড",
       "বাহ্যিক আইকন",
       "আইকন উৎস",
@@ -46,7 +46,7 @@
     ],
     "ca": [
       "Tria la icona",
-      "Col·leccions",
+      "Paquets d’icones",
       "Les meves càrregues",
       "Icona externa",
       "Font d'icones",
@@ -57,7 +57,7 @@
     ],
     "cs": [
       "Vyberte ikonu",
-      "Sbírky",
+      "Balíčky ikon",
       "Moje nahrané ikony",
       "Externí ikona",
       "Zdroj ikon",
@@ -68,7 +68,7 @@
     ],
     "da": [
       "Vælg ikon",
-      "Samlinger",
+      "Ikonpakker",
       "Mine uploads",
       "Eksternt ikon",
       "Ikonkilde",
@@ -79,7 +79,7 @@
     ],
     "de": [
       "Symbol auswählen",
-      "Sammlungen",
+      "Symbolpakete",
       "Meine Uploads",
       "Externes Symbol",
       "Symbolquelle",
@@ -90,7 +90,7 @@
     ],
     "es": [
       "Elegir icono",
-      "Colecciones",
+      "Paquetes de iconos",
       "Mis cargas",
       "Icono externo",
       "Fuente del icono",
@@ -101,7 +101,7 @@
     ],
     "fr": [
       "Choisir l'icône",
-      "Collections",
+      "Packs d’icônes",
       "Mes icônes importées",
       "Icône externe",
       "Source de l'icône",
@@ -112,7 +112,7 @@
     ],
     "hr": [
       "Odaberite ikonu",
-      "Zbirke",
+      "Paketi ikona",
       "Moji prijenosi",
       "Vanjska ikona",
       "Izvor ikone",
@@ -123,7 +123,7 @@
     ],
     "hu": [
       "Válassza ki az ikont",
-      "Gyűjtemények",
+      "Ikoncsomagok",
       "Feltöltéseim",
       "Külső ikon",
       "Ikon forrása",
@@ -134,7 +134,7 @@
     ],
     "it": [
       "Scegli l'icona",
-      "Collezioni",
+      "Pacchetti di icone",
       "I miei caricamenti",
       "Icona esterna",
       "Sorgente dell'icona",
@@ -145,7 +145,7 @@
     ],
     "ja": [
       "アイコンを選択",
-      "コレクション",
+      "アイコンパック",
       "アップロードしたアイコン",
       "外部アイコン",
       "アイコンソース",
@@ -156,7 +156,7 @@
     ],
     "ko": [
       "아이콘 선택",
-      "컬렉션",
+      "아이콘 팩",
       "내 업로드",
       "외부 아이콘",
       "아이콘 소스",
@@ -167,7 +167,7 @@
     ],
     "lv": [
       "Izvēlieties ikonu",
-      "Kolekcijas",
+      "Ikonu pakotnes",
       "Manas augšupielādes",
       "Ārējā ikona",
       "Ikonu avots",
@@ -178,7 +178,7 @@
     ],
     "nb": [
       "Velg ikon",
-      "Samlinger",
+      "Ikonpakker",
       "Mine opplastinger",
       "Eksternt ikon",
       "Ikonkilde",
@@ -189,7 +189,7 @@
     ],
     "nl": [
       "Kies icoon",
-      "Collecties",
+      "Pictogrampakketten",
       "Mijn uploads",
       "Extern pictogram",
       "Icoon bron",
@@ -200,7 +200,7 @@
     ],
     "pl": [
       "Wybierz ikonę",
-      "Kolekcje",
+      "Pakiety ikon",
       "Moje przesłane pliki",
       "Ikona zewnętrzna",
       "Źródło ikony",
@@ -211,7 +211,7 @@
     ],
     "pt-BR": [
       "Escolha o ícone",
-      "Coleções",
+      "Pacotes de ícones",
       "Meus envios",
       "Ícone externo",
       "Fonte do ícone",
@@ -222,7 +222,7 @@
     ],
     "pt-PT": [
       "Escolher ícone",
-      "Coleções",
+      "Pacotes de ícones",
       "Os meus envios",
       "Ícone externo",
       "Fonte do ícone",
@@ -233,7 +233,7 @@
     ],
     "ro": [
       "Alege pictograma",
-      "Colecții",
+      "Pachete de pictograme",
       "Încărcările mele",
       "Pictogramă externă",
       "Sursa pictogramei",
@@ -244,7 +244,7 @@
     ],
     "ru": [
       "Выберите значок",
-      "Коллекции",
+      "Наборы значков",
       "Мои загрузки",
       "Внешний значок",
       "Источник значков",
@@ -255,7 +255,7 @@
     ],
     "sv": [
       "Välj ikon",
-      "Samlingar",
+      "Ikonpaket",
       "Mina uppladdningar",
       "Extern ikon",
       "Ikonkälla",
@@ -266,7 +266,7 @@
     ],
     "tr": [
       "Simge seç",
-      "Koleksiyonlar",
+      "Simge paketleri",
       "Yüklemelerim",
       "Harici simge",
       "Simge kaynağı",
@@ -277,7 +277,7 @@
     ],
     "uk": [
       "Виберіть значок",
-      "Колекції",
+      "Набори піктограм",
       "Мої завантаження",
       "Зовнішній значок",
       "Джерело значків",
@@ -288,7 +288,7 @@
     ],
     "zh-Hans": [
       "选择图标",
-      "图标集",
+      "图标包",
       "我的上传",
       "外部图标",
       "图标来源",
@@ -299,7 +299,7 @@
     ],
     "zh-Hant": [
       "選擇圖示",
-      "圖示集",
+      "圖示套件",
       "我的上傳",
       "外部圖示",
       "圖示來源",

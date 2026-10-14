@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Isteklo je vrijeme za učitavanje postavki",
     "common.startup.timeout-detail": "FolderView Plus nije mogao dovršiti učitavanje postavki. Ponovno učitajte stranicu i pokušajte opet.",
     "common.icon-browser.choose": "Odaberite ikonu",
-    "common.icon-browser.collections": "Zbirke",
+    "common.icon-browser.collections": "Paketi ikona",
     "common.icon-browser.uploads": "Moji prijenosi",
     "common.icon-browser.external": "Vanjska ikona",
     "common.icon-browser.source": "Izvor ikone",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "Timpul de încărcare a setărilor a expirat",
     "common.startup.timeout-detail": "FolderView Plus nu a putut termina încărcarea setărilor. Reîncărcați pagina pentru a încerca din nou.",
     "common.icon-browser.choose": "Alege pictograma",
-    "common.icon-browser.collections": "Colecții",
+    "common.icon-browser.collections": "Pachete de pictograme",
     "common.icon-browser.uploads": "Încărcările mele",
     "common.icon-browser.external": "Pictogramă externă",
     "common.icon-browser.source": "Sursa pictogramei",

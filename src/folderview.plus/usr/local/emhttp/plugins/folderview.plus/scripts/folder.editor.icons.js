@@ -120,7 +120,7 @@
         let thirdPartyIconSearchTimer = null;
         let thirdPartySelectedTags = new Set();
         let thirdPartyTagSearchQuery = '';
-        let thirdPartyQuickMode = 'folder';
+        let thirdPartyQuickMode = 'all';
         let thirdPartySortMode = 'usage';
         let thirdPartyPackSearchQuery = '';
         let thirdPartyPackKind = 'all';
@@ -1390,7 +1390,7 @@
                 suggested: surfaceT("common.runtime.suggested", "Suggested"),
                 duplicates: surfaceT("legacy.surface.93c28c39252a5670", "Duplicates")
             };
-            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'folder').trim()] || surfaceT("common.runtime.selected-pack", "selected pack");
+            const scopeText = modeLabelMap[String(thirdPartyQuickMode || 'all').trim()] || surfaceT("common.runtime.all-packs", "all packs");
             const filterCount = getThirdPartyActiveFilterCount();
             const filterText = filterCount > 0 ? surfaceT("common.runtime.active-filters-1", "Active filters: $1", filterCount) : surfaceT("legacy.surface.dc937b59892604f5", "None");
             const packText = thirdPartySelectedFolder || surfaceT("legacy.surface.dc937b59892604f5", "None");
@@ -1926,7 +1926,7 @@
             };
 
             const applyThirdPartyQuickMode = async (mode) => {
-                const normalized = String(mode || 'folder').trim();
+                const normalized = String(mode || 'all').trim();
                 const allowed = new Set(['folder', 'all', 'favorites', 'recent', 'suggested', 'duplicates']);
                 if (!allowed.has(normalized)) {
                     return;
@@ -1973,7 +1973,7 @@
                 renderThirdPartyFilterUiState();
             });
             $('#fv-third-party-view').off('change.fviconpicker').on('change.fviconpicker', async () => {
-                await applyThirdPartyQuickMode(String($('#fv-third-party-view').val() || 'folder'));
+                await applyThirdPartyQuickMode(String($('#fv-third-party-view').val() || 'all'));
             });
             $('#fv-third-party-sort').off('change.fviconpicker').on('change.fviconpicker', () => {
                 thirdPartySortMode = String($('#fv-third-party-sort').val() || 'usage').trim().toLowerCase();

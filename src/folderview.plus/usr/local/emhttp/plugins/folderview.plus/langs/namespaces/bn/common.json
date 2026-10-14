@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
+        "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -247,7 +247,7 @@
     "common.startup.timeout": "সেটিংস লোড করার সময়সীমা শেষ হয়েছে",
     "common.startup.timeout-detail": "FolderView Plus সেটিংস লোড করা শেষ করতে পারেনি। আবার চেষ্টা করতে পৃষ্ঠাটি পুনরায় লোড করুন।",
     "common.icon-browser.choose": "আইকন নির্বাচন করুন",
-    "common.icon-browser.collections": "সংগ্রহ",
+    "common.icon-browser.collections": "আইকন প্যাক",
     "common.icon-browser.uploads": "আমার আপলোড",
     "common.icon-browser.external": "বাহ্যিক আইকন",
     "common.icon-browser.source": "আইকন উৎস",

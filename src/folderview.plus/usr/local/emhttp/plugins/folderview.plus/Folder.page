@@ -215,7 +215,7 @@ try {
                     <div id="fv-icon-library-home" class="fv-icon-browser" role="region" aria-label="Choose icon" data-i18n="[aria-label]common.icon-browser.choose"><div class="fv-icon-browser-body"><div id="fv-icon-library">
                     <div class="fv-icon-source-bar"><div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
-                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Collections</span></button>
+                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Icon Packs</span></button>
                         <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> <span data-i18n="common.icon-browser.uploads">My uploads</span></button>
                     </div><button type="button" id="fv-icon-picker-default">Use default icon</button></div>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
@@ -243,16 +243,15 @@ try {
                         <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
                     </div>
                     <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
-                        <div class="fv-icon-picker-toolbar fv-third-party-toolbar-main">
-                            <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
-                        </div>
                         <div class="fv-third-party-section">
                             <div class="fv-third-party-control-row fv-third-party-icon-controls">
+                                <div class="fv-third-party-search-field">
                                 <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
                                 <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                </div>
                                 <select id="fv-third-party-view" title="Scope">
-                                    <option value="folder">Scope: selected pack</option>
                                     <option value="all">Scope: all packs</option>
+                                    <option value="folder">Scope: selected pack</option>
                                     <option value="favorites">Scope: favorites</option>
                                     <option value="recent">Scope: recent</option>
                                     <option value="suggested">Scope: suggested</option>
@@ -264,10 +263,11 @@ try {
                                     <option value="count">Sort: icon count</option>
                                     <option value="newest">Sort: newest</option>
                                 </select>
-                                <button type="button" id="fv-third-party-filter-toggle" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
                             </div>
                             <div class="fv-third-party-presets">
                                 <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
+                                <button type="button" id="fv-third-party-filter-toggle" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
+                                <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                             </div>
                         </div>
                         <div class="fv-third-party-section">
@@ -290,7 +290,6 @@ try {
                                 <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Find duplicates</button>
                             </div>
                         </div>
-                        <div class="fv-third-party-section">
                             <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
                                 <div class="fv-third-party-inline-actions">
                                     <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
@@ -304,7 +303,6 @@ try {
                                     <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
                                 </div>
                             </div>
-                        </div>
                         <details class="fv-icon-details"><summary>Details</summary>
                             <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | Scope: selected pack | Filters: none</div>
                             <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Step 1: pick a pack. Step 2: choose an icon.</div>

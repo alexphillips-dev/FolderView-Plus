@@ -215,25 +215,26 @@
 
 .fv-icon-browser .fv-icon-picker-grid, .fv-icon-browser .fv-custom-icon-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    grid-template-columns: repeat(auto-fill, 88px);
     gap: .8rem;
     max-height: none;
     overflow: visible;
 }
 
 .fv-icon-browser .fv-custom-icon-list {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+    grid-template-columns: repeat(auto-fill, 136px);
 }
 
 .fv-icon-browser .fv-icon-picker-item, .fv-icon-browser .fv-third-party-icon-item, .fv-icon-browser .fv-custom-icon-row {
+    box-sizing: border-box;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: .7rem;
-    min-height: 108px;
-    padding: 1rem .7rem;
+    gap: .4rem;
+    min-height: 88px;
+    padding: .6rem;
     border: 1px solid var(--fv-editor-border);
     border-radius: 10px;
     text-align: center;
@@ -241,8 +242,8 @@
 }
 
 .fv-icon-browser .fv-icon-picker-item > img, .fv-icon-browser .fv-third-party-icon-select > img, .fv-icon-browser .fv-custom-icon-row > img {
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
 }
 
@@ -269,14 +270,8 @@
 }
 
 .fv-icon-browser .fv-third-party-icon-item {
-    box-sizing: border-box;
     aspect-ratio: 1;
     min-height: 0;
-    padding: .5rem;
-}
-
-.fv-icon-browser #fv-third-party-icon-grid {
-    grid-template-columns: repeat(auto-fill, 96px);
 }
 
 .fv-icon-browser .fv-third-party-icon-actions {
@@ -297,8 +292,16 @@
 }
 
 .fv-icon-browser .fv-icon-picker-item-name, .fv-icon-browser .fv-custom-icon-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     max-width: 100%;
     font-size: 1.1rem;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .fv-icon-browser .fv-third-party-icon-folder {
@@ -348,8 +351,6 @@
 .fv-icon-browser .fv-custom-icon-row {
     min-width: 0;
     justify-content: flex-start;
-    padding: .8rem;
-    box-sizing: border-box;
 }
 
 .fv-icon-browser .fv-custom-icon-meta {
@@ -470,12 +471,10 @@
         min-height: 44px;
     }
 
-    .fv-icon-browser .fv-icon-picker-grid {
-        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-    }
-
 }
 @media (pointer: coarse) {
+    .fv-icon-browser .fv-third-party-icon-grid { grid-template-columns: repeat(auto-fill, 96px); }
+    .fv-icon-browser .fv-custom-icon-list { grid-template-columns: repeat(auto-fill, 152px); }
     .fv-icon-browser .fv-third-party-icon-controls {
         --fv-icon-search-height: 44px;
     }
@@ -485,7 +484,7 @@
         min-height: 44px !important;
     }
 
-    .fv-icon-browser #fv-icon-library :is(button, select, input[type="text"], summary), .fv-icon-browser .fv-ui-modal-close, .fv-icon-filter-popover :is(button, input[type="text"], .fv-third-party-tag) {
+    .fv-icon-browser #fv-icon-library :is(button:not(.fv-icon-picker-item), select, input[type="text"], summary), .fv-icon-browser .fv-ui-modal-close, .fv-icon-filter-popover :is(button, input[type="text"], .fv-third-party-tag) {
         min-height: 44px;
         min-width: 44px;
     }
@@ -1745,15 +1744,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     padding: 0;
 }
 
-.fv-icon-picker-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 0.35em;
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 0.1em;
-}
-
 .fv-icon-picker-item {
     display: grid;
     grid-template-columns: 24px 1fr;
@@ -1782,10 +1772,9 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     object-fit: contain;
 }
 
-.fv-icon-picker-item-name {
+.fv-icon-picker-item-name, .fv-custom-icon-name {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: 1.03rem;
 }
 
@@ -2060,10 +2049,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     transition: color 120ms ease, opacity 120ms ease, transform 120ms ease;
 }
 
-.fv-third-party-icon-grid {
-    max-height: 260px;
-}
-
 .fv-third-party-icon-item {
     position: relative;
     display: grid;
@@ -2225,17 +2210,9 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     gap: 0.06em;
 }
 
-.fv-custom-icon-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 1.03rem;
-}
-
 .fv-custom-icon-extra {
     font-size: 1.03rem;
     opacity: 0.74;
-    white-space: nowrap;
 }
 
 .fv-custom-icon-actions {

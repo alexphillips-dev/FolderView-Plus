@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { checkIconPackFilters } from './icon-pack-filters.mjs';
+import { checkIconCardLayout } from './icon-card-layout.mjs';
+export { checkIconCardLayout };
 export { checkUploadCardLayout } from './upload-card-layout.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const source = fs.readFileSync(`${plugin}/Folder.page`, 'utf8');
@@ -31,8 +33,8 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
         const defaultIcon = '/plugins/folderview.plus/images/folder-icon.png';
         const input = document.querySelector('[name="icon"]');
         input.value = defaultIcon;
-        const builtin = [{ name: 'Default Folder', path: defaultIcon }, { name: 'Tools', path: `${defaultIcon}?tools` }];
-        const icons = ['alpha.png', 'beta.png', 'gamma.png'].map((name, index) => ({ name, folder: index === 2 ? 'Other' : 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder', index === 2 ? 'other' : 'alpha'] }));
+        const builtin = [{ name: 'Default Folder', path: defaultIcon }, { name: 'Tools', path: `${defaultIcon}?tools` }, { name: 'Home Automation', path: `${defaultIcon}?automation` }, { name: 'VeryLongUnbrokenIconNameThatMustStayInsideTheCard', path: `${defaultIcon}?long` }];
+        const icons = ['alpha.png', 'beta.png', 'gamma.png'].map((name, index) => ({ name: index === 0 ? 'alpha_with_a_very_long_unbroken_icon_filename.png' : name, folder: index === 2 ? 'Other' : 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder', index === 2 ? 'other' : 'alpha'] }));
         const state = { uploads: [], pending: false, complete: null, uploadOptions: null };
         const api = window.FolderViewPlusFolderEditorIcons.createApi({ window, document, $: window.jQuery,
             getForm: () => document.getElementById('icon-test-form'), getIconInput: () => window.jQuery(input),
@@ -68,6 +70,7 @@ export const checkIconDialogAccessibility = async page => {
     assert.deepEqual(violations, []);
 };
 export const checkIconPackTileLayout = async page => {
+    await checkIconCardLayout(page, '.fv-third-party-icon-item');
     const tile = await page.locator('.fv-third-party-icon-item').first().evaluate(node => {
         const rect = node.getBoundingClientRect(), image = node.querySelector('img').getBoundingClientRect(), button = node.querySelector('[data-icon-select]'), star = node.querySelector('.fv-third-party-icon-fav'), favorite = star.getBoundingClientRect();
         return { width: rect.width, height: rect.height, centered: Math.abs((image.left + image.right) / 2 - (rect.left + rect.right) / 2), top: favorite.top - rect.top, right: rect.right - favorite.right, target: favorite.width, font: parseFloat(getComputedStyle(star.querySelector('i')).fontSize), border: getComputedStyle(button).borderTopWidth };

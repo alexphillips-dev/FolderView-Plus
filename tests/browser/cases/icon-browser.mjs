@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout, checkUploadCardLayout } from '../helpers/icon-browser-host.mjs';
+import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout, checkUploadCardLayout, checkIconCardLayout } from '../helpers/icon-browser-host.mjs';
 export const registerIconBrowserCases = ({ test, baseUrl }) => {
     test('Icon browser stays inline, matches the parent panel and defaults to built-in icons for Docker and VM', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
@@ -13,7 +13,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.ok(pathLocation.top >= pathLocation.preview);
             assert.equal(await page.locator('#fv-icon-picker-panel').isVisible(), true);
             const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
-            await dialog.waitFor();
+            await dialog.waitFor(); await checkIconCardLayout(page, '.fv-icon-picker-item');
             assert.equal(await page.locator('.is-icon-row > dl > dt').isVisible(), false);
             assert.equal(await dialog.locator('.fv-icon-browser-help').count(), 0);
             const bar = page.locator('.fv-icon-source-bar');

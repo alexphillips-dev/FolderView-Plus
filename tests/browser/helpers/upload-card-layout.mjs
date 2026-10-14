@@ -24,13 +24,14 @@ export const checkUploadCardLayout = async page => {
         const name = node.querySelector('.fv-custom-icon-name'), details = node.querySelector('.fv-custom-icon-extra');
         const text = [name, details].map(element => ({ box: element.getBoundingClientRect().toJSON(), width: element.clientWidth, content: element.scrollWidth }));
         const actions = [...node.querySelectorAll('button:not([data-action="use"])')].map(button => button.getBoundingClientRect().toJSON());
-        return { card: card.toJSON(), image: image.toJSON(), text, actions, name: name.title, clipped: name.scrollWidth > name.clientWidth, coarse: matchMedia('(pointer: coarse)').matches };
+        return { card: card.toJSON(), image: image.toJSON(), text, actions, name: name.title, clipped: name.scrollHeight > name.clientHeight, coarse: matchMedia('(pointer: coarse)').matches };
     }));
     assert.equal(cards.length, 2);
     assert.ok(cards[0].clipped && cards[0].name.includes('very_long_unbroken_filename'));
     for (const { card, image, text, actions, coarse } of cards) {
+        assert.ok(card.width <= (coarse ? 154 : 138) && image.width === 32 && image.height === 32);
         assert.ok(text.every(({ box }) => box.left >= card.left && box.right <= card.right && box.top >= image.bottom));
-        assert.ok(text[1].content <= text[1].width + 1 && text[1].box.bottom <= actions[0].top);
+        assert.ok(text.every(item => item.content <= item.width + 1) && text[1].box.bottom <= actions[0].top);
         assert.ok(actions.length === 3 && actions.every(box => Math.abs(box.top - actions[0].top) < 1 && box.left >= card.left && box.right <= card.right && box.bottom <= card.bottom));
         assert.ok(actions.every(box => box.width >= (coarse ? 44 : 32) && box.height >= (coarse ? 44 : 32)));
         const ordered = [...actions].sort((a, b) => a.left - b.left);

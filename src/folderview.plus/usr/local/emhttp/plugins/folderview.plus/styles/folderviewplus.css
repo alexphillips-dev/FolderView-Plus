@@ -3360,7 +3360,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .row-order-actions {
-    gap: 0.22rem;
+    gap: 8px;
     align-items: center;
 }
 

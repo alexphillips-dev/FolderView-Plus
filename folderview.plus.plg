@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.03">
-<!ENTITY md5 "d4375a4d09e5d3f5dd66d28828ebe6a3">
-<!ENTITY sha256 "610b8890d3ea593e1b54b6f29d73dce7d7c4d184460d1d3dfeb6c267143d7a93">
+<!ENTITY version "2026.10.14.04">
+<!ENTITY md5 "7ab17da9d8782c7bf1cf337b518a089a">
+<!ENTITY sha256 "a6bcb558ebe3c1de25e21363509568a17ef0e7ac92d70ce769c2590acbc49dc9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.04
+- UX: Restore room between Basic settings folder controls while keeping the divider centered. Increase space around the drag grip, divider, and action buttons in Docker and VM lists. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.14.03
 - Fix: Keep the Basic settings divider centered between the drag grip and folder action icons when Unraid's native button spacing is applied. Align nested-row dividers with the visible upward-arrow artwork too. Hard-refresh the webGUI after updating.

@@ -25,7 +25,8 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                         const grip = divider.previousElementSibling.children[1].getBoundingClientRect();
                         const line = divider.getBoundingClientRect();
                         const icon = divider.nextElementSibling.querySelector('svg path').getBoundingClientRect();
-                        return Math.abs((line.left - grip.right) - (icon.left - line.right)) <= 1;
+                        const nextIcon = divider.nextElementSibling.nextElementSibling?.querySelector('svg path')?.getBoundingClientRect();
+                        return Math.abs((line.left - grip.right) - (icon.left - line.right)) <= 1 && Math.min(line.left - grip.right, icon.left - line.right) >= 14 && (!nextIcon || nextIcon.left - icon.right >= 10);
                     });
                     return { radius: curve.borderEndStartRadius, dotRadius: dot.borderRadius,
                         dividerCentered,
@@ -39,7 +40,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 assert.equal(geometry.dotRadius, '50%');
                 assert.equal(geometry.dividerWidth, 1);
                 assert.equal(geometry.dividerAfterHandle, true);
-                assert.equal(geometry.dividerCentered, true, 'divider must sit midway between the visible grip dots and action icons');
+                assert.equal(geometry.dividerCentered, true, 'divider must stay centered with clear space around the grip and action icons');
                 assert.equal(geometry.actionIcons, 2);
                 assert.equal(geometry.railWidth, 24);
                 assert.equal(geometry.firstColumn, '22px');

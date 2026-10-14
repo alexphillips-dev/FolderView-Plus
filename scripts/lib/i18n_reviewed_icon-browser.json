@@ -6,7 +6,6 @@
     "external",
     "source",
     "path",
-    "manage",
     "replace-title",
     "replace-message",
     "keep-both"
@@ -18,7 +17,6 @@
     "External icon",
     "Icon source",
     "Icon URL or path",
-    "Manage library",
     "Replace this icon?",
     "An icon with this name already exists. Keep both files or replace the existing file.",
     "Keep both"
@@ -31,7 +29,6 @@
       "أيقونة خارجية",
       "مصدر الأيقونة",
       "عنوان URL للأيقونة أو مسارها",
-      "إدارة المكتبة",
       "هل تريد استبدال هذا الرمز؟",
       "يوجد بالفعل رمز بهذا الاسم. احتفظ بكلا الملفين أو استبدل الملف الموجود.",
       "احتفظ بكليهما"
@@ -43,7 +40,6 @@
       "বাহ্যিক আইকন",
       "আইকন উৎস",
       "আইকন URL বা পাথ",
-      "লাইব্রেরি পরিচালনা করুন",
       "এই আইকনটি প্রতিস্থাপন করবেন?",
       "এই নামের একটি আইকন ইতিমধ্যেই বিদ্যমান৷ উভয় ফাইল রাখুন বা বিদ্যমান ফাইল প্রতিস্থাপন করুন।",
       "দুটোই রাখুন"
@@ -55,7 +51,6 @@
       "Icona externa",
       "Font d'icones",
       "URL o camí de la icona",
-      "Gestionar la biblioteca",
       "Voleu substituir aquesta icona?",
       "Ja existeix una icona amb aquest nom. Conserveu els dos fitxers o substituïu el fitxer existent.",
       "Mantingueu tots dos"
@@ -67,7 +62,6 @@
       "Externí ikona",
       "Zdroj ikon",
       "Adresa URL ikony nebo cesta",
-      "Spravovat knihovnu",
       "Nahradit tuto ikonu?",
       "Ikona s tímto názvem již existuje. Ponechte oba soubory nebo nahraďte stávající soubor.",
       "Ponechat oba"
@@ -79,7 +73,6 @@
       "Eksternt ikon",
       "Ikonkilde",
       "Ikon URL eller sti",
-      "Administrer bibliotek",
       "Vil du erstatte dette ikon?",
       "Et ikon med dette navn findes allerede. Behold begge filer, eller erstat den eksisterende fil.",
       "Behold begge dele"
@@ -91,7 +84,6 @@
       "Externes Symbol",
       "Symbolquelle",
       "Symbol-URL oder -Pfad",
-      "Bibliothek verwalten",
       "Dieses Symbol ersetzen?",
       "Ein Symbol mit diesem Namen existiert bereits. Behalten Sie beide Dateien oder ersetzen Sie die vorhandene Datei.",
       "Beide behalten"
@@ -103,7 +95,6 @@
       "Icono externo",
       "Fuente del icono",
       "URL o ruta del icono",
-      "Administrar biblioteca",
       "¿Reemplazar este ícono?",
       "Ya existe un icono con este nombre. Conserve ambos archivos o reemplace el archivo existente.",
       "Conservar ambos"
@@ -115,7 +106,6 @@
       "Icône externe",
       "Source de l'icône",
       "URL ou chemin de l'icône",
-      "Gérer la bibliothèque",
       "Remplacer cette icône ?",
       "Une icône portant ce nom existe déjà. Conservez les deux fichiers ou remplacez le fichier existant.",
       "Conserver les deux"
@@ -127,7 +117,6 @@
       "Vanjska ikona",
       "Izvor ikone",
       "URL ili put ikone",
-      "Upravljanje knjižnicom",
       "Zamijeniti ovu ikonu?",
       "Ikona s ovim imenom već postoji. Zadržite obje datoteke ili zamijenite postojeću datoteku.",
       "Zadrži oboje"
@@ -139,7 +128,6 @@
       "Külső ikon",
       "Ikon forrása",
       "Ikon URL vagy elérési út",
-      "Könyvtár kezelése",
       "Lecseréli ezt az ikont?",
       "Már létezik ilyen nevű ikon. Tartsa meg mindkét fájlt, vagy cserélje ki a meglévő fájlt.",
       "Tartsa meg mindkettőt"
@@ -151,7 +139,6 @@
       "Icona esterna",
       "Sorgente dell'icona",
       "URL o percorso dell'icona",
-      "Gestisci la libreria",
       "Sostituire questa icona?",
       "Esiste già un'icona con questo nome. Conserva entrambi i file o sostituisci il file esistente.",
       "Tienili entrambi"
@@ -163,7 +150,6 @@
       "外部アイコン",
       "アイコンソース",
       "アイコンの URL またはパス",
-      "ライブラリの管理",
       "このアイコンを置き換えますか?",
       "この名前のアイコンはすでに存在します。両方のファイルを保持するか、既存のファイルを置き換えます。",
       "両方を保持"
@@ -175,7 +161,6 @@
       "외부 아이콘",
       "아이콘 소스",
       "아이콘 URL 또는 경로",
-      "아이콘 라이브러리 관리",
       "이 아이콘을 바꾸시겠습니까?",
       "이 이름을 가진 아이콘이 이미 존재합니다. 두 파일을 모두 유지하거나 기존 파일을 바꾸십시오.",
       "둘 다 유지"
@@ -187,7 +172,6 @@
       "Ārējā ikona",
       "Ikonu avots",
       "Ikonas URL vai ceļš",
-      "Pārvaldīt bibliotēku",
       "Vai aizstāt šo ikonu?",
       "Ikona ar šādu nosaukumu jau pastāv. Saglabājiet abus failus vai nomainiet esošo failu.",
       "Saglabājiet abus"
@@ -199,7 +183,6 @@
       "Eksternt ikon",
       "Ikonkilde",
       "Ikon URL eller bane",
-      "Administrer bibliotek",
       "Vil du erstatte dette ikonet?",
       "Et ikon med dette navnet finnes allerede. Behold begge filene eller erstatt den eksisterende filen.",
       "Behold begge deler"
@@ -211,7 +194,6 @@
       "Extern pictogram",
       "Icoon bron",
       "Pictogram-URL of pad",
-      "Bibliotheek beheren",
       "Dit pictogram vervangen?",
       "Er bestaat al een pictogram met deze naam. Bewaar beide bestanden of vervang het bestaande bestand.",
       "Bewaar beide"
@@ -223,7 +205,6 @@
       "Ikona zewnętrzna",
       "Źródło ikony",
       "Adres URL lub ścieżka ikony",
-      "Zarządzaj biblioteką",
       "Zamienić tę ikonę?",
       "Ikona o tej nazwie już istnieje. Zachowaj oba pliki lub zastąp istniejący plik.",
       "Zachowaj oba"
@@ -235,7 +216,6 @@
       "Ícone externo",
       "Fonte do ícone",
       "URL ou caminho do ícone",
-      "Gerenciar biblioteca",
       "Substituir este ícone?",
       "Já existe um ícone com este nome. Mantenha os dois arquivos ou substitua o arquivo existente.",
       "Mantenha ambos"
@@ -247,7 +227,6 @@
       "Ícone externo",
       "Fonte do ícone",
       "URL ou caminho do ícone",
-      "Gerir biblioteca",
       "Substituir este ícone?",
       "Já existe um ícone com este nome. Mantenha os dois ficheiros ou substitua o ficheiro existente.",
       "Manter ambos"
@@ -259,7 +238,6 @@
       "Pictogramă externă",
       "Sursa pictogramei",
       "Adresa URL sau calea pictogramei",
-      "Gestionați biblioteca",
       "Înlocuiți această pictogramă?",
       "O pictogramă cu acest nume există deja. Păstrați ambele fișiere sau înlocuiți fișierul existent.",
       "Păstrați ambele"
@@ -271,7 +249,6 @@
       "Внешний значок",
       "Источник значков",
       "URL-адрес или путь значка",
-      "Управление библиотекой",
       "Заменить этот значок?",
       "Значок с таким названием уже существует. Сохраните оба файла или замените существующий файл.",
       "Сохранить оба"
@@ -283,7 +260,6 @@
       "Extern ikon",
       "Ikonkälla",
       "Ikon URL eller sökväg",
-      "Hantera bibliotek",
       "Vill du byta ut den här ikonen?",
       "En ikon med detta namn finns redan. Behåll båda filerna eller ersätt den befintliga filen.",
       "Behåll båda"
@@ -295,7 +271,6 @@
       "Harici simge",
       "Simge kaynağı",
       "Simge URL'si veya yolu",
-      "Kitaplığı yönet",
       "Bu simge değiştirilsin mi?",
       "Bu ada sahip bir simge zaten mevcut. Her iki dosyayı da saklayın veya mevcut dosyayı değiştirin.",
       "İkisini de sakla"
@@ -307,7 +282,6 @@
       "Зовнішній значок",
       "Джерело значків",
       "URL-адреса значка або шлях",
-      "Керувати бібліотекою",
       "Замінити цей значок?",
       "Піктограма з такою назвою вже існує. Збережіть обидва файли або замініть наявний файл.",
       "Зберегти обидва"
@@ -319,7 +293,6 @@
       "外部图标",
       "图标来源",
       "图标 URL 或路径",
-      "管理图标库",
       "替换这个图标？",
       "同名的图标已存在。保留这两个文件或替换现有文件。",
       "两者都保留"
@@ -331,7 +304,6 @@
       "外部圖示",
       "圖示來源",
       "圖示 URL 或路徑",
-      "管理圖示庫",
       "替換這個圖示？",
       "同名的圖示已存在。保留這兩個檔案或替換現有檔案。",
       "兩者都保留"

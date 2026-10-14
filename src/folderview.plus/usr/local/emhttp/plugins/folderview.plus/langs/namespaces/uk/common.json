@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "Зовнішній значок",
     "common.icon-browser.source": "Джерело значків",
     "common.icon-browser.path": "URL-адреса значка або шлях",
-    "common.icon-browser.manage": "Керувати бібліотекою",
     "common.icon-browser.replace-title": "Замінити цей значок?",
     "common.icon-browser.replace-message": "Піктограма з такою назвою вже існує. Збережіть обидва файли або замініть наявний файл.",
     "common.icon-browser.keep-both": "Зберегти обидва",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "Ícone externo",
     "common.icon-browser.source": "Fonte do ícone",
     "common.icon-browser.path": "URL ou caminho do ícone",
-    "common.icon-browser.manage": "Gerenciar biblioteca",
     "common.icon-browser.replace-title": "Substituir este ícone?",
     "common.icon-browser.replace-message": "Já existe um ícone com este nome. Mantenha os dois arquivos ou substitua o arquivo existente.",
     "common.icon-browser.keep-both": "Mantenha ambos",

@@ -208,19 +208,16 @@ try {
                         <img id="fvIconPanelPreview" src="/plugins/folderview.plus/images/folder-icon.png" alt="">
                         <div class="fv-icon-selection-label"><strong id="fv-icon-selection-name"></strong><span id="fv-icon-selection-source"></span></div>
                     </div>
-                    <details class="fv-icon-more"><summary>More</summary>
-                        <label><span data-i18n="common.icon-browser.path">Icon URL or path</span>
-                            <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" hidden>
-                            <input type="text" name="icon" value="" data-fv-oninput="updateIcon(this)">
-                        </label>
-                    </details>
+                    <label class="fv-icon-path"><span data-i18n="common.icon-browser.path">Icon URL or path</span>
+                        <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" hidden>
+                        <input type="text" name="icon" value="" data-fv-oninput="updateIcon(this)">
+                    </label>
                     <div id="fv-icon-library-home" class="fv-icon-browser" role="region" aria-label="Choose icon" data-i18n="[aria-label]common.icon-browser.choose"><div class="fv-icon-browser-body"><div id="fv-icon-library">
                     <div class="fv-icon-source-bar"><div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Collections</span></button>
                         <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> <span data-i18n="common.icon-browser.uploads">My uploads</span></button>
                     </div><button type="button" id="fv-icon-picker-default">Use default icon</button></div>
-                    <div class="fv-icon-library-tools"><label><input type="checkbox" id="fv-icon-manage"> <span data-i18n="common.icon-browser.manage">Manage library</span></label></div>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
                     <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
                         <div class="fv-icon-upload-progress-top">
@@ -276,9 +273,9 @@ try {
                         <div class="fv-third-party-section">
                             <div class="fv-third-party-control-row fv-third-party-pack-primary">
                                 <select id="fv-third-party-pack-select" title="Pick icon pack" aria-label="Pack"></select>
-                                <button type="button" id="fv-third-party-pack-actions-toggle" class="fv-third-party-advanced-only"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
+                                <button type="button" id="fv-third-party-pack-actions-toggle"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
                             </div>
-                            <div class="fv-third-party-control-row fv-third-party-pack-controls fv-third-party-advanced-only">
+                            <div class="fv-third-party-control-row fv-third-party-pack-controls">
                                 <input type="text" id="fv-third-party-pack-search" placeholder="Filter packs by name">
                                 <select id="fv-third-party-pack-kind" title="Pack type">
                                     <option value="all">Pack type: all</option>
@@ -286,7 +283,7 @@ try {
                                     <option value="icons">Pack type: icons</option>
                                 </select>
                             </div>
-                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel fv-third-party-advanced-only" hidden>
+                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel" hidden>
                                 <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
                                 <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
                                 <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden</button>

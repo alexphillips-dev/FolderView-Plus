@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "Externí ikona",
     "common.icon-browser.source": "Zdroj ikon",
     "common.icon-browser.path": "Adresa URL ikony nebo cesta",
-    "common.icon-browser.manage": "Spravovat knihovnu",
     "common.icon-browser.replace-title": "Nahradit tuto ikonu?",
     "common.icon-browser.replace-message": "Ikona s tímto názvem již existuje. Ponechte oba soubory nebo nahraďte stávající soubor.",
     "common.icon-browser.keep-both": "Ponechat oba",

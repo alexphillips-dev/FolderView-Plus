@@ -90,7 +90,6 @@
                 if (tab) tab.tabIndex = key === source ? 0 : -1;
             });
             workspace.body.scrollTop = scroll.get(source) || 0;
-            library.querySelector('.fv-icon-library-tools').hidden = source === 'builtin';
         };
         const activateSource = (next, remember = true) => {
             const position = scroll.get(next) || 0;
@@ -185,7 +184,6 @@
         });
         if (enabled) {
             library.querySelectorAll('button').forEach((button) => button.classList.add('fv-ui-button'));
-            byId('fv-icon-manage').onchange = (event) => library.classList.toggle('is-managing', event.target.checked);
             Object.entries(tabs).forEach(([key, id]) => {
                 const tab = byId(id);
                 tab.setAttribute('role', 'tab');

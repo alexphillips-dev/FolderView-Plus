@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "外部图标",
     "common.icon-browser.source": "图标来源",
     "common.icon-browser.path": "图标 URL 或路径",
-    "common.icon-browser.manage": "管理图标库",
     "common.icon-browser.replace-title": "替换这个图标？",
     "common.icon-browser.replace-message": "同名的图标已存在。保留这两个文件或替换现有文件。",
     "common.icon-browser.keep-both": "两者都保留",

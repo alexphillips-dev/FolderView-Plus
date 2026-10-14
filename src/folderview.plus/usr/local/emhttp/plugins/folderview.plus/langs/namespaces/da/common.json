@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "Eksternt ikon",
     "common.icon-browser.source": "Ikonkilde",
     "common.icon-browser.path": "Ikon URL eller sti",
-    "common.icon-browser.manage": "Administrer bibliotek",
     "common.icon-browser.replace-title": "Vil du erstatte dette ikon?",
     "common.icon-browser.replace-message": "Et ikon med dette navn findes allerede. Behold begge filer, eller erstat den eksisterende fil.",
     "common.icon-browser.keep-both": "Behold begge dele",

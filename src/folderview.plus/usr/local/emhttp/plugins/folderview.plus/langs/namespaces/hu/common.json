@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "Választható",
     "common.badges.recommended": "Ajánlott",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "Külső ikon",
     "common.icon-browser.source": "Ikon forrása",
     "common.icon-browser.path": "Ikon URL vagy elérési út",
-    "common.icon-browser.manage": "Könyvtár kezelése",
     "common.icon-browser.replace-title": "Lecseréli ezt az ikont?",
     "common.icon-browser.replace-message": "Már létezik ilyen nevű ikon. Tartsa meg mindkét fájlt, vagy cserélje ki a meglévő fájlt.",
     "common.icon-browser.keep-both": "Tartsa meg mindkettőt",

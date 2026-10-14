@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.07">
-<!ENTITY md5 "6209b9048247c21ff66a0168644c00a1">
-<!ENTITY sha256 "e13df8251f3a45a06a1503b742226e88de4b9378dea1b4a1751877161cd1038a">
+<!ENTITY version "2026.10.14.08">
+<!ENTITY md5 "1278eb61b097da00b0b698aa2d65d65b">
+<!ENTITY sha256 "64d3143f35845220ac20f2b2b4a81368dd0175cddc2d967c6bcd29b79a342df5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.08
+- UX: Keep the Icon URL or path field visible directly beneath the folder icon preview and remove the More dropdown.
+- UX: Remove the Manage library checkbox. Make uploaded-icon actions available directly in My uploads and retain collection operations under Pack actions.
+- Fix: Keep the My uploads Upload button on one line while the search field fits the available width, including narrow and touch layouts.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon layout.
+
 
 ###2026.10.14.07
 - UX: Remove the duplicate Icon field label and selection helper sentence from the folder editor's Icon module.

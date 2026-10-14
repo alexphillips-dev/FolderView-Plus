@@ -171,7 +171,7 @@ test('folder editor icon module supports advanced filtering and duplicate workfl
     assert.match(folderEditorIconsScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
     assert.match(folderEditorIconsScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
     assert.match(folderEditorIconsScript, /const getThirdPartyFolderKind = \(folderName\) =>/);
-    assert.match(folderPage, /id="fv-icon-manage"/);
+    assert.doesNotMatch(folderPage, /id="fv-icon-manage"/);
     assert.match(folderEditorIconsScript, /const getThirdPartyActiveFilterCount = \(\) =>/);
     assert.match(folderEditorIconsScript, /thirdPartyIconSearchDebounceMs/);
     assert.match(folderPage, /value="duplicates"/);

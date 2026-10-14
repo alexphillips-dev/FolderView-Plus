@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "外部アイコン",
     "common.icon-browser.source": "アイコンソース",
     "common.icon-browser.path": "アイコンの URL またはパス",
-    "common.icon-browser.manage": "ライブラリの管理",
     "common.icon-browser.replace-title": "このアイコンを置き換えますか?",
     "common.icon-browser.replace-message": "この名前のアイコンはすでに存在します。両方のファイルを保持するか、既存のファイルを置き換えます。",
     "common.icon-browser.keep-both": "両方を保持",

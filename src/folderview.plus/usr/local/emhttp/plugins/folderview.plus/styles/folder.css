@@ -30,23 +30,19 @@
     color: var(--fv-editor-muted);
 }
 
-.fv-icon-more {
+.fv-icon-path {
+    display: grid;
+    gap: .5rem;
     width: 100%;
 }
 
-.fv-icon-more summary, .fv-icon-details summary {
+.fv-icon-details summary {
     cursor: pointer;
     padding: .65rem 0;
     color: var(--fv-editor-muted);
 }
 
-.fv-icon-more label {
-    display: grid;
-    gap: .5rem;
-    margin-top: 1rem;
-}
-
-.fv-icon-more input {
+.fv-icon-path input {
     width: 100%;
 }
 
@@ -86,7 +82,7 @@
 }
 
 .fv-icon-panel-bounded .fv-icon-selection,
-.fv-icon-panel-bounded .fv-icon-more {
+.fv-icon-panel-bounded .fv-icon-path {
     flex: none;
 }
 
@@ -110,7 +106,7 @@
     display: none !important;
 }
 
-.fv-icon-source-bar, .fv-icon-browser .fv-icon-input-actions, .fv-icon-library-tools {
+.fv-icon-source-bar, .fv-icon-browser .fv-icon-input-actions {
     display: flex;
     gap: .6rem;
     flex-wrap: wrap;
@@ -134,16 +130,6 @@
 
 .fv-icon-browser :is(#fv-third-party-filter-toggle, #fv-third-party-pack-actions-toggle)[type="button"] {
     color: var(--fv-editor-text-primary) !important;
-}
-
-.fv-icon-library-tools {
-    justify-content: space-between;
-}
-
-.fv-icon-library-tools label {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
 }
 
 .fv-modern-field-row.is-icon-row > dl > dt {
@@ -285,8 +271,18 @@
     --fv-button-fg: var(--fv-editor-accent);
 }
 
-.fv-icon-browser #fv-icon-library:not(.is-managing) .fv-third-party-advanced-only, .fv-icon-browser #fv-icon-library:not(.is-managing) .fv-custom-icon-extra, .fv-icon-browser #fv-icon-library:not(.is-managing) .fv-custom-icon-actions > button:not([data-action="use"]) {
-    display: none !important;
+.fv-icon-browser .fv-custom-icon-panel .fv-icon-picker-toolbar {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+}
+
+.fv-icon-browser #fv-custom-icon-search {
+    min-width: 0 !important;
+}
+
+.fv-icon-browser #fv-icon-upload {
+    white-space: nowrap !important;
+    overflow-wrap: normal;
 }
 
 .fv-icon-browser .fv-custom-icon-actions {
@@ -393,6 +389,11 @@
 
 }
 @media (pointer: coarse) {
+    .fv-icon-browser #fv-custom-icon-refresh {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
     .fv-icon-browser #fv-icon-library :is(button, select, input[type="text"], summary), .fv-icon-browser .fv-ui-modal-close {
         min-height: 44px;
         min-width: 44px;

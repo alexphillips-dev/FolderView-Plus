@@ -7,6 +7,10 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             if (type === 'vm') await page.evaluate(() => { document.documentElement.dir = 'rtl'; });
             const input = page.locator('[name="icon"]');
             const original = await input.inputValue();
+            assert.equal(await input.isVisible(), true);
+            assert.equal(await page.locator('.fv-icon-more,#fv-icon-manage').count(), 0);
+            const pathLocation = await input.evaluate(node => ({ top: node.closest('.fv-icon-path').getBoundingClientRect().top, preview: document.querySelector('#fv-icon-selection').getBoundingClientRect().bottom }));
+            assert.ok(pathLocation.top >= pathLocation.preview);
             assert.equal(await page.locator('#fv-icon-picker-panel').isVisible(), true);
             const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
             await dialog.waitFor();
@@ -85,8 +89,10 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         await page.locator('[data-custom-icon="example.png"] [data-action="use"]').click();
         await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();
         assert.match(await input.inputValue(), /upload=example.png/);
-        assert.equal(await page.locator('[data-action="delete"]').isVisible(), false);
-        await page.locator('#fv-icon-manage').check();
+        assert.equal(await page.locator('[data-action="delete"]').isVisible(), true);
+        const toolbar = await page.locator('#fv-icon-upload').evaluate(node => ({ wrap: getComputedStyle(node).whiteSpace, width: node.clientWidth, content: node.scrollWidth, row: node.parentElement.clientWidth, rowContent: node.parentElement.scrollWidth }));
+        assert.equal(toolbar.wrap, 'nowrap');
+        assert.ok(toolbar.content <= toolbar.width && toolbar.rowContent <= toolbar.row + 1);
         await checkIconDialogAccessibility(page);
         await page.locator('[data-action="delete"]').click();
         const confirmation = page.getByRole('dialog', { name: 'Delete custom icon?' });

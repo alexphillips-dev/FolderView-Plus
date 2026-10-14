@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "外部圖示",
     "common.icon-browser.source": "圖示來源",
     "common.icon-browser.path": "圖示 URL 或路徑",
-    "common.icon-browser.manage": "管理圖示庫",
     "common.icon-browser.replace-title": "替換這個圖示？",
     "common.icon-browser.replace-message": "同名的圖示已存在。保留這兩個檔案或替換現有檔案。",
     "common.icon-browser.keep-both": "兩者都保留",

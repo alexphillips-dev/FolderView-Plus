@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
+        "translation-context-revision": "c86b1589993a74d43e9946cd053439b3a5e98ee413d651fac1716c3fda6cf4af"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -252,7 +252,6 @@
     "common.icon-browser.external": "বাহ্যিক আইকন",
     "common.icon-browser.source": "আইকন উৎস",
     "common.icon-browser.path": "আইকন URL বা পাথ",
-    "common.icon-browser.manage": "লাইব্রেরি পরিচালনা করুন",
     "common.icon-browser.replace-title": "এই আইকনটি প্রতিস্থাপন করবেন?",
     "common.icon-browser.replace-message": "এই নামের একটি আইকন ইতিমধ্যেই বিদ্যমান৷ উভয় ফাইল রাখুন বা বিদ্যমান ফাইল প্রতিস্থাপন করুন।",
     "common.icon-browser.keep-both": "দুটোই রাখুন",

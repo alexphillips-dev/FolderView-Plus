@@ -687,7 +687,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderRulesJs, /const fullRulesWorkspaceHref = `\/Settings\/FolderViewPlus\?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=\$\{encodeURIComponent\(type\)\}`;/);
     assert.match(folderRulesJs, /Create managed include or exclude rules without relying on the legacy folder regex\./);
     assert.match(folderRulesJs, /<dt>Auto-rules:<\/dt>/);
-    assert.match(folderRulesJs, /<blockquote class="inline_help">/);
+    assert.match(folderRulesJs, /<blockquote class="fv-setting-help">/);
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/migrate_legacy_regex\.php'/);

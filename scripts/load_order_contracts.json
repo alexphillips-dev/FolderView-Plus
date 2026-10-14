@@ -345,6 +345,7 @@
         "scripts/icon-picker.runtime.js",
         "scripts/folder.editor.hierarchy.js",
         "scripts/folder.editor.chrome.js",
+        "scripts/folder.editor.help.js",
         "scripts/folder.editor.parent-picker.js",
         "scripts/folder.editor.legacy-rule-model.js",
         "scripts/folderviewplus.rule-templates.js",

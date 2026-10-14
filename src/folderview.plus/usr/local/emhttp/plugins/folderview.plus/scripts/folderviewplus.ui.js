@@ -165,7 +165,7 @@
 
     const openPopover = ({
         trigger = null, content = '', ariaLabel = '', className = '', initialFocus = '', returnFocus = true,
-        placement = 'bottom-end', onClose = null
+        placement = 'bottom-end', onClose = null, role = 'dialog', focus = true
     } = {}) => {
         if (!host?.document?.body || !trigger || typeof trigger.getBoundingClientRect !== 'function') return null;
         activePopover?.close?.('replaced', { restoreFocus: false });
@@ -174,7 +174,7 @@
         const popoverId = `fv-ui-popover-${++popoverSequence}`;
         element.id = popoverId;
         element.className = `fv-ui-popover${className ? ` ${className}` : ''}`;
-        element.setAttribute('role', 'dialog');
+        element.setAttribute('role', role === 'tooltip' ? 'tooltip' : 'dialog');
         element.setAttribute('tabindex', '-1');
         if (ariaLabel) element.setAttribute('aria-label', ariaLabel);
         appendContent(element, content);
@@ -256,7 +256,7 @@
         const focusTarget = requestedFocus && !requestedFocus.disabled && requestedFocus.getAttribute('aria-disabled') !== 'true'
             ? requestedFocus
             : getFocusable(element)[0];
-        (focusTarget || element).focus({ preventScroll: true });
+        if (focus) (focusTarget || element).focus({ preventScroll: true });
         return controller;
     };
 

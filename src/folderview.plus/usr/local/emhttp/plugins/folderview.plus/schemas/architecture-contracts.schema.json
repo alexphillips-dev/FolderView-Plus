@@ -7,6 +7,7 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "scripts/folder.editor.help.js": {"limit": 150, "target": 150, "history": [150]},
       "server/lib.folderview3-validation.php": {"limit": 220, "target": 220, "history": [220]},
       "server/lib.folderview3-settings.php": {"limit": 110, "target": 110, "history": [110]},
       "server/lib.folderview3-presets.php": {"limit": 30, "target": 30, "history": [30]},
@@ -708,6 +709,19 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/folder.editor.help.js",
+      "owner": "folder-editor-setting-help",
+      "consumers": ["folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.ui.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderEditorHelp",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["createApi"]
+    },
     {
       "file": "scripts/folder.editor.icon-browser.js",
       "owner": "folder-editor-icon-browser",

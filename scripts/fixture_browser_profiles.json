@@ -8,6 +8,8 @@
   "quick-finder": ["Quick finder"],
   "icon-browser": ["Icon browser", "Custom icon", "Deleting an uploaded"],
   "editor-settings": ["Folder editor dependencies"],
+  "editor-help": ["Folder editor info icons"],
+  "editor-popovers": ["Icon browser", "Dashboard action rail exposes", "Folder editor dependencies"],
   "folderview3": ["FolderView3"],
   "folder-menu": ["Docker folder menu", "Docker child-folder preview", "Docker folder feedback"],
   "folder-effects": ["Dashboard folder effects", "Docker folder hover animations"],

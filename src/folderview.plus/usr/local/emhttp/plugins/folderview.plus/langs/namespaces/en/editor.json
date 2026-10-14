@@ -1,4 +1,5 @@
 {
+    "editor.settings.information-about": "Information about $1",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",

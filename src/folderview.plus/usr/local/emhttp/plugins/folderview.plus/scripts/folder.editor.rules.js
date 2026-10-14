@@ -574,7 +574,7 @@
                         ${bodyHtml}
                     </dd>
                 </dl>
-                <blockquote class="inline_help">
+                <blockquote class="fv-setting-help">
                     <span>These advanced rules use the plugin-wide engine and still run in global priority order. Use the full Rules workspace to reorder rules or build label-based matches.</span>
                 </blockquote>
             `;

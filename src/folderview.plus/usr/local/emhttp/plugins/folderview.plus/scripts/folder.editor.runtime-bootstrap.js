@@ -11,6 +11,7 @@
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+            '/plugins/folderview.plus/scripts/folder.editor.help.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.legacy-rule-model.js',
             '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',

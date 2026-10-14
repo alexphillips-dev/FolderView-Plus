@@ -5,6 +5,7 @@
         "namespace": "editor",
         "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
+    "editor.settings.information-about": "$1 সম্পর্কে তথ্য",
     "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",
     "editor.actions.standard": "স্ট্যান্ডার্ড",
     "editor.actions.user-script": "ব্যবহারকারীর স্ক্রিপ্ট",

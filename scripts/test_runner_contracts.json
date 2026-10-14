@@ -31,6 +31,8 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/folder-editor-help-touch.mjs", "limit": 45, "owner": "Native touch, RTL and localized folder help interactions", "requiredImports": ["./folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/cases/folder-editor-help.mjs", "limit": 110, "owner": "Folder editor SVG help, disabled fields and dynamic content", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/cases/folder-editor-settings.mjs", "limit": 80, "owner": "Folder settings dependency visibility and stored value regressions", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
     { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
@@ -109,6 +111,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/folder-editor-help.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
@@ -160,6 +163,7 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/folder-editor-help-touch.mjs",
         "tests/browser/helpers/folder-editor-settings-host.mjs",
         "tests/browser/helpers/folder-action-settings-host.mjs",
         "tests/browser/helpers/folderview3-host.mjs",
@@ -187,10 +191,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 115,
-      "assertionCount": 1524,
-      "pageEvaluateCount": 401,
-      "orderedTitleSha256": "8444d079f4ac6f838b7e4fcbff702b6358110ba8bc30712fe9f52329c38d0117"
+      "testCount": 116,
+      "assertionCount": 1551,
+      "pageEvaluateCount": 408,
+      "orderedTitleSha256": "9a03ef6a4b21418aed499113ea89a2c185bcdc408aebebf0626706a93a6b0a16"
     }
   }
 }

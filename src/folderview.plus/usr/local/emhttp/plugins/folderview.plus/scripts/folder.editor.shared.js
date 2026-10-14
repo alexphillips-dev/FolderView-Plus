@@ -342,6 +342,7 @@
         if (!dependencyRoots.has(root)) {
             // Host switch widgets can handle label clicks even when the input is disabled.
             const blockDisabledWidget = (event) => {
+                if (event.target.closest?.('[data-fv-setting-info]')) return;
                 if (event.type === 'keydown' && ['Tab', 'Escape'].includes(event.key)) return;
                 if (event.target.closest?.('.fv-dependent-disabled')) {
                     event.preventDefault();
@@ -363,6 +364,7 @@
             else row.removeAttribute('aria-disabled');
         });
         root.querySelectorAll('input, select, textarea, button').forEach(control => {
+            if (control.matches('[data-fv-setting-info]')) return;
             if (control.closest('.fv-dependent-disabled')) {
                 if (!dependencyDisabledControls.has(control)) dependencyDisabledControls.set(control, control.disabled);
                 control.disabled = true;

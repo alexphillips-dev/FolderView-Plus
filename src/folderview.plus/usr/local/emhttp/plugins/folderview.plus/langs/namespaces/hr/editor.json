@@ -5,6 +5,7 @@
         "namespace": "editor",
         "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
+    "editor.settings.information-about": "Informacije o $1",
     "editor.actions.add-custom": "Dodajte prilagođenu radnju",
     "editor.actions.standard": "Standardno",
     "editor.actions.user-script": "Korisnička skripta",

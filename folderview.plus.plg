@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.16">
-<!ENTITY md5 "98b5d8fb8a8a1220ae58636c9eafefdf">
-<!ENTITY sha256 "2f0b334b0e6bbaf70e27e0e447bc8c246f2557d52bf14519868b920f11434dd0">
+<!ENTITY version "2026.10.14.17">
+<!ENTITY md5 "cdcdd01e28e9ca0f86e75bf088da208c">
+<!ENTITY sha256 "85c7cef176bd7a3480cd3d7c8bdb2989c13089f71cede3ca913f99f6b4640621">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.17
+- UX: Replace expanding folder-setting descriptions and the question-mark cursor with an SVG information icon beside each setting label. Hover or focus the icon to read its description without changing the row layout.
+- Accessibility: Keep help available for disabled settings, support tapping info icons on touch screens, and dismiss descriptions with Escape or an outside tap. Preserve translated descriptions and links.
+- Fix: Apply the same help behavior to dynamically rendered folder rules and keep tooltips inside the viewport, including right-to-left layouts.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised folder editor assets and translations.
+
 
 ###2026.10.14.16
 - Fix: Restore preview overflow, row separators and their color, Docker folder update highlighting, and status color locking in the folder editor.

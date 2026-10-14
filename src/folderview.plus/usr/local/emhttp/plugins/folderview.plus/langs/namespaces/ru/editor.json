@@ -5,6 +5,7 @@
         "namespace": "editor",
         "translation-context-revision": "6ac4f88e4c24f5b4402ad71fa27f1e77df28489aaf043c40ea19fb2ac0e091d3"
     },
+    "editor.settings.information-about": "Информация о $1",
     "editor.actions.add-custom": "Добавить пользовательское действие",
     "editor.actions.standard": "Стандартный",
     "editor.actions.user-script": "Скрипт пользователя",

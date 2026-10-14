@@ -19,7 +19,14 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                     const dot = getComputedStyle(guide, '::after');
                     const divider = node.querySelector('.folder-drag-divider');
                     const handle = node.querySelector('.folder-drag-handle');
+                    const dividerCentered = [...node.closest('tbody').querySelectorAll('.folder-drag-divider')].every(divider => {
+                        const grip = divider.previousElementSibling.children[1].getBoundingClientRect();
+                        const line = divider.getBoundingClientRect();
+                        const icon = divider.nextElementSibling.querySelector('svg').getBoundingClientRect();
+                        return Math.abs((line.left - grip.right) - (icon.left - line.right)) <= 1;
+                    });
                     return { radius: curve.borderEndStartRadius, dotRadius: dot.borderRadius,
+                        dividerCentered,
                         dividerWidth: divider.getBoundingClientRect().width,
                         dividerAfterHandle: divider.previousElementSibling === handle,
                         actionIcons: node.querySelectorAll('.folder-tree-action > svg').length,
@@ -30,6 +37,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 assert.equal(geometry.dotRadius, '50%');
                 assert.equal(geometry.dividerWidth, 1);
                 assert.equal(geometry.dividerAfterHandle, true);
+                assert.equal(geometry.dividerCentered, true, 'divider must sit midway between the visible grip dots and action icons');
                 assert.equal(geometry.actionIcons, 2);
                 assert.equal(geometry.railWidth, 24);
                 assert.equal(geometry.firstColumn, '22px');

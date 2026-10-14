@@ -3412,7 +3412,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .folder-drag-divider {
     width: 1px;
     height: 22px;
-    margin-inline: 3px;
+    margin-inline: -0.75px 6.75px;
     flex: none;
     background: var(--fvplus-settings-border-subtle);
 }

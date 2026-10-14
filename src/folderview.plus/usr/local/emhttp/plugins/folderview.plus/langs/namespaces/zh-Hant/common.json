@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "替換這個圖示？",
     "common.icon-browser.replace-message": "同名的圖示已存在。保留這兩個檔案或替換現有檔案。",
     "common.icon-browser.keep-both": "兩者都保留",
-    "common.icon-browser.help": "儲存資料夾以保留此選擇。如果您取消，上傳的檔案仍保留在「我的上傳」中。",
     "common.server.repair-members-unverified": "無法安全驗證已儲存的成員。請檢查所選服務，重新整理頁面，然後重試修復。",
     "common.server.custom-icon-directory-unwritable": "自訂圖示目錄不可寫入。運作：$1",
     "common.server.custom-icon-lock-unavailable": "無法開啟自訂圖示鎖定檔案。運作：$1",

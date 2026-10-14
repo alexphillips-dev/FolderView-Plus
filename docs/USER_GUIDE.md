@@ -35,7 +35,7 @@ Collections include scope and sort controls, with tags behind **Filters** and me
 
 Upload an allowed image up to 16 MiB using **Upload** in **My uploads**. A completed upload previews the uploaded icon; select **Use icon**, then save the folder to use it. Uploaded files stay in **My uploads** if you cancel the selection. Progress and the upload Cancel button cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication is enabled. When a matching filename is found, choose **Keep both**, **Replace**, or **Cancel**. Replacing a file changes it for folders already referencing that file.
 
-Expand **More** on the current icon card to enter an image URL or path, paste a supported data image, or restore the default icon.
+Select **Use default icon** beside the icon source buttons to restore the default. Expand **More** on the current icon card to enter an image URL or path or paste a supported data image.
 
 Deleting an unused icon that is currently selected returns the editor and its previews to the default icon. A different icon chosen while deletion is pending remains selected. Renaming requires removing or replacing references in saved folders, defaults, custom folder groups, and the current editor selection first. Review the manager's usage information before changing an icon.
 

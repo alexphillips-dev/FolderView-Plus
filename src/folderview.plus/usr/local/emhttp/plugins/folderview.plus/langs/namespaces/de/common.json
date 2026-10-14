@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Dieses Symbol ersetzen?",
     "common.icon-browser.replace-message": "Ein Symbol mit diesem Namen existiert bereits. Behalten Sie beide Dateien oder ersetzen Sie die vorhandene Datei.",
     "common.icon-browser.keep-both": "Beide behalten",
-    "common.icon-browser.help": "Speichern Sie den Ordner, um diese Auswahl beizubehalten. Hochgeladene Dateien verbleiben in „Meine Uploads“, wenn Sie den Vorgang abbrechen.",
     "common.server.repair-members-unverified": "Gespeicherte Mitglieder konnten nicht sicher überprüft werden. Prüfen Sie den ausgewählten Dienst, aktualisieren Sie die Seite und versuchen Sie die Reparatur erneut.",
     "common.server.custom-icon-directory-unwritable": "Das benutzerdefinierte Symbolverzeichnis ist nicht beschreibbar. Ausführen: $1",
     "common.server.custom-icon-lock-unavailable": "Die benutzerdefinierte Symbolsperrdatei kann nicht geöffnet werden. Ausführen: $1",

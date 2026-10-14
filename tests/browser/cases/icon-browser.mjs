@@ -10,6 +10,12 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.equal(await page.locator('#fv-icon-picker-panel').isVisible(), true);
             const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
             await dialog.waitFor();
+            assert.equal(await page.locator('.is-icon-row > dl > dt').isVisible(), false);
+            assert.equal(await dialog.locator('.fv-icon-browser-help').count(), 0);
+            const bar = page.locator('.fv-icon-source-bar');
+            assert.equal(await bar.getByRole('button', { name: 'Use default icon', exact: true }).isVisible(), true);
+            const spacing = await dialog.evaluate(node => ({ search: node.querySelector('#fv-icon-picker-search').getBoundingClientRect().top, bar: node.querySelector('.fv-icon-source-bar').getBoundingClientRect().bottom }));
+            assert.ok(spacing.search - spacing.bar < 20);
             assert.equal(await page.getByRole('dialog').count(), 0);
             if (page.viewportSize().width > 1180) await page.waitForFunction(() => Math.abs(document.querySelector('[data-editor-panel="parent"]').getBoundingClientRect().height - document.querySelector('[data-editor-panel="icon"]').getBoundingClientRect().height) < 2);
             const panels = await page.evaluate(() => ['parent', 'icon'].map(key => {
@@ -42,7 +48,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.equal(await input.inputValue(), original);
             await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();
             assert.match(await input.inputValue(), /collection=beta/);
-            await input.evaluate(node => { node.value = '/plugins/folderview.plus/images/folder-icon.png'; window.jQuery(node).trigger('change'); });
+            await bar.getByRole('button', { name: 'Use default icon', exact: true }).click();
             assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Default Folder');
             assert.equal(await page.getByRole('tab', { name: 'Collections' }).getAttribute('aria-selected'), 'true');
             assert.equal(await page.locator('#fv-third-party-search').inputValue(), 'beta');

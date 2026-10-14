@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Bu simge değiştirilsin mi?",
     "common.icon-browser.replace-message": "Bu ada sahip bir simge zaten mevcut. Her iki dosyayı da saklayın veya mevcut dosyayı değiştirin.",
     "common.icon-browser.keep-both": "İkisini de sakla",
-    "common.icon-browser.help": "Bu seçimi korumak için klasörü kaydedin. İptal ederseniz yüklenen dosyalar Yüklemelerim'de kalır.",
     "common.server.repair-members-unverified": "Kaydedilen üyeler güvenli bir şekilde doğrulanamadı. Seçili hizmeti kontrol edin, sayfayı yenileyin ve onarımı yeniden deneyin.",
     "common.server.custom-icon-directory-unwritable": "Özel simge dizini yazılabilir değildir. Çalıştır: $1",
     "common.server.custom-icon-lock-unavailable": "Özel simge kilit dosyası açılamıyor. Çalıştır: $1",

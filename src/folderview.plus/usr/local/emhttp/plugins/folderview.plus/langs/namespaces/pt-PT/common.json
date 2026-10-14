@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Substituir este ícone?",
     "common.icon-browser.replace-message": "Já existe um ícone com este nome. Mantenha os dois ficheiros ou substitua o ficheiro existente.",
     "common.icon-browser.keep-both": "Manter ambos",
-    "common.icon-browser.help": "Guarde a pasta para manter esta seleção. Se cancelar, os ficheiros enviados permanecem em Os meus envios.",
     "common.server.repair-members-unverified": "Não foi possível verificar com segurança os membros guardados. Verifique o serviço selecionado, atualize a página e tente a reparação novamente.",
     "common.server.custom-icon-directory-unwritable": "O diretório de ícones personalizados não é gravável. Execute: $1",
     "common.server.custom-icon-lock-unavailable": "Não é possível abrir o arquivo de bloqueio de ícone personalizado. Execute: $1",

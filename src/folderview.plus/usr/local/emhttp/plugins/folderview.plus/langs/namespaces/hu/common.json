@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Választható",
     "common.badges.recommended": "Ajánlott",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Lecseréli ezt az ikont?",
     "common.icon-browser.replace-message": "Már létezik ilyen nevű ikon. Tartsa meg mindkét fájlt, vagy cserélje ki a meglévő fájlt.",
     "common.icon-browser.keep-both": "Tartsa meg mindkettőt",
-    "common.icon-browser.help": "Mentse el a mappát a kijelölés megtartásához. A feltöltött fájlok a Feltöltéseim között maradnak, ha megszakítja a kiválasztást.",
     "common.server.repair-members-unverified": "A mentett tagokat nem sikerült biztonságosan ellenőrizni. Ellenőrizze a kiválasztott szolgáltatást, frissítse az oldalt, és próbálja újra a javítást.",
     "common.server.custom-icon-directory-unwritable": "Az egyéni ikonkönyvtár nem írható. Futtatás: $1",
     "common.server.custom-icon-lock-unavailable": "Nem lehet megnyitni az egyéni ikonzár fájlt. Futtatás: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Zamijeniti ovu ikonu?",
     "common.icon-browser.replace-message": "Ikona s ovim imenom već postoji. Zadržite obje datoteke ili zamijenite postojeću datoteku.",
     "common.icon-browser.keep-both": "Zadrži oboje",
-    "common.icon-browser.help": "Spremite mapu da biste zadržali ovaj odabir. Prenesene datoteke ostaju u odjeljku Moji prijenosi ako odustanete.",
     "common.server.repair-members-unverified": "Spremljene članove nije bilo moguće sigurno provjeriti. Provjerite odabranu uslugu, osvježite stranicu i ponovno pokušajte popravak.",
     "common.server.custom-icon-directory-unwritable": "Prilagođeni direktorij ikona ne može se pisati. Pokreni: $1",
     "common.server.custom-icon-lock-unavailable": "Nije moguće otvoriti datoteku zaključavanja prilagođene ikone. Pokreni: $1",

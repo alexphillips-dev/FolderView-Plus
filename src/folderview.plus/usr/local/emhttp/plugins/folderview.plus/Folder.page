@@ -209,20 +209,18 @@ try {
                         <div class="fv-icon-selection-label"><strong id="fv-icon-selection-name"></strong><span id="fv-icon-selection-source"></span></div>
                     </div>
                     <details class="fv-icon-more"><summary>More</summary>
-                        <button type="button" id="fv-icon-picker-default">Use default icon</button>
                         <label><span data-i18n="common.icon-browser.path">Icon URL or path</span>
                             <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" hidden>
                             <input type="text" name="icon" value="" data-fv-oninput="updateIcon(this)">
                         </label>
                     </details>
                     <div id="fv-icon-library-home" class="fv-icon-browser" role="region" aria-label="Choose icon" data-i18n="[aria-label]common.icon-browser.choose"><div class="fv-icon-browser-body"><div id="fv-icon-library">
-                    <div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
+                    <div class="fv-icon-source-bar"><div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Collections</span></button>
                         <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> <span data-i18n="common.icon-browser.uploads">My uploads</span></button>
-                    </div>
+                    </div><button type="button" id="fv-icon-picker-default">Use default icon</button></div>
                     <div class="fv-icon-library-tools"><label><input type="checkbox" id="fv-icon-manage"> <span data-i18n="common.icon-browser.manage">Manage library</span></label></div>
-                    <p class="fv-icon-browser-help" data-i18n="common.icon-browser.help">Save the folder to keep this selection. Uploaded files remain in My uploads if you cancel.</p>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
                     <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
                         <div class="fv-icon-upload-progress-top">

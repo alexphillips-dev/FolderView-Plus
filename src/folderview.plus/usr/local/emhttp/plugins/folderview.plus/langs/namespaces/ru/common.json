@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Заменить этот значок?",
     "common.icon-browser.replace-message": "Значок с таким названием уже существует. Сохраните оба файла или замените существующий файл.",
     "common.icon-browser.keep-both": "Сохранить оба",
-    "common.icon-browser.help": "Сохраните папку, чтобы сохранить этот выбор. При отмене загруженные файлы останутся в разделе «Мои загрузки».",
     "common.server.repair-members-unverified": "Не удалось безопасно проверить сохранённых участников. Проверьте выбранную службу, обновите страницу и повторите восстановление.",
     "common.server.custom-icon-directory-unwritable": "Каталог пользовательских значков недоступен для записи. Запустите: $1",
     "common.server.custom-icon-lock-unavailable": "Невозможно открыть файл блокировки пользовательских значков. Запустите: $1",

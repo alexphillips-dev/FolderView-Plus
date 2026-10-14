@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Vai aizstāt šo ikonu?",
     "common.icon-browser.replace-message": "Ikona ar šādu nosaukumu jau pastāv. Saglabājiet abus failus vai nomainiet esošo failu.",
     "common.icon-browser.keep-both": "Saglabājiet abus",
-    "common.icon-browser.help": "Saglabājiet mapi, lai saglabātu šo atlasi. Ja atcelsit, augšupielādētie faili paliks sadaļā Manas augšupielādes.",
     "common.server.repair-members-unverified": "Saglabātos dalībniekus nevarēja droši pārbaudīt. Pārbaudiet atlasīto pakalpojumu, atsvaidziniet lapu un mēģiniet labot vēlreiz.",
     "common.server.custom-icon-directory-unwritable": "Pielāgoto ikonu direktoriju nevar rakstīt. Palaist: $1",
     "common.server.custom-icon-lock-unavailable": "Nevar atvērt pielāgotās ikonas bloķēšanas failu. Palaist: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Vil du erstatte dette ikonet?",
     "common.icon-browser.replace-message": "Et ikon med dette navnet finnes allerede. Behold begge filene eller erstatt den eksisterende filen.",
     "common.icon-browser.keep-both": "Behold begge deler",
-    "common.icon-browser.help": "Lagre mappen for å beholde dette valget. Opplastede filer forblir i Mine opplastinger hvis du avbryter.",
     "common.server.repair-members-unverified": "Lagrede medlemmer kunne ikke verifiseres sikkert. Kontroller den valgte tjenesten, oppdater siden og prøv reparasjonen igjen.",
     "common.server.custom-icon-directory-unwritable": "Egendefinert ikonkatalog er ikke skrivbar. Kjør: $1",
     "common.server.custom-icon-lock-unavailable": "Kan ikke åpne egendefinert ikonlåsfil. Kjør: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Zamienić tę ikonę?",
     "common.icon-browser.replace-message": "Ikona o tej nazwie już istnieje. Zachowaj oba pliki lub zastąp istniejący plik.",
     "common.icon-browser.keep-both": "Zachowaj oba",
-    "common.icon-browser.help": "Zapisz folder, aby zachować ten wybór. Jeśli anulujesz, przesłane pliki pozostaną w Moich przesłanych plikach.",
     "common.server.repair-members-unverified": "Nie udało się bezpiecznie zweryfikować zapisanych członków. Sprawdź wybraną usługę, odśwież stronę i ponów naprawę.",
     "common.server.custom-icon-directory-unwritable": "Niestandardowy katalog ikon nie jest przeznaczony do zapisu. Uruchom: $1",
     "common.server.custom-icon-lock-unavailable": "Nie można otworzyć pliku blokady niestandardowej ikony. Uruchom: $1",

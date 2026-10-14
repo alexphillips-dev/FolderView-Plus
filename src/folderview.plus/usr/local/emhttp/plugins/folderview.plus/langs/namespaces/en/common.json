@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Replace this icon?",
     "common.icon-browser.replace-message": "An icon with this name already exists. Keep both files or replace the existing file.",
     "common.icon-browser.keep-both": "Keep both",
-    "common.icon-browser.help": "Save the folder to keep this selection. Uploaded files remain in My uploads if you cancel.",
     "common.server.repair-members-unverified": "Saved members could not be verified safely. Check the selected service, refresh the page, and retry the repair.",
     "common.server.custom-icon-directory-unwritable": "Custom icon directory is not writable. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Unable to open custom icon lock file. Run: $1",

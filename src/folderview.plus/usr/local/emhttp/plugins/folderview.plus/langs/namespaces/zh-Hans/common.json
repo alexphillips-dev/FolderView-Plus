@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "替换这个图标？",
     "common.icon-browser.replace-message": "同名的图标已存在。保留这两个文件或替换现有文件。",
     "common.icon-browser.keep-both": "两者都保留",
-    "common.icon-browser.help": "保存文件夹以保留此选择。如果您取消，上传的文件仍保留在“我的上传”中。",
     "common.server.repair-members-unverified": "无法安全验证已保存的成员。请检查所选服务，刷新页面，然后重试修复。",
     "common.server.custom-icon-directory-unwritable": "自定义图标目录不可写。运行：$1",
     "common.server.custom-icon-lock-unavailable": "无法打开自定义图标锁定文件。运行：$1",

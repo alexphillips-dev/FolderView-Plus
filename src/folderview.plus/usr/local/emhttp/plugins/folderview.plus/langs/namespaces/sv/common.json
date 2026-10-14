@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Vill du byta ut den här ikonen?",
     "common.icon-browser.replace-message": "En ikon med detta namn finns redan. Behåll båda filerna eller ersätt den befintliga filen.",
     "common.icon-browser.keep-both": "Behåll båda",
-    "common.icon-browser.help": "Spara mappen för att behålla detta val. Uppladdade filer finns kvar i Mina uppladdningar om du avbryter.",
     "common.server.repair-members-unverified": "Sparade medlemmar kunde inte verifieras säkert. Kontrollera den valda tjänsten, uppdatera sidan och försök reparera igen.",
     "common.server.custom-icon-directory-unwritable": "Anpassad ikonkatalog är inte skrivbar. Kör: $1",
     "common.server.custom-icon-lock-unavailable": "Det gick inte att öppna en anpassad ikonlåsfil. Kör: $1",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "このアイコンを置き換えますか?",
     "common.icon-browser.replace-message": "この名前のアイコンはすでに存在します。両方のファイルを保持するか、既存のファイルを置き換えます。",
     "common.icon-browser.keep-both": "両方を保持",
-    "common.icon-browser.help": "この選択を保持するには、フォルダーを保存してください。キャンセルしても、アップロードしたファイルは「アップロードしたアイコン」に残ります。",
     "common.server.repair-members-unverified": "保存されたメンバーを安全に確認できませんでした。選択したサービスを確認し、ページを更新してから修復を再試行してください。",
     "common.server.custom-icon-directory-unwritable": "カスタム アイコン ディレクトリは書き込み可能ではありません。実行: $1",
     "common.server.custom-icon-lock-unavailable": "カスタム アイコン ロック ファイルを開けません。実行: $1",

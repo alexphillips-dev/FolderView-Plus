@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Înlocuiți această pictogramă?",
     "common.icon-browser.replace-message": "O pictogramă cu acest nume există deja. Păstrați ambele fișiere sau înlocuiți fișierul existent.",
     "common.icon-browser.keep-both": "Păstrați ambele",
-    "common.icon-browser.help": "Salvați folderul pentru a păstra această selecție. Fișierele încărcate rămân în Încărcările mele dacă anulați.",
     "common.server.repair-members-unverified": "Membrii salvați nu au putut fi verificați în siguranță. Verificați serviciul selectat, reîmprospătați pagina și încercați din nou repararea.",
     "common.server.custom-icon-directory-unwritable": "Directorul cu pictograme personalizate nu poate fi scris. Run: $1",
     "common.server.custom-icon-lock-unavailable": "Nu se poate deschide fișierul de blocare a pictogramei personalizate. Run: $1",

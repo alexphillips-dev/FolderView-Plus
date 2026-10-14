@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "1afd4da69002d01e27cbf2d41cbaad560369440f8d057c1e2d7d13ff43836453"
+        "translation-context-revision": "503b793ce6c20aca8c52f355fa9e0480c3b810f0f35581a8a35eed3d9cc0eb49"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -256,7 +256,6 @@
     "common.icon-browser.replace-title": "Remplacer cette icône ?",
     "common.icon-browser.replace-message": "Une icône portant ce nom existe déjà. Conservez les deux fichiers ou remplacez le fichier existant.",
     "common.icon-browser.keep-both": "Conserver les deux",
-    "common.icon-browser.help": "Enregistrez le dossier pour conserver cette sélection. Les fichiers importés restent dans Mes icônes importées si vous annulez.",
     "common.server.repair-members-unverified": "Les membres enregistrés n’ont pas pu être vérifiés de manière sûre. Vérifiez le service sélectionné, actualisez la page et réessayez la réparation.",
     "common.server.custom-icon-directory-unwritable": "Le répertoire d'icônes personnalisées n'est pas accessible en écriture. Exécuter : $1",
     "common.server.custom-icon-lock-unavailable": "Impossible d'ouvrir le fichier de verrouillage d'icône personnalisé. Exécuter : $1",

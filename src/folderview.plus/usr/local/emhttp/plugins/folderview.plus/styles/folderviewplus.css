@@ -1550,18 +1550,8 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 }
 
 .folder-tree-toggle {
-    border: 0;
-    border-radius: 3px;
-    padding: 0;
-    background: transparent;
     color: rgba(214, 224, 239, 0.88);
     cursor: pointer;
-}
-
-.folder-tree-toggle:hover,
-.folder-tree-toggle:focus-visible {
-    color: rgba(255, 255, 255, 0.98);
-    background: rgba(255, 255, 255, 0.09);
 }
 
 .folder-tree-toggle:disabled {
@@ -3415,6 +3405,10 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     margin-inline: -0.75px 6.75px;
     flex: none;
     background: var(--fvplus-settings-border-subtle);
+}
+
+.folder-drag-divider:has(+ .folder-tree-action + .folder-tree-action) {
+    margin-inline: 0.25px 5.75px;
 }
 
 .folder-tree-action svg {
@@ -13329,6 +13323,7 @@ h2[data-fv-section].fv-search-match {
 
 /* Order-column controls are icon-only affordances, not framed action buttons. */
 #fv-settings-root .folder-table table td.order-cell .row-order-actions button {
+    margin: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
     outline: none !important;

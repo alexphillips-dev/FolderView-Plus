@@ -13,6 +13,8 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 host.releaseRuntime();
                 await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
                 await row('leaf').waitFor();
+                // Unraid default-base.css applies this native button margin outside the plugin.
+                await page.addStyleTag({ content: '.row-order-actions button, .row-order-actions button[type="button"] { margin: 10px 12px 10px 0; }' });
                 const geometry = await row('child').evaluate(node => {
                     const guide = node.querySelector('.name-cell-tree-guide.is-branch');
                     const curve = getComputedStyle(guide, '::before');
@@ -22,7 +24,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                     const dividerCentered = [...node.closest('tbody').querySelectorAll('.folder-drag-divider')].every(divider => {
                         const grip = divider.previousElementSibling.children[1].getBoundingClientRect();
                         const line = divider.getBoundingClientRect();
-                        const icon = divider.nextElementSibling.querySelector('svg').getBoundingClientRect();
+                        const icon = divider.nextElementSibling.querySelector('svg path').getBoundingClientRect();
                         return Math.abs((line.left - grip.right) - (icon.left - line.right)) <= 1;
                     });
                     return { radius: curve.borderEndStartRadius, dotRadius: dot.borderRadius,

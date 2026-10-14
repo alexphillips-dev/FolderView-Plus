@@ -179,9 +179,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerRuntimeHierarchyJs, /bindDockerNestedPreviewContext\(item, \$tooltipTrigger, entry, folder, id\);/);
     assert.match(dockerRuntimeHierarchyJs, /auditDockerPreviewContextBridges\(\$preview, folder\?\.settings \|\| \{\}\);/);
     assert.match(dockerJs, /const bindDockerNestedPreviewContext = \(\$item, \$tooltipTrigger, entry = \{\}, folder = \{\}, folderId = ''\) =>/);
-    assert.match(dockerPreviewActionsScript, /const findDockerNestedPreviewSourceRow = \(entry = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /const findDockerRuntimeSourceRow = \(entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const bindDockerNestedPreviewContext = \(options = \{\}\) =>/);
-    assert.match(dockerPreviewActionsScript, /findDockerNestedPreviewSourceRow\(options\.entry \|\| \{\}\)/);
+    assert.match(dockerPreviewActionsScript, /findDockerRuntimeSourceRow\(options\.entry \|\| \{\}\)/);
     assert.match(dockerJs, /dockerAdvancedPreviewContextBindersByName\.get\(containerName\)/);
     assert.match(dockerJs, /bindAdvancedContext\(\$trigger, \{ folder, folderId \}\)/);
     assert.match(dockerRuntimeHierarchyJs, /const depthLimit = normalizeChildFolderPreviewDepth\(folder\?\.settings \|\| \{\}\);/);

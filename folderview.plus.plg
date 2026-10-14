@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.12">
-<!ENTITY md5 "35098d7554efef9c1053793bbd6014b3">
-<!ENTITY sha256 "3ffe61b50bda3a452b63339efddd9927c81fe3053a500186a55313f9730a2fba">
+<!ENTITY version "2026.10.14.13">
+<!ENTITY md5 "98e1250239a4c0196ce7c4c62c1e0e04">
+<!ENTITY sha256 "5655794e1d76447e85c916c0bfa593208c26f5a53574dea9723c0fd55111c5d6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.13
+- Fix: Docker container Start, Stop, Pause, Resume, and Restart recognize native and API-prefixed container identities when reconciling completed actions. Ambiguous shortened IDs are not assigned to an arbitrary container.
+- Fix: Refresh native Docker rows without requiring a plugin row ID. Clear loading icons and update status in place for standalone containers and folder members while preserving native context-menu handlers and folder grouping.
+- Compatibility: Update the dev plugin and hard-refresh Docker and Dashboard after installation. Existing folders, preferences, rules, and container configuration are preserved.
+
 
 ###2026.10.14.12
 - Fix: Merge the My uploads card focus ring with its selected border to remove the double outline while keeping keyboard focus visible.

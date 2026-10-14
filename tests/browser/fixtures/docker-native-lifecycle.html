@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Native Docker lifecycle regression</title>
+    <style>
+        body { font: 16px sans-serif; padding: 16px; color: #111; background: #fff; }
+        .hand { display: inline-block; padding: 12px; cursor: pointer; }
+        .folder-preview { padding: 12px; }
+        button { min-height: 44px; margin: 4px; color: #111; background: #eee; border: 1px solid #555; }
+        @media (prefers-color-scheme: dark) {
+            body { color: #eee; background: #181818; }
+            button { color: #eee; background: #333; border-color: #aaa; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Native Docker lifecycle regression</h1>
+        <table id="docker_containers">
+            <thead><tr><th>Container</th></tr></thead>
+            <tbody id="docker_list">
+                <tr class="sortable"><td class="ct-name"><span class="outer"><span id="abcdef123456" class="hand" role="button" tabindex="0" aria-label="Open container menu">Container icon</span><span class="inner"><span class="appname">fixture-app</span><br><i id="load-abcdef123456" class="fa fa-play started green-text" aria-hidden="true"></i><span class="state">started</span></span></span></td></tr>
+                <tr id="ct-unrelated" class="sortable"><td class="ct-name"><span class="outer"><span class="inner"><span class="appname">unrelated</span><br><i class="fa fa-play started" aria-hidden="true"></i><span class="state">started</span></span></span></td></tr>
+            </tbody>
+        </table>
+        <div id="fixture-menu" aria-label="Container actions" hidden></div>
+    </main>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/runtime.host-adapter.js"></script>
+    <script src="/plugin/scripts/docker.runtime.container-model.js"></script>
+    <script src="/plugin/scripts/docker.runtime.api-coordinator.js"></script>
+    <script src="/plugin/scripts/docker.runtime.preview-actions.js"></script>
+    <script src="/plugin/scripts/docker.runtime.reconcile.js"></script>
+    <script src="/fixtures/docker-native-lifecycle.fixture.js"></script>
+</body>
+</html>

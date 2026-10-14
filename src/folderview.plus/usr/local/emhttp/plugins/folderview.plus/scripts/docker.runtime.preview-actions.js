@@ -452,7 +452,10 @@
             return true;
         };
 
-        const findDockerNestedPreviewSourceRow = (entry = {}) => {
+        const findDockerRuntimeSourceRow = (entry = {}) => {
+            const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+            const canonicalRow = containerName ? doc?.getElementById?.(`ct-${containerName}`) : null;
+            if (canonicalRow) return jq(canonicalRow);
             const containerId = String(entry?.shortId || entry?.id || entry?.info?.Id || '')
                 .replace(/^sha256:/i, '')
                 .trim();
@@ -461,9 +464,8 @@
                 const exactRow = exactTrigger ? jq(exactTrigger).closest('tr') : jq();
                 if (exactRow.length) return exactRow.first();
             }
-            const containerName = String(entry?.name || entry?.info?.Name || '').trim();
             if (!containerName) return jq();
-            return jq('tr.folder-element, div.folder-storage > tr').filter((_, row) => (
+            return jq('#docker_list > tr.sortable:not(.folder), #docker_view > tr.sortable:not(.folder), tr.folder-element, div.folder-storage > tr').filter((_, row) => (
                 String(jq(row).find('td.ct-name .appname').first().text() || '').trim() === containerName
             )).first();
         };
@@ -477,7 +479,7 @@
             if (contextMode === 1) {
                 return bindDockerPreviewDefaultContextBridge(
                     $item,
-                    findDockerNestedPreviewSourceRow(options.entry || {}),
+                    findDockerRuntimeSourceRow(options.entry || {}),
                     settings
                 );
             }
@@ -1144,11 +1146,7 @@
                 if (!containerName || (changedSet && !changedSet.has(containerName))) {
                     return;
                 }
-                const row = doc?.getElementById?.(`ct-${containerName}`) || null;
-                if (!row) {
-                    return;
-                }
-                const $row = jq(row);
+                const $row = findDockerRuntimeSourceRow(entry);
                 syncDockerStorageRowStatus($row, entry);
             });
         };

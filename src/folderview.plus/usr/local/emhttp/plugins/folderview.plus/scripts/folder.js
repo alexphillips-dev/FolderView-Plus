@@ -2563,7 +2563,6 @@ const applyAdvancedMode = () => {
     Object.entries(SECTION_META).forEach(([key, meta]) => {
         const isAdvancedSection = meta?.advanced === true;
         const heading = $(`#fv-section-${key}`);
-        const rows = $(`[data-editor-section="${key}"]`);
         const navButton = $(`.fv-section-nav > button[data-target="${key}"]`);
         const collapseButton = heading.find('.fv-section-collapse');
         const shell = $(`.fv-section-shell[data-section-shell="${key}"]`);
@@ -2581,7 +2580,6 @@ const applyAdvancedMode = () => {
             collapseButton.attr('aria-pressed', collapsed ? 'true' : 'false');
             collapseButton.html(`<i class="fa ${collapsed ? 'fa-plus-square-o' : 'fa-minus-square-o'}" aria-hidden="true"></i> ${collapsed ? 'Expand' : 'Collapse'}`);
         }
-        rows.toggle(!collapsed);
     });
 
     $('.fv-advanced-setting').removeClass('fv-advanced-hidden');
@@ -4546,6 +4544,7 @@ const customAction = (action = undefined) => {
 
     const syncTargetSummary = () => {
         const selectedTargets = (targetSelect.val() || []).map(String);
+        const inactive = String(modeSelect.val()) !== '0';
         dialog.find('[data-fv-action-target-count]').text(surfaceT('common.targets.selected-count', 'Selected: $1', selectedTargets.length));
         const chips = dialog.find('[data-fv-action-target-chips]').empty();
         if (eligibleTargets.length === 0) {
@@ -4557,21 +4556,26 @@ const customAction = (action = undefined) => {
                 chips.append($('<span></span>').text(targetName));
             });
         }
-        dialog.find('[data-action-target-command="all"]').prop('disabled', eligibleTargets.length === 0 || selectedTargets.length === eligibleTargets.length);
-        dialog.find('[data-action-target-command="clear"]').prop('disabled', selectedTargets.length === 0);
+        dialog.find('[data-action-target-command="all"]').prop('disabled', inactive || eligibleTargets.length === 0 || selectedTargets.length === eligibleTargets.length);
+        dialog.find('[data-action-target-command="clear"]').prop('disabled', inactive || selectedTargets.length === 0);
     };
 
     const syncStandardAction = () => {
         const actionMode = String(actionSelect.val() || '0');
-        dialog.find('[constraint*="action-standard-"]').hide();
-        dialog.find(`[constraint*="action-standard-${actionMode}"]`).css('display', 'grid');
+        dialog.find('[constraint*="action-type-"], [constraint*="action-standard-"]').css('display', 'grid');
+        folderEditorShared.updateDependencies(dialog[0], [
+            { tokens: ['action-type-0', 'action-type-1'], active: [`action-type-${modeSelect.val()}`] },
+            { tokens: ['action-standard-0', 'action-standard-1'], active: [`action-standard-${actionMode}`] }
+        ]);
+        const standard = String(modeSelect.val()) === '0';
+        if (!standard) targetSelect.multiselect('close');
+        targetSelect.multiselect(standard ? 'enable' : 'disable');
+        syncTargetSummary();
     };
 
     const syncActionType = (nextType = modeSelect.val()) => {
         const mode = String(nextType) === '1' ? '1' : '0';
         modeSelect.val(mode);
-        dialog.find('[constraint*="action-type-"]').hide();
-        dialog.find(`[constraint*="action-type-${mode}"]`).css('display', 'grid');
         dialog.find('[data-action-type]').each((index, element) => {
             const button = $(element);
             const selected = String(button.attr('data-action-type')) === mode;

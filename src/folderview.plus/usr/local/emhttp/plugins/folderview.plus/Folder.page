@@ -830,7 +830,7 @@ try {
                                 <dt data-i18n="context-graph">Graph mode:</dt>
                                 <dd>
                                     <img class="img" data-fvplus-style="fv-u-dyskmc">
-                                    <select name="context_graph">
+                                    <select name="context_graph" data-fv-onchange="updateForm()">
                                         <option value="0" data-i18n="context-graph-option-0">None</option>
                                         <option value="1" data-i18n="context-graph-option-1" selected>Combined</option>
                                         <option value="2" data-i18n="context-graph-option-2">Split</option>
@@ -893,7 +893,7 @@ try {
                                 <span>Theme default</span>
                             </label>
                         </div>
-                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
+                        <button type="button" class="fv-inline-reset-btn" title="Reset status colors" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -925,10 +925,10 @@ try {
                             <input class="basic-switch" name="folder_accent_enabled" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </div>
                         <div class="fv-accent-inline-controls" constraint="accent-color" data-fvplus-style="fv-u-569beu">
-                            <span class="fv-accent-inline-label">Bar color</span>
+                            <label class="fv-accent-inline-label" for="fvFolderAccentColor">Bar color</label>
                             <div class="fv-inline-control-row">
-                                <input type="color" name="folder_accent_color" data-fvplus-style="fv-u-88tzw1">
-                                <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <input type="color" id="fvFolderAccentColor" name="folder_accent_color" data-fvplus-style="fv-u-88tzw1">
+                                <button type="button" class="fv-inline-reset-btn" title="Reset accent color" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
                                     <i class="fa fa-repeat" aria-hidden="true"></i>
                                 </button>
                             </div>

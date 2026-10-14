@@ -533,9 +533,9 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_trigger'\)/);
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph'\)/);
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph_time'\)/);
-    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
-    assert.match(folderPreviewRuntimeJs, /context_graph-\$\{form\.context_graph\?\.value\}/);
-    assert.match(folderPreviewRuntimeJs, /form\.preview_border\?\.checked === true\) \{/);
+    assert.match(folderPreviewRuntimeJs, /choice\('context_graph-', \[0, 1, 2, 3, 4\], form\.context_graph\?\.value\)/);
+    assert.match(folderPreviewRuntimeJs, /FolderViewPlusFolderEditorShared\.updateDependencies\(form,/);
+    assert.match(folderPreviewRuntimeJs, /toggle\('border-color', form\.preview_border\?\.checked === true\)/);
     assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints = typeof deps\.applyTypePreviewConstraints === 'function'/);
     assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints\(\{ \$,\s*form \}\);/);
     assert.match(folderTypeVmJs, /activeJq\('\[constraint\*="docker"\]'\)\.hide\(\);/);
@@ -603,7 +603,7 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderJs, /width:\s*Math\.max\(320, Math\.min\(640, window\.innerWidth - 24\)\),/);
     assert.match(folderJs, /const syncActionType = \(nextType = modeSelect\.val\(\)\) =>/);
-    assert.match(folderJs, /dialog\.find\('\[constraint\*="action-type-"\]'\)\.hide\(\);/);
+    assert.match(folderJs, /folderEditorShared\.updateDependencies\(dialog\[0\],/);
     assert.match(folderJs, /\.attr\('tabindex', selected \? '0' : '-1'\);/);
     assert.match(folderJs, /const validateActionDialog = \(showErrors = validationTouched\) =>/);
     assert.match(folderJs, /const targetsValid = mode !== 0 \|\| \(targetSelect\.val\(\) \|\| \[\]\)\.length > 0;/);

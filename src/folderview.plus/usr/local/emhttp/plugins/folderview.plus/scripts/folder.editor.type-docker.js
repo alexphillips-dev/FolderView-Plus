@@ -141,6 +141,7 @@
             return {
                 preview: [
                     findBasicByFieldName(form, 'preview_update'),
+                    findBasicByFieldName(form, 'folder_update_highlight'),
                     findBasicByFieldName(form, 'preview_status'),
                     findBasicByFieldName(form, 'preview_hide_nested_items'),
                     findBasicByFieldName(form, 'preview_child_folder_depth'),
@@ -169,6 +170,7 @@
                 return;
             }
             markSection('div.basic:has([name="preview_update"])', 'preview');
+            markSection('div.basic:has([name="folder_update_highlight"])', 'preview');
             markSection('div.basic:has([name="preview_status"])', 'preview');
             markSection('div.basic:has([name="preview_hide_nested_items"])', 'preview');
             markSection('div.basic:has([name="preview_child_folder_depth"])', 'preview');

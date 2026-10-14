@@ -175,37 +175,6 @@
                 return;
             }
 
-            $('[constraint*="preview-"]').hide();
-            $(`[constraint*="preview-${form.preview?.value}"]`).show();
-            $('[constraint*="context-"]').hide();
-            $(`[constraint*="context-${form.context?.value}"]`).show();
-            $('[constraint*="context_graph-"]').hide();
-            $('[constraint*="border-color"]').hide();
-            $('[constraint*="bars-color"]').hide();
-            $('[constraint*="preview-row-separator-color"]').hide();
-            $('[constraint*="accent-color"]').hide();
-
-            if (String(form.context?.value) === '2') {
-                $(`[constraint*="context_graph-${form.context_graph?.value}"]`).show();
-            }
-            if (String(form.preview?.value) !== '0' && form.preview_border?.checked === true) {
-                $('[constraint*="border-color"]').show();
-            }
-            if (form.preview_vertical_bars?.checked === true) {
-                $('[constraint*="bars-color"]').show();
-            }
-            if (form.preview_row_separator?.checked === true) {
-                $('[constraint*="preview-row-separator-color"]').show();
-            }
-            if (form.folder_accent_enabled?.checked === true) {
-                $('[constraint*="accent-color"]').show();
-            }
-            $('[constraint*="folder-webui"]').hide();
-            if (form.folder_webui?.checked === true) {
-                $('[constraint*="folder-webui"]').show();
-            }
-            applyTypePreviewConstraints({ $, form });
-
             $('div.canvas > form.folder-editor-form')
                 .toggleClass('fv-preview-disabled', String(form.preview?.value) === '0')
                 .toggleClass('fv-preview-border-enabled', form.preview_border?.checked === true)
@@ -216,6 +185,19 @@
             $('.fv-section-shell[data-section-shell="chevron"]').toggleClass('is-boxed', normalizeDropdownStyle(form.dropdown_style?.value) === 'boxed');
 
             updateInheritedFieldIndicators();
+            const choice = (prefix, values, value) => ({ tokens: values.map(item => `${prefix}${item}`), active: [`${prefix}${value}`] });
+            const toggle = (token, enabled) => ({ tokens: [token], active: enabled ? [token] : [] });
+            win.FolderViewPlusFolderEditorShared.updateDependencies(form, [
+                choice('preview-', [0, 1, 2, 3, 4], form.preview?.value),
+                choice('context-', [0, 1, 2], form.context?.value),
+                choice('context_graph-', [0, 1, 2, 3, 4], form.context_graph?.value),
+                toggle('border-color', form.preview_border?.checked === true),
+                toggle('bars-color', form.preview_vertical_bars?.checked === true),
+                toggle('preview-row-separator-color', form.preview_row_separator?.checked === true),
+                toggle('accent-color', form.folder_accent_enabled?.checked === true),
+                toggle('folder-webui', form.folder_webui?.checked === true)
+            ]);
+            applyTypePreviewConstraints({ $, form });
             renderLivePreviewCanvas();
         };
 

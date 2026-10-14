@@ -31,6 +31,9 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/folder-editor-settings.mjs", "limit": 80, "owner": "Folder settings dependency visibility and stored value regressions", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
+    { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
     { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
     { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
     { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
@@ -106,6 +109,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
@@ -156,6 +160,8 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/folder-editor-settings-host.mjs",
+        "tests/browser/helpers/folder-action-settings-host.mjs",
         "tests/browser/helpers/folderview3-host.mjs",
         "tests/browser/helpers/settings-workspace-controls.mjs",
         "tests/browser/helpers/quick-finder-toolbar.mjs",
@@ -181,10 +187,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 114,
-      "assertionCount": 1487,
-      "pageEvaluateCount": 392,
-      "orderedTitleSha256": "5df1f0bb835b1a178efd1a4f2448a55c7c69c4c2188769d3b53b0804131f63c2"
+      "testCount": 115,
+      "assertionCount": 1524,
+      "pageEvaluateCount": 401,
+      "orderedTitleSha256": "8444d079f4ac6f838b7e4fcbff702b6358110ba8bc30712fe9f52329c38d0117"
     }
   }
 }

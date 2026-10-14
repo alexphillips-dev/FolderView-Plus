@@ -2665,6 +2665,19 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     display: none !important;
 }
 
+:is(.folder-editor-form, .dialogCustomAction) .fv-dependent-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+:is(.folder-editor-form, .dialogCustomAction) .fv-dependent-disabled .fv-dependent-disabled {
+    opacity: 1;
+}
+
+:is(.folder-editor-form, .dialogCustomAction) .fv-dependent-disabled :is(.switch-button, .switch-button-background, .switch-button-label) {
+    pointer-events: none;
+}
+
 .fv-modern-group-list {
     margin: 0;
     padding: 0;

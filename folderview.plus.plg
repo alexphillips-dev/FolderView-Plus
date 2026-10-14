@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.15">
-<!ENTITY md5 "ea5bba7b0112130b5a0d2e2de0c83ffb">
-<!ENTITY sha256 "023cbac911f43e5131ac5a2353d67d11decabcf051d62c3ec8a303bbe658456f">
+<!ENTITY version "2026.10.14.16">
+<!ENTITY md5 "98b5d8fb8a8a1220ae58636c9eafefdf">
+<!ENTITY sha256 "2f0b334b0e6bbaf70e27e0e447bc8c246f2557d52bf14519868b920f11434dd0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.16
+- Fix: Restore preview overflow, row separators and their color, Docker folder update highlighting, and status color locking in the folder editor.
+- Fix: Keep setting dependencies consistent when switching editor tabs and when saved preview options are enabled while the preview is off.
+- UX: Keep dependent settings visible and grayed out until their controlling option allows them, including custom action options. Preserve their values while disabled.
+- Compatibility: Retain Docker and VM applicability rules and the existing saved configuration format.
+
 
 ###2026.10.14.15
 - UX: Remove Clear all filters from the Icon Packs dropdown and remove the Refresh folders and icons button from its toolbar.

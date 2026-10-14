@@ -246,8 +246,8 @@ try {
                         <div class="fv-third-party-section">
                             <div class="fv-third-party-control-row fv-third-party-icon-controls">
                                 <div class="fv-third-party-search-field">
-                                <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
-                                <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                    <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
+                                    <button type="button" id="fv-third-party-filter-toggle" title="Show filters" aria-haspopup="dialog" aria-expanded="false"><i class="fa fa-sliders" aria-hidden="true"></i> Filters <i class="fa fa-caret-down" aria-hidden="true"></i></button>
                                 </div>
                                 <select id="fv-third-party-view" title="Scope">
                                     <option value="all">Scope: all packs</option>
@@ -263,10 +263,6 @@ try {
                                     <option value="count">Sort: icon count</option>
                                     <option value="newest">Sort: newest</option>
                                 </select>
-                            </div>
-                            <div class="fv-third-party-presets">
-                                <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
-                                <button type="button" id="fv-third-party-filter-toggle" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
                                 <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                             </div>
                         </div>

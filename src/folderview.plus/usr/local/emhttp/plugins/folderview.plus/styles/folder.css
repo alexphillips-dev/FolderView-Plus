@@ -171,13 +171,13 @@
 }
 
 .fv-icon-browser .fv-third-party-icon-controls {
-    grid-template-columns: minmax(0, 1fr) 13rem 12rem;
+    grid-template-columns: minmax(0, 1fr) 13rem 12rem auto;
     gap: .6rem;
 }
 
 .fv-icon-browser .fv-third-party-search-field {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) max-content;
     gap: .6rem;
     min-width: 0;
 }
@@ -186,27 +186,22 @@
     grid-column: auto;
 }
 
-.fv-icon-browser #fv-third-party-search-clear {
-    width: 3rem;
-}
-
 .fv-icon-browser .fv-third-party-section {
     min-width: 0;
     margin: 0;
 }
 
-.fv-icon-browser .fv-third-party-presets {
-    gap: .6rem;
-    align-items: center;
+.fv-icon-browser.fv-icon-filter-popover {
+    display: block;
+    width: 36rem;
+    height: auto;
+    max-height: min(42rem, calc(100dvh - 16px));
+    padding: .8rem;
 }
 
-.fv-icon-browser .fv-third-party-presets > button {
-    width: auto !important;
-    flex: 0 0 auto;
-}
-
-.fv-icon-browser #fv-third-party-refresh {
-    margin-inline-start: auto;
+.fv-icon-filter-popover .fv-third-party-tag {
+    min-height: 32px;
+    cursor: pointer;
 }
 
 .fv-icon-browser .fv-icon-picker-grid, .fv-icon-browser .fv-custom-icon-list {
@@ -437,7 +432,7 @@
 
 @media (max-width: 600px) {
     .fv-icon-browser .fv-third-party-icon-controls {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr) 12rem auto;
     }
 
     .fv-icon-browser .fv-third-party-search-field {
@@ -472,7 +467,7 @@
 
 }
 @media (pointer: coarse) {
-    .fv-icon-browser :is(#fv-third-party-refresh, #fv-third-party-search-clear, #fv-third-party-view, #fv-third-party-sort) {
+    .fv-icon-browser :is(#fv-third-party-refresh, #fv-third-party-view, #fv-third-party-sort) {
         min-width: 44px !important;
         min-height: 44px !important;
     }
@@ -482,7 +477,7 @@
         min-height: 44px !important;
     }
 
-    .fv-icon-browser #fv-icon-library :is(button, select, input[type="text"], summary), .fv-icon-browser .fv-ui-modal-close {
+    .fv-icon-browser #fv-icon-library :is(button, select, input[type="text"], summary), .fv-icon-browser .fv-ui-modal-close, .fv-icon-filter-popover :is(button, input[type="text"], .fv-third-party-tag) {
         min-height: 44px;
         min-width: 44px;
     }
@@ -745,23 +740,6 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.68em;
-}
-
-@media (max-width: 760px) {
-    .fv-third-party-filter-sheet {
-        position: fixed;
-        left: 8px;
-        right: 8px;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-        max-height: 62vh;
-        overflow-y: auto;
-        z-index: 8;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-    }
-
-    #fv-third-party-filter-toggle {
-        width: 100%;
-    }
 }
 
 .fv-section-nav {
@@ -1910,7 +1888,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     min-height: 30px;
 }
 
-#fv-third-party-search-clear,
 #fv-third-party-filter-toggle {
     min-height: 30px;
     min-width: 30px;
@@ -1936,17 +1913,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     min-height: 30px;
 }
 
-.fv-third-party-presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.24em;
-}
-
-.fv-third-party-presets > button {
-    min-height: 26px;
-    padding: 0.12em 0.48em;
-}
-
 .fv-third-party-pack-actions-panel {
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
@@ -1964,10 +1930,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-third-party-filter-sheet {
-    border: 1px solid var(--fv-editor-block-border);
-    border-radius: 6px;
-    background: var(--fv-editor-inset-surface);
-    padding: 0.42em 0.46em;
     display: grid;
     gap: 0.42em;
 }
@@ -5389,7 +5351,6 @@ table.sortable td:nth-child(4) {
     .fv-member-tools > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
-    .fv-third-party-presets > button,
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
@@ -5417,7 +5378,6 @@ table.sortable td:nth-child(4) {
     .fv-member-tools > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
-    .fv-third-party-presets > button,
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
@@ -5436,7 +5396,6 @@ table.sortable td:nth-child(4) {
     .fv-member-tools > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
-    .fv-third-party-presets > button,
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
@@ -5459,7 +5418,6 @@ table.sortable td:nth-child(4) {
     .fv-member-tools > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
-    .fv-third-party-presets > button,
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
@@ -5483,7 +5441,6 @@ table.sortable td:nth-child(4) {
     .fv-member-tools > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
-    .fv-third-party-presets > button,
     .fv-third-party-pack-actions-panel > button,
     .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
@@ -5564,7 +5521,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-custom-icon-actions > button,
     #fv-third-party-refresh,
     #fv-custom-icon-refresh,
-    #fv-third-party-search-clear,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),
     #fv-third-party-tag-clear,
@@ -5588,7 +5544,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-custom-icon-actions > button,
     #fv-third-party-refresh,
     #fv-custom-icon-refresh,
-    #fv-third-party-search-clear,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),
     #fv-third-party-tag-clear,
@@ -5604,7 +5559,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-custom-icon-actions > button,
     #fv-third-party-refresh,
     #fv-custom-icon-refresh,
-    #fv-third-party-search-clear,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),
     #fv-third-party-tag-clear,

@@ -138,7 +138,7 @@
         let thirdPartyGridRenderToken = 0;
         let thirdPartyPreviewIconUrl = '';
         let thirdPartyIndexCacheReady = false;
-        let thirdPartyFilterSheetOpen = false;
+        let thirdPartyFilterPopover = null;
         let thirdPartyPackActionsOpen = false;
         let thirdPartyAssetPackStatus = null;
         let customIconEntries = [];
@@ -252,6 +252,7 @@
             if (!$) {
                 return;
             }
+            if (!open) setThirdPartyFilterSheetOpen(false);
             const panel = $('#fv-third-party-icon-panel');
             const toggle = $('#fv-icon-third-party-toggle');
             if (!panel.length || !toggle.length) {
@@ -1025,6 +1026,7 @@
                 box.html('<div class="fv-icon-picker-empty">No tags for current results.</div>');
                 return;
             }
+            const focusedTag = box.find('input[data-third-party-tag]:focus').attr('data-third-party-tag');
             box.html(tags.map((entry) => {
                 const tagValue = String(entry.tag || '').trim().toLowerCase();
                 const tag = escapeHtml(tagValue);
@@ -1037,6 +1039,9 @@
                     </label>
                 `;
             }).join(''));
+            if (focusedTag) box.find('input[data-third-party-tag]')
+                .filter((_index, input) => $(input).attr('data-third-party-tag') === focusedTag)
+                .each((_index, input) => input.focus({ preventScroll: true }));
         };
 
         const getThirdPartyFolderNewestStamp = (folderName) => {
@@ -1398,13 +1403,26 @@
         };
 
         const setThirdPartyFilterSheetOpen = (open) => {
-            if (!$) {
-                return;
-            }
-            thirdPartyFilterSheetOpen = Boolean(open);
-            $('#fv-third-party-filter-sheet').prop('hidden', !thirdPartyFilterSheetOpen);
-            const toggle = $('#fv-third-party-filter-toggle');
-            toggle.toggleClass('is-active', thirdPartyFilterSheetOpen);
+            if (!$ || !doc) return;
+            if (!open) { thirdPartyFilterPopover?.close('close', { restoreFocus: false }); return; }
+            if (thirdPartyFilterPopover || !win?.FolderViewPlusUI?.openPopover) return;
+            const sheet = doc.getElementById('fv-third-party-filter-sheet');
+            const trigger = doc.getElementById('fv-third-party-filter-toggle');
+            if (!sheet || !trigger) return;
+            const home = sheet.parentElement;
+            sheet.hidden = false;
+            trigger.classList.add('is-active');
+            thirdPartyFilterPopover = win.FolderViewPlusUI.openPopover({
+                trigger, content: sheet, className: 'fv-icon-browser fv-icon-filter-popover',
+                ariaLabel: surfaceT('legacy.surface.546ebb8eb993ea56', 'Filters'),
+                initialFocus: '#fv-third-party-tag-search',
+                onClose: () => {
+                    sheet.hidden = true;
+                    home.appendChild(sheet);
+                    trigger.classList.remove('is-active');
+                    thirdPartyFilterPopover = null;
+                }
+            });
         };
 
         const setThirdPartyPackActionsOpen = (open) => {
@@ -1425,8 +1443,8 @@
                 return;
             }
             const activeCount = getThirdPartyActiveFilterCount();
-            const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : 'Filters';
-            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)}`);
+            const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : surfaceT('legacy.surface.546ebb8eb993ea56', 'Filters');
+            $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)} <i class="fa fa-caret-down" aria-hidden="true"></i>`);
             $('#fv-third-party-filter-clear-all').prop('disabled', activeCount === 0);
         };
 
@@ -1941,12 +1959,6 @@
                 renderThirdPartyIconGrid();
             };
 
-            $('#fv-third-party-preset-folder-icons').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                thirdPartyPackKind = 'folders';
-                $('#fv-third-party-pack-kind').val('folders');
-                await applyThirdPartyQuickMode('folder');
-            });
             $('#fv-third-party-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
                 if (thirdPartyIconSearchTimer) {
                     clearTimeout(thirdPartyIconSearchTimer);
@@ -1959,18 +1971,6 @@
                     renderThirdPartyIconGrid();
                     renderThirdPartyFilterUiState();
                 }, thirdPartyIconSearchDebounceMs);
-            });
-            $('#fv-third-party-search-clear').off('click.fviconpicker').on('click.fviconpicker', (event) => {
-                event.preventDefault();
-                if (thirdPartyIconSearchTimer) {
-                    clearTimeout(thirdPartyIconSearchTimer);
-                    thirdPartyIconSearchTimer = null;
-                }
-                thirdPartyIconSearchQuery = '';
-                thirdPartyIconPage = 1;
-                $('#fv-third-party-search').val('').trigger('focus');
-                renderThirdPartyIconGrid();
-                renderThirdPartyFilterUiState();
             });
             $('#fv-third-party-view').off('change.fviconpicker').on('change.fviconpicker', async () => {
                 await applyThirdPartyQuickMode(String($('#fv-third-party-view').val() || 'all'));
@@ -2007,7 +2007,7 @@
             });
             $('#fv-third-party-filter-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
                 event.preventDefault();
-                setThirdPartyFilterSheetOpen(!thirdPartyFilterSheetOpen);
+                setThirdPartyFilterSheetOpen(!thirdPartyFilterPopover);
             });
             $('#fv-third-party-pack-actions-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
                 event.preventDefault();
@@ -2156,7 +2156,10 @@
             $(doc)
                 .off('mousedown.fviconpicker touchstart.fviconpicker pointerdown.fviconpicker')
                 .on('pointerdown.fviconpicker', closeIconPickersFromOutside)
-                .on('mousedown.fviconpicker touchstart.fviconpicker', closeIconPickersFromOutside);
+                .on('mousedown.fviconpicker touchstart.fviconpicker', closeIconPickersFromOutside)
+                .off('fvplus:editor-section-change.fviconfilters')
+                .on('fvplus:editor-section-change.fviconfilters', () => setThirdPartyFilterSheetOpen(false));
+            $(win).off('pagehide.fviconfilters').on('pagehide.fviconfilters', () => setThirdPartyFilterSheetOpen(false));
 
             const iconInput = getIconInput();
             if (iconInput && iconInput.length) {

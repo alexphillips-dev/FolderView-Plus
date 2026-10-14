@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import { checkIconPackFilters } from './icon-pack-filters.mjs';
 export { checkUploadCardLayout } from './upload-card-layout.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const markup = fs.readFileSync(`${plugin}/Folder.page`, 'utf8').match(/<dd class="fv-icon-dd">([\s\S]*?)<\/dd>/)[0];
@@ -29,7 +30,7 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
         const input = document.querySelector('[name="icon"]');
         input.value = defaultIcon;
         const builtin = [{ name: 'Default Folder', path: defaultIcon }, { name: 'Tools', path: `${defaultIcon}?tools` }];
-        const icons = ['alpha.png', 'beta.png', 'gamma.png'].map((name, index) => ({ name, folder: index === 2 ? 'Other' : 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder'] }));
+        const icons = ['alpha.png', 'beta.png', 'gamma.png'].map((name, index) => ({ name, folder: index === 2 ? 'Other' : 'Example', url: `${defaultIcon}?collection=${name}`, tags: ['folder', index === 2 ? 'other' : 'alpha'] }));
         const state = { uploads: [], pending: false, complete: null, uploadOptions: null };
         const api = window.FolderViewPlusFolderEditorIcons.createApi({ window, document, $: window.jQuery,
             getForm: () => document.getElementById('icon-test-form'), getIconInput: () => window.jQuery(input),
@@ -72,4 +73,5 @@ export const checkIconPackTileLayout = async page => {
     assert.ok(Math.abs(tile.width - tile.height) < 2 && tile.height <= 100 && tile.centered < 2);
     assert.ok(tile.top <= 4 && tile.right <= 4 && tile.target >= 32 && tile.font >= 18);
     assert.equal(tile.border, '0px');
+    await checkIconPackFilters(page, checkIconDialogAccessibility);
 };

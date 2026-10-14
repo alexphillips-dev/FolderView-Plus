@@ -140,11 +140,11 @@ test('folder editor markup exposes custom icon manager controls', () => {
 
 test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-search"/);
-    assert.match(folderPage, /id="fv-third-party-search-clear"/);
+    assert.doesNotMatch(folderPage, /id="fv-third-party-search-clear"/);
     assert.doesNotMatch(folderPage, /id="fv-third-party-mode-(basic|advanced)"/);
     assert.match(folderPage, /id="fv-third-party-view"/);
     assert.match(folderPage, /id="fv-third-party-sort"/);
-    assert.match(folderPage, /id="fv-third-party-preset-folder-icons"/);
+    assert.doesNotMatch(folderPage, /id="fv-third-party-preset-folder-icons"/);
     assert.match(folderPage, /id="fv-third-party-pack-search"/);
     assert.match(folderPage, /id="fv-third-party-pack-kind"/);
     assert.match(folderPage, /id="fv-third-party-pack-select"/);

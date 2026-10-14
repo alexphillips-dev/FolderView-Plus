@@ -56,11 +56,11 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
                     const box = document.getElementById(id).getBoundingClientRect(); return { top: box.top, width: box.width };
                 });
                 const rows = Array.from(panel.children).filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect());
-                return { boxes, presets: panel.querySelector('.fv-third-party-presets').getBoundingClientRect().height, gap: Math.max(...rows.slice(1).map((row, index) => row.top - rows[index].bottom)), first: panel.getBoundingClientRect().top - document.querySelector('.fv-icon-source-bar').getBoundingClientRect().bottom };
+                return { boxes, gap: Math.max(...rows.slice(1).map((row, index) => row.top - rows[index].bottom)), first: panel.getBoundingClientRect().top - document.querySelector('.fv-icon-source-bar').getBoundingClientRect().bottom };
             });
             assert.ok(controls.boxes.slice(1).every(box => box.width <= 150));
             if (page.viewportSize().width > 600) assert.ok(controls.boxes.every(box => Math.abs(box.top - controls.boxes[0].top) < 2));
-            assert.ok(controls.gap <= 12 && controls.first <= 20 && controls.presets <= 50);
+            assert.ok(controls.gap <= 12 && controls.first <= 20);
             await page.locator('#fv-third-party-view').selectOption('folder');
             assert.equal(await page.locator('.fv-third-party-icon-item').count(), 2);
             await page.locator('#fv-third-party-view').selectOption('all');

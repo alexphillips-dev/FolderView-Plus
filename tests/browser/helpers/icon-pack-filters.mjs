@@ -4,12 +4,18 @@ export const checkIconPackFilters = async (page, checkAccessibility) => {
     const toggle = page.locator('#fv-third-party-filter-toggle');
     const menu = page.getByRole('dialog', { name: 'Filters', exact: true });
     const grid = page.locator('#fv-third-party-icon-grid');
-    assert.equal(await page.locator('#fv-third-party-search-clear,#fv-third-party-preset-folder-icons,.fv-third-party-presets').count(), 0);
+    assert.equal(await page.locator('#fv-third-party-search-clear,#fv-third-party-preset-folder-icons,#fv-third-party-filter-clear-all,#fv-third-party-refresh,.fv-third-party-presets').count(), 0);
+    const hostMargins = await page.addStyleTag({ content: '.canvas button { margin-block: 6px; }' });
     const row = await toggle.evaluate(button => {
         const box = button.getBoundingClientRect(), search = document.getElementById('fv-third-party-search').getBoundingClientRect();
-        return { aligned: Math.abs(box.top - search.top) < 2, adjacent: document.dir === 'rtl' ? box.right <= search.left : box.left >= search.right };
+        const scope = document.getElementById('fv-third-party-view').getBoundingClientRect(), sort = document.getElementById('fv-third-party-sort').getBoundingClientRect();
+        return { aligned: Math.abs(box.top - search.top) < 1, adjacent: document.dir === 'rtl' ? box.right <= search.left : box.left >= search.right,
+            heights: [box, scope, sort].every(rect => Math.abs(rect.height - search.height) < 1 && rect.height >= (matchMedia('(pointer: coarse)').matches ? 44 : 38)),
+            selects: Math.abs(scope.top - sort.top) < 1 && (innerWidth <= 600 || Math.abs(scope.top - search.top) < 1) };
     });
     assert.ok(row.aligned && row.adjacent);
+    assert.ok(row.heights && row.selects);
+    await hostMargins.evaluate(node => node.remove());
     const before = await grid.boundingBox();
     await toggle.click();
     await menu.waitFor();
@@ -35,7 +41,7 @@ export const checkIconPackFilters = async (page, checkAccessibility) => {
     assert.equal(await toggle.evaluate(button => document.activeElement === button), true);
     await toggle.click();
     assert.equal(await menu.locator('[data-third-party-tag="alpha"]').isChecked(), true);
-    await menu.locator('#fv-third-party-filter-clear-all').click();
+    await menu.locator('#fv-third-party-tag-clear').click();
     await page.waitForFunction(() => document.querySelectorAll('.fv-third-party-icon-item').length === 3);
     await page.locator('#fv-third-party-search').click();
     assert.equal(await menu.count(), 0);

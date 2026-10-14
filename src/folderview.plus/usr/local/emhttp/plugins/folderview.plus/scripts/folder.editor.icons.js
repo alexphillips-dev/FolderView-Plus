@@ -1445,7 +1445,6 @@
             const activeCount = getThirdPartyActiveFilterCount();
             const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : surfaceT('legacy.surface.546ebb8eb993ea56', 'Filters');
             $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)} <i class="fa fa-caret-down" aria-hidden="true"></i>`);
-            $('#fv-third-party-filter-clear-all').prop('disabled', activeCount === 0);
         };
 
         const renderThirdPartyPackMenu = () => {
@@ -1557,7 +1556,7 @@
 
             if (!filteredIcons.length) {
                 thirdPartyRenderedIconMap = new Map();
-                grid.html('<div class="fv-icon-picker-empty">No icons matched. Try "Clear all filters", switch Scope, or pick a different pack.</div>');
+                grid.html(`<div class="fv-icon-picker-empty">${escapeHtml(surfaceT("common.audit.no-icons", "No matching icons. Try clearing filters or switching scope."))}</div>`);
                 setThirdPartyStatus(surfaceT("common.audit.no-icons", "No matching icons. Try clearing filters or switching scope."));
                 renderThirdPartyPreview();
                 renderThirdPartyContextLine(0);
@@ -1928,11 +1927,6 @@
                 }
             });
 
-            $('#fv-third-party-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                await refreshThirdPartyIconPicker();
-            });
-
             const reflowThirdPartyPackSelection = async () => {
                 reconcileThirdPartySelectedFolder();
                 renderThirdPartyFolderList();
@@ -2022,22 +2016,6 @@
                 thirdPartySelectedTags = new Set();
                 renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
                 renderThirdPartyIconGrid();
-                renderThirdPartyFilterUiState();
-            });
-            $('#fv-third-party-filter-clear-all').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                thirdPartySelectedTags = new Set();
-                thirdPartyTagSearchQuery = '';
-                thirdPartyIconSearchQuery = '';
-                thirdPartyPackSearchQuery = '';
-                thirdPartyPackKind = 'all';
-                thirdPartyShowHiddenFolders = false;
-                $('#fv-third-party-tag-search').val('');
-                $('#fv-third-party-search').val('');
-                $('#fv-third-party-pack-search').val('');
-                $('#fv-third-party-pack-kind').val('all');
-                await reflowThirdPartyPackSelection();
-                renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
                 renderThirdPartyFilterUiState();
             });
             $('#fv-third-party-tag-filters').off('change.fviconpicker').on('change.fviconpicker', 'input[data-third-party-tag]', (event) => {

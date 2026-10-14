@@ -263,7 +263,6 @@ try {
                                     <option value="count">Sort: icon count</option>
                                     <option value="newest">Sort: newest</option>
                                 </select>
-                                <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                             </div>
                         </div>
                         <div class="fv-third-party-section">
@@ -287,9 +286,6 @@ try {
                             </div>
                         </div>
                             <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
-                                <div class="fv-third-party-inline-actions">
-                                    <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
-                                </div>
                                 <div class="fv-third-party-tag-shell">
                                     <div class="fv-third-party-tag-shell-top">
                                         <strong>Tags</strong>

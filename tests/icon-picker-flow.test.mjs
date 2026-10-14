@@ -154,7 +154,7 @@ test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-pack-hide-toggle"/);
     assert.match(folderPage, /id="fv-third-party-filter-toggle"/);
     assert.match(folderPage, /id="fv-third-party-filter-sheet"/);
-    assert.match(folderPage, /id="fv-third-party-filter-clear-all"/);
+    assert.doesNotMatch(folderPage, /id="fv-third-party-filter-clear-all"|id="fv-third-party-refresh"/);
     assert.match(folderPage, /id="fv-third-party-tag-search"/);
     assert.match(folderPage, /id="fv-third-party-tag-filters"/);
     assert.match(folderPage, /id="fv-third-party-show-hidden"/);
@@ -181,7 +181,7 @@ test('folder editor icon module supports advanced filtering and duplicate workfl
     assert.match(folderEditorIconsScript, /#fv-third-party-pack-hide-toggle/);
     assert.match(folderEditorIconsScript, /#fv-third-party-pack-actions-toggle/);
     assert.match(folderEditorIconsScript, /#fv-third-party-filter-toggle/);
-    assert.match(folderEditorIconsScript, /#fv-third-party-filter-clear-all/);
+    assert.doesNotMatch(folderEditorIconsScript, /#fv-third-party-filter-clear-all|#fv-third-party-refresh/);
     assert.match(folderEditorIconsScript, /list_index/);
     assert.match(folderEditorIconsScript, /pointerdown\.fvthirdparty/);
 });

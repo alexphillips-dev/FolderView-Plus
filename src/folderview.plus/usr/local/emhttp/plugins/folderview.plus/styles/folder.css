@@ -171,8 +171,17 @@
 }
 
 .fv-icon-browser .fv-third-party-icon-controls {
-    grid-template-columns: minmax(0, 1fr) 13rem 12rem auto;
+    --fv-icon-search-height: 38px;
+    grid-template-columns: minmax(0, 1fr) 13rem 12rem;
     gap: .6rem;
+    align-items: start;
+}
+
+.fv-icon-browser #fv-third-party-icon-panel .fv-third-party-icon-controls :is(input, button, select) {
+    height: var(--fv-icon-search-height) !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    align-self: start;
 }
 
 .fv-icon-browser .fv-third-party-search-field {
@@ -432,7 +441,7 @@
 
 @media (max-width: 600px) {
     .fv-icon-browser .fv-third-party-icon-controls {
-        grid-template-columns: minmax(0, 1fr) 12rem auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .fv-icon-browser .fv-third-party-search-field {
@@ -467,9 +476,8 @@
 
 }
 @media (pointer: coarse) {
-    .fv-icon-browser :is(#fv-third-party-refresh, #fv-third-party-view, #fv-third-party-sort) {
-        min-width: 44px !important;
-        min-height: 44px !important;
+    .fv-icon-browser .fv-third-party-icon-controls {
+        --fv-icon-search-height: 44px;
     }
 
     .fv-icon-browser #fv-custom-icon-refresh {
@@ -1590,8 +1598,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 
 .fv-inline-reset-btn:hover,
 .fv-inline-reset-btn:focus,
-#fv-third-party-refresh:hover,
-#fv-third-party-refresh:focus,
 #fv-custom-icon-refresh:hover,
 #fv-custom-icon-refresh:focus {
     border: 0 !important;
@@ -1599,7 +1605,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     box-shadow: none !important;
 }
 
-#fv-third-party-refresh,
 #fv-custom-icon-refresh {
     border: 0 !important;
     background: transparent !important;
@@ -1843,12 +1848,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     gap: 0.5em;
 }
 
-#fv-third-party-refresh {
-    min-width: 30px;
-    width: 30px;
-    padding: 0;
-}
-
 .fv-third-party-control-row {
     display: grid;
     gap: 0.3em;
@@ -1932,17 +1931,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 .fv-third-party-filter-sheet {
     display: grid;
     gap: 0.42em;
-}
-
-.fv-third-party-inline-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25em;
-}
-
-.fv-third-party-inline-actions > button {
-    min-height: 28px;
-    padding: 0.15em 0.55em;
 }
 
 .fv-third-party-tag-shell {
@@ -5352,7 +5340,6 @@ table.sortable td:nth-child(4) {
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-pack-actions-panel > button,
-    .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
     .fv-folder-action-dialog .ui-dialog-buttonpane button,
     .fv-webui-profile-button
@@ -5379,7 +5366,6 @@ table.sortable td:nth-child(4) {
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-pack-actions-panel > button,
-    .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
     .fv-folder-action-dialog .ui-dialog-buttonpane button,
     .fv-webui-profile-button
@@ -5397,7 +5383,6 @@ table.sortable td:nth-child(4) {
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-pack-actions-panel > button,
-    .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
     .fv-folder-action-dialog .ui-dialog-buttonpane button,
     .fv-webui-profile-button
@@ -5419,7 +5404,6 @@ table.sortable td:nth-child(4) {
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-pack-actions-panel > button,
-    .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
     .fv-folder-action-dialog .ui-dialog-buttonpane button,
     .fv-webui-profile-button
@@ -5442,7 +5426,6 @@ table.sortable td:nth-child(4) {
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-pack-actions-panel > button,
-    .fv-third-party-inline-actions > button,
     .fv-modern-field-row .custom-action,
     .fv-folder-action-dialog .ui-dialog-buttonpane button
 ):disabled {
@@ -5519,7 +5502,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
     .fv-custom-icon-actions > button,
-    #fv-third-party-refresh,
     #fv-custom-icon-refresh,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),
@@ -5542,7 +5524,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
     .fv-custom-icon-actions > button,
-    #fv-third-party-refresh,
     #fv-custom-icon-refresh,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),
@@ -5557,7 +5538,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
     .fv-custom-icon-actions > button,
-    #fv-third-party-refresh,
     #fv-custom-icon-refresh,
     #fv-third-party-filter-toggle:not(.is-active),
     #fv-third-party-pack-actions-toggle:not(.is-active),

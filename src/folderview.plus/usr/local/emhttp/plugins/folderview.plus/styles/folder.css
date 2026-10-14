@@ -1,7 +1,7 @@
-/* Icon selection and shared library dialog */
+/* Inline icon selection and library */
 .fv-icon-selection {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1fr) auto auto;
+    grid-template-columns: 64px minmax(0, 1fr);
     gap: 1.2rem;
     align-items: center;
     width: 100%;
@@ -50,9 +50,55 @@
     width: 100%;
 }
 
-.fv-icon-browser.is-lg {
-    width: min(900px, calc(100vw - 2rem));
-    max-height: 92vh;
+.fv-icon-browser {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    height: 440px;
+}
+
+.fv-icon-browser-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: .3rem;
+    scrollbar-gutter: stable;
+}
+
+.fv-icon-panel-bounded {
+    display: flex;
+    flex-direction: column;
+}
+
+.fv-icon-panel-bounded > .fv-editor-panel-head {
+    flex: none;
+}
+
+.fv-section-shell .fv-icon-panel-bounded > .fv-editor-panel-body,
+.fv-section-shell .fv-icon-panel-bounded .is-icon-row,
+.fv-section-shell .fv-icon-panel-bounded .is-icon-row > dl,
+.fv-section-shell .fv-icon-panel-bounded .is-icon-row .fv-icon-dd {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.fv-icon-panel-bounded .fv-icon-selection,
+.fv-icon-panel-bounded .fv-icon-more,
+.fv-icon-panel-bounded .is-icon-row > dl > dt {
+    flex: none;
+}
+
+.fv-icon-panel-bounded .fv-icon-browser {
+    height: auto;
+    flex: 1;
+    min-height: 180px;
+}
+
+.fv-section-shell .fv-icon-panel-bounded > .fv-editor-panel-body {
+    overflow: auto;
 }
 
 .fv-icon-browser #fv-icon-library {
@@ -291,6 +337,9 @@
     width: 100%;
     align-items: center;
     gap: .8rem;
+    flex: none;
+    padding-top: .8rem;
+    border-top: 1px solid var(--fv-editor-border);
 }
 
 .fv-icon-collision-actions {
@@ -321,18 +370,6 @@
     .fv-icon-selection > button {
         width: 100%;
         min-height: 44px;
-    }
-
-    .fv-icon-browser.is-lg {
-        width: 100vw;
-        max-height: 100dvh;
-        height: 100dvh;
-        border-radius: 0;
-    }
-
-    .fv-icon-browser .fv-ui-modal-footer {
-        padding: 1rem;
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
     .fv-icon-browser-footer {
@@ -2971,31 +3008,6 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-toolbar > input[type="text"] {
     width: 100% !important;
     max-width: none !important;
-}
-
-.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-}
-
-.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item {
-    min-height: 40px;
-    padding: 0.34em 0.28em;
-    border-color: transparent !important;
-    border-radius: 8px;
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item:hover,
-.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item:focus-visible {
-    background: var(--fv-editor-control-surface-hover) !important;
-    border-color: transparent !important;
-}
-
-.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item.is-selected {
-    background: var(--fv-editor-accent-soft) !important;
-    border-color: transparent !important;
-    box-shadow: inset 3px 0 0 var(--fv-editor-title-accent) !important;
 }
 
 .fv-parent-picker-native {

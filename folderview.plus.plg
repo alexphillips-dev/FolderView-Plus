@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.05">
-<!ENTITY md5 "e47fcb642287fd5f7d30d8a5a2e874b8">
-<!ENTITY sha256 "89a666ae69c24baf4aa74e5723c2e0da06a8c3e18ac9d64d39968c9d3cb5c8a3">
+<!ENTITY version "2026.10.14.06">
+<!ENTITY md5 "4741018671d1f1953cc3e8477722fe7d">
+<!ENTITY sha256 "83951bc71fb8daacc194113e4639acbb3f60722170308b63077fc480f88f7f63">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.06
+- UX: Keep the icon picker visible inside the folder editor's Icon module instead of opening a separate window.
+- UX: Match the Icon module to the neighboring Parent Folder module on desktop, with internal scrolling and a responsive stacked layout on smaller screens.
+- UX: Start on Built-in icons when opening General. Keep Upload exclusively on the My uploads tab. Hard-refresh the webGUI after updating.
+- Reliability: Preserve staged icon selection, upload conflict choices, library management, and protection against cancelled or stale upload selections.
+
 
 ###2026.10.14.05
 - UX: Replace the folder editor's crowded icon controls with a compact current-icon card and a visual browser shared by Docker and VM folders. Browse Built-in icons, Collections, and My uploads without nested Basic/Advanced picker modes.

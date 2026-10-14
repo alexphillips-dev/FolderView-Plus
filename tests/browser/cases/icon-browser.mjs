@@ -1,24 +1,37 @@
 import assert from 'node:assert/strict';
 import { mountIconBrowser, checkIconDialogAccessibility } from '../helpers/icon-browser-host.mjs';
 export const registerIconBrowserCases = ({ test, baseUrl }) => {
-    test('Icon browser stages selection, preserves collection context and restores focus for Docker and VM', async ({ page }) => {
+    test('Icon browser stays inline, matches the parent panel and defaults to built-in icons for Docker and VM', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
             await mountIconBrowser(page, baseUrl, type);
             if (type === 'vm') await page.evaluate(() => { document.documentElement.dir = 'rtl'; });
             const input = page.locator('[name="icon"]');
             const original = await input.inputValue();
-            assert.equal(await page.locator('#fv-icon-picker-panel').isVisible(), false);
-            await page.locator('#fv-icon-choose').click();
-            const dialog = page.getByRole('dialog', { name: 'Choose icon', exact: true });
+            assert.equal(await page.locator('#fv-icon-picker-panel').isVisible(), true);
+            const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
             await dialog.waitFor();
+            assert.equal(await page.getByRole('dialog').count(), 0);
+            if (page.viewportSize().width > 1180) await page.waitForFunction(() => Math.abs(document.querySelector('[data-editor-panel="parent"]').getBoundingClientRect().height - document.querySelector('[data-editor-panel="icon"]').getBoundingClientRect().height) < 2);
+            const panels = await page.evaluate(() => ['parent', 'icon'].map(key => {
+                const node = document.querySelector(`[data-editor-panel="${key}"]`);
+                const rect = node.getBoundingClientRect(); return { top: rect.top, left: rect.left, height: rect.height };
+            }));
+            if (page.viewportSize().width > 1180) {
+                assert.ok(Math.abs(panels[0].height - panels[1].height) < 2);
+                await page.locator('[data-editor-panel="parent"]').evaluate(node => { node.style.height = `${node.getBoundingClientRect().height + 120}px`; });
+                await page.waitForFunction(() => Math.abs(document.querySelector('[data-editor-panel="parent"]').getBoundingClientRect().height - document.querySelector('[data-editor-panel="icon"]').getBoundingClientRect().height) < 2);
+                const bounds = await dialog.evaluate(node => ({ footer: node.querySelector('.fv-icon-browser-footer').getBoundingClientRect().bottom, panel: node.closest('[data-editor-panel="icon"]').getBoundingClientRect().bottom, header: getComputedStyle(node.closest('[data-editor-panel="icon"]').querySelector('.fv-editor-panel-head')).flexShrink }));
+                assert.ok(bounds.footer <= bounds.panel && bounds.header === '0');
+            } else assert.ok(panels[1].top > panels[0].top);
+            await page.emulateMedia({ reducedMotion: 'reduce' });
+            assert.equal(await page.locator('#fv-icon-upload').isVisible(), false);
             await page.locator('[data-icon-value$="?tools"]').click();
             assert.equal(await input.inputValue(), original);
             assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Tools');
-            await dialog.locator('.fv-ui-modal-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
+            await dialog.locator('.fv-icon-browser-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
             assert.equal(await input.inputValue(), original);
-            assert.equal(await page.evaluate(() => document.activeElement.id), 'fv-icon-choose');
-            await page.locator('#fv-icon-choose').click();
             await page.getByRole('tab', { name: 'Collections' }).click();
+            assert.equal(await page.locator('#fv-icon-upload').isVisible(), false);
             const cue = await page.getByRole('tab', { name: 'Collections' }).evaluate(tab => ({ active: getComputedStyle(tab).boxShadow, inactive: getComputedStyle(document.getElementById('fv-icon-picker-toggle')).boxShadow }));
             assert.notEqual(cue.active, cue.inactive);
             await page.locator('.fv-third-party-icon-item').first().waitFor();
@@ -29,22 +42,23 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             assert.equal(await input.inputValue(), original);
             await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();
             assert.match(await input.inputValue(), /collection=beta/);
-            await page.locator('#fv-icon-choose').click();
+            await input.evaluate(node => { node.value = '/plugins/folderview.plus/images/folder-icon.png'; window.jQuery(node).trigger('change'); });
+            assert.equal(await dialog.locator('[data-icon-draft-name]').textContent(), 'Default Folder');
             assert.equal(await page.getByRole('tab', { name: 'Collections' }).getAttribute('aria-selected'), 'true');
             assert.equal(await page.locator('#fv-third-party-search').inputValue(), 'beta');
             const selected = await input.inputValue();
             await page.keyboard.press('Escape');
             assert.equal(await input.inputValue(), selected);
             await page.evaluate(() => document.dispatchEvent(new CustomEvent('fvplus:editor-section-change', { detail: { previousSection: 'members', section: 'general' } })));
-            await page.locator('#fv-icon-choose').click();
-            assert.equal(await page.getByRole('tab', { name: 'Collections' }).getAttribute('aria-selected'), 'true');
+            assert.equal(await page.getByRole('tab', { name: 'Built-in icons' }).getAttribute('aria-selected'), 'true');
             await page.getByRole('tab', { name: 'Collections' }).focus();
             await page.keyboard.press('Home');
             assert.equal(await page.getByRole('tab', { name: 'Built-in icons' }).getAttribute('aria-selected'), 'true');
             const overflow = await dialog.evaluate(node => node.scrollWidth > node.clientWidth + 1);
             assert.equal(overflow, false);
-            const footer = await dialog.locator('.fv-ui-modal-footer').boundingBox();
-            assert.ok(footer.y + footer.height <= page.viewportSize().height + 1);
+            const scroll = await dialog.locator('.fv-icon-browser-body').evaluate(node => ({ overflow: getComputedStyle(node).overflowY, height: node.clientHeight }));
+            assert.equal(scroll.overflow, 'auto');
+            assert.ok(scroll.height > 0);
             await page.keyboard.press('Escape');
         }
     });
@@ -52,18 +66,19 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         await mountIconBrowser(page, baseUrl);
         const input = page.locator('[name="icon"]');
         const original = await input.inputValue();
-        await page.locator('#fv-icon-upload').click({ noWaitAfter: true });
-        const dialog = page.getByRole('dialog', { name: 'Choose icon', exact: true });
-        await page.locator('#fv-icon-upload-file').setInputFiles({ name: 'example.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
+        await page.getByRole('tab', { name: 'My uploads' }).click();
+        assert.equal(await page.locator('#fv-icon-upload').isVisible(), true);
+        const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
+        const chooserReady = page.waitForEvent('filechooser');
+        await page.locator('#fv-icon-upload').click();
+        await (await chooserReady).setFiles({ name: 'example.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
         await page.locator('[data-custom-icon="example.png"]').waitFor();
         assert.equal(await input.inputValue(), original);
         assert.deepEqual(await page.evaluate(() => window.iconBrowserFixture.uploadOptions), { dedupe: true, replace: false });
-        await dialog.locator('.fv-ui-modal-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
-        await page.locator('#fv-icon-choose').click();
+        await dialog.locator('.fv-icon-browser-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
         await page.locator('[data-custom-icon="example.png"] [data-action="use"]').click();
         await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();
         assert.match(await input.inputValue(), /upload=example.png/);
-        await page.locator('#fv-icon-choose').click();
         assert.equal(await page.locator('[data-action="delete"]').isVisible(), false);
         await page.locator('#fv-icon-manage').check();
         await checkIconDialogAccessibility(page);
@@ -75,8 +90,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         await page.evaluate(() => { window.iconBrowserFixture.pending = true; });
         await page.locator('#fv-icon-upload-file').setInputFiles({ name: 'late.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
         await page.waitForFunction(() => typeof window.iconBrowserFixture.complete === 'function');
-        await dialog.locator('.fv-ui-modal-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
-        await page.locator('#fv-icon-choose').click();
+        await dialog.locator('.fv-icon-browser-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
         await page.evaluate(() => window.iconBrowserFixture.complete());
         await page.locator('[data-custom-icon="late.png"]').waitFor();
         assert.equal(await input.inputValue(), original);
@@ -87,7 +101,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         for (const decision of ['Keep both', 'Replace', 'Escape']) {
             await mountIconBrowser(page, baseUrl);
             await page.evaluate(() => { window.iconBrowserFixture.uploads.push({ name: 'existing.png', url: '/plugins/folderview.plus/images/folder-icon.png?existing', usageCount: 0 }); });
-            await page.locator('#fv-icon-upload').click({ noWaitAfter: true });
+            await page.getByRole('tab', { name: 'My uploads' }).click();
             await page.locator('#fv-icon-upload-file').setInputFiles({ name: 'existing.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
             const conflict = page.getByRole('dialog', { name: 'Replace this icon?', exact: true });
             await conflict.waitFor();
@@ -95,6 +109,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             if (decision === 'Escape') await page.keyboard.press('Escape');
             else await conflict.getByRole('button', { name: decision, exact: true }).click();
             await page.waitForFunction(() => !document.getElementById('fv-icon-upload').disabled);
+            await page.waitForFunction(() => Number(getComputedStyle(document.getElementById('fv-icon-upload')).opacity) === 1);
             assert.equal(await page.evaluate(() => window.iconBrowserFixture.uploadOptions?.replace ?? null), decision === 'Escape' ? null : decision === 'Replace');
             assert.equal(await page.locator('[name="icon"]').inputValue(), '/plugins/folderview.plus/images/folder-icon.png');
             await page.keyboard.press('Escape');

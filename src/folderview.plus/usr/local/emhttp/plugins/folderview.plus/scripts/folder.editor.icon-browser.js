@@ -10,7 +10,7 @@
         collections: surfaceT('common.icon-browser.collections', 'Collections'),
         uploads: surfaceT('common.icon-browser.uploads', 'My uploads')
     });
-    // The editor field remains authoritative. A dialog draft never writes it until confirmation.
+    // The editor field remains authoritative. Browsing only writes it on confirmation.
     const createApi = ({ window: win = globalThis, getValue = () => '', setValue = () => {},
         defaultIcon = '', sanitizeImageUrl = (_value, fallback) => fallback,
         describe = () => null, activate = () => {}, onCommit = () => {} } = {}) => {
@@ -18,14 +18,15 @@
         const home = doc?.getElementById('fv-icon-library-home');
         const library = doc?.getElementById('fv-icon-library');
         const ui = win.FolderViewPlusUI;
-        let modal = null;
+        const workspace = home ? { element: home, body: home.querySelector('.fv-icon-browser-body'), footer: home.querySelector('.fv-icon-browser-footer') } : null;
         let draft = '';
+        let committed = getValue();
         let source = 'builtin';
         let generation = 0;
         const scroll = new Map();
         const sourceIds = { builtin: 'fv-icon-picker', collections: 'fv-third-party-icon', uploads: 'fv-custom-icon' };
         const tabs = { builtin: 'fv-icon-picker-toggle', collections: 'fv-icon-third-party-toggle', uploads: 'fv-icon-custom-manager-toggle' };
-        const enabled = Boolean(home && library && ui?.openModal);
+        const enabled = Boolean(library && workspace?.body && workspace?.footer && ui?.openModal);
         const byId = (id) => doc?.getElementById(id);
         const text = (id, value) => { const node = byId(id); if (node) node.textContent = value; };
         const info = (value) => {
@@ -48,17 +49,23 @@
         const sync = () => {
             if (!enabled) return;
             const value = getValue();
+            if (value !== committed) {
+                committed = value;
+                generation++;
+                draft = value || defaultIcon;
+                paintDraft();
+            }
             const meta = info(value);
             updateImage(byId('fvIconPanelPreview'), value);
             text('fv-icon-selection-name', meta.name);
             text('fv-icon-selection-source', meta.source);
         };
         const paintDraft = () => {
-            if (!modal) return;
+            if (!enabled) return;
             const meta = info(draft);
-            updateImage(modal.footer.querySelector('img'), draft);
-            modal.footer.querySelector('[data-icon-draft-name]').textContent = meta.name;
-            modal.footer.querySelector('[data-icon-draft-source]').textContent = meta.source;
+            updateImage(workspace.footer.querySelector('img'), draft);
+            workspace.footer.querySelector('[data-icon-draft-name]').textContent = meta.name;
+            workspace.footer.querySelector('[data-icon-draft-source]').textContent = meta.source;
             // Update selection affordances without rebuilding or reordering a gallery under the pointer.
             library.querySelectorAll('[data-icon-value], [data-icon-url]').forEach((item) => {
                 const selected = (item.dataset.iconValue || item.dataset.iconUrl) === draft;
@@ -68,36 +75,52 @@
             });
         };
         const stage = (value) => {
-            if (!modal) return;
+            if (!enabled) return;
+            generation++;
             draft = String(value || '');
             paintDraft();
         };
         const changeSource = (next, remember = true) => {
             if (!enabled || !sourceIds[next]) return;
-            if (modal && remember) scroll.set(source, modal.body.scrollTop);
+            if (remember) scroll.set(source, workspace.body.scrollTop);
             source = next;
             Object.entries(tabs).forEach(([key, id]) => {
                 const tab = byId(id);
                 tab?.setAttribute('aria-selected', String(key === source));
                 if (tab) tab.tabIndex = key === source ? 0 : -1;
             });
-            if (modal) modal.body.scrollTop = scroll.get(source) || 0;
+            workspace.body.scrollTop = scroll.get(source) || 0;
+            library.querySelector('.fv-icon-library-tools').hidden = source === 'builtin';
         };
         const activateSource = (next, remember = true) => {
             const position = scroll.get(next) || 0;
             changeSource(next, remember);
             const token = generation;
             Promise.resolve(activate(next)).then(() => {
-                if (modal && token === generation && source === next) { modal.body.scrollTop = position; paintDraft(); }
+                if (token === generation && source === next) { workspace.body.scrollTop = position; paintDraft(); }
             });
         };
-        const open = (next = source, trigger = byId('fv-icon-choose')) => {
+        const open = (next = source) => {
             if (!enabled) return;
-            if (modal) { if (next !== source) activateSource(next); return; }
+            activateSource(next);
+        };
+        const reset = () => {
             generation++;
             draft = getValue() || defaultIcon;
-            const actions = doc.createElement('div');
-            actions.className = 'fv-icon-browser-footer';
+            paintDraft();
+        };
+        const matchPanelHeight = () => {
+            const panel = home.closest('[data-editor-panel="icon"]');
+            const parent = panel?.parentElement.querySelector('[data-editor-panel="parent"]');
+            if (!panel || !parent) return;
+            const rect = parent.getBoundingClientRect();
+            const iconRect = panel.getBoundingClientRect();
+            const beside = rect.height > 0 && Math.abs(rect.top - iconRect.top) < 2 && Math.abs(rect.left - iconRect.left) > 2;
+            panel.style.height = beside ? `${rect.height}px` : '';
+            panel.classList.toggle('fv-icon-panel-bounded', beside);
+        };
+        if (enabled) {
+            const actions = workspace.footer;
             const summary = doc.createElement('div');
             summary.className = 'fv-icon-draft';
             summary.innerHTML = '<img alt=""><div><strong data-icon-draft-name></strong><span data-icon-draft-source></span></div>';
@@ -106,28 +129,28 @@
             cancel.type = 'button';
             cancel.className = 'fv-ui-button';
             cancel.textContent = surfaceT('legacy.surface.19766ed6ccb2f4a3', 'Cancel');
-            cancel.addEventListener('click', () => modal?.close('cancel'));
+            cancel.addEventListener('click', reset);
             actions.appendChild(cancel);
             const use = doc.createElement('button');
             use.type = 'button';
             use.className = 'fv-ui-button is-primary';
             use.textContent = surfaceT('legacy.surface.5a6a57b41fdbaac9', 'Use icon');
-            use.addEventListener('click', () => { const value = draft; onCommit(value); setValue(value); modal?.close('confirm'); sync(); });
+            use.addEventListener('click', () => { const value = draft; onCommit(value); setValue(value); reset(); sync(); });
             actions.appendChild(use);
-            modal = ui.openModal({ title: surfaceT('common.icon-browser.choose', 'Choose icon'),
-                content: library, actions, size: 'lg', className: 'fv-icon-browser', initialFocus: '[role="tab"][aria-selected="true"]',
-                onClose: () => { generation++; home.appendChild(library); modal = null; draft = ''; sync(); trigger?.focus({ preventScroll: true }); } });
-            // Preserve the active theme's editor tokens when the library leaves the editor form.
-            const styles = win.getComputedStyle(home);
-            for (const name of Array.from(styles)) {
-                if (name.startsWith('--fv-editor-')) modal.element.style.setProperty(name, styles.getPropertyValue(name));
-            }
-            modal.body.addEventListener('scroll', () => { if (modal) scroll.set(source, modal.body.scrollTop); });
-            activateSource(next, false);
-            paintDraft();
-        };
+            workspace.body.addEventListener('scroll', () => scroll.set(source, workspace.body.scrollTop));
+            doc.addEventListener('fvplus:editor-section-change', (event) => {
+                if (event.detail?.section === 'general') { open('builtin'); win.requestAnimationFrame(matchPanelHeight); }
+            });
+            win.addEventListener('resize', matchPanelHeight);
+            win.requestAnimationFrame(() => {
+                const parent = home.closest('[data-editor-panel="icon"]')?.parentElement.querySelector('[data-editor-panel="parent"]');
+                if (parent && win.ResizeObserver) new win.ResizeObserver(matchPanelHeight).observe(parent);
+                matchPanelHeight();
+            });
+            reset();
+        }
         const invalidate = (value) => {
-            if (modal && draft.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) stage(defaultIcon);
+            if (enabled && draft.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) stage(defaultIcon);
             sync();
         };
         const showDialog = (options, callback = () => {}) => {
@@ -162,8 +185,6 @@
         });
         if (enabled) {
             library.querySelectorAll('button').forEach((button) => button.classList.add('fv-ui-button'));
-            byId('fv-icon-choose').onclick = () => open();
-            byId('fv-icon-library-upload').onclick = () => { const button = byId('fv-icon-upload'); if (!button.disabled) button.click(); };
             byId('fv-icon-manage').onchange = (event) => library.classList.toggle('is-managing', event.target.checked);
             Object.entries(tabs).forEach(([key, id]) => {
                 const tab = byId(id);
@@ -184,8 +205,8 @@
             sync();
         }
         return Object.freeze({ enabled, open, changeSource, stage, sync, invalidate, showDialog, resolveCollision,
-            isOpen: () => Boolean(modal), getSelection: () => modal ? draft : getValue(),
-            token: () => generation, isCurrent: (token) => Boolean(modal) && token === generation });
+            isOpen: () => enabled, getSelection: () => enabled ? draft : getValue(),
+            token: () => generation, isCurrent: (token) => enabled && token === generation });
     };
     return Object.freeze({ createApi });
 }));

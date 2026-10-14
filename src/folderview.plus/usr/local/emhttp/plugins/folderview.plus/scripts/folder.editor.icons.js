@@ -2192,6 +2192,7 @@
             builtInIconPage = 1;
             renderBuiltInIconPicker();
             setBuiltInIconPickerOpen(!browser?.enabled);
+            if (browser?.enabled) browser.open('builtin');
             browser?.sync();
             renderThirdPartyFolderList();
             renderThirdPartyIconGrid();

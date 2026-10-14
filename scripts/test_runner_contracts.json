@@ -178,9 +178,9 @@
         "tests/browser/helpers/icon-browser-host.mjs"
       ],
       "testCount": 114,
-      "assertionCount": 1433,
+      "assertionCount": 1441,
       "pageEvaluateCount": 389,
-      "orderedTitleSha256": "33be9d64a90335920bd34571713d23684c366d5fff48acdeb278266e6df2302e"
+      "orderedTitleSha256": "5df1f0bb835b1a178efd1a4f2448a55c7c69c4c2188769d3b53b0804131f63c2"
     }
   }
 }

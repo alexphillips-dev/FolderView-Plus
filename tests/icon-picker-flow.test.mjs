@@ -129,7 +129,9 @@ test('folder editor markup exposes custom icon manager controls', () => {
     assert.match(folderPage, /id="fv-custom-icon-next"/);
     assert.match(folderPage, /id="fv-custom-icon-page-label"/);
     assert.match(folderPage, /id="fv-icon-selection"/);
-    assert.match(folderPage, /id="fv-icon-choose"/);
+    assert.doesNotMatch(folderPage, /id="fv-icon-choose"/);
+    assert.match(folderPage, /id="fv-icon-library-home" class="fv-icon-browser"/);
+    assert.match(folderPage, /id="fv-custom-icon-panel"[\s\S]*id="fv-icon-upload"/);
     assert.match(folderPage, /id="fv-icon-upload-progress"/);
     assert.match(folderPage, /id="fv-icon-upload-cancel"/);
     assert.match(folderPage, /Uploaded custom icons are saved in <b>\/boot\/config\/plugins\/folderview\.plus\/images\/custom\/<\/b>/);
@@ -205,7 +207,7 @@ test('folder editor icon picker uses theme-aware surfaces and borderless favorit
     assert.match(folderCss, /\.fv-third-party-preview-action:hover,[\s\S]*\.fv-third-party-icon-fav\.is-active \{[\s\S]*color:\s*var\(--fv-editor-accent\) !important;[\s\S]*opacity:\s*1;/);
 });
 
-test('modern icon tabs keep their browsing context across General re-entry', () => {
+test('modern icon tabs retain searches and initialize the inline picker on built-in icons', () => {
     assert.match(folderEditorIconsScript, /const activateBuiltInIconPicker = async \(options = \{\}\) =>/);
     assert.match(folderEditorIconsScript, /const activateThirdPartyIconPicker = async \(\) =>/);
     assert.match(folderEditorIconsScript, /const activateCustomIconPicker = async \(\) =>/);
@@ -217,6 +219,7 @@ test('modern icon tabs keep their browsing context across General re-entry', () 
     assert.match(outsideHandler, /setThirdPartyPackActionsOpen\(false\)/);
     assert.match(outsideHandler, /setThirdPartyFilterSheetOpen\(false\)/);
     assert.doesNotMatch(folderEditorIconsScript, /fvplus:editor-section-change\.fviconpicker/);
+    assert.match(folderEditorIconsScript, /if \(browser\?\.enabled\) browser\.open\('builtin'\);/);
     assert.match(folderChromeJs, /new root\.CustomEvent\('fvplus:editor-section-change',[\s\S]*detail: \{ previousSection, section: currentSection \}/);
 });
 

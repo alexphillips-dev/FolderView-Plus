@@ -180,7 +180,7 @@
         "tests/browser/helpers/upload-card-layout.mjs"
       ],
       "testCount": 114,
-      "assertionCount": 1468,
+      "assertionCount": 1472,
       "pageEvaluateCount": 390,
       "orderedTitleSha256": "5df1f0bb835b1a178efd1a4f2448a55c7c69c4c2188769d3b53b0804131f63c2"
     }

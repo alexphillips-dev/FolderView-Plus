@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.11">
-<!ENTITY md5 "d5b46a345a7a6fd2ca52d22547c7754b">
-<!ENTITY sha256 "fc6d742aae4902699a890223622bc244a62aabb8716c9b1db4a00c4333643eeb">
+<!ENTITY version "2026.10.14.12">
+<!ENTITY md5 "35098d7554efef9c1053793bbd6014b3">
+<!ENTITY sha256 "3ffe61b50bda3a452b63339efddd9927c81fe3053a500186a55313f9730a2fba">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.12
+- Fix: Merge the My uploads card focus ring with its selected border to remove the double outline while keeping keyboard focus visible.
+- UX: Remove the added date and time from uploaded icon details and bring the action buttons closer together.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon picker script and styles.
+
 
 ###2026.10.14.11
 - Fix: Keep My uploads filenames and file details inside their cards, with references, rename, and delete buttons aligned in one row.

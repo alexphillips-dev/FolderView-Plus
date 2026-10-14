@@ -460,10 +460,9 @@
                 const url = escapeHtml(String(icon?.url || ''));
                 const size = formatByteCount(Number(icon?.size || 0));
                 const dims = `${Math.max(0, Number(icon?.width || 0))}x${Math.max(0, Number(icon?.height || 0))}`;
-                const updated = formatDateTimeShort(icon?.updatedAt);
                 const usageCount = Math.max(0, Number(icon?.usageCount || 0));
                 const usageMeta = usageCount > 0 ? `${usageCount} refs` : 'unused';
-                const meta = [size, dims, updated, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
+                const meta = [size, dims, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
                 return `
                     <div class="fv-custom-icon-row${icon.url === getSelectionValue() ? ' is-selected' : ''}" data-custom-icon="${name}" data-icon-url="${url}">
                         <img src="${url}" alt="${name}" data-fv-onerror="this.src='${iconFallbackPath}';">

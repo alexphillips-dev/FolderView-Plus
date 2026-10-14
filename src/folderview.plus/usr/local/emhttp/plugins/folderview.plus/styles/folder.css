@@ -362,7 +362,7 @@
 .fv-icon-browser .fv-custom-icon-actions {
     display: flex;
     flex-wrap: nowrap;
-    gap: .4rem;
+    gap: .2rem;
     justify-content: center;
     width: 100%;
     margin-top: auto;
@@ -387,7 +387,7 @@
 
 .fv-icon-browser .fv-custom-icon-row:focus-within {
     outline: 2px solid var(--fv-editor-accent);
-    outline-offset: 2px;
+    outline-offset: -2px;
 }
 
 .fv-icon-browser :is(button, input, select, summary):focus-visible {

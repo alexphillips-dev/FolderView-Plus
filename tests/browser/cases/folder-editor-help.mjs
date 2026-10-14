@@ -3,11 +3,31 @@ import assert from 'node:assert/strict';
 import { mountSettingsEditor } from '../helpers/folder-editor-settings-host.mjs';
 import { checkFolderHelpTouch } from '../helpers/folder-editor-help-touch.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
+const tooltipAppearance = element => {
+    const luminance = color => {
+        const channels = color.match(/[\d.]+/g).slice(0, 3).map(value => {
+            const c = Number(value) / 255;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const style = getComputedStyle(element), foreground = getComputedStyle(element.querySelector('.fv-setting-help-copy p')).color;
+    const levels = [luminance(foreground), luminance(style.backgroundColor)].sort((a, b) => a - b);
+    return { foreground, background: style.backgroundColor, contrast: (levels[1] + 0.05) / (levels[0] + 0.05) };
+};
 export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
     test('Folder editor info icons replace expanding help across settings and remain accessible while disabled', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
             await mountSettingsEditor(page, baseUrl, type);
             for (const style of ['ui.primitives', 'ui.host-buttons']) await page.addStyleTag({ url: `${baseUrl}/plugin/styles/${style}.css` });
+            // Host blockquote styling must not override the help's theme colors, even when loaded last.
+            await page.addStyleTag({ content: 'body blockquote, body blockquote p { color: #222; }' });
+            const catalog = JSON.parse(fs.readFileSync(`${plugin}/langs/en.json`, 'utf8'));
+            const mismatches = await page.locator('.fv-setting-help [data-i18n], dt[data-i18n]').evaluateAll((nodes, catalog) => nodes.filter(node => {
+                const key = node.dataset.i18n.replace(/^\[html\]/, '');
+                return key in catalog && node.innerHTML.trim().replace(/\s+/g, ' ') !== catalog[key].replace(/\s+/g, ' ');
+            }).map(node => node.dataset.i18n), catalog);
+            assert.deepEqual(mismatches, [], 'English tooltips and labels must agree with their source fallbacks');
             for (const name of ['folderviewplus.ui', 'folder.editor.help']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
             assert.equal(await page.locator('.inline_help').count(), 0);
             const missing = await page.evaluate(() => Object.values(settingsFixture.schema.SECTION_FIELD_NAMES).flat().filter(name => {
@@ -27,6 +47,15 @@ export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
             assert.equal(await row.locator('dt').evaluate(node => getComputedStyle(node).cursor), 'default');
             await info.hover();
             const tooltip = page.getByRole('tooltip'); await tooltip.waitFor();
+            const appearance = await tooltip.evaluate(tooltipAppearance);
+            assert.ok(appearance.contrast >= 4.5, `Tooltip contrast must meet 4.5:1: ${JSON.stringify(appearance)}`);
+            const theme = await page.locator('html').getAttribute('data-fvplus-host-theme');
+            await page.locator('html').evaluate(node => { node.dataset.fvplusHostTheme = node.dataset.fvplusHostTheme === 'white' ? 'black' : 'white'; });
+            const switched = await tooltip.evaluate(tooltipAppearance);
+            assert.ok(switched.contrast >= 4.5, `Changed theme must remain readable: ${JSON.stringify(switched)}`);
+            assert.notEqual(switched.foreground, appearance.foreground);
+            assert.notEqual(switched.background, appearance.background);
+            await page.locator('html').evaluate((node, theme) => { node.dataset.fvplusHostTheme = theme; }, theme);
             assert.match(await tooltip.innerText(), /grayscal/i);
             assert.equal(await tooltip.evaluate(node => node.contains(document.activeElement)), false);
             assert.ok(Math.abs(await row.evaluate(node => node.getBoundingClientRect().height) - before.height) < 0.5);

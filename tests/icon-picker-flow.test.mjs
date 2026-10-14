@@ -134,8 +134,8 @@ test('folder editor markup exposes custom icon manager controls', () => {
     assert.match(folderPage, /id="fv-custom-icon-panel"[\s\S]*id="fv-icon-upload"/);
     assert.match(folderPage, /id="fv-icon-upload-progress"/);
     assert.match(folderPage, /id="fv-icon-upload-cancel"/);
-    assert.match(folderPage, /Uploaded custom icons are saved in <b>\/boot\/config\/plugins\/folderview\.plus\/images\/custom\/<\/b>/);
-    assert.match(folderPage, /restored into the live plugin path automatically after reboot or upgrade/);
+    assert.match(folderPage, /Choose an icon from Built-in icons, Icon Packs, or My uploads/);
+    assert.match(folderPage, /or enter an image URL or path/);
 });
 
 test('folder editor markup exposes advanced third-party icon controls', () => {

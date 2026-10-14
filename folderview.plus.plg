@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.17">
-<!ENTITY md5 "cdcdd01e28e9ca0f86e75bf088da208c">
-<!ENTITY sha256 "85c7cef176bd7a3480cd3d7c8bdb2989c13089f71cede3ca913f99f6b4640621">
+<!ENTITY version "2026.10.14.18">
+<!ENTITY md5 "9626fc5c9f759258e8c64f37f9f3dd54">
+<!ENTITY sha256 "f51c598ed3ef2a7eeb91fdf1d6c48274e73932a3cdfc033c4c64eed8cf5d2ae0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.18
+- Fix: Keep folder editor information tooltips readable in dark and light themes, including when host styles assign their own colors to help text.
+- UX: Rewrite the reviewed setting descriptions to explain control effects, platform scope, reset behavior, inheritance, and remembered expansion state. Clarify icon selection, preview options, custom actions, Health policies, and legacy regex behavior.
+- UX: Clarify labels for preview interaction, WebUI/log/console buttons, border and divider color/width, and default action buttons. Refresh the corresponding translations across all supported languages.
+- Compatibility: Saved folder settings and runtime behavior are unchanged. Hard-refresh the webGUI after updating to load the revised help and theme styles.
+
 
 ###2026.10.14.17
 - UX: Replace expanding folder-setting descriptions and the question-mark cursor with an SVG information icon beside each setting label. Hover or focus the icon to read its description without changing the row layout.

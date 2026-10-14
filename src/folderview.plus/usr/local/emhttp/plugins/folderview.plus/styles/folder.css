@@ -4118,7 +4118,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     text-transform: none;
     letter-spacing: normal;
 }
-.fv-setting-help-copy { margin: 0; padding: 0; border: 0; background: transparent; font-style: normal; }
+.fv-setting-help-tip .fv-setting-help-copy { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; font-style: normal; }
+.fv-setting-help-copy :where(p, span, b, strong, li, a) { color: inherit; }
 .fv-setting-help-copy > :first-child { margin-top: 0; }
 .fv-setting-help-copy > :last-child { margin-bottom: 0; }
 @media (max-width: 620px), (pointer: coarse) {

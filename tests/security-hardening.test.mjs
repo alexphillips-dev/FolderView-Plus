@@ -232,7 +232,9 @@ test('strict request guard requires the mutation marker, token, and same-origin 
 });
 
 test('external links and popup actions enforce noopener protections', () => {
-    assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
+    for (const [anchor] of folderPage.matchAll(/<a\b[^>]*\btarget="_blank"[^>]*>/g)) {
+        assert.match(anchor, /rel="(?=[^"]*\bnoopener\b)(?=[^"]*\bnoreferrer\b)[^"]*"/);
+    }
     assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
     assert.match(runtimeSharedControlsJs, /const openWebuiInNewTab = \(url\) =>/);
     assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);

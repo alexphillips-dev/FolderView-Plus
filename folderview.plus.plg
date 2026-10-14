@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.13.07">
-<!ENTITY md5 "e9ca21f774e5c803731acd33e3196b92">
-<!ENTITY sha256 "75f62bd934e70985928d627a6e77df885de0c029b3c6da5fef38e01d49a84f02">
+<!ENTITY version "2026.10.14.01">
+<!ENTITY md5 "c9746bc2894efab067dc6dc48e5ba1bf">
+<!ENTITY sha256 "8a72f28fa8186e5b0932ef9ec111c06ebefdef3922ab9663365da703f966777d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.01
+- UX: Basic settings now show nested folders with curved branches, circular endpoints, and subtle inset name panels in both Docker and VM lists.
+- UX: Refreshed the collapse, move-to-root, and tree-move icons and added a divider beside the drag handle to make folder controls easier to distinguish.
+- UX: Branch guides follow the visible folder list when folders are collapsed or filtered. Hard-refresh the webGUI after updating to load the refreshed display.
+
 
 ###2026.10.13.07
 - Fix: Validate complete FolderView3 backups before replacement; reject malformed sections, duplicate JSON keys, ambiguous names, invalid expressions and oversized data without silent truncation.

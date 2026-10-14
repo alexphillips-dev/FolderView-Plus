@@ -3,7 +3,7 @@
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Custom icon rename", "Settings chrome",
     "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",
-    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions"
+    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions", "Basic nested"
   ],
   "quick-finder": ["Quick finder"],
   "folderview3": ["FolderView3"],

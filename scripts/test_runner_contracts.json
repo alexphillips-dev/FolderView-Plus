@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
     {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
     {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
@@ -141,6 +142,7 @@
         "tests/browser/cases/dashboard-row-expansion.mjs",
         "tests/browser/cases/folder-hover-effects.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
+        "tests/browser/cases/settings-nested-display.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
@@ -172,8 +174,8 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs"
       ],
       "testCount": 111,
-      "assertionCount": 1391,
-      "pageEvaluateCount": 373,
+      "assertionCount": 1407,
+      "pageEvaluateCount": 378,
       "orderedTitleSha256": "6c2ce82bdbcc673085e36f7254940c7b35f3e7d67d7ad226a8d8f3d5c157d728"
     }
   }

@@ -6285,6 +6285,38 @@ const NAME_CELL_METRIC_ICONS = Object.freeze({
     folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
 });
 
+const NAME_CELL_TREE_ICONS = Object.freeze({
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+    root: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 8 8h-5v8H9v-8H4zM3 20h18v3H3z"/></svg>',
+    move: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 2h8v6h-3v3h8v5h3v7h-7v-7h2v-3h-6v3h2v7H8v-7h3v-3H5v3h2v7H0v-7h3v-5h8V8H8z"/></svg>',
+    nested: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v10h16m-5-5 5 5-5 5"/></svg>'
+});
+
+// Use the rendered rows so collapsed/filtered branches never leave dangling rails.
+const buildNameCellTreeGuides = (visibleIds, hierarchyMeta) => {
+    const paths = visibleIds.map(id => {
+        const path = [];
+        const seen = new Set([id]);
+        let parent = hierarchyMeta.parentById?.[id];
+        while (parent && !seen.has(parent) && path.length < 6) {
+            seen.add(parent);
+            path.unshift(parent);
+            parent = hierarchyMeta.parentById?.[parent];
+        }
+        return path;
+    });
+    const lastBranch = new Map();
+    paths.forEach((path, index) => {
+        if (path.length) lastBranch.set(path[path.length - 1], index);
+    });
+    return paths.map((path, index) => path.map((parent, level) => {
+        const branch = level === path.length - 1;
+        const continues = lastBranch.get(parent) > index;
+        if (!branch && !continues) return '';
+        return `<span class="name-cell-tree-guide fv-folder-depth-${level}${branch ? ' is-branch' : ''}${continues ? ' is-continuing' : ''}" aria-hidden="true"></span>`;
+    }).join(''));
+};
+
 const buildNameCellMetricsHtml = (type, memberCount, subfolderCount, membersTitle) => {
     const memberLabel = type === 'docker'
         ? surfaceT('common.repair.folder-containers-1', 'Containers: $1', memberCount)
@@ -6307,6 +6339,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
     const statusPrefs = normalizeStatusPrefs(type);
     const rows = [];
+    const visibleFolderIds = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
     const statusFilterMode = normalizeStatusFilterMode(statusFilterByType[type]);
@@ -6435,7 +6468,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? `Expand nested folders in ${folderNameRaw}`
             : `Collapse nested folders in ${folderNameRaw}`;
         const treeToggleHtml = hasChildren
-            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" data-fv-onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
+            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" aria-expanded="${!isCollapsed}" data-fv-onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')">${NAME_CELL_TREE_ICONS.chevron}</button>`
             : '<span class="folder-tree-toggle-spacer" aria-hidden="true"></span>';
         const parentFolderId = String(hierarchyMeta?.parentById?.[id] || '').trim();
         const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
@@ -6448,7 +6481,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? `Nested under ${parentFolderNameRaw}`
             : surfaceT('common.repair.nested-level', 'Nested level $1', folderDepth);
         const nestedMetaHtml = folderDepth > 0
-            ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
+            ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}">${NAME_CELL_TREE_ICONS.nested}<span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
             : '';
         const showBreadcrumb = folderDepth > 0 || Boolean(filter);
         const breadcrumbTitle = `Path: ${pathLabel}`;
@@ -6727,7 +6760,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? ''
             : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to move or reorder" aria-label="Drag ${safeNameText} to move or reorder"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
-            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')">${NAME_CELL_TREE_ICONS.root}</button>`
             : '';
         const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
         const treeMoveTitle = treeMoveAvailable
@@ -6735,7 +6768,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : 'Tree move unavailable: no valid target folders.';
         const treeMoveButtonHtml = hideOrderControls
             ? ''
-            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" data-fv-onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
+            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" data-fv-onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}>${NAME_CELL_TREE_ICONS.move}</button>`;
         const orderCellHtml = hideOrderControls
             ? ''
             : (''
@@ -6743,12 +6776,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + `<span class="row-order-actions">`
                 + mobileMoveStepHtml
                 + dragHandleHtml
+                + (dragHandleHtml ? '<span class="folder-drag-divider" aria-hidden="true"></span>' : '')
                 + moveToRootButtonHtml
                 + treeMoveButtonHtml
                 + `</span>`
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
                 + `</div>`);
         renderedDiagnostics.displayedFolders += 1;
+        visibleFolderIds.push(id);
         if (hideEmptyFolders && directMemberCount === 0 && totalMemberCount > 0) renderedDiagnostics.parentsKeptByDescendants += 1;
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" data-fv-onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
@@ -6806,7 +6841,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">No folders match current filters${filterSuffix}. ${clearButton}</td></tr>`;
     }
-    return rows.join('');
+    const treeGuides = buildNameCellTreeGuides(visibleFolderIds, hierarchyMeta);
+    return rows.map((row, index) => row.replace(/(<td class="name-cell"[^>]*>)/, `$1${treeGuides[index]}`)).join('');
 };
 
 const currentOrderedIdsFromTable = (type) => {

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.04">
-<!ENTITY md5 "7ab17da9d8782c7bf1cf337b518a089a">
-<!ENTITY sha256 "a6bcb558ebe3c1de25e21363509568a17ef0e7ac92d70ce769c2590acbc49dc9">
+<!ENTITY version "2026.10.14.05">
+<!ENTITY md5 "e47fcb642287fd5f7d30d8a5a2e874b8">
+<!ENTITY sha256 "89a666ae69c24baf4aa74e5723c2e0da06a8c3e18ac9d64d39968c9d3cb5c8a3">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.14.05
+- UX: Replace the folder editor's crowded icon controls with a compact current-icon card and a visual browser shared by Docker and VM folders. Browse Built-in icons, Collections, and My uploads without nested Basic/Advanced picker modes.
+- UX: Preview a selection before choosing Use icon, then save the folder to keep it. Cancel leaves the editor selection unchanged, and the picker keeps browsing context during the editor session. Move filters, metadata, and library management behind focused controls.
+- Reliability: Keep uploaded files available when cancelling the picker, prevent a late upload from changing a reopened selection, and offer Keep both, Replace, or Cancel for matching filenames. Preserve upload limits, progress, cancellation, and reference safeguards.
+- Accessibility: Improve keyboard and focus handling, thumbnail selection states, mobile layouts, and light/dark contrast. Add reviewed icon-browser translations for every supported locale. Hard-refresh the Unraid webGUI after updating.
+
 
 ###2026.10.14.04
 - UX: Restore room between Basic settings folder controls while keeping the divider centered. Increase space around the drag grip, divider, and action buttons in Docker and VM lists. Hard-refresh the webGUI after updating.

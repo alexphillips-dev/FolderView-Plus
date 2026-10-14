@@ -708,6 +708,19 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/folder.editor.icon-browser.js",
+      "owner": "folder-editor-icon-browser",
+      "consumers": ["folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.ui.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "iconBrowser",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createApi"]
+    },
     {"file": "scripts/folderviewplus.membership.js", "owner": "legacyMembership", "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"], "stateModel": "pure", "dependsOn": [], "compatibilityGlobals": ["FolderViewPlusFoundationModules"], "global": "FolderViewPlusFoundationModules", "globalMember": "legacyMembership", "loader": "commonjs", "typeChecked": false, "exports": ["build", "reconcileCache", "labelValue", "effective", "appendConflict"]},
     {"file": "scripts/folderviewplus.folderview3-model.js", "owner": "folderView3Model", "consumers": ["settings"], "stateModel": "pure", "dependsOn": [], "compatibilityGlobals": ["FolderViewPlusFoundationModules"], "global": "FolderViewPlusFoundationModules", "globalMember": "folderView3Model", "loader": "commonjs", "typeChecked": false, "exports": ["normalizeDetection", "normalizeReport", "validateSource"]},
     {

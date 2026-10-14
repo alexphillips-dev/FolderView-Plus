@@ -143,7 +143,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-browser.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
     <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" data-fv-onsubmit="submitForm(this, false); return false">
@@ -204,20 +204,28 @@ try {
             <dl>
                 <dt data-i18n="icon">Icon:</dt>
                 <dd class="fv-icon-dd">
-                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
-                    <input type="text" name="icon" value=""  data-fv-oninput="updateIcon(this)">
-                    <div class="fv-icon-input-actions">
+                    <div id="fv-icon-selection" class="fv-icon-selection">
+                        <img id="fvIconPanelPreview" src="/plugins/folderview.plus/images/folder-icon.png" alt="">
+                        <div class="fv-icon-selection-label"><strong id="fv-icon-selection-name"></strong><span id="fv-icon-selection-source"></span></div>
+                        <button type="button" id="fv-icon-choose"><i class="fa fa-th-large" aria-hidden="true"></i> <span data-i18n="common.icon-browser.choose">Choose icon</span></button>
+                        <button type="button" id="fv-icon-upload"><i class="fa fa-upload" aria-hidden="true"></i> Upload</button>
+                    </div>
+                    <details class="fv-icon-more"><summary>More</summary>
+                        <button type="button" id="fv-icon-picker-default">Use default icon</button>
+                        <label><span data-i18n="common.icon-browser.path">Icon URL or path</span>
+                            <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" hidden>
+                            <input type="text" name="icon" value="" data-fv-oninput="updateIcon(this)">
+                        </label>
+                    </details>
+                    <div id="fv-icon-library-home" hidden><div id="fv-icon-library">
+                    <div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
-                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
-                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> Custom icons</button>
-                        <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
-                        <button type="button" id="fv-icon-upload"><i class="fa fa-arrow-up" aria-hidden="true"></i> Upload</button>
+                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Collections</span></button>
+                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> <span data-i18n="common.icon-browser.uploads">My uploads</span></button>
                     </div>
+                    <div class="fv-icon-library-tools"><button type="button" id="fv-icon-library-upload">Upload</button><label><input type="checkbox" id="fv-icon-manage"> <span data-i18n="common.icon-browser.manage">Manage library</span></label></div>
+                    <p class="fv-icon-browser-help" data-i18n="common.icon-browser.help">Save the folder to keep this selection. Uploaded files remain in My uploads if you cancel.</p>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
-                    <div class="fv-icon-upload-options">
-                        <label><input type="checkbox" id="fv-icon-upload-replace"> Replace same name</label>
-                        <label><input type="checkbox" id="fv-icon-upload-dedupe" checked> Deduplicate exact file</label>
-                    </div>
                     <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
                         <div class="fv-icon-upload-progress-top">
                             <span id="fv-icon-upload-progress-text">Preparing upload...</span>
@@ -243,15 +251,9 @@ try {
                     </div>
                     <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
                         <div class="fv-icon-picker-toolbar fv-third-party-toolbar-main">
-                            <span class="fv-third-party-hint">Source: /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons</span>
                             <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                         </div>
                         <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Find</div>
-                            <div class="fv-third-party-mode-switch" role="group" aria-label="Picker mode">
-                                <button type="button" id="fv-third-party-mode-basic" class="is-active">Basic</button>
-                                <button type="button" id="fv-third-party-mode-advanced">Advanced</button>
-                            </div>
                             <div class="fv-third-party-control-row fv-third-party-icon-controls">
                                 <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
                                 <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
@@ -269,19 +271,15 @@ try {
                                     <option value="count">Sort: icon count</option>
                                     <option value="newest">Sort: newest</option>
                                 </select>
-                                <button type="button" id="fv-third-party-filter-toggle" class="fv-third-party-advanced-only" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
+                                <button type="button" id="fv-third-party-filter-toggle" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
                             </div>
                             <div class="fv-third-party-presets">
-                                <button type="button" id="fv-third-party-preset-recent">Recent</button>
-                                <button type="button" id="fv-third-party-preset-favorites">Favorites</button>
-                                <button type="button" id="fv-third-party-preset-most-used">Most used</button>
                                 <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
                             </div>
                         </div>
                         <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Pack</div>
                             <div class="fv-third-party-control-row fv-third-party-pack-primary">
-                                <select id="fv-third-party-pack-select" title="Pick icon pack"></select>
+                                <select id="fv-third-party-pack-select" title="Pick icon pack" aria-label="Pack"></select>
                                 <button type="button" id="fv-third-party-pack-actions-toggle" class="fv-third-party-advanced-only"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
                             </div>
                             <div class="fv-third-party-control-row fv-third-party-pack-controls fv-third-party-advanced-only">
@@ -299,8 +297,7 @@ try {
                                 <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Find duplicates</button>
                             </div>
                         </div>
-                        <div class="fv-third-party-section fv-third-party-advanced-only">
-                            <div class="fv-third-party-section-title">Filters</div>
+                        <div class="fv-third-party-section">
                             <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
                                 <div class="fv-third-party-inline-actions">
                                     <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
@@ -315,12 +312,11 @@ try {
                                 </div>
                             </div>
                         </div>
-                        <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Results</div>
+                        <details class="fv-icon-details"><summary>Details</summary>
                             <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | Scope: selected pack | Filters: none</div>
                             <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Step 1: pick a pack. Step 2: choose an icon.</div>
                             <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
-                        </div>
+                        </details>
                         <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid fv-third-party-icon-grid"></div>
                         <div class="fv-icon-picker-pager">
                             <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
@@ -343,6 +339,7 @@ try {
                         </div>
                         <div id="fv-custom-icon-status" class="fv-icon-picker-status"></div>
                     </div>
+                    </div></div>
                 </dd>
             </dl>
             <blockquote class="inline_help">

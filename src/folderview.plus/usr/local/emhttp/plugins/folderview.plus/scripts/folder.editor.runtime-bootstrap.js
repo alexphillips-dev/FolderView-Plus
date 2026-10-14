@@ -22,7 +22,7 @@
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.editor.regex-selection.js',
             '/plugins/folderview.plus/scripts/folder.editor.member-list.js',
-            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
+            '/plugins/folderview.plus/scripts/folder.editor.icon-browser.js', '/plugins/folderview.plus/scripts/folder.editor.icons.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-docker.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-vm.js',
             '/plugins/folderview.plus/scripts/folder.js'

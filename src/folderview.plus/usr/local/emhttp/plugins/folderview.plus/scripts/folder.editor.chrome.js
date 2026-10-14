@@ -820,7 +820,7 @@
             return;
         }
         const iconRow = form.querySelector('.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row');
-        if (!(iconRow instanceof root.HTMLElement)) {
+        if (!(iconRow instanceof root.HTMLElement) || iconRow.querySelector('#fv-icon-selection')) {
             return;
         }
         let preview = form.querySelector('#fvIconPanelPreview')?.closest('.fv-editor-panel-icon-preview');

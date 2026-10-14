@@ -335,7 +335,7 @@
         "scripts/folder.editor.schema.js",
         "scripts/folder.editor.preview.js",
         "scripts/folder.editor.preview-runtime.js",
-        "scripts/folder.editor.icons.js"
+        "scripts/folder.editor.icon-browser.js", "scripts/folder.editor.icons.js"
       ]
     },
     {
@@ -356,7 +356,7 @@
         "scripts/folder.editor.members.js",
         "scripts/folder.editor.regex-selection.js",
         "scripts/folder.editor.member-list.js",
-        "scripts/folder.editor.icons.js",
+        "scripts/folder.editor.icon-browser.js", "scripts/folder.editor.icons.js",
         "scripts/folder.editor.type-docker.js",
         "scripts/folder.editor.type-vm.js",
         "scripts/folder.js"

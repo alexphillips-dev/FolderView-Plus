@@ -54,7 +54,7 @@
         const doc = deps.document || win?.document || null;
         const $ = deps.$ || win?.jQuery || win?.$;
         const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
-        const swal = typeof deps.swal === 'function'
+        const legacySwal = typeof deps.swal === 'function'
             ? deps.swal
             : (typeof win?.swal === 'function' ? win.swal.bind(win) : (() => {}));
         const folderIconApi = deps.folderIconApi && typeof deps.folderIconApi === 'object' ? deps.folderIconApi : null;
@@ -72,6 +72,10 @@
         const getIconInput = typeof deps.getIconInput === 'function' ? deps.getIconInput : (() => ($ ? $() : null));
         const getCurrentIconValue = typeof deps.getCurrentIconValue === 'function' ? deps.getCurrentIconValue : (() => '');
         const setIconInputValue = typeof deps.setIconInputValue === 'function' ? deps.setIconInputValue : (() => {});
+        let browser = null;
+        const swal = (options, callback = undefined) => browser?.enabled ? browser.showDialog(options, callback) : legacySwal(options, callback);
+        const selectIcon = (value) => browser?.enabled ? browser.stage(value) : setIconInputValue(value);
+        const getSelectionValue = () => browser?.enabled ? browser.getSelection() : getCurrentIconValue();
 
         const defaultFolderIconPath = String(deps.defaultFolderIconPath || '/plugins/folderview.plus/images/folder-icon.png');
         const builtInIconManifestPath = String(deps.builtInIconManifestPath || '/plugins/folderview.plus/images/icons/icons.json');
@@ -135,7 +139,6 @@
         let thirdPartyPreviewIconUrl = '';
         let thirdPartyIndexCacheReady = false;
         let thirdPartyFilterSheetOpen = false;
-        let thirdPartyAdvancedMode = false;
         let thirdPartyPackActionsOpen = false;
         let thirdPartyAssetPackStatus = null;
         let customIconEntries = [];
@@ -462,14 +465,14 @@
                 const usageMeta = usageCount > 0 ? `${usageCount} refs` : 'unused';
                 const meta = [size, dims, updated, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
                 return `
-                    <div class="fv-custom-icon-row" data-custom-icon="${name}">
+                    <div class="fv-custom-icon-row${icon.url === getSelectionValue() ? ' is-selected' : ''}" data-custom-icon="${name}" data-icon-url="${url}">
                         <img src="${url}" alt="${name}" data-fv-onerror="this.src='${iconFallbackPath}';">
                         <div class="fv-custom-icon-meta">
                             <div class="fv-custom-icon-name" title="${name}">${name}</div>
                             <div class="fv-custom-icon-extra">${escapeHtml(meta || 'No metadata')}</div>
                         </div>
                         <div class="fv-custom-icon-actions">
-                            <button type="button" data-action="use" title="Use icon"><i class="fa fa-check" aria-hidden="true"></i></button>
+                            <button type="button" data-action="use" aria-label="${name}" aria-pressed="${icon.url === getSelectionValue()}" title="Use icon"><i class="fa fa-check" aria-hidden="true"></i></button>
                             <button type="button" data-action="refs" title="Show folder references"><i class="fa fa-sitemap" aria-hidden="true"></i></button>
                             <button type="button" data-action="rename" title="Rename icon"><i class="fa fa-pencil" aria-hidden="true"></i></button>
                             <button type="button" data-action="delete" title="Delete icon"><i class="fa fa-trash" aria-hidden="true"></i></button>
@@ -491,7 +494,7 @@
                 }
 
                 if (action === 'use') {
-                    setIconInputValue(String(icon.url || ''));
+                    selectIcon(String(icon.url || ''));
                     setCustomIconStatus(`Selected "${name}".`);
                     return;
                 }
@@ -526,6 +529,7 @@
                     }
                     try {
                         await requestCustomIconApi('rename', { from: name, to: nextName, selectedIcon: getCurrentIconValue() }, 'POST');
+                        browser?.invalidate(icon.url);
                         await refreshCustomIconManager();
                         setCustomIconStatus(`Renamed "${name}" to "${nextName}".`);
                     } catch (error) {
@@ -554,6 +558,7 @@
                             await requestCustomIconApi('delete', { name }, 'POST');
                             const selectedPath = getCurrentIconValue().split(/[?#]/, 1)[0];
                             if (selectedPath && selectedPath === String(icon.url || '').split(/[?#]/, 1)[0]) setIconInputValue(defaultFolderIconPath);
+                            browser?.invalidate(icon.url);
                             await refreshCustomIconManager();
                             setCustomIconStatus(`Deleted "${name}".`);
                         } catch (error) {
@@ -578,7 +583,7 @@
                 return;
             }
 
-            const currentValue = getCurrentIconValue();
+            const currentValue = getSelectionValue();
             const filtered = filterIconItems(
                 builtInIcons.map((icon) => ({
                     ...icon,
@@ -622,7 +627,7 @@
                 const safePath = escapeHtml(icon.path);
                 const safeName = escapeHtml(builtInName(icon.name));
                 return `
-                    <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
+                    <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" aria-pressed="${selected}" data-icon-value="${safePath}" title="${safeName}">
                         <img src="${safePath}" alt="${safeName}" data-fv-onerror="this.src='${iconFallbackPath}';">
                         <span class="fv-icon-picker-item-name">${safeName}</span>
                     </button>
@@ -637,7 +642,7 @@
                 if (!value) {
                     return;
                 }
-                setIconInputValue(value);
+                selectIcon(value);
             });
         };
 
@@ -1239,11 +1244,8 @@
             if (!apply) {
                 return;
             }
-            setIconInputValue(String(icon.url || ''));
-            recordThirdPartyIconUsage(icon);
-            if (thirdPartyQuickMode === 'recent' || thirdPartySortMode === 'usage') {
-                renderThirdPartyIconGrid();
-            }
+            selectIcon(String(icon.url || ''));
+            if (!browser?.enabled) recordThirdPartyIconUsage(icon);
         };
 
         const bindThirdPartyIconGridEvents = () => {
@@ -1281,6 +1283,7 @@
                     selectThirdPartyIconByKey(key, { apply: false });
                 })
                 .on('keydown.fvthirdparty', '.fv-third-party-icon-item', (event) => {
+                    if ($(event.target).closest('.fv-third-party-icon-fav').length) return;
                     const item = $(event.currentTarget);
                     const key = String(item.attr('data-third-party-key') || '').trim();
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -1310,7 +1313,7 @@
                         return;
                     }
                     event.preventDefault();
-                    items.eq(nextIndex).trigger('focus');
+                    items.eq(nextIndex).find('[data-icon-select]').trigger('focus');
                 })
                 .on('pointerdown.fvthirdparty', '.fv-third-party-icon-item', (event) => {
                     const pointerType = String(event.originalEvent?.pointerType || event.pointerType || '').toLowerCase();
@@ -1426,22 +1429,6 @@
             const filterLabel = activeCount > 0 ? surfaceT("common.runtime.filters-1", "Filters ($1)", activeCount) : 'Filters';
             $('#fv-third-party-filter-toggle').html(`<i class="fa fa-sliders" aria-hidden="true"></i> ${escapeHtml(filterLabel)}`);
             $('#fv-third-party-filter-clear-all').prop('disabled', activeCount === 0);
-        };
-
-        const setThirdPartyAdvancedMode = (open) => {
-            if (!$) {
-                return;
-            }
-            thirdPartyAdvancedMode = Boolean(open);
-            const panel = $('#fv-third-party-icon-panel');
-            panel.toggleClass('is-advanced', thirdPartyAdvancedMode);
-            $('#fv-third-party-mode-basic').toggleClass('is-active', !thirdPartyAdvancedMode);
-            $('#fv-third-party-mode-advanced').toggleClass('is-active', thirdPartyAdvancedMode);
-            if (!thirdPartyAdvancedMode) {
-                setThirdPartyFilterSheetOpen(false);
-                setThirdPartyPackActionsOpen(false);
-            }
-            renderThirdPartyFilterUiState();
         };
 
         const renderThirdPartyPackMenu = () => {
@@ -1568,7 +1555,7 @@
             );
             thirdPartyRenderedIconMap = new Map();
             grid.empty();
-            const currentValue = getCurrentIconValue();
+            const currentValue = getSelectionValue();
             const token = ++thirdPartyGridRenderToken;
             let offset = 0;
 
@@ -1595,9 +1582,12 @@
                     const item = doc.createElement('div');
                     item.className = `fv-third-party-icon-item${iconUrl === currentValue ? ' is-selected' : ''}`;
                     item.dataset.thirdPartyKey = key;
-                    item.tabIndex = 0;
-                    item.setAttribute('role', 'button');
+                    item.dataset.iconUrl = iconUrl;
                     item.title = iconName;
+                    const select = doc.createElement('button');
+                    select.type = 'button'; select.className = 'fv-third-party-icon-select';
+                    select.dataset.iconSelect = '';
+                    select.setAttribute('aria-pressed', String(iconUrl === currentValue));
                     const image = doc.createElement('img');
                     image.src = thirdPartyPlaceholderIcon;
                     image.dataset.src = sanitizeImageUrl(iconUrl, iconFallbackPath);
@@ -1640,7 +1630,8 @@
                         badges.appendChild(badge);
                     }
                     actions.append(favorite, badges);
-                    item.append(image, main, actions);
+                    select.append(image, main);
+                    item.append(select, actions);
                     fragment.appendChild(item);
                 });
                 grid.get(0)?.appendChild(fragment);
@@ -1781,9 +1772,8 @@
             if (!builtInIconManifestLoaded) {
                 await loadBuiltInIcons();
             }
-            builtInIconPage = 1;
             renderBuiltInIconPicker();
-            if (focusSearch) {
+            if (focusSearch && !browser?.enabled) {
                 $('#fv-icon-picker-search').trigger('focus');
             }
         };
@@ -1792,8 +1782,8 @@
             setBuiltInIconPickerOpen(false);
             setCustomIconPickerOpen(false);
             setThirdPartyIconPickerOpen(true);
-            await refreshThirdPartyIconPicker();
-            $('#fv-third-party-search').trigger('focus');
+            if (thirdPartyIndexCacheReady) renderThirdPartyIconGrid(); else await refreshThirdPartyIconPicker();
+            if (!browser?.enabled) $('#fv-third-party-search').trigger('focus');
         };
 
         const activateCustomIconPicker = async () => {
@@ -1801,7 +1791,7 @@
             setThirdPartyIconPickerOpen(false);
             setCustomIconPickerOpen(true);
             await refreshCustomIconManager();
-            $('#fv-custom-icon-search').trigger('focus');
+            if (!browser?.enabled) $('#fv-custom-icon-search').trigger('focus');
         };
 
         const bindIconPickerEvents = async () => {
@@ -1812,19 +1802,28 @@
             if (!panel.length) {
                 return;
             }
+            browser ||= win?.FolderViewPlusFoundationModules?.iconBrowser?.createApi({ window: win,
+                getValue: getCurrentIconValue, setValue: setIconInputValue, defaultIcon: defaultFolderIconPath, sanitizeImageUrl,
+                describe: (url) => { const icon = builtInIcons.find((entry) => entry.path === url); return icon ? { name: builtInName(icon.name), source: surfaceT('legacy.surface.c55a471f24b6805c', 'Built-in icons') } : null; },
+                activate: (source) => ({ builtin: activateBuiltInIconPicker, collections: activateThirdPartyIconPicker, uploads: activateCustomIconPicker })[source](),
+                onCommit: (url) => { const icon = thirdPartyIconIndex.find((entry) => entry.url === url) || thirdPartyIcons.find((entry) => entry.url === url); if (icon) recordThirdPartyIconUsage(icon); }
+            });
 
             $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
+                if (browser?.enabled) { browser.open('builtin'); return; }
                 await activateBuiltInIconPicker();
             });
 
             $('#fv-icon-third-party-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
+                if (browser?.enabled) { browser.open('collections'); return; }
                 await activateThirdPartyIconPicker();
             });
 
             $('#fv-icon-custom-manager-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
+                if (browser?.enabled) { browser.open('uploads'); return; }
                 await activateCustomIconPicker();
             });
 
@@ -1836,6 +1835,7 @@
 
             $('#fv-icon-upload').off('click.fviconpicker').on('click.fviconpicker', (event) => {
                 event.preventDefault();
+                browser?.open('uploads', event.currentTarget);
                 const fileInput = $('#fv-icon-upload-file');
                 if (!fileInput.length) {
                     return;
@@ -1850,6 +1850,7 @@
                 if (!file) {
                     return;
                 }
+                const uploadToken = browser?.token();
 
                 try {
                     validateCustomIconFileBeforeUpload(file);
@@ -1861,10 +1862,20 @@
 
                 const uploadButton = $('#fv-icon-upload');
                 const cancelButton = $('#fv-icon-upload-cancel');
-                const replace = $('#fv-icon-upload-replace').is(':checked');
-                const dedupe = $('#fv-icon-upload-dedupe').is(':checked');
+                let replace = false;
+                const dedupe = true;
                 const safeName = String(file.name || 'icon').trim() || 'icon';
                 uploadButton.prop('disabled', true);
+                let existingIcons = customIconEntries;
+                if (browser?.enabled) {
+                    try { existingIcons = asArray((await requestCustomIconApi('list', { query: '', sort: 'newest' }))?.icons); } catch (_error) { existingIcons = []; }
+                    if (!browser.isCurrent(uploadToken)) { uploadButton.prop('disabled', false); $(input).val(''); return; }
+                }
+                if (browser?.enabled && existingIcons.some((entry) => entry.name === safeName || entry.originalName === safeName)) {
+                    const decision = await browser.resolveCollision();
+                    if (!decision || !browser.isCurrent(uploadToken)) { uploadButton.prop('disabled', false); $(input).val(''); return; }
+                    replace = decision === 'replace';
+                }
                 cancelButton.prop('disabled', false);
                 setIconUploadProgressVisible(true);
                 updateIconUploadProgress(0, Number(file.size || 0), `Uploading "${safeName}"...`);
@@ -1883,8 +1894,8 @@
                         onProgress: (loaded, total) => updateIconUploadProgress(loaded, total)
                     });
                     updateIconUploadProgress(Number(file.size || 0), Number(file.size || 0), `Uploaded "${result.name}".`);
-                    setIconInputValue(result.url);
-                    const message = String(result.message || '').trim() || `Uploaded "${result.name}" and set as icon.`;
+                    if (!browser?.enabled || browser.isCurrent(uploadToken)) selectIcon(result.url);
+                    const message = String(result.message || '').trim() || (browser?.enabled ? `Uploaded "${result.name}".` : `Uploaded "${result.name}" and set as icon.`);
                     setIconUploadStatus(message);
                     await refreshCustomIconManager();
                 } catch (error) {
@@ -1930,29 +1941,6 @@
                 renderThirdPartyIconGrid();
             };
 
-            $('#fv-third-party-mode-basic').off('click.fviconpicker').on('click.fviconpicker', (event) => {
-                event.preventDefault();
-                setThirdPartyAdvancedMode(false);
-            });
-            $('#fv-third-party-mode-advanced').off('click.fviconpicker').on('click.fviconpicker', (event) => {
-                event.preventDefault();
-                setThirdPartyAdvancedMode(true);
-            });
-            $('#fv-third-party-preset-recent').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                await applyThirdPartyQuickMode('recent');
-            });
-            $('#fv-third-party-preset-favorites').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                await applyThirdPartyQuickMode('favorites');
-            });
-            $('#fv-third-party-preset-most-used').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
-                event.preventDefault();
-                thirdPartySortMode = 'usage';
-                $('#fv-third-party-sort').val('usage');
-                renderThirdPartyFolderList();
-                await applyThirdPartyQuickMode('all');
-            });
             $('#fv-third-party-preset-folder-icons').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
                 thirdPartyPackKind = 'folders';
@@ -2170,19 +2158,10 @@
                 .on('pointerdown.fviconpicker', closeIconPickersFromOutside)
                 .on('mousedown.fviconpicker touchstart.fviconpicker', closeIconPickersFromOutside);
 
-            $(doc)
-                .off('fvplus:editor-section-change.fviconpicker')
-                .on('fvplus:editor-section-change.fviconpicker', async (event) => {
-                    const detail = event.originalEvent?.detail || event.detail || {};
-                    if (String(detail.section || '') !== 'general' || String(detail.previousSection || '') === 'general') {
-                        return;
-                    }
-                    await activateBuiltInIconPicker({ focusSearch: false });
-                });
-
             const iconInput = getIconInput();
             if (iconInput && iconInput.length) {
                 iconInput.off('input.fviconpicker change.fviconpicker').on('input.fviconpicker change.fviconpicker', () => {
+                    browser?.sync();
                     renderBuiltInIconPicker();
                     renderThirdPartyIconGrid();
                 });
@@ -2203,7 +2182,7 @@
             $('#fv-third-party-tag-search').val(thirdPartyTagSearchQuery);
             setThirdPartyFilterSheetOpen(false);
             setThirdPartyPackActionsOpen(false);
-            setThirdPartyAdvancedMode(false);
+            renderThirdPartyFilterUiState();
             renderThirdPartyPackMenu();
             resetIconUploadProgress();
             setIconUploadStatus('');
@@ -2212,7 +2191,8 @@
             }
             builtInIconPage = 1;
             renderBuiltInIconPicker();
-            setBuiltInIconPickerOpen(true);
+            setBuiltInIconPickerOpen(!browser?.enabled);
+            browser?.sync();
             renderThirdPartyFolderList();
             renderThirdPartyIconGrid();
             renderCustomIconStats();

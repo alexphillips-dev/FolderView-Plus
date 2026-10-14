@@ -27,9 +27,15 @@ Groups create root-level folders using the existing folder creation defaults. Th
 
 The modern folder editor separates controls into General, Members, Preview, Chevron, Status, Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
 
-### Custom icons
+### Folder icons
 
-Upload an allowed image up to 16 MiB from the General tab. A successful upload selects the icon automatically. Progress and Cancel cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication can reuse an existing icon, and replacement uses the selected filename.
+In the Docker or VM folder editor, open **General > Icon**. The current icon card shows its preview, name, and source. Select **Choose icon** to browse **Built-in icons**, **Collections**, or **My uploads**. Search and choose a thumbnail to preview it, then select **Use icon** to update the editor. Save the folder to persist that choice. **Cancel**, Escape, and closing the picker discard its selection. The picker remembers the source, search, collection, and browsing position during the current editor session.
+
+Collections include scope and sort controls, with tags behind **Filters** and metadata behind **Details**. Enable **Manage library** to reveal pack tools and custom-icon references, rename, and delete actions. The icon picker has one interface in both Basic and Advanced editor modes.
+
+Upload an allowed image up to 16 MiB using **Upload** on the icon card or inside the picker. A completed upload previews the uploaded icon; select **Use icon**, then save the folder to use it. Uploaded files stay in **My uploads** if you cancel the picker. Progress and the upload Cancel button cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication is enabled. When a matching filename is found, choose **Keep both**, **Replace**, or **Cancel**. Replacing a file changes it for folders already referencing that file.
+
+Expand **More** on the current icon card to enter an image URL or path, paste a supported data image, or restore the default icon.
 
 Deleting an unused icon that is currently selected returns the editor and its previews to the default icon. A different icon chosen while deletion is pending remains selected. Renaming requires removing or replacing references in saved folders, defaults, custom folder groups, and the current editor selection first. Review the manager's usage information before changing an icon.
 

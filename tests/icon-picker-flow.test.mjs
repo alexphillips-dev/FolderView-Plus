@@ -45,7 +45,7 @@ const folderEditorRuntimeBootstrap = fs.readFileSync(path.join(
 
 function getCssRuleBlock(css, selector) {
     const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
+    const match = css.match(new RegExp(`^${escapedSelector}\\s*\\{([^}]*)\\}`, 'm'));
     assert.ok(match, `Expected CSS block for ${selector}`);
     return match[1];
 }
@@ -128,8 +128,8 @@ test('folder editor markup exposes custom icon manager controls', () => {
     assert.match(folderPage, /id="fv-custom-icon-prev"/);
     assert.match(folderPage, /id="fv-custom-icon-next"/);
     assert.match(folderPage, /id="fv-custom-icon-page-label"/);
-    assert.match(folderPage, /id="fv-icon-upload-replace"/);
-    assert.match(folderPage, /id="fv-icon-upload-dedupe"/);
+    assert.match(folderPage, /id="fv-icon-selection"/);
+    assert.match(folderPage, /id="fv-icon-choose"/);
     assert.match(folderPage, /id="fv-icon-upload-progress"/);
     assert.match(folderPage, /id="fv-icon-upload-cancel"/);
     assert.match(folderPage, /Uploaded custom icons are saved in <b>\/boot\/config\/plugins\/folderview\.plus\/images\/custom\/<\/b>/);
@@ -139,13 +139,9 @@ test('folder editor markup exposes custom icon manager controls', () => {
 test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-search"/);
     assert.match(folderPage, /id="fv-third-party-search-clear"/);
-    assert.match(folderPage, /id="fv-third-party-mode-basic"/);
-    assert.match(folderPage, /id="fv-third-party-mode-advanced"/);
+    assert.doesNotMatch(folderPage, /id="fv-third-party-mode-(basic|advanced)"/);
     assert.match(folderPage, /id="fv-third-party-view"/);
     assert.match(folderPage, /id="fv-third-party-sort"/);
-    assert.match(folderPage, /id="fv-third-party-preset-recent"/);
-    assert.match(folderPage, /id="fv-third-party-preset-favorites"/);
-    assert.match(folderPage, /id="fv-third-party-preset-most-used"/);
     assert.match(folderPage, /id="fv-third-party-preset-folder-icons"/);
     assert.match(folderPage, /id="fv-third-party-pack-search"/);
     assert.match(folderPage, /id="fv-third-party-pack-kind"/);
@@ -173,7 +169,7 @@ test('folder editor icon module supports advanced filtering and duplicate workfl
     assert.match(folderEditorIconsScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
     assert.match(folderEditorIconsScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
     assert.match(folderEditorIconsScript, /const getThirdPartyFolderKind = \(folderName\) =>/);
-    assert.match(folderEditorIconsScript, /const setThirdPartyAdvancedMode = \(open\) =>/);
+    assert.match(folderPage, /id="fv-icon-manage"/);
     assert.match(folderEditorIconsScript, /const getThirdPartyActiveFilterCount = \(\) =>/);
     assert.match(folderEditorIconsScript, /thirdPartyIconSearchDebounceMs/);
     assert.match(folderPage, /value="duplicates"/);
@@ -209,7 +205,7 @@ test('folder editor icon picker uses theme-aware surfaces and borderless favorit
     assert.match(folderCss, /\.fv-third-party-preview-action:hover,[\s\S]*\.fv-third-party-icon-fav\.is-active \{[\s\S]*color:\s*var\(--fv-editor-accent\) !important;[\s\S]*opacity:\s*1;/);
 });
 
-test('modern icon tabs stay open on outside clicks and reset to built-in on General re-entry', () => {
+test('modern icon tabs keep their browsing context across General re-entry', () => {
     assert.match(folderEditorIconsScript, /const activateBuiltInIconPicker = async \(options = \{\}\) =>/);
     assert.match(folderEditorIconsScript, /const activateThirdPartyIconPicker = async \(\) =>/);
     assert.match(folderEditorIconsScript, /const activateCustomIconPicker = async \(\) =>/);
@@ -220,7 +216,7 @@ test('modern icon tabs stay open on outside clicks and reset to built-in on Gene
     assert.doesNotMatch(outsideHandler, /set(?:BuiltIn|ThirdParty|Custom)IconPickerOpen\(false\)/);
     assert.match(outsideHandler, /setThirdPartyPackActionsOpen\(false\)/);
     assert.match(outsideHandler, /setThirdPartyFilterSheetOpen\(false\)/);
-    assert.match(folderEditorIconsScript, /fvplus:editor-section-change\.fviconpicker[\s\S]*detail\.section[\s\S]*'general'[\s\S]*activateBuiltInIconPicker\(\{ focusSearch: false \}\)/);
+    assert.doesNotMatch(folderEditorIconsScript, /fvplus:editor-section-change\.fviconpicker/);
     assert.match(folderChromeJs, /new root\.CustomEvent\('fvplus:editor-section-change',[\s\S]*detail: \{ previousSection, section: currentSection \}/);
 });
 

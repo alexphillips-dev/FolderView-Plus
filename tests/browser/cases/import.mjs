@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'; import { registerSnapshotCompareCases } from './snapshot-compare.mjs'; import { registerFolderView3MigrationCases } from './folderview3-migration.mjs';
+import fs from 'node:fs';
 
 export const registerImportFixtureCases = ({ test, baseUrl }) => { registerSnapshotCompareCases({ test, baseUrl }); registerFolderView3MigrationCases({ test, baseUrl });
 test('Import selection applies group choices without mutating unrelated operations', async ({ page }) => {
@@ -39,7 +40,7 @@ test('Import progress dialog reports deterministic progress and closes cleanly',
     assert.equal(await page.locator('#import-apply-progress-dialog').isHidden(), true);
 });
 
-test('Export download diagnostics report a missing file and retry from a direct user action', async ({ page }) => {
+test('Export download diagnostics report a missing file and retry from a direct user action', async ({ page, browserName }) => {
     await page.goto(`${baseUrl}/import`, { waitUntil: 'load' });
     await page.evaluate(() => window.fixtureImport.requestDownload());
     const status = page.locator('#docker-download-status');
@@ -64,7 +65,12 @@ test('Export download diagnostics report a missing file and retry from a direct 
     const retryDownload = page.waitForEvent('download');
     await status.locator('.fv-download-status-retry').click();
     const download = await retryDownload;
-    assert.equal(download.suggestedFilename(), 'FolderView Plus Docker.json');
+    const expectedNames = browserName === 'webkit'
+        ? ['FolderView Plus Docker.json', 'FolderView_Plus_Docker.json']
+        : ['FolderView Plus Docker.json'];
+    assert.ok(expectedNames.includes(download.suggestedFilename()), 'retain the export basename when the browser normalizes spaces');
+    assert.equal(await download.failure(), null);
+    assert.equal(fs.readFileSync(await download.path(), 'utf8'), '{"folders":{}}');
     await page.waitForFunction(() => window.fixtureImport.downloadAttempts().attempts.length === 2);
     assert.equal(await status.locator('strong').textContent(), 'Download retry requested');
     const attempts = await page.evaluate(() => window.fixtureImport.downloadAttempts().attempts);

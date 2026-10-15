@@ -14,6 +14,10 @@ const hostAdaptersModule = require(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js'
 ));
+const coordinatorModule = require(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.api-coordinator.js'
+));
 const dockerRuntimeSource = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
@@ -174,4 +178,64 @@ test('Docker lifecycle reconciliation never promotes revision churn into a group
         dockerRuntimeSource,
         /preserveGroupedDom && fallbackReason !== 'configuration-changed'/
     );
+});
+
+for (const action of ['start', 'stop', 'pause', 'resume', 'restart']) {
+    test(`Docker ${action} settles after API enrichment replaces the native identity`, async () => {
+        const id = 'abcdef123456' + '0'.repeat(52);
+        const scheduled = [];
+        const trace = [];
+        let entry = {
+            shortId: id.slice(0, 12),
+            info: { Id: id, Name: 'example', State: { Running: action !== 'start', Paused: action === 'resume' } }
+        };
+        const api = reconcileModule.createApi({
+            window: { setTimeout: (handler) => scheduled.push(handler) },
+            document: { querySelectorAll: () => [] },
+            getDockerRuntimeInfoEntries: () => [entry],
+            refreshDockerRuntimeStateInPlace: async () => {
+                entry = coordinatorModule.mergeContainerIntoRuntimeEntry(entry, {
+                    id: `server:${id}`,
+                    shortId: id.slice(0, 12),
+                    name: 'example',
+                    state: action === 'stop' ? 'exited' : (action === 'pause' ? 'paused' : 'running')
+                });
+                return true;
+            },
+            appendDockerBulkUpdateTrace: (eventType, details) => trace.push({ eventType, details }),
+            lifecycleRefreshDelaysMs: [0, 750, 2000]
+        });
+        api.runDockerLifecycleRefresh({ action, container: id.slice(0, 12) });
+        for (const handler of scheduled) {
+            handler();
+            await flushPromises();
+        }
+        const finalized = trace.find((event) => event.eventType === 'lifecycleSurfaceFinalized');
+        assert.equal(finalized?.details.reason, 'settled');
+        assert.equal(finalized?.details.matchedRuntimeEntry, true);
+        assert.equal(finalized?.details.observedState.state, action === 'stop' ? 'stopped' : (action === 'pause' ? 'paused' : 'running'));
+    });
+}
+
+test('Docker lifecycle does not guess between containers sharing a shortened identity', async () => {
+    const scheduled = [];
+    const trace = [];
+    const api = reconcileModule.createApi({
+        window: { setTimeout: (handler) => scheduled.push(handler) },
+        document: { querySelectorAll: () => [] },
+        getDockerRuntimeInfoEntries: () => ['a', 'b'].map((suffix) => ({
+            shortId: 'abcdef123456',
+            info: { Id: `abcdef123456${suffix.repeat(52)}`, Name: `example-${suffix}`, State: { Running: false, Paused: false } }
+        })),
+        refreshDockerRuntimeStateInPlace: async () => true,
+        appendDockerBulkUpdateTrace: (eventType, details) => trace.push({ eventType, details }),
+        lifecycleRefreshDelaysMs: [0]
+    });
+    api.runDockerLifecycleRefresh({ action: 'stop', container: 'abcdef123456' });
+    scheduled[0]();
+    await flushPromises();
+    const finalized = trace.find((event) => event.eventType === 'lifecycleSurfaceFinalized');
+    assert.equal(finalized?.details.matchedRuntimeEntry, false);
+    assert.equal(finalized?.details.observedState, null);
+    assert.equal(finalized?.details.settled, false);
 });

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Kies hoe bestaande mappen moeten worden behandeld. Er verandert niets totdat u Toepassen import selecteert.",
     "import.behavior.question": "Hoe moeten bestaande mappen worden behandeld?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importeer VM mappen",
     "import.actions.apply": "Import toepassen",
     "import.folderview3.preview-title": "FolderView3 migratievoorbeeld",
+    "import.folderview3.detect-button": "Detecteer FolderView3",
+    "import.folderview3.export-button": "Bekijk een voorbeeld van de volledige FolderView3-back-up",
+    "import.folderview3.style-count": "Aangepaste stijlen: $1",
     "import.folderview3.read-only-title": "FolderView3-migratie is alleen-lezen totdat u een toepassingsplan goedkeurt.",
     "import.folderview3.read-only-preview-help": "Detecteer een geïnstalleerde FolderView3-configuratie of bekijk een voorbeeld van een FolderView3-export. Bij het bekijken van voorbeelden wordt nooit een plug-in of Unraid-configuratie geschreven.",
     "import.folderview3.not-detected": "Geen geïnstalleerde FolderView3-configuratie gedetecteerd.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Alleen lezen",
     "import.folderview3.preview-ready": "FolderView3 voorbeeld gereed",
     "import.folderview3.preview-created": "Migratierapport gemaakt zonder de configuratie te wijzigen.",
+    "import.folderview3.assignment-summary": "Expliciete opdrachten: Docker $1; VM's $2.",
+    "import.folderview3.settings-summary": "Algemene instellingen geconverteerd: $1; niet ondersteund: $2.",
     "import.folderview3.applied": "FolderView3-migratie toegepast",
     "import.folderview3.applied-help": "De migratie is geverifieerd en controlepunten voor het terugdraaien zijn beschikbaar in Herstel.",
     "import.folderview3.native-autostart": "Vervang ook native Docker autostart-invoer en wachttijden",

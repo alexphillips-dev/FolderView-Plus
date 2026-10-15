@@ -98,8 +98,8 @@
     };
 
     const parseImportPayload = (payload, expectedType) => {
-        if (!isPlainObject(payload)) {
-            return { ok: false, error: 'Import file must contain a JSON object.' };
+        if (!isPlainObject(payload) || Object.prototype.hasOwnProperty.call(payload, 'fv3_export_version')) {
+            return !isPlainObject(payload) ? { ok: false, error: 'Import file must contain a JSON object.' } : { ok: false, migration: true, error: 'This is a complete FolderView3 backup. Use FolderView3 migration in Recovery to review both folder types, settings and appearance.' };
         }
 
         const normalizedExpectedType = typeof expectedType === 'string' ? expectedType.trim().toLowerCase() : '';

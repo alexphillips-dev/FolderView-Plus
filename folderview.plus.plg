@@ -5,31 +5,171 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.10.13.06">
-<!ENTITY md5 "da2af84517ad9be1b82ec885ca56cdc6">
-<!ENTITY sha256 "79966fce1197cadb99191588a9274fed18ec2b0bff75506508a14a03ba78a860">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.10.15.03">
+<!ENTITY md5 "75e3dca82a89ecb02bb1362803d4650c">
+<!ENTITY sha256 "7d30ecf61abc9a048cbd1d5fe5e3aee66b529d723bbfb80c92b1b43402ecb570">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.10.13.06
-- Feature: Create Docker and VM folders from one Add folder/group popup. Choose a single folder, preconfigured categories and Smart suggestions, or save and reuse your own named folder groups. Groups keep names and icons, create root folders, skip existing matching names, and leave membership assignment to the editor.
-- Feature: Refresh Advanced Rules with Docker/VM tabs, summary cards, a guided Include/Exclude builder, live match counts, smart suggestions, search, selected-rule actions, and mouse or keyboard reordering. Existing rule IDs, priorities, saved formats, conflict testing, and guarded saves remain supported.
-- UX: Align Settings header and Basic toolbar heights, improve folder/member text readability, and give search and Sort one clear focus treatment. Rules and Operations controls share the Bulk Assignment styling; Rules panels use the active theme and long rule lists expand with the page. Phone and touch controls retain larger targets.
-- UX: Open the regular Docker folder menu directly from nested previews, with Focus, Pin, Lock, Hide, Expand to folder, and applicable management actions. Folder shortcuts show their active states. Docker Start, Stop, Pause, Resume, and Restart display progress in the affected folder row, with accessible status breakdowns and dismissible failure details.
-- Fix: Keep Dashboard accent bars beside folder artwork and limit hover effects to folder headers. Preserve rapid Docker/VM expansion changes across refresh and navigation, including nested Accordion transitions; clearing expansion memory cannot be reversed by an older queued write. Docker hover effects remain visible around truncated names.
-- Fix: Restore reliable custom-icon uploads on Unraid 7.3.3 using form requests, progress, cancellation, and individually authorized parts. Raise the icon file cap to 16 MB without changing PHP or Nginx settings. Deleting the currently selected icon resets all editor previews to the default; renaming requires clearing references from folders, defaults, saved groups, and the editor.
-- Fix: Keep Settings, Docker, VMs, and Dashboard usable when browser storage is blocked. Verify a fresh complete inventory before repairing saved membership or synchronizing managed Docker start order; ordinary inventory reads preserve native autostart records. Settings action previews correctly distinguish running, paused, and stopped containers.
-- Security: Preserve Unraid CSRF protection alongside plugin tokens and one-time nonces, restrict credentials to the current origin, and await protected Docker order synchronization when saving folders. Reject unsafe durable-storage paths before creating files. Failed or ambiguous mutations are not automatically replayed.
-- Fix: Preserve complete UTF-8 characters in byte-limited names and metadata. Stop imports and restores before mutation when rollback capture is unsafe, restore captured permissions, compensate configuration/revision failures, and report incomplete rollback while retaining recovery evidence.
-- Compatibility: Update from Plugins and hard-refresh Settings, Docker, VMs, and Dashboard after installation. Existing configuration, folder assignments, rules, defaults, uploaded icons, and backup schedules are preserved; no reset or configuration migration is required. Browser-local UI state cannot survive reload when storage is blocked. Native Unraid File Manager failures still require their own reproduction and failing endpoint.
-- Localization: Remove obsolete Rules messages while retaining complete translations across all 27 supported locales.
+###2026.10.15.03
+- Fix: Show FolderView3 migration results in Activity with localized validation, write, verification, and restoration outcomes.
+- Reliability: Record verified migration results and failed attempts without letting diagnostics failures affect configuration writes or automatic restoration.
+- UX: Include recent icon-picker selection, Use Icon, Cancel, upload, disabled-setting, help, and layout evidence in support bundles after returning from a Docker or VM folder editor to Settings.
+- Compatibility: Editor evidence is limited to eight recent snapshots per type for 30 minutes, samples at most 32 icon cards, and excludes raw names, filenames, URLs, search text, form values, and tooltip contents. New migration messages are translated across all 27 locales. Hard-refresh the webGUI after updating.
+
+
+###2026.10.15.02
+- Fix: Make the icon picker's Cancel button undo the most recent Use Icon selection and restore the previous icon in the folder editor and picker previews.
+- Reliability: Keep cancellation available after reapplying the same icon, preserve manual URL/default-icon changes, and avoid restoring an uploaded file that has since been renamed or deleted.
+- Compatibility: Applies to Built-in Icons, Icon Packs, and My Uploads in Docker and VM folder editors. The folder editor's Cancel button and folder-save behavior are unchanged.
+
+
+###2026.10.15.01
+- Fix: Show each uploaded icon's reference count or unused status on a separate line below its file size and dimensions.
+- Fix: Keep upload card action buttons close together in one centered row with a small gap and padding inside the card, including when Unraid applies native button margins and padding.
+- Accessibility: Preserve keyboard focus and larger touch targets for reference, rename, and delete actions.
+- Compatibility: Saved icons and folder settings are unchanged. Hard-refresh the webGUI after updating to load the revised icon picker scripts and styles.
+
+
+###2026.10.14.20
+- UX: Make Built-in Icons, Icon Packs, and My Uploads more compact with smaller icon previews and cards that no longer stretch across the available row.
+- Fix: Keep icon names readable inside their cards with two-line wrapping, preserve full names on hover, and contain upload metadata and management buttons.
+- Accessibility: Retain keyboard focus, selection indicators, favorites, and larger touch targets for upload actions on phones.
+- Compatibility: Icon selection and uploaded files are unchanged. Hard-refresh the webGUI after updating to load the revised picker styles.
+
+
+###2026.10.14.19
+- Fix: Remove repeated inner headings from Parent Folder, Folder Members, Chevron Style/Color, Status Colors, WebUI Profiles, Auto-Rules, and Folder Actions. Keep their information icons beside the retained panel headings, consistent with the Icon panel.
+- Fix: Refresh Auto-Rules help when its content changes so rerendering cannot leave an obsolete information icon in the panel heading.
+- Accessibility: Preserve distinct setting labels and existing control names, and associate otherwise unnamed controls with the retained heading text without including the info button label.
+- Compatibility: Saved settings and folder behavior are unchanged. Hard-refresh the webGUI after updating to load the revised folder editor scripts and styles.
+
+
+###2026.10.14.18
+- Fix: Keep folder editor information tooltips readable in dark and light themes, including when host styles assign their own colors to help text.
+- UX: Rewrite the reviewed setting descriptions to explain control effects, platform scope, reset behavior, inheritance, and remembered expansion state. Clarify icon selection, preview options, custom actions, Health policies, and legacy regex behavior.
+- UX: Clarify labels for preview interaction, WebUI/log/console buttons, border and divider color/width, and default action buttons. Refresh the corresponding translations across all supported languages.
+- Compatibility: Saved folder settings and runtime behavior are unchanged. Hard-refresh the webGUI after updating to load the revised help and theme styles.
+
+
+###2026.10.14.17
+- UX: Replace expanding folder-setting descriptions and the question-mark cursor with an SVG information icon beside each setting label. Hover or focus the icon to read its description without changing the row layout.
+- Accessibility: Keep help available for disabled settings, support tapping info icons on touch screens, and dismiss descriptions with Escape or an outside tap. Preserve translated descriptions and links.
+- Fix: Apply the same help behavior to dynamically rendered folder rules and keep tooltips inside the viewport, including right-to-left layouts.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised folder editor assets and translations.
+
+
+###2026.10.14.16
+- Fix: Restore preview overflow, row separators and their color, Docker folder update highlighting, and status color locking in the folder editor.
+- Fix: Keep setting dependencies consistent when switching editor tabs and when saved preview options are enabled while the preview is off.
+- UX: Keep dependent settings visible and grayed out until their controlling option allows them, including custom action options. Preserve their values while disabled.
+- Compatibility: Retain Docker and VM applicability rules and the existing saved configuration format.
+
+
+###2026.10.14.15
+- UX: Remove Clear all filters from the Icon Packs dropdown and remove the Refresh folders and icons button from its toolbar.
+- Fix: Align the Icon Packs search field, Filters, Scope, and Sort with matching heights and reset inherited control margins. Preserve larger touch targets and compact mobile rows.
+- Fix: Update the empty-results guidance to avoid referring to a removed button.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon picker controls, translations, and styles.
+
+
+###2026.10.14.14
+- UX: Place Icon Packs filters beside the search field in a compact dropdown containing the existing checkbox tags and clearing controls.
+- UX: Remove the Icon Packs search clear button, Folder icons only shortcut, and extra filter row while keeping Scope, Sort, and refresh together.
+- Fix: Keep the filter dropdown within the viewport, retain checkbox keyboard focus while filtering, and close it on Escape, outside interaction, source changes, and editor navigation.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon picker controls, translations, and styles.
+
+
+###2026.10.14.13
+- Fix: Docker container Start, Stop, Pause, Resume, and Restart recognize native and API-prefixed container identities when reconciling completed actions. Ambiguous shortened IDs are not assigned to an arbitrary container.
+- Fix: Refresh native Docker rows without requiring a plugin row ID. Clear loading icons and update status in place for standalone containers and folder members while preserving native context-menu handlers and folder grouping.
+- Compatibility: Update the dev plugin and hard-refresh Docker and Dashboard after installation. Existing folders, preferences, rules, and container configuration are preserved.
+
+
+###2026.10.14.12
+- Fix: Merge the My uploads card focus ring with its selected border to remove the double outline while keeping keyboard focus visible.
+- UX: Remove the added date and time from uploaded icon details and bring the action buttons closer together.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon picker script and styles.
+
+
+###2026.10.14.11
+- Fix: Keep My uploads filenames and file details inside their cards, with references, rename, and delete buttons aligned in one row.
+- UX: Give uploaded icons enough room for readable details and consistent spacing on desktop and touch screens.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised card styles.
+
+
+###2026.10.14.10
+- UX: Use compact square Icon Packs tiles with centered thumbnails and filenames. Remove the inner button frame, excessive vertical padding, and empty action-row space.
+- UX: Enlarge the favorite star and position it at the tile's top-right corner. Preserve separate icon-selection and favorite controls, keyboard access, and larger touch targets.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised tile styles.
+
+
+###2026.10.14.09
+- UX: Rename Collections to Icon Packs in the folder editor, with reviewed labels for every supported locale.
+- UX: Place compact Scope and Sort dropdowns to the right of icon search on desktop. Group Filters, Folder icons only, and Refresh into one compact row and remove empty filter spacing and stretched rows. Narrow screens wrap the controls below search.
+- Fix: Default Icon Packs to Scope: all packs so icons from every available pack appear immediately. Preserve scope changes during the editor session.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised layout and translations.
+
+
+###2026.10.14.08
+- UX: Keep the Icon URL or path field visible directly beneath the folder icon preview and remove the More dropdown.
+- UX: Remove the Manage library checkbox. Make uploaded-icon actions available directly in My uploads and retain collection operations under Pack actions.
+- Fix: Keep the My uploads Upload button on one line while the search field fits the available width, including narrow and touch layouts.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon layout.
+
+
+###2026.10.14.07
+- UX: Remove the duplicate Icon field label and selection helper sentence from the folder editor's Icon module.
+- UX: Move Use default icon alongside Built-in icons, Collections, and My uploads. Remove empty upload-status spacing so search sits directly below the toolbar. Keep upload progress and errors visible when needed.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised icon layout.
+
+
+###2026.10.14.06
+- UX: Keep the icon picker visible inside the folder editor's Icon module instead of opening a separate window.
+- UX: Match the Icon module to the neighboring Parent Folder module on desktop, with internal scrolling and a responsive stacked layout on smaller screens.
+- UX: Start on Built-in icons when opening General. Keep Upload exclusively on the My uploads tab. Hard-refresh the webGUI after updating.
+- Reliability: Preserve staged icon selection, upload conflict choices, library management, and protection against cancelled or stale upload selections.
+
+
+###2026.10.14.05
+- UX: Replace the folder editor's crowded icon controls with a compact current-icon card and a visual browser shared by Docker and VM folders. Browse Built-in icons, Collections, and My uploads without nested Basic/Advanced picker modes.
+- UX: Preview a selection before choosing Use icon, then save the folder to keep it. Cancel leaves the editor selection unchanged, and the picker keeps browsing context during the editor session. Move filters, metadata, and library management behind focused controls.
+- Reliability: Keep uploaded files available when cancelling the picker, prevent a late upload from changing a reopened selection, and offer Keep both, Replace, or Cancel for matching filenames. Preserve upload limits, progress, cancellation, and reference safeguards.
+- Accessibility: Improve keyboard and focus handling, thumbnail selection states, mobile layouts, and light/dark contrast. Add reviewed icon-browser translations for every supported locale. Hard-refresh the Unraid webGUI after updating.
+
+
+###2026.10.14.04
+- UX: Restore room between Basic settings folder controls while keeping the divider centered. Increase space around the drag grip, divider, and action buttons in Docker and VM lists. Hard-refresh the webGUI after updating.
+
+
+###2026.10.14.03
+- Fix: Keep the Basic settings divider centered between the drag grip and folder action icons when Unraid's native button spacing is applied. Align nested-row dividers with the visible upward-arrow artwork too. Hard-refresh the webGUI after updating.
+
+
+###2026.10.14.02
+- UX: Center the Basic settings divider between the visible drag grip and folder action icons in Docker and VM lists. Hard-refresh the webGUI after updating.
+
+
+###2026.10.14.01
+- UX: Basic settings now show nested folders with curved branches, circular endpoints, and subtle inset name panels in both Docker and VM lists.
+- UX: Refreshed the collapse, move-to-root, and tree-move icons and added a divider beside the drag handle to make folder controls easier to distinguish.
+- UX: Branch guides follow the visible folder list when folders are collapsed or filtered. Hard-refresh the webGUI after updating to load the refreshed display.
+
+
+###2026.10.13.07
+- Fix: Validate complete FolderView3 backups before replacement; reject malformed sections, duplicate JSON keys, ambiguous names, invalid expressions and oversized data without silent truncation.
+- Compatibility: Restore the full Recovery preview, route complete backups correctly, preserve inherited settings, overflow modes, VM UUIDs and hidden preview preferences, and retain presets and notes in inactive appearance profiles.
+- Compatibility: Preserve FolderView3 manual/label/regex ownership across runtime pages, actions, conflict reports and Docker start order without changing native Plus rules.
+- Reliability: Keep previews read-only, use stable installed-source identities, reject stale source or destination state under the mutation lock, and verify persistence before success and refresh.
+- Test: Add production PHP persistence/rollback fixtures, unchanged upstream ownership comparisons and browser file-selection/cancel/apply/reload coverage across Chromium, Firefox and WebKit.
+- Compatibility: Hard-refresh after updating. Review migration warnings, verify source icons/scripts locally, and complete the documented Unraid acceptance checklist before stable promotion.
 
 
 ###2026.10.13.05
@@ -9615,7 +9755,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

@@ -11,6 +11,7 @@
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+            '/plugins/folderview.plus/scripts/folder.editor.help.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.legacy-rule-model.js',
             '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
@@ -22,7 +23,7 @@
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.editor.regex-selection.js',
             '/plugins/folderview.plus/scripts/folder.editor.member-list.js',
-            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
+            '/plugins/folderview.plus/scripts/folder.editor.icon-browser.js', '/plugins/folderview.plus/scripts/folder.editor.icons.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-docker.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-vm.js',
             '/plugins/folderview.plus/scripts/folder.js'

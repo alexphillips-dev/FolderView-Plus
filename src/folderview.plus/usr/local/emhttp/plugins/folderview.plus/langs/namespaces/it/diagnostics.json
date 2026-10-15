@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "diagnostics",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "diagnostics.title": "Diagnostica",
     "diagnostics.workspace.description": "Monitora lo stato dei plugin, risolvi i problemi e condividi i dati di supporto.",

@@ -487,6 +487,7 @@
                 'labelKey' => (string)($rule['labelKey'] ?? ''),
                 'labelValue' => (string)($rule['labelValue'] ?? '')
             ];
+            if (($rule['source'] ?? '') === 'folderview3') $normalizedRules[count($normalizedRules) - 1]['source'] = 'folderview3';
         }
         $normalized['autoRules'] = $normalizedRules;
         $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);

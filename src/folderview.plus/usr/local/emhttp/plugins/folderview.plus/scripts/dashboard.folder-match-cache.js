@@ -265,7 +265,7 @@
                 });
                 cache[folderId] = { explicit, regex: regexMatches, label: labelMatches, rules: ruleMatches };
             }
-            return cache;
+            return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'docker', rules }) || cache;
         };
 
         const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
@@ -298,7 +298,7 @@
                 });
                 cache[folderId] = { explicit, regex: regexMatches, rules: ruleMatches };
             }
-            return cache;
+            return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'vm', rules }) || cache;
         };
 
         return Object.freeze({

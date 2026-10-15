@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Velg hvordan eksisterende mapper skal håndteres. Ingenting endres før du velger Bruk import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importer VM-mapper",
     "import.actions.apply": "Bruk import",
     "import.folderview3.preview-title": "FolderView3 migrering forhåndsvisning",
+    "import.folderview3.detect-button": "Oppdag FolderView3",
+    "import.folderview3.export-button": "Forhåndsvis full FolderView3-sikkerhetskopi",
+    "import.folderview3.style-count": "Egendefinerte stiler: $1",
     "import.folderview3.read-only-title": "FolderView3-migrering er skrivebeskyttet til du godkjenner en søknadsplan.",
     "import.folderview3.read-only-preview-help": "Finn en installert FolderView3-konfigurasjon eller forhåndsvis en FolderView3-eksport. Forhåndsvisning skriver aldri plugin- eller Unraid-konfigurasjon.",
     "import.folderview3.not-detected": "Ingen installert FolderView3-konfigurasjon oppdaget.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Lesebeskyttet",
     "import.folderview3.preview-ready": "FolderView3 forhåndsvisning klar",
     "import.folderview3.preview-created": "Migreringsrapport opprettet uten å endre konfigurasjon.",
+    "import.folderview3.assignment-summary": "Eksplisitte oppdrag: Docker $1; VM-er $2.",
+    "import.folderview3.settings-summary": "Globale innstillinger konvertert: $1; støttes ikke: $2.",
     "import.folderview3.applied": "FolderView3-migrering er brukt",
     "import.folderview3.applied-help": "Migreringen ble verifisert og tilbakestillingssjekkpunkter er tilgjengelige i Recovery.",
     "import.folderview3.native-autostart": "Erstatt også innfødte Docker autostart-oppføringer og venter",

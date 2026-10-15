@@ -24,7 +24,7 @@ function fvplusThemeProfileNormalize($value, int $index = 0): array {
     foreach (array_keys($profile['layers']) as $scope) {
         $profile['layers'][$scope] = fvplusThemeProfileNormalizeLayer($layers[$scope] ?? []);
     }
-    return $profile;
+    return array_merge($profile, is_string($source['legacyMetadata'] ?? null) && strlen($source['legacyMetadata']) <= 65536 ? ['legacyMetadata' => $source['legacyMetadata']] : []);
 }
 
 function fvplusThemeProfilesNormalizeState(array $incoming): array {

@@ -31,6 +31,22 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/icon-card-layout.mjs", "limit": 40, "owner": "Compact built-in and pack card image size, readable labels and text containment" },
+    { "file": "tests/browser/helpers/folder-editor-headings.mjs", "limit": 80, "owner": "Folder editor panel heading deduplication, help association and rerender lifecycle" },
+    { "file": "tests/browser/helpers/folder-editor-help-touch.mjs", "limit": 45, "owner": "Native touch, RTL and localized folder help interactions", "requiredImports": ["./folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/cases/folder-editor-help.mjs", "limit": 110, "owner": "Folder editor SVG help, disabled fields and dynamic content", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/cases/folder-editor-settings.mjs", "limit": 80, "owner": "Folder settings dependency visibility and stored value regressions", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/cases/folder-editor-diagnostics.mjs", "limit": 110, "owner": "Editor capture lifecycle, Settings bundle persistence, layout evidence and privacy", "requiredImports": ["../helpers/icon-browser-host.mjs", "../helpers/folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
+    { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
+    { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
+    { "file": "tests/browser/cases/icon-picker-cancel.mjs", "limit": 75, "owner": "applied icon rollback, external edits and invalidated upload cancellation", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
+    { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
+    { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
+    { "file": "tests/browser/helpers/icon-pack-filters.mjs", "limit": 65, "owner": "Icon Packs filter dropdown layout, checkbox filtering and lifecycle" },
+    { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
+    {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
+    {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
@@ -99,6 +115,8 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/folder-editor-help.mjs",
+        "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
@@ -127,17 +145,22 @@
         "tests/browser/cases/custom-icon-rename.mjs",
         "tests/browser/cases/csrf-requests.mjs",
         "tests/browser/cases/custom-icon-delete.mjs",
+        "tests/browser/cases/icon-picker-cancel.mjs",
+        "tests/browser/cases/icon-browser.mjs",
+        "tests/browser/cases/folder-editor-diagnostics.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/snapshot-compare.mjs",
         "tests/browser/cases/import.mjs",
+        "tests/browser/cases/folderview3-migration.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
         "tests/browser/cases/forum-reports.mjs",
         "tests/browser/cases/dashboard-row-spacing.mjs",
         "tests/browser/cases/dashboard-row-expansion.mjs",
         "tests/browser/cases/folder-hover-effects.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
+        "tests/browser/cases/settings-nested-display.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
@@ -146,6 +169,12 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/icon-card-layout.mjs",
+        "tests/browser/helpers/folder-editor-headings.mjs",
+        "tests/browser/helpers/folder-editor-help-touch.mjs",
+        "tests/browser/helpers/folder-editor-settings-host.mjs",
+        "tests/browser/helpers/folder-action-settings-host.mjs",
+        "tests/browser/helpers/folderview3-host.mjs",
         "tests/browser/helpers/settings-workspace-controls.mjs",
         "tests/browser/helpers/quick-finder-toolbar.mjs",
         "tests/browser/helpers/quick-finder-privacy.mjs",
@@ -165,12 +194,15 @@
         "tests/browser/helpers/docker-hide-empty-host.mjs",
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/docker-folder-menu-host.mjs",
-        "tests/browser/helpers/dashboard-row-expansion.mjs"
+        "tests/browser/helpers/dashboard-row-expansion.mjs",
+        "tests/browser/helpers/icon-browser-host.mjs",
+        "tests/browser/helpers/upload-card-layout.mjs",
+        "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 109,
-      "assertionCount": 1375,
-      "pageEvaluateCount": 367,
-      "orderedTitleSha256": "c14b75797568abaacc8bf5cde6f03fbd0692ef344699ef620ed2d1e81674e79e"
+      "testCount": 119,
+      "assertionCount": 1606,
+      "pageEvaluateCount": 427,
+      "orderedTitleSha256": "ec939917f492c716aef11b5a684f28cdc5ef8d712844b7e5d859680ae82fddd8"
     }
   }
 }

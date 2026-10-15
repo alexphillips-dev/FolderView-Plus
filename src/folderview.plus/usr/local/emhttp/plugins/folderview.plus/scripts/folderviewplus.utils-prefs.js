@@ -65,7 +65,7 @@
                 effect: RULE_EFFECTS.includes(rule.effect) ? rule.effect : 'include',
                 pattern: typeof rule.pattern === 'string' ? rule.pattern : '',
                 labelKey: typeof rule.labelKey === 'string' ? rule.labelKey : '',
-                labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : ''
+                labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : '', ...(rule.source === 'folderview3' ? { source: 'folderview3' } : {})
             }))
             .filter((rule) => rule.folderId !== '');
         const incomingBadges = isPlainObject(incoming.badges) ? incoming.badges : {};

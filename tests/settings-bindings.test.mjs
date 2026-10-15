@@ -554,8 +554,8 @@ test('nested folder rendering keeps highlighted display HTML isolated from aria/
     assert.doesNotMatch(script, /Open status breakdown|Open status details/);
     assert.match(script, /<span class="name-cell-text">\$\{safeNameDisplayHtml\}<\/span>/);
     assert.match(script, /const showBreadcrumb = folderDepth > 0 \|\| Boolean\(filter\);/);
-    assert.match(settingsCss, /\.name-cell-content\.is-nested::before\s*\{[\s\S]*border-left:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
-    assert.match(settingsCss, /\.name-cell-content\.is-nested::after\s*\{[\s\S]*border-top:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
+    assert.match(settingsCss, /\.name-cell-tree-guide\.is-branch::before\s*\{[\s\S]*border-end-start-radius:\s*12px/);
+    assert.match(settingsCss, /\.name-cell-tree-guide\.is-branch::after\s*\{[\s\S]*border-radius:\s*50%/);
 });
 
 test('nested folder branch actions stay context-aware while integrity tools remain in advanced settings', () => {

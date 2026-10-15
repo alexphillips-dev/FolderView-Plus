@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Scegli come gestire le cartelle esistenti. Nulla cambia finché non selezioni Applica importazione.",
     "import.behavior.question": "Come devono essere gestite le cartelle esistenti?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importa VM cartelle",
     "import.actions.apply": "Applica importazione",
     "import.folderview3.preview-title": "Anteprima della migrazione di FolderView3",
+    "import.folderview3.detect-button": "Rileva visualizzazione cartella3",
+    "import.folderview3.export-button": "Anteprima del backup completo di FolderView3",
+    "import.folderview3.style-count": "Stili personalizzati: $1",
     "import.folderview3.read-only-title": "La migrazione di FolderView3 è di sola lettura finché non approvi un piano di applicazione.",
     "import.folderview3.read-only-preview-help": "Rileva una configurazione di FolderView3 installata o visualizza l'anteprima di un'esportazione di FolderView3. L'anteprima non scrive mai il plugin o la configurazione Unraid.",
     "import.folderview3.not-detected": "Nessuna configurazione FolderView3 installata rilevata.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Sola lettura",
     "import.folderview3.preview-ready": "Anteprima di FolderView3 pronta",
     "import.folderview3.preview-created": "Report sulla migrazione creato senza modificare la configurazione.",
+    "import.folderview3.assignment-summary": "Assegnazioni esplicite: Docker $1; Macchine virtuali $2.",
+    "import.folderview3.settings-summary": "Impostazioni globali convertite: $1; non supportato: $2.",
     "import.folderview3.applied": "Migrazione FolderView3 applicata",
     "import.folderview3.applied-help": "La migrazione è stata verificata e i checkpoint di rollback sono disponibili in Recovery.",
     "import.folderview3.native-autostart": "Sostituisci anche le voci di avvio automatico e le attese native di Docker",

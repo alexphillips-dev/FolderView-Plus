@@ -75,7 +75,8 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    assert.ok(report.extraction.autoBoundMessageCount >= 3000, 'retain audited conditional UI and error messages');
+    // Revised editor help consolidates obsolete link and HTML fragments.
+    assert.ok(report.extraction.autoBoundMessageCount >= 2997, 'retain audited conditional UI and error messages');
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);
     assert.equal(report.locales.en.coveragePercent, 100);
@@ -158,7 +159,7 @@ test('new Unraid locales include native labels across every primary plugin surfa
 test('Traditional Chinese uses the pinned one-pass Taiwan normalization profile', () => {
     const rootCatalog = JSON.parse(fs.readFileSync(path.join(langsRoot, 'zh-Hant.json'), 'utf8'));
     assert.equal(rootCatalog['@metadata']['normalization-profile'], 'opencc-s2twp-1.4.1');
-    assert.match(rootCatalog['border-color-tooltip'], /設定預覽邊框的顏色/);
+    assert.match(rootCatalog['border-color-tooltip'], /預覽邊框顏色和寬度/);
     assert.doesNotMatch(rootCatalog['border-color-tooltip'], /设置|预览|按钮|文件夹/);
     const converter = OpenCC.Converter({ from: 'cn', to: 'twp' });
     assert.equal(converter('设置文件夹并导出软件'), '設定資料夾並匯出軟體');

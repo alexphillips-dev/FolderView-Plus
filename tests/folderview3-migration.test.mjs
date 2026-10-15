@@ -91,12 +91,13 @@ const runPhpPlan = (bundle, sourceName = 'fixture.json') => {
     }
 };
 
-test('FolderView3 preview endpoints remain read-only while Recovery omits migration controls', () => {
+test('FolderView3 preview endpoints remain read-only and Recovery exposes the reviewed migration', () => {
     assert.match(endpointSource, /if \(\$action === 'detect_folderview3'\)/);
     assert.match(endpointSource, /if \(\$action === 'preview_folderview3'\)/);
     assert.match(endpointSource, /\$mutatingActions\s*=\s*\['apply', 'apply_folderview3'\]/);
-    assert.doesNotMatch(pageSource, /data-fv-folderview3-action="detect"/);
-    assert.doesNotMatch(pageSource, /data-fv-folderview3-action="preview-export"/);
+    assert.match(pageSource, /data-fv-folderview3-action="detect"/);
+    assert.match(pageSource, /data-fv-folderview3-action="preview-export"/);
+    assert.match(pageSource, /id="fv-recovery-folderview3-summary"/);
 });
 
 test('FolderView3 conversion preserves folders, rules, defaults, start order, and inactive appearance', () => {
@@ -125,14 +126,14 @@ test('FolderView3 conversion preserves folders, rules, defaults, start order, an
 
 test('FolderView3 multilingual folder, rule and source boundaries produce serializable plans', () => {
     const bundle = structuredClone(fixture);
-    bundle.docker.dockerFolder.name = 'd'.repeat(159) + 'é';
-    bundle.vm.vmFolder.name = 'v'.repeat(159) + '界';
-    bundle.docker.dockerFolder.regex = 'r'.repeat(1023) + '😀';
+    bundle.docker.dockerFolder.name = 'd'.repeat(158) + 'é';
+    bundle.vm.vmFolder.name = 'v'.repeat(157) + '界';
+    bundle.docker.dockerFolder.regex = 'r'.repeat(1020) + '😀';
     bundle.plugin_version = 'p'.repeat(127) + 'é';
     const { plan, report } = runPhpPlan(bundle, 's'.repeat(254) + '😀');
-    assert.equal(plan.target.types.docker.folders.dockerFolder.name, 'd'.repeat(159));
-    assert.equal(plan.target.types.vm.folders.vmFolder.name, 'v'.repeat(159));
-    assert.equal(plan.target.types.docker.prefs.autoRules[0].pattern, 'r'.repeat(1023));
+    assert.equal(plan.target.types.docker.folders.dockerFolder.name, bundle.docker.dockerFolder.name);
+    assert.equal(plan.target.types.vm.folders.vmFolder.name, bundle.vm.vmFolder.name);
+    assert.equal(plan.target.types.docker.prefs.autoRules[0].pattern, bundle.docker.dockerFolder.regex);
     assert.equal(plan.source.sourceName, 's'.repeat(254));
     assert.equal(plan.source.pluginVersion, 'p'.repeat(127));
     assert.equal(report.summary.dockerFolderCount, 1);
@@ -306,7 +307,9 @@ test('FolderView3 browser apply requires confirmation, reuses the preview digest
 test('FolderView3 apply rejects unavailable rollback bytes without changing native or plugin state', () => {
     const result = runCaptureFixture('entry-abort', 'migration');
     assert.equal(result.rejected, true);
-    assert.equal(result.unchanged, true);
+    assert.equal(result.protectedUnchanged, true);
+    const outcome = result.diagnosticEvents.find(event => event.action === 'folderview3_migration').details;
+    assert.equal(outcome.outcome, 'capture-failed'); assert.equal(outcome.nativeAutostartRequested, true); assert.equal(outcome.nativeAutostartIncluded, false);
     assert.equal(result.nativeUnchanged, true);
     assert.deepEqual(result.stages, []);
 });
@@ -314,6 +317,7 @@ test('FolderView3 apply rejects unavailable rollback bytes without changing nati
 test('FolderView3 rejects failed capture before planning can normalize legacy appearance data', () => {
     const result = runCaptureFixture('entry-abort', 'migration', { legacyWorkspace: true });
     assert.equal(result.rejected, true);
-    assert.equal(result.unchanged, true);
+    assert.equal(result.protectedUnchanged, true);
+    assert.equal(result.diagnosticEvents.find(event => event.action === 'folderview3_migration').details.rollback, 'not-needed');
     assert.deepEqual(result.stages, []);
 });

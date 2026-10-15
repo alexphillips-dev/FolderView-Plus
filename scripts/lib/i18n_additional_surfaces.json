@@ -562,15 +562,6 @@
     ]
   },
   {
-    "phrase": "$1 custom styles",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folderview3-migration.js",
-        "anchor": "custom styles"
-      }
-    ]
-  },
-  {
     "phrase": "$1 detected",
     "locations": [
       {
@@ -962,15 +953,6 @@
       {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "names using a custom match."
-      }
-    ]
-  },
-  {
-    "phrase": "$1 native autostart entries",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folderview3-migration.js",
-        "anchor": "native autostart entries"
       }
     ]
   },
@@ -3801,15 +3783,6 @@
       {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "added | VM"
-      }
-    ]
-  },
-  {
-    "phrase": "Docker $1 folders",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folderview3-migration.js",
-        "anchor": "folders"
       }
     ]
   },
@@ -12516,15 +12489,6 @@
     ]
   },
   {
-    "phrase": "VM $1 folders",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.folderview3-migration.js",
-        "anchor": "folders"
-      }
-    ]
-  },
-  {
     "phrase": "VM cleanup",
     "locations": [
       {
@@ -12866,4 +12830,16 @@
       }
     ]
   }
+,
+  {"phrase": "The server returned an incomplete migration preview.", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "The server returned an incomplete migration preview."}]},
+  {"phrase": "Migration verification did not complete. No successful migration was reported.", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "Migration verification did not complete. No successful migration was reported."}]},
+  {"phrase": "Unsupported legacy setting: $1. It is not applied; retain the original export for recovery.", "locations": [{"file": "server/lib.folderview3-settings.php", "anchor": "Unsupported legacy setting: "}]},
+  {"phrase": "Invalid FolderView3 $1 map. No configuration was imported.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " map. No configuration was imported."}]},
+  {"phrase": "Invalid or oversized FolderView3 $1. Shorten or correct it before importing.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": ". Shorten or correct it before importing."}]},
+  {"phrase": "FolderView3 $1 must be a list with at most 5000 entries.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " must be a list with at most 5000 entries."}]},
+  {"phrase": "FolderView3 $1 contains an invalid name.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " contains an invalid name."}]},
+  {"phrase": "FolderView3 backup is missing required $1 data.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": "FolderView3 backup is missing required "}]},
+  {"phrase": "Migration was saved; refresh failed", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "Migration was saved; refresh failed"}]},
+  {"phrase": "FolderView3 migration preview failed", "locations": [{"file": "scripts/folderviewplus.js", "anchor": "FolderView3 migration preview failed"}]},
+  {"phrase": "Configuration was saved, but a view could not refresh. Reload Settings before continuing.", "locations": [{"file": "scripts/folderviewplus.settings-workspaces.js", "anchor": "Configuration was saved, but a view could not refresh. Reload Settings before continuing."}]}
 ]

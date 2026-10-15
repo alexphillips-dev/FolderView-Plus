@@ -533,9 +533,9 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_trigger'\)/);
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph'\)/);
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph_time'\)/);
-    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
-    assert.match(folderPreviewRuntimeJs, /context_graph-\$\{form\.context_graph\?\.value\}/);
-    assert.match(folderPreviewRuntimeJs, /form\.preview_border\?\.checked === true\) \{/);
+    assert.match(folderPreviewRuntimeJs, /choice\('context_graph-', \[0, 1, 2, 3, 4\], form\.context_graph\?\.value\)/);
+    assert.match(folderPreviewRuntimeJs, /FolderViewPlusFolderEditorShared\.updateDependencies\(form,/);
+    assert.match(folderPreviewRuntimeJs, /toggle\('border-color', form\.preview_border\?\.checked === true\)/);
     assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints = typeof deps\.applyTypePreviewConstraints === 'function'/);
     assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints\(\{ \$,\s*form \}\);/);
     assert.match(folderTypeVmJs, /activeJq\('\[constraint\*="docker"\]'\)\.hide\(\);/);
@@ -603,7 +603,7 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderJs, /width:\s*Math\.max\(320, Math\.min\(640, window\.innerWidth - 24\)\),/);
     assert.match(folderJs, /const syncActionType = \(nextType = modeSelect\.val\(\)\) =>/);
-    assert.match(folderJs, /dialog\.find\('\[constraint\*="action-type-"\]'\)\.hide\(\);/);
+    assert.match(folderJs, /folderEditorShared\.updateDependencies\(dialog\[0\],/);
     assert.match(folderJs, /\.attr\('tabindex', selected \? '0' : '-1'\);/);
     assert.match(folderJs, /const validateActionDialog = \(showErrors = validationTouched\) =>/);
     assert.match(folderJs, /const targetsValid = mode !== 0 \|\| \(targetSelect\.val\(\) \|\| \[\]\)\.length > 0;/);
@@ -687,7 +687,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderRulesJs, /const fullRulesWorkspaceHref = `\/Settings\/FolderViewPlus\?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=\$\{encodeURIComponent\(type\)\}`;/);
     assert.match(folderRulesJs, /Create managed include or exclude rules without relying on the legacy folder regex\./);
     assert.match(folderRulesJs, /<dt>Auto-rules:<\/dt>/);
-    assert.match(folderRulesJs, /<blockquote class="inline_help">/);
+    assert.match(folderRulesJs, /<blockquote class="fv-setting-help">/);
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/migrate_legacy_regex\.php'/);
@@ -766,8 +766,8 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row > dl,[\s\S]*\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-list\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*min-height:\s*0;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row > dl,[\s\S]*\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-panel\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-item\s*\{[\s\S]*border-color:\s*transparent !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-item\.is-selected\s*\{[\s\S]*box-shadow:\s*inset 3px 0 0 var\(--fv-editor-title-accent\) !important;/);
+    assert.match(folderCss, /\.fv-icon-browser \.fv-icon-picker-item,[\s\S]*border:\s*1px solid var\(--fv-editor-border\);[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-icon-browser \.fv-icon-picker-item\.is-selected,[\s\S]*box-shadow:\s*inset 0 0 0 1px var\(--fv-editor-accent\);/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);

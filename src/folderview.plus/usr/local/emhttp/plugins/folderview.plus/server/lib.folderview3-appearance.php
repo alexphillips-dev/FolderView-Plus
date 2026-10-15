@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.folderview3-presets.php';
 function fvplusFolderView3SafeCssValue($value): string {
     $safe = truncateUtf8String(trim((string)$value), 200);
     if ($safe === '' || preg_match('/(?:expression\s*\(|javascript\s*:|@import\b|url\s*\()/i', $safe)) {
@@ -62,6 +63,8 @@ function fvplusFolderView3BuildThemeProfile(array $bundle, array &$warnings, arr
             $safeValue = fvplusFolderView3SafeCssValue($value);
             if ($safeName !== '' && $safeValue !== '') {
                 $declarations[] = '  --' . $safeName . ': ' . $safeValue . ';';
+            } else {
+                $warnings[] = 'Unsafe or unsupported legacy CSS variable values were excluded. Retain the original export for recovery.';
             }
         }
         $chunks = [];
@@ -91,11 +94,8 @@ function fvplusFolderView3BuildThemeProfile(array $bundle, array &$warnings, arr
             $chunks[] = '/* FolderView3 custom style: ' . $safeName . " */\n" . (string)$style['content'];
         }
         $combined = trim(implode("\n\n", $chunks));
-        if (strlen($combined) > FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES) {
-            $combined = truncateUtf8String($combined, FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES);
-            $warnings[] = 'FolderView3 ' . $scope . ' CSS was truncated to the FolderView Plus profile limit.';
-        }
+        fvplusFolderView3ValidateCssSize($combined);
         $profile['layers'][$scope] = fvplusThemeProfileNormalizeLayer(['customCss' => $combined]);
     }
-    return fvplusThemeProfileNormalize($profile);
+    return fvplusFolderView3PreserveAppearanceMetadata($profile, $config, $warnings);
 }

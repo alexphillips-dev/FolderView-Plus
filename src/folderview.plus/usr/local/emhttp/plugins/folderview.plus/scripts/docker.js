@@ -3148,7 +3148,7 @@ const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, pre
             rules: ruleMatches
         };
     }
-    return cache;
+    return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'docker', rules }) || cache;
 };
 
 const removeRuntimeHealthBadge = () => {

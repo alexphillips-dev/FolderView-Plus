@@ -45,6 +45,7 @@ const patterns = {
 };
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 const explicitHtmlSinkReviews = new Map([
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.help.js:81', 'The info button uses only the shared SVG renderer with the fixed plugin-owned info-circle icon. Help content is cloned from existing localized DOM.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1297', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3414', 'The loading overlay contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:312', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
@@ -57,9 +58,9 @@ const explicitHtmlSinkReviews = new Map([
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js:832', 'The preview image source is a fixed plugin asset path.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js:562', 'Rule, template, status, and folder values are contextually escaped by the owning markup builders before the panel is mounted.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js:343', 'Folder identity and path values are escaped, status values are normalized counts, and action groups use guarded builders.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js:189', 'FolderView3 report text is escaped at every interpolation boundary; counts and selected states are normalized before markup is mounted.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js:140', 'FolderView3 report text is escaped at every interpolation boundary; counts and selected states are normalized before markup is mounted.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js:281', 'The settings search empty state contains plugin-authored static markup only.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js:6082', 'Summary-card values pass through buildBasicSummaryCardHtml, which escapes every interpolated value.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js:6088', 'Summary-card values pass through buildBasicSummaryCardHtml, which escapes every interpolated value.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.rules-workspace.js:59', 'Rule icons use the shared svgIcon registry; names resolve to fixed paths and attributes are escaped.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js:174', 'The appearance profile toolbar uses plugin-authored markup and escapes localized catalog values before mounting.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js:179', 'Appearance profile identifiers and names are escaped before option markup is mounted.'],

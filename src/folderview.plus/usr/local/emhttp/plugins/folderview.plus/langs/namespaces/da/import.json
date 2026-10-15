@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Vælg, hvordan eksisterende mapper skal håndteres. Intet ændres, før du vælger Anvend import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importer VM-mapper",
     "import.actions.apply": "Anvend import",
     "import.folderview3.preview-title": "FolderView3 migration forhåndsvisning",
+    "import.folderview3.detect-button": "Find FolderView3",
+    "import.folderview3.export-button": "Forhåndsvis fuld FolderView3 backup",
+    "import.folderview3.style-count": "Brugerdefinerede stilarter: $1",
     "import.folderview3.read-only-title": "FolderView3-migrering er skrivebeskyttet, indtil du godkender en ansøgningsplan.",
     "import.folderview3.read-only-preview-help": "Find en installeret FolderView3-konfiguration, eller se et eksempel på en FolderView3-eksport. Forhåndsvisning skriver aldrig plugin eller Unraid-konfiguration.",
     "import.folderview3.not-detected": "Der blev ikke fundet nogen installeret FolderView3-konfiguration.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Læsebeskyttet",
     "import.folderview3.preview-ready": "FolderView3 forhåndsvisning klar",
     "import.folderview3.preview-created": "Migreringsrapport oprettet uden at ændre konfigurationen.",
+    "import.folderview3.assignment-summary": "Eksplicitte opgaver: Docker $1; VM'er $2.",
+    "import.folderview3.settings-summary": "Globale indstillinger konverteret: $1; ikke understøttet: $2.",
     "import.folderview3.applied": "FolderView3-migrering anvendt",
     "import.folderview3.applied-help": "Migreringen blev verificeret, og rollback-kontrolpunkter er tilgængelige i Recovery.",
     "import.folderview3.native-autostart": "Erstat også indfødte Docker autostart-indgange og ventetider",

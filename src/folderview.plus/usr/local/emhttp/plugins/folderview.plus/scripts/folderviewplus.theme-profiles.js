@@ -30,7 +30,7 @@
         SCOPES.forEach((scope) => {
             profile.layers[scope] = normalizeLayer(source.layers?.[scope]);
         });
-        return profile;
+        return Object.assign(profile, typeof source.legacyMetadata === 'string' && new TextEncoder().encode(source.legacyMetadata).byteLength <= 65536 ? { legacyMetadata: source.legacyMetadata } : {});
     };
     const normalizeState = (value) => {
         const source = value && typeof value === 'object' ? value : {};

@@ -60,8 +60,7 @@ test('modern folder editor persists accent color settings end to end', () => {
     assert.match(folderJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);
     assert.match(folderJs, /folder_accent_enabled: e\.folder_accent_enabled\.checked,/);
     assert.match(folderJs, /folder_accent_color: normalizeHexColor\(e\.folder_accent_color\.value\.toString\(\), DEFAULT_FOLDER_ACCENT_COLOR\),/);
-    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
-    assert.match(folderPreviewRuntimeJs, /if \(form\.folder_accent_enabled\?\.checked === true\) \{/);
+    assert.match(folderPreviewRuntimeJs, /toggle\('accent-color', form\.folder_accent_enabled\?\.checked === true\)/);
     assert.match(folderJs, /const resetFolderAccentDefaults = typeof folderEditorResetHelpers\?\.resetFolderAccentDefaults === 'function'/);
 });
 

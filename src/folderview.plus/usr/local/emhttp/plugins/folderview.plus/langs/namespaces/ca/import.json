@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Trieu com gestionar les carpetes existents. No canvia res fins que seleccioneu Aplica la importació.",
     "import.behavior.question": "Com s'han de gestionar les carpetes existents?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "Importa les carpetes de VM",
     "import.actions.apply": "Aplica la importació",
     "import.folderview3.preview-title": "Vista prèvia de la migració de FolderView3",
+    "import.folderview3.detect-button": "Detectar FolderView3",
+    "import.folderview3.export-button": "Previsualitza la còpia de seguretat completa de FolderView3",
+    "import.folderview3.style-count": "Estils personalitzats: $1",
     "import.folderview3.read-only-title": "La migració de FolderView3 és només de lectura fins que aproveu un pla d'aplicació.",
     "import.folderview3.read-only-preview-help": "Detecteu una configuració de FolderView3 instal·lada o previsualitzeu una exportació de FolderView3. La previsualització no escriu mai el connector o la configuració Unraid.",
     "import.folderview3.not-detected": "No s'ha detectat cap configuració de FolderView3 instal·lada.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Només lectura",
     "import.folderview3.preview-ready": "Vista prèvia de FolderView3 a punt",
     "import.folderview3.preview-created": "S'ha creat un informe de migració sense canviar la configuració.",
+    "import.folderview3.assignment-summary": "Tasques explícites: Docker $1; VMs $2.",
+    "import.folderview3.settings-summary": "Configuració global convertida: $1; no compatible: $2.",
     "import.folderview3.applied": "S'ha aplicat la migració FolderView3",
     "import.folderview3.applied-help": "La migració s'ha verificat i els punts de control de retrocés estan disponibles a Recovery.",
     "import.folderview3.native-autostart": "També substituïu les entrades i les espera d'inici automàtic de Docker",

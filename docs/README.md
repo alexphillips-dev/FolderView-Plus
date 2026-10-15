@@ -38,6 +38,7 @@ This folder holds project documentation that does not need to stay at the reposi
 
 - [`current-state.json`](current-state.json) — machine-readable names and behavior contracts used to prevent documentation drift.
 - [edge-cases-test-matrix.md](edge-cases-test-matrix.md)
+- [FolderView3 migration remediation and manual acceptance](codebase-audit/FOLDERVIEW3_MIGRATION_REMEDIATION.md)
 - [unraid-docker-prerelease-qualification.md](unraid-docker-prerelease-qualification.md)
 - [runtime-performance-budgets.md](runtime-performance-budgets.md)
 - [images/README.md](images/README.md)

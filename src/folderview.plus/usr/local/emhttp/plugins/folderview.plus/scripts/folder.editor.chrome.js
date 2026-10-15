@@ -29,37 +29,37 @@
     const SECTION_PANEL_META = {
         general: [
             { key: 'identity', title: 'Identity', description: 'Name and optional folder WebUI behavior.', fields: ['name', 'folder_webui', 'folder_webui_url'] },
-            { key: 'parent', title: 'Parent Folder', description: 'Choose where this folder lives in the hierarchy.', fields: ['parent_folder_id'] },
-            { key: 'icon', title: 'Icon', description: 'Preview and change the folder icon.', match: (row) => Boolean(row?.querySelector?.('.fv-icon-dd')) }
+            { key: 'parent', title: 'Parent Folder', headingLabel: true, description: 'Choose where this folder lives in the hierarchy.', fields: ['parent_folder_id'] },
+            { key: 'icon', title: 'Icon', headingLabel: true, description: 'Preview and change the folder icon.', match: (row) => Boolean(row?.querySelector?.('.fv-icon-dd')) }
         ],
         members: [
-            { key: 'folder-members', title: 'Folder Members', description: 'Order child folders shown in nested previews and expanded rows.', match: (row) => row?.id === 'fvFolderMembersSection' },
+            { key: 'folder-members', title: 'Folder Members', headingLabel: true, description: 'Order child folders shown in nested previews and expanded rows.', match: (row) => row?.id === 'fvFolderMembersSection' },
             { key: 'member-manager', title: 'Member Manager', description: 'Choose visible members, filter the list, and set folder order.', match: (row) => row?.classList?.contains('order-section') === true }
         ],
         preview: [
-            { key: 'layout', title: 'Layout', description: 'Control what the collapsed row shows and how much room it uses.', fields: ['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_status'] },
+            { key: 'layout', title: 'Layout', description: 'Control what the collapsed row shows and how much room it uses.', fields: ['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_overflow', 'preview_status'] },
             { key: 'child-folders', title: 'Child Folders', description: 'Show nested folder chips and choose how deep the preview can look.', fields: ['preview_hide_nested_items', 'preview_child_folder_depth'] },
-            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, hover animation, and update highlighting.', fields: ['preview_grayscale', 'preview_hover_animation', 'preview_update', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_border', 'preview_border_color', 'preview_border_glow'] },
+            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, hover animation, and update highlighting.', fields: ['preview_grayscale', 'preview_hover_animation', 'preview_update', 'folder_update_highlight', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_row_separator', 'preview_row_separator_color', 'preview_border', 'preview_border_color', 'preview_border_glow'] },
             { key: 'quick-actions', title: 'Quick Actions', description: 'Add optional actions directly inside Docker previews.', fields: ['preview_logs', 'preview_webui', 'preview_console'] },
             { key: 'context', title: 'Preview Context', description: 'Configure advanced preview behavior and graph settings.', fields: ['context', 'context_trigger', 'context_graph', 'context_graph_time'] }
         ],
         chevron: [
-            { key: 'style', title: 'Chevron Style', description: 'Choose the row expand/collapse affordance.', fields: ['dropdown_style'] },
-            { key: 'color', title: 'Chevron Color', description: 'Override the folder row chevron color.', fields: ['dropdown_color'] }
+            { key: 'style', title: 'Chevron Style', headingLabel: true, description: 'Choose the row expand/collapse affordance.', fields: ['dropdown_style'] },
+            { key: 'color', title: 'Chevron Color', headingLabel: true, description: 'Override the folder row chevron color.', fields: ['dropdown_color'] }
         ],
         status: [
-            { key: 'status-colors', title: 'Status Colors', description: 'Set indicator colors and choose automatic theme text or a custom folder-row text color.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped', 'status_color_text', 'status_color_text_auto'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
+            { key: 'status-colors', title: 'Status Colors', headingLabel: true, description: 'Set indicator colors and choose automatic theme text or a custom folder-row text color.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped', 'status_color_text', 'status_color_text_auto', 'status_color_lock'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
             { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
             { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', advancedOnly: true, fields: ['status_warn_stopped_percent'] },
             { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
         ],
-        webuiProfiles: [{ key: 'webui-profiles', title: 'Custom WebUI Profiles', description: 'Select the direct folder members opened by each named profile.', match: (row) => row?.id === 'fvWebuiProfilesSection' }],
+        webuiProfiles: [{ key: 'webui-profiles', title: 'Custom WebUI Profiles', headingLabel: true, description: 'Select the direct folder members opened by each named profile.', match: (row) => row?.id === 'fvWebuiProfilesSection' }],
         rules: [
-            { key: 'auto-rules', title: 'Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' },
+            { key: 'auto-rules', title: 'Auto-Rules', headingLabel: true, description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' },
             { key: 'regex', title: 'Legacy Rule Compatibility', description: 'Review and convert an older folder-level name regex.', fields: ['regex'] }
         ],
         actions: [
-            { key: 'folder-actions', title: 'Folder Actions', description: 'Manage the custom actions shown in this folder’s context menu.', match: (row) => row?.classList?.contains('custom-action-wrapper-parent') === true }
+            { key: 'folder-actions', title: 'Folder Actions', headingLabel: true, description: 'Manage the custom actions shown in this folder’s context menu.', match: (row) => row?.classList?.contains('custom-action-wrapper-parent') === true }
         ],
         advanced: [
             { key: 'action-behavior', title: 'Action Behavior', description: 'Override default action behavior for this folder.', fields: ['override_default_actions', 'default_action'] },
@@ -512,10 +512,7 @@
             form.querySelector('.basic.order-section')
         ],
         preview: [
-            findBasicByFieldName(form, 'preview'),
-            findBasicByFieldName(form, 'preview_hover'),
-            findBasicByFieldName(form, 'preview_text_width'),
-            findBasicByFieldName(form, 'preview_rows'),
+            ...['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_overflow'].map(name => findBasicByFieldName(form, name)),
             findBasicByFieldName(form, 'preview_grayscale'),
             findBasicByFieldName(form, 'preview_hover_animation'),
             findBasicByFieldName(form, 'preview_hide_nested_items'),
@@ -523,6 +520,8 @@
             findBasicByFieldName(form, 'preview_logs'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
             findBasicByFieldName(form, 'preview_vertical_bars_color'),
+            findBasicByFieldName(form, 'preview_row_separator'),
+            findBasicByFieldName(form, 'preview_row_separator_color'),
             findBasicByFieldName(form, 'preview_border'),
             findBasicByFieldName(form, 'preview_border_color'),
             findBasicByFieldName(form, 'preview_border_glow')
@@ -534,6 +533,7 @@
         status: [
             findBasicByFieldName(form, 'folder_accent_enabled'),
             findBasicByFieldName(form, 'status_color_started'),
+            findBasicByFieldName(form, 'status_color_lock'),
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
         webuiProfiles: pageType === 'docker' ? [form.querySelector('#fvWebuiProfilesSection')] : [],
@@ -600,7 +600,7 @@
             panel = root.document.createElement('section');
             panel.className = 'fv-editor-panel';
             panel.setAttribute('data-editor-panel', panelKey);
-            panel.setAttribute('data-editor-panel-section', sectionKey);
+            panel.setAttribute('data-editor-panel-section', sectionKey); panel.toggleAttribute('data-fv-heading-label', panelDef.headingLabel === true);
             panel.innerHTML = `
                 <div class="fv-editor-panel-head">
                     <h4>${panelDef.title}</h4>
@@ -820,7 +820,7 @@
             return;
         }
         const iconRow = form.querySelector('.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row');
-        if (!(iconRow instanceof root.HTMLElement)) {
+        if (!(iconRow instanceof root.HTMLElement) || iconRow.querySelector('#fv-icon-selection')) {
             return;
         }
         let preview = form.querySelector('#fvIconPanelPreview')?.closest('.fv-editor-panel-icon-preview');

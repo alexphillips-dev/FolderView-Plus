@@ -19,7 +19,8 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    assert.ok(surface.byPhrase.size >= 3000, 'retain the audited conditional UI surfaces');
+    // Revised editor help consolidates obsolete link and HTML fragments.
+    assert.ok(surface.byPhrase.size >= 2997, 'retain the audited conditional UI surfaces');
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });

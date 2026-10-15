@@ -4,12 +4,12 @@
         ? globalThis
         : (typeof window !== 'undefined' ? window : {});
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(fallbackWindow);
+        module.exports = factory(fallbackWindow, require('./docker.runtime.container-model.js'));
         return;
     }
-    root.FolderViewPlusDockerRuntimeReconcile = factory(fallbackWindow);
+    root.FolderViewPlusDockerRuntimeReconcile = factory(fallbackWindow, root.FolderViewPlusDockerContainerModel);
     root.FolderViewPlusDockerRuntimeReconcileModuleLoaded = true;
-}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeReconcileFactory(fallbackWindow) {
+}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeReconcileFactory(fallbackWindow, containerModel) {
     'use strict';
 
     const DEFAULT_INITIAL_DELAY_MS = 220;
@@ -79,10 +79,10 @@
             if (!token) return null;
             const direct = getDockerRuntimeContainerInfo(token);
             if (direct) return direct;
-            return (getDockerRuntimeInfoEntries() || []).find((entry) => {
-                const id = String(entry?.info?.Id || entry?.id || entry?.shortId || '').replace(/^sha256:/i, '').trim();
-                return id === token || (id.length >= 12 && id.slice(0, 12) === token.slice(0, 12));
-            }) || null;
+            const entries = getDockerRuntimeInfoEntries() || [];
+            const containers = entries.map((entry) => containerModel?.normalizeContainer?.(entry));
+            const resolved = containerModel?.resolveContainerIdentity?.(token, containers);
+            return resolved ? entries[containers.indexOf(resolved)] || null : null;
         };
         const defaultLifecycleStateSnapshot = (request = {}) => {
             const state = resolveDockerLifecycleEntry(request)?.info?.State;

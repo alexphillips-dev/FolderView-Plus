@@ -116,7 +116,7 @@ test('editor, server, and runtime wire identity and per-member preview persisten
 
     assert.match(folderPage, /folder\.member-identity\.js/);
     assert.match(folderPage, /Show in preview/);
-    assert.match(folderJs, /hiddenPreviewMembers:\s*nextHiddenPreviewMembers/);
+    assert.match(folderJs, /hiddenPreviewMembers:\s*preservedHiddenPreviewMembers/);
     assert.match(folderJs, /memberIdentities,/);
     assert.match(serverLib, /function applyFolderMemberIdentityPatches/);
     assert.match(serverLib, /member_identity_reconcile/);

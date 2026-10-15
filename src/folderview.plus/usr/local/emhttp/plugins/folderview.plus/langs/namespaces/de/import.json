@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "Wählen Sie aus, wie mit vorhandenen Ordnern umgegangen werden soll. Es ändert sich nichts, bis Sie „Import anwenden“ auswählen.",
     "import.behavior.question": "Wie soll mit vorhandenen Ordnern umgegangen werden?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "VM Ordner importieren",
     "import.actions.apply": "Import anwenden",
     "import.folderview3.preview-title": "Vorschau der FolderView3-Migration",
+    "import.folderview3.detect-button": "Erkennen Sie FolderView3",
+    "import.folderview3.export-button": "Vorschau der vollständigen FolderView3-Sicherung",
+    "import.folderview3.style-count": "Benutzerdefinierte Stile: $1",
     "import.folderview3.read-only-title": "Die FolderView3-Migration ist schreibgeschützt, bis Sie einen Anwendungsplan genehmigen.",
     "import.folderview3.read-only-preview-help": "Erkennen Sie eine installierte FolderView3-Konfiguration oder zeigen Sie eine Vorschau eines FolderView3-Exports an. Die Vorschau schreibt niemals die Plugin- oder Unraid-Konfiguration.",
     "import.folderview3.not-detected": "Keine installierte FolderView3-Konfiguration erkannt.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "Nur lesen",
     "import.folderview3.preview-ready": "FolderView3-Vorschau bereit",
     "import.folderview3.preview-created": "Migrationsbericht erstellt, ohne die Konfiguration zu ändern.",
+    "import.folderview3.assignment-summary": "Explizite Zuweisungen: Docker $1; VMs $2.",
+    "import.folderview3.settings-summary": "Globale Einstellungen konvertiert: $1; nicht unterstützt: $2.",
     "import.folderview3.applied": "FolderView3-Migration angewendet",
     "import.folderview3.applied-help": "Die Migration wurde überprüft und Rollback-Prüfpunkte sind in Recovery verfügbar.",
     "import.folderview3.native-autostart": "Ersetzen Sie auch native Docker-Autostart-Einträge und -Wartezeiten",

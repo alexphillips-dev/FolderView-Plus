@@ -77,7 +77,7 @@
         getAutoRuleDecision: api.getAutoRuleDecision,
         getAutoRuleMatches: api.getAutoRuleMatches,
         getAutoRuleFirstMatch: api.getAutoRuleFirstMatch,
-        getEffectiveFolderMembers: api.getEffectiveFolderMembers,
+        getEffectiveFolderMembers: api.getEffectiveFolderMembers, buildLegacyMembership: api.buildLegacyMembership, reconcileLegacyMatchCache: api.reconcileLegacyMatchCache,
         planFolderRuntimeAction: api.planFolderRuntimeAction,
         getFolderLabelValue: api.getFolderLabelValue,
         getComposeProjectFromLabels: api.getComposeProjectFromLabels,

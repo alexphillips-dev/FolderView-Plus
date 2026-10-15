@@ -78,6 +78,7 @@ const fixture = {
         'other.disabled/example.dashboard.css': '.fixture-disabled { color: blue; }'
     },
     settings: { default_preview: '2' },
+    css_config: {},
     autostart: { mode: 'custom', sequence: ['plex', 'arr-one'] },
     native_autostart: ['plex 15', 'arr-one']
 };
@@ -156,10 +157,12 @@ const runHarness = () => {
         try { applyFolderView3Migration($changedBundle, 'fixture.json', $digest, false); }
         catch (RuntimeException $error) { $stalePreviewMessage = $error->getMessage(); }
         $nativeAfterExcluded = file_get_contents(${phpString(nativePath)});
+        $digest = (string)buildFolderView3MigrationPlan($bundle, 'fixture.json')['source']['digest'];
         $included = applyFolderView3Migration($bundle, 'fixture.json', $digest, true);
         $nativeAfterIncluded = file_get_contents(${phpString(nativePath)});
         $beforeExternalFailure = exportEnvironmentSnapshotPayload();
         $nativeBeforeFailure = file_get_contents(${phpString(nativePath)});
+        $digest = (string)buildFolderView3MigrationPlan($bundle, 'fixture.json')['source']['digest'];
         $externalFailureMessage = '';
         try {
             applyFolderView3Migration($bundle, 'fixture.json', $digest, true, [

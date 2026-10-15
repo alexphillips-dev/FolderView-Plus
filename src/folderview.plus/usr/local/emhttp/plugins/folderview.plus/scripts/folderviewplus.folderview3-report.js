@@ -37,7 +37,7 @@
             </div>
         `).join('');
         const warningHtml = report.warnings.map((warning) => `
-            <div class="fv-recovery-callout is-warning">${escapeHtml(Object.prototype.hasOwnProperty.call(warningMessages, warning) ? warningMessages[warning] : warning)}</div>
+            <div class="fv-recovery-callout is-warning">${escapeHtml(Object.prototype.hasOwnProperty.call(warningMessages, warning) ? warningMessages[warning] : (globalThis.FolderViewPlusI18n?.message?.(warning) || warning))}</div>
         `).join('');
         const nativeOptionHtml = summary.nativeAutostartCount > 0 ? `
             <label class="fv-recovery-callout is-warning">
@@ -65,7 +65,7 @@
                     <span>${escapeHtml(translate("common.repair.appearance-profile-1-2f7650", "Appearance profile: $1", summary.appearanceProfileActive ? translate("legacy.surface.92340695899bd2d8", "Active") : translate("common.repair.inactive-ac7c94", "Inactive")))}</span>
                     <span>${escapeHtml(translate('import.folderview3.order-summary', 'Saved folder order: Docker $1; VMs $2.', orderLabels[summary.dockerOrderStatus] || orderLabels.missing, orderLabels[summary.vmOrderStatus] || orderLabels.missing))}</span>
                     <span>${escapeHtml(translate('import.folderview3.disabled-profile-count', 'Separate profiles for disabled themes: $1.', summary.disabledAppearanceProfileCount || 0))}</span>
-                    <span>${escapeHtml(translate("common.repair.operations-included-1-excluded-2-caf034", "Operations included: $1; excluded: $2.", selected.length, unselected.length))}</span>
+                    <span>${escapeHtml(translate("common.repair.operations-included-1-excluded-2-caf034", "Operations included: $1; excluded: $2.", selected.length, unselected.length))}</span><span>${escapeHtml(translate('import.folderview3.assignment-summary', 'Explicit assignments: Docker $1; VMs $2.', summary.dockerAssignmentCount, summary.vmAssignmentCount))}</span><span>${escapeHtml(translate('import.folderview3.settings-summary', 'Global settings converted: $1; unsupported: $2.', summary.convertedSettingCount, summary.unsupportedSettingCount))}</span>
                 </div>
                 <div class="fv-recovery-environment-meta">
                     <span>${escapeHtml(translate("common.repair.source-plugin-version-1-20e8d3", "Source plugin version: $1", report.source.pluginVersion || translate("common.runtime.unknown", "Unknown")))}</span>

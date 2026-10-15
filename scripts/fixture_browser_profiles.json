@@ -3,9 +3,17 @@
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Custom icon rename", "Settings chrome",
     "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",
-    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions"
+    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions", "Basic nested"
   ],
   "quick-finder": ["Quick finder"],
+  "icon-browser": ["Icon browser", "Custom icon", "Deleting an uploaded"],
+  "icon-cancel": ["Icon browser Cancel"],
+  "editor-diagnostics": ["Editor diagnostics"],
+  "diagnostics-update": ["Editor diagnostics", "Icon browser", "Custom icon", "Deleting an uploaded", "FolderView3"],
+  "editor-settings": ["Folder editor dependencies"],
+  "editor-help": ["Folder editor info icons"],
+  "editor-popovers": ["Icon browser", "Dashboard action rail exposes", "Folder editor dependencies"],
+  "folderview3": ["FolderView3"],
   "folder-menu": ["Docker folder menu", "Docker child-folder preview", "Docker folder feedback"],
   "folder-effects": ["Dashboard folder effects", "Docker folder hover animations"],
   "smoke": [

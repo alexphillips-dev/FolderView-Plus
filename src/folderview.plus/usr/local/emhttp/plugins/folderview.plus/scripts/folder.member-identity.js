@@ -71,7 +71,7 @@
         }, 'docker');
     };
     const normalizeIdentityMap = (value, type = 'docker') => {
-        const source = asObject(value);
+        const source = Array.isArray(value) ? Object.assign({}, value) : asObject(value);
         const result = {};
         Object.entries(source).forEach(([rawName, rawIdentity]) => {
             const name = asString(rawName);

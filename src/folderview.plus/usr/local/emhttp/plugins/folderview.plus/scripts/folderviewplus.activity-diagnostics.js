@@ -1329,6 +1329,7 @@ const getCachedDiagnostics = () => lastDiagnostics;
 
 const serverActivityLabel = (action) => {
     switch (String(action || '')) {
+        case 'folderview3_migration': case 'folderview3_preview': return window.FolderViewPlusActivityDetail?.migrationLabel(action, false, diagnosticsT) || diagnosticsT('import.folderview3.applied', 'FolderView3 migration applied');
         case 'backup_create': return diagnosticsT('legacy.surface.ebc91c7ac728323f', 'Backup created');
         case 'backup_restore': return diagnosticsT('diagnostics.history.backup-restored', 'Backup restored');
         case 'backup_delete': return diagnosticsT('diagnostics.history.backup-deleted', 'Backup deleted');
@@ -1358,6 +1359,7 @@ const serverActivityLabel = (action) => {
 
 const serverActivityFailureLabel = (action) => {
     const name = String(action || '');
+    if (name.startsWith('folderview3_')) return window.FolderViewPlusActivityDetail?.migrationLabel(name, true, diagnosticsT) || diagnosticsT('common.repair.folderview3-migration-failed-3a876a', 'FolderView3 migration failed');
     if (name.startsWith('backup_')) return diagnosticsT('common.repair.backup-failed-0e7112', 'Backup failed');
     if (name === 'import' || name === 'environment_import') return diagnosticsT('legacy.surface.0a26f41abd00f95e', 'Import failed');
     if (name === 'environment_export') return diagnosticsT('legacy.surface.e94d3ee06ecf6aac', 'Export failed');

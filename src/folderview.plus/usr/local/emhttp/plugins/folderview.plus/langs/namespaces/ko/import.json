@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "import",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
     "import.subtitle": "기존 폴더를 처리할 방법을 선택하십시오. '가져오기 적용'을 선택할 때까지 아무 것도 변경되지 않습니다.",
     "import.behavior.question": "기존 폴더를 어떻게 처리해야 합니까?",
@@ -44,6 +44,9 @@
     "import.dialog.vm-title": "VM 폴더 가져오기",
     "import.actions.apply": "가져오기 적용",
     "import.folderview3.preview-title": "FolderView3 마이그레이션 미리보기",
+    "import.folderview3.detect-button": "FolderView3 감지",
+    "import.folderview3.export-button": "전체 FolderView3 백업 미리보기",
+    "import.folderview3.style-count": "사용자 정의 스타일: $1",
     "import.folderview3.read-only-title": "FolderView3 마이그레이션은 적용 계획을 승인할 때까지 읽기 전용입니다.",
     "import.folderview3.read-only-preview-help": "설치된 FolderView3 구성을 감지하거나 FolderView3 내보내기를 미리 봅니다. 미리보기에서는 플러그인이나 Unraid 구성을 작성하지 않습니다.",
     "import.folderview3.not-detected": "설치된 FolderView3 구성이 감지되지 않았습니다.",
@@ -52,6 +55,8 @@
     "import.folderview3.read-only-badge": "읽기 전용",
     "import.folderview3.preview-ready": "FolderView3 미리보기 준비됨",
     "import.folderview3.preview-created": "구성을 변경하지 않고 생성된 마이그레이션 보고서입니다.",
+    "import.folderview3.assignment-summary": "명시적 할당: Docker $1; VM $2.",
+    "import.folderview3.settings-summary": "변환된 전역 설정: $1; 지원되지 않음: $2.",
     "import.folderview3.applied": "FolderView3 마이그레이션 적용됨",
     "import.folderview3.applied-help": "마이그레이션이 확인되었으며 복구에서 롤백 체크포인트를 사용할 수 있습니다.",
     "import.folderview3.native-autostart": "또한 기본 Docker 자동 시작 항목을 교체하고 대기합니다.",

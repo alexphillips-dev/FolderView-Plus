@@ -405,7 +405,8 @@ test('recovery tab presents restore, history, policy, and environment actions in
     assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
     assert.match(settingsPage, /class="fv-recovery-more-menu backup-actions"[\s\S]*data-fv-onclick="undoActiveRecoveryChange\(\)"/);
-    assert.doesNotMatch(settingsPage, /data-fv-folderview3-action="(?:detect|preview-export)"/);
+    assert.match(settingsPage, /data-fv-folderview3-action="detect"/);
+    assert.match(settingsPage, /data-fv-folderview3-action="preview-export"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);

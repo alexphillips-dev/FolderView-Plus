@@ -335,8 +335,49 @@
         });
     };
 
+    const dependencyDisabledControls = new WeakMap();
+    const dependencyRoots = new WeakSet();
+    const updateDependencies = (root, groups) => {
+        if (!root) return;
+        if (!dependencyRoots.has(root)) {
+            // Host switch widgets can handle label clicks even when the input is disabled.
+            const blockDisabledWidget = (event) => {
+                if (event.target.closest?.('[data-fv-setting-info]')) return;
+                if (event.type === 'keydown' && ['Tab', 'Escape'].includes(event.key)) return;
+                if (event.target.closest?.('.fv-dependent-disabled')) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            };
+            ['click', 'keydown'].forEach(name => root.addEventListener(name, blockDisabledWidget, true));
+            dependencyRoots.add(root);
+        }
+        root.querySelectorAll('[constraint]').forEach(row => {
+            const tokens = (row.getAttribute('constraint') || '').split(/\s+/);
+            const applicable = groups.filter(group => group.tokens.some(token => tokens.includes(token)));
+            if (!applicable.length) return;
+            if (['fv-u-569beu', 'fv-u-xcjvns'].includes(row.getAttribute('data-fvplus-style'))) row.removeAttribute('data-fvplus-style');
+            if (row.style.display === 'none') row.style.removeProperty('display');
+            const disabled = applicable.some(group => !group.active.some(token => tokens.includes(token)));
+            row.classList.toggle('fv-dependent-disabled', disabled);
+            if (disabled) row.setAttribute('aria-disabled', 'true');
+            else row.removeAttribute('aria-disabled');
+        });
+        root.querySelectorAll('input, select, textarea, button').forEach(control => {
+            if (control.matches('[data-fv-setting-info]')) return;
+            if (control.closest('.fv-dependent-disabled')) {
+                if (!dependencyDisabledControls.has(control)) dependencyDisabledControls.set(control, control.disabled);
+                control.disabled = true;
+            } else if (dependencyDisabledControls.has(control)) {
+                control.disabled = dependencyDisabledControls.get(control);
+                dependencyDisabledControls.delete(control);
+            }
+        });
+    };
+
     window.FolderViewPlusFolderEditorShared = Object.freeze({
         createApi,
-        createResetHelpers
+        createResetHelpers,
+        updateDependencies
     });
 })(window);

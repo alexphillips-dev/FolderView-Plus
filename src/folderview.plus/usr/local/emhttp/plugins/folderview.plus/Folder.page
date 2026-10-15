@@ -125,6 +125,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.membership.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
@@ -142,7 +143,10 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.editor-diagnostics-model.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui-state-diagnostics.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.diagnostics.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-browser.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
     <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" data-fv-onsubmit="submitForm(this, false); return false">
@@ -179,10 +183,8 @@ try {
                     <input type="text" name="name" value="" required>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]name-tooltip">
-                    The name of the folder, not that difficult.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]name-tooltip">The folder name shown throughout FolderView Plus.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -195,7 +197,7 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>Optional. Child folders are nested under this parent in Docker and VM tab views.</p>
             </blockquote>
         </div>
@@ -203,20 +205,21 @@ try {
             <dl>
                 <dt data-i18n="icon">Icon:</dt>
                 <dd class="fv-icon-dd">
-                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
-                    <input type="text" name="icon" value=""  data-fv-oninput="updateIcon(this)">
-                    <div class="fv-icon-input-actions">
+                    <div id="fv-icon-selection" class="fv-icon-selection">
+                        <img id="fvIconPanelPreview" src="/plugins/folderview.plus/images/folder-icon.png" alt="">
+                        <div class="fv-icon-selection-label"><strong id="fv-icon-selection-name"></strong><span id="fv-icon-selection-source"></span></div>
+                    </div>
+                    <label class="fv-icon-path"><span data-i18n="common.icon-browser.path">Icon URL or path</span>
+                        <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" hidden>
+                        <input type="text" name="icon" value="" data-fv-oninput="updateIcon(this)">
+                    </label>
+                    <div id="fv-icon-library-home" class="fv-icon-browser" role="region" aria-label="Choose icon" data-i18n="[aria-label]common.icon-browser.choose"><div class="fv-icon-browser-body"><div id="fv-icon-library">
+                    <div class="fv-icon-source-bar"><div class="fv-icon-input-actions" role="tablist" aria-label="Icon source" data-i18n="[aria-label]common.icon-browser.source">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
-                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
-                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> Custom icons</button>
-                        <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
-                        <button type="button" id="fv-icon-upload"><i class="fa fa-arrow-up" aria-hidden="true"></i> Upload</button>
-                    </div>
+                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> <span data-i18n="common.icon-browser.collections">Icon Packs</span></button>
+                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> <span data-i18n="common.icon-browser.uploads">My uploads</span></button>
+                    </div><button type="button" id="fv-icon-picker-default">Use default icon</button></div>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
-                    <div class="fv-icon-upload-options">
-                        <label><input type="checkbox" id="fv-icon-upload-replace"> Replace same name</label>
-                        <label><input type="checkbox" id="fv-icon-upload-dedupe" checked> Deduplicate exact file</label>
-                    </div>
                     <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
                         <div class="fv-icon-upload-progress-top">
                             <span id="fv-icon-upload-progress-text">Preparing upload...</span>
@@ -241,22 +244,15 @@ try {
                         <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
                     </div>
                     <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
-                        <div class="fv-icon-picker-toolbar fv-third-party-toolbar-main">
-                            <span class="fv-third-party-hint">Source: /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons</span>
-                            <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
-                        </div>
                         <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Find</div>
-                            <div class="fv-third-party-mode-switch" role="group" aria-label="Picker mode">
-                                <button type="button" id="fv-third-party-mode-basic" class="is-active">Basic</button>
-                                <button type="button" id="fv-third-party-mode-advanced">Advanced</button>
-                            </div>
                             <div class="fv-third-party-control-row fv-third-party-icon-controls">
-                                <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
-                                <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                <div class="fv-third-party-search-field">
+                                    <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
+                                    <button type="button" id="fv-third-party-filter-toggle" title="Show filters" aria-haspopup="dialog" aria-expanded="false"><i class="fa fa-sliders" aria-hidden="true"></i> Filters <i class="fa fa-caret-down" aria-hidden="true"></i></button>
+                                </div>
                                 <select id="fv-third-party-view" title="Scope">
-                                    <option value="folder">Scope: selected pack</option>
                                     <option value="all">Scope: all packs</option>
+                                    <option value="folder">Scope: selected pack</option>
                                     <option value="favorites">Scope: favorites</option>
                                     <option value="recent">Scope: recent</option>
                                     <option value="suggested">Scope: suggested</option>
@@ -268,22 +264,14 @@ try {
                                     <option value="count">Sort: icon count</option>
                                     <option value="newest">Sort: newest</option>
                                 </select>
-                                <button type="button" id="fv-third-party-filter-toggle" class="fv-third-party-advanced-only" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
-                            </div>
-                            <div class="fv-third-party-presets">
-                                <button type="button" id="fv-third-party-preset-recent">Recent</button>
-                                <button type="button" id="fv-third-party-preset-favorites">Favorites</button>
-                                <button type="button" id="fv-third-party-preset-most-used">Most used</button>
-                                <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
                             </div>
                         </div>
                         <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Pack</div>
                             <div class="fv-third-party-control-row fv-third-party-pack-primary">
-                                <select id="fv-third-party-pack-select" title="Pick icon pack"></select>
-                                <button type="button" id="fv-third-party-pack-actions-toggle" class="fv-third-party-advanced-only"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
+                                <select id="fv-third-party-pack-select" title="Pick icon pack" aria-label="Pack"></select>
+                                <button type="button" id="fv-third-party-pack-actions-toggle"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
                             </div>
-                            <div class="fv-third-party-control-row fv-third-party-pack-controls fv-third-party-advanced-only">
+                            <div class="fv-third-party-control-row fv-third-party-pack-controls">
                                 <input type="text" id="fv-third-party-pack-search" placeholder="Filter packs by name">
                                 <select id="fv-third-party-pack-kind" title="Pack type">
                                     <option value="all">Pack type: all</option>
@@ -291,19 +279,14 @@ try {
                                     <option value="icons">Pack type: icons</option>
                                 </select>
                             </div>
-                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel fv-third-party-advanced-only" hidden>
+                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel" hidden>
                                 <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
                                 <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
                                 <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden</button>
                                 <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Find duplicates</button>
                             </div>
                         </div>
-                        <div class="fv-third-party-section fv-third-party-advanced-only">
-                            <div class="fv-third-party-section-title">Filters</div>
                             <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
-                                <div class="fv-third-party-inline-actions">
-                                    <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
-                                </div>
                                 <div class="fv-third-party-tag-shell">
                                     <div class="fv-third-party-tag-shell-top">
                                         <strong>Tags</strong>
@@ -313,13 +296,11 @@ try {
                                     <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="fv-third-party-section">
-                            <div class="fv-third-party-section-title">Results</div>
+                        <details class="fv-icon-details"><summary>Details</summary>
                             <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | Scope: selected pack | Filters: none</div>
                             <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Step 1: pick a pack. Step 2: choose an icon.</div>
                             <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
-                        </div>
+                        </details>
                         <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid fv-third-party-icon-grid"></div>
                         <div class="fv-icon-picker-pager">
                             <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
@@ -330,6 +311,7 @@ try {
                     </div>
                     <div id="fv-custom-icon-panel" class="fv-icon-picker-panel fv-custom-icon-panel" hidden>
                         <div class="fv-icon-picker-toolbar">
+                            <button type="button" id="fv-icon-upload"><i class="fa fa-upload" aria-hidden="true"></i> Upload</button>
                             <input type="text" id="fv-custom-icon-search" placeholder="Search custom icons">
                             <button type="button" id="fv-custom-icon-refresh" title="Refresh custom icons" aria-label="Refresh custom icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                         </div>
@@ -342,22 +324,11 @@ try {
                         </div>
                         <div id="fv-custom-icon-status" class="fv-icon-picker-status"></div>
                     </div>
+                    </div></div><div class="fv-icon-browser-footer"></div></div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]icon-tooltip">
-                    A link to an image (<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#supported_image_formats" target="_blank" rel="noopener noreferrer">Supported formats</a>)
-                    <br>
-                    It also supports <b>data:image/{type};base64,</b> format (<a href="https://base64.guru/converter/encode/image" target="_blank" rel="noopener noreferrer">Convert image to data strings</a>)
-                    <br>
-                    <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank" rel="noopener noreferrer">Thread with some icons</a>.
-                    <br>
-                    For 3rd-party icon folders, place files under <b>/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/&lt;folder-name&gt;/</b>.
-                    <br>
-                    Uploaded custom icons are saved in <b>/boot/config/plugins/folderview.plus/images/custom/</b> and are restored into the live plugin path automatically after reboot or upgrade.
-                    <br>
-                    You can click the icon of the Docker/VM to set the folder icon.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]icon-tooltip">Choose an icon from Built-in icons, Icon Packs, or My uploads, or enter an image URL or path. You can also use a container or VM icon from the member list.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -368,8 +339,8 @@ try {
                     <input class="basic-switch" name="folder_webui" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]folder-webui-tooltip">Default folder WebUI URL.</p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]folder-webui-tooltip">Add a WebUI entry to this Docker folder's menu using the URL specified below.</p>
             </blockquote>
         </div>
         <ul constraint="folder-webui" data-fvplus-style="fv-u-569beu">
@@ -382,7 +353,7 @@ try {
                             <input type="text" name="folder_webui_url" value="" placeholder="http://...">
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p data-i18n="[html]folder-webui-url-tooltip">The URL to open when clicking the WebUI button in the folder context menu.</p>
                     </blockquote>
                 </div>
@@ -402,10 +373,8 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]preview-tooltip">
-                    Choose how folder members are shown in the row preview. Use <b>Only icon</b> for a clean icon-only layout without member names or started/stopped text.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]preview-tooltip">Choose how members appear in the collapsed folder row: icons and labels, icons only, labels only, or a list. None hides the member preview.</p>
             </blockquote>
         </div>
         <ul>
@@ -417,10 +386,8 @@ try {
                             <input class="basic-switch" name="preview_hover" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-hover-tooltip">
-                            Will make the preview only show when mouse is hovering over.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-hover-tooltip">Show the collapsed member preview only while the pointer is over the folder row. In touch mode, the preview remains visible without hovering.</p>
                     </blockquote>
                 </div>
             </li>
@@ -432,10 +399,8 @@ try {
                             <input class="basic-switch" name="preview_update" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-update-tooltip">
-                            Will make the name of the container in the preview orange if an update is available.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-update-tooltip">Show a container name in orange in the member preview when that container has an update available. The folder title has a separate highlight setting.</p>
                     </blockquote>
                 </div>
             </li>
@@ -445,7 +410,7 @@ try {
                         <dt data-i18n="folder-update-highlight">Orange folder name on member update:</dt>
                         <dd><input class="basic-switch" name="folder_update_highlight" type="checkbox" data-fvplus-style="fv-u-569beu" /></dd>
                     </dl>
-                    <blockquote class="inline_help"><p data-i18n="folder-update-highlight-tooltip">Highlight the folder title separately when at least one Docker member has an update available.</p></blockquote>
+                    <blockquote class="fv-setting-help"><p data-i18n="folder-update-highlight-tooltip">Highlight the folder title separately when at least one Docker member has an update available.</p></blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-3 preview-4">
@@ -456,10 +421,8 @@ try {
                             <input name="preview_text_width" type="text"/>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-text-width-tooltip">
-                        Will limit the width of the name of the container in the preview. <br>For example <b>12px</b>, <b>1rem</b> (Check <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/length">this</a> for more units). <br>Leave it blank and there is no limit.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-text-width-tooltip">Set the width of container or VM names in the preview using a CSS length, such as 12rem or 120px. Leave blank to use automatic sizing.</p>
                     </blockquote>
                 </div>
             </li>
@@ -477,9 +440,9 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
-                            Controls how many rows of compact preview cards are shown in the main Docker row before the rest stay behind the folder overflow path.
+                            Limit the rows of member previews shown in the collapsed Docker or VM folder row. Unlimited removes the row limit. Expand to show all ignores the limit; Horizontal scroll uses one scrollable row.
                         </p>
                     </blockquote>
                 </div>
@@ -496,7 +459,7 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help"><p data-i18n="preview-overflow-tooltip">Choose whether extra preview members follow the row limit, expand the folder row, or remain in a single horizontally scrollable row.</p></blockquote>
+                    <blockquote class="fv-setting-help"><p data-i18n="preview-overflow-tooltip">Choose whether extra preview members follow the row limit, expand the folder row, or remain in a single horizontally scrollable row.</p></blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-2">
@@ -507,10 +470,8 @@ try {
                             <input class="basic-switch" name="preview_grayscale" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-grayscale-tooltip">
-                            Will make the preview icons grayscaled.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-grayscale-tooltip">Display all member preview icons in grayscale.</p>
                     </blockquote>
                 </div>
             </li>
@@ -530,7 +491,7 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
                             Runs a short one-time animation on the folder icon and name when the folder is hovered.
                         </p>
@@ -549,9 +510,9 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
-                            Controls how Docker state is shown in folder previews.
+                            Choose how container state appears in the preview: Show status symbol displays a state indicator, Grayscale stopped icons makes only stopped icons grayscale, and Hide status removes the indicator.
                         </p>
                     </blockquote>
                 </div>
@@ -564,7 +525,7 @@ try {
                             <input class="basic-switch" name="preview_hide_nested_items" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
                             When this folder is collapsed, show child folders as folder chips instead of showing every item inside them.
                         </p>
@@ -584,7 +545,7 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
                             Controls how many nested folder levels appear as chips when child folders are shown in the collapsed preview.
                         </p>
@@ -594,45 +555,39 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
-                        <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
+                        <dt data-i18n="preview-webui">Show WebUI button:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_webui" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-webui-tooltip">
-                            Will add a little globe icon that opens the webUI.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-webui-tooltip">Add a button to each container preview that opens that container's WebUI, when available.</p>
                     </blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">
                     <dl>
-                        <dt data-i18n="preview-logs">Add preview open logs:</dt>
+                        <dt data-i18n="preview-logs">Show logs button:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_logs" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-logs-tooltip">
-                            Will add a little log icon that opens the log menu.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-logs-tooltip">Add a button to each container or VM preview that opens that member's logs, when available.</p>
                     </blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
-                        <dt data-i18n="preview-console">Add preview open console:</dt>
+                        <dt data-i18n="preview-console">Show console button:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_console" type="checkbox" data-fvplus-style="fv-u-569beu" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-console-tooltip">
-                            Will add a little console icon that opens the console window.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-console-tooltip">Add a button to each container preview that opens that container's console.</p>
                     </blockquote>
                 </div>
             </li>
@@ -644,17 +599,15 @@ try {
                             <input class="basic-switch" name="preview_vertical_bars" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]preview-vertical-bars-tooltip">
-                            Will Show vertical bars between container/VM inside the folder preview.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]preview-vertical-bars-tooltip">Show vertical dividers between container or VM previews.</p>
                     </blockquote>
                 </div>
                 <ul constraint="bars-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
-                                <dt data-i18n="bars-color">Vertical bars color:</dt>
+                                <dt data-i18n="bars-color">Vertical divider color and width:</dt>
                                 <dd>
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_vertical_bars_color" data-fvplus-style="fv-u-88tzw1">
@@ -665,14 +618,8 @@ try {
                                     </div>
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
-                                <p data-i18n="[html]bars-color-tooltip">
-                                    Set the color of the vertical bars between containers.
-                                    <br>
-                                    Use the number field to increase bar thickness from 1px to 4px.
-                                    <br>
-                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
-                                </p>
+                            <blockquote class="fv-setting-help">
+                                <p data-i18n="[html]bars-color-tooltip">Choose the vertical divider color and width from 1 to 4 pixels. The reset button uses the current theme text color and restores a width of 1 pixel.</p>
                             </blockquote>
                         </div>
                     </li>
@@ -684,7 +631,7 @@ try {
                         <dt data-i18n="preview-row-separators">Preview row separators:</dt>
                         <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" /></dd>
                     </dl>
-                    <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
+                    <blockquote class="fv-setting-help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
                 </div>
                 <ul constraint="preview-row-separator-color" data-fvplus-style="fv-u-569beu">
                     <li>
@@ -693,6 +640,7 @@ try {
                                 <dt data-i18n="preview-row-separator-color">Row separator color:</dt>
                                 <dd><input type="color" name="preview_row_separator_color" value="#555555" data-fvplus-style="fv-u-88tzw1"></dd>
                             </dl>
+                            <blockquote class="fv-setting-help"><p>Choose the color of the separators between preview rows.</p></blockquote>
                         </div>
                     </li>
                 </ul>
@@ -705,17 +653,15 @@ try {
                             <input class="basic-switch" name="preview_border" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]border-tooltip">
-                            Will Show a border on the preview box.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]border-tooltip">Show a border around the folder's member preview area.</p>
                     </blockquote>
                 </div>
                 <ul constraint="border-color" data-fvplus-style="fv-u-569beu">
                     <li>
                         <div class="basic">
                             <dl>
-                                <dt data-i18n="border-color">Border color:</dt>
+                                <dt data-i18n="border-color">Border color and width:</dt>
                                 <dd>
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_border_color" data-fvplus-style="fv-u-88tzw1">
@@ -726,14 +672,8 @@ try {
                                     </div>
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
-                                <p data-i18n="[html]border-color-tooltip">
-                                    Set the color of the preview border.
-                                    <br>
-                                    Use the number field to increase border thickness from 1px to 4px.
-                                    <br>
-                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets both the border color and thickness to defaults.
-                                </p>
+                            <blockquote class="fv-setting-help">
+                                <p data-i18n="[html]border-color-tooltip">Choose the preview border color and width from 1 to 4 pixels. The reset button restores the default border color and a width of 1 pixel.</p>
                             </blockquote>
                         </div>
                     </li>
@@ -747,7 +687,7 @@ try {
                                     <input class="basic-switch" name="preview_border_glow" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
+                            <blockquote class="fv-setting-help">
                                 <p>
                                     Adds a soft glow around the preview border using the selected border color.
                                 </p>
@@ -771,9 +711,9 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
+                    <blockquote class="fv-setting-help">
                         <p>
-                            Choose whether the folder chevron uses the lighter minimal style, a boxed frame, or one of the newer ghost, pill, or filled styles.
+                            Choose the appearance of the expand/collapse indicator: minimal, boxed, ghost, pill, or filled.
                         </p>
                     </blockquote>
                 </div>
@@ -792,7 +732,7 @@ try {
                                     </div>
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
+                            <blockquote class="fv-setting-help">
                                 <p>
                                     First picker sets the normal chevron and box color. Second picker sets the hover color.
                                     <br>
@@ -806,7 +746,7 @@ try {
             <li constraint="docker preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">
                     <dl>
-                        <dt data-i18n="context">Preview Context:</dt>
+                        <dt data-i18n="context">Preview interaction:</dt>
                         <dd>
                             <img class="img" data-fvplus-style="fv-u-dyskmc">
                             <select name="context" data-fv-onchange="updateForm()">
@@ -816,10 +756,8 @@ try {
                             </select>
                         </dd>
                     </dl>
-                    <blockquote class="inline_help">
-                        <p data-i18n="[html]context-tooltip">
-                            Will show the preview context type you choose.
-                        </p>
+                    <blockquote class="fv-setting-help">
+                        <p data-i18n="[html]context-tooltip">Choose what opens from a container preview: None disables the popup, Default opens the Unraid container menu, and Advanced opens a popup with container details and actions.</p>
                     </blockquote>
                 </div>
                 <ul constraint="context-2 docker" data-fvplus-style="fv-u-569beu">
@@ -835,10 +773,8 @@ try {
                                     </select>
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
-                                <p data-i18n="[html]context-trigger-tooltip">
-                                    How the advanced preview will be shown.
-                                </p>
+                            <blockquote class="fv-setting-help">
+                                <p data-i18n="[html]context-trigger-tooltip">Open the Advanced preview popup by clicking or hovering over a container preview. Touch mode always uses a tap.</p>
                             </blockquote>
                         </div>
                     </li>
@@ -848,7 +784,7 @@ try {
                                 <dt data-i18n="context-graph">Graph mode:</dt>
                                 <dd>
                                     <img class="img" data-fvplus-style="fv-u-dyskmc">
-                                    <select name="context_graph">
+                                    <select name="context_graph" data-fv-onchange="updateForm()">
                                         <option value="0" data-i18n="context-graph-option-0">None</option>
                                         <option value="1" data-i18n="context-graph-option-1" selected>Combined</option>
                                         <option value="2" data-i18n="context-graph-option-2">Split</option>
@@ -857,10 +793,8 @@ try {
                                     </select>
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
-                                <p data-i18n="[html]context-graph-tooltip">
-                                    Which graph to show.
-                                </p>
+                            <blockquote class="fv-setting-help">
+                                <p data-i18n="[html]context-graph-tooltip">Choose which usage graphs appear in the Advanced preview popup: Combined shows CPU and memory together, Split shows separate graphs, CPU only or MEM only shows one metric, and None hides the graphs.</p>
                             </blockquote>
                         </div>
                     </li>
@@ -873,10 +807,8 @@ try {
                                     <input type="number" name="context_graph_time" value="60">
                                 </dd>
                             </dl>
-                            <blockquote class="inline_help">
-                                <p data-i18n="[html]context-graph-time-tooltip">
-                                    Time frame for the graph(s) in seconds.
-                                </p>
+                            <blockquote class="fv-setting-help">
+                                <p data-i18n="[html]context-graph-time-tooltip">Set how many seconds of usage history the Advanced preview graphs display. This does not change the refresh interval.</p>
                             </blockquote>
                         </div>
                     </li>
@@ -911,13 +843,13 @@ try {
                                 <span>Theme default</span>
                             </label>
                         </div>
-                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
+                        <button type="button" class="fv-inline-reset-btn" title="Reset status colors" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
                         </button>
                     </div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
                     Set the Started, Paused, and Stopped indicator colors independently from the status text color across Docker, VMs, and Dashboard views. Keep Theme default enabled to use readable text from the active Unraid theme; choosing a Text color creates a custom override.
                     <br>
@@ -931,7 +863,7 @@ try {
                 <dt data-i18n="status-color-lock">Lock status colors:</dt>
                 <dd><input class="basic-switch" name="status_color_lock" type="checkbox" data-fvplus-style="fv-u-569beu" /></dd>
             </dl>
-            <blockquote class="inline_help"><p data-i18n="status-color-lock-tooltip">Keep this folder's selected status colors authoritative when themes or host styles change.</p></blockquote>
+            <blockquote class="fv-setting-help"><p data-i18n="status-color-lock-tooltip">Give this folder's selected status colors priority over theme styles. Theme default text remains automatic unless you choose a custom text color.</p></blockquote>
         </div>
 
         <div class="basic">
@@ -943,10 +875,10 @@ try {
                             <input class="basic-switch" name="folder_accent_enabled" type="checkbox" data-fvplus-style="fv-u-569beu" data-fv-onchange="updateForm()" />
                         </div>
                         <div class="fv-accent-inline-controls" constraint="accent-color" data-fvplus-style="fv-u-569beu">
-                            <span class="fv-accent-inline-label">Bar color</span>
+                            <label class="fv-accent-inline-label" for="fvFolderAccentColor">Bar color</label>
                             <div class="fv-inline-control-row">
-                                <input type="color" name="folder_accent_color" data-fvplus-style="fv-u-88tzw1">
-                                <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <input type="color" id="fvFolderAccentColor" name="folder_accent_color" data-fvplus-style="fv-u-88tzw1">
+                                <button type="button" class="fv-inline-reset-btn" title="Reset accent color" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
                                     <i class="fa fa-repeat" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -954,7 +886,7 @@ try {
                     </div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
                     Adds an optional accent bar on the left side of this folder across Docker, VMs, Dashboard, and the editor preview.
                     <br>
@@ -971,11 +903,9 @@ try {
                     <input type="number" name="health_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Optional per-folder override for the stopped percentage warning threshold used in the Health column.
-                    <br>
-                    Leave blank to use the global Docker Health threshold.
+                    Set the stopped-member percentage that triggers Warning in the Health column, from 0 to 100 in whole numbers. Leave blank to use the global Docker Health warning threshold. If both folder thresholds are set, Critical must be at least 5 percentage points above Warning.
                 </p>
             </blockquote>
         </div>
@@ -988,11 +918,9 @@ try {
                     <input type="number" name="health_critical_stopped_percent" min="0" max="100" step="1" placeholder="Use global/profile threshold">
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Optional per-folder override for the stopped percentage critical threshold in health scoring.
-                    <br>
-                    Leave blank to use the current health profile/global setting.
+                    Set the stopped-member percentage that triggers Critical in the Health column, from 0 to 100 in whole numbers. Leave blank to use the global critical threshold, with the selected profile as a fallback. If both folder thresholds are set, Critical must be at least 5 percentage points above Warning.
                 </p>
             </blockquote>
         </div>
@@ -1010,9 +938,9 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Optional per-folder profile preset for health scoring and thresholds.
+                    Choose a fallback profile for Docker Health thresholds and update/all-stopped behavior. Explicit folder overrides take priority, followed by global Health settings. Use global profile follows the global profile selection.
                 </p>
             </blockquote>
         </div>
@@ -1030,9 +958,9 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Controls how pending updates affect this folder’s health.
+                    Choose how pending container updates affect Health: Maintenance marks an otherwise healthy folder for maintenance, Warn raises a warning and becomes Critical at 10 or more pending updates, and Ignore excludes updates from health classification. Use global mode follows the global setting.
                 </p>
             </blockquote>
         </div>
@@ -1049,9 +977,9 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Controls how an all-stopped folder is classified.
+                    Choose Warning or Critical when every member is stopped. This takes priority over the stopped-percentage thresholds. Use global mode follows the global setting.
                 </p>
             </blockquote>
         </div>
@@ -1064,11 +992,9 @@ try {
                     <input type="number" name="status_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Optional per-folder override for the stopped percentage warning threshold used by the Status chip accent.
-                    <br>
-                    Leave blank to use the global Status threshold.
+                    Set the stopped-member percentage that triggers the Status chip attention accent, from 0 to 100 in whole numbers. Leave blank to inherit the parent threshold when status inheritance is enabled, otherwise use the global Status threshold. The global attention accent option must be enabled. This is separate from Health scoring.
                 </p>
             </blockquote>
         </div>
@@ -1080,10 +1006,8 @@ try {
                     <input class="basic-switch" name="update_column" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]update-column-tooltip">
-                    Will <b>NUKE</b> the update column for this folder.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]update-column-tooltip">Hide the update summary cell on this Docker folder's row.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -1093,23 +1017,19 @@ try {
                     <input class="basic-switch" name="override_default_actions" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]override-default-actions-tooltip">
-                    Will remove the default menu and replace it with the custom actions set below.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]override-default-actions-tooltip">Replace the built-in member controls with this folder's custom actions when at least one custom action exists. Folder management entries remain available.</p>
             </blockquote>
         </div>
         <div class="basic">
             <dl>
-                <dt data-i18n="default-action">Hide default action button:</dt>
+                <dt data-i18n="default-action">Hide default action buttons:</dt>
                 <dd>
                     <input class="basic-switch" name="default_action" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]default-action-tooltip">
-                    Will remove the default action button like start, stop and restart from the folder context menu.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]default-action-tooltip">Hide the built-in member controls, such as start, stop, and restart, from this folder's menu.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -1119,10 +1039,8 @@ try {
                     <input class="basic-switch" name="expand_tab" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]expand-tab-tooltip">
-                    Will make the folder start expanded on the Docker/VMs tab.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]expand-tab-tooltip">Default to expanded on the Docker or VM tab when this folder has no saved expansion state on that view. A remembered state takes priority.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -1132,10 +1050,8 @@ try {
                     <input class="basic-switch" name="expand_dashboard" type="checkbox" data-fvplus-style="fv-u-569beu" />
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]expand-dashboard-tooltip">
-                    Will make the folder start expanded on the Dashboard.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]expand-dashboard-tooltip">Default to expanded on the Dashboard when this folder has no saved Dashboard expansion state. A remembered state takes priority.</p>
             </blockquote>
         </div>
         <div class="basic">
@@ -1149,9 +1065,9 @@ try {
                     </select>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
-                    Controls how expanded dashboard members are shown for this folder.
+                    Choose how expanded members appear on the Dashboard: Default follows the global overflow setting, Expand row shows all members, and Scrollable panel keeps them in a panel with internal scrolling.
                 </p>
             </blockquote>
         </div>
@@ -1162,16 +1078,8 @@ try {
                     <input type="text" name="regex" data-fv-oninput="updateRegex(this)" value="">
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]regex-tooltip">
-                    Optional automation rule for this folder.
-                    <br>
-                    Matching container or VM names will be auto-included here.
-                    <br>
-                    Example for matching a Pterodactyl egg ID: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.
-                    <br>
-                    Editing this field will replace manual member selections with the current regex matches.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]regex-tooltip">Legacy compatibility rule that automatically includes matching container or VM names. Editing it preserves manually selected members. Use managed Rules for new automation; this field is available for repairing older rules.</p>
             </blockquote>
         </div>
         <div id="fvWebuiProfilesSection" class="basic fv-webui-profiles-section">
@@ -1182,7 +1090,7 @@ try {
                     <div id="fvWebuiProfilesWorkspace"></div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p data-i18n="editor.webui-profiles.help">Create reusable actions that open only the selected running containers. Current WebUI addresses are resolved when the profile is launched.</p>
             </blockquote>
         </div>
@@ -1193,13 +1101,8 @@ try {
                     <div class="custom-action-wrapper">​</div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <span data-i18n="[html]custom-actions-folder-tooltip">
-                    Add optional actions to this folder menu.
-                    <br><b>Standard</b> actions control selected containers or VMs directly.
-                    <br><b>Custom</b> actions run a User Scripts task if that plugin is installed.
-                    <br>Use the action list below to edit, remove, and reorder what appears for this folder.
-                </span>
+            <blockquote class="fv-setting-help">
+                <span data-i18n="[html]custom-actions-folder-tooltip">Add actions to this folder's menu. Standard actions control containers or VMs chosen from the member selector: Toggle state switches between start/stop or pause/resume, Set state applies one state, and Restart restarts them. User Script actions require the User Scripts plugin; enter the exact case-sensitive script name, including any spaces, and optional arguments. Wait for completion keeps the script in the foreground; otherwise it runs in the background. Leave the icon class blank to use the default. Use the list to edit, remove, or reorder actions.</span>
             </blockquote>
         </div>
         <div class="basic">
@@ -1209,10 +1112,8 @@ try {
                     <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-fv-onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]custom-action-tooltip">
-                    Opens the action editor for a new folder action.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]custom-action-tooltip">Open the action editor to create a new folder menu action. Adding an action does not run it.</p>
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
@@ -1246,7 +1147,7 @@ try {
                     </div>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
+            <blockquote class="fv-setting-help">
                 <p>
                     This only changes the order of child folders. Docker containers and VMs stay managed in the member list below.
                 </p>
@@ -1278,10 +1179,8 @@ try {
                     </table>
                 </dd>
             </dl>
-            <blockquote class="inline_help">
-                <p data-i18n="[html]order-tooltip">
-                    Use the up/down buttons to set your desired order. Regex-selected entries are auto-included and locked.
-                </p>
+            <blockquote class="fv-setting-help">
+                <p data-i18n="[html]order-tooltip">Use the up and down buttons to order folder members. Automatically included regex matches are locked in the Included column. Editing the regex preserves manual selections.</p>
             </blockquote>
         </div>
     </form>

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "editor",
-        "translation-context-revision": "c8256b9143c5f74768c3082fad027e157c82102d7596a6b11a6d22b9fb0f3ea5"
+        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
     },
+    "editor.settings.information-about": "Informazioni su $1",
     "editor.actions.add-custom": "Aggiungi un'azione personalizzata",
     "editor.actions.standard": "Standard",
     "editor.actions.user-script": "Script utente",

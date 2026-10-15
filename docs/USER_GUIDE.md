@@ -27,9 +27,15 @@ Groups create root-level folders using the existing folder creation defaults. Th
 
 The modern folder editor separates controls into General, Members, Preview, Chevron, Status, Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
 
-### Custom icons
+### Folder icons
 
-Upload an allowed image up to 16 MiB from the General tab. A successful upload selects the icon automatically. Progress and Cancel cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication can reuse an existing icon, and replacement uses the selected filename.
+In the Docker or VM folder editor, open **General > Icon**. The current icon card shows its preview, name, and source. The picker stays inside the Icon module and opens on **Built-in icons**. Switch to **Icon Packs** or **My uploads** to browse other sources; **Upload** appears only in **My uploads**. Search and choose a thumbnail to preview it, then select **Use icon** to update the editor. Save the folder to persist that choice. The picker's **Cancel** button discards its pending selection and, after **Use icon**, restores the previous applied icon while keeping the picker open. Manual URL/default-icon changes are preserved, and an uploaded file renamed or deleted since selection is not restored. Searches, the selected pack, and browsing positions remain available during the editor session; returning to General selects Built-in icons. On desktop the Icon module matches the neighboring Parent Folder module, with internal scrolling. Smaller screens stack the modules vertically.
+
+**Icon Packs** starts with **Scope: all packs**. On desktop, compact Filters, Scope, and Sort controls sit beside search; narrow screens wrap them below search. Tags stay behind **Filters**. Use **Pack actions** for pack operations. Custom-icon references, rename, and delete actions are available directly in **My uploads**. Compact cards wrap long names and show full names on hover; upload reference counts occupy their own line. The icon picker has one interface in both Basic and Advanced editor modes.
+
+Upload an allowed image up to 16 MiB using **Upload** in **My uploads**. A completed upload previews the uploaded icon; select **Use icon**, then save the folder to use it. Uploaded files stay in **My uploads** if you cancel the selection. Progress and the upload Cancel button cover the transfer; larger files use small authorized parts without requiring PHP or Nginx configuration changes. Identical-file deduplication is enabled. When a matching filename is found, choose **Keep both**, **Replace**, or **Cancel**. Replacing a file changes it for folders already referencing that file.
+
+Select **Use default icon** beside the icon source buttons to restore the default. The **Icon URL or path** field stays visible beneath the current icon preview and accepts an image URL or path or a supported data image.
 
 Deleting an unused icon that is currently selected returns the editor and its previews to the default icon. A different icon chosen while deletion is pending remains selected. Renaming requires removing or replacing references in saved folders, defaults, custom folder groups, and the current editor selection first. Review the manager's usage information before changing an icon.
 

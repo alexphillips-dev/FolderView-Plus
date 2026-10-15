@@ -158,7 +158,7 @@ namespace {
     try {
         if ($operation === 'repair') $repair = \InventoryRepairFixture\fvplusRepairOrphanedMemberReferences($type);
         elseif ($operation === 'sync-race') {
-            eval('namespace InventorySyncFixture; use \\Throwable; use \\DockerClient;' . substr(file_get_contents("$server/lib.docker-order.php"), 5));
+            eval('namespace InventorySyncFixture; use \\Throwable; use \\DockerClient;' . str_replace('__DIR__', var_export($server, true), substr(file_get_contents("$server/lib.docker-order.php"), 5)));
             \InventorySyncFixture\syncContainerOrder('docker');
         } else {
             $_SERVER['REQUEST_METHOD'] = $operation === 'sync' ? 'POST' : 'GET';

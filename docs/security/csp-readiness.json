@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 269,
+    "scannedFiles": 280,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -21,16 +21,16 @@
   "totals": {
     "inlineEventAttributes": 0,
     "inlineScriptBlocks": 0,
-    "externalScriptTags": 237,
+    "externalScriptTags": 245,
     "inlineStyleBlocks": 0,
     "inlineStyleAttributes": 0,
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 42
+    "htmlStringSinks": 45
   },
   "sinkControlSummary": {
-    "controlled": 42,
+    "controlled": 45,
     "review-required": 0
   },
   "readiness": {
@@ -201,6 +201,36 @@
       "controlEvidence": "The preview image source is a fixed plugin asset path."
     },
     {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.help.js",
+      "line": 81,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "The info button uses only the shared SVG renderer with the fixed plugin-owned info-circle icon. Help content is cloned from existing localized DOM."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js",
+      "line": 146,
+      "sink": ".innerHTML =",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
+      "controlStatus": "controlled",
+      "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js",
+      "line": 187,
+      "sink": ".innerHTML =",
+      "risk": "reviewed",
+      "dataClass": "static-or-controlled-ui-template",
+      "requiredControl": "Keep the sink limited to plugin-authored markup and escaped dynamic values.",
+      "controlStatus": "controlled",
+      "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
+    },
+    {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js",
       "line": 166,
       "sink": ".innerHTML =",
@@ -312,7 +342,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-migration.js",
-      "line": 189,
+      "line": 140,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -322,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6082,
+      "line": 6088,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -496,7 +526,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 37,
+      "externalScriptTags": 42,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -520,7 +550,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 53,
+      "externalScriptTags": 54,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -532,7 +562,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 75,
+      "externalScriptTags": 76,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -544,7 +574,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 46,
+      "externalScriptTags": 47,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -635,6 +665,30 @@
       "functionConstructors": 0,
       "dynamicScriptCreation": 0,
       "htmlStringSinks": 5
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.help.js",
+      "inlineEventAttributes": 0,
+      "inlineScriptBlocks": 0,
+      "externalScriptTags": 0,
+      "inlineStyleBlocks": 0,
+      "inlineStyleAttributes": 0,
+      "evalCalls": 0,
+      "functionConstructors": 0,
+      "dynamicScriptCreation": 0,
+      "htmlStringSinks": 1
+    },
+    {
+      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js",
+      "inlineEventAttributes": 0,
+      "inlineScriptBlocks": 0,
+      "externalScriptTags": 0,
+      "inlineStyleBlocks": 0,
+      "inlineStyleAttributes": 0,
+      "evalCalls": 0,
+      "functionConstructors": 0,
+      "dynamicScriptCreation": 0,
+      "htmlStringSinks": 2
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js",

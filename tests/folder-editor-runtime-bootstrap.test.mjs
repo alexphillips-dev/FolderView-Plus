@@ -28,7 +28,7 @@ const createBoot = () => {
             await flush();
         },
         async finish(marker = true) {
-            for (let index = 0; index < 18; index++) {
+            for (let index = 0; index < 20; index++) {
                 await flush();
                 const script = scripts.at(-1);
                 if (script.id && marker) window.FolderViewPlusFolderEditorRuntimeLoaded = true;
@@ -46,7 +46,7 @@ test('healthy sequential editor loading can exceed old warning deadlines without
     assert.deepEqual(boot.reports, []);
     await boot.finish();
     assert.deepEqual(boot.reports, []);
-    assert.equal(boot.scripts.length, 18);
+    assert.equal(boot.scripts.length, 20);
     for (const script of boot.scripts) assert.match(script.src, /\?v=fixture-version$/);
 });
 

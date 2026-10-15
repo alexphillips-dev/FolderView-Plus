@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.folder-membership.php';
 function dockerSyncOrderLockPath(): string {
         global $configDir;
         if (!is_dir($configDir)) {
@@ -88,6 +89,7 @@ function dockerSyncOrderLockPath(): string {
         }
 
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
+        $legacyMembership = buildLegacyFolderMembership($orderedFolders, $allContainerNames, $infoByName, 'docker', $rules);
         $folderContainers = [];
         $folderNames = [];
         $assignedContainers = [];
@@ -114,6 +116,7 @@ function dockerSyncOrderLockPath(): string {
                     $members[] = $name;
                 }
             }
+            if (array_key_exists($folderId, $legacyMembership)) $members = $legacyMembership[$folderId];
             $members = array_values(array_filter($members, function($m) use ($allContainerNames, $assignedContainers) {
                 return in_array($m, $allContainerNames, true) && !in_array($m, $assignedContainers, true);
             }));

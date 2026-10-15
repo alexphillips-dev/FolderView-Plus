@@ -200,7 +200,7 @@
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
       "testCount": 119,
-      "assertionCount": 1606,
+      "assertionCount": 1607,
       "pageEvaluateCount": 427,
       "orderedTitleSha256": "ec939917f492c716aef11b5a684f28cdc5ef8d712844b7e5d859680ae82fddd8"
     }

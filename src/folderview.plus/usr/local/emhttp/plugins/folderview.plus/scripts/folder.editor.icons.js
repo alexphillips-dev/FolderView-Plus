@@ -463,13 +463,13 @@
                 const dims = `${Math.max(0, Number(icon?.width || 0))}x${Math.max(0, Number(icon?.height || 0))}`;
                 const usageCount = Math.max(0, Number(icon?.usageCount || 0));
                 const usageMeta = usageCount > 0 ? `${usageCount} refs` : 'unused';
-                const meta = [size, dims, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
+                const meta = [size, dims].filter((entry) => String(entry || '').trim() !== '').join(' | ');
                 return `
                     <div class="fv-custom-icon-row${icon.url === getSelectionValue() ? ' is-selected' : ''}" data-custom-icon="${name}" data-icon-url="${url}">
                         <img src="${url}" alt="${name}" data-fv-onerror="this.src='${iconFallbackPath}';">
                         <div class="fv-custom-icon-meta">
                             <div class="fv-custom-icon-name" title="${name}">${name}</div>
-                            <div class="fv-custom-icon-extra">${escapeHtml(meta || 'No metadata')}</div>
+                            <div class="fv-custom-icon-extra"><div>${escapeHtml(meta || 'No metadata')}</div><div>${escapeHtml(usageMeta)}</div></div>
                         </div>
                         <div class="fv-custom-icon-actions">
                             <button type="button" data-action="use" aria-label="${name}" aria-pressed="${icon.url === getSelectionValue()}" title="Use icon"><i class="fa fa-check" aria-hidden="true"></i></button>

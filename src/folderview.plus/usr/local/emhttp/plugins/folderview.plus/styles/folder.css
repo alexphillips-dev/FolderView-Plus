@@ -386,6 +386,7 @@
     position: relative;
     z-index: 2;
     width: 32px;
+    min-width: 32px;
     min-height: 32px;
     flex: 0 0 32px;
 }
@@ -2221,9 +2222,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     gap: 0.2em;
 }
 
-.fv-custom-icon-actions > button {
-    min-width: 28px;
-    min-height: 28px;
+.fv-icon-browser .fv-custom-icon-row .fv-custom-icon-actions > button {
+    margin: 0;
     padding: 0;
 }
 

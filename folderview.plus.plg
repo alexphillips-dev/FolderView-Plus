@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.14.20">
-<!ENTITY md5 "c6c21e62e92ba9bce3c15b14ad837d4e">
-<!ENTITY sha256 "fe98acdf42c04b3fc97f63c13a37beacaa94eee5a8473d9c43767b13604aa280">
+<!ENTITY version "2026.10.15.01">
+<!ENTITY md5 "7bc17f1ee45bd409e8293546d0451961">
+<!ENTITY sha256 "f0d3c7913acf32e3811d09d8277a5c21af3c13eb7650522388fe03556efbeaee">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.15.01
+- Fix: Show each uploaded icon's reference count or unused status on a separate line below its file size and dimensions.
+- Fix: Keep upload card action buttons close together in one centered row with a small gap and padding inside the card, including when Unraid applies native button margins and padding.
+- Accessibility: Preserve keyboard focus and larger touch targets for reference, rename, and delete actions.
+- Compatibility: Saved icons and folder settings are unchanged. Hard-refresh the webGUI after updating to load the revised icon picker scripts and styles.
+
 
 ###2026.10.14.20
 - UX: Make Built-in Icons, Icon Packs, and My Uploads more compact with smaller icon previews and cards that no longer stretch across the available row.

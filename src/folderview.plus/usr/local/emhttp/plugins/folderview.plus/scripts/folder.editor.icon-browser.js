@@ -10,7 +10,7 @@
         collections: surfaceT('common.icon-browser.collections', 'Icon Packs'),
         uploads: surfaceT('common.icon-browser.uploads', 'My uploads')
     });
-    // The editor field remains authoritative. Browsing only writes it on confirmation.
+    // Browsing is staged; Use Icon applies to the editor and Cancel can undo that application.
     const createApi = ({ window: win = globalThis, getValue = () => '', setValue = () => {},
         defaultIcon = '', sanitizeImageUrl = (_value, fallback) => fallback,
         describe = () => null, activate = () => {}, onCommit = () => {} } = {}) => {
@@ -21,6 +21,7 @@
         const workspace = home ? { element: home, body: home.querySelector('.fv-icon-browser-body'), footer: home.querySelector('.fv-icon-browser-footer') } : null;
         let draft = '';
         let committed = getValue();
+        let rollbackValue = null;
         let source = 'builtin';
         let generation = 0;
         const scroll = new Map();
@@ -50,6 +51,7 @@
             if (!enabled) return;
             const value = getValue();
             if (value !== committed) {
+                rollbackValue = null;
                 committed = value;
                 generation++;
                 draft = value || defaultIcon;
@@ -108,6 +110,13 @@
             draft = getValue() || defaultIcon;
             paintDraft();
         };
+        const cancelSelection = () => {
+            const previous = rollbackValue;
+            rollbackValue = null;
+            if (previous !== null) setValue(previous);
+            reset();
+            sync();
+        };
         const matchPanelHeight = () => {
             const panel = home.closest('[data-editor-panel="icon"]');
             const parent = panel?.parentElement.querySelector('[data-editor-panel="parent"]');
@@ -128,13 +137,20 @@
             cancel.type = 'button';
             cancel.className = 'fv-ui-button';
             cancel.textContent = surfaceT('legacy.surface.19766ed6ccb2f4a3', 'Cancel');
-            cancel.addEventListener('click', reset);
+            cancel.addEventListener('click', cancelSelection);
             actions.appendChild(cancel);
             const use = doc.createElement('button');
             use.type = 'button';
             use.className = 'fv-ui-button is-primary';
             use.textContent = surfaceT('legacy.surface.5a6a57b41fdbaac9', 'Use icon');
-            use.addEventListener('click', () => { const value = draft; onCommit(value); setValue(value); reset(); sync(); });
+            use.addEventListener('click', () => {
+                const value = draft, previous = getValue();
+                onCommit(value);
+                setValue(value);
+                reset();
+                sync();
+                if (value !== previous) rollbackValue = previous;
+            });
             actions.appendChild(use);
             workspace.body.addEventListener('scroll', () => scroll.set(source, workspace.body.scrollTop));
             doc.addEventListener('fvplus:editor-section-change', (event) => {
@@ -149,6 +165,7 @@
             reset();
         }
         const invalidate = (value) => {
+            if (rollbackValue !== null && rollbackValue.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) rollbackValue = defaultIcon;
             if (enabled && draft.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) stage(defaultIcon);
             sync();
         };

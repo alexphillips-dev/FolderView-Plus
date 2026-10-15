@@ -7,6 +7,7 @@
   ],
   "quick-finder": ["Quick finder"],
   "icon-browser": ["Icon browser", "Custom icon", "Deleting an uploaded"],
+  "icon-cancel": ["Icon browser Cancel"],
   "editor-settings": ["Folder editor dependencies"],
   "editor-help": ["Folder editor info icons"],
   "editor-popovers": ["Icon browser", "Dashboard action rail exposes", "Folder editor dependencies"],

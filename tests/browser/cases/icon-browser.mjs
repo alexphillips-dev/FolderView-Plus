@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { mountIconBrowser, checkIconDialogAccessibility, checkIconPackTileLayout, checkUploadCardLayout, checkIconCardLayout } from '../helpers/icon-browser-host.mjs';
+import { registerIconPickerCancelCase } from './icon-picker-cancel.mjs';
 export const registerIconBrowserCases = ({ test, baseUrl }) => {
+    registerIconPickerCancelCase({ test, baseUrl });
     test('Icon browser stays inline, matches the parent panel and defaults to built-in icons for Docker and VM', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
             await mountIconBrowser(page, baseUrl, type);
@@ -86,16 +88,14 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
             const overflow = await dialog.evaluate(node => node.scrollWidth > node.clientWidth + 1);
             assert.equal(overflow, false);
             const scroll = await dialog.locator('.fv-icon-browser-body').evaluate(node => ({ overflow: getComputedStyle(node).overflowY, height: node.clientHeight }));
-            assert.equal(scroll.overflow, 'auto');
-            assert.ok(scroll.height > 0);
+            assert.ok(scroll.overflow === 'auto' && scroll.height > 0);
             await page.keyboard.press('Escape');
         }
     });
     test('Icon browser isolates cancelled uploads, rejects stale completion and keeps library management available', async ({ page }) => {
         await mountIconBrowser(page, baseUrl);
         const input = page.locator('[name="icon"]');
-        const original = await input.inputValue();
-        await page.getByRole('tab', { name: 'My uploads' }).click();
+        const original = await input.inputValue(); await page.getByRole('tab', { name: 'My uploads' }).click();
         assert.equal(await page.locator('#fv-icon-upload').isVisible(), true);
         const dialog = page.getByRole('region', { name: 'Choose icon', exact: true });
         const chooserReady = page.waitForEvent('filechooser');

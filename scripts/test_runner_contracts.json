@@ -39,6 +39,7 @@
     { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
     { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
     { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
+    { "file": "tests/browser/cases/icon-picker-cancel.mjs", "limit": 75, "owner": "applied icon rollback, external edits and invalidated upload cancellation", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
     { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
     { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
     { "file": "tests/browser/helpers/icon-pack-filters.mjs", "limit": 65, "owner": "Icon Packs filter dropdown layout, checkbox filtering and lifecycle" },
@@ -143,6 +144,7 @@
         "tests/browser/cases/custom-icon-rename.mjs",
         "tests/browser/cases/csrf-requests.mjs",
         "tests/browser/cases/custom-icon-delete.mjs",
+        "tests/browser/cases/icon-picker-cancel.mjs",
         "tests/browser/cases/icon-browser.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
@@ -195,10 +197,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 116,
-      "assertionCount": 1580,
-      "pageEvaluateCount": 410,
-      "orderedTitleSha256": "9a03ef6a4b21418aed499113ea89a2c185bcdc408aebebf0626706a93a6b0a16"
+      "testCount": 117,
+      "assertionCount": 1583,
+      "pageEvaluateCount": 412,
+      "orderedTitleSha256": "db364ef7501fb405ecfca16c7e243c51dffeb894732de7cdbb3504c94ce8bc5a"
     }
   }
 }

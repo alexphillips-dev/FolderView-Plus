@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.15.01">
-<!ENTITY md5 "7bc17f1ee45bd409e8293546d0451961">
-<!ENTITY sha256 "f0d3c7913acf32e3811d09d8277a5c21af3c13eb7650522388fe03556efbeaee">
+<!ENTITY version "2026.10.15.02">
+<!ENTITY md5 "c44e103c636982edd0d78556a95f4fbb">
+<!ENTITY sha256 "747ba58d746f2da8c066e185f9d3675217173892a46bcb160871f386cebe9819">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.15.02
+- Fix: Make the icon picker's Cancel button undo the most recent Use Icon selection and restore the previous icon in the folder editor and picker previews.
+- Reliability: Keep cancellation available after reapplying the same icon, preserve manual URL/default-icon changes, and avoid restoring an uploaded file that has since been renamed or deleted.
+- Compatibility: Applies to Built-in Icons, Icon Packs, and My Uploads in Docker and VM folder editors. The folder editor's Cancel button and folder-save behavior are unchanged.
+
 
 ###2026.10.15.01
 - Fix: Show each uploaded icon's reference count or unused status on a separate line below its file size and dimensions.

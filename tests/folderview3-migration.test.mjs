@@ -57,16 +57,18 @@ const fixture = {
     native_autostart: ['plex 15', 'arr-one']
 };
 
-const runPhpPlan = (bundle, sourceName = 'fixture.json') => {
+const runPhpPlan = (bundle, sourceName = 'fixture.json', nativeAutostart = 'fixture-native 7\n') => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-fv3-migration-'));
     const configDir = path.join(tempDir, 'config');
     const sourceDir = path.join(tempDir, 'source');
     const documentRoot = path.join(tempDir, 'document-root');
     const bundlePath = path.join(tempDir, 'bundle.json');
+    const nativePath = path.join(configDir, 'native-autostart');
     fs.mkdirSync(configDir, { recursive: true });
     fs.mkdirSync(sourceDir, { recursive: true });
     fs.mkdirSync(documentRoot, { recursive: true });
     fs.writeFileSync(bundlePath, JSON.stringify(bundle));
+    fs.writeFileSync(nativePath, nativeAutostart);
     const code = [
         `require_once ${phpString(path.join(serverRoot, 'lib.php'))};`,
         `$bundle = decodeFolderView3BundlePayloadString(file_get_contents(${phpString(bundlePath)}));`,
@@ -74,16 +76,19 @@ const runPhpPlan = (bundle, sourceName = 'fixture.json') => {
         `echo json_encode(['plan' => $plan, 'report' => folderView3MigrationReport($plan)], JSON_UNESCAPED_SLASHES);`
     ].join(' ');
     try {
-        return JSON.parse(execFileSync('php', ['-r', code], {
+        const result = JSON.parse(execFileSync('php', ['-r', code], {
             cwd: repoRoot,
             encoding: 'utf8',
             env: {
                 ...process.env,
                 FVPLUS_TEST_CONFIG_DIR: configDir,
                 FVPLUS_TEST_SOURCE_DIR: sourceDir,
-                FVPLUS_TEST_DOCUMENT_ROOT: documentRoot
+                FVPLUS_TEST_DOCUMENT_ROOT: documentRoot,
+                FVPLUS_TEST_DOCKER_AUTOSTART_FILE: nativePath
             }
         }));
+        assert.equal(fs.readFileSync(nativePath, 'utf8'), nativeAutostart, 'preview must preserve isolated native autostart bytes');
+        return result;
     } catch (error) {
         throw new Error(String(error?.stderr || error?.message || error));
     } finally {
@@ -98,6 +103,12 @@ test('FolderView3 preview endpoints remain read-only and Recovery exposes the re
     assert.match(pageSource, /data-fv-folderview3-action="detect"/);
     assert.match(pageSource, /data-fv-folderview3-action="preview-export"/);
     assert.match(pageSource, /id="fv-recovery-folderview3-summary"/);
+});
+
+test('FolderView3 preview digest includes isolated native autostart state without changing it', () => {
+    const first = runPhpPlan(fixture, 'fixture.json', 'fixture-native 7\n');
+    const changed = runPhpPlan(fixture, 'fixture.json', 'fixture-native 9\n');
+    assert.notEqual(first.report.source.digest, changed.report.source.digest);
 });
 
 test('FolderView3 conversion preserves folders, rules, defaults, start order, and inactive appearance', () => {
@@ -231,8 +242,10 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-fv3-detect-'));
     const configDir = path.join(tempDir, 'plus');
     const fv3Dir = path.join(tempDir, 'folder.view3');
+    const nativePath = path.join(configDir, 'native-autostart');
     fs.mkdirSync(configDir, { recursive: true });
     fs.mkdirSync(fv3Dir, { recursive: true });
+    fs.writeFileSync(nativePath, 'fixture-native 7\n');
     fs.writeFileSync(path.join(fv3Dir, 'version'), '2026.08.01');
     fs.writeFileSync(path.join(fv3Dir, 'docker.json'), JSON.stringify(fixture.docker));
     fs.writeFileSync(path.join(fv3Dir, 'vm.json'), JSON.stringify(fixture.vm));
@@ -248,7 +261,8 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
                 FVPLUS_TEST_CONFIG_DIR: configDir,
                 FVPLUS_TEST_SOURCE_DIR: path.join(tempDir, 'source'),
                 FVPLUS_TEST_DOCUMENT_ROOT: path.join(tempDir, 'document-root'),
-                FVPLUS_TEST_FOLDER_VIEW3_CONFIG_DIR: fv3Dir
+                FVPLUS_TEST_FOLDER_VIEW3_CONFIG_DIR: fv3Dir,
+                FVPLUS_TEST_DOCKER_AUTOSTART_FILE: nativePath
             }
         }));
         const result = response.detection;
@@ -261,6 +275,7 @@ test('installed FolderView3 discovery uses the bounded test configuration root',
         assert.ok(result.components.includes('order-vm.json'));
         assert.equal(response.plan.summary.dockerOrderStatus, 'imported');
         assert.equal(response.plan.summary.vmOrderStatus, 'imported');
+        assert.equal(fs.readFileSync(nativePath, 'utf8'), 'fixture-native 7\n');
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }

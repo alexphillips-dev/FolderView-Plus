@@ -27,7 +27,7 @@ If FolderView Plus starts with empty or missing current configuration, its compa
 
 ## FolderView3 environment preview
 
-Version **2026.10.15.04** restores the full migration controls in Advanced Settings → Recovery → Additional tools. Choose **Detect installed FolderView3** for local configuration or **Preview FolderView3 export** for a complete version-1 backup. Basic's Docker/VM Import and Recovery's Import Environment also route a detected full FolderView3 envelope into this workflow. The Setup Assistant accepts per-type exports and directs complete backups to Recovery.
+Version **2026.10.15.05** restores the full migration controls in Advanced Settings → Recovery → Additional tools. Choose **Detect installed FolderView3** for local configuration or **Preview FolderView3 export** for a complete version-1 backup. Basic's Docker/VM Import and Recovery's Import Environment also route a detected full FolderView3 envelope into this workflow. The Setup Assistant accepts per-type exports and directs complete backups to Recovery.
 
 A full migration replaces both folder maps and saved type preferences, including existing Plus rules, privacy choices, groups, health/performance options, future-folder defaults and backup schedules. It retains the active Theme Workspace profile and adds inactive imported profiles. Review the warnings and counts, then confirm **Apply verified migration**. Cancellation writes nothing. Apply creates a global rollback checkpoint and per-type backups, checks both source and destination against the preview under the mutation lock, writes the target and reads it back before reporting success. Settings and Recovery data then refresh; reload any already-open Docker, VM or Dashboard pages.
 

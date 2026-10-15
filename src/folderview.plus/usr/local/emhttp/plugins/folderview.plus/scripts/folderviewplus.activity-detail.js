@@ -8,6 +8,10 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const fallbackTranslate = (_key, fallback = '', ...params) => fallback.replace(/\$(\d+)/g,
         (token, index) => String(params[Number(index) - 1] ?? token));
+    const migrationLabel = (action, failed, translate = fallbackTranslate) => {
+        if (action === 'folderview3_preview') return translate('common.repair.folderview3-migration-preview-failed-cb2fa9', 'FolderView3 migration preview failed');
+        return failed ? translate('common.repair.folderview3-migration-failed-3a876a', 'FolderView3 migration failed') : translate('import.folderview3.applied', 'FolderView3 migration applied');
+    };
     const buildActivityEventDetail = (row, translate = fallbackTranslate) => {
         const details = row?.details && typeof row.details === 'object' && !Array.isArray(row.details) ? row.details : {};
         const count = (key) => Number.isSafeInteger(details[key]) && details[key] >= 0 ? details[key] : null;
@@ -20,6 +24,23 @@
                 ? translate('diagnostics.activity.detail.scope', '$1 Docker folders, $2 VM folders', docker, vm) : '';
         };
         switch (action) {
+            case 'folderview3_migration':
+            case 'folderview3_preview': {
+                const outcomes = {
+                    'validation-rejected': translate('diagnostics.migration.validation-rejected', 'Validation rejected'),
+                    'stale-preview': translate('diagnostics.migration.stale-preview', 'Preview is out of date'),
+                    'capture-failed': translate('diagnostics.migration.capture-failed', 'Recovery preparation failed'),
+                    'write-failed': translate('diagnostics.migration.write-failed', 'Configuration write failed'),
+                    'verification-failed': translate('diagnostics.migration.verification-failed', 'Configuration verification failed'),
+                    applied: translate('diagnostics.migration.verified', 'Configuration verified')
+                };
+                const rollback = details.rollback === 'complete' ? translate('diagnostics.migration.restored', 'Previous configuration restored')
+                    : (details.rollback === 'failed' ? translate('diagnostics.migration.restore-failed', 'Automatic restoration failed') : '');
+                return [scopeCounts(), outcomes[details.outcome], rollback,
+                    details.nativeAutostartIncluded === true ? translate('diagnostics.migration.native', 'Native Docker autostart included') : '',
+                    details.checkpointAvailable === true ? translate('diagnostics.migration.checkpoint', 'Recovery checkpoint available') : ''
+                ].filter(Boolean).join(' · ');
+            }
             case 'backup_create': {
                 if (folderCount === null) break;
                 const reason = String(details.reason || '');
@@ -73,5 +94,5 @@
         }
         return '';
     };
-    return Object.freeze({ buildActivityEventDetail });
+    return Object.freeze({ buildActivityEventDetail, migrationLabel });
 }));

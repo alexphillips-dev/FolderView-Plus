@@ -7,6 +7,9 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "scripts/folderviewplus.editor-diagnostics-model.js": {"limit": 60, "target": 60, "history": [60]},
+      "scripts/folder.editor.diagnostics.js": {"limit": 120, "target": 120, "history": [120]},
+      "server/lib.folderview3-diagnostics.php": {"limit": 50, "target": 50, "history": [50]},
       "scripts/folder.editor.help.js": {"limit": 150, "target": 150, "history": [150]},
       "server/lib.folderview3-validation.php": {"limit": 220, "target": 220, "history": [220]},
       "server/lib.folderview3-settings.php": {"limit": 110, "target": 110, "history": [110]},
@@ -472,10 +475,15 @@
       "owner": "server-folderview3-apply",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.folderview3-migration.php", "server/lib.environment-transaction.php", "server/lib.storage.php"],
+      "dependsOn": ["server/lib.folderview3-migration.php", "server/lib.environment-transaction.php", "server/lib.storage.php", "server/lib.folderview3-diagnostics.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 3, "sha256": "5a1c5adadfd2f11897815543992e86c165729d85336b0e88199ad3414d31ca09" }
+    },
+    {
+      "file": "server/lib.folderview3-diagnostics.php", "owner": "folderview3-outcome-diagnostics", "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped", "dependsOn": ["server/lib.diagnostics.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-apply.php",
+      "functionInventory": {"count": 2, "sha256": "cf2db8562b1996a3ae5e7b4dfceb3041cb361fca9691b02f16b008a0167f2243"}
     },
     {
       "file": "server/lib.theme-github.php",
@@ -1465,16 +1473,26 @@
     {
       "file": "scripts/folderviewplus.ui-state-diagnostics.js",
       "owner": "settings-support-ui-state",
-      "consumers": ["settings"],
+      "consumers": ["settings", "folder-editor"],
       "stateModel": "factory-owned",
-      "dependsOn": [],
+      "dependsOn": ["scripts/folderviewplus.editor-diagnostics-model.js"],
       "compatibilityGlobals": ["FolderViewPlusUiStateDiagnostics"],
       "global": "FolderViewPlusUiStateDiagnostics",
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["STORAGE_KEY", "HISTORY_LIMIT", "STALE_AFTER_MS", "normalize", "browserInfo", "measure", "normalizeDashboardGeometry", "createApi"],
       "apiFactory": "createApi",
-      "apiExports": ["record", "begin", "finish", "cancel", "traceComparison", "recordDialog", "recordSettingsSurface", "collect", "normalizeDashboardGeometry"]
+      "apiExports": ["record", "begin", "finish", "cancel", "traceComparison", "recordDialog", "recordSettingsSurface", "collect", "normalizeDashboardGeometry", "measure"]
+    },
+    {
+      "file": "scripts/folderviewplus.editor-diagnostics-model.js", "owner": "editor-diagnostics-schema", "consumers": ["settings", "folder-editor"],
+      "stateModel": "pure", "dependsOn": [], "compatibilityGlobals": [], "global": "FolderViewPlusFoundationModules", "globalMember": "editorDiagnosticsModel",
+      "loader": "commonjs", "typeChecked": false, "exports": ["normalize"]
+    },
+    {
+      "file": "scripts/folder.editor.diagnostics.js", "owner": "folder-editor-diagnostics", "consumers": ["folder-editor"],
+      "stateModel": "factory-owned", "dependsOn": ["scripts/folderviewplus.ui-state-diagnostics.js"], "compatibilityGlobals": [],
+      "global": "FolderViewPlusFoundationModules", "globalMember": "folderEditorDiagnostics", "loader": "commonjs", "typeChecked": false, "exports": ["createApi"]
     },
     {
       "file": "scripts/runtime.shared-diagnostics.js",
@@ -1637,7 +1655,7 @@
       "compatibilityGlobals": [],
       "global": "FolderViewPlusActivityDetail",
       "loader": "commonjs",
-      "exports": ["buildActivityEventDetail"]
+      "exports": ["buildActivityEventDetail", "migrationLabel"]
     },
     {
       "file": "scripts/folderviewplus.diagnostics-actions.js",

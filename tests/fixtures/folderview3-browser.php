@@ -16,6 +16,7 @@ if (!file_exists($root . '/initialized')) {
 if (($request['action'] ?? '') === 'fixture_read') {
     echo json_encode(['docker' => readRawFolderMap('docker'), 'vm' => readRawFolderMap('vm'), 'prefs' => readTypePrefs('docker'), 'workspace' => readThemeWorkspace()], JSON_THROW_ON_ERROR); return;
 }
+if (($request['action'] ?? '') === 'fixture_history') { echo json_encode(['events' => readDiagnosticsHistoryEvents(20)], JSON_THROW_ON_ERROR); return; }
 $GLOBALS['fvplusMutationGuardComplete'] = true;
 $_REQUEST = $_POST = $request;
 $endpoint = file_get_contents($server . '/environment_snapshot.php');

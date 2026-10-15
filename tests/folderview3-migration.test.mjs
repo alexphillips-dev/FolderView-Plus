@@ -307,7 +307,9 @@ test('FolderView3 browser apply requires confirmation, reuses the preview digest
 test('FolderView3 apply rejects unavailable rollback bytes without changing native or plugin state', () => {
     const result = runCaptureFixture('entry-abort', 'migration');
     assert.equal(result.rejected, true);
-    assert.equal(result.unchanged, true);
+    assert.equal(result.protectedUnchanged, true);
+    const outcome = result.diagnosticEvents.find(event => event.action === 'folderview3_migration').details;
+    assert.equal(outcome.outcome, 'capture-failed'); assert.equal(outcome.nativeAutostartRequested, true); assert.equal(outcome.nativeAutostartIncluded, false);
     assert.equal(result.nativeUnchanged, true);
     assert.deepEqual(result.stages, []);
 });
@@ -315,6 +317,7 @@ test('FolderView3 apply rejects unavailable rollback bytes without changing nati
 test('FolderView3 rejects failed capture before planning can normalize legacy appearance data', () => {
     const result = runCaptureFixture('entry-abort', 'migration', { legacyWorkspace: true });
     assert.equal(result.rejected, true);
-    assert.equal(result.unchanged, true);
+    assert.equal(result.protectedUnchanged, true);
+    assert.equal(result.diagnosticEvents.find(event => event.action === 'folderview3_migration').details.rollback, 'not-needed');
     assert.deepEqual(result.stages, []);
 });

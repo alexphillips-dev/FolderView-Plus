@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.15.02">
-<!ENTITY md5 "c44e103c636982edd0d78556a95f4fbb">
-<!ENTITY sha256 "747ba58d746f2da8c066e185f9d3675217173892a46bcb160871f386cebe9819">
+<!ENTITY version "2026.10.15.03">
+<!ENTITY md5 "75e3dca82a89ecb02bb1362803d4650c">
+<!ENTITY sha256 "7d30ecf61abc9a048cbd1d5fe5e3aee66b529d723bbfb80c92b1b43402ecb570">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.15.03
+- Fix: Show FolderView3 migration results in Activity with localized validation, write, verification, and restoration outcomes.
+- Reliability: Record verified migration results and failed attempts without letting diagnostics failures affect configuration writes or automatic restoration.
+- UX: Include recent icon-picker selection, Use Icon, Cancel, upload, disabled-setting, help, and layout evidence in support bundles after returning from a Docker or VM folder editor to Settings.
+- Compatibility: Editor evidence is limited to eight recent snapshots per type for 30 minutes, samples at most 32 icon cards, and excludes raw names, filenames, URLs, search text, form values, and tooltip contents. New migration messages are translated across all 27 locales. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.15.02
 - Fix: Make the icon picker's Cancel button undo the most recent Use Icon selection and restore the previous icon in the folder editor and picker previews.

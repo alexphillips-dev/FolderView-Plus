@@ -48,9 +48,16 @@ try {
         writeRawFolderMap('docker', ['concurrent' => ['name' => 'Concurrent fixture']]);
         $before = migrationFiles($root . '/config');
         applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest']);
-    } elseif (in_array($operation, ['apply', 'repeat', 'failure', 'editor'], true)) {
-        $options = $operation === 'failure' ? ['afterStage' => static function(string $stage): void { if ($stage === 'vm-prefs') throw new RuntimeException('Fixture failure'); }] : [];
-        $result['applied'] = applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest'], false, $options);
+    } elseif (in_array($operation, ['apply', 'repeat', 'failure', 'editor', 'verification-failure', 'rollback-failure', 'diagnostics-failure', 'observer-failure'], true)) {
+        $options = ['afterStage' => static function(string $stage) use ($operation): void {
+            if ($operation === 'verification-failure' && $stage === 'theme-workspace') writeRawFolderMap('docker', []);
+            if ($operation === 'rollback-failure' && $stage === 'vm-prefs') { $path = getFolderFilePath('docker'); unlink($path); mkdir($path); throw new RuntimeException('Fixture rollback failure'); }
+            if ($operation === 'failure' && $stage === 'vm-prefs') throw new RuntimeException('Fixture failure');
+        }];
+        if ($operation === 'diagnostics-failure') mkdir(diagnosticsHistoryPath());
+        if ($operation === 'observer-failure') {
+            $result['applied'] = ['transaction' => applyEnvironmentSnapshotTransaction($plan['target'], '', ['onOutcome' => static function(): void { throw new RuntimeException('Observer failure'); }])];
+        } else $result['applied'] = applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest'], false, $options);
         $first = [readRawFolderMap('docker'), readRawFolderMap('vm'), readTypePrefs('docker'), readTypePrefs('vm'), readThemeWorkspace()];
         if ($operation === 'repeat') {
             $next = buildFolderView3MigrationPlan($bundle);
@@ -72,4 +79,9 @@ $protected = static fn(array $files): array => array_filter($files, static fn($k
 $result['unchanged'] = $before === $after;
 $result['protectedUnchanged'] = $protected($before) === $protected($after);
 $result['before'] = $before; $result['after'] = $after;
+$result['diagnosticEvents'] = readDiagnosticsHistoryEvents(20);
+if (!empty($request['includeSupportBundle'])) {
+    $redactor = diagnosticsCreateSupportBundleRedactor('sanitized');
+    $result['supportBundleHistory'] = diagnosticsBuildSupportBundleHealthAndHistorySection(['importExportHistory' => ['events' => $result['diagnosticEvents']]], [], $redactor);
+}
 echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);

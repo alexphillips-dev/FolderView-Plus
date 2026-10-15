@@ -96,7 +96,14 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
     $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
     $reason = trim((string)($options['reason'] ?? 'environment-import')) ?: 'environment-import';
     return withConfigMutationLock(static function() use ($normalized, $sourceName, $options, $reason): array {
+        $phase = 'capture'; $checkpointAvailable = false;
+        $notify = static function(string $rollback = 'not-needed') use ($options, &$phase, &$checkpointAvailable): void {
+            try {
+                if (is_callable($options['onOutcome'] ?? null)) $options['onOutcome'](['phase' => $phase, 'rollback' => $rollback, 'checkpointAvailable' => $checkpointAvailable]);
+            } catch (Throwable $diagnosticsError) { /* Diagnostics must never affect a transaction. */ }
+        };
         if (is_callable($options['beforeWrite'] ?? null)) $options['beforeWrite']();
+        $notify();
         $extraPaths = (array)($options['extraPaths'] ?? []);
         if (($options['syncDockerOrder'] ?? true) !== false) {
             $extraPaths[] = fvplusEnvironmentDockerAutostartPath();
@@ -105,11 +112,14 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
             $rollback = createGlobalRollbackSnapshot('before-' . $reason);
+            $checkpointAvailable = true;
             $typeResults = [];
             foreach (FVPLUS_ALLOWED_TYPES as $type) {
                 $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason)];
             }
+            $phase = 'writing'; $notify();
             $written = fvplusEnvironmentWriteTarget($normalized, $options);
+            $phase = 'verification'; $notify();
             fvplusEnvironmentVerifyTarget($normalized);
             fvplusEnvironmentTransactionStage($options, 'verified');
             foreach (FVPLUS_ALLOWED_TYPES as $type) {
@@ -119,10 +129,13 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             try {
                 fvplusEnvironmentRestoreFiles($snapshots);
             } catch (Throwable $rollbackError) {
+                $notify('failed');
                 throw new RuntimeException($error->getMessage() . ' ' . $rollbackError->getMessage(), 0, $error);
             }
+            $notify('complete');
             throw new RuntimeException($error->getMessage() . ' All changed configuration was restored.', 0, $error);
         }
+        $phase = 'verified'; $notify();
         $summary = buildEnvironmentSnapshotSummary($normalized, $sourceName);
         $workspace = (array)$written['workspace'];
         return [

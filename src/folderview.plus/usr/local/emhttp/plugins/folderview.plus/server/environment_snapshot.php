@@ -32,29 +32,23 @@ fvplus_json_try(function (): array {
         ];
     }
 
-    if ($action === 'preview_folderview3') {
-        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export')));
+    if (in_array($action, ['preview_folderview3', 'apply_folderview3'], true)) {
+        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export'))) === 'installed' ? 'installed' : 'export';
         $sourceName = (string)($_POST['fileName'] ?? '');
-        $bundle = $sourceKind === 'installed'
-            ? fvplusFolderView3ReadInstalledBundle()
-            : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
-        return [
-            'report' => previewFolderView3Migration($bundle, $sourceName)
-        ];
-    }
-
-    if ($action === 'apply_folderview3') {
-        $sourceKind = strtolower(trim((string)($_POST['sourceKind'] ?? 'export')));
-        $sourceName = (string)($_POST['fileName'] ?? '');
-        $bundle = $sourceKind === 'installed'
-            ? fvplusFolderView3ReadInstalledBundle()
-            : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
+        try {
+            $bundle = $sourceKind === 'installed' ? fvplusFolderView3ReadInstalledBundle() : decodeFolderView3BundlePayloadString((string)($_POST['payload'] ?? ''));
+            if ($action === 'preview_folderview3') return ['report' => previewFolderView3Migration($bundle, $sourceName)];
+        } catch (Throwable $error) {
+            recordFolderView3DiagnosticsOutcome(['operation' => $action === 'preview_folderview3' ? 'preview' : 'apply', 'sourceKind' => $sourceKind, 'phase' => 'validation', 'outcome' => 'validation-rejected', 'nativeAutostartRequested' => $action === 'apply_folderview3' && normalizeBool($_POST['includeNativeAutostart'] ?? false, false)]);
+            throw $error;
+        }
         return [
             'migration' => applyFolderView3Migration(
                 $bundle,
                 $sourceName,
                 (string)($_POST['expectedDigest'] ?? ''),
-                normalizeBool($_POST['includeNativeAutostart'] ?? false, false)
+                normalizeBool($_POST['includeNativeAutostart'] ?? false, false),
+                ['sourceKind' => $sourceKind]
             )
         ];
     }

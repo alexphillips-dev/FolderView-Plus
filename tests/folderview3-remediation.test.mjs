@@ -88,7 +88,7 @@ test('M21/M22: independent installed reads retain a stable digest and apply', ()
 });
 
 test('M24/M38: concurrent destination edits reject the reviewed migration without changing the new state', () => {
-    const r = runMigrationFixture({ operation: 'stale' }); assert.match(r.error, /changed after preview/); assert.equal(r.unchanged, true);
+    const r = runMigrationFixture({ operation: 'stale' }); assert.match(r.error, /changed after preview/); assert.equal(r.protectedUnchanged, true); assert.equal(r.diagnosticEvents[0].details.outcome, 'stale-preview');
 });
 
 test('M29: mid-apply failure compensates folder/prefs/assets/metadata while retaining recovery evidence', () => {
@@ -181,7 +181,7 @@ test('M15/M16/M17/M18/M19/M37: PHP startup and browser ownership/order equal the
 });
 
 test('M22/M24: actual installed-source edits invalidate a prior preview without destination writes', () => {
-    const r = runMigrationFixture({ operation: 'installed-stale' }); assert.match(r.error, /changed after preview/); assert.equal(r.unchanged, true);
+    const r = runMigrationFixture({ operation: 'installed-stale' }); assert.match(r.error, /changed after preview/); assert.equal(r.protectedUnchanged, true); assert.equal(r.diagnosticEvents[0].details.rollback, 'not-needed');
 });
 
 test('M07/M32/M33/M40: unknown data is disclosed; duplicate keys, deep and oversized inputs reject', () => {

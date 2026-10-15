@@ -40,7 +40,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 47);
+    assert.equal(architecture.serverModuleContracts.length, 48);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -52,7 +52,7 @@ test('facades load every contracted PHP module without retaining extracted imple
 
 test('decomposition preserves every historical public PHP function name', () => {
     const expected = {
-        'server/lib.php': { count: 337, sha256: 'bfa36d3deb8611f25234f639c900b8a97d50c3567a11d3b6f1c70339f4d93d04' },
+        'server/lib.php': { count: 339, sha256: '83b6f449725a7ed675c6b0728a01f369e664cbb89491d7cb252c21036830f7d7' },
         'server/lib.diagnostics.php': { count: 74, sha256: 'a1d008eb74affc973be697a63837347f992ff932591d6aa630b2a4d022a24b1a' },
         'server/upload_custom_icon.php': { count: 56, sha256: '825b3fbb5288c76f83a4976a55967e8a9a205e5496581f3a0c842789083f530e' }
     };

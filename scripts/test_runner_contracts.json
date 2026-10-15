@@ -36,6 +36,7 @@
     { "file": "tests/browser/helpers/folder-editor-help-touch.mjs", "limit": 45, "owner": "Native touch, RTL and localized folder help interactions", "requiredImports": ["./folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/cases/folder-editor-help.mjs", "limit": 110, "owner": "Folder editor SVG help, disabled fields and dynamic content", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/cases/folder-editor-settings.mjs", "limit": 80, "owner": "Folder settings dependency visibility and stored value regressions", "requiredImports": ["../helpers/folder-editor-settings-host.mjs"] },
+    { "file": "tests/browser/cases/folder-editor-diagnostics.mjs", "limit": 110, "owner": "Editor capture lifecycle, Settings bundle persistence, layout evidence and privacy", "requiredImports": ["../helpers/icon-browser-host.mjs", "../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
     { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
     { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
@@ -146,6 +147,7 @@
         "tests/browser/cases/custom-icon-delete.mjs",
         "tests/browser/cases/icon-picker-cancel.mjs",
         "tests/browser/cases/icon-browser.mjs",
+        "tests/browser/cases/folder-editor-diagnostics.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
@@ -197,10 +199,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 117,
-      "assertionCount": 1583,
-      "pageEvaluateCount": 412,
-      "orderedTitleSha256": "db364ef7501fb405ecfca16c7e243c51dffeb894732de7cdbb3504c94ce8bc5a"
+      "testCount": 119,
+      "assertionCount": 1606,
+      "pageEvaluateCount": 427,
+      "orderedTitleSha256": "ec939917f492c716aef11b5a684f28cdc5ef8d712844b7e5d859680ae82fddd8"
     }
   }
 }

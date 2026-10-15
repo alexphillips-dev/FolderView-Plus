@@ -125,6 +125,7 @@
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 källa eller aktuell konfiguration ändrades efter förhandsgranskning. Förhandsgranska den igen innan du tillämpar ändringarna."
         },
         "zh-Hans": {
+            "Previous configuration restored": "已恢复先前的配置",
             "Containers": "容器",
             "Reveal": "定位",
             "Disabled": "已禁用",
@@ -136,6 +137,7 @@
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "预览后，FolderView3 源或当前配置发生更改。应用更改前请再次预览。"
         },
         "zh-Hant": {
+            "Previous configuration restored": "已恢復先前的配置",
             "Containers": "容器",
             "Reveal": "定位",
             "Disabled": "已停用",

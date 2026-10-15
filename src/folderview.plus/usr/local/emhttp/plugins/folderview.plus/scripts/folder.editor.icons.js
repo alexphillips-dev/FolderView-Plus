@@ -1873,6 +1873,7 @@
                     validateCustomIconFileBeforeUpload(file);
                 } catch (error) {
                     setIconUploadStatus(`Upload failed: ${error.message || 'Invalid file.'}`, true);
+                    browser?.recordOutcome('upload-error', { uploadPending: false, reason: 'invalid-file' });
                     $(input).val('');
                     return;
                 }
@@ -1882,15 +1883,16 @@
                 let replace = false;
                 const dedupe = true;
                 const safeName = String(file.name || 'icon').trim() || 'icon';
+                browser?.recordOutcome('uploading', { uploadPending: true });
                 uploadButton.prop('disabled', true);
                 let existingIcons = customIconEntries;
                 if (browser?.enabled) {
                     try { existingIcons = asArray((await requestCustomIconApi('list', { query: '', sort: 'newest' }))?.icons); } catch (_error) { existingIcons = []; }
-                    if (!browser.isCurrent(uploadToken)) { uploadButton.prop('disabled', false); $(input).val(''); return; }
+                    if (!browser.isCurrent(uploadToken)) { browser.recordOutcome('stale-completion', { uploadPending: false, reason: 'selection-changed' }); uploadButton.prop('disabled', false); $(input).val(''); return; }
                 }
                 if (browser?.enabled && existingIcons.some((entry) => entry.name === safeName || entry.originalName === safeName)) {
                     const decision = await browser.resolveCollision();
-                    if (!decision || !browser.isCurrent(uploadToken)) { uploadButton.prop('disabled', false); $(input).val(''); return; }
+                    if (!decision || !browser.isCurrent(uploadToken)) { browser.recordOutcome(browser.isCurrent(uploadToken) ? 'upload-cancelled' : 'stale-completion', { uploadPending: false, reason: !decision ? 'conflict-cancelled' : 'selection-changed' }); uploadButton.prop('disabled', false); $(input).val(''); return; }
                     replace = decision === 'replace';
                 }
                 cancelButton.prop('disabled', false);
@@ -1899,6 +1901,7 @@
                 setIconUploadStatus(`Uploading "${safeName}"...`);
                 cancelButton.off('click.fviconpicker').on('click.fviconpicker', (cancelEvent) => {
                     cancelEvent.preventDefault();
+                    browser?.recordOutcome('upload-cancelled', { uploadPending: false, reason: 'user-cancelled' });
                     if (customIconUploadRequest && typeof customIconUploadRequest.abort === 'function') {
                         customIconUploadRequest.abort();
                     }
@@ -1911,12 +1914,14 @@
                         onProgress: (loaded, total) => updateIconUploadProgress(loaded, total)
                     });
                     updateIconUploadProgress(Number(file.size || 0), Number(file.size || 0), `Uploaded "${result.name}".`);
-                    if (!browser?.enabled || browser.isCurrent(uploadToken)) selectIcon(result.url);
+                    if (!browser?.enabled || browser.isCurrent(uploadToken)) { selectIcon(result.url); browser?.recordOutcome('uploaded', { uploadPending: false }); }
+                    else browser.recordOutcome('stale-completion', { uploadPending: false, reason: 'selection-changed' });
                     const message = String(result.message || '').trim() || (browser?.enabled ? `Uploaded "${result.name}".` : `Uploaded "${result.name}" and set as icon.`);
                     setIconUploadStatus(message);
                     await refreshCustomIconManager();
                 } catch (error) {
                     setIconUploadStatus(`Upload failed: ${error.message || 'Unknown error.'}`, true);
+                    browser?.recordOutcome(error?.message === 'Upload cancelled.' ? 'upload-cancelled' : 'upload-error', { uploadPending: false, reason: error?.message === 'Upload cancelled.' ? 'user-cancelled' : 'transport' });
                 } finally {
                     cancelButton.off('click.fviconpicker').prop('disabled', true);
                     uploadButton.prop('disabled', false);

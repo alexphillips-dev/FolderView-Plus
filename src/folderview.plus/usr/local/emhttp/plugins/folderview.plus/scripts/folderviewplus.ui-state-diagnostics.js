@@ -1,14 +1,15 @@
 // @ts-check
 (function(root, factory) {
-    const api = factory();
+    const model = typeof module === 'object' && module.exports ? require('./folderviewplus.editor-diagnostics-model.js') : root.FolderViewPlusFoundationModules?.editorDiagnosticsModel;
+    const api = factory(model);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.FolderViewPlusUiStateDiagnostics = api.createApi({ window: root });
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(editorModel) {
     'use strict';
     const STORAGE_KEY = 'fv.support.bundle.uiState.v1';
-    const HISTORY_LIMIT = 3;
+    const HISTORY_LIMIT = 3, EDITOR_HISTORY_LIMIT = 8;
     const STALE_AFTER_MS = 30 * 60 * 1000;
-    const KINDS = ['settings', 'bulk', 'compare'];
+    const KINDS = ['settings', 'bulk', 'compare', 'editor'];
     const TYPES = ['docker', 'vm'];
     const WORKSPACES = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs', 'basic'];
     const FIELDS = {
@@ -35,6 +36,7 @@
         return result;
     };
     const normalize = (kind, value) => {
+        if (kind === 'editor') return typeof editorModel?.normalize === 'function' ? editorModel.normalize(value, { count, dimension, normalizeMeasurement }) : null;
         if (!FIELDS[kind] || !value || typeof value !== 'object' || Array.isArray(value)) return null;
         const schema = FIELDS[kind];
         const result = { phase: schema.phases.includes(value.phase) ? value.phase : schema.phases[0] };
@@ -82,7 +84,7 @@
         const win = deps.window || {}, doc = deps.document || win.document, now = deps.now || Date.now;
         const operations = new Map();
         let serial = 0, memory = {}, storageWriteFailed = false;
-        const pluginVersion = () => version(win.FolderViewPlusFatalRuntimeContext?.pluginVersion);
+        const pluginVersion = () => version(win.FolderViewPlusFolderEditorPageBuildVersion || win.FolderViewPlusFatalRuntimeContext?.pluginVersion);
         const keyFor = (kind, type) => KINDS.includes(kind) && TYPES.includes(type) ? `${kind}.${type}` : null;
         const read = () => {
             let raw = memory;
@@ -92,7 +94,7 @@
             } catch (_error) { /* Diagnostics must not interrupt a user operation. */ }
             const result = {};
             for (const kind of KINDS) for (const type of TYPES) {
-                const key = keyFor(kind, type), rows = Array.isArray(raw?.[key]) ? raw[key].slice(-HISTORY_LIMIT) : [];
+                const key = keyFor(kind, type), rows = Array.isArray(raw?.[key]) ? raw[key].slice(-(kind === 'editor' ? EDITOR_HISTORY_LIMIT : HISTORY_LIMIT)) : [];
                 result[key] = rows.flatMap(row => {
                     const capturedAt = typeof row?.capturedAt === 'string' ? Date.parse(row.capturedAt) : NaN;
                     const data = normalize(kind, row?.data);
@@ -110,7 +112,7 @@
             const row = { capturedAt: new Date(now()).toISOString(), pluginVersion: pluginVersion(), data: next };
             if (rows.length && JSON.stringify(rows.at(-1).data) === JSON.stringify(next)) rows[rows.length - 1] = row;
             else rows.push(row);
-            records[key] = rows.slice(-HISTORY_LIMIT);
+            records[key] = rows.slice(-(kind === 'editor' ? EDITOR_HISTORY_LIMIT : HISTORY_LIMIT));
             memory = records;
             try { win.localStorage?.setItem(STORAGE_KEY, JSON.stringify(records)); storageWriteFailed = false; } catch (_error) { storageWriteFailed = true; } // Keep fresh memory captures if persisted history remains readable.
         };
@@ -176,13 +178,13 @@
                 return { kind: 'compare', geometry: measure(shell, win), buttons: buttons.map(button => measure(button, win)) };
             });
             return {
-                schemaVersion: 1, historyLimit: HISTORY_LIMIT, staleAfterMs: STALE_AFTER_MS,
+                schemaVersion: 1, historyLimit: HISTORY_LIMIT, editorHistoryLimit: EDITOR_HISTORY_LIMIT, staleAfterMs: STALE_AFTER_MS,
                 browser: browserInfo(win.navigator),
                 settingsSurface: settingsSurface(),
                 dialogs, channels
             };
         };
-        return Object.freeze({ record, begin, finish, cancel, traceComparison, recordDialog, recordSettingsSurface, collect, normalizeDashboardGeometry });
+        return Object.freeze({ record, begin, finish, cancel, traceComparison, recordDialog, recordSettingsSurface, collect, normalizeDashboardGeometry, measure });
     };
     const normalizeDashboardGeometry = value => {
         if (!value || typeof value !== 'object') return { available: false };

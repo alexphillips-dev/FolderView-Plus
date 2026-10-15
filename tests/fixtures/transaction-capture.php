@@ -40,6 +40,7 @@ namespace {
     foreach (['lib.transaction-files.php', 'lib.environment-transaction.php', 'lib.theme-update-plan.php', 'lib.backup-restore.php', 'lib.folderview3-apply.php'] as $file) {
         if (!is_file("$server/$file")) continue;
         $source = file_get_contents("$server/$file");
+        $source = str_replace('__DIR__', var_export($server, true), $source); // Preserve production-relative includes inside eval.
         eval('namespace CaptureFault; use \\RuntimeException; use \\Throwable;' . substr($source, 5));
     }
     function fixtureFiles(string $root): array {
@@ -144,6 +145,9 @@ namespace {
         }
         clearstatcache();
         $result['unchanged'] = $before === fixtureFiles("$root/config");
+        $withoutDiagnostics = static fn(array $files): array => array_filter($files, static fn($path): bool => !str_contains($path, 'diagnostics.history.json'), ARRAY_FILTER_USE_KEY);
+        $result['protectedUnchanged'] = $withoutDiagnostics($before) === $withoutDiagnostics(fixtureFiles("$root/config"));
+        $result['diagnosticEvents'] = readDiagnosticsHistoryEvents(20);
         $result['stages'] = $stages;
         $result['nativeUnchanged'] = file_get_contents(fvplusEnvironmentDockerAutostartPath()) === "fixture-native 5\n";
         $result['vmRestored'] = file_get_contents(getFolderFilePath('vm')) === $vmBefore;

@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . '/lib.folderview3-diagnostics.php');
 function fvplusFolderView3NativeAutostartPath(): string {
     return fvplusEnvironmentDockerAutostartPath();
 }
@@ -17,57 +18,57 @@ function fvplusFolderView3NativeAutostartContent(array $entries): string {
 }
 
 function applyFolderView3Migration(array $bundle, string $sourceName, string $expectedDigest, bool $includeNativeAutostart = false, array $options = []): array {
-    // Validate rollback inputs and the read-only plan before entering the transaction.
-    fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($includeNativeAutostart ? [fvplusFolderView3NativeAutostartPath()] : []));
-    $plan = buildFolderView3MigrationPlan($bundle, $sourceName);
-    $actualDigest = strtolower(trim((string)($plan['source']['digest'] ?? '')));
-    $expected = strtolower(trim($expectedDigest));
-    if (!preg_match('/^[a-f0-9]{64}$/', $expected) || !hash_equals($actualDigest, $expected)) {
-        throw new RuntimeException('FolderView3 source or current configuration changed after preview. Preview it again before applying.');
-    }
-    $nativeEntries = (array)($plan['nativeAutostart'] ?? []);
-    $nativePath = fvplusFolderView3NativeAutostartPath();
-    $nativeContent = fvplusFolderView3NativeAutostartContent($nativeEntries);
-    if ($includeNativeAutostart && count($nativeEntries) === 0) {
-        throw new RuntimeException('No native Docker autostart entries are available to include.');
-    }
-    $transactionOptions = [
-        'reason' => 'folderview3-migration',
-        'afterStage' => $options['afterStage'] ?? null,
-        'syncDockerOrder' => $includeNativeAutostart
-    ];
-    $transactionOptions['beforeWrite'] = static fn() => fvplusFolderView3VerifyPreviewUnderLock($bundle, $sourceName, $expected);
-    if ($includeNativeAutostart) {
-        $transactionOptions['extraPaths'] = [$nativePath];
-        $transactionOptions['externalApply'] = static function() use ($nativePath, $nativeContent): void {
-            writeDurableFileAtomic($nativePath, $nativeContent);
-            if ((string)@file_get_contents($nativePath) !== $nativeContent) {
-                throw new RuntimeException('Native Docker autostart verification failed.');
-            }
-        };
-    }
-    $transaction = applyEnvironmentSnapshotTransaction((array)$plan['target'], $sourceName, $transactionOptions);
-    $report = folderView3MigrationReport($plan);
-    foreach ($report['operations'] as &$operation) {
-        if (($operation['id'] ?? '') === 'native-autostart') {
-            $operation['selected'] = $includeNativeAutostart;
+    return withFolderView3Diagnostics(static function(array &$progress) use ($bundle, $sourceName, $expectedDigest, $includeNativeAutostart, $options): array {
+        // Validate rollback inputs and the read-only plan before entering the transaction.
+        $progress['phase'] = 'capture';
+        fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($includeNativeAutostart ? [fvplusFolderView3NativeAutostartPath()] : []));
+        $progress['phase'] = 'validation';
+        $plan = buildFolderView3MigrationPlan($bundle, $sourceName);
+        $actualDigest = strtolower(trim((string)($plan['source']['digest'] ?? '')));
+        $expected = strtolower(trim($expectedDigest));
+        $progress['phase'] = 'stale-preview';
+        if (!preg_match('/^[a-f0-9]{64}$/', $expected) || !hash_equals($actualDigest, $expected)) {
+            throw new RuntimeException('FolderView3 source or current configuration changed after preview. Preview it again before applying.');
         }
-    }
-    unset($operation);
-    try {
-        appendDiagnosticsHistoryEvent('folderview3_migration', null, [
-            'dockerCount' => (int)($report['summary']['dockerFolderCount'] ?? 0),
-            'vmCount' => (int)($report['summary']['vmFolderCount'] ?? 0),
+        $progress['phase'] = 'validation';
+        $nativeEntries = (array)($plan['nativeAutostart'] ?? []);
+        $nativePath = fvplusFolderView3NativeAutostartPath();
+        $nativeContent = fvplusFolderView3NativeAutostartContent($nativeEntries);
+        if ($includeNativeAutostart && count($nativeEntries) === 0) {
+            throw new RuntimeException('No native Docker autostart entries are available to include.');
+        }
+        $transactionOptions = [
+            'reason' => 'folderview3-migration',
+            'afterStage' => $options['afterStage'] ?? null,
+            'onOutcome' => static function(array $state) use (&$progress): void { $progress = $state; },
+            'syncDockerOrder' => $includeNativeAutostart
+        ];
+        $transactionOptions['beforeWrite'] = static function() use ($bundle, $sourceName, $expected, &$progress): void {
+            $progress['phase'] = 'stale-preview';
+            fvplusFolderView3VerifyPreviewUnderLock($bundle, $sourceName, $expected);
+        };
+        if ($includeNativeAutostart) {
+            $transactionOptions['extraPaths'] = [$nativePath];
+            $transactionOptions['externalApply'] = static function() use ($nativePath, $nativeContent): void {
+                writeDurableFileAtomic($nativePath, $nativeContent);
+                if ((string)@file_get_contents($nativePath) !== $nativeContent) {
+                    throw new RuntimeException('Native Docker autostart verification failed.');
+                }
+            };
+        }
+        $transaction = applyEnvironmentSnapshotTransaction((array)$plan['target'], $sourceName, $transactionOptions);
+        $report = folderView3MigrationReport($plan);
+        foreach ($report['operations'] as &$operation) {
+            if (($operation['id'] ?? '') === 'native-autostart') {
+                $operation['selected'] = $includeNativeAutostart;
+            }
+        }
+        unset($operation);
+        return [
+            'report' => $report,
+            'transaction' => $transaction,
             'nativeAutostartIncluded' => $includeNativeAutostart,
-            'rollbackName' => (string)($transaction['rollback']['name'] ?? '')
-        ], 'ok', 'server');
-    } catch (Throwable $error) {
-        // Keep a successful migration non-fatal if diagnostics logging fails.
-    }
-    return [
-        'report' => $report,
-        'transaction' => $transaction,
-        'nativeAutostartIncluded' => $includeNativeAutostart,
-        'appliedAt' => gmdate('c')
-    ];
+            'appliedAt' => gmdate('c')
+        ];
+    }, ['sourceKind' => ($options['sourceKind'] ?? '') === 'installed' ? 'installed' : 'export', 'nativeAutostartRequested' => $includeNativeAutostart]);
 }

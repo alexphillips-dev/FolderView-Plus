@@ -21,12 +21,13 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
         document.body.style.cssText = 'background:var(--fvplus-ui-page);color:var(--fvplus-ui-text-primary);font:14px Arial,sans-serif;margin:20px';
         document.documentElement.style.fontSize = '10px';
         document.documentElement.dataset.fvplusHostTheme = matchMedia('(prefers-color-scheme: light)').matches ? 'white' : 'black';
+        window.FolderViewPlusFolderEditorPageBuildVersion = '2026.10.15.01';
     }, { markup, help, type });
     for (const style of ['ui.primitives.css', 'ui.host-buttons.css']) {
         const link = await page.addStyleTag({ url: `${baseUrl}/plugin/styles/${style}` });
         await link.evaluate(node => document.head.insertBefore(node, document.querySelector('link[href$="/folder.css"]')));
     }
-    for (const name of ['folderviewplus.ui', 'folderviewplus.utils-foundation', 'folder.editor.chrome', 'folder.editor.help', 'folder.editor.icon-browser', 'folder.editor.icons']) {
+    for (const name of ['folderviewplus.ui', 'folderviewplus.utils-foundation', 'folderviewplus.editor-diagnostics-model', 'folderviewplus.ui-state-diagnostics', 'folder.editor.diagnostics', 'folder.editor.chrome', 'folder.editor.help', 'folder.editor.icon-browser', 'folder.editor.icons']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
     }
     await page.evaluate(async () => {
@@ -50,6 +51,7 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
                     return { ok: true, icons: state.uploads };
                 },
                 uploadCustomIconFile: async (file, options) => {
+                    if (state.uploadFail) throw new Error('private-upload-response /private/path http://192.168.1.2');
                     state.uploadOptions = { dedupe: options.dedupe, replace: options.replace };
                     if (state.pending) await new Promise(resolve => { state.complete = resolve; });
                     const icon = { name: file.name, url: `${defaultIcon}?upload=${file.name}`, usageCount: 0 };

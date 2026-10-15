@@ -56,6 +56,7 @@
                 generation++;
                 draft = value || defaultIcon;
                 paintDraft();
+                recordOutcome('ready');
             }
             const meta = info(value);
             updateImage(byId('fvIconPanelPreview'), value);
@@ -81,11 +82,21 @@
             generation++;
             draft = String(value || '');
             paintDraft();
+            recordOutcome('staged');
+        };
+        const recordOutcome = (phase, details = {}) => {
+            if (!enabled) return;
+            try {
+                library.closest('form')?.dispatchEvent(new win.CustomEvent('fvplus:editor-icon-diagnostics', { bubbles: true, detail: {
+                    phase, source, draftMatchesField: draft === getValue(), fieldIsEmpty: !getValue(), rollbackAvailable: rollbackValue !== null, reason: 'none', ...details
+                } }));
+            } catch (_error) { /* Diagnostics must never change selection or cancellation. */ }
         };
         const changeSource = (next, remember = true) => {
             if (!enabled || !sourceIds[next]) return;
             if (remember) scroll.set(source, workspace.body.scrollTop);
             source = next;
+            recordOutcome('source-changed');
             Object.entries(tabs).forEach(([key, id]) => {
                 const tab = byId(id);
                 tab?.setAttribute('aria-selected', String(key === source));
@@ -116,6 +127,7 @@
             if (previous !== null) setValue(previous);
             reset();
             sync();
+            recordOutcome('cancelled', { cancelRestorationAttempted: previous !== null, cancelRestored: previous !== null && getValue() === previous });
         };
         const matchPanelHeight = () => {
             const panel = home.closest('[data-editor-panel="icon"]');
@@ -150,6 +162,7 @@
                 reset();
                 sync();
                 if (value !== previous) rollbackValue = previous;
+                recordOutcome('applied');
             });
             actions.appendChild(use);
             workspace.body.addEventListener('scroll', () => scroll.set(source, workspace.body.scrollTop));
@@ -218,8 +231,9 @@
                 };
             });
             sync();
+            recordOutcome('ready');
         }
-        return Object.freeze({ enabled, open, changeSource, stage, sync, invalidate, showDialog, resolveCollision,
+        return Object.freeze({ enabled, open, changeSource, stage, sync, invalidate, showDialog, resolveCollision, recordOutcome,
             isOpen: () => enabled, getSelection: () => enabled ? draft : getValue(),
             token: () => generation, isCurrent: (token) => enabled && token === generation });
     };

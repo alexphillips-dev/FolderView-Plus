@@ -29,6 +29,7 @@
         element.style.fontSize = `${prefs.size}px`;
         element.style.fontWeight = prefs.bold ? '700' : '400';
         element.style.fontStyle = prefs.italic ? 'italic' : 'normal';
+        element.style.textDecorationLine = [prefs.underline && 'underline', prefs.strikethrough && 'line-through'].filter(Boolean).join(' ') || 'none';
         element.style.color = prefs.color === 'theme' ? '' : prefs.color;
     };
     const createController = ({ window: win = globalThis.window, document: doc = win?.document, resolveHost = () => null, getPrefs = () => ({}) } = {}) => {
@@ -146,6 +147,7 @@
             const element = field('preview');
             if (element) applyAppearance(element, { ...getPrefs(), text: field('text').value, font: field('font').value,
                 size: field('size').value, bold: field('bold').checked, italic: field('italic').checked,
+                underline: field('underline').checked, strikethrough: field('strikethrough').checked,
                 color: drafts.has('color') ? field('color').value : getPrefs().color });
         };
         const sync = () => {
@@ -164,7 +166,7 @@
             for (const key of ['text', 'font', 'size']) if (!drafts.has(key)) field(key).value = prefs[key];
             syncFont();
             if (fontList) for (const option of fontList.children) option.setAttribute('aria-selected', String(option.dataset.fvFont === prefs.font));
-            for (const key of ['bold', 'italic']) if (!drafts.has(key)) field(key).checked = prefs[key];
+            for (const key of ['bold', 'italic', 'underline', 'strikethrough']) if (!drafts.has(key)) field(key).checked = prefs[key];
             applyAppearance(field('preview'), prefs);
             const rgb = win.getComputedStyle(field('preview')).color.match(/\d+/g);
             if (!drafts.has('color')) field('color').value = prefs.color === 'theme'

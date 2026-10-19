@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
+        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
     },
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",
@@ -236,6 +236,8 @@
     "settings.page-title.size": "Velikost (px)",
     "settings.page-title.bold": "Tučné",
     "settings.page-title.italic": "kurzíva",
+    "settings.page-title.underline": "Podtržení",
+    "settings.page-title.strikethrough": "Přeškrtnutí",
     "settings.page-title.color": "Barva",
     "settings.page-title.preview": "Náhled titulu",
     "settings.page-title.reset": "Obnovit vzhled"

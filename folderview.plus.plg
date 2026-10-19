@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.09">
-<!ENTITY md5 "a947e2ad3cf9eec3e8ddf5ed536f514d">
-<!ENTITY sha256 "d9470a4459b53283ef42c4e04a78510ee76c172aba2b4d645513449c6d013f4f">
+<!ENTITY version "2026.10.19.10">
+<!ENTITY md5 "6c0783b5db3d99e69b336b1a0f218dba">
+<!ENTITY sha256 "99a4437b4cdeccceaa42fe5833ff737f3a1d8e89fd42c6d7d69373e7662392b0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.10
+- Feature: Add Underline and Strikethrough options to the Docker page title. Use either independently or combine both with Bold and Italic in the preview and Docker heading.
+- UI/UX: Group the four formatting options into a compact two-row layout that fits desktop and phone Settings cards. Both new options start off by default.
+- Reliability: Save the new formatting choices with your title, preserve them through reloads and configuration backups, and clear them with Reset appearance. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.19.09
 - UI/UX: Reduce the Docker title font picker's selected text and font-name previews to match the Title text field more closely. Use compact desktop rows while retaining comfortable touch targets on phones. Hard-refresh the webGUI after updating.

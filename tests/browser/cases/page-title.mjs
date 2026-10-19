@@ -6,7 +6,7 @@ export const registerPageTitleCases = ({ test }) => {
         for (const nativeToolbar of [true, false]) {
             const host = await createPageTitleHost(page, nativeToolbar);
             const text = '<img src=x onerror=alert(1)> ' + 'Long title '.repeat(12);
-            host.prefs().pageTitle = { enabled: true, text, size: 48, font: 'serif', bold: false, italic: false, color: 'theme' };
+            host.prefs().pageTitle = { enabled: true, text, size: 48, font: 'serif', bold: false, italic: false, underline: true, strikethrough: true, color: 'theme' };
             try {
                 for (const mode of ['folderview', 'host', 'command']) {
                     host.prefs().pageViewMode = mode;
@@ -17,6 +17,7 @@ export const registerPageTitleCases = ({ test }) => {
                     assert.equal(await title.count(), 1);
                     assert.equal(await title.textContent(), text.slice(0, 100).trim());
                     assert.equal(await title.locator('*').count(), 0, 'saved title is plain text');
+                    assert.equal(await title.evaluate(node => getComputedStyle(node).textDecorationLine), 'underline line-through', 'both decorations render in every Docker view');
                     const theme = await title.evaluate(node => ({ title: getComputedStyle(node).color,
                         control: getComputedStyle(document.querySelector('.fvplus-docker-runtime-toggle-label')).color,
                         name: window.display.theme, dark: matchMedia('(prefers-color-scheme: dark)').matches }));
@@ -60,6 +61,8 @@ export const registerPageTitleCases = ({ test }) => {
             assert.equal(host.prefs().pageTitle.enabled, true);
             assert.equal(await page.locator('#docker-page-title-text').count(), 1, 'enabling mounts the formatting controls once');
             assert.equal(host.prefs().pageTitle.text, 'Change Me!');
+            assert.equal(await page.locator('#docker-page-title-underline').isChecked(), false);
+            assert.equal(await page.locator('#docker-page-title-strikethrough').isChecked(), false);
             await page.locator('#docker-page-title-text').fill('Fixture containers');
             assert.equal(await page.locator('#docker-page-title-preview').textContent(), 'Fixture containers', 'typing updates the preview');
             await saved(() => page.locator('#docker-page-title-text').press('Tab'));
@@ -68,6 +71,13 @@ export const registerPageTitleCases = ({ test }) => {
             await page.locator('#docker-page-title-size').fill('48');
             await saved(() => page.locator('#docker-page-title-size').press('Tab'));
             await saved(() => page.locator('#docker-page-title-italic').check());
+            await saved(() => page.locator('label').filter({ has: page.locator('#docker-page-title-underline') }).click());
+            assert.equal(await page.locator('#docker-page-title-preview').evaluate(node => getComputedStyle(node).textDecorationLine), 'underline');
+            await saved(() => page.locator('label').filter({ has: page.locator('#docker-page-title-strikethrough') }).click());
+            assert.equal(await page.locator('#docker-page-title-preview').evaluate(node => getComputedStyle(node).textDecorationLine), 'underline line-through');
+            await saved(() => page.locator('#docker-page-title-underline').uncheck());
+            assert.equal(await page.locator('#docker-page-title-preview').evaluate(node => getComputedStyle(node).textDecorationLine), 'line-through');
+            await saved(() => page.locator('#docker-page-title-underline').check());
             await saved(() => page.locator('#docker-page-title-color').evaluate(node => { node.value = '#ff9900'; node.dispatchEvent(new Event('change', { bubbles: true })); }));
             assert.equal(host.prefs().pageTitle.color, '#ff9900');
             const overflow = await grid.evaluate(node => [...node.querySelectorAll('input,select,button')].filter(el => el.getClientRects().length).every(el => { const a = el.getBoundingClientRect(), b = el.closest('.settings-mini-card').getBoundingClientRect(); return a.left >= b.left && a.right <= b.right + 1; }));
@@ -76,11 +86,14 @@ export const registerPageTitleCases = ({ test }) => {
             await page.reload();
             await page.waitForFunction(() => document.querySelector('#docker-page-title-text')?.value === 'Fixture containers');
             assert.equal(await page.locator('#docker-page-title-size').inputValue(), '48');
+            assert.equal(await page.locator('#docker-page-title-underline').isChecked(), true);
+            assert.equal(await page.locator('#docker-page-title-strikethrough').isChecked(), true);
             await page.goto(`${host.baseUrl}/docker`); await waitDocker();
             const title = page.locator('#fvplus-docker-page-title');
             assert.equal(await title.textContent(), 'Fixture containers');
             const appearance = await title.evaluate(node => { const s = getComputedStyle(node); return { font: s.fontFamily, size: s.fontSize, weight: s.fontWeight, italic: s.fontStyle, color: s.color }; });
             assert.deepEqual(appearance, { font: 'monospace', size: '48px', weight: '700', italic: 'italic', color: 'rgb(255, 153, 0)' });
+            assert.equal(await title.evaluate(node => getComputedStyle(node).textDecorationLine), 'underline line-through');
             const after = await positions();
             assert.equal(after.length, before.length);
             after.forEach((item, index) => assert.ok(Math.abs(item.left - before[index].left) < 1 && Math.abs(item.width - before[index].width) < 1, 'title must preserve right-side control geometry'));
@@ -97,6 +110,10 @@ export const registerPageTitleCases = ({ test }) => {
             await saved(() => page.locator('.fv-page-title-reset').click());
             assert.equal(host.prefs().pageTitle.text, 'Fixture containers');
             assert.equal(host.prefs().pageTitle.size, 28); assert.equal(host.prefs().pageTitle.color, 'theme');
+            assert.equal(host.prefs().pageTitle.underline, false); assert.equal(host.prefs().pageTitle.strikethrough, false);
+            assert.equal(await page.locator('#docker-page-title-underline').isChecked(), false);
+            assert.equal(await page.locator('#docker-page-title-strikethrough').isChecked(), false);
+            assert.equal(await page.locator('#docker-page-title-preview').evaluate(node => getComputedStyle(node).textDecorationLine), 'none');
             await saved(() => page.locator('label').filter({ has: page.locator('#docker-page-title-enabled') }).click());
             assert.equal(host.prefs().pageTitle.text, 'Fixture containers');
             await page.goto(`${host.baseUrl}/docker`); await waitDocker();

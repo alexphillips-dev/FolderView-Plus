@@ -43,6 +43,8 @@
         "size": { "types": ["docker"], "kind": "integer", "min": 14, "max": 48, "default": 28, "liveApply": true },
         "bold": { "types": ["docker"], "kind": "boolean", "default": true, "liveApply": true },
         "italic": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
+        "underline": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
+        "strikethrough": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
         "color": { "types": ["docker"], "kind": "color", "default": "theme", "liveApply": true }
       }
     },

@@ -994,6 +994,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 .fv-page-title-format > label:first-child, .fv-page-title-color > label { display: flex; align-items: center; gap: 8px; flex: 1; }
 #fv-settings-root .fv-page-title-format input[type="number"] { width: 62px; }
 .fv-page-title-format-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; cursor: pointer; }
+.fv-page-title-emphasis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; flex: 0 1 220px; min-width: 0; overflow-wrap: anywhere; }
 #fv-settings-root .fv-page-title-color input[type="color"] { box-sizing: border-box; width: 38px; height: 30px; padding: 2px; margin: 0; }
 .fv-page-title-preview { padding: 6px; overflow: hidden; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 5px; color: var(--fvplus-settings-text-primary); }
 #docker-page-title-preview { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }

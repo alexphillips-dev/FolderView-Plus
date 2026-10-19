@@ -20,7 +20,7 @@ const settingsRegistry = require(path.join(pluginRoot, 'scripts/folderviewplus.s
 const viewSettings = require(path.join(pluginRoot, 'scripts/folderviewplus.view-settings.js'));
 
 const expectedPreferenceKeys = {
-    changePageTitlePref: ['bold', 'color', 'enabled', 'font', 'italic', 'size', 'text'],
+    changePageTitlePref: ['bold', 'color', 'enabled', 'font', 'italic', 'size', 'strikethrough', 'text', 'underline'],
     changeVisibilityPref: ['appColumnWidth', 'hideEmptyFolders'],
     changeStatusPref: ['attentionAccent', 'displayMode', 'mode', 'trendEnabled', 'warnStoppedPercent'],
     changeBadgePref: ['running', 'stopped', 'updates'],

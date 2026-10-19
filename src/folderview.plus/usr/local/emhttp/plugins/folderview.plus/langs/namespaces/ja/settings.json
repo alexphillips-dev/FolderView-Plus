@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
+        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
     },
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",
@@ -236,6 +236,8 @@
     "settings.page-title.size": "サイズ (ピクセル)",
     "settings.page-title.bold": "太字",
     "settings.page-title.italic": "イタリック体",
+    "settings.page-title.underline": "下線",
+    "settings.page-title.strikethrough": "取り消し線",
     "settings.page-title.color": "色",
     "settings.page-title.preview": "タイトルプレビュー",
     "settings.page-title.reset": "外観をリセットする"

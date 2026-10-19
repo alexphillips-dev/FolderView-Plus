@@ -265,8 +265,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <label class="setting-select" for="docker-page-title-font-picker"><span id="docker-page-title-font-label" data-i18n="settings.page-title.font">Font</span><select id="docker-page-title-font" data-fv-title-field="font" hidden tabindex="-1" aria-hidden="true"><option value="theme" data-i18n="settings.page-title.theme">Theme default</option><option value="sans-serif" data-i18n="settings.page-title.sans">Sans-serif</option><option value="serif" data-i18n="settings.page-title.serif">Serif</option><option value="monospace" data-i18n="settings.page-title.mono">Monospace</option></select><button id="docker-page-title-font-picker" class="fv-page-title-font-picker" type="button" role="combobox" aria-labelledby="docker-page-title-font-label" aria-haspopup="listbox" aria-controls="docker-page-title-font-list" aria-expanded="false"></button></label>
                         <div class="fv-page-title-format">
                             <label for="docker-page-title-size"><span data-i18n="settings.page-title.size">Size (px)</span><input id="docker-page-title-size" type="number" min="14" max="48" step="1" data-fv-title-field="size"></label>
-                            <label class="fv-page-title-format-toggle"><input id="docker-page-title-bold" type="checkbox" data-fv-title-field="bold"><strong data-i18n="settings.page-title.bold">Bold</strong></label>
-                            <label class="fv-page-title-format-toggle"><input id="docker-page-title-italic" type="checkbox" data-fv-title-field="italic"><em data-i18n="settings.page-title.italic">Italic</em></label>
+                            <div class="fv-page-title-emphasis">
+                                <label class="fv-page-title-format-toggle"><input id="docker-page-title-bold" type="checkbox" data-fv-title-field="bold"><strong data-i18n="settings.page-title.bold">Bold</strong></label>
+                                <label class="fv-page-title-format-toggle"><input id="docker-page-title-italic" type="checkbox" data-fv-title-field="italic"><em data-i18n="settings.page-title.italic">Italic</em></label>
+                                <label class="fv-page-title-format-toggle"><input id="docker-page-title-underline" type="checkbox" data-fv-title-field="underline"><u data-i18n="settings.page-title.underline">Underline</u></label>
+                                <label class="fv-page-title-format-toggle"><input id="docker-page-title-strikethrough" type="checkbox" data-fv-title-field="strikethrough"><s data-i18n="settings.page-title.strikethrough">Strikethrough</s></label>
+                            </div>
                         </div>
                         <div class="fv-page-title-color">
                             <label for="docker-page-title-color"><span data-i18n="settings.page-title.color">Color</span><input id="docker-page-title-color" type="color" value="#ffffff" data-fv-title-field="color"></label>

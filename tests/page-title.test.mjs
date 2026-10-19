@@ -18,14 +18,15 @@ test('page title defaults, safe text, limits, PHP parity and persistence round t
     const inputs = [{}, null, [], { enabled: true, text: ' Change Me! ', size: 48, bold: false, italic: true, color: '#AABBCC', font: 'serif' },
         { text: '<img src=x onerror=alert(1)>\nTitle', font: 'url(unsafe)', size: 999, color: 'red;background:url(x)' },
         { text: '😀'.repeat(101), size: 14 }, { text: '\n\u0000', size: 'bad', bold: false }, { size: 27.8 }, { text: 'Long title '.repeat(12) },
-        { text: '\ufeff\u00a0Title\u3000' }, { text: 'x'.repeat(99) + '\u00a0tail' }, ...fontIds.map(font => ({ font }))];
+        { text: '\ufeff\u00a0Title\u3000' }, { text: 'x'.repeat(99) + '\u00a0tail' }, ...fontIds.map(font => ({ font })),
+        { underline: true, strikethrough: true }, { underline: 'true', strikethrough: 1 }, { underline: false, strikethrough: false }];
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-page-title-'));
     const driver = path.join(temp, 'driver.php');
     fs.writeFileSync(driver, `<?php
 require getenv('FVPLUS_SETTINGS_LIB_PATH');
 $inputs = json_decode(getenv('FVPLUS_TITLE_INPUTS'), true);
 $normalized = array_map('normalizePageTitle', $inputs);
-$initial = writeTypePrefs('docker', ['pageTitle' => ['enabled' => true, 'text' => 'Fixture title', 'font' => 'lora', 'size' => 40]]);
+$initial = writeTypePrefs('docker', ['pageTitle' => ['enabled' => true, 'text' => 'Fixture title', 'font' => 'lora', 'size' => 40, 'underline' => true, 'strikethrough' => true]]);
 writeTypePrefs('docker', mergeTypePrefsPatch($initial, ['pageTitle' => ['enabled' => false]]));
 $disabled = readTypePrefs('docker');
 writeTypePrefs('docker', mergeTypePrefsPatch($disabled, ['pageTitle' => ['enabled' => true, 'bold' => false]]));
@@ -42,14 +43,28 @@ echo json_encode(['normalized' => $normalized, 'disabled' => $disabled['pageTitl
             FVPLUS_TEST_CONFIG_DIR: path.join(temp, 'config'), FVPLUS_TEST_SOURCE_DIR: path.join(temp, 'runtime'), FVPLUS_TEST_DOCUMENT_ROOT: path.join(temp, 'document-root') } }));
         assert.deepEqual(result.normalized, inputs.map(input => utils.normalizePrefs({ pageTitle: input }).pageTitle));
         for (const prefs of result.normalized) assert.deepEqual(utils.normalizePageTitle(prefs), prefs, 'normalizing again must preserve saved title text');
-        assert.deepEqual(result.normalized[0], { enabled: false, text: 'Change Me!', font: 'theme', size: 28, bold: true, italic: false, color: 'theme' });
+        assert.deepEqual(result.normalized[0], { enabled: false, text: 'Change Me!', font: 'theme', size: 28, bold: true, italic: false, underline: false, strikethrough: false, color: 'theme' });
         assert.equal(result.normalized[5].text, '😀'.repeat(100));
         assert.equal(result.disabled.enabled, false);
         assert.equal(result.restored.text, 'Fixture title'); assert.equal(result.restored.font, 'lora');
         assert.equal(result.restored.size, 40); assert.equal(result.restored.bold, false);
+        assert.equal(result.restored.underline, true); assert.equal(result.restored.strikethrough, true);
+        assert.equal(result.normalized.at(-2).underline, false); assert.equal(result.normalized.at(-2).strikethrough, false);
         assert.deepEqual(result.snapshotTitle, result.restored, 'configuration snapshots retain the complete title preferences');
         assert.equal(result.rejected, true);
     } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('title decorations combine independently and clear when disabled or reset', () => {
+    const element = { style: {} };
+    for (const [underline, strikethrough, expected] of [[true, true, 'underline line-through'], [false, true, 'line-through'],
+        [true, false, 'underline'], [false, false, 'none']]) {
+        pageTitle.applyAppearance(element, { underline, strikethrough });
+        assert.equal(element.style.textDecorationLine, expected);
+    }
+    pageTitle.applyAppearance(element, { underline: true, strikethrough: true });
+    pageTitle.applyAppearance(element, {});
+    assert.equal(element.style.textDecorationLine, 'none', 'legacy preferences clear any previous decoration');
 });
 
 test('bundled title fonts have matching typed contracts, safe rendering, license and integrity evidence', () => {
@@ -86,12 +101,16 @@ test('page title registry validates text and colors and limits the setting to Do
     assert.equal(change('color', '#FFAB12'), '#ffab12');
     assert.equal(change('color', 'url(x)'), 'theme');
     assert.equal(change('size', 999), 48);
+    for (const key of ['underline', 'strikethrough']) {
+        assert.equal(change(key, true), true); assert.equal(change(key, false), false);
+        assert.equal(registry.resolveChange('changePageTitlePref', 'vm', key, true), null);
+    }
     assert.equal(registry.resolveChange('changePageTitlePref', 'vm', 'enabled', true), null);
 });
 
 test('a background preference save cannot overwrite an uncommitted title draft', () => {
     const prefs = utils.normalizePageTitle({ enabled: true });
-    const elements = Object.fromEntries(['enabled', 'fields', 'text', 'font', 'size', 'bold', 'italic', 'color', 'preview'].map(key => [key, { style: {}, value: '', checked: false, dataset: { fvTitleField: key } }]));
+    const elements = Object.fromEntries(['enabled', 'fields', 'text', 'font', 'size', 'bold', 'italic', 'underline', 'strikethrough', 'color', 'preview'].map(key => [key, { style: {}, value: '', checked: false, dataset: { fvTitleField: key } }]));
     const listeners = new Map();
     let controller;
     const doc = { getElementById: id => elements[id.replace('docker-page-title-', '')], addEventListener: (name, callback) => listeners.set(name, callback), removeEventListener: name => listeners.delete(name) };

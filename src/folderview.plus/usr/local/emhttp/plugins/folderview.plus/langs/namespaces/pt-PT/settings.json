@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "settings",
-        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
+        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
     },
     "settings.rules.save-changes": "Salvar alterações",
     "settings.rules.regex-placeholder": "Padrão Regex (por exemplo, ^media-)",
@@ -236,6 +236,8 @@
     "settings.page-title.size": "Tamanho (px)",
     "settings.page-title.bold": "Negrito",
     "settings.page-title.italic": "Itálico",
+    "settings.page-title.underline": "Sublinhado",
+    "settings.page-title.strikethrough": "Rasurado",
     "settings.page-title.color": "Cor",
     "settings.page-title.preview": "Visualização do título",
     "settings.page-title.reset": "Redefinir aparência"

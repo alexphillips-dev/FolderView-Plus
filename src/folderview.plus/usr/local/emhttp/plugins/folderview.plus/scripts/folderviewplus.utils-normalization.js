@@ -48,6 +48,8 @@
             size: Number.isFinite(size) ? Math.max(14, Math.min(48, Math.round(size))) : 28,
             bold: source.bold !== false,
             italic: source.italic === true,
+            underline: source.underline === true,
+            strikethrough: source.strikethrough === true,
             color: /^#[0-9a-f]{6}$/.test(color) ? color : 'theme'
         };
     };

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "legacy-surface",
-        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
+        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
     },
     "legacy.surface.0008eb7acd3f7a56": "无法批量移动",
     "legacy.surface.0012950979762d8c": "选择要恢复、下载或删除的快照。",

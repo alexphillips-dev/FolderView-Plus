@@ -29,7 +29,7 @@
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
             'pageViewMode' => 'folderview',
-            'pageTitle' => ['enabled' => false, 'text' => 'Change Me!', 'font' => 'theme', 'size' => 28, 'bold' => true, 'italic' => false, 'color' => 'theme'],
+            'pageTitle' => ['enabled' => false, 'text' => 'Change Me!', 'font' => 'theme', 'size' => 28, 'bold' => true, 'italic' => false, 'underline' => false, 'strikethrough' => false, 'color' => 'theme'],
             'themeCompatibilityMode' => 'auto',
             'dashboard' => [
                 'layout' => 'classic',
@@ -457,6 +457,8 @@
             'size' => is_numeric($size) ? max(14, min(48, (int)round((float)$size))) : 28,
             'bold' => ($source['bold'] ?? true) !== false,
             'italic' => ($source['italic'] ?? false) === true,
+            'underline' => ($source['underline'] ?? false) === true,
+            'strikethrough' => ($source['strikethrough'] ?? false) === true,
             'color' => preg_match('/^#[0-9a-f]{6}$/', $color) ? $color : 'theme'
         ];
     }

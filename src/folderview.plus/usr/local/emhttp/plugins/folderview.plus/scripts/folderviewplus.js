@@ -9858,9 +9858,9 @@ const changePageTitlePref = async (type, key, value) => {
     }
 };
 const resetDockerPageTitleAppearance = async () => {
-    const { font, size, bold, italic, color } = utils.normalizePageTitle({});
+    const { font, size, bold, italic, underline, strikethrough, color } = utils.normalizePageTitle({});
     try {
-        await updatePrefsPartial('docker', { pageTitle: { font, size, bold, italic, color } }, { render: () => dockerPageTitleSettings.sync() });
+        await updatePrefsPartial('docker', { pageTitle: { font, size, bold, italic, underline, strikethrough, color } }, { render: () => dockerPageTitleSettings.sync() });
     } catch (error) {
         showError(surfaceT('common.repair.runtime-preference-sync-pending-fa357c', 'Runtime preference sync pending'), error);
     }

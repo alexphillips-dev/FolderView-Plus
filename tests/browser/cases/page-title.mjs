@@ -125,6 +125,12 @@ export const registerPageTitleCases = ({ test }) => {
             const loaded = await page.evaluate(() => [...document.fonts].filter(font => font.family.includes('FV Title ')).map(font => ({ family: font.family, status: font.status })));
             assert.equal(loaded.length, 18); assert.ok(loaded.every(font => font.status === 'loaded'), 'all bundled previews actually load');
             assert.equal(new Set(requests).size, 18); assert.ok(requests.every(url => url.startsWith(host.baseUrl + '/plugins/')), 'font files stay local');
+            const typography = await picker.evaluate(button => ({ inputSize: parseFloat(getComputedStyle(document.getElementById('docker-page-title-text')).fontSize),
+                pickerSize: parseFloat(getComputedStyle(button).fontSize), pickerWeight: getComputedStyle(button).fontWeight,
+                optionSizes: [...document.querySelectorAll('#docker-page-title-font-list [role="option"]')].map(option => parseFloat(getComputedStyle(option).fontSize)) }));
+            assert.ok(Math.abs(typography.pickerSize - typography.inputSize) <= 0.5, 'selected font matches the Title text field scale');
+            assert.equal(typography.pickerWeight, '400', 'host button styles must not make the selected font bold');
+            assert.ok(typography.optionSizes.every(size => Math.abs(size - typography.inputSize) <= 0.5), 'font-name previews match the Title text field scale');
             const bounds = await list.boundingBox(), viewport = page.viewportSize();
             assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= viewport.width + 1 && bounds.y + bounds.height <= viewport.height + 1, 'popup stays inside the viewport');
             await page.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });

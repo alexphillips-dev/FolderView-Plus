@@ -52,6 +52,29 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             }, { owner: 'recovery-fixture' });
             window.recoveryFixture.syncRecoveryWorkspaceUi();
         });
+        // Model native host button margins, which the standalone fixture does not supply.
+        await page.addStyleTag({ content: '.fv-recovery-history-actions-row > button { margin: 4px 10px 4px 0; }' });
+        const checkHistoryActions = async () => {
+            const layout = await page.evaluate(() => {
+                const row = document.querySelector('.fv-recovery-snapshot-row.is-active');
+                const actions = [...row.querySelectorAll('.fv-recovery-history-actions-row button')];
+                const boxes = actions.map(button => button.getBoundingClientRect());
+                const badge = document.querySelector('.fv-recovery-history-badges > .fv-recovery-history-badge');
+                return {
+                    badgeFont: parseFloat(getComputedStyle(badge).fontSize),
+                    captionFont: parseFloat(getComputedStyle(row.querySelector('small')).fontSize),
+                    badgeFits: badge.scrollWidth <= badge.clientWidth,
+                    gaps: boxes.slice(1).map((box, index) => box.top >= boxes[index].bottom - 1
+                        ? box.top - boxes[index].bottom : box.left - boxes[index].right),
+                    heights: boxes.map(box => box.height),
+                    overflow: row.scrollWidth > row.clientWidth + 2
+                };
+            });
+            assert.ok(layout.badgeFont >= layout.captionFont && layout.badgeFits, JSON.stringify(layout));
+            assert.ok(layout.gaps.length === 2 && layout.gaps.every(gap => gap >= 3 && gap <= 6), JSON.stringify(layout));
+            assert.ok(layout.heights.every(height => height >= 32) && !layout.overflow, JSON.stringify(layout));
+        };
+        await checkHistoryActions();
         assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 5);
         assert.equal(await page.locator('#fv-recovery-restore-latest').isDisabled(), false);
         const readability = await page.evaluate(() => {
@@ -88,6 +111,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         await page.locator('.fv-recovery-snapshot-item').nth(1).press('Enter');
         assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').count(), 1);
         assert.equal(await page.locator('.fv-recovery-snapshot-item[aria-pressed="true"]').evaluate(node => node === document.activeElement), true);
+        await checkHistoryActions();
         await page.locator('.fv-recovery-view-all').click();
         assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 7);
         await page.evaluate(() => window.recoveryFixture.selectActiveRecoveryBackup('docker-6.json'));
@@ -97,22 +121,27 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.equal(await page.locator('#fv-recovery-policy-editor').evaluate(node => node.hidden), false);
         assert.equal(await page.locator('[data-fv-onclick="openActiveRecoverySnapshotCompare()"]').getAttribute('aria-haspopup'), 'dialog');
         assert.equal(await page.locator('#fv-recovery-compare-panel').count(), 0);
-        await page.evaluate(() => window.recoveryFixture.setRecoveryWorkspaceType('vm', false));
-        assert.equal(await page.locator('#recovery-backup-schedule-enabled').isChecked(), true);
-        assert.equal(await page.locator('#recovery-backup-interval-hours').inputValue(), '12');
-        assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 2);
-        for (const width of [1440, 800, 390]) {
-            await page.setViewportSize({ width, height: 850 });
-            const layout = await page.evaluate(() => {
-                const content = document.querySelector('.fv-advanced-content');
-                const history = document.querySelector('.fv-recovery-history-stage').getBoundingClientRect();
-                const policy = document.querySelector('.fv-recovery-policy').getBoundingClientRect();
-                return { overflow: content.scrollWidth > content.clientWidth + 2, historyRight: history.right,
-                    policyLeft: policy.left, policyTop: policy.top, historyTop: history.top };
-            });
-            assert.equal(layout.overflow, false, `Recovery overflow at ${width}px`);
-            if (width === 1440) assert.ok(layout.policyLeft >= layout.historyRight, 'desktop cards should sit side by side');
-            if (width === 390) assert.ok(layout.policyTop > layout.historyTop, 'phone cards should stack');
+        for (const type of ['docker', 'vm']) {
+            await page.evaluate(type => window.recoveryFixture.setRecoveryWorkspaceType(type, false), type);
+            if (type === 'vm') {
+                assert.equal(await page.locator('#recovery-backup-schedule-enabled').isChecked(), true);
+                assert.equal(await page.locator('#recovery-backup-interval-hours').inputValue(), '12');
+                assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 2);
+            }
+            for (const width of [1440, 800, 390]) {
+                await page.setViewportSize({ width, height: 850 });
+                await checkHistoryActions();
+                const layout = await page.evaluate(() => {
+                    const content = document.querySelector('.fv-advanced-content');
+                    const history = document.querySelector('.fv-recovery-history-stage').getBoundingClientRect();
+                    const policy = document.querySelector('.fv-recovery-policy').getBoundingClientRect();
+                    return { overflow: content.scrollWidth > content.clientWidth + 2, historyRight: history.right,
+                        policyLeft: policy.left, policyTop: policy.top, historyTop: history.top };
+                });
+                assert.equal(layout.overflow, false, `Recovery overflow at ${width}px`);
+                if (width === 1440) assert.ok(layout.policyLeft >= layout.historyRight, 'desktop cards should sit side by side');
+                if (width === 390) assert.ok(layout.policyTop > layout.historyTop, 'phone cards should stack');
+            }
         }
         await page.setViewportSize({ width: 1440, height: 850 });
     });

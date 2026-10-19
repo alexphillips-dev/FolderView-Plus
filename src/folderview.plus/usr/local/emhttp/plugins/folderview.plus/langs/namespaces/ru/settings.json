@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Папки сохранились. Обновите страницу, чтобы отобразить последнюю конфигурацию.",
     "settings.groups.unavailable": "Создание папки недоступно. Обновите страницу и повторите попытку.",
     "settings.groups.docker-description": "Управляйте папками, группами и правилами синхронизации Docker.",
-    "settings.groups.vm-description": "Управляйте папками, группами и правилами синхронизации ваших виртуальных машин."
+    "settings.groups.vm-description": "Управляйте папками, группами и правилами синхронизации ваших виртуальных машин.",
+    "settings.page-title.status-card": "Статус и значки",
+    "settings.page-title.label": "Заголовок страницы Docker",
+    "settings.page-title.location": "Добавьте заголовок в крайнем левом углу над контейнерами.",
+    "settings.page-title.enable": "Показать собственный заголовок",
+    "settings.page-title.text": "Текст заголовка",
+    "settings.page-title.font": "Шрифт",
+    "settings.page-title.theme": "Тема по умолчанию",
+    "settings.page-title.sans": "Без засечек",
+    "settings.page-title.serif": "с засечками",
+    "settings.page-title.mono": "Моноширинный",
+    "settings.page-title.size": "Размер (пикселей)",
+    "settings.page-title.bold": "Полужирный",
+    "settings.page-title.italic": "Курсив",
+    "settings.page-title.color": "Цвет",
+    "settings.page-title.preview": "Предварительный просмотр названия",
+    "settings.page-title.reset": "Сбросить внешний вид"
 }

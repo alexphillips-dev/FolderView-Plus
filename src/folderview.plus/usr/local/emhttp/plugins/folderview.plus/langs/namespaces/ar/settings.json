@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "تم حفظ المجلدات. قم بتحديث الصفحة لإظهار أحدث التكوين.",
     "settings.groups.unavailable": "إنشاء المجلد غير متاح. قم بتحديث الصفحة وحاول مرة أخرى.",
     "settings.groups.docker-description": "إدارة مجلدات Docker والمجموعات وقواعد المزامنة",
-    "settings.groups.vm-description": "إدارة مجلدات VM والمجموعات وقواعد المزامنة"
+    "settings.groups.vm-description": "إدارة مجلدات VM والمجموعات وقواعد المزامنة",
+    "settings.page-title.status-card": "الحالة والشارات",
+    "settings.page-title.label": "عنوان صفحة عامل الميناء",
+    "settings.page-title.location": "أضف عنوانًا في أقصى اليسار فوق حاوياتك",
+    "settings.page-title.enable": "إظهار العنوان المخصص",
+    "settings.page-title.text": "نص العنوان",
+    "settings.page-title.font": "الخط",
+    "settings.page-title.theme": "الموضوع الافتراضي",
+    "settings.page-title.sans": "بلا الرقيق",
+    "settings.page-title.serif": "شريف",
+    "settings.page-title.mono": "أحادي المسافة",
+    "settings.page-title.size": "الحجم (بكسل)",
+    "settings.page-title.bold": "عريض",
+    "settings.page-title.italic": "مائل",
+    "settings.page-title.color": "اللون",
+    "settings.page-title.preview": "معاينة العنوان",
+    "settings.page-title.reset": "إعادة ضبط المظهر"
 }

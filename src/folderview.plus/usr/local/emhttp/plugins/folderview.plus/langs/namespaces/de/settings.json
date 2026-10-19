@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Änderungen speichern",
     "settings.rules.regex-placeholder": "Regex-Muster (z. B. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Die Ordner wurden gespeichert. Aktualisieren Sie die Seite, um die neueste Konfiguration anzuzeigen.",
     "settings.groups.unavailable": "Die Ordnererstellung ist nicht verfügbar. Aktualisieren Sie die Seite und versuchen Sie es erneut.",
     "settings.groups.docker-description": "Verwalten Sie Ihre Docker-Ordner, -Gruppen und -Synchronisierungsregeln",
-    "settings.groups.vm-description": "Verwalten Sie Ihre VM-Ordner, Gruppen und Synchronisierungsregeln"
+    "settings.groups.vm-description": "Verwalten Sie Ihre VM-Ordner, Gruppen und Synchronisierungsregeln",
+    "settings.page-title.status-card": "Status und Abzeichen",
+    "settings.page-title.label": "Titel der Docker-Seite",
+    "settings.page-title.location": "Fügen Sie ganz links über Ihren Containern einen Titel hinzu",
+    "settings.page-title.enable": "Benutzerdefinierten Titel anzeigen",
+    "settings.page-title.text": "Titeltext",
+    "settings.page-title.font": "Schriftart",
+    "settings.page-title.theme": "Theme-Standard",
+    "settings.page-title.sans": "Ohne Serifen",
+    "settings.page-title.serif": "Serife",
+    "settings.page-title.mono": "Monospace",
+    "settings.page-title.size": "Größe (px)",
+    "settings.page-title.bold": "Fett",
+    "settings.page-title.italic": "Kursiv",
+    "settings.page-title.color": "Farbe",
+    "settings.page-title.preview": "Titelvorschau",
+    "settings.page-title.reset": "Aussehen zurücksetzen"
 }

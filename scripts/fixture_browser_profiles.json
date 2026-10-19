@@ -1,8 +1,11 @@
 {
+  "page-title": ["^Docker page title"],
+  "page-title-neighbors": ["^Basic custom groups", "^docker Dashboard folder effects"],
   "folder-badges": ["^Folder badges"],
   "settings-transfer": ["Docker folder menu", "^audited confirmations", "^complete localization boundaries", "^Shared UI primitives"],
   "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [
+    "^Docker page title",
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Custom icon rename", "Settings chrome",
     "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",

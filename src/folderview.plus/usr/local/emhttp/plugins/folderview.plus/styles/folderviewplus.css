@@ -979,6 +979,22 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     gap: 9px;
 }
 
+#fv-settings-root .fv-page-title-fields { display: grid; gap: 6px; min-width: 0; }
+.fv-page-title-enable { border-top: 1px solid var(--fvplus-settings-border-subtle); padding-top: 6px; }
+#fv-settings-root .fv-page-title-fields[hidden] { display: none; }
+#fv-settings-root .fv-page-title-fields input[type="text"] { box-sizing: border-box; width: 100%; min-width: 0; margin: 0; }
+.fv-page-title-format, .fv-page-title-color { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.fv-page-title-format > label:first-child, .fv-page-title-color > label { display: flex; align-items: center; gap: 8px; flex: 1; }
+#fv-settings-root .fv-page-title-format input[type="number"] { width: 62px; }
+.fv-page-title-format-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; cursor: pointer; }
+#fv-settings-root .fv-page-title-color input[type="color"] { box-sizing: border-box; width: 38px; height: 30px; padding: 2px; margin: 0; }
+.fv-page-title-preview { padding: 6px; overflow: hidden; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 5px; color: var(--fvplus-settings-text-primary); }
+#docker-page-title-preview { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+#fv-settings-root .fv-page-title-color button, #fv-settings-root .fv-page-title-reset { font: inherit; text-transform: none; letter-spacing: 0; padding: 4px 8px; margin: 0; min-width: 0; }
+@media (pointer: coarse) {
+    .fv-page-title-fields :is(label, button) { min-height: 44px; }
+}
+
 .fv-view-settings-grid > .settings-mini-card {
     min-width: 0;
     min-height: 260px;

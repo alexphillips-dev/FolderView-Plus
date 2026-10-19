@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "文件夹已保存。刷新页面即可看到最新的配置。",
     "settings.groups.unavailable": "无法创建文件夹。刷新页面并重试。",
     "settings.groups.docker-description": "管理您的 Docker 文件夹、组和同步规则",
-    "settings.groups.vm-description": "管理您的虚拟机文件夹、组和同步规则"
+    "settings.groups.vm-description": "管理您的虚拟机文件夹、组和同步规则",
+    "settings.page-title.status-card": "状态和徽章",
+    "settings.page-title.label": "Docker 页面标题",
+    "settings.page-title.location": "在容器上方最左侧添加标题",
+    "settings.page-title.enable": "显示自定义标题",
+    "settings.page-title.text": "标题文字",
+    "settings.page-title.font": "字体",
+    "settings.page-title.theme": "主题默认",
+    "settings.page-title.sans": "无衬线字体",
+    "settings.page-title.serif": "衬线",
+    "settings.page-title.mono": "等宽字体",
+    "settings.page-title.size": "尺寸（像素）",
+    "settings.page-title.bold": "粗体",
+    "settings.page-title.italic": "斜体",
+    "settings.page-title.color": "颜色",
+    "settings.page-title.preview": "标题预览",
+    "settings.page-title.reset": "重置外观"
 }

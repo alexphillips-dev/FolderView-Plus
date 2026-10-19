@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "The folders were saved. Refresh the page to show the latest configuration.",
     "settings.groups.unavailable": "Folder creation is unavailable. Refresh the page and try again.",
     "settings.groups.docker-description": "Manage your Docker folders, groups and sync rules",
-    "settings.groups.vm-description": "Manage your VM folders, groups and sync rules"
+    "settings.groups.vm-description": "Manage your VM folders, groups and sync rules",
+    "settings.page-title.status-card": "Status & badges",
+    "settings.page-title.label": "Docker page title",
+    "settings.page-title.location": "Add a title at the far left above your containers",
+    "settings.page-title.enable": "Show custom title",
+    "settings.page-title.text": "Title text",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Theme default",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospace",
+    "settings.page-title.size": "Size (px)",
+    "settings.page-title.bold": "Bold",
+    "settings.page-title.italic": "Italic",
+    "settings.page-title.color": "Color",
+    "settings.page-title.preview": "Title preview",
+    "settings.page-title.reset": "Reset appearance"
 }

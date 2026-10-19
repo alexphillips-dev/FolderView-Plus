@@ -173,10 +173,16 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             }
         }
 
-        $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'dockerStartOrder', 'importPresets'];
+        $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'dockerStartOrder', 'importPresets', 'pageTitle'];
         foreach ($objectKeys as $key) {
             if (array_key_exists($key, $payload) && !is_array($payload[$key])) {
                 throw new RuntimeException("Invalid prefs payload: '$key' must be an object.");
+            }
+        }
+
+        if (isset($payload['pageTitle'])) {
+            foreach ($payload['pageTitle'] as $value) {
+                if (!is_scalar($value) && $value !== null) throw new RuntimeException('Invalid page title preference value.');
             }
         }
 

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Lagre endringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Mappene ble lagret. Oppdater siden for å vise den nyeste konfigurasjonen.",
     "settings.groups.unavailable": "Mappeoppretting er utilgjengelig. Oppdater siden og prøv igjen.",
     "settings.groups.docker-description": "Administrer Docker-mappene, -gruppene og synkroniseringsregler",
-    "settings.groups.vm-description": "Administrer VM-mappene, -gruppene og synkroniseringsregler"
+    "settings.groups.vm-description": "Administrer VM-mappene, -gruppene og synkroniseringsregler",
+    "settings.page-title.status-card": "Status og merker",
+    "settings.page-title.label": "Docker-sidetittel",
+    "settings.page-title.location": "Legg til en tittel helt til venstre over beholderne",
+    "settings.page-title.enable": "Vis egendefinert tittel",
+    "settings.page-title.text": "Titteltekst",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Tema standard",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Fast bredde",
+    "settings.page-title.size": "Størrelse (px)",
+    "settings.page-title.bold": "Fet",
+    "settings.page-title.italic": "Kursiv",
+    "settings.page-title.color": "Farge",
+    "settings.page-title.preview": "Forhåndsvisning av tittel",
+    "settings.page-title.reset": "Tilbakestill utseendet"
 }

@@ -29,6 +29,7 @@
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
             'pageViewMode' => 'folderview',
+            'pageTitle' => ['enabled' => false, 'text' => 'Change Me!', 'font' => 'theme', 'size' => 28, 'bold' => true, 'italic' => false, 'color' => 'theme'],
             'themeCompatibilityMode' => 'auto',
             'dashboard' => [
                 'layout' => 'classic',
@@ -438,6 +439,25 @@
         return 'folderview';
     }
 
+    function normalizePageTitle($value): array {
+        $source = is_array($value) ? $value : [];
+        $text = is_string($source['text'] ?? null) ? preg_replace('/[\x00-\x1f\x7f]/u', ' ', $source['text']) ?? '' : '';
+        $text = preg_replace('/^[\p{Z}\x{feff}]+|[\p{Z}\x{feff}]+$/u', '', $text) ?? '';
+        $font = is_string($source['font'] ?? null) ? strtolower(trim($source['font'])) : '';
+        $color = is_string($source['color'] ?? null) ? strtolower(trim($source['color'])) : '';
+        $size = $source['size'] ?? 28;
+        preg_match_all('/./us', $text, $characters);
+        return [
+            'enabled' => ($source['enabled'] ?? false) === true,
+            'text' => $text !== '' ? preg_replace('/[\p{Z}\x{feff}]+$/u', '', implode('', array_slice($characters[0], 0, 100))) : 'Change Me!',
+            'font' => in_array($font, ['theme', 'sans-serif', 'serif', 'monospace'], true) ? $font : 'theme',
+            'size' => is_numeric($size) ? max(14, min(48, (int)round((float)$size))) : 28,
+            'bold' => ($source['bold'] ?? true) !== false,
+            'italic' => ($source['italic'] ?? false) === true,
+            'color' => preg_match('/^#[0-9a-f]{6}$/', $color) ? $color : 'theme'
+        ];
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -511,6 +531,7 @@
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
         $normalized['pageViewMode'] = normalizeRuntimePageViewMode($prefs['pageViewMode'] ?? 'folderview');
+        $normalized['pageTitle'] = normalizePageTitle($prefs['pageTitle'] ?? []);
         $normalized['themeCompatibilityMode'] = normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto');
         $dashboardIncoming = is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [];
         $normalized['dashboard'] = [

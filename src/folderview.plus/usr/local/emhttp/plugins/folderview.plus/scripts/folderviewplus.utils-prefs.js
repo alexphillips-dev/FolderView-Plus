@@ -31,7 +31,7 @@
         normalizeDashboardPreviewTrigger,
         normalizeThemeCompatibilityMode,
         normalizePerformanceProfile,
-        normalizeRuntimePageViewMode,
+        normalizeRuntimePageViewMode, normalizePageTitle,
         FOLDER_SORT_MODES
     } = utilityDependencies;
 
@@ -363,7 +363,7 @@
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
-            pageViewMode,
+            pageViewMode, pageTitle: normalizePageTitle(incoming.pageTitle),
             themeCompatibilityMode,
             dashboard,
             health,

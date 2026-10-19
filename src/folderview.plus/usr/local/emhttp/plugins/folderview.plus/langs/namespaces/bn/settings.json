@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "ফোল্ডার সংরক্ষণ করা হয়েছে. সর্বশেষ কনফিগারেশন দেখাতে পৃষ্ঠাটি রিফ্রেশ করুন।",
     "settings.groups.unavailable": "ফোল্ডার তৈরি অনুপলব্ধ. পৃষ্ঠাটি রিফ্রেশ করুন এবং আবার চেষ্টা করুন।",
     "settings.groups.docker-description": "আপনার ডকার ফোল্ডার, গ্রুপ এবং সিঙ্ক নিয়ম পরিচালনা করুন",
-    "settings.groups.vm-description": "আপনার VM ফোল্ডার, গ্রুপ এবং সিঙ্ক নিয়ম পরিচালনা করুন"
+    "settings.groups.vm-description": "আপনার VM ফোল্ডার, গ্রুপ এবং সিঙ্ক নিয়ম পরিচালনা করুন",
+    "settings.page-title.status-card": "স্ট্যাটাস এবং ব্যাজ",
+    "settings.page-title.label": "ডকার পৃষ্ঠার শিরোনাম",
+    "settings.page-title.location": "আপনার পাত্রে উপরে বাম দিকে একটি শিরোনাম যোগ করুন",
+    "settings.page-title.enable": "কাস্টম শিরোনাম দেখান",
+    "settings.page-title.text": "শিরোনাম পাঠ্য",
+    "settings.page-title.font": "হরফ",
+    "settings.page-title.theme": "থিম ডিফল্ট",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "সেরিফ",
+    "settings.page-title.mono": "সমান প্রস্থ",
+    "settings.page-title.size": "আকার (px)",
+    "settings.page-title.bold": "গাঢ়",
+    "settings.page-title.italic": "তির্যক",
+    "settings.page-title.color": "রঙ",
+    "settings.page-title.preview": "শিরোনামের পূর্বরূপ",
+    "settings.page-title.reset": "চেহারা রিসেট করুন"
 }

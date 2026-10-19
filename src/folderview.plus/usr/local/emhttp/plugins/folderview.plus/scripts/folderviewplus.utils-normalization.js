@@ -27,6 +27,22 @@
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
     const PERFORMANCE_PROFILE_OPTIONS = ['standard', 'adaptive', 'maximum'];
     const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
+    const normalizePageTitle = (value) => {
+        const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+        const text = typeof source.text === 'string' ? Array.from(source.text.replace(/[\u0000-\u001f\u007f]/g, ' ').trim()).slice(0, 100).join('').trim() : '';
+        const font = typeof source.font === 'string' ? source.font.trim().toLowerCase() : '';
+        const color = typeof source.color === 'string' ? source.color.trim().toLowerCase() : '';
+        const size = typeof source.size === 'number' || (typeof source.size === 'string' && source.size.trim() !== '') ? Number(source.size) : 28;
+        return {
+            enabled: source.enabled === true,
+            text: text || 'Change Me!',
+            font: ['theme', 'sans-serif', 'serif', 'monospace'].includes(font) ? font : 'theme',
+            size: Number.isFinite(size) ? Math.max(14, Math.min(48, Math.round(size))) : 28,
+            bold: source.bold !== false,
+            italic: source.italic === true,
+            color: /^#[0-9a-f]{6}$/.test(color) ? color : 'theme'
+        };
+    };
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#55b72d',
         paused: '#b8860b',
@@ -375,6 +391,7 @@
         normalizeThemeCompatibilityMode,
         normalizePerformanceProfile,
         normalizeRuntimePageViewMode,
+        normalizePageTitle,
         resolvePreviewActionPrefs,
         normalizeFolderMembers,
         normalizeFolderIcon,

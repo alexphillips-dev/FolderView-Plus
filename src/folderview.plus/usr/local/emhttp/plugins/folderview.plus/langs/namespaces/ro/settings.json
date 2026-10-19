@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Dosarele au fost salvate. Actualizați pagina pentru a afișa cea mai recentă configurație.",
     "settings.groups.unavailable": "Crearea folderului nu este disponibilă. Actualizați pagina și încercați din nou.",
     "settings.groups.docker-description": "Gestionați-vă folderele, grupurile și regulile de sincronizare Docker",
-    "settings.groups.vm-description": "Gestionați-vă folderele VM, grupurile și regulile de sincronizare"
+    "settings.groups.vm-description": "Gestionați-vă folderele VM, grupurile și regulile de sincronizare",
+    "settings.page-title.status-card": "Stare și insigne",
+    "settings.page-title.label": "Titlul paginii Docker",
+    "settings.page-title.location": "Adăugați un titlu în partea stângă, deasupra containerelor dvs",
+    "settings.page-title.enable": "Afișează titlul personalizat",
+    "settings.page-title.text": "Textul titlului",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Tema implicită",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospațiu",
+    "settings.page-title.size": "Dimensiune (px)",
+    "settings.page-title.bold": "Aldin",
+    "settings.page-title.italic": "cursiv",
+    "settings.page-title.color": "Culoare",
+    "settings.page-title.preview": "Previzualizare titlu",
+    "settings.page-title.reset": "Resetați aspectul"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Enregistrer les modifications",
     "settings.rules.regex-placeholder": "Modèle Regex (par exemple ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Les dossiers ont été enregistrés. Actualisez la page pour afficher la dernière configuration.",
     "settings.groups.unavailable": "La création de dossier n'est pas disponible. Actualisez la page et réessayez.",
     "settings.groups.docker-description": "Gérez vos dossiers, groupes et règles de synchronisation Docker",
-    "settings.groups.vm-description": "Gérez vos dossiers, groupes et règles de synchronisation de VM"
+    "settings.groups.vm-description": "Gérez vos dossiers, groupes et règles de synchronisation de VM",
+    "settings.page-title.status-card": "Statut et badges",
+    "settings.page-title.label": "Titre de la page Docker",
+    "settings.page-title.location": "Ajoutez un titre à l'extrême gauche au-dessus de vos conteneurs",
+    "settings.page-title.enable": "Afficher le titre personnalisé",
+    "settings.page-title.text": "Texte du titre",
+    "settings.page-title.font": "Police",
+    "settings.page-title.theme": "Thème par défaut",
+    "settings.page-title.sans": "Sans empattement",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Chasse fixe",
+    "settings.page-title.size": "Taille (px)",
+    "settings.page-title.bold": "Gras",
+    "settings.page-title.italic": "Italique",
+    "settings.page-title.color": "Couleur",
+    "settings.page-title.preview": "Aperçu du titre",
+    "settings.page-title.reset": "Réinitialiser l'apparence"
 }

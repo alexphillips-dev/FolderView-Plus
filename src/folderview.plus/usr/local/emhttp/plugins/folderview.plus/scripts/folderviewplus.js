@@ -7070,12 +7070,18 @@ const renderRuntimeControls = (type) => {
     syncRuntimeDependentFields(type);
     renderPerformancePolicySummary(type, prefs);
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
+    if (type === 'docker') dockerPageTitleSettings.sync();
 };
+const dockerPageTitleSettings = window.FolderViewPlusFoundationModules.pageTitle.createSettingsController({
+    window, document, getPrefs: () => utils.normalizePrefs(prefsByType.docker).pageTitle,
+    onChange: (key, value) => changePageTitlePref('docker', key, value), onReset: () => resetDockerPageTitleAppearance()
+});
 const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecycle?.({ window, document, $ }) || null;
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
 window.addEventListener('pagehide', () => {
     disposeSettingsSearch();
+    dockerPageTitleSettings.dispose();
     viewSettingsRangeLifecycle?.destroy?.();
     viewSettingsUiStateStore?.destroy?.();
     viewSettingsChangeController?.destroy?.();
@@ -9838,6 +9844,25 @@ const changeRuntimePref = async (type, key, value) => {
         });
     } catch (error) {
         showError(surfaceT("common.repair.runtime-preference-sync-pending-fa357c", "Runtime preference sync pending"), error);
+    }
+};
+
+const changePageTitlePref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType.docker).pageTitle;
+    const change = resolveViewSettingsChange('changePageTitlePref', type, key, value, current[key]);
+    if (!change || type !== 'docker') return;
+    try {
+        await updatePrefsPartial('docker', { pageTitle: { [change.storageKey]: change.value } }, { render: () => dockerPageTitleSettings.sync() });
+    } catch (error) {
+        showError(surfaceT('common.repair.runtime-preference-sync-pending-fa357c', 'Runtime preference sync pending'), error);
+    }
+};
+const resetDockerPageTitleAppearance = async () => {
+    const { font, size, bold, italic, color } = utils.normalizePageTitle({});
+    try {
+        await updatePrefsPartial('docker', { pageTitle: { font, size, bold, italic, color } }, { render: () => dockerPageTitleSettings.sync() });
+    } catch (error) {
+        showError(surfaceT('common.repair.runtime-preference-sync-pending-fa357c', 'Runtime preference sync pending'), error);
     }
 };
 

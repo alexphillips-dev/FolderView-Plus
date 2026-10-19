@@ -59,7 +59,7 @@
         normalizeAppColumnWidth: api.normalizeAppColumnWidth,
         normalizeDashboardLayout: api.normalizeDashboardLayout,
         normalizeDashboardOverflowMode: api.normalizeDashboardOverflowMode,
-        normalizeRuntimePageViewMode: api.normalizeRuntimePageViewMode,
+        normalizeRuntimePageViewMode: api.normalizeRuntimePageViewMode, normalizePageTitle: api.normalizePageTitle,
         resolvePreviewActionPrefs: api.resolvePreviewActionPrefs,
         normalizeThemeCompatibilityMode: api.normalizeThemeCompatibilityMode,
         normalizePerformanceProfile: api.normalizePerformanceProfile,

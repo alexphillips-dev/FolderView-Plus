@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Mapparna sparades. Uppdatera sidan för att visa den senaste konfigurationen.",
     "settings.groups.unavailable": "Det går inte att skapa mappar. Uppdatera sidan och försök igen.",
     "settings.groups.docker-description": "Hantera dina Docker-mappar, grupper och synkroniseringsregler",
-    "settings.groups.vm-description": "Hantera dina VM-mappar, grupper och synkroniseringsregler"
+    "settings.groups.vm-description": "Hantera dina VM-mappar, grupper och synkroniseringsregler",
+    "settings.page-title.status-card": "Status & märken",
+    "settings.page-title.label": "Docker sidtitel",
+    "settings.page-title.location": "Lägg till en titel längst till vänster ovanför dina behållare",
+    "settings.page-title.enable": "Visa anpassad titel",
+    "settings.page-title.text": "Titeltext",
+    "settings.page-title.font": "Teckensnitt",
+    "settings.page-title.theme": "Tema standard",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Fast bredd",
+    "settings.page-title.size": "Storlek (px)",
+    "settings.page-title.bold": "Fet",
+    "settings.page-title.italic": "Kursiv",
+    "settings.page-title.color": "Färg",
+    "settings.page-title.preview": "Förhandsgranskning av titel",
+    "settings.page-title.reset": "Återställ utseende"
 }

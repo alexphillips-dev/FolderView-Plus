@@ -33,6 +33,19 @@
         "updates": { "types": ["docker"], "kind": "boolean", "default": true, "liveApply": true }
       }
     },
+    "pageTitle": {
+      "handler": "changePageTitlePref", "path": "pageTitle",
+      "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/runtime.page-title.js"],
+      "settings": {
+        "enabled": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
+        "text": { "types": ["docker"], "kind": "text", "maxLength": 100, "default": "Change Me!", "liveApply": true },
+        "font": { "types": ["docker"], "kind": "enum", "values": ["theme", "sans-serif", "serif", "monospace"], "default": "theme", "liveApply": true },
+        "size": { "types": ["docker"], "kind": "integer", "min": 14, "max": 48, "default": 28, "liveApply": true },
+        "bold": { "types": ["docker"], "kind": "boolean", "default": true, "liveApply": true },
+        "italic": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
+        "color": { "types": ["docker"], "kind": "color", "default": "theme", "liveApply": true }
+      }
+    },
     "runtime": {
       "handler": "changeRuntimePref",
       "path": "",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Mape su spremljene. Osvježite stranicu za prikaz najnovije konfiguracije.",
     "settings.groups.unavailable": "Stvaranje mape nije dostupno. Osvježite stranicu i pokušajte ponovno.",
     "settings.groups.docker-description": "Upravljajte svojim Docker mapama, grupama i pravilima sinkronizacije",
-    "settings.groups.vm-description": "Upravljajte svojim VM mapama, grupama i pravilima sinkronizacije"
+    "settings.groups.vm-description": "Upravljajte svojim VM mapama, grupama i pravilima sinkronizacije",
+    "settings.page-title.status-card": "Status i značke",
+    "settings.page-title.label": "Naslov stranice Docker",
+    "settings.page-title.location": "Dodajte naslov krajnje lijevo iznad spremnika",
+    "settings.page-title.enable": "Prikaži prilagođeni naslov",
+    "settings.page-title.text": "Tekst naslova",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Zadana tema",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Jednake širine",
+    "settings.page-title.size": "Veličina (px)",
+    "settings.page-title.bold": "Podebljano",
+    "settings.page-title.italic": "kurziv",
+    "settings.page-title.color": "Boja",
+    "settings.page-title.preview": "Pregled naslova",
+    "settings.page-title.reset": "Resetiraj izgled"
 }

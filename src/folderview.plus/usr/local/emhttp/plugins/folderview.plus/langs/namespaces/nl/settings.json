@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "De mappen zijn opgeslagen. Vernieuw de pagina om de nieuwste configuratie weer te geven.",
     "settings.groups.unavailable": "Het maken van mappen is niet beschikbaar. Vernieuw de pagina en probeer het opnieuw.",
     "settings.groups.docker-description": "Beheer uw Docker-mappen, groepen en synchronisatieregels",
-    "settings.groups.vm-description": "Beheer uw VM-mappen, groepen en synchronisatieregels"
+    "settings.groups.vm-description": "Beheer uw VM-mappen, groepen en synchronisatieregels",
+    "settings.page-title.status-card": "Status & badges",
+    "settings.page-title.label": "Docker-paginatitel",
+    "settings.page-title.location": "Voeg uiterst links boven uw containers een titel toe",
+    "settings.page-title.enable": "Aangepaste titel weergeven",
+    "settings.page-title.text": "Titel tekst",
+    "settings.page-title.font": "Lettertype",
+    "settings.page-title.theme": "Thema standaard",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospace",
+    "settings.page-title.size": "Grootte (px)",
+    "settings.page-title.bold": "Vet",
+    "settings.page-title.italic": "Cursief",
+    "settings.page-title.color": "Kleur",
+    "settings.page-title.preview": "Titelvoorbeeld",
+    "settings.page-title.reset": "Uiterlijk resetten"
 }

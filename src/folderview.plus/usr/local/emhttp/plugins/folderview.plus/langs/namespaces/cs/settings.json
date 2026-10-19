@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Složky byly uloženy. Obnovením stránky zobrazíte nejnovější konfiguraci.",
     "settings.groups.unavailable": "Vytvoření složky není k dispozici. Obnovte stránku a zkuste to znovu.",
     "settings.groups.docker-description": "Spravujte své složky, skupiny a pravidla synchronizace Dockeru",
-    "settings.groups.vm-description": "Spravujte své složky VM, skupiny a pravidla synchronizace"
+    "settings.groups.vm-description": "Spravujte své složky VM, skupiny a pravidla synchronizace",
+    "settings.page-title.status-card": "Stav a odznaky",
+    "settings.page-title.label": "Název stránky dockeru",
+    "settings.page-title.location": "Přidejte název zcela vlevo nad kontejnery",
+    "settings.page-title.enable": "Zobrazit vlastní název",
+    "settings.page-title.text": "Text nadpisu",
+    "settings.page-title.font": "Písmo",
+    "settings.page-title.theme": "Výchozí motiv",
+    "settings.page-title.sans": "Bezpatkové",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Neproporcionální",
+    "settings.page-title.size": "Velikost (px)",
+    "settings.page-title.bold": "Tučné",
+    "settings.page-title.italic": "kurzíva",
+    "settings.page-title.color": "Barva",
+    "settings.page-title.preview": "Náhled titulu",
+    "settings.page-title.reset": "Obnovit vzhled"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "폴더가 저장되었습니다. 최신 구성을 표시하려면 페이지를 새로 고치세요.",
     "settings.groups.unavailable": "폴더 생성이 불가능합니다. 페이지를 새로 고치고 다시 시도하세요.",
     "settings.groups.docker-description": "Docker 폴더, 그룹 및 동기화 규칙을 관리하세요.",
-    "settings.groups.vm-description": "VM 폴더, 그룹, 동기화 규칙 관리"
+    "settings.groups.vm-description": "VM 폴더, 그룹, 동기화 규칙 관리",
+    "settings.page-title.status-card": "상태 및 배지",
+    "settings.page-title.label": "Docker 페이지 제목",
+    "settings.page-title.location": "컨테이너 위 가장 왼쪽에 제목을 추가하세요.",
+    "settings.page-title.enable": "맞춤 제목 표시",
+    "settings.page-title.text": "제목 텍스트",
+    "settings.page-title.font": "글꼴",
+    "settings.page-title.theme": "테마 기본값",
+    "settings.page-title.sans": "산세리프체",
+    "settings.page-title.serif": "세리프",
+    "settings.page-title.mono": "고정 폭",
+    "settings.page-title.size": "크기(px)",
+    "settings.page-title.bold": "굵게",
+    "settings.page-title.italic": "이탤릭체",
+    "settings.page-title.color": "색상",
+    "settings.page-title.preview": "제목 미리보기",
+    "settings.page-title.reset": "외모 재설정"
 }

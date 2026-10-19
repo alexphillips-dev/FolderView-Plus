@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.06">
-<!ENTITY md5 "b30351f85c67c59a132c4da75016495a">
-<!ENTITY sha256 "6a52a145601354506df56ba76afa9f5d96929d3aae3717897a1f2256f07dbcc5">
+<!ENTITY version "2026.10.19.07">
+<!ENTITY md5 "5c2ff5d392c8df29f0dae90a12a6e5d6">
+<!ENTITY sha256 "ac691971d3fc0f04b911d839962a04ef7bc22539dcde89a0415d82962d3b0552">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.07
+- Feature: Add an optional custom Docker page title at the far left above your containers. It is disabled by default and starts with "Change Me!" when enabled.
+- UI/UX: Keep the eight-card Docker view settings grid, move status controls into Status and badges, and add title text, font, size, bold, italic, color, live preview, and Reset appearance to Layout.
+- Reliability: Preserve saved title choices when disabled, keep the right-side Docker controls in place, constrain long titles, and place the title above the controls on narrow screens. Name masking also hides the custom title in Privacy mode.
+- Compatibility: Hard-refresh the webGUI after updating to load the new controls and scripts.
+
 
 ###2026.10.19.06
 - Fix: Keep Docker and VM folder status icons consistent with the Running and Stopped badge settings during initial display, nested-folder aggregation, and live status changes.

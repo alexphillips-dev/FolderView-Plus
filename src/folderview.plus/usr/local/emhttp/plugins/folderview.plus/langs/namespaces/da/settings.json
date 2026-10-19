@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Gem ændringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Mapperne blev gemt. Opdater siden for at vise den seneste konfiguration.",
     "settings.groups.unavailable": "Mappeoprettelse er ikke tilgængelig. Opdater siden, og prøv igen.",
     "settings.groups.docker-description": "Administrer dine Docker-mapper, grupper og synkroniseringsregler",
-    "settings.groups.vm-description": "Administrer dine VM-mapper, grupper og synkroniseringsregler"
+    "settings.groups.vm-description": "Administrer dine VM-mapper, grupper og synkroniseringsregler",
+    "settings.page-title.status-card": "Status og badges",
+    "settings.page-title.label": "Docker-sidetitel",
+    "settings.page-title.location": "Tilføj en titel yderst til venstre over dine containere",
+    "settings.page-title.enable": "Vis tilpasset titel",
+    "settings.page-title.text": "Titeltekst",
+    "settings.page-title.font": "Skrifttype",
+    "settings.page-title.theme": "Tema standard",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospace",
+    "settings.page-title.size": "Størrelse (px)",
+    "settings.page-title.bold": "Fed",
+    "settings.page-title.italic": "Kursiv",
+    "settings.page-title.color": "Farve",
+    "settings.page-title.preview": "Forhåndsvisning af titel",
+    "settings.page-title.reset": "Nulstil udseende"
 }

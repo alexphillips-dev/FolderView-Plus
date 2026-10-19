@@ -250,6 +250,35 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
+                    <label class="setting-toggle fv-setting-checkbox-row">
+                        <input id="docker-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
+                        <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
+                    </label>
+                    <label class="setting-toggle fv-setting-switch fv-page-title-enable">
+                        <strong data-i18n="settings.page-title.label">Docker page title</strong>
+                        <input id="docker-page-title-enabled" type="checkbox" aria-label="Show custom title" data-i18n="[aria-label]settings.page-title.enable" data-fv-title-field="enabled">
+                    </label>
+                    <template id="docker-page-title-template">
+                    <div id="docker-page-title-fields" class="fv-page-title-fields">
+                        <div class="setting-help" data-i18n="settings.page-title.location">Add a title at the far left above your containers</div>
+                        <label class="setting-select" for="docker-page-title-text"><span data-i18n="settings.page-title.text">Title text</span><input id="docker-page-title-text" type="text" maxlength="100" value="Change Me!" data-fv-title-field="text"></label>
+                        <label class="setting-select" for="docker-page-title-font"><span data-i18n="settings.page-title.font">Font</span><select id="docker-page-title-font" data-fv-title-field="font"><option value="theme" data-i18n="settings.page-title.theme">Theme default</option><option value="sans-serif" data-i18n="settings.page-title.sans">Sans-serif</option><option value="serif" data-i18n="settings.page-title.serif">Serif</option><option value="monospace" data-i18n="settings.page-title.mono">Monospace</option></select></label>
+                        <div class="fv-page-title-format">
+                            <label for="docker-page-title-size"><span data-i18n="settings.page-title.size">Size (px)</span><input id="docker-page-title-size" type="number" min="14" max="48" step="1" data-fv-title-field="size"></label>
+                            <label class="fv-page-title-format-toggle"><input id="docker-page-title-bold" type="checkbox" data-fv-title-field="bold"><strong data-i18n="settings.page-title.bold">Bold</strong></label>
+                            <label class="fv-page-title-format-toggle"><input id="docker-page-title-italic" type="checkbox" data-fv-title-field="italic"><em data-i18n="settings.page-title.italic">Italic</em></label>
+                        </div>
+                        <div class="fv-page-title-color">
+                            <label for="docker-page-title-color"><span data-i18n="settings.page-title.color">Color</span><input id="docker-page-title-color" type="color" value="#ffffff" data-fv-title-field="color"></label>
+                            <button type="button" data-fv-page-title-theme data-i18n="settings.page-title.theme">Theme default</button>
+                        </div>
+                        <div class="fv-page-title-preview" aria-label="Title preview" data-i18n="[aria-label]settings.page-title.preview"><span id="docker-page-title-preview"></span></div>
+                        <button type="button" class="fv-page-title-reset" data-fv-page-title-reset data-i18n="settings.page-title.reset">Reset appearance</button>
+                    </div>
+                    </template>
+                </div>
+                <div class="settings-mini-card fv-settings-card-badges">
+                    <div class="fv-view-settings-card-title is-folder" data-i18n="settings.page-title.status-card">Status &amp; badges</div>
                     <label class="setting-select" for="docker-status-mode">
                         <span>Status mode</span>
                         <select id="docker-status-mode" data-fv-onchange="changeStatusPref('docker', 'mode', this.value)">
@@ -279,14 +308,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span aria-hidden="true">%</span>
                         </span>
                     </label>
-                    <label class="setting-toggle fv-setting-checkbox-row">
-                        <input id="docker-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
-                        <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
-                    </label>
                     <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
-                </div>
-                <div class="settings-mini-card fv-settings-card-badges">
-                    <div class="fv-view-settings-card-title is-folder">Folder badges</div>
+                    <div class="fv-settings-divider"></div>
                     <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-running" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
                     <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-stopped" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
                     <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-updates" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'updates', this.checked)"><span class="fv-setting-copy"><strong>Updates</strong><small>Show updates badge</small></span></label>
@@ -1585,6 +1608,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js',
         '/plugins/folderview.plus/scripts/folderviewplus.view-settings.js',
+        '/plugins/folderview.plus/scripts/runtime.page-title.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js', '/plugins/folderview.plus/scripts/folderviewplus.settings-search.js',
         '/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',

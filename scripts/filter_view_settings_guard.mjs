@@ -21,7 +21,7 @@ const page = fs.readFileSync(pagePath, 'utf8');
 const clientNormalizer = clientNormalizerPaths.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const serverPrefs = fs.readFileSync(serverPrefsPath, 'utf8');
 const allowedTypes = new Set(schema.types || []);
-const allowedKinds = new Set(['boolean', 'integer', 'enum']);
+const allowedKinds = new Set(['boolean', 'integer', 'enum', 'text', 'color']);
 const definitions = [];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -70,6 +70,8 @@ for (const [group, groupDefinition] of Object.entries(schema.groups || {})) {
         if (definition.kind === 'boolean' && typeof definition.default !== 'boolean') {
             fail(`${handler}:${key} boolean default must be a boolean.`);
         }
+        if (definition.kind === 'text' && (typeof definition.default !== 'string' || !Number.isInteger(definition.maxLength) || definition.maxLength < 1 || definition.default.length > definition.maxLength)) fail(`${handler}:${key} has invalid text limits.`);
+        if (definition.kind === 'color' && definition.default !== 'theme' && !/^#[0-9a-f]{6}$/.test(definition.default)) fail(`${handler}:${key} has an invalid color default.`);
         if (definition.liveApply !== true) fail(`${handler}:${key} must explicitly declare liveApply: true.`);
     }
 }
@@ -81,8 +83,9 @@ const expectedBindings = new Set(definitions.filter((definition) => definition.u
     definition.types.map((type) => `${definition.handler}:${type}:${definition.key}`)
 )));
 const actualBindings = new Set();
-const bindingPattern = /(change(?:Visibility|Status|Badge|Runtime|Dashboard|Health)Pref)\('(docker|vm)',\s*'([^']+)'/g;
+const bindingPattern = /(change(?:Visibility|Status|Badge|Runtime|Dashboard|Health|PageTitle)Pref)\('(docker|vm)',\s*'([^']+)'/g;
 for (const match of page.matchAll(bindingPattern)) actualBindings.add(`${match[1]}:${match[2]}:${match[3]}`);
+for (const match of page.matchAll(/data-fv-title-field="([a-z]+)"/g)) actualBindings.add(`changePageTitlePref:docker:${match[1]}`);
 for (const binding of expectedBindings) if (!actualBindings.has(binding)) fail(`Registered setting has no page control: ${binding}`);
 for (const binding of actualBindings) if (!expectedBindings.has(binding)) fail(`Page control is absent from the registry: ${binding}`);
 

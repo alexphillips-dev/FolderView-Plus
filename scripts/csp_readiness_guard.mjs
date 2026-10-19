@@ -46,8 +46,8 @@ const patterns = {
 const lineNumberAt = (source, index) => source.slice(0, index).split('\n').length;
 const explicitHtmlSinkReviews = new Map([
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.help.js:81', 'The info button uses only the shared SVG renderer with the fixed plugin-owned info-circle icon. Help content is cloned from existing localized DOM.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1301', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
-    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3418', 'The loading overlay contains plugin-authored static markup only.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:1302', 'Port endpoints and protocols are escaped by buildDockerPortEndpoint before the markup builder returns.'],
+    ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js:3419', 'The loading overlay contains plugin-authored static markup only.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js:312', 'Action, label, icon, title, and menu values are escaped by the local markup builders.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js:504', 'Names, identifiers, states, actions, and error text are escaped; counts are normalized numbers and image sources are sanitized.'],
     ['src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-controls.js:221', 'The stable-toggle controller accepts only plugin-owned markup builders and validates the expected input after mounting.'],

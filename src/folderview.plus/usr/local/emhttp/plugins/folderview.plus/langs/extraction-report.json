@@ -3,10 +3,10 @@
     "generated-at": "2026-10-19",
     "candidate-count": 0,
     "auto-bound-message-count": 2997,
-    "catalog-message-count": 4695,
+    "catalog-message-count": 4711,
     "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
-        "FolderViewPlus.page": 679,
+        "FolderViewPlus.page": 678,
         "scripts/folderviewplus.js": 263,
         "scripts/folderviewplus.wizard.js": 202,
         "Folder.page": 186,

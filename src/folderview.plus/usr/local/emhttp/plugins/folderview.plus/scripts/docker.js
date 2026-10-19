@@ -357,6 +357,7 @@ const inferDockerFatalBannerCategory = (error, fallbackCategory = 'runtime-faile
 const createDockerRuntimeRequest = (url, options = {}) => dockerRuntimeDiagnostics.createRequest(url, options);
 const dockerBootstrapMissingModules = [];
 if (typeof folderBadgeApi?.applyStatus !== 'function') dockerBootstrapMissingModules.push('runtime.folder-badges.js');
+if (typeof window.FolderViewPlusFoundationModules?.pageTitle?.createController !== 'function') dockerBootstrapMissingModules.push('runtime.page-title.js');
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     dockerBootstrapMissingModules.push('folderviewplus.utils.js');
     setDockerFatalBannerModuleStatus('folderviewplus.utils.js', 'missing', 'normalizePrefs unavailable');
@@ -4335,6 +4336,12 @@ const getDockerRuntimePrivacyToggleApi = () => {
     return dockerRuntimePrivacyToggleApi;
 };
 
+const dockerPageTitle = window.FolderViewPlusFoundationModules.pageTitle.createController({
+    window, document,
+    resolveHost: () => document.querySelector('.ToggleViewMode') || document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_FALLBACK_HOST_ID),
+    getPrefs: () => folderTypePrefs?.pageTitle
+});
+
 const renderDockerRuntimePrivacyToggle = () => {
     try {
         getDockerRuntimePrivacyToggleApi()?.sync();
@@ -4354,7 +4361,7 @@ const queueDockerRuntimePrivacyToggleMount = () => {
     dockerRuntimePrivacyToggleMountQueued = true;
     const flush = () => {
         dockerRuntimePrivacyToggleMountQueued = false;
-        renderDockerRuntimePrivacyToggle(); ensureDockerQuickFinder();
+        renderDockerRuntimePrivacyToggle(); ensureDockerQuickFinder(); dockerPageTitle.sync();
     };
     if (typeof window?.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(flush);
@@ -7924,6 +7931,7 @@ addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
+    dockerPageTitle.dispose();
     dockerQuickFinderApi?.dispose();
     dockerLiveRefreshController.dispose();
     dockerApiIntegration?.dispose?.();

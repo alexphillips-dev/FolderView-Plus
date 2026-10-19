@@ -63,6 +63,14 @@ const output = `// @ts-check
             const normalized = String(value ?? '').trim().toLowerCase();
             return definition.values.includes(normalized) ? normalized : (fallback ?? definition.default);
         }
+        if (definition.kind === 'text') {
+            const normalized = typeof value === 'string' ? Array.from(value.replace(/[\\u0000-\\u001f\\u007f]/g, ' ').trim()).slice(0, definition.maxLength).join('').trim() : '';
+            return normalized || definition.default;
+        }
+        if (definition.kind === 'color') {
+            const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+            return /^#[0-9a-f]{6}$/.test(normalized) ? normalized : definition.default;
+        }
         return value;
     };
     const resolveChange = (handler, type, key, value, fallback) => {

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Папки були збережені. Оновіть сторінку, щоб показати останню конфігурацію.",
     "settings.groups.unavailable": "Створення папки недоступне. Оновіть сторінку та повторіть спробу.",
     "settings.groups.docker-description": "Керуйте своїми папками, групами та правилами синхронізації Docker",
-    "settings.groups.vm-description": "Керуйте своїми папками віртуальної машини, групами та правилами синхронізації"
+    "settings.groups.vm-description": "Керуйте своїми папками віртуальної машини, групами та правилами синхронізації",
+    "settings.page-title.status-card": "Статус і значки",
+    "settings.page-title.label": "Назва сторінки Docker",
+    "settings.page-title.location": "Додайте назву ліворуч над контейнерами",
+    "settings.page-title.enable": "Показати спеціальний заголовок",
+    "settings.page-title.text": "Текст заголовка",
+    "settings.page-title.font": "Шрифт",
+    "settings.page-title.theme": "Тема за замовчуванням",
+    "settings.page-title.sans": "Без засічок",
+    "settings.page-title.serif": "Засічки",
+    "settings.page-title.mono": "Моноширинний",
+    "settings.page-title.size": "Розмір (px)",
+    "settings.page-title.bold": "Напівжирний",
+    "settings.page-title.italic": "Курсив",
+    "settings.page-title.color": "Колір",
+    "settings.page-title.preview": "Попередній перегляд заголовка",
+    "settings.page-title.reset": "Скинути зовнішній вигляд"
 }

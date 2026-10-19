@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Desa els canvis",
     "settings.rules.regex-placeholder": "Patró d'expressió regular (p. ex., ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Les carpetes s'han desat. Actualitzeu la pàgina per mostrar la darrera configuració.",
     "settings.groups.unavailable": "La creació de carpetes no està disponible. Actualitza la pàgina i torna-ho a provar.",
     "settings.groups.docker-description": "Gestioneu les vostres carpetes, grups i regles de sincronització de Docker",
-    "settings.groups.vm-description": "Gestioneu les vostres carpetes, grups i regles de sincronització de VM"
+    "settings.groups.vm-description": "Gestioneu les vostres carpetes, grups i regles de sincronització de VM",
+    "settings.page-title.status-card": "Estat i insígnies",
+    "settings.page-title.label": "Títol de la pàgina Docker",
+    "settings.page-title.location": "Afegeix un títol a l'extrem esquerre a sobre dels contenidors",
+    "settings.page-title.enable": "Mostra el títol personalitzat",
+    "settings.page-title.text": "Text del títol",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Tema predeterminat",
+    "settings.page-title.sans": "Sense serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monoespai",
+    "settings.page-title.size": "Mida (px)",
+    "settings.page-title.bold": "Negreta",
+    "settings.page-title.italic": "Cursiva",
+    "settings.page-title.color": "Color",
+    "settings.page-title.preview": "Vista prèvia del títol",
+    "settings.page-title.reset": "Restableix l'aparença"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Saglabāt izmaiņas",
     "settings.rules.regex-placeholder": "Regex modelis (piem., ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Mapes tika saglabātas. Atsvaidziniet lapu, lai parādītu jaunāko konfigurāciju.",
     "settings.groups.unavailable": "Mapes izveide nav pieejama. Atsvaidziniet lapu un mēģiniet vēlreiz.",
     "settings.groups.docker-description": "Pārvaldiet savas Docker mapes, grupas un sinhronizācijas noteikumus",
-    "settings.groups.vm-description": "Pārvaldiet savas VM mapes, grupas un sinhronizācijas noteikumus"
+    "settings.groups.vm-description": "Pārvaldiet savas VM mapes, grupas un sinhronizācijas noteikumus",
+    "settings.page-title.status-card": "Statuss un nozīmītes",
+    "settings.page-title.label": "Docker lapas nosaukums",
+    "settings.page-title.location": "Pievienojiet nosaukumu galējā kreisajā malā virs konteineriem",
+    "settings.page-title.enable": "Rādīt pielāgoto nosaukumu",
+    "settings.page-title.text": "Virsraksta teksts",
+    "settings.page-title.font": "Fonts",
+    "settings.page-title.theme": "Motīva noklusējuma",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serifs",
+    "settings.page-title.mono": "Vienplatuma",
+    "settings.page-title.size": "Izmērs (pikseļi)",
+    "settings.page-title.bold": "Treknraksts",
+    "settings.page-title.italic": "Kursīvs",
+    "settings.page-title.color": "Krāsa",
+    "settings.page-title.preview": "Virsraksta priekšskatījums",
+    "settings.page-title.reset": "Atiestatīt izskatu"
 }

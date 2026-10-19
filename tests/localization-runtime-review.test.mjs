@@ -37,15 +37,17 @@ test('running state and recovery controls use consistent contextual wording in e
     }
 });
 
-test('reviewed runtime messages cover every supported locale and preserve all interpolation arguments', () => {
+test('reviewed runtime and settings messages cover every supported locale and preserve all interpolation arguments', () => {
     const locales = fs.readdirSync(path.join(plugin, 'langs/namespaces')).filter(locale => locale !== 'en').sort();
     assert.deepEqual(Object.keys(review.locales).sort(), locales);
     assert.deepEqual(Object.keys(terms.locales).sort(), locales);
     assert.deepEqual(Object.keys(terms.iconNames).sort(), locales);
     assert.deepEqual(Object.keys(workflows.locales).sort(), locales);
-    const english = read(path.join(plugin, 'langs/namespaces/en/common.json'));
+    const readNamespaces = locale => Object.assign({}, ...fs.readdirSync(path.join(plugin, 'langs/namespaces', locale))
+        .filter(file => file.endsWith('.json')).map(file => read(path.join(plugin, 'langs/namespaces', locale, file))));
+    const english = readNamespaces('en');
     for (const locale of locales) {
-        const catalog = read(path.join(plugin, `langs/namespaces/${locale}/common.json`));
+        const catalog = readNamespaces(locale);
         assert.equal(review.locales[locale].length, review.keys.length, locale);
         assert.equal(workflows.locales[locale].length, workflows.terms.length, locale);
         workflows.terms.forEach((phrase, index) => assert.deepEqual(params(workflows.locales[locale][index]), params(phrase), `${locale}/${phrase}`));

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Zapisz zmiany",
     "settings.rules.regex-placeholder": "Wzorzec wyrażenia regularnego (np. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Foldery zostały zapisane. Odśwież stronę, aby wyświetlić najnowszą konfigurację.",
     "settings.groups.unavailable": "Tworzenie folderu jest niedostępne. Odśwież stronę i spróbuj ponownie.",
     "settings.groups.docker-description": "Zarządzaj folderami, grupami i regułami synchronizacji Dockera",
-    "settings.groups.vm-description": "Zarządzaj folderami, grupami i regułami synchronizacji maszyn wirtualnych"
+    "settings.groups.vm-description": "Zarządzaj folderami, grupami i regułami synchronizacji maszyn wirtualnych",
+    "settings.page-title.status-card": "Status i odznaki",
+    "settings.page-title.label": "Tytuł strony Dockera",
+    "settings.page-title.location": "Dodaj tytuł po lewej stronie nad kontenerami",
+    "settings.page-title.enable": "Pokaż niestandardowy tytuł",
+    "settings.page-title.text": "Tekst tytułu",
+    "settings.page-title.font": "Czcionka",
+    "settings.page-title.theme": "Domyślny motyw",
+    "settings.page-title.sans": "Bezszeryfowy",
+    "settings.page-title.serif": "Szeryf",
+    "settings.page-title.mono": "Stała szerokość",
+    "settings.page-title.size": "Rozmiar (px)",
+    "settings.page-title.bold": "Pogrubienie",
+    "settings.page-title.italic": "Kursywa",
+    "settings.page-title.color": "Kolor",
+    "settings.page-title.preview": "Podgląd tytułu",
+    "settings.page-title.reset": "Zresetuj wygląd"
 }

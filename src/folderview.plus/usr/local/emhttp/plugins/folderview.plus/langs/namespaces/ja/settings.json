@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "フォルダが保存されました。ページを更新して最新の構成を表示します。",
     "settings.groups.unavailable": "フォルダーの作成はできません。ページを更新して、もう一度お試しください。",
     "settings.groups.docker-description": "Docker フォルダー、グループ、同期ルールを管理する",
-    "settings.groups.vm-description": "VM フォルダー、グループ、同期ルールを管理する"
+    "settings.groups.vm-description": "VM フォルダー、グループ、同期ルールを管理する",
+    "settings.page-title.status-card": "ステータスとバッジ",
+    "settings.page-title.label": "Docker ページのタイトル",
+    "settings.page-title.location": "コンテナの上の左端にタイトルを追加します",
+    "settings.page-title.enable": "カスタムタイトルを表示",
+    "settings.page-title.text": "タイトルテキスト",
+    "settings.page-title.font": "フォント",
+    "settings.page-title.theme": "テーマのデフォルト",
+    "settings.page-title.sans": "サンセリフ",
+    "settings.page-title.serif": "セリフ",
+    "settings.page-title.mono": "等幅",
+    "settings.page-title.size": "サイズ (ピクセル)",
+    "settings.page-title.bold": "太字",
+    "settings.page-title.italic": "イタリック体",
+    "settings.page-title.color": "色",
+    "settings.page-title.preview": "タイトルプレビュー",
+    "settings.page-title.reset": "外観をリセットする"
 }

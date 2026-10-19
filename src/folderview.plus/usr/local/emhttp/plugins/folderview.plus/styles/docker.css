@@ -154,6 +154,31 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     margin: 0 0 0.45rem 0;
 }
 
+.fvplus-page-title-host {
+    position: relative;
+    min-height: var(--fv-page-title-height) !important;
+}
+.ToggleViewMode.fvplus-docker-runtime-toggle-cluster.fvplus-page-title-host {
+    min-height: max(1.85rem, var(--fv-page-title-height)) !important;
+}
+.fvplus-docker-page-title {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: left;
+    line-height: 1.2;
+    pointer-events: none;
+    color: var(--fvplus-theme-foreground);
+}
+body.fvplus-privacy-docker-runtime-mask-names .fvplus-docker-page-title { visibility: hidden; }
+@media (max-width: 600px) {
+    .fvplus-page-title-host { padding-top: var(--fv-page-title-height); }
+}
+
 /* Keep the native Docker view controls close to both the page title and table. */
 .ToggleViewMode.fvplus-docker-runtime-toggle-cluster {
     min-height: 1.85rem;

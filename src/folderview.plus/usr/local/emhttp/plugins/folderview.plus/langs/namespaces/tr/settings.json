@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Klasörler kaydedildi. En son yapılandırmayı göstermek için sayfayı yenileyin.",
     "settings.groups.unavailable": "Klasör oluşturma kullanılamıyor. Sayfayı yenileyip tekrar deneyin.",
     "settings.groups.docker-description": "Docker klasörlerinizi, gruplarınızı ve senkronizasyon kurallarınızı yönetin",
-    "settings.groups.vm-description": "VM klasörlerinizi, gruplarınızı ve senkronizasyon kurallarınızı yönetin"
+    "settings.groups.vm-description": "VM klasörlerinizi, gruplarınızı ve senkronizasyon kurallarınızı yönetin",
+    "settings.page-title.status-card": "Durum ve rozetler",
+    "settings.page-title.label": "Docker sayfa başlığı",
+    "settings.page-title.location": "Kapsayıcılarınızın en soluna bir başlık ekleyin",
+    "settings.page-title.enable": "Özel başlığı göster",
+    "settings.page-title.text": "Başlık metni",
+    "settings.page-title.font": "Yazı tipi",
+    "settings.page-title.theme": "Tema varsayılanı",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Eş aralıklı",
+    "settings.page-title.size": "Boyut (px)",
+    "settings.page-title.bold": "Kalın",
+    "settings.page-title.italic": "italik",
+    "settings.page-title.color": "Renk",
+    "settings.page-title.preview": "Başlık önizlemesi",
+    "settings.page-title.reset": "Görünümü sıfırla"
 }

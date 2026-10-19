@@ -20,6 +20,7 @@ const settingsRegistry = require(path.join(pluginRoot, 'scripts/folderviewplus.s
 const viewSettings = require(path.join(pluginRoot, 'scripts/folderviewplus.view-settings.js'));
 
 const expectedPreferenceKeys = {
+    changePageTitlePref: ['bold', 'color', 'enabled', 'font', 'italic', 'size', 'text'],
     changeVisibilityPref: ['appColumnWidth', 'hideEmptyFolders'],
     changeStatusPref: ['attentionAccent', 'displayMode', 'mode', 'trendEnabled', 'warnStoppedPercent'],
     changeBadgePref: ['running', 'stopped', 'updates'],
@@ -62,7 +63,7 @@ test('settings controller accepts registered changes, coerces values, and reject
         for (const type of definition.types) {
             const input = definition.kind === 'boolean'
                 ? true
-                : (definition.kind === 'integer' ? Number(definition.max) + 100 : definition.values[0]);
+                : (definition.kind === 'integer' ? Number(definition.max) + 100 : (definition.values?.[0] ?? definition.default));
             const change = controller.resolve(definition.handler, type, definition.key, input);
             assert.ok(change, `${definition.handler}/${type}/${definition.key} must resolve`);
             assert.equal(change.storageKey, definition.storageKey);

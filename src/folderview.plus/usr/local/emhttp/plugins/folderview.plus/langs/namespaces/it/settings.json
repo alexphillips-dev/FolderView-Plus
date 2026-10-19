@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Salva modifiche",
     "settings.rules.regex-placeholder": "Modello regex (ad esempio ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "Le cartelle sono state salvate. Aggiorna la pagina per mostrare la configurazione più recente.",
     "settings.groups.unavailable": "La creazione della cartella non è disponibile. Aggiorna la pagina e riprova.",
     "settings.groups.docker-description": "Gestisci le cartelle, i gruppi e le regole di sincronizzazione di Docker",
-    "settings.groups.vm-description": "Gestisci le cartelle, i gruppi e le regole di sincronizzazione delle VM"
+    "settings.groups.vm-description": "Gestisci le cartelle, i gruppi e le regole di sincronizzazione delle VM",
+    "settings.page-title.status-card": "Stato e badge",
+    "settings.page-title.label": "Titolo della pagina Docker",
+    "settings.page-title.location": "Aggiungi un titolo all'estrema sinistra sopra i contenitori",
+    "settings.page-title.enable": "Mostra titolo personalizzato",
+    "settings.page-title.text": "Testo del titolo",
+    "settings.page-title.font": "Carattere",
+    "settings.page-title.theme": "Tema predefinito",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospazio",
+    "settings.page-title.size": "Dimensione (px)",
+    "settings.page-title.bold": "Grassetto",
+    "settings.page-title.italic": "Corsivo",
+    "settings.page-title.color": "Colore",
+    "settings.page-title.preview": "Anteprima del titolo",
+    "settings.page-title.reset": "Ripristina aspetto"
 }

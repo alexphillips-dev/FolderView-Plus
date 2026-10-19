@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
+        "translation-context-revision": "727e3c9e502d7cf73aa3d89a5cd74654170405bae9fe6a386b5657a159392ee0"
     },
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",
@@ -222,5 +222,21 @@
     "settings.groups.refresh-needed": "A mappák mentésre kerültek. Frissítse az oldalt a legújabb konfiguráció megjelenítéséhez.",
     "settings.groups.unavailable": "A mappa létrehozása nem érhető el. Frissítse az oldalt, és próbálja újra.",
     "settings.groups.docker-description": "Kezelje Docker mappáit, csoportjait és szinkronizálási szabályait",
-    "settings.groups.vm-description": "Kezelje virtuálisgép-mappáit, csoportjait és szinkronizálási szabályait"
+    "settings.groups.vm-description": "Kezelje virtuálisgép-mappáit, csoportjait és szinkronizálási szabályait",
+    "settings.page-title.status-card": "Állapot és jelvények",
+    "settings.page-title.label": "Docker oldal címe",
+    "settings.page-title.location": "Adjon hozzá egy címet a bal szélen a tárolók felett",
+    "settings.page-title.enable": "Egyéni cím megjelenítése",
+    "settings.page-title.text": "Cím szövege",
+    "settings.page-title.font": "Font",
+    "settings.page-title.theme": "Alapértelmezett téma",
+    "settings.page-title.sans": "Sans-serif",
+    "settings.page-title.serif": "Serif",
+    "settings.page-title.mono": "Monospace",
+    "settings.page-title.size": "Méret (px)",
+    "settings.page-title.bold": "Félkövér",
+    "settings.page-title.italic": "Dőlt",
+    "settings.page-title.color": "Szín",
+    "settings.page-title.preview": "Cím előnézete",
+    "settings.page-title.reset": "Megjelenés visszaállítása"
 }

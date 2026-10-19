@@ -20,7 +20,12 @@ fvplus_json_try(function (): array {
         throw new RuntimeException('Invalid folder settings payload.');
     }
 
-    return [
-        'result' => applyFolderSettingsPayload($type, $targetIds, $settings)
-    ];
+    $options = ['preview' => ($_POST['preview'] ?? '') === '1'];
+    if (isset($_POST['categories'])) {
+        $categories = json_decode((string)$_POST['categories'], true);
+        if (!is_array($categories)) throw new InvalidArgumentException('Invalid folder settings categories.');
+        $options['categories'] = $categories;
+    }
+    if (isset($_POST['expectedRevision'])) $options['expectedRevision'] = $_POST['expectedRevision'];
+    return ['result' => applyFolderSettingsPayload($type, $targetIds, $settings, $options)];
 });

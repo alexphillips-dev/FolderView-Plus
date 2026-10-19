@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Автоматическое восстановление не удалось",
     "diagnostics.migration.native": "Включен встроенный автозапуск Docker.",
     "diagnostics.migration.checkpoint": "Доступна контрольная точка восстановления",
+    "common.settings-transfer.unchanged": "Выбранные папки уже совпадают. Никаких изменений или резервного копирования не потребовалось.",
     "common.counts.recommendations": "Рекомендации: $1.",
     "common.counts.notes": "Информационные примечания: $1.",
     "common.counts.icon-references": "Папки, использующие этот значок: $1.",

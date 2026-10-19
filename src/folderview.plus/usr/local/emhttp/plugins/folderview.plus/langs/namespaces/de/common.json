@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Die automatische Wiederherstellung ist fehlgeschlagen",
     "diagnostics.migration.native": "Nativer Docker-Autostart inklusive",
     "diagnostics.migration.checkpoint": "Wiederherstellungskontrollpunkt verfügbar",
+    "common.settings-transfer.unchanged": "Ausgewählte Ordner stimmen bereits überein. Es waren keine Änderungen oder Backups erforderlich.",
     "common.counts.recommendations": "Empfehlungen: $1.",
     "common.counts.notes": "Informative Hinweise: $1.",
     "common.counts.icon-references": "Ordner, die dieses Symbol verwenden: $1.",

@@ -479,6 +479,7 @@ if (
     window.FolderViewPlusDockerRuntimeActionsModuleLoaded !== true
     || !dockerRuntimeActionsModule
     || typeof dockerRuntimeActionsModule.createApi !== 'function'
+    || typeof window.FolderViewPlusFolderSettingsMenu?.createApi !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.actions.js');
     setDockerFatalBannerModuleStatus('docker.runtime.actions.js', 'missing', 'Docker action helpers unavailable');
@@ -6242,20 +6243,6 @@ const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = 
 const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false, profileId = '') =>
     getDockerRuntimeActionsApi()?.openFolderWebuisFromMenu?.(id, runningOnly, includeDescendants, profileId);
 
-const copyDockerFolderSettingsFromMenu = async (id) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.copyDockerFolderSettingsFromMenu === 'function') {
-        await actionsApi.copyDockerFolderSettingsFromMenu(id);
-    }
-};
-
-const pasteDockerFolderSettingsFromMenu = async (id) => {
-    const actionsApi = getDockerRuntimeActionsApi();
-    if (actionsApi && typeof actionsApi.pasteDockerFolderSettingsFromMenu === 'function') {
-        await actionsApi.pasteDockerFolderSettingsFromMenu(id);
-    }
-};
-
 const cloneDockerFolderFromMenu = async (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.cloneDockerFolderFromMenu === 'function') {
@@ -6505,7 +6492,7 @@ const positionDockerContextElementInsideViewport = (element) => {
     let changed = false;
 
     element.classList.add('fvplus-docker-context-menu');
-    element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+    if (!element.classList.contains('fv-settings-transfer-menu')) element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
 
     if (rect.bottom > viewportHeight - margin) {
         nextTop -= rect.bottom - (viewportHeight - margin);
@@ -6539,6 +6526,7 @@ const adjustDockerContextSubmenuViewportPlacement = (listItem) => {
     if (!rootMenu || !submenu || typeof submenu.getBoundingClientRect !== 'function') {
         return false;
     }
+    if (submenu.classList.contains('fv-settings-transfer-menu')) return true;
     listItem.classList.remove('fvplus-context-submenu-open-up', 'fvplus-context-submenu-open-left');
     submenu.style.maxHeight = '';
     const rect = submenu.getBoundingClientRect();
@@ -6579,6 +6567,7 @@ const bindDockerContextMenuViewportGuards = () => {
             return;
         }
         window.requestAnimationFrame(() => {
+            getDockerRuntimeActionsApi()?.decorateDockerFolderSettingsMenu?.([item.closest('.fvplus-docker-context-menu')]);
             adjustDockerContextSubmenuViewportPlacement(item);
             adjustVisibleDockerContextMenusInsideViewport();
         });
@@ -6592,6 +6581,7 @@ const bindDockerContextMenuViewportGuards = () => {
 const queueDockerContextViewportGuard = (attempt = 0) => {
     bindDockerContextMenuViewportGuards();
     window.requestAnimationFrame(() => {
+        getDockerRuntimeActionsApi()?.decorateDockerFolderSettingsMenu?.(getVisibleDockerContextMenus());
         if (adjustVisibleDockerContextMenusInsideViewport()) {
             return;
         }
@@ -6971,6 +6961,10 @@ const addDockerFolderContext = (id, options = {}) => {
             }
         }
     ];
+    cloneSubMenu.push({
+        text: dockerT('docker.transfer.clone-settings-menu', 'Clone settings only…'), icon: 'fa-copy',
+        action: event => { event.preventDefault(); getDockerRuntimeActionsApi().cloneDockerFolderSettingsOnlyFromMenu(id); }
+    });
     if (hasChildren) {
         cloneSubMenu.push({
             text: getDockerMenuLabel('clone-branch', 'Clone branch'),
@@ -6981,22 +6975,7 @@ const addDockerFolderContext = (id, options = {}) => {
             }
         });
     }
-    cloneSubMenu.push({
-        text: getDockerMenuLabel('copy-folder-settings', 'Copy Folder Settings'),
-        icon: 'fa-files-o',
-        action: (evt) => {
-            evt.preventDefault();
-            copyDockerFolderSettingsFromMenu(id);
-        }
-    });
-    cloneSubMenu.push({
-        text: getDockerMenuLabel('paste-folder-settings', 'Paste Folder Settings'),
-        icon: 'fa-clipboard',
-        action: (evt) => {
-            evt.preventDefault();
-            pasteDockerFolderSettingsFromMenu(id);
-        }
-    });
+    cloneSubMenu.push({ divider: true }, ...getDockerRuntimeActionsApi().buildDockerFolderSettingsMenu(id));
     opts.push({
         text: getDockerMenuLabel('clone-menu', 'Clone'),
         icon: 'fa-clone',

@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatyczne przywracanie nie powiodło się",
     "diagnostics.migration.native": "Dołączony natywny autostart Dockera",
     "diagnostics.migration.checkpoint": "Dostępny punkt kontrolny odzyskiwania",
+    "common.settings-transfer.unchanged": "Wybrane foldery już pasują. Nie były potrzebne żadne zmiany ani kopie zapasowe.",
     "common.counts.recommendations": "Zalecenia: $1.",
     "common.counts.notes": "Uwagi informacyjne: $1.",
     "common.counts.icon-references": "Foldery używające tej ikony: $1.",

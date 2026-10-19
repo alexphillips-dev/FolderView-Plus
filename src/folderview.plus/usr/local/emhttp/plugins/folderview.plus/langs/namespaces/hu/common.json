@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Az automatikus visszaállítás nem sikerült",
     "diagnostics.migration.native": "Natív Docker automatikus indítást tartalmaz",
     "diagnostics.migration.checkpoint": "Helyreállítási ellenőrzőpont elérhető",
+    "common.settings-transfer.unchanged": "A kiválasztott mappák már megegyeznek. Nem volt szükség változtatásokra vagy biztonsági mentésre.",
     "common.counts.recommendations": "Javaslatok: $1.",
     "common.counts.notes": "Tájékoztató megjegyzések: $1.",
     "common.counts.icon-references": "Ezt az ikont használó mappák: $1.",

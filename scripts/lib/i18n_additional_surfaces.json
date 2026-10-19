@@ -3131,10 +3131,6 @@
     "phrase": "Copied folder settings",
     "locations": [
       {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Copied folder settings'"
-      },
-      {
         "file": "scripts/folder.settings-transfer.js",
         "anchor": "'Copied folder settings'"
       },
@@ -3174,10 +3170,6 @@
   {
     "phrase": "Copy folder settings",
     "locations": [
-      {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Copy folder settings'"
-      },
       {
         "file": "scripts/vm.js",
         "anchor": "'Copy folder settings'"
@@ -4585,10 +4577,6 @@
     "phrase": "Failed to copy folder settings.",
     "locations": [
       {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Failed to copy folder settings.'"
-      },
-      {
         "file": "scripts/vm.js",
         "anchor": "'Failed to copy folder settings.'"
       }
@@ -4709,10 +4697,6 @@
   {
     "phrase": "Failed to paste folder settings.",
     "locations": [
-      {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Failed to paste folder settings.'"
-      },
       {
         "file": "scripts/vm.js",
         "anchor": "'Failed to paste folder settings.'"
@@ -5354,10 +5338,6 @@
     "phrase": "Folder settings transfer module is unavailable.",
     "locations": [
       {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Folder settings transfer module is unavailable.'"
-      },
-      {
         "file": "scripts/vm.js",
         "anchor": "'Folder settings transfer module is unavailable.'"
       }
@@ -5753,10 +5733,6 @@
   {
     "phrase": "FolderView Plus request client is unavailable.",
     "locations": [
-      {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'FolderView Plus request client is unavailable.'"
-      },
       {
         "file": "scripts/folder.editor.icon-api.js",
         "anchor": "'FolderView Plus request client is unavailable.'"
@@ -11659,10 +11635,6 @@
     "phrase": "Unable to copy folder settings into the clipboard.",
     "locations": [
       {
-        "file": "scripts/docker.runtime.actions.js",
-        "anchor": "'Unable to copy folder settings into the clipboard.'"
-      },
-      {
         "file": "scripts/vm.js",
         "anchor": "'Unable to copy folder settings into the clipboard.'"
       }
@@ -12829,17 +12801,117 @@
         "anchor": "'Your server runs a mix of apps and experiments.'"
       }
     ]
+  },
+  {
+    "phrase": "The server returned an incomplete migration preview.",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.folderview3-migration.js",
+        "anchor": "The server returned an incomplete migration preview."
+      }
+    ]
+  },
+  {
+    "phrase": "Migration verification did not complete. No successful migration was reported.",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.folderview3-migration.js",
+        "anchor": "Migration verification did not complete. No successful migration was reported."
+      }
+    ]
+  },
+  {
+    "phrase": "Unsupported legacy setting: $1. It is not applied; retain the original export for recovery.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-settings.php",
+        "anchor": "Unsupported legacy setting: "
+      }
+    ]
+  },
+  {
+    "phrase": "Invalid FolderView3 $1 map. No configuration was imported.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-validation.php",
+        "anchor": " map. No configuration was imported."
+      }
+    ]
+  },
+  {
+    "phrase": "Invalid or oversized FolderView3 $1. Shorten or correct it before importing.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-validation.php",
+        "anchor": ". Shorten or correct it before importing."
+      }
+    ]
+  },
+  {
+    "phrase": "FolderView3 $1 must be a list with at most 5000 entries.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-validation.php",
+        "anchor": " must be a list with at most 5000 entries."
+      }
+    ]
+  },
+  {
+    "phrase": "FolderView3 $1 contains an invalid name.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-validation.php",
+        "anchor": " contains an invalid name."
+      }
+    ]
+  },
+  {
+    "phrase": "FolderView3 backup is missing required $1 data.",
+    "locations": [
+      {
+        "file": "server/lib.folderview3-validation.php",
+        "anchor": "FolderView3 backup is missing required "
+      }
+    ]
+  },
+  {
+    "phrase": "Migration was saved; refresh failed",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.folderview3-migration.js",
+        "anchor": "Migration was saved; refresh failed"
+      }
+    ]
+  },
+  {
+    "phrase": "FolderView3 migration preview failed",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.js",
+        "anchor": "FolderView3 migration preview failed"
+      }
+    ]
+  },
+  {
+    "phrase": "Configuration was saved, but a view could not refresh. Reload Settings before continuing.",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.settings-workspaces.js",
+        "anchor": "Configuration was saved, but a view could not refresh. Reload Settings before continuing."
+      }
+    ]
+  },
+  {
+    "phrase": "Invalid folder settings categories.",
+    "locations": [
+      {
+        "file": "server/lib.folder-settings-transfer.php",
+        "anchor": "Invalid folder settings categories."
+      },
+      {
+        "file": "server/apply_folder_settings.php",
+        "anchor": "Invalid folder settings categories."
+      }
+    ]
   }
-,
-  {"phrase": "The server returned an incomplete migration preview.", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "The server returned an incomplete migration preview."}]},
-  {"phrase": "Migration verification did not complete. No successful migration was reported.", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "Migration verification did not complete. No successful migration was reported."}]},
-  {"phrase": "Unsupported legacy setting: $1. It is not applied; retain the original export for recovery.", "locations": [{"file": "server/lib.folderview3-settings.php", "anchor": "Unsupported legacy setting: "}]},
-  {"phrase": "Invalid FolderView3 $1 map. No configuration was imported.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " map. No configuration was imported."}]},
-  {"phrase": "Invalid or oversized FolderView3 $1. Shorten or correct it before importing.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": ". Shorten or correct it before importing."}]},
-  {"phrase": "FolderView3 $1 must be a list with at most 5000 entries.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " must be a list with at most 5000 entries."}]},
-  {"phrase": "FolderView3 $1 contains an invalid name.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": " contains an invalid name."}]},
-  {"phrase": "FolderView3 backup is missing required $1 data.", "locations": [{"file": "server/lib.folderview3-validation.php", "anchor": "FolderView3 backup is missing required "}]},
-  {"phrase": "Migration was saved; refresh failed", "locations": [{"file": "scripts/folderviewplus.folderview3-migration.js", "anchor": "Migration was saved; refresh failed"}]},
-  {"phrase": "FolderView3 migration preview failed", "locations": [{"file": "scripts/folderviewplus.js", "anchor": "FolderView3 migration preview failed"}]},
-  {"phrase": "Configuration was saved, but a view could not refresh. Reload Settings before continuing.", "locations": [{"file": "scripts/folderviewplus.settings-workspaces.js", "anchor": "Configuration was saved, but a view could not refresh. Reload Settings before continuing."}]}
 ]

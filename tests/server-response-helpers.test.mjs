@@ -23,6 +23,7 @@ const libPhp = readServerGraph([
     'lib.php',
     'lib.backup-snapshots.php',
     'lib.folder-mutations.php',
+    'lib.folder-settings-transfer.php',
     'lib.custom-icon-storage.php',
     'lib.docker-order.php',
     'lib.runtime-info.php'
@@ -98,12 +99,11 @@ test('backup restore validates payload type against requested type', () => {
 test('lib.php supports guarded folder settings transfer for existing folders', () => {
     assert.match(libPhp, /function normalizeFolderSettingsTransferPayload\(array \$payload\): array/);
     assert.match(libPhp, /fvplus_assert_folder_settings_payload_shape\(\$payload\);/);
-    assert.match(libPhp, /function applyFolderSettingsPayload\(string \$type, array \$targetIds, array \$settingsPayload\): array/);
+    assert.match(libPhp, /function applyFolderSettingsPayload\(string \$type, array \$targetIds, array \$settingsPayload, array \$options = \[\]\): array/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-apply-folder-settings'\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\('folder_settings_apply', \$type,/);
-    assert.match(libPhp, /\$existingFolder\['icon'\] = \$normalizedSettings\['icon'\] \?\? '';/);
-    assert.match(libPhp, /\$existingFolder\['settings'\] = is_array\(\$normalizedSettings\['settings'\] \?\? null\) \? \$normalizedSettings\['settings'\] : \[\];/);
-    assert.match(libPhp, /\$existingFolder\['actions'\] = is_array\(\$normalizedSettings\['actions'\] \?\? null\) \? \$normalizedSettings\['actions'\] : \[\];/);
+    assert.match(libPhp, /return applySelectiveFolderSettings\(\$type, \$targetIds, \$settingsPayload, \$options\)/);
+    assert.match(libPhp, /function mergeFolderSettingsTransfer\(/);
 });
 
 test('lib.php repairs custom icon directories and can clear missing custom icon references', () => {

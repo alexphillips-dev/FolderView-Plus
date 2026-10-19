@@ -240,13 +240,6 @@
             openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };
 
-        const postJsonWithFallback = async (url, payload, options = {}) => {
-            if (!requestClient || typeof requestClient.postJson !== 'function') {
-                throw new Error('FolderView Plus request client is unavailable.');
-            }
-            return requestClient.postJson(url, payload, options);
-        };
-
         const summarizeFolderActionCounts = (containersMap) => {
             const entries = Object.values(containersMap || {});
             let startable = 0;
@@ -714,118 +707,44 @@
             };
         };
 
-        const buildFolderSettingsSummaryHtml = (entry) => {
-            const summary = folderSettingsTransfer?.summarizeClipboardEntry(entry) || {
-                sourceName: 'Copied folder settings',
-                copiedActionCount: 0,
-                droppedMemberBoundActionCount: 0,
-                labels: ['Folder settings']
-            };
-            const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
-            const skippedHint = summary.droppedMemberBoundActionCount > 0
-                ? `<div data-fvplus-style="fv-u-1wnpfz0">${escapeHtml(surfaceT("common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd", "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.", summary.droppedMemberBoundActionCount))}</div>`
-                : '';
-            return [
-                `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
-                `<div data-fvplus-style="fv-u-1wnpfz0"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
-                skippedHint
-            ].join('');
+        let settingsMenuApi = null;
+        const getSettingsMenuApi = () => {
+            if (!settingsMenuApi) settingsMenuApi = win.FolderViewPlusFolderSettingsMenu?.createApi?.({ window: win,
+                transfer: folderSettingsTransfer, escapeHtml, getFolder: getFolderById, ensureUnlocked: ensureDockerFolderUnlocked,
+                post: (url, data) => requestClient.postJson(url, data, { retries: 0 }), refresh: refreshDockerList,
+                reflow: () => win.dispatchEvent?.(new win.Event('resize')) });
+            return settingsMenuApi;
         };
-
-        const copyDockerFolderSettingsFromMenu = async (id) => {
-            await runDockerGuardedAction('copy-folder-settings', async () => {
-                if (!ensureDockerFolderUnlocked(id, 'Copy folder settings')) {
-                    return;
-                }
-                if (!folderSettingsTransfer) {
-                    throw new Error('Folder settings transfer module is unavailable.');
-                }
-                const source = getFolderById(id);
-                if (!source || typeof source !== 'object') {
-                    return;
-                }
-                const clipboardEntry = folderSettingsTransfer.buildClipboardEntry('docker', source, {
-                    sourceId: id,
-                    sourceName: String(source?.name || id).trim(),
-                    sourceContext: 'docker-runtime'
-                });
-                if (!clipboardEntry || folderSettingsTransfer.writeClipboardEntry(clipboardEntry) !== true) {
-                    throw new Error('Unable to copy folder settings into the clipboard.');
-                }
-                swalFn({
-                    title: 'Folder settings copied',
-                    text: buildFolderSettingsSummaryHtml(clipboardEntry),
-                    type: 'success',
-                    html: true,
-                    confirmButtonText: 'OK'
-                });
-            }, {
-                userMessage: getDockerMenuLabel('copy-folder-settings-failed', 'Failed to copy folder settings.'),
-                userVisible: true
-            });
+        const copyDockerFolderSettingsFromMenu = async (id, category = 'all') => getSettingsMenuApi()?.copy(id, category);
+        const pasteDockerFolderSettingsFromMenu = async (id, category = 'all') => getSettingsMenuApi()?.paste(id, category);
+        const buildDockerFolderSettingsMenu = id => getSettingsMenuApi()?.buildMenuItems(id) || [];
+        const decorateDockerFolderSettingsMenu = menus => getSettingsMenuApi()?.decorate(menus);
+        const cloneName = source => {
+            let base = String(source?.name || 'Folder').trim() || 'Folder';
+            while (encodeURIComponent(base).replace(/%[0-9A-F]{2}|./g, 'x').length > 140) base = [...base].slice(0, -1).join('');
+            const parent = normalizeFolderParentId(source?.parentId || source?.parent_id || '');
+            const names = new Set(Object.values(getFolderMap()).filter(folder => normalizeFolderParentId(folder?.parentId || folder?.parent_id || '') === parent)
+                .map(folder => String(folder?.name || '').trim().toLowerCase()));
+            let index = 1;
+            while (names.has(`${base} (Copy${index === 1 ? '' : ' ' + index})`.toLowerCase())) index++;
+            return `${base} (Copy${index === 1 ? '' : ' ' + index})`;
         };
-
-        const pasteDockerFolderSettingsFromMenu = async (id) => {
-            await runDockerGuardedAction('paste-folder-settings', async () => {
-                if (!ensureDockerFolderUnlocked(id, 'Paste folder settings')) {
-                    return;
-                }
-                if (!folderSettingsTransfer) {
-                    throw new Error('Folder settings transfer module is unavailable.');
-                }
-                const targetFolder = getFolderById(id);
-                if (!targetFolder || typeof targetFolder !== 'object') {
-                    return;
-                }
-                const clipboardEntry = folderSettingsTransfer.readClipboardEntry('docker');
-                if (!clipboardEntry) {
-                    swalFn({
-                        title: 'No folder settings copied',
-                        text: 'Copy folder settings from another Docker folder first.',
-                        type: 'info',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
-                }
-                const summaryHtml = [
-                    `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
-                    `<div data-fvplus-style="fv-u-1tei6ul">${buildFolderSettingsSummaryHtml(clipboardEntry)}</div>`
-                ].join('');
-                swalFn({
-                    title: 'Paste folder settings',
-                    text: summaryHtml,
-                    type: 'warning',
-                    html: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Paste',
-                    cancelButtonText: 'Cancel',
-                    closeOnConfirm: false,
-                    showLoaderOnConfirm: true
-                }, async (confirmed) => {
-                    if (!confirmed) {
-                        return;
-                    }
-                    try {
-                        getSpinner()?.show('slow');
-                        await postJsonWithFallback('/plugins/folderview.plus/server/apply_folder_settings.php', {
-                            type: 'docker',
-                            targetIds: JSON.stringify([id]),
-                            settings: JSON.stringify(clipboardEntry.payload)
-                        }, {
-                            retries: 0,
-                            retryDelayMs: 260
-                        });
-                        swal.close();
-                        refreshDockerList();
-                    } finally {
-                        getSpinner()?.hide('slow');
-                    }
-                });
-            }, {
-                userMessage: getDockerMenuLabel('paste-folder-settings-failed', 'Failed to paste folder settings.'),
-                userVisible: true
-            });
-        };
+        const cloneDockerFolderSettingsOnlyFromMenu = async id => runDockerGuardedAction('clone-folder-settings', async () => {
+            if (!ensureDockerFolderUnlocked(id, surfaceT('docker.transfer.clone-settings', 'Clone settings only'))) return;
+            await folderSettingsTransfer.loadSchema();
+            const source = getFolderById(id);
+            if (!source) return;
+            const name = String(promptFn(surfaceT('common.repair.clone-folder-name-b9cbd2', 'Clone folder name'), cloneName(source)) || '').trim();
+            if (!name) return;
+            const portable = folderSettingsTransfer.selectPayload(source, ['appearance', 'layout', 'behavior']);
+            const payload = buildDockerFolderClonePayload({ ...source, ...portable, regex: '', containers: [], actions: [] }, { name });
+            getSpinner()?.show('slow');
+            try {
+                await persistDockerFolderClonePayload(payload);
+                await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
+                refreshDockerList();
+            } finally { getSpinner()?.hide('slow'); }
+        }, { userMessage: getDockerMenuLabel('clone-folder-failed', 'Failed to clone folder.'), userVisible: true });
 
         const buildDockerFolderCloneIdFallback = (reservedIds = new Set()) => {
             const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -926,7 +845,7 @@
                 if (!source || typeof source !== 'object') {
                     return;
                 }
-                const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+                const defaultName = cloneName(source);
                 const nextName = String(promptFn(surfaceT("common.repair.clone-folder-name-b9cbd2", "Clone folder name"), defaultName) || '').trim();
                 if (!nextName) {
                     return;
@@ -960,7 +879,7 @@
                     await cloneDockerFolderFromMenu(id);
                     return;
                 }
-                const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+                const defaultName = cloneName(source);
                 const nextName = String(promptFn(surfaceT("common.repair.clone-branch-root-name-f56266", "Clone branch root name"), defaultName) || '').trim();
                 if (!nextName) {
                     return;
@@ -1043,6 +962,7 @@
             collectFolderWebuiTargets,
             showFolderWebuiPopupWarning,
             openFolderWebuisFromMenu,
+            buildDockerFolderSettingsMenu, decorateDockerFolderSettingsMenu, cloneDockerFolderSettingsOnlyFromMenu,
             copyDockerFolderSettingsFromMenu,
             pasteDockerFolderSettingsFromMenu,
             cloneDockerFolderFromMenu,

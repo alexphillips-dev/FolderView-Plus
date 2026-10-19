@@ -941,14 +941,6 @@
     ]
   },
   {
-    "file": "scripts/docker.runtime.actions.js",
-    "key": "common.repair.custom-actions-tied-to-source-members-were-skipped-to-avoid-copyi-2c21bd",
-    "english": "Custom actions tied to source members were skipped to avoid copying source-specific targets. Actions skipped: $1.",
-    "params": [
-      "summary.droppedMemberBoundActionCount"
-    ]
-  },
-  {
     "file": "scripts/folder.editor.hierarchy.js",
     "key": "common.repair.defaults-inherited-from-parent-2-1-55c01c",
     "english": "Defaults inherited from parent \"$2\": $1.",

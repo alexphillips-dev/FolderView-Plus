@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Il ripristino automatico non è riuscito",
     "diagnostics.migration.native": "Avvio automatico nativo di Docker incluso",
     "diagnostics.migration.checkpoint": "Checkpoint di ripristino disponibile",
+    "common.settings-transfer.unchanged": "Le cartelle selezionate corrispondono già. Non sono state necessarie modifiche o backup.",
     "common.counts.recommendations": "Raccomandazioni: $1.",
     "common.counts.notes": "Note informative: $1.",
     "common.counts.icon-references": "Cartelle che usano questa icona: $1.",

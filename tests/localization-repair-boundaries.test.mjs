@@ -109,7 +109,7 @@ test('aliased clone prompts preserve the suggested name and cancel before creati
         const context = vm.createContext({
             surfaceT: (key, fallback, ...args) => interpolate(messages[key] || fallback, args),
             runDockerGuardedAction: async (_action, run) => run(), ensureDockerFolderUnlocked: () => true, ensureDockerBranchUnlocked: () => true,
-            getFolderById: () => ({ name: 'Order <custom>' }), getFolderMap: () => ({ root: { name: 'Order <custom>' } }),
+            cloneName: source => source.name + ' (Copy)', getFolderById: () => ({ name: 'Order <custom>' }), getFolderMap: () => ({ root: { name: 'Order <custom>' } }),
             getFolderDescendants: () => ['child'], promptFn: (message, suggested) => { prompts.push({ message, suggested }); return null; },
             getDockerFolderBranchCloneOrder: () => ['root', 'child'],
             getDockerMenuLabel: (_key, fallback) => fallback, persistDockerFolderClonePayload: () => { mutations++; },

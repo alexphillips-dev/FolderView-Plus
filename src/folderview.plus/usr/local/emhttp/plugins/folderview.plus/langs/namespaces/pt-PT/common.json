@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Falha na restauração automática",
     "diagnostics.migration.native": "Inicialização automática nativa do Docker incluída",
     "diagnostics.migration.checkpoint": "Ponto de verificação de recuperação disponível",
+    "common.settings-transfer.unchanged": "As pastas selecionadas já correspondem. Nenhuma alteração ou backup foi necessário.",
     "common.counts.recommendations": "Recomendações: $1.",
     "common.counts.notes": "Notas informativas: $1.",
     "common.counts.icon-references": "Pastas que utilizam este ícone: $1.",

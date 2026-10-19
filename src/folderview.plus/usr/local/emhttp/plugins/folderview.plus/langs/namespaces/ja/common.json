@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "自動復元に失敗しました",
     "diagnostics.migration.native": "ネイティブ Docker 自動起動が含まれています",
     "diagnostics.migration.checkpoint": "リカバリチェックポイントが利用可能",
+    "common.settings-transfer.unchanged": "選択したフォルダーはすでに一致しています。変更やバックアップは必要ありませんでした。",
     "common.counts.recommendations": "推奨事項: $1。",
     "common.counts.notes": "参考情報: $1。",
     "common.counts.icon-references": "このアイコンを使用するフォルダー数: $1。",

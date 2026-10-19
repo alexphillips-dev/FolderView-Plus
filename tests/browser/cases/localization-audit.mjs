@@ -30,7 +30,7 @@ const probeScript = `window.auditBindings = count => {
         selectedIds = rows, targetIds = rows, targetRows = rows, upserts = rows, toRepair = rows;
     const chunkNumber = count, chunkCount = count, chunkSize = count, visibleCount = count,
         allCount = count, BULK_LIST_RENDER_CHUNK_SIZE = count, deletes = count, selectedDeletes = count,
-        deletedCount = count, failedCount = count, byFolder = {size: count}, result = {updatedCount: count};
+        deletedCount = count, failedCount = count, byFolder = {size: count}, result = {updatedCount: count}, response = {result};
     const label = 'Docker', targetId = 'fixture', folders = {fixture: {name: 'Order <custom>'}},
         verificationError = {message: 'fixture failure'}, verifiedCounts = {repairableIssueCount: count, advisoryIssueCount: count};
     return [${bindings.map(row => `{key:${JSON.stringify(row.key)},text:${row.code}}`).join(',')}];

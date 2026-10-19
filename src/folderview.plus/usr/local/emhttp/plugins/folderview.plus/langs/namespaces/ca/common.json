@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "La restauració automàtica ha fallat",
     "diagnostics.migration.native": "Inici automàtic de Docker natiu inclòs",
     "diagnostics.migration.checkpoint": "Punt de control de recuperació disponible",
+    "common.settings-transfer.unchanged": "Les carpetes seleccionades ja coincideixen. No calia cap canvi ni còpia de seguretat.",
     "common.counts.recommendations": "Recomanacions: $1.",
     "common.counts.notes": "Notes informatives: $1.",
     "common.counts.icon-references": "Carpetes que utilitzen aquesta icona: $1.",

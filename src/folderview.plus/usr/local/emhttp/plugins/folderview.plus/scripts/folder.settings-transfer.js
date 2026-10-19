@@ -13,7 +13,9 @@
 
     const CLIPBOARD_STORAGE_KEY = 'fv.folder.settings.clipboard.v1';
     const CLIPBOARD_LOCAL_STORAGE_KEY = 'fv.folder.settings.clipboard.persist.v1';
-    const CLIPBOARD_SCHEMA_VERSION = 1;
+    const CLIPBOARD_SCHEMA_VERSION = 2;
+    const CATEGORY_IDS = Object.freeze(['appearance', 'layout', 'behavior', 'actions']);
+    const CLIPBOARD_CLEARED_KEY = 'fv.folder.settings.clipboard.cleared.v1';
     const CLIPBOARD_TYPE_VALUES = Object.freeze(new Set(['docker', 'vm']));
     const SETTINGS_PAYLOAD_KEYS = Object.freeze(['icon', 'settings', 'actions']);
 
@@ -92,6 +94,7 @@
         const normalized = normalizeFolderSettingsPayload(folder);
         return {
             schemaVersion: CLIPBOARD_SCHEMA_VERSION,
+            categories: options.categories || [...CATEGORY_IDS],
             type: normalizedType,
             copiedAt: new Date().toISOString(),
             sourceId: String(options.sourceId || '').trim(),
@@ -112,13 +115,19 @@
             if (!parsed || typeof parsed !== 'object') {
                 return null;
             }
+            if (![1, 2].includes(parsed.schemaVersion)) return null;
+            const categories = parsed.schemaVersion === 1 ? [...CATEGORY_IDS] : parsed.categories;
+            if (!Array.isArray(categories) || !categories.length || categories.some(value => !CATEGORY_IDS.includes(value))) return null;
             const normalizedType = normalizeType(parsed.type);
             if (!normalizedType) {
                 return null;
             }
             const normalized = normalizeFolderSettingsPayload(parsed.payload || {});
+            const dropped = Number(parsed.meta?.droppedMemberBoundActionCount);
+            if (Number.isInteger(dropped) && dropped >= 0 && dropped <= 200) normalized.meta.droppedMemberBoundActionCount = Math.max(dropped, normalized.meta.droppedMemberBoundActionCount);
             return {
                 schemaVersion: CLIPBOARD_SCHEMA_VERSION,
+                categories: [...new Set(categories)],
                 type: normalizedType,
                 copiedAt: String(parsed.copiedAt || '').trim(),
                 sourceId: String(parsed.sourceId || '').trim(),
@@ -135,52 +144,81 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
 
-        const writeClipboardEntry = (entry) => {
-            if (!entry || typeof entry !== 'object') {
-                return false;
-            }
+        let schema = deps.schema || null;
+        let schemaPromise = null;
+        const loadSchema = async () => {
+            if (schema) return schema;
+            const request = deps.requestClient || win.FolderViewPlusRequest;
+            if (!request?.getJson) throw new Error('Folder settings categories are unavailable.');
+            if (!schemaPromise) schemaPromise = request.getJson('/plugins/folderview.plus/schemas/folder-settings-transfer.schema.json', { cache: 'no-store', retries: 0 })
+                .then(value => { if (value.schemaVersion !== 1 || JSON.stringify(value.categories) !== JSON.stringify(CATEGORY_IDS)) throw new Error('Invalid folder settings registry.'); schema = value; return schema; })
+                .catch(error => { schemaPromise = null; throw error; });
+            return schemaPromise;
+        };
+        const categoryForKey = key => {
+            if (!schema) throw new Error('Load folder settings categories first.');
+            if (schema.protectedSettings.includes(key)) return '';
+            if (schema.actionKeys.includes(key)) return 'actions';
+            for (const category of ['appearance', 'layout']) if (schema[category + 'Prefixes'].some(prefix => key.startsWith(prefix))) return category;
+            return schema.layoutKeys.includes(key) ? 'layout' : 'behavior';
+        };
+        const normalizeCategories = categories => {
+            if (!Array.isArray(categories) || !categories.length || categories.some(value => !CATEGORY_IDS.includes(value))) throw new Error('Invalid folder settings categories.');
+            return CATEGORY_IDS.filter(category => categories.includes(category));
+        };
+        const selectPayload = (folder, categories) => {
+            categories = normalizeCategories(categories);
+            const payload = normalizeFolderSettingsPayload(folder).payload;
+            return { icon: categories.includes('appearance') ? payload.icon : '',
+                settings: Object.fromEntries(Object.entries(payload.settings).filter(([key]) => categories.includes(categoryForKey(key)))),
+                actions: categories.includes('actions') ? payload.actions : [] };
+        };
+        const clearedAt = () => Math.max(0, ...['localStorage', 'sessionStorage'].map(storage => {
+            try { return Number(win?.[storage]?.getItem(CLIPBOARD_CLEARED_KEY)) || 0; } catch { return 0; }
+        }));
+        const newestStoredAt = () => Math.max(clearedAt(), ...[['localStorage', CLIPBOARD_LOCAL_STORAGE_KEY], ['sessionStorage', CLIPBOARD_STORAGE_KEY]].map(([storage, key]) => {
+            try { return Date.parse(parseClipboardEntry(win?.[storage]?.getItem(key))?.copiedAt) || 0; } catch { return 0; }
+        }));
+        const writeClipboardEntry = entry => {
+            if (!entry || typeof entry !== 'object') return false;
+            entry.copiedAt = new Date(Math.max(Date.now(), newestStoredAt() + 1)).toISOString();
             const serialized = JSON.stringify(entry);
             let wrote = false;
-            try {
-                if (typeof win?.sessionStorage !== 'undefined') {
-                    win.sessionStorage.setItem(CLIPBOARD_STORAGE_KEY, serialized);
-                    wrote = true;
-                }
-            } catch (_error) {
-                // Best effort only.
-            }
-            try {
-                if (typeof win?.localStorage !== 'undefined') {
-                    win.localStorage.setItem(CLIPBOARD_LOCAL_STORAGE_KEY, serialized);
-                    wrote = true;
-                }
-            } catch (_error) {
-                // Best effort only.
+            for (const [storage, key] of [['localStorage', CLIPBOARD_LOCAL_STORAGE_KEY], ['sessionStorage', CLIPBOARD_STORAGE_KEY]]) {
+                try { if (win?.[storage]) { win[storage].setItem(key, serialized); wrote = true; } } catch { /* Storage is optional. */ }
             }
             return wrote;
         };
-
         const readClipboardEntry = (expectedType = '') => {
-            const normalizedExpectedType = normalizeType(expectedType);
-            const storageReaders = [
-                () => (typeof win?.sessionStorage !== 'undefined' ? win.sessionStorage.getItem(CLIPBOARD_STORAGE_KEY) : ''),
-                () => (typeof win?.localStorage !== 'undefined' ? win.localStorage.getItem(CLIPBOARD_LOCAL_STORAGE_KEY) : '')
-            ];
-            for (const read of storageReaders) {
+            const expected = normalizeType(expectedType), cleared = clearedAt();
+            const entries = [];
+            for (const [storage, key] of [['localStorage', CLIPBOARD_LOCAL_STORAGE_KEY], ['sessionStorage', CLIPBOARD_STORAGE_KEY]]) {
                 try {
-                    const entry = parseClipboardEntry(read());
-                    if (!entry) {
-                        continue;
-                    }
-                    if (normalizedExpectedType && entry.type !== normalizedExpectedType) {
-                        continue;
-                    }
-                    return entry;
-                } catch (_error) {
-                    continue;
-                }
+                    const entry = parseClipboardEntry(win?.[storage]?.getItem(key));
+                    if (entry && (Date.parse(entry.copiedAt) || 0) >= cleared) entries.push(entry);
+                } catch { /* Storage is optional. */ }
             }
-            return null;
+            const newest = entries.sort((left, right) => (Date.parse(right.copiedAt) || 0) - (Date.parse(left.copiedAt) || 0))[0];
+            return newest && (!expected || newest.type === expected) ? newest : null;
+        };
+        const clearClipboardEntry = () => {
+            let cleared = false;
+            const at = String(Math.max(Date.now(), newestStoredAt() + 1));
+            for (const [storage, key] of [['localStorage', CLIPBOARD_LOCAL_STORAGE_KEY], ['sessionStorage', CLIPBOARD_STORAGE_KEY]]) {
+                try { if (win?.[storage]) { win[storage].setItem(CLIPBOARD_CLEARED_KEY, at); win[storage].removeItem(key); cleared = true; } } catch { /* Storage is optional. */ }
+            }
+            return cleared;
+        };
+        const buildSelectedClipboardEntry = (type, folder, options = {}) => {
+            const categories = normalizeCategories(options.categories || [...CATEGORY_IDS]);
+            const entry = buildClipboardEntry(type, folder, { ...options, categories });
+            if (entry && schema) entry.payload = selectPayload(folder, categories);
+            else if (categories.length !== CATEGORY_IDS.length) throw new Error('Load folder settings categories first.');
+            if (entry) {
+                entry.meta.copiedActionCount = entry.payload.actions.length;
+                if (!categories.includes('actions')) entry.meta.droppedMemberBoundActionCount = 0;
+            }
+            return entry;
         };
 
         const summarizeClipboardEntry = (entry) => {
@@ -203,7 +241,8 @@
         return Object.freeze({
             normalizeType,
             normalizeFolderSettingsPayload,
-            buildClipboardEntry,
+            buildClipboardEntry: buildSelectedClipboardEntry,
+            loadSchema, categoryForKey, normalizeCategories, selectPayload, clearClipboardEntry,
             writeClipboardEntry,
             readClipboardEntry,
             summarizeClipboardEntry
@@ -214,6 +253,6 @@
         createApi,
         CLIPBOARD_STORAGE_KEY,
         CLIPBOARD_LOCAL_STORAGE_KEY,
-        SETTINGS_PAYLOAD_KEYS
+        SETTINGS_PAYLOAD_KEYS, CATEGORY_IDS
     });
 }));

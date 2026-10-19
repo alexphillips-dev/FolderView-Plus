@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "La restauration automatique a échoué",
     "diagnostics.migration.native": "Démarrage automatique natif de Docker inclus",
     "diagnostics.migration.checkpoint": "Point de contrôle de récupération disponible",
+    "common.settings-transfer.unchanged": "Les dossiers sélectionnés correspondent déjà. Aucune modification ni sauvegarde n'a été nécessaire.",
     "common.counts.recommendations": "Recommandations : $1.",
     "common.counts.notes": "Notes informatives : $1.",
     "common.counts.icon-references": "Dossiers utilisant cette icône : $1.",

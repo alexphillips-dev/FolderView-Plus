@@ -4319,7 +4319,7 @@ const applyFolderSettingsToFolders = async () => {
             return false;
         }
         try {
-            await securePost('/plugins/folderview.plus/server/apply_folder_settings.php', {
+            const response = await securePost('/plugins/folderview.plus/server/apply_folder_settings.php', {
                 type,
                 targetIds: JSON.stringify(selectedIds),
                 settings: JSON.stringify(clipboardEntry.payload)
@@ -4328,7 +4328,9 @@ const applyFolderSettingsToFolders = async () => {
             swal.close();
             swal({
                 title: 'Folder settings applied',
-                text: surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", selectedIds.length),
+                text: response.result?.updatedCount
+                    ? surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", response.result.updatedCount)
+                    : surfaceT('common.settings-transfer.unchanged', 'Selected folders already match. No changes or backup were needed.'),
                 type: 'success'
             });
         } catch (error) {

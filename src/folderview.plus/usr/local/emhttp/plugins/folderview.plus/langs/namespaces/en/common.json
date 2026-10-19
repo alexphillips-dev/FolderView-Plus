@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatic restoration failed",
     "diagnostics.migration.native": "Native Docker autostart included",
     "diagnostics.migration.checkpoint": "Recovery checkpoint available",
+    "common.settings-transfer.unchanged": "Selected folders already match. No changes or backup were needed.",
     "common.counts.recommendations": "Recommendations: $1.",
     "common.counts.notes": "Informational notes: $1.",
     "common.counts.icon-references": "Folders using this icon: $1.",

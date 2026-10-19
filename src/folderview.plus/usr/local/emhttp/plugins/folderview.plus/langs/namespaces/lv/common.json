@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automātiskā atjaunošana neizdevās",
     "diagnostics.migration.native": "Native Docker automātiskā palaišana ir iekļauta",
     "diagnostics.migration.checkpoint": "Pieejams atkopšanas kontrolpunkts",
+    "common.settings-transfer.unchanged": "Atlasītās mapes jau atbilst. Nebija nepieciešamas nekādas izmaiņas vai dublējums.",
     "common.counts.recommendations": "Ieteikumi: $1.",
     "common.counts.notes": "Informatīvas piezīmes: $1.",
     "common.counts.icon-references": "Mapes, kas izmanto šo ikonu: $1.",

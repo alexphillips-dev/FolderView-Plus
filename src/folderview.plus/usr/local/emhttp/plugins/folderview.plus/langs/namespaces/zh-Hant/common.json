@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "自動恢復失敗",
     "diagnostics.migration.native": "包含本機 Docker 自動啟動",
     "diagnostics.migration.checkpoint": "恢復檢查點可用",
+    "common.settings-transfer.unchanged": "所選資料夾已經匹配。無需更改或備份。",
     "common.counts.recommendations": "建議數：$1。",
     "common.counts.notes": "資訊說明數：$1。",
     "common.counts.icon-references": "使用此圖示的資料夾數：$1。",

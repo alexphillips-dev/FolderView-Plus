@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Otomatik geri yükleme başarısız oldu",
     "diagnostics.migration.native": "Yerel Docker otomatik başlatma dahil",
     "diagnostics.migration.checkpoint": "Kurtarma kontrol noktası mevcut",
+    "common.settings-transfer.unchanged": "Seçilen klasörler zaten eşleşiyor. Herhangi bir değişiklik veya yedeklemeye gerek yoktu.",
     "common.counts.recommendations": "Öneriler: $1.",
     "common.counts.notes": "Bilgilendirme notları: $1.",
     "common.counts.icon-references": "Bu simgeyi kullanan klasörler: $1.",

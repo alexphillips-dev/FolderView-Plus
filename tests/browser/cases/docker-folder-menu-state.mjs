@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createDockerFolderMenuHost } from '../helpers/docker-folder-menu-host.mjs';
 import { registerNestedFolderMenuCases } from './docker-nested-folder-menu.mjs';
 import { registerDockerFolderFeedbackCases } from './docker-folder-feedback.mjs';
+import { registerDockerSettingsTransferCases } from './docker-settings-transfer.mjs';
 
 const checkMenuAccessibility = async page => {
     await page.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
@@ -12,6 +13,7 @@ const checkMenuAccessibility = async page => {
 export const registerDockerFolderMenuStateCases = ({ test }) => {
     registerNestedFolderMenuCases({ test, checkMenuAccessibility });
     registerDockerFolderFeedbackCases({ test });
+    registerDockerSettingsTransferCases({ test, checkMenuAccessibility });
     test('Docker folder menu shows shortcut states and separates removal', async ({ page }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         const host = await createDockerFolderMenuHost(page);

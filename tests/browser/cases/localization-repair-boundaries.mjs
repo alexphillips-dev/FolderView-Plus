@@ -115,12 +115,12 @@ export const registerLocalizationRepairBoundaryCases = ({ test, baseUrl, loadI18
                 assert.ok(report.text.includes(catalogs['settings.start-order.' + report.mode]) || report.mode === 'docker-page');
                 if (locale !== 'en') assert.ok(!/No changes made|Appearance inactive:|optional native autostart entries/.test(report.text));
             }
-            assert.equal(nativeCalls.length, 5);
+            assert.equal(nativeCalls.length, 6);
             for (const code of nativeCalls) {
                 const pending = page.waitForEvent('dialog');
                 const returned = page.evaluate(code => {
                     const surfaceT = window.FolderViewPlusI18n.t, promptFn = window.prompt.bind(window), defaultName = 'Order <custom>';
-                    return new Function('surfaceT', 'promptFn', 'defaultName', 'return ' + code)(surfaceT, promptFn, defaultName);
+                    return new Function('surfaceT', 'promptFn', 'defaultName', 'const source = {name: defaultName}, cloneName = () => defaultName; return ' + code)(surfaceT, promptFn, defaultName);
                 }, code);
                 const dialog = await pending;
                 assert.ok(Object.values(catalogs).includes(dialog.message()), `${locale}: native dialog text`);

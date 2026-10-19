@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "فشلت عملية الاستعادة التلقائية",
     "diagnostics.migration.native": "تم تضمين التشغيل التلقائي لـ Docker الأصلي",
     "diagnostics.migration.checkpoint": "نقطة تفتيش الاسترداد متاحة",
+    "common.settings-transfer.unchanged": "المجلدات المحددة متطابقة بالفعل. لم تكن هناك حاجة إلى تغييرات أو نسخ احتياطي.",
     "common.counts.recommendations": "التوصيات: $1.",
     "common.counts.notes": "الملاحظات التوضيحية: $1.",
     "common.counts.icon-references": "المجلدات التي تستخدم هذه الأيقونة: $1.",

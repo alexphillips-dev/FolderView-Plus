@@ -4,6 +4,11 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 ## Runtime Modules
 
+- `scripts/folder.settings-menu.js`
+  - Owns the Docker Clone submenu's category-specific copy/paste choices, clipboard inspection and clearing, non-blocking feedback, and nested-menu keyboard/touch behavior.
+  - Uses `folder.settings-transfer.js` for the versioned browser clipboard and shared `schemas/folder-settings-transfer.schema.json` field categories. The newest copy wins across tabs; clearing invalidates older tab copies.
+  - Paste previews changed categories, then applies against the previewed configuration revision. `server/lib.folder-settings-transfer.php` validates and merges under the configuration lock, preserves unrelated/member-specific state, creates a safety backup before changes, and skips identical transfers without writes or revision changes.
+  - Settings-only clones contain portable appearance, layout and behavior, with empty membership, matching rules and actions. Existing full-folder and branch cloning retain their scope and suggest a unique sibling name.
 - `scripts/runtime.host-adapter.js`
   - Defines the versioned Docker and VM host-page contracts.
   - Owns host table/body/row discovery, structure validation, row observation, and idempotent global hook wrapping.

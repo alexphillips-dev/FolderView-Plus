@@ -15,14 +15,14 @@ test('all FolderView Plus page and loader script graphs are contract-guarded', (
     assert.deepEqual(result.failures, []);
     assert.equal(result.pageCount, 5);
     assert.equal(result.sourceCount, 8);
-    assert.equal(result.referenceCount, 347);
+    assert.equal(result.referenceCount, 348);
 });
 
 test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 9);
-    assert.equal(architecture.moduleContracts.length, 77);
-    assert.equal(architecture.serverModuleContracts.length, 50);
+    assert.equal(architecture.moduleContracts.length, 78);
+    assert.equal(architecture.serverModuleContracts.length, 51);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts, ...architecture.serverModuleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');
@@ -62,7 +62,7 @@ test('PHP facades have contracted Phase 6 domain boundaries', () => {
 });
 
 test('declarative actions are registry-owned with a ratcheted compatibility ceiling', () => {
-    assert.equal(architecture.budgets.maxBrowserGlobals, 375);
+    assert.equal(architecture.budgets.maxBrowserGlobals, 376);
     assert.equal(architecture.budgets.minRegisteredActions, 145);
     assert.equal(architecture.budgets.maxRegisteredActionGlobals, 11);
     assert.deepEqual(architecture.browserGlobals.removedActionRegistrars, ['registerWindowActions']);

@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatsko vraćanje nije uspjelo",
     "diagnostics.migration.native": "Uključeno automatsko pokretanje izvornog Dockera",
     "diagnostics.migration.checkpoint": "Dostupna kontrolna točka za oporavak",
+    "common.settings-transfer.unchanged": "Odabrane mape već se podudaraju. Nisu bile potrebne nikakve promjene niti sigurnosna kopija.",
     "common.counts.recommendations": "Preporuke: $1.",
     "common.counts.notes": "Informativne napomene: $1.",
     "common.counts.icon-references": "Mape koje koriste ovu ikonu: $1.",

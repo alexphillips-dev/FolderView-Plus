@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatisk återställning misslyckades",
     "diagnostics.migration.native": "Native Docker autostart ingår",
     "diagnostics.migration.checkpoint": "Återställningskontroll finns tillgänglig",
+    "common.settings-transfer.unchanged": "Valda mappar matchar redan. Inga ändringar eller säkerhetskopiering behövdes.",
     "common.counts.recommendations": "Rekommendationer: $1.",
     "common.counts.notes": "Informationsmeddelanden: $1.",
     "common.counts.icon-references": "Mappar som använder den här ikonen: $1.",

@@ -68,7 +68,7 @@ test('runtime helper APIs omit audited no-op and unconsumed surfaces', () => {
     assert.doesNotMatch(runtimeSharedJs, /return \{\s*enhance,\s*queueEnhance|\{ defer, hydrate, flush, snapshot, disconnect \}/);
     assert.doesNotMatch(memberIdentityJs, /\bbuildIdentityMapForMembers\b/);
     assert.doesNotMatch(previewModelJs, /\bcreatePreviewModel\b/);
-    assert.doesNotMatch(settingsTransferJs, /\bclearClipboardEntry\b/);
+    assert.match(settingsTransferJs, /\bclearClipboardEntry\b/); // Consumed by the Docker clipboard menu.
     assert.doesNotMatch(activityDiagnosticsJs, /\bsyncDockerOrder\b/);
     assert.doesNotMatch(runtimeActionsJs, /\bscanFolderTreeIntegrity\b/);
 });

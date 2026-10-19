@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "স্বয়ংক্রিয় পুনরুদ্ধার ব্যর্থ হয়েছে৷",
     "diagnostics.migration.native": "নেটিভ ডকার অটোস্টার্ট অন্তর্ভুক্ত",
     "diagnostics.migration.checkpoint": "পুনরুদ্ধার চেকপয়েন্ট উপলব্ধ",
+    "common.settings-transfer.unchanged": "নির্বাচিত ফোল্ডারগুলি ইতিমধ্যেই মেলে৷ কোন পরিবর্তন বা ব্যাকআপ প্রয়োজন ছিল না.",
     "common.counts.recommendations": "পরামর্শ: $1।",
     "common.counts.notes": "তথ্যমূলক নোট: $1।",
     "common.counts.icon-references": "এই আইকন ব্যবহারকারী ফোল্ডার: $1।",

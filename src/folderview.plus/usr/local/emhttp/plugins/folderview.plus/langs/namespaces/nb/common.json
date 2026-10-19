@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatisk gjenoppretting mislyktes",
     "diagnostics.migration.native": "Native Docker autostart inkludert",
     "diagnostics.migration.checkpoint": "Gjenopprettingssjekkpunkt tilgjengelig",
+    "common.settings-transfer.unchanged": "De valgte mappene samsvarer allerede. Ingen endringer eller sikkerhetskopiering var nødvendig.",
     "common.counts.recommendations": "Anbefalinger: $1.",
     "common.counts.notes": "Informasjonsmerknader: $1.",
     "common.counts.icon-references": "Mapper som bruker dette ikonet: $1.",

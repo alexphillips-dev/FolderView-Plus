@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatisk gendannelse mislykkedes",
     "diagnostics.migration.native": "Native Docker autostart inkluderet",
     "diagnostics.migration.checkpoint": "Genopretningskontrolsted tilgængeligt",
+    "common.settings-transfer.unchanged": "De valgte mapper matcher allerede. Ingen ændringer eller backup var nødvendige.",
     "common.counts.recommendations": "Anbefalinger: $1.",
     "common.counts.notes": "Oplysende bemærkninger: $1.",
     "common.counts.icon-references": "Mapper, der bruger dette ikon: $1.",

@@ -135,6 +135,7 @@
         "scripts/folderviewplus.folder-contract.js",
         "scripts/folder.preview-model.js",
         "scripts/folder.settings-transfer.js",
+        "scripts/folder.settings-menu.js",
         "scripts/runtime.column-layout.js",
         "scripts/docker.runtime.column-controller.js",
         "scripts/runtime.host-adapter.js",

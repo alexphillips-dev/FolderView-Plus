@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.03">
-<!ENTITY md5 "98240b4e282fa02942cec04e95e1428b">
-<!ENTITY sha256 "2721d505c639e4f75326ce5caaa75c9b93c38ccb4037349a1e3d297d8819fd5a">
+<!ENTITY version "2026.10.19.04">
+<!ENTITY md5 "0107b62ea2050781bd4ede44e8700977">
+<!ENTITY sha256 "db6333c6a378e3ca933a6666b60ccc1b0b79343fc18e65d8028e4a8d8327a532">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.04
+- Feature: Expand Docker folders' Clone menu with settings-only cloning and Copy/Paste submenus for appearance, layout and previews, behavior, custom actions, or all portable settings.
+- UI/UX: Show the copied source, categories and copy time; add clipboard details and clearing; replace blocking copy dialogs with brief notifications; suggest unique clone names.
+- Fix: Preview changed categories before pasting, preserve unrelated settings, members, matching rules, WebUI profiles and child order, and skip identical pastes without creating a backup or changing configuration revisions.
+- Reliability: Create a safety backup before a real paste, and reject stale previews or changed clipboard contents before applying settings.
+- Accessibility: Explain unavailable paste choices and support nested menus with keyboard, touch-sized controls, and placement within narrow screens.
+- Compatibility: Keep existing VM and editor transfer entry points compatible. Hard-refresh the webGUI after updating to load the new menus and styles.
+
 
 ###2026.10.19.03
 - UI/UX: Increase log status, timestamp, and message text sizes, along with the activity summary, for easier reading.

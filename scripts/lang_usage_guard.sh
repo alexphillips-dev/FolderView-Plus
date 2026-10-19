@@ -165,7 +165,7 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const applicationWrapperRegex = /\b(?:repairT[a-f0-9]{8}|surfaceT|starterTemplateT|setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translateVmText|translateSettingsText|translate)\(\s*['"]([^'"]+)['"]/g;
+  const applicationWrapperRegex = /\b(?:repairT[a-f0-9]{8}|surfaceT|menuT|starterTemplateT|setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|startOrderT|translateVmText|translateSettingsText|translate)\(\s*['"]([^'"]+)['"]/g;
   while ((match = applicationWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;

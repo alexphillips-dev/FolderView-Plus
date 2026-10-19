@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "categories": ["appearance", "layout", "behavior", "actions"],
+  "protectedSettings": ["webui_profiles", "webuiProfiles", "child_folder_order", "childFolderOrder"],
+  "appearancePrefixes": ["dropdown_", "dropdownStyle", "dropdownColor", "dropdownHoverColor", "chevron_", "chevronStyle", "folder_accent_", "status_color_", "preview_border", "previewBorder", "preview_vertical_bars", "preview_row_separator", "previewRowSeparator", "preview_hover_animation", "previewHoverAnimation", "preview_grayscale", "folder_update_highlight"],
+  "layoutPrefixes": ["preview", "context"],
+  "layoutKeys": ["dashboard_overflow"],
+  "actionKeys": ["override_default_actions", "default_action"]
+}

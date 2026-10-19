@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatisch herstel mislukt",
     "diagnostics.migration.native": "Native Docker-autostart inbegrepen",
     "diagnostics.migration.checkpoint": "Herstelcontrolepunt beschikbaar",
+    "common.settings-transfer.unchanged": "Geselecteerde mappen komen al overeen. Er waren geen wijzigingen of back-ups nodig.",
     "common.counts.recommendations": "Aanbevelingen: $1.",
     "common.counts.notes": "Informatieve opmerkingen: $1.",
     "common.counts.icon-references": "Mappen die dit pictogram gebruiken: $1.",

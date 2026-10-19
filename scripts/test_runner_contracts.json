@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/docker-settings-transfer.mjs", "limit": 150, "owner": "Production Docker copy and paste menus, selective requests, accessibility and viewport behavior", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/cases/backup-schedule.mjs", "limit": 80, "owner": "real PHP scheduled-backup outcomes displayed in Advanced Logs", "requiredImports": ["../../helpers/backup-schedule-fixture.mjs"] },
     { "file": "tests/browser/helpers/icon-card-layout.mjs", "limit": 40, "owner": "Compact built-in and pack card image size, readable labels and text containment" },
     { "file": "tests/browser/helpers/folder-editor-headings.mjs", "limit": 80, "owner": "Folder editor panel heading deduplication, help association and rerender lifecycle" },
@@ -166,6 +167,7 @@
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
+        "tests/browser/cases/docker-settings-transfer.mjs",
         "tests/browser/cases/docker-nested-folder-menu.mjs",
         "tests/browser/cases/docker-folder-feedback.mjs",
         "tests/browser/cases/download-notice.mjs"
@@ -201,10 +203,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 120,
-      "assertionCount": 1617,
+      "testCount": 123,
+      "assertionCount": 1637,
       "pageEvaluateCount": 429,
-      "orderedTitleSha256": "59c18825b86a5492a1a179a75e4ab5c2e0f3236978dce154ea9f07c5fae776ba"
+      "orderedTitleSha256": "8153179054023db706898973d4ac52f7af9524cdd06e686c46f8a4d5e0c0e3d4"
     }
   }
 }

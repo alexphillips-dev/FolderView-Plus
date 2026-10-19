@@ -121,12 +121,10 @@ test('open-all WebUI popup detection reports only a missing browser handle as bl
 test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) => \{/);
     assert.match(dockerScript, /const cloneDockerFolderBranchFromMenu = async \(id\) => \{/);
-    assert.match(dockerScript, /const copyDockerFolderSettingsFromMenu = async \(id\) => \{/);
-    assert.match(dockerScript, /const pasteDockerFolderSettingsFromMenu = async \(id\) => \{/);
     assert.match(dockerRuntimeActionsScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
     assert.match(dockerRuntimeActionsScript, /const cloneDockerFolderBranchFromMenu = async \(id\) =>/);
-    assert.match(dockerRuntimeActionsScript, /const copyDockerFolderSettingsFromMenu = async \(id\) =>/);
-    assert.match(dockerRuntimeActionsScript, /const pasteDockerFolderSettingsFromMenu = async \(id\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const copyDockerFolderSettingsFromMenu = async \(id, category = 'all'\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const pasteDockerFolderSettingsFromMenu = async \(id, category = 'all'\) =>/);
     assert.match(dockerRuntimeActionsScript, /const getDockerFolderBranchCloneOrder = \(rootId\) =>/);
     assert.match(dockerRuntimeActionsScript, /const buildDockerFolderCloneIdFallback = \(reservedIds = new Set\(\)\) =>/);
     assert.match(dockerRuntimeActionsScript, /const generateDockerFolderCloneId = typeof deps\.generateDockerFolderCloneId === 'function'/);
@@ -136,12 +134,12 @@ test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerRuntimeActionsScript, /promptFn\(surfaceT\("common\.repair\.clone-branch-root-name-[a-f0-9]+", "Clone branch root name"\), defaultName\)/);
     assert.match(dockerRuntimeActionsScript, /\/server\/create\.php/);
     assert.match(dockerRuntimeActionsScript, /\/server\/update\.php/);
-    assert.match(dockerRuntimeActionsScript, /\/server\/apply_folder_settings\.php/);
+    assert.match(dockerRuntimeActionsScript, /FolderViewPlusFolderSettingsMenu\?\.createApi/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-folder',\s*'Clone folder'\)/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-menu',\s*'Clone'\)/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-branch',\s*'Clone branch'\)/);
-    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('copy-folder-settings',\s*'Copy Folder Settings'\)/);
-    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('paste-folder-settings',\s*'Paste Folder Settings'\)/);
+    assert.match(dockerScript, /buildDockerFolderSettingsMenu\(id\)/);
+    assert.match(dockerScript, /cloneDockerFolderSettingsOnlyFromMenu\(id\)/);
     assert.match(dockerScript, /subMenu:\s*cloneSubMenu/);
 });
 

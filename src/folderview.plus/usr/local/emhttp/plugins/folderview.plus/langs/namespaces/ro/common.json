@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Restaurarea automată a eșuat",
     "diagnostics.migration.native": "Pornire automată Native Docker inclusă",
     "diagnostics.migration.checkpoint": "Punct de control de recuperare disponibil",
+    "common.settings-transfer.unchanged": "Dosarele selectate se potrivesc deja. Nu au fost necesare modificări sau backup.",
     "common.counts.recommendations": "Recomandări: $1.",
     "common.counts.notes": "Note informative: $1.",
     "common.counts.icon-references": "Dosare care folosesc această pictogramă: $1.",

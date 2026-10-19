@@ -1,4 +1,5 @@
 {
+  "settings-transfer": ["Docker folder menu", "^audited confirmations", "^complete localization boundaries", "^Shared UI primitives"],
   "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",

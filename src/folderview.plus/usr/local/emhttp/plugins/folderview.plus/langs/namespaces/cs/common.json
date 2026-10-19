@@ -119,6 +119,7 @@
     "diagnostics.migration.restore-failed": "Automatické obnovení se nezdařilo",
     "diagnostics.migration.native": "Včetně automatického spuštění Native Docker",
     "diagnostics.migration.checkpoint": "K dispozici je kontrolní bod obnovy",
+    "common.settings-transfer.unchanged": "Vybrané složky se již shodují. Nebyly potřeba žádné změny ani záloha.",
     "common.counts.recommendations": "Doporučení: $1.",
     "common.counts.notes": "Informační poznámky: $1.",
     "common.counts.icon-references": "Složky používající tuto ikonu: $1.",

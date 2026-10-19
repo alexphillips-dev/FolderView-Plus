@@ -1820,3 +1820,9 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 .fv-docker-status-detail span { color: inherit; }
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-feedback-name { filter: blur(5px); }
 [data-fv-folder-status]:focus-visible, .fv-docker-operation-icon:focus-visible { outline: 2px solid currentColor; }
+
+.fv-settings-transfer-toast { position: fixed; inset: auto 1rem 1rem auto; z-index: 10000; max-width: min(420px, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--fvplus-ui-border-subtle); border-radius: 8px; background: var(--fvplus-ui-strong); color: var(--fvplus-ui-text-primary); font-size: 1.2rem; overflow-wrap: anywhere; }
+.fvplus-docker-context-menu a[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
+.fv-settings-transfer-menu > li > a { white-space: normal; overflow-wrap: anywhere; }
+@media (pointer: coarse) { .fv-settings-transfer-menu > li > a { box-sizing: border-box; min-height: 44px; } }

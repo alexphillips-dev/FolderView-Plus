@@ -113,5 +113,205 @@
       "version": "unraid-provided",
       "source": "https://github.com/t4t5/sweetalert"
     }
+  ],
+  "fontComponents": [
+    {
+      "type": "data",
+      "name": "Inter",
+      "version": "google-fonts-v20",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/inter",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/inter.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/inter.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Roboto",
+      "version": "google-fonts-v51",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/roboto",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Open Sans",
+      "version": "google-fonts-v44",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/opensans",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/open-sans.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/open-sans.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Source Sans 3",
+      "version": "google-fonts-v20",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/sourcesans3",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-sans-3.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-sans-3.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Montserrat",
+      "version": "google-fonts-v31",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/montserrat",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/montserrat.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/montserrat.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Nunito",
+      "version": "google-fonts-v32",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/nunito",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/nunito.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/nunito.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Oswald",
+      "version": "google-fonts-v57",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/oswald",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/oswald.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/oswald.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Raleway",
+      "version": "google-fonts-v37",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/raleway",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/raleway.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/raleway.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Lora",
+      "version": "google-fonts-v37",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/lora",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/lora.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/lora.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Merriweather",
+      "version": "google-fonts-v33",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/merriweather",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/merriweather.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/merriweather.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Playfair Display",
+      "version": "google-fonts-v40",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/playfairdisplay",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/playfair-display.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/playfair-display.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Bitter",
+      "version": "google-fonts-v42",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/bitter",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bitter.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bitter.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Roboto Mono",
+      "version": "google-fonts-v31",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/robotomono",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto-mono.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto-mono.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Source Code Pro",
+      "version": "google-fonts-v32",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/sourcecodepro",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-code-pro.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-code-pro.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Caveat",
+      "version": "google-fonts-v23",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/caveat",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/caveat.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/caveat.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Dancing Script",
+      "version": "google-fonts-v29",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/dancingscript",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/dancing-script.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/dancing-script.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Bebas Neue",
+      "version": "google-fonts-v16",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/bebasneue",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bebas-neue.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bebas-neue.OFL.txt"
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Pacifico",
+      "version": "google-fonts-v23",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/pacifico",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/pacifico.woff2",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/pacifico.OFL.txt"
+      ]
+    }
   ]
 }

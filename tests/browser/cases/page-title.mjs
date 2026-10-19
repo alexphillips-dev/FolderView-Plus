@@ -63,7 +63,8 @@ export const registerPageTitleCases = ({ test }) => {
             await page.locator('#docker-page-title-text').fill('Fixture containers');
             assert.equal(await page.locator('#docker-page-title-preview').textContent(), 'Fixture containers', 'typing updates the preview');
             await saved(() => page.locator('#docker-page-title-text').press('Tab'));
-            await saved(() => page.locator('#docker-page-title-font').selectOption('monospace'));
+            await page.locator('#docker-page-title-font-picker').click();
+            await saved(() => page.getByRole('option', { name: 'Monospace', exact: true }).click());
             await page.locator('#docker-page-title-size').fill('48');
             await saved(() => page.locator('#docker-page-title-size').press('Tab'));
             await saved(() => page.locator('#docker-page-title-italic').check());
@@ -101,6 +102,60 @@ export const registerPageTitleCases = ({ test }) => {
             await page.goto(`${host.baseUrl}/docker`); await waitDocker();
             assert.equal(await title.count(), 0);
             assert.deepEqual(await positions(), before, 'disabling restores the original toolbar');
+        } finally { await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close(); }
+    }, { skipAccessibility: true });
+    test('Docker page title font picker previews bundled fonts and supports keyboard, dismissal and persistence', async ({ page }) => {
+        const host = await createPageTitleHost(page);
+        const requests = [];
+        page.on('request', request => { if (request.url().includes('.woff2')) requests.push(request.url()); });
+        const saved = action => Promise.all([page.waitForResponse(response => response.url().includes('/server/prefs.php') && response.request().method() === 'POST'), action()]);
+        try {
+            await page.goto(`${host.baseUrl}/settings`);
+            await page.waitForFunction(() => document.getElementById('docker-page-title-enabled') && !document.getElementById('fv-settings-root').classList.contains('fv-settings-bootstrap-pending'));
+            assert.equal(requests.length, 0, 'disabled title loads no font files');
+            await page.locator('#docker-view-settings').evaluate(node => { node.open = true; });
+            await saved(() => page.locator('label').filter({ has: page.locator('#docker-page-title-enabled') }).click());
+            const picker = page.getByRole('combobox', { name: 'Font', exact: true });
+            await picker.click();
+            const list = page.getByRole('listbox', { name: 'Font', exact: true });
+            assert.equal(await list.getByRole('option').count(), 22);
+            await page.evaluate(() => document.fonts.ready);
+            const fonts = await list.getByRole('option').evaluateAll(nodes => nodes.map(node => ({ value: node.dataset.fvFont, family: getComputedStyle(node).fontFamily })));
+            for (const option of fonts.slice(4)) assert.ok(option.family.includes(`FV Title ${option.value}`), 'each name previews its own typeface');
+            const loaded = await page.evaluate(() => [...document.fonts].filter(font => font.family.includes('FV Title ')).map(font => ({ family: font.family, status: font.status })));
+            assert.equal(loaded.length, 18); assert.ok(loaded.every(font => font.status === 'loaded'), 'all bundled previews actually load');
+            assert.equal(new Set(requests).size, 18); assert.ok(requests.every(url => url.startsWith(host.baseUrl + '/plugins/')), 'font files stay local');
+            const bounds = await list.boundingBox(), viewport = page.viewportSize();
+            assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= viewport.width + 1 && bounds.y + bounds.height <= viewport.height + 1, 'popup stays inside the viewport');
+            await page.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
+            const violations = await page.evaluate(async () => (await window.axe.run({ include: [['#docker-page-title-font-picker'], ['#docker-page-title-font-list']] },
+                { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations);
+            assert.deepEqual(violations, [], 'font picker accessibility');
+            await page.screenshot({ path: `tmp/title-font-picker-${viewport.width}.png` });
+            await picker.press('End');
+            assert.equal(await picker.getAttribute('aria-activedescendant'), 'docker-page-title-font-option-21');
+            await picker.press('Home'); await picker.press('ArrowDown'); await picker.press('Escape');
+            assert.equal(await list.count(), 0); assert.equal(host.prefs().pageTitle.font, 'theme', 'Escape cancels the highlighted choice');
+            assert.equal(await picker.evaluate(node => node === document.activeElement), true);
+            await picker.press('ArrowDown'); await picker.press('Tab');
+            assert.equal(await list.count(), 0); assert.equal(host.prefs().pageTitle.font, 'theme', 'Tab closes without saving a draft');
+            await picker.click(); await page.locator('#docker-page-title-text').click();
+            assert.equal(await list.count(), 0, 'outside click dismisses');
+            await picker.focus(); await picker.pressSequentially('Merri');
+            await saved(() => picker.press('Enter'));
+            assert.equal(host.prefs().pageTitle.font, 'merriweather');
+            assert.equal(await picker.textContent(), 'Merriweather');
+            await picker.click(); await saved(() => list.getByRole('option', { name: 'Caveat', exact: true }).click());
+            assert.equal(host.prefs().pageTitle.font, 'caveat');
+            assert.equal(await picker.evaluate(node => node === document.activeElement), true);
+            await page.reload();
+            await page.waitForFunction(() => document.getElementById('docker-page-title-font-picker')?.textContent === 'Caveat');
+            await page.waitForLoadState('networkidle');
+            await page.goto(`${host.baseUrl}/docker`);
+            await page.waitForSelector('#fvplus-docker-page-title'); await page.evaluate(() => document.fonts.ready);
+            const appearance = await page.locator('#fvplus-docker-page-title').evaluate(node => ({ family: getComputedStyle(node).fontFamily,
+                loaded: [...document.fonts].filter(face => face.family.includes('FV Title caveat')).every(face => face.status === 'loaded'), count: [...document.fonts].filter(face => face.family.includes('FV Title ')).length }));
+            assert.ok(appearance.family.includes('FV Title caveat')); assert.equal(appearance.loaded, true); assert.equal(appearance.count, 1, 'Docker registers only the selected bundled font');
         } finally { await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close(); }
     }, { skipAccessibility: true });
 };

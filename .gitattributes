@@ -16,3 +16,7 @@
 *.ico binary
 *.avif binary
 *.psd binary
+
+# Preserve upstream font files and license notices byte-for-byte.
+src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/*.woff2 binary
+src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/*.OFL.txt -text -whitespace

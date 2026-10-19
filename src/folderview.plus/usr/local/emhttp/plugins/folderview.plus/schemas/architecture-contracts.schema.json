@@ -976,7 +976,7 @@
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityNormalization",
       "loader": "commonjs",
-      "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "getFolderStatusColors", "normalizeFolderMembers", "normalizeFolderMap", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile"]
+      "exports": ["EXPORT_SCHEMA_VERSION", "RULE_KINDS", "RULE_EFFECTS", "LEGACY_FOLDER_LABEL_KEYS", "RUNTIME_PREFS_SCHEMA", "DEFAULT_FOLDER_STATUS_COLORS", "DEFAULT_HEALTH_PREFS", "DEFAULT_DASHBOARD_PREFS", "DASHBOARD_LAYOUT_OPTIONS", "DASHBOARD_LAYOUT_LABELS", "DASHBOARD_OVERFLOW_OPTIONS", "getFolderStatusColors", "normalizeFolderMembers", "normalizeFolderMap", "normalizeAppColumnWidth", "normalizeDashboardLayout", "normalizeDashboardOverflowMode", "normalizeRuntimePageViewMode", "resolvePreviewActionPrefs", "normalizeThemeCompatibilityMode", "normalizePerformanceProfile", "normalizePageTitle", "PAGE_TITLE_FONTS"]
     },
     {
       "file": "scripts/folderviewplus.utils-hierarchy.js",

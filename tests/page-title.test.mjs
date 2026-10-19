@@ -5,24 +5,27 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 const require = createRequire(import.meta.url);
 const plugin = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const utils = require(path.join(plugin, 'scripts/folderviewplus.utils.js'));
 const registry = require(path.join(plugin, 'scripts/folderviewplus.settings-registry.js'));
 const pageTitle = require(path.join(plugin, 'scripts/runtime.page-title.js'));
+const normalization = require(path.join(plugin, 'scripts/folderviewplus.utils-normalization.js'));
+const fontIds = Object.keys(normalization.PAGE_TITLE_FONTS);
 
 test('page title defaults, safe text, limits, PHP parity and persistence round trips', () => {
     const inputs = [{}, null, [], { enabled: true, text: ' Change Me! ', size: 48, bold: false, italic: true, color: '#AABBCC', font: 'serif' },
         { text: '<img src=x onerror=alert(1)>\nTitle', font: 'url(unsafe)', size: 999, color: 'red;background:url(x)' },
         { text: '😀'.repeat(101), size: 14 }, { text: '\n\u0000', size: 'bad', bold: false }, { size: 27.8 }, { text: 'Long title '.repeat(12) },
-        { text: '\ufeff\u00a0Title\u3000' }, { text: 'x'.repeat(99) + '\u00a0tail' }];
+        { text: '\ufeff\u00a0Title\u3000' }, { text: 'x'.repeat(99) + '\u00a0tail' }, ...fontIds.map(font => ({ font }))];
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-page-title-'));
     const driver = path.join(temp, 'driver.php');
     fs.writeFileSync(driver, `<?php
 require getenv('FVPLUS_SETTINGS_LIB_PATH');
 $inputs = json_decode(getenv('FVPLUS_TITLE_INPUTS'), true);
 $normalized = array_map('normalizePageTitle', $inputs);
-$initial = writeTypePrefs('docker', ['pageTitle' => ['enabled' => true, 'text' => 'Fixture title', 'font' => 'serif', 'size' => 40]]);
+$initial = writeTypePrefs('docker', ['pageTitle' => ['enabled' => true, 'text' => 'Fixture title', 'font' => 'lora', 'size' => 40]]);
 writeTypePrefs('docker', mergeTypePrefsPatch($initial, ['pageTitle' => ['enabled' => false]]));
 $disabled = readTypePrefs('docker');
 writeTypePrefs('docker', mergeTypePrefsPatch($disabled, ['pageTitle' => ['enabled' => true, 'bold' => false]]));
@@ -42,11 +45,38 @@ echo json_encode(['normalized' => $normalized, 'disabled' => $disabled['pageTitl
         assert.deepEqual(result.normalized[0], { enabled: false, text: 'Change Me!', font: 'theme', size: 28, bold: true, italic: false, color: 'theme' });
         assert.equal(result.normalized[5].text, '😀'.repeat(100));
         assert.equal(result.disabled.enabled, false);
-        assert.equal(result.restored.text, 'Fixture title'); assert.equal(result.restored.font, 'serif');
+        assert.equal(result.restored.text, 'Fixture title'); assert.equal(result.restored.font, 'lora');
         assert.equal(result.restored.size, 40); assert.equal(result.restored.bold, false);
         assert.deepEqual(result.snapshotTitle, result.restored, 'configuration snapshots retain the complete title preferences');
         assert.equal(result.rejected, true);
     } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('bundled title fonts have matching typed contracts, safe rendering, license and integrity evidence', () => {
+    const sources = JSON.parse(fs.readFileSync(path.join(plugin, 'fonts/page-title/sources.json')));
+    const schema = JSON.parse(fs.readFileSync(path.join(plugin, 'schemas/filter-view-settings.schema.json')));
+    const inventory = JSON.parse(fs.readFileSync('scripts/runtime_components.json'));
+    assert.equal(fontIds.length, 18);
+    assert.deepEqual(schema.groups.pageTitle.settings.font.values, ['theme', 'sans-serif', 'serif', 'monospace', ...fontIds]);
+    assert.deepEqual(sources.fonts.map(font => font.id), fontIds);
+    const files = fs.readdirSync(path.join(plugin, 'fonts/page-title')).filter(file => file.endsWith('.woff2')).sort();
+    assert.deepEqual(files, fontIds.map(id => id + '.woff2').sort(), 'no unregistered or abandoned font files');
+    for (const font of sources.fonts) {
+        assert.equal(registry.resolveChange('changePageTitlePref', 'docker', 'font', font.id).value, font.id);
+        assert.equal(utils.normalizePageTitle({ font: font.id }).font, font.id);
+        const element = { style: {} }; pageTitle.applyAppearance(element, { font: font.id });
+        assert.equal(element.style.fontFamily, `"FV Title ${font.id}", sans-serif`);
+        const bytes = fs.readFileSync(path.join(plugin, `fonts/page-title/${font.id}.woff2`));
+        assert.equal(bytes.toString('ascii', 0, 4), 'wOF2');
+        assert.equal(bytes.length, font.bytes);
+        assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), font.sha256);
+        assert.match(fs.readFileSync(path.join(plugin, `fonts/page-title/${font.id}.OFL.txt`), 'utf8'), /SIL OPEN FONT LICENSE Version 1.1/);
+        assert.equal(inventory.fontComponents.find(component => component.name === font.name)?.license, 'OFL-1.1');
+    }
+    for (const font of ['theme', 'sans-serif', 'serif', 'monospace', 'url(unsafe)', '__proto__', 'constructor']) {
+        const element = { style: {} }; pageTitle.applyAppearance(element, { font });
+        assert.equal(element.style.fontFamily, ['sans-serif', 'serif', 'monospace'].includes(font) ? font : 'inherit');
+    }
 });
 
 test('page title registry validates text and colors and limits the setting to Docker', () => {

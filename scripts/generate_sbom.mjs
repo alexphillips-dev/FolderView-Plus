@@ -60,8 +60,8 @@ const hashFiles = (files) => {
     return digest.digest('hex');
 };
 
-const runtimeComponents = (runtimeInventory.components || []).map((component) => ({
-    type: 'library',
+const runtimeComponents = [...(runtimeInventory.components || []), ...(runtimeInventory.fontComponents || [])].map((component) => ({
+    type: component.type || 'library',
     name: String(component.name),
     version: String(component.version),
     scope: 'required',

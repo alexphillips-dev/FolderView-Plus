@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.07">
-<!ENTITY md5 "5c2ff5d392c8df29f0dae90a12a6e5d6">
-<!ENTITY sha256 "ac691971d3fc0f04b911d839962a04ef7bc22539dcde89a0415d82962d3b0552">
+<!ENTITY version "2026.10.19.08">
+<!ENTITY md5 "14471459e6ec2c12734831acd319a4c0">
+<!ENTITY sha256 "ecd650c213c487d40b796b96ad0f2a73b07c00b4cb59c40bb8beb57e7e1ec25f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.08
+- UI/UX: Expand the Docker page title font picker to 22 choices, including 18 bundled fonts, and preview each font name in its own typeface.
+- Accessibility: Add keyboard navigation, typing to find a font, Enter to select, Escape to cancel, selected-font indicators, and touch-friendly rows in a scrolling dropdown that fits the screen.
+- Privacy: Serve the new fonts directly from your Unraid host, with no requests to an external font service. Fonts load only when needed for the selected title or the open picker.
+- Reliability: Preserve existing font choices, saved title formatting, configuration backups, and the Settings card layout. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.19.07
 - Feature: Add an optional custom Docker page title at the far left above your containers. It is disabled by default and starts with "Change Me!" when enabled.

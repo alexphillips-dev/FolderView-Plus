@@ -982,6 +982,13 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 #fv-settings-root .fv-page-title-fields { display: grid; gap: 6px; min-width: 0; }
 .fv-page-title-enable { border-top: 1px solid var(--fvplus-settings-border-subtle); padding-top: 6px; }
 #fv-settings-root .fv-page-title-fields[hidden] { display: none; }
+#fv-settings-root #docker-page-title-font[hidden] { display: none; }
+#fv-settings-root .fv-page-title-font-picker { width: 100%; min-width: 0; margin: 0; padding: 4px 24px 4px 8px; text-align: left; text-transform: none; letter-spacing: 0; font-size: 15px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; position: relative; }
+.fv-page-title-font-picker::after { content: '\25be'; position: absolute; right: 8px; font-family: sans-serif; }
+#fv-settings-root .fv-page-title-font-list { position: fixed; z-index: 100100; box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--fvplus-settings-border-subtle); border-radius: 6px; padding: 4px; background: var(--fvplus-settings-surface-panel); color: var(--fvplus-settings-text-primary); box-shadow: 0 8px 24px #0006; }
+.fv-page-title-font-list [role="option"] { box-sizing: border-box; min-height: 36px; padding: 5px 24px 5px 8px; position: relative; font-size: 20px; font-weight: 400; line-height: 1.4; cursor: pointer; }
+.fv-page-title-font-list [role="option"]:is(:hover, .is-active) { background: var(--fvplus-settings-accent-soft); outline: 1px solid var(--fvplus-settings-accent); outline-offset: -1px; border-radius: 3px; }
+.fv-page-title-font-list [aria-selected="true"]::after { content: '\2713'; position: absolute; right: 5px; font-family: sans-serif; }
 #fv-settings-root .fv-page-title-fields input[type="text"] { box-sizing: border-box; width: 100%; min-width: 0; margin: 0; }
 .fv-page-title-format, .fv-page-title-color { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .fv-page-title-format > label:first-child, .fv-page-title-color > label { display: flex; align-items: center; gap: 8px; flex: 1; }
@@ -993,6 +1000,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 #fv-settings-root .fv-page-title-color button, #fv-settings-root .fv-page-title-reset { font: inherit; text-transform: none; letter-spacing: 0; padding: 4px 8px; margin: 0; min-width: 0; }
 @media (pointer: coarse) {
     .fv-page-title-fields :is(label, button) { min-height: 44px; }
+    .fv-page-title-font-list [role="option"] { min-height: 44px; }
 }
 
 .fv-view-settings-grid > .settings-mini-card {

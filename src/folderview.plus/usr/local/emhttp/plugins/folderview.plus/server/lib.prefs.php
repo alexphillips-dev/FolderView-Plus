@@ -450,7 +450,10 @@
         return [
             'enabled' => ($source['enabled'] ?? false) === true,
             'text' => $text !== '' ? preg_replace('/[\p{Z}\x{feff}]+$/u', '', implode('', array_slice($characters[0], 0, 100))) : 'Change Me!',
-            'font' => in_array($font, ['theme', 'sans-serif', 'serif', 'monospace'], true) ? $font : 'theme',
+            'font' => in_array($font, ['theme', 'sans-serif', 'serif', 'monospace',
+                'inter', 'roboto', 'open-sans', 'source-sans-3', 'montserrat', 'nunito', 'oswald', 'raleway',
+                'lora', 'merriweather', 'playfair-display', 'bitter', 'roboto-mono', 'source-code-pro',
+                'caveat', 'dancing-script', 'bebas-neue', 'pacifico'], true) ? $font : 'theme',
             'size' => is_numeric($size) ? max(14, min(48, (int)round((float)$size))) : 28,
             'bold' => ($source['bold'] ?? true) !== false,
             'italic' => ($source['italic'] ?? false) === true,

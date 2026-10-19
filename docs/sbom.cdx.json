@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:7c1a8614-facb-8ad8-9e70-8cf9314f87fd",
+  "serialNumber": "urn:uuid:c91d8545-c484-8a27-a595-b4e0adf35989",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.10.19.07",
+      "version": "2026.10.19.08",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -139,6 +139,672 @@
         {
           "name": "folderview-plus:usage",
           "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Bebas Neue",
+      "version": "google-fonts-v16",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9f4fb6deeb75e503a1f2ac11c642d397ebf0e921632850914a723e2623c4c6a"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/bebasneue"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bebas-neue.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bebas-neue.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Bitter",
+      "version": "google-fonts-v42",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f2a3176d5e7acb2bef933bd5c1710024e9aca9ae81cde12159b6994df090dfac"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/bitter"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bitter.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/bitter.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Caveat",
+      "version": "google-fonts-v23",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9bf40a8544107b2be6f85c917b57f9eba8268d6b4e0b34d2fe7c9f323b6d0197"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/caveat"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/caveat.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/caveat.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Dancing Script",
+      "version": "google-fonts-v29",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb179b7c9a88e5633bb0b7d7db8753c1725898ae4d5bdd2e416f8ef7f1c6db10"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/dancingscript"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/dancing-script.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/dancing-script.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Inter",
+      "version": "google-fonts-v20",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0524d8ab77b033038c9d4f63b25e6bc27339cf8e98d2b2692df0fdb7e14c537a"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/inter"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/inter.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/inter.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Lora",
+      "version": "google-fonts-v37",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60746f73beb20e3060478bcee5a13128ffe2d2b45da39349f3dc86a3238e263d"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/lora"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/lora.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/lora.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Merriweather",
+      "version": "google-fonts-v33",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "96e738b8fad999ab30c075d35706f83b62ee417efd928725b39a3d9d6b0d8797"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/merriweather"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/merriweather.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/merriweather.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Montserrat",
+      "version": "google-fonts-v31",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c295f3b9482f7df95843ac4bfb95176c287f6607ffc46cf12ca9b14ce3f8ee4e"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/montserrat"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/montserrat.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/montserrat.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Nunito",
+      "version": "google-fonts-v32",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "723f64ce31a6c417c6c54d36ca66669830b622afefbe5688ec0e2d61b522bfdf"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/nunito"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/nunito.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/nunito.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Open Sans",
+      "version": "google-fonts-v44",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e2e70c762f446e9c6e16f2f0cc904e1f9d3483ac23f2e0c8c2887882bba411c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/opensans"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/open-sans.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/open-sans.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Oswald",
+      "version": "google-fonts-v57",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cafbf8e4e4712626288e27ee0d05c50e9b3b40f75f5d603fad375f5c201d21d2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/oswald"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/oswald.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/oswald.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Pacifico",
+      "version": "google-fonts-v23",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28ee71a7eee22a84eb856a9f112b7ecba81231a1f37908b4a1d2592eb1c4e687"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/pacifico"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/pacifico.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/pacifico.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Playfair Display",
+      "version": "google-fonts-v40",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6685b2654b5e0738ede1f7e4267a139f3c4c0cd22e2ffcbf276970ac0271aae"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/playfairdisplay"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/playfair-display.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/playfair-display.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Raleway",
+      "version": "google-fonts-v37",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "23752cd1d2f4139ef058703141ba80ca7d46724d087095cc5a521fc2deb58768"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/raleway"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/raleway.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/raleway.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Roboto Mono",
+      "version": "google-fonts-v31",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ab9d6ce7a2df17c9177f549bcb19a9653abf3f3c427e5b141bd62e382115102"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/robotomono"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto-mono.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto-mono.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Roboto",
+      "version": "google-fonts-v51",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03999bc4f0c0e6ba7f67af67660d6ce266330bab1f4a205904a7dd11be932c44"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/roboto"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/roboto.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Source Code Pro",
+      "version": "google-fonts-v32",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72407b6f69c8ce464455205dcc3c87a8f9923d8bfefa9f077011af11edd8079c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/sourcecodepro"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-code-pro.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-code-pro.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "name": "Source Sans 3",
+      "version": "google-fonts-v20",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22c24b77f067891bd90b2a46ec301b05cee2bc5a8f8e6b6d88a5c96e0a144853"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/sourcesans3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-sans-3.woff2,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fonts/page-title/source-sans-3.OFL.txt"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
         }
       ]
     },

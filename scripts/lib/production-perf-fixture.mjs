@@ -92,7 +92,7 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
         if (url.pathname.startsWith(prefix)) {
             const file = path.resolve(plugin, url.pathname.slice(prefix.length));
             if (file.startsWith(plugin + path.sep)) {
-                const types = { '.js':'text/javascript', '.css':'text/css', '.json':'application/json', '.svg':'image/svg+xml', '.png':'image/png' };
+                const types = { '.js':'text/javascript', '.css':'text/css', '.json':'application/json', '.svg':'image/svg+xml', '.png':'image/png', '.woff2':'font/woff2' };
                 const type = types[path.extname(file)];
                 if (type) {
                     try {

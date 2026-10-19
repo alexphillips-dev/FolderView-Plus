@@ -39,7 +39,7 @@
       "settings": {
         "enabled": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },
         "text": { "types": ["docker"], "kind": "text", "maxLength": 100, "default": "Change Me!", "liveApply": true },
-        "font": { "types": ["docker"], "kind": "enum", "values": ["theme", "sans-serif", "serif", "monospace"], "default": "theme", "liveApply": true },
+        "font": { "types": ["docker"], "kind": "enum", "values": ["theme", "sans-serif", "serif", "monospace", "inter", "roboto", "open-sans", "source-sans-3", "montserrat", "nunito", "oswald", "raleway", "lora", "merriweather", "playfair-display", "bitter", "roboto-mono", "source-code-pro", "caveat", "dancing-script", "bebas-neue", "pacifico"], "default": "theme", "liveApply": true },
         "size": { "types": ["docker"], "kind": "integer", "min": 14, "max": 48, "default": 28, "liveApply": true },
         "bold": { "types": ["docker"], "kind": "boolean", "default": true, "liveApply": true },
         "italic": { "types": ["docker"], "kind": "boolean", "default": false, "liveApply": true },

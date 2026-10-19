@@ -114,7 +114,7 @@ test('OpenSSF Scorecard refreshes main findings and publishes pinned SARIF resul
     assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- main/);
     assert.match(workflow, /schedule:/);
     assert.match(workflow, /workflow_dispatch:/);
-    assert.match(workflow, /ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/);
+    assert.match(workflow, /ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+\s*$/m);
     assert.match(workflow, /github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/);
     assert.match(workflow, /publish_results: true/);
     assert.match(workflow, /security-events: write/);
@@ -127,6 +127,33 @@ test('OpenSSF Scorecard can detect the fast-check property-test harness', () => 
     assert.match(adapter, /require\(['"]fast-check['"]\)/);
     assert.match(suite, /from ['"]\.\/helpers\/fast-check\.js['"]/);
     assert.match(suite, /fc\.assert\(fc\.property\(/);
+});
+
+test('workflow guard accepts Scorecard v2 updates while rejecting unsafe publication changes', () => {
+    const workflow = read('.github/workflows/scorecard.yml');
+    const guard = read('scripts/workflow_self_check.sh').match(/<<'NODE'\r?\n([\s\S]*?)\r?\nNODE/)[1];
+    const runGuard = (scorecard) => runInNewContext(guard, {
+        require: (name) => name === 'node:path' ? path : {
+            ...fs,
+            readFileSync: (file, ...args) => path.resolve(file) === path.join(root, '.github/workflows/scorecard.yml')
+                ? scorecard : fs.readFileSync(file, ...args)
+        },
+        process: { argv: ['node', '-', root], exit: (code) => { throw new Error(`Guard exited ${code}`); } },
+        console: { log() {}, error() {} }
+    });
+    for (const version of ['2.4.4', '2.5.0', '2.99.12']) {
+        assert.doesNotThrow(() => runGuard(workflow.replace(/# v2\.\d+\.\d+/, `# v${version}`)), version);
+    }
+    for (const [label, changed] of [
+        ['unpinned action', workflow.replace(/scorecard-action@[0-9a-f]{40}/, 'scorecard-action@v2')],
+        ['unreviewed major', workflow.replace(/# v2\.\d+\.\d+/, '# v3.0.0')],
+        ['prerelease', workflow.replace(/# v2\.\d+\.\d+/, '# v2.5.0-beta')],
+        ['publication disabled', workflow.replace('publish_results: true', 'publish_results: false')],
+        ['missing OIDC permission', workflow.replace('id-token: write', 'id-token: read')],
+        ['missing SARIF permission', workflow.replace('security-events: write', 'security-events: read')]
+    ]) {
+        assert.throws(() => runGuard(changed), /Guard exited 1/, label);
+    }
 });
 
 test('workflows never upload live Unraid browser evidence', () => {

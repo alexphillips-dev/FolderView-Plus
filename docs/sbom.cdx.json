@@ -106,9 +106,9 @@
     {
       "type": "application",
       "name": "github/codeql-action",
-      "version": "24c54180a607b1449ed407dd24f251e4e9147c8d",
+      "version": "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee",
       "scope": "optional",
-      "purl": "pkg:github/github/codeql-action@24c54180a607b1449ed407dd24f251e4e9147c8d",
+      "purl": "pkg:github/github/codeql-action@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
+      "version": "9a96bc4d2b09685b6142bcfe25a3dc17cb2d7347",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@8ac9e5ce44cc7178e0e04229a91bdcc003166e57",
+      "purl": "pkg:github/google/osv-scanner-action@9a96bc4d2b09685b6142bcfe25a3dc17cb2d7347",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -132,9 +132,9 @@
     {
       "type": "application",
       "name": "ossf/scorecard-action",
-      "version": "2d1146689b8cda280b9bc96326124645441f03bc",
+      "version": "fa7117db83c52d787ae5a89f350999701505d78e",
       "scope": "optional",
-      "purl": "pkg:github/ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc",
+      "purl": "pkg:github/ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -1074,7 +1074,7 @@
     {
       "type": "library",
       "name": "playwright-core",
-      "version": "1.64.0",
+      "version": "1.64.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1083,12 +1083,12 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.64.0"
+      "purl": "pkg:npm/playwright-core@1.64.1"
     },
     {
       "type": "library",
       "name": "playwright",
-      "version": "1.64.0",
+      "version": "1.64.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1097,7 +1097,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.64.0"
+      "purl": "pkg:npm/playwright@1.64.1"
     },
     {
       "type": "library",

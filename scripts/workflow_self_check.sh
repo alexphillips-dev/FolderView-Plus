@@ -200,7 +200,7 @@ if (!/actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/.test(dependencyRevi
     || !/warn-only:\s*false/.test(dependencyReviewWorkflow)) {
   fail('Dependency Review must fail pull requests on high-severity vulnerabilities and enforce the approved license policy.');
 }
-if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/.test(scorecardWorkflow)
+if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.\d+\.\d+\s*$/m.test(scorecardWorkflow)
     || !/github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/.test(scorecardWorkflow)
     || !/push:\s*\n\s*branches:\s*\n\s*- main/.test(scorecardWorkflow)
     || !/publish_results:\s*true/.test(scorecardWorkflow)

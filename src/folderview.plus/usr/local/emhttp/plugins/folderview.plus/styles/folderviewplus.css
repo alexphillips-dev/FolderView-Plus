@@ -1740,8 +1740,8 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 }
 
 .name-cell-members-meta svg {
-    width: 0.95em;
-    height: 0.95em;
+    width: 1.4em;
+    height: 1.4em;
     flex: none;
     opacity: 0.85;
 }

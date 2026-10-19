@@ -28,6 +28,7 @@
     },
     "overrides": {
         "fr": {
+            "Skipped": "Ignoré",
             "Open console": "Ouvrir la console",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Les dossiers Docker et VM ainsi que les préférences enregistrées seront remplacés, y compris les règles, la confidentialité, les groupes, l'intégrité, les performances, les valeurs par défaut et les planifications de sauvegarde. Des points de contrôle de récupération sont créés avant l'application.",
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "La source de FolderView3 ou la configuration actuelle a été modifiée après l'aperçu. Prévisualisez-le à nouveau avant d’appliquer les modifications."
@@ -206,6 +207,7 @@
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Die FolderView3-Quelle oder aktuelle Konfiguration wurde nach der Vorschau geändert. Sehen Sie es sich noch einmal in der Vorschau an, bevor Sie es anwenden."
         },
         "es": {
+            "Skipped": "Omitido",
             "Open console": "Abrir consola",
             "Disabled": "Desactivado",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "¿Restaurar las carpetas y las preferencias guardadas de esta instantánea? Primero se crea una copia de seguridad.",

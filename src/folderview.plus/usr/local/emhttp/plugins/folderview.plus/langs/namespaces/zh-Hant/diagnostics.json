@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "診斷",
     "diagnostics.workspace.description": "監控外掛運作狀況、解決問題並分享支援資料。",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "操作：$1",
     "diagnostics.activity.exported": "支援捆綁匯出",
     "diagnostics.history.backup-restored": "備份已恢復",
-    "diagnostics.history.backup-deleted": "備份已刪除"
+    "diagnostics.history.backup-deleted": "備份已刪除",
+    "diagnostics.activity.skipped": "跳過",
+    "diagnostics.activity.backup-skipped": "備份已跳過",
+    "diagnostics.activity.schedule-check": "預定備份檢查",
+    "diagnostics.activity.backup-check-failed": "備份檢查無法完成。排程程式將重試；如果這種情況繼續存在，請檢查外掛日誌。",
+    "diagnostics.activity.backup-unchanged": "資料夾和首選項與最新儲存的備份相符。沒有寫入重複檔案；保留現有備份。",
+    "diagnostics.activity.backup-empty": "沒有為此型別配置資料夾。沒有寫入備份檔案；保留現有備份。",
+    "diagnostics.activity.backup-saved": "配置已儲存到新的備份中。",
+    "diagnostics.activity.backup-retained-at": "已儲存的備份：$1",
+    "diagnostics.activity.backup-next": "啟用後，檢查每 $1 小時執行一次。",
+    "diagnostics.activity.backup-memory": "伺服器檢查歷史記錄儲存在記憶體中，並在伺服器重新啟動後重置。",
+    "diagnostics.cards.backup-unchanged": "最後一次檢查沒有發現任何變化。備份期限：$1 h。"
 }

@@ -1,4 +1,5 @@
 {
+  "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Custom icon rename", "Settings chrome",

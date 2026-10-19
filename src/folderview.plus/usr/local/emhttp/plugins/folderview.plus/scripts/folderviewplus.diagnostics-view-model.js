@@ -83,7 +83,7 @@
         } else if (card.key === 'backup_readiness') {
             const describe = (type) => {
                 const entry = card.states?.[type] || {};
-                if (entry.state === 'ready') return translate('diagnostics.cards.backup-last-hours', 'Last backup: $1 h ago', Math.max(0, Number(entry.ageHours || 0)));
+                if (entry.state === 'ready') return entry.unchanged === true ? translate('diagnostics.cards.backup-unchanged', 'Last check found no changes. Backup age: $1 h.', Math.max(0, Number(entry.ageHours || 0))) : translate('diagnostics.cards.backup-last-hours', 'Last backup: $1 h ago', Math.max(0, Number(entry.ageHours || 0)));
                 if (entry.state === 'missing') return translate('diagnostics.cards.backup-missing', 'No backup found');
                 if (entry.state === 'invalid') return translate('diagnostics.cards.backup-invalid', 'Latest backup needs review');
                 if (entry.state === 'overdue') return translate('diagnostics.cards.backup-overdue', 'Scheduled backup is overdue');

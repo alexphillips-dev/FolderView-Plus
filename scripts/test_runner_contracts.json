@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/backup-schedule.mjs", "limit": 80, "owner": "real PHP scheduled-backup outcomes displayed in Advanced Logs", "requiredImports": ["../../helpers/backup-schedule-fixture.mjs"] },
     { "file": "tests/browser/helpers/icon-card-layout.mjs", "limit": 40, "owner": "Compact built-in and pack card image size, readable labels and text containment" },
     { "file": "tests/browser/helpers/folder-editor-headings.mjs", "limit": 80, "owner": "Folder editor panel heading deduplication, help association and rerender lifecycle" },
     { "file": "tests/browser/helpers/folder-editor-help-touch.mjs", "limit": 45, "owner": "Native touch, RTL and localized folder help interactions", "requiredImports": ["./folder-editor-settings-host.mjs"] },
@@ -115,6 +116,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/backup-schedule.mjs",
         "tests/browser/cases/folder-editor-help.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
@@ -199,10 +201,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 119,
-      "assertionCount": 1607,
-      "pageEvaluateCount": 427,
-      "orderedTitleSha256": "ec939917f492c716aef11b5a684f28cdc5ef8d712844b7e5d859680ae82fddd8"
+      "testCount": 120,
+      "assertionCount": 1617,
+      "pageEvaluateCount": 429,
+      "orderedTitleSha256": "59c18825b86a5492a1a179a75e4ab5c2e0f3236978dce154ea9f07c5fae776ba"
     }
   }
 }

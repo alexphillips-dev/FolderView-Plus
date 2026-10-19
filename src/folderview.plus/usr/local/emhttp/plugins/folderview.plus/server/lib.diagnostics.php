@@ -45,17 +45,12 @@
 
     function readDiagnosticsHistoryEvents(int $limit = 50): array {
         $path = diagnosticsHistoryPath();
-        if (!file_exists($path)) {
-            return [];
-        }
         $decoded = readJsonObjectFile($path);
         if (!is_array($decoded)) {
             $decoded = recoverJsonObjectFromLastGood($path);
         }
-        if (!is_array($decoded)) {
-            return [];
-        }
-        $events = array_values(array_filter($decoded, function($row) {
+        $runtimeEvents = function_exists('backupScheduleHistoryEvents') ? backupScheduleHistoryEvents() : [];
+        $events = array_values(array_filter(array_merge(is_array($decoded) ? $decoded : [], $runtimeEvents), function($row) {
             return is_array($row) && !empty($row['timestamp']) && !empty($row['action']);
         }));
         usort($events, function($a, $b) {
@@ -74,7 +69,9 @@
             }
             $details = is_array($event['details'] ?? null) ? $event['details'] : [];
             $summaryParts = [];
-            foreach (['reason', 'name', 'folderId', 'folderCount', 'itemCount'] as $key) {
+            foreach (['reason', 'name', 'folderId', 'folderCount', 'itemCount', 'skipReason', 'lastBackupAt', 'historyStorage', 'failureReason'] as $key) {
+                if (in_array($key, ['skipReason', 'failureReason', 'historyStorage'], true) && !in_array($details[$key] ?? '', ['unchanged-config', 'empty-folder-map', 'backup-check-failed', 'memory'], true)) continue;
+                if ($key === 'lastBackupAt' && (!is_string($details[$key] ?? null) || !preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|\+00:00)$/D', $details[$key]))) continue;
                 if (array_key_exists($key, $details) && $details[$key] !== null && $details[$key] !== '') {
                     $summaryParts[] = $key . '=' . (is_scalar($details[$key]) ? (string)$details[$key] : json_encode($details[$key]));
                 }

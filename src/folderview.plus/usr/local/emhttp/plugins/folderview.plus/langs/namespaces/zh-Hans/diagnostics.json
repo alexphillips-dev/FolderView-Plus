@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "诊断",
     "diagnostics.workspace.description": "监控插件运行状况、解决问题并共享支持数据。",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "操作：$1",
     "diagnostics.activity.exported": "支持捆绑导出",
     "diagnostics.history.backup-restored": "备份已恢复",
-    "diagnostics.history.backup-deleted": "备份已删除"
+    "diagnostics.history.backup-deleted": "备份已删除",
+    "diagnostics.activity.skipped": "跳过",
+    "diagnostics.activity.backup-skipped": "备份已跳过",
+    "diagnostics.activity.schedule-check": "预定备份检查",
+    "diagnostics.activity.backup-check-failed": "备份检查无法完成。调度程序将重试；如果这种情况继续存在，请检查插件日志。",
+    "diagnostics.activity.backup-unchanged": "文件夹和首选项与最新保存的备份匹配。没有写入重复文件；保留现有备份。",
+    "diagnostics.activity.backup-empty": "没有为此类型配置文件夹。没有写入备份文件；保留现有备份。",
+    "diagnostics.activity.backup-saved": "配置已保存到新的备份中。",
+    "diagnostics.activity.backup-retained-at": "保存的备份：$1",
+    "diagnostics.activity.backup-next": "启用后，检查每 $1 小时运行一次。",
+    "diagnostics.activity.backup-memory": "服务器检查历史记录保存在内存中，并在服务器重新启动后重置。",
+    "diagnostics.cards.backup-unchanged": "最后一次检查没有发现任何变化。备份期限：$1 h。"
 }

@@ -68,7 +68,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
                     'reason' => $reason,
                     'folderCount' => 0,
                     'skipReason' => 'empty-folder-map'
-                ], 'ok', 'server');
+                ], 'skipped', 'server');
             } catch (Throwable $err) {
                 // Keep backup skip reporting non-fatal.
             }

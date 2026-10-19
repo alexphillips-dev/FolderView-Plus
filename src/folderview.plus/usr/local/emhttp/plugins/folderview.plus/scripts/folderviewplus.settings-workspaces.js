@@ -24,7 +24,7 @@
         const getFolderMap = typeof deps.getFolderMap === 'function' ? deps.getFolderMap : (() => ({}));
         const getFolderNameForId = typeof deps.getFolderNameForId === 'function' ? deps.getFolderNameForId : ((type, id) => String(id || ''));
         const getSortedBackupsForType = typeof deps.getSortedBackupsForType === 'function' ? deps.getSortedBackupsForType : (() => []);
-        const prefsByType = deps.prefsByType || { docker: {}, vm: {} };
+        const prefsByType = deps.prefsByType || { docker: {}, vm: {} }, backupScheduleByType = deps.backupScheduleByType || {};
         const formatTimestamp = typeof deps.formatTimestamp === 'function' ? deps.formatTimestamp : ((value) => String(value || ''));
         const writeSettingsStorage = typeof deps.writeSettingsStorage === 'function' ? deps.writeSettingsStorage : (() => {});
         const RECOVERY_WORKSPACE_STORAGE_KEY = String(deps.RECOVERY_WORKSPACE_STORAGE_KEY || 'fv.settings.recoveryWorkspace.v1');
@@ -396,7 +396,7 @@
             const folders = getFolderMap(resolvedType);
             const backups = getSortedBackupsForType(resolvedType);
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsByType[resolvedType]) : (prefsByType[resolvedType] || {});
-            const schedule = prefs.backupSchedule || {};
+            const schedule = { ...prefs.backupSchedule, lastRunAt: backupScheduleByType[resolvedType]?.lastRunAt || '' };
             const latest = backups[0] || null;
             const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const backupCount = backups.length;
@@ -536,7 +536,7 @@
 
             setActiveRecoveryWorkspaceTypeValue(resolvedType);
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsByType[resolvedType]) : (prefsByType[resolvedType] || {});
-            const schedule = prefs.backupSchedule || {};
+            const schedule = { ...prefs.backupSchedule, lastRunAt: backupScheduleByType[resolvedType]?.lastRunAt || '' };
             const latestRestorable = getLatestRestorableRecoveryBackup(getSortedBackupsForType(resolvedType));
 
             $('#fv-recovery-restore-latest').prop('disabled', !latestRestorable);

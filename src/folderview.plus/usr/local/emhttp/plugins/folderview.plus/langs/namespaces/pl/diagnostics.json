@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostyka",
     "diagnostics.workspace.description": "Monitoruj stan wtyczek, rozwiązuj problemy i udostępniaj dane pomocy technicznej.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Akcja: $1",
     "diagnostics.activity.exported": "Wyeksportowano pakiet wsparcia",
     "diagnostics.history.backup-restored": "Kopia zapasowa przywrócona",
-    "diagnostics.history.backup-deleted": "Kopia zapasowa została usunięta"
+    "diagnostics.history.backup-deleted": "Kopia zapasowa została usunięta",
+    "diagnostics.activity.skipped": "Pominięte",
+    "diagnostics.activity.backup-skipped": "Kopia zapasowa pominięta",
+    "diagnostics.activity.schedule-check": "Zaplanowana kontrola kopii zapasowej",
+    "diagnostics.activity.backup-check-failed": "Nie można zakończyć sprawdzania kopii zapasowej. Program planujący ponowi próbę; przejrzyj dzienniki wtyczek, jeśli problem będzie się powtarzał.",
+    "diagnostics.activity.backup-unchanged": "Foldery i preferencje odpowiadają ostatniej zapisanej kopii zapasowej. Nie zapisano żadnego zduplikowanego pliku; istniejące kopie zapasowe zostały zachowane.",
+    "diagnostics.activity.backup-empty": "Dla tego typu nie skonfigurowano żadnych folderów. Nie zapisano żadnego pliku kopii zapasowej; istniejące kopie zapasowe zostały zachowane.",
+    "diagnostics.activity.backup-saved": "Konfiguracja została zapisana w nowej kopii zapasowej.",
+    "diagnostics.activity.backup-retained-at": "Zapisana kopia zapasowa: $1",
+    "diagnostics.activity.backup-next": "Kontrole są uruchamiane co $1 h, gdy są włączone.",
+    "diagnostics.activity.backup-memory": "Historia sprawdzania serwera jest przechowywana w pamięci i resetowana po ponownym uruchomieniu serwera.",
+    "diagnostics.cards.backup-unchanged": "Ostatnie sprawdzenie nie wykazało żadnych zmian. Wiek kopii zapasowej: $1 godz."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnosztika",
     "diagnostics.workspace.description": "Figyelemmel kísérheti a beépülő modulok állapotát, elháríthatja a problémákat, és megoszthatja a támogatási adatokat.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Művelet: $1",
     "diagnostics.activity.exported": "Támogatási csomag exportálva",
     "diagnostics.history.backup-restored": "A biztonsági mentés visszaállítva",
-    "diagnostics.history.backup-deleted": "Biztonsági másolat törölve"
+    "diagnostics.history.backup-deleted": "Biztonsági másolat törölve",
+    "diagnostics.activity.skipped": "Kihagyva",
+    "diagnostics.activity.backup-skipped": "A biztonsági mentés kimaradt",
+    "diagnostics.activity.schedule-check": "Ütemezett biztonsági mentés ellenőrzés",
+    "diagnostics.activity.backup-check-failed": "A biztonsági mentés ellenőrzése nem fejeződött be. Az ütemező újra megpróbálja; tekintse át a beépülő modulok naplóit, ha ez folytatódik.",
+    "diagnostics.activity.backup-unchanged": "A mappák és beállítások megegyeznek a legutóbb mentett biztonsági másolattal. Nem írtak duplikált fájlt; a meglévő biztonsági másolatokat megtartották.",
+    "diagnostics.activity.backup-empty": "Nincs mappa konfigurálva ehhez a típushoz. Nem készült biztonsági másolat fájl; a meglévő biztonsági másolatokat megtartották.",
+    "diagnostics.activity.backup-saved": "A konfiguráció új biztonsági másolatba mentve.",
+    "diagnostics.activity.backup-retained-at": "Mentett biztonsági másolat: $1",
+    "diagnostics.activity.backup-next": "Az ellenőrzések $1 óránként futnak, ha engedélyezve van.",
+    "diagnostics.activity.backup-memory": "A kiszolgáló ellenőrzési előzményei a memóriában tárolódnak, és a szerver újraindítása után visszaállnak.",
+    "diagnostics.cards.backup-unchanged": "Az utolsó ellenőrzés nem talált változást. Tartalék életkor: $1 h."
 }

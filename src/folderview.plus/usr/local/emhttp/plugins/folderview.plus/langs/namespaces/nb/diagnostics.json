@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostikk",
     "diagnostics.workspace.description": "Overvåk plugin-helsen, feilsøk problemer og del støttedata.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Handling: $1",
     "diagnostics.activity.exported": "Støttepakke eksportert",
     "diagnostics.history.backup-restored": "Sikkerhetskopien gjenopprettet",
-    "diagnostics.history.backup-deleted": "Sikkerhetskopien slettet"
+    "diagnostics.history.backup-deleted": "Sikkerhetskopien slettet",
+    "diagnostics.activity.skipped": "Hoppet over",
+    "diagnostics.activity.backup-skipped": "Sikkerhetskopiering hoppet over",
+    "diagnostics.activity.schedule-check": "Planlagt sikkerhetskopiering",
+    "diagnostics.activity.backup-check-failed": "Sikkerhetskopieringen kunne ikke fullføres. Planleggeren vil prøve på nytt; gjennomgå plugin-loggene hvis dette fortsetter.",
+    "diagnostics.activity.backup-unchanged": "Mapper og preferanser samsvarer med den sist lagrede sikkerhetskopien. Ingen duplikatfil ble skrevet; eksisterende sikkerhetskopier ble beholdt.",
+    "diagnostics.activity.backup-empty": "Ingen mapper er konfigurert for denne typen. Ingen sikkerhetskopifil ble skrevet; eksisterende sikkerhetskopier ble beholdt.",
+    "diagnostics.activity.backup-saved": "Konfigurasjonen ble lagret i en ny sikkerhetskopi.",
+    "diagnostics.activity.backup-retained-at": "Lagret sikkerhetskopi: $1",
+    "diagnostics.activity.backup-next": "Kontroller kjøres hver $1 time mens den er aktivert.",
+    "diagnostics.activity.backup-memory": "Serversjekkloggen lagres i minnet og tilbakestilles etter omstart av serveren.",
+    "diagnostics.cards.backup-unchanged": "Siste sjekk fant ingen endringer. Alder for sikkerhetskopiering: $1 t."
 }

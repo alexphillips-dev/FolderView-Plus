@@ -604,6 +604,7 @@ let backupsByType = {
     docker: [],
     vm: []
 };
+const backupScheduleByType = { docker: {}, vm: {} };
 let recoverySelectedBackupByType = {
     docker: '',
     vm: ''
@@ -3437,7 +3438,7 @@ const getSettingsWorkspacesApi = (() => {
             getFolderMap: (type) => getFolderMap(type),
             getFolderNameForId: (type, id) => folderNameForId(type, id),
             getSortedBackupsForType: (type) => getSortedBackupsForType(type),
-            prefsByType,
+            prefsByType, backupScheduleByType,
             formatTimestamp,
             writeSettingsStorage,
             RECOVERY_WORKSPACE_STORAGE_KEY,
@@ -5230,7 +5231,7 @@ const fetchBackups = async (type) => {
     if (!response.ok) {
         throw new Error(response.error || 'Failed to fetch backups.');
     }
-    return Array.isArray(response.backups) ? response.backups : [];
+    return { backups: Array.isArray(response.backups) ? response.backups : [], schedule: response.schedule || {} };
 };
 
 const fetchBackupSnapshot = async (type, name) => {
@@ -7131,7 +7132,7 @@ const renderVisibilityControls = (type) => {
 
 const renderBackupScheduleControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
-    const schedule = prefs.backupSchedule || {};
+    const schedule = { ...prefs.backupSchedule, lastRunAt: backupScheduleByType[type]?.lastRunAt || '' };
     $(`#${type}-backup-schedule-enabled`).prop('checked', schedule.enabled === true);
     $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 1));
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
@@ -8781,7 +8782,8 @@ const refreshBackups = async (type, { quiet = false } = {}) => {
     try {
         const backups = await fetchBackups(resolvedType);
         if (sequence !== backupRefreshSequence[resolvedType]) return false;
-        backupsByType[resolvedType] = backups;
+        backupsByType[resolvedType] = backups.backups;
+        backupScheduleByType[resolvedType] = backups.schedule;
         markAdvancedModuleLoadSuccess(moduleKey);
     } catch (error) {
         if (sequence !== backupRefreshSequence[resolvedType]) return false;
@@ -9945,6 +9947,7 @@ const changeBackupSchedulePref = async (type, key, value) => {
             ...current,
             backupSchedule: schedule
         });
+        backupScheduleByType[type] = {};
         renderBackupScheduleControls(type);
         if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
             renderRecoveryWorkspace(type);

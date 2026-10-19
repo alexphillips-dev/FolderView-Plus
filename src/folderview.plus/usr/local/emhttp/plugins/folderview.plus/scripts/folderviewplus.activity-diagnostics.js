@@ -1023,6 +1023,7 @@ const formatActivityTimestamp = (at) => {
 
 const normalizeActivityLevel = (level) => {
     const normalized = String(level || 'info').trim().toLowerCase();
+    if (normalized === 'skipped') return 'skipped';
     if (['error', 'danger', 'failed', 'fatal'].includes(normalized)) {
         return 'error';
     }
@@ -1048,7 +1049,7 @@ const retainActivityEntries = (entries, now = Date.now()) => (Array.isArray(entr
     .map((entry) => {
         const at = Number(entry?.at);
         const message = typeof entry?.message === 'string' ? entry.message.trim().slice(0, ACTIVITY_FEED_MAX_MESSAGE_LENGTH) : '';
-        const detail = typeof entry?.detail === 'string' ? entry.detail.trim().slice(0, 256) : '';
+        const detail = typeof entry?.detail === 'string' ? entry.detail.trim().slice(0, 768) : '';
         if (!Number.isSafeInteger(at) || at <= now - ACTIVITY_FEED_RETENTION_MS || at > now || !message) {
             return null;
         }
@@ -1101,14 +1102,11 @@ const syncActivityFeedFromStorage = (event) => {
 
 const getActivityLevelMeta = (level) => {
     switch (normalizeActivityLevel(level)) {
-        case 'success':
-            return { label: 'Complete', icon: 'fa-check-circle' };
-        case 'warning':
-            return { label: 'Attention', icon: 'fa-exclamation-triangle' };
-        case 'error':
-            return { label: 'Issue', icon: 'fa-times-circle' };
-        case 'info':
-        default:
+        case 'success': return { label: 'Complete', icon: 'fa-check-circle' };
+        case 'warning': return { label: 'Attention', icon: 'fa-exclamation-triangle' };
+        case 'error': return { label: 'Issue', icon: 'fa-times-circle' };
+        case 'skipped': return { label: diagnosticsT('diagnostics.activity.skipped', 'Skipped'), icon: 'fa-forward' };
+        case 'info': default:
             return { label: 'Info', icon: 'fa-info-circle' };
     }
 };
@@ -1160,7 +1158,7 @@ const renderActivityFeed = () => {
         const level = normalizeActivityLevel(entry?.level);
         const meta = getActivityLevelMeta(level);
         const detail = entry.detail ? `<span class="fv-activity-detail"> — ${diagnosticsEscapeHtml(entry.detail)}</span>` : '';
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}${detail}</span></li>`;
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}${level === 'skipped' ? ' is-info' : ''}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}${detail}</span></li>`;
     }).join('');
     list.html(rows);
     clear.prop('disabled', false);
@@ -1331,6 +1329,8 @@ const serverActivityLabel = (action) => {
     switch (String(action || '')) {
         case 'folderview3_migration': case 'folderview3_preview': return window.FolderViewPlusActivityDetail?.migrationLabel(action, false, diagnosticsT) || diagnosticsT('import.folderview3.applied', 'FolderView3 migration applied');
         case 'backup_create': return diagnosticsT('legacy.surface.ebc91c7ac728323f', 'Backup created');
+        case 'backup_schedule_run': return diagnosticsT('diagnostics.activity.schedule-check', 'Scheduled backup check');
+        case 'backup_skipped': return diagnosticsT('diagnostics.activity.backup-skipped', 'Backup skipped');
         case 'backup_restore': return diagnosticsT('diagnostics.history.backup-restored', 'Backup restored');
         case 'backup_delete': return diagnosticsT('diagnostics.history.backup-deleted', 'Backup deleted');
         case 'backup_delete_all': return diagnosticsT('legacy.surface.477235d571fd27bc', 'Backups deleted');

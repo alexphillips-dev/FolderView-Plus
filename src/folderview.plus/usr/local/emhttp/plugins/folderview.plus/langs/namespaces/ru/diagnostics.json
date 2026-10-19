@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Диагностика",
     "diagnostics.workspace.description": "Отслеживайте состояние плагина, устраняйте неполадки и делитесь данными поддержки.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Действие: $1",
     "diagnostics.activity.exported": "Пакет поддержки экспортирован.",
     "diagnostics.history.backup-restored": "Резервная копия восстановлена",
-    "diagnostics.history.backup-deleted": "Резервная копия удалена."
+    "diagnostics.history.backup-deleted": "Резервная копия удалена.",
+    "diagnostics.activity.skipped": "Пропущено",
+    "diagnostics.activity.backup-skipped": "Резервное копирование пропущено",
+    "diagnostics.activity.schedule-check": "Запланированная проверка резервной копии",
+    "diagnostics.activity.backup-check-failed": "Не удалось завершить резервную проверку. Планировщик повторит попытку; просмотрите журналы плагинов, если это продолжится.",
+    "diagnostics.activity.backup-unchanged": "Папки и настройки соответствуют последней сохраненной резервной копии. Дубликат файла не был записан; существующие резервные копии были сохранены.",
+    "diagnostics.activity.backup-empty": "Для этого типа не настроены папки. Файл резервной копии не был записан; существующие резервные копии были сохранены.",
+    "diagnostics.activity.backup-saved": "Конфигурация сохранена в новой резервной копии.",
+    "diagnostics.activity.backup-retained-at": "Сохраненная резервная копия: $1.",
+    "diagnostics.activity.backup-next": "Проверки выполняются каждые $1 ч, пока включено.",
+    "diagnostics.activity.backup-memory": "История проверок сервера сохраняется в памяти и сбрасывается после перезапуска сервера.",
+    "diagnostics.cards.backup-unchanged": "Последняя проверка не выявила изменений. Возраст резервной копии: $1 ч."
 }

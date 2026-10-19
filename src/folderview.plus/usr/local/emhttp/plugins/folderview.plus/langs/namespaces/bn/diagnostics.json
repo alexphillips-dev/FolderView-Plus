@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "ডায়াগনস্টিকস",
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "কর্ম: $1",
     "diagnostics.activity.exported": "সমর্থন বান্ডিল রপ্তানি করা হয়েছে",
     "diagnostics.history.backup-restored": "ব্যাকআপ পুনরুদ্ধার করা হয়েছে",
-    "diagnostics.history.backup-deleted": "ব্যাকআপ মুছে ফেলা হয়েছে"
+    "diagnostics.history.backup-deleted": "ব্যাকআপ মুছে ফেলা হয়েছে",
+    "diagnostics.activity.skipped": "এড়িয়ে গেছে",
+    "diagnostics.activity.backup-skipped": "ব্যাকআপ এড়িয়ে গেছে",
+    "diagnostics.activity.schedule-check": "নির্ধারিত ব্যাকআপ চেক",
+    "diagnostics.activity.backup-check-failed": "ব্যাকআপ চেক শেষ করা যায়নি. শিডিউলকারী আবার চেষ্টা করবে; এটি চলতে থাকলে প্লাগইন লগ পর্যালোচনা করুন।",
+    "diagnostics.activity.backup-unchanged": "ফোল্ডার এবং পছন্দগুলি সর্বশেষ সংরক্ষিত ব্যাকআপের সাথে মেলে। কোনো ডুপ্লিকেট ফাইল লেখা হয়নি; বিদ্যমান ব্যাকআপ রাখা হয়েছে।",
+    "diagnostics.activity.backup-empty": "এই ধরনের জন্য কোন ফোল্ডার কনফিগার করা হয় না. কোন ব্যাকআপ ফাইল লেখা হয়নি; বিদ্যমান ব্যাকআপ রাখা হয়েছে।",
+    "diagnostics.activity.backup-saved": "কনফিগারেশন একটি নতুন ব্যাকআপে সংরক্ষণ করা হয়েছে৷",
+    "diagnostics.activity.backup-retained-at": "সংরক্ষিত ব্যাকআপ: $1",
+    "diagnostics.activity.backup-next": "সক্রিয় থাকা অবস্থায় প্রতি $1 ঘণ্টায় চেক চালানো হয়।",
+    "diagnostics.activity.backup-memory": "সার্ভার চেক ইতিহাস মেমরিতে রাখা হয় এবং সার্ভার পুনরায় চালু করার পরে পুনরায় সেট করা হয়।",
+    "diagnostics.cards.backup-unchanged": "শেষ চেক কোন পরিবর্তন পাওয়া যায়নি. ব্যাকআপ বয়স: $1 ঘন্টা।"
 }

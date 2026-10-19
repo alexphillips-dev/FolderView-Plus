@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "診断",
     "diagnostics.workspace.description": "プラグインの状態を監視し、問題のトラブルシューティングを行い、サポート データを共有します。",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "アクション: $1",
     "diagnostics.activity.exported": "サポート バンドルがエクスポートされました",
     "diagnostics.history.backup-restored": "バックアップが復元されました",
-    "diagnostics.history.backup-deleted": "バックアップが削除されました"
+    "diagnostics.history.backup-deleted": "バックアップが削除されました",
+    "diagnostics.activity.skipped": "スキップされました",
+    "diagnostics.activity.backup-skipped": "バックアップがスキップされました",
+    "diagnostics.activity.schedule-check": "スケジュールされたバックアップチェック",
+    "diagnostics.activity.backup-check-failed": "バックアップ チェックを完了できませんでした。スケジューラは再試行します。これが続く場合は、プラグインのログを確認してください。",
+    "diagnostics.activity.backup-unchanged": "フォルダーと設定は、最後に保存されたバックアップと一致します。重複したファイルは書き込まれませんでした。既存のバックアップは保持されました。",
+    "diagnostics.activity.backup-empty": "このタイプにはフォルダーが構成されていません。バックアップ ファイルは書き込まれませんでした。既存のバックアップは保持されました。",
+    "diagnostics.activity.backup-saved": "構成が新しいバックアップに保存されました。",
+    "diagnostics.activity.backup-retained-at": "保存されたバックアップ: $1",
+    "diagnostics.activity.backup-next": "有効になっている間、チェックは $1 時間ごとに実行されます。",
+    "diagnostics.activity.backup-memory": "サーバーチェック履歴はメモリに保存され、サーバーの再起動後にリセットされます。",
+    "diagnostics.cards.backup-unchanged": "前回のチェックでは変更は見つかりませんでした。バックアップの経過時間: $1 h."
 }

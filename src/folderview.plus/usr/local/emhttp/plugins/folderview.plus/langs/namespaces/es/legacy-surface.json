@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimiento masivo no disponible",
     "legacy.surface.0012950979762d8c": "Elija una instantánea para restaurar, descargar o eliminar.",
@@ -239,7 +239,7 @@
     "legacy.surface.1259c1890adf1d9a": "mantenimiento de la salud",
     "legacy.surface.1259f9c2bda3e8f4": "Temas administrados",
     "legacy.surface.12696b1214380a28": "Sólo observación",
-    "legacy.surface.12698ce1ea5cd4ab": "Saltado",
+    "legacy.surface.12698ce1ea5cd4ab": "Omitido",
     "legacy.surface.127533ba5b5fbfff": "No cierre esta página hasta que finalice la eliminación de la carpeta.",
     "legacy.surface.12796a95e9f6e1db": "Deshacer instantánea creada: $1",
     "legacy.surface.1287722fa45ee4f9": "Umbral de advertencia de salud (%):",

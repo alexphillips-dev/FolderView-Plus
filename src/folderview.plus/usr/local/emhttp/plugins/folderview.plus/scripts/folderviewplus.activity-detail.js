@@ -24,6 +24,20 @@
                 ? translate('diagnostics.activity.detail.scope', '$1 Docker folders, $2 VM folders', docker, vm) : '';
         };
         switch (action) {
+            case 'backup_skipped':
+            case 'backup_schedule_run': {
+                const explanation = row.status === 'error'
+                    ? translate('diagnostics.activity.backup-check-failed', 'The backup check could not finish. The scheduler will retry; review plugin logs if this continues.')
+                    : (details.skipReason === 'unchanged-config'
+                        ? translate('diagnostics.activity.backup-unchanged', 'Folders and preferences match the latest saved backup. No duplicate file was written; existing backups were kept.')
+                        : (details.skipReason === 'empty-folder-map'
+                            ? translate('diagnostics.activity.backup-empty', 'No folders are configured for this type. No backup file was written; existing backups were kept.')
+                            : translate('diagnostics.activity.backup-saved', 'Configuration was saved to a new backup.')));
+                return [explanation, details.lastBackupAt ? translate('diagnostics.activity.backup-retained-at', 'Saved backup: $1', details.lastBackupAt) : '',
+                    count('intervalHours') ? translate('diagnostics.activity.backup-next', 'Checks run every $1 h while enabled.', count('intervalHours')) : '',
+                    details.historyStorage === 'memory' ? translate('diagnostics.activity.backup-memory', 'Server check history is kept in memory and resets after a server restart.') : ''
+                ].filter(Boolean).join(' · ');
+            }
             case 'folderview3_migration':
             case 'folderview3_preview': {
                 const outcomes = {

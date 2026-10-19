@@ -60,6 +60,8 @@
       "scripts/folderviewplus.import.js": { "limit": 1486, "target": 500, "history": [1486] },
       "server/upload_custom_icon.php": { "limit": 37, "target": 30, "history": [1481, 37] },
       "server/lib.custom-icon-chunks.php": { "limit": 150, "target": 150, "history": [150] },
+      "server/lib.backup-content.php": { "limit": 40, "target": 40, "history": [40] },
+      "server/lib.backup-schedule-state.php": { "limit": 120, "target": 100, "history": [120] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
       "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
@@ -516,11 +518,49 @@
       "functionInventory": { "count": 2, "sha256": "d3d9aa2bcdc489bf9d148a6a6b53babec078021208faae5c10f493c1c882b8bc" }
     },
     {
+      "file": "server/lib.backup-content.php",
+      "owner": "scheduled-backup-content-comparison",
+      "consumers": [
+        "server-endpoints",
+        "plugin-pages"
+      ],
+      "stateModel": "request-scoped",
+      "dependsOn": [
+        "server/lib.backup-snapshots.php",
+        "server/lib.storage.php"
+      ],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.backup-schedule.php",
+      "functionInventory": {
+        "count": 2,
+        "sha256": "781de8a62044433e3b2a882f4b418d3a83bb8572515612c324257ddf6606a16d"
+      }
+    },
+    {
+      "file": "server/lib.backup-schedule-state.php",
+      "owner": "ram-backed-backup-schedule-status-and-history",
+      "consumers": [
+        "server-endpoints",
+        "plugin-pages"
+      ],
+      "stateModel": "request-scoped",
+      "dependsOn": [
+        "server/lib.storage.php",
+        "server/lib.diagnostics.php"
+      ],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.backup-schedule.php",
+      "functionInventory": {
+        "count": 7,
+        "sha256": "deaaeccbced2d90d5937038c9adcc71e553a0e524e7877a306b77f032adcf878"
+      }
+    },
+    {
       "file": "server/lib.backup-schedule.php",
       "owner": "server-backup-scheduling",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.backup-content.php", "server/lib.backup-schedule-state.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 13, "sha256": "eebe22640ddc1153460daf463acfc10226c4251acd1e2aad1ebf553f7dbdfea5" }

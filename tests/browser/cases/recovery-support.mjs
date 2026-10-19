@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { registerBackupScheduleCases } from './backup-schedule.mjs';
 
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
+    registerBackupScheduleCases({ test, baseUrl });
     test('Recovery mockup layout keeps history, policy, and actions usable for Docker and VMs', async ({ page }) => {
         await page.goto(`${baseUrl}/settings`);
         const diagnosticsText = await page.evaluate(() => {

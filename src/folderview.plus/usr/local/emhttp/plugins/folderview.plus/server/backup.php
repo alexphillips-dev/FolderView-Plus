@@ -122,7 +122,8 @@ fvplus_json_try(function (): array {
 
     if ($action === 'list') {
         return [
-            'backups' => listBackupSnapshots($type)
+            'backups' => listBackupSnapshots($type),
+            'schedule' => getTypeBackupSchedule($type)
         ];
     }
 

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Surveillez l’état du plugin, résolvez les problèmes et partagez les données d’assistance.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Action : $1",
     "diagnostics.activity.exported": "Offre groupée de support exportée",
     "diagnostics.history.backup-restored": "Sauvegarde restaurée",
-    "diagnostics.history.backup-deleted": "Sauvegarde supprimée"
+    "diagnostics.history.backup-deleted": "Sauvegarde supprimée",
+    "diagnostics.activity.skipped": "Ignoré",
+    "diagnostics.activity.backup-skipped": "Sauvegarde ignorée",
+    "diagnostics.activity.schedule-check": "Vérification de sauvegarde planifiée",
+    "diagnostics.activity.backup-check-failed": "La vérification de sauvegarde n'a pas pu se terminer. Le planificateur réessayera ; examinez les journaux du plugin si cela continue.",
+    "diagnostics.activity.backup-unchanged": "Les dossiers et préférences correspondent à la dernière sauvegarde enregistrée. Aucun fichier en double n'a été écrit ; les sauvegardes existantes ont été conservées.",
+    "diagnostics.activity.backup-empty": "Aucun dossier n'est configuré pour ce type. Aucun fichier de sauvegarde n'a été écrit ; les sauvegardes existantes ont été conservées.",
+    "diagnostics.activity.backup-saved": "La configuration a été enregistrée dans une nouvelle sauvegarde.",
+    "diagnostics.activity.backup-retained-at": "Sauvegarde enregistrée : $1",
+    "diagnostics.activity.backup-next": "Les contrôles sont exécutés toutes les $1 h lorsqu'ils sont activés.",
+    "diagnostics.activity.backup-memory": "L'historique des vérifications du serveur est conservé en mémoire et réinitialisé après un redémarrage du serveur.",
+    "diagnostics.cards.backup-unchanged": "La dernière vérification n'a trouvé aucun changement. Âge de la sauvegarde : $1 h."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostics",
     "diagnostics.workspace.description": "Monitor plugin health, troubleshoot issues, and share support data.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Action: $1",
     "diagnostics.activity.exported": "Support bundle exported",
     "diagnostics.history.backup-restored": "Backup restored",
-    "diagnostics.history.backup-deleted": "Backup deleted"
+    "diagnostics.history.backup-deleted": "Backup deleted",
+    "diagnostics.activity.skipped": "Skipped",
+    "diagnostics.activity.backup-skipped": "Backup skipped",
+    "diagnostics.activity.schedule-check": "Scheduled backup check",
+    "diagnostics.activity.backup-check-failed": "The backup check could not finish. The scheduler will retry; review plugin logs if this continues.",
+    "diagnostics.activity.backup-unchanged": "Folders and preferences match the latest saved backup. No duplicate file was written; existing backups were kept.",
+    "diagnostics.activity.backup-empty": "No folders are configured for this type. No backup file was written; existing backups were kept.",
+    "diagnostics.activity.backup-saved": "Configuration was saved to a new backup.",
+    "diagnostics.activity.backup-retained-at": "Saved backup: $1",
+    "diagnostics.activity.backup-next": "Checks run every $1 h while enabled.",
+    "diagnostics.activity.backup-memory": "Server check history is kept in memory and resets after a server restart.",
+    "diagnostics.cards.backup-unchanged": "Last check found no changes. Backup age: $1 h."
 }

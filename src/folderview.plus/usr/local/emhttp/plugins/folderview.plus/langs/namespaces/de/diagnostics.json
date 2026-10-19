@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnose",
     "diagnostics.workspace.description": "Überwachen Sie den Plugin-Zustand, beheben Sie Probleme und teilen Sie Supportdaten.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Aktion: $1",
     "diagnostics.activity.exported": "Supportpaket exportiert",
     "diagnostics.history.backup-restored": "Sicherung wiederhergestellt",
-    "diagnostics.history.backup-deleted": "Sicherung gelöscht"
+    "diagnostics.history.backup-deleted": "Sicherung gelöscht",
+    "diagnostics.activity.skipped": "Übersprungen",
+    "diagnostics.activity.backup-skipped": "Sicherung übersprungen",
+    "diagnostics.activity.schedule-check": "Geplante Backup-Überprüfung",
+    "diagnostics.activity.backup-check-failed": "Die Sicherungsüberprüfung konnte nicht abgeschlossen werden. Der Planer wird es erneut versuchen; Überprüfen Sie die Plugin-Protokolle, wenn das Problem weiterhin besteht.",
+    "diagnostics.activity.backup-unchanged": "Ordner und Einstellungen entsprechen dem zuletzt gespeicherten Backup. Es wurde keine doppelte Datei geschrieben. Vorhandene Backups wurden beibehalten.",
+    "diagnostics.activity.backup-empty": "Für diesen Typ sind keine Ordner konfiguriert. Es wurde keine Sicherungsdatei geschrieben; Vorhandene Backups wurden beibehalten.",
+    "diagnostics.activity.backup-saved": "Die Konfiguration wurde in einem neuen Backup gespeichert.",
+    "diagnostics.activity.backup-retained-at": "Gespeichertes Backup: $1",
+    "diagnostics.activity.backup-next": "Prüfungen werden alle $1 Stunden ausgeführt, solange sie aktiviert sind.",
+    "diagnostics.activity.backup-memory": "Der Verlauf der Serverprüfung wird im Speicher gespeichert und nach einem Serverneustart zurückgesetzt.",
+    "diagnostics.cards.backup-unchanged": "Bei der letzten Überprüfung wurden keine Änderungen festgestellt. Backup-Alter: $1 h."
 }

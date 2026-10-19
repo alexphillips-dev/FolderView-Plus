@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Діагностика",
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Дія: $1",
     "diagnostics.activity.exported": "Пакет підтримки експортовано",
     "diagnostics.history.backup-restored": "Резервну копію відновлено",
-    "diagnostics.history.backup-deleted": "Резервну копію видалено"
+    "diagnostics.history.backup-deleted": "Резервну копію видалено",
+    "diagnostics.activity.skipped": "Пропущено",
+    "diagnostics.activity.backup-skipped": "Резервне копіювання пропущено",
+    "diagnostics.activity.schedule-check": "Планова перевірка резервного копіювання",
+    "diagnostics.activity.backup-check-failed": "Не вдалося завершити перевірку резервної копії. Планувальник повторить спробу; перегляньте журнали плагіна, якщо це продовжується.",
+    "diagnostics.activity.backup-unchanged": "Папки та параметри відповідають останній збереженій резервній копії. Дубльований файл не був записаний; існуючі резервні копії були збережені.",
+    "diagnostics.activity.backup-empty": "Для цього типу папки не налаштовано. Файл резервної копії не був записаний; існуючі резервні копії були збережені.",
+    "diagnostics.activity.backup-saved": "Конфігурацію було збережено в нову резервну копію.",
+    "diagnostics.activity.backup-retained-at": "Збережена резервна копія: $1",
+    "diagnostics.activity.backup-next": "Перевірки виконуються кожні $1 год, поки ввімкнено.",
+    "diagnostics.activity.backup-memory": "Історія перевірок сервера зберігається в пам’яті та скидається після перезапуску сервера.",
+    "diagnostics.cards.backup-unchanged": "Остання перевірка не виявила змін. Вік резервної копії: $1 год."
 }

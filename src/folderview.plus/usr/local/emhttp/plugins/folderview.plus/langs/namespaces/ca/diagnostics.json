@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnòstics",
     "diagnostics.workspace.description": "Superviseu l'estat dels connectors, solucioneu problemes i compartiu dades d'assistència.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Acció: $1",
     "diagnostics.activity.exported": "Paquet de suport exportat",
     "diagnostics.history.backup-restored": "S'ha restaurat la còpia de seguretat",
-    "diagnostics.history.backup-deleted": "S'ha suprimit la còpia de seguretat"
+    "diagnostics.history.backup-deleted": "S'ha suprimit la còpia de seguretat",
+    "diagnostics.activity.skipped": "Saltat",
+    "diagnostics.activity.backup-skipped": "S'ha omès la còpia de seguretat",
+    "diagnostics.activity.schedule-check": "Comprovació de còpia de seguretat programada",
+    "diagnostics.activity.backup-check-failed": "La comprovació de còpia de seguretat no ha pogut acabar. El planificador tornarà a provar; reviseu els registres dels connectors si això continua.",
+    "diagnostics.activity.backup-unchanged": "Les carpetes i les preferències coincideixen amb la darrera còpia de seguretat desada. No s'ha escrit cap fitxer duplicat; es van mantenir les còpies de seguretat existents.",
+    "diagnostics.activity.backup-empty": "No hi ha carpetes configurades per a aquest tipus. No s'ha escrit cap fitxer de còpia de seguretat; es van mantenir les còpies de seguretat existents.",
+    "diagnostics.activity.backup-saved": "La configuració s'ha desat en una còpia de seguretat nova.",
+    "diagnostics.activity.backup-retained-at": "Còpia de seguretat desada: $1",
+    "diagnostics.activity.backup-next": "Les comprovacions s'executen cada $1 h mentre estan activades.",
+    "diagnostics.activity.backup-memory": "L'historial de comprovació del servidor es conserva a la memòria i es restableix després d'un reinici del servidor.",
+    "diagnostics.cards.backup-unchanged": "La darrera comprovació no ha trobat cap canvi. Edat de còpia de seguretat: $1 h."
 }

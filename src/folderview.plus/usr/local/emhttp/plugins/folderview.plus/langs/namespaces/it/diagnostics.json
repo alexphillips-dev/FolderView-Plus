@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostica",
     "diagnostics.workspace.description": "Monitora lo stato dei plugin, risolvi i problemi e condividi i dati di supporto.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Azione: $1",
     "diagnostics.activity.exported": "Pacchetto di supporto esportato",
     "diagnostics.history.backup-restored": "Backup ripristinato",
-    "diagnostics.history.backup-deleted": "Backup eliminato"
+    "diagnostics.history.backup-deleted": "Backup eliminato",
+    "diagnostics.activity.skipped": "Saltato",
+    "diagnostics.activity.backup-skipped": "Backup saltato",
+    "diagnostics.activity.schedule-check": "Controllo del backup pianificato",
+    "diagnostics.activity.backup-check-failed": "Impossibile completare il controllo del backup. Lo scheduler riproverà; rivedi i log dei plugin se il problema persiste.",
+    "diagnostics.activity.backup-unchanged": "Le cartelle e le preferenze corrispondono all'ultimo backup salvato. Non è stato scritto alcun file duplicato; i backup esistenti sono stati mantenuti.",
+    "diagnostics.activity.backup-empty": "Nessuna cartella configurata per questo tipo. Non è stato scritto alcun file di backup; i backup esistenti sono stati mantenuti.",
+    "diagnostics.activity.backup-saved": "La configurazione è stata salvata in un nuovo backup.",
+    "diagnostics.activity.backup-retained-at": "Backup salvato: $1",
+    "diagnostics.activity.backup-next": "I controlli vengono eseguiti ogni $1 h mentre sono abilitati.",
+    "diagnostics.activity.backup-memory": "La cronologia dei controlli del server viene conservata in memoria e viene reimpostata dopo il riavvio del server.",
+    "diagnostics.cards.backup-unchanged": "L'ultimo controllo non ha rilevato modifiche. Durata del backup: $1 h."
 }

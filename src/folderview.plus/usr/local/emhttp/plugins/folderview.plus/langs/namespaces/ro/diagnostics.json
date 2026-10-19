@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.workspace.description": "Monitorizați starea pluginului, remediați problemele și partajați date de asistență.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Acțiune: $1",
     "diagnostics.activity.exported": "Pachetul de asistență exportat",
     "diagnostics.history.backup-restored": "Backup restaurat",
-    "diagnostics.history.backup-deleted": "Backup șters"
+    "diagnostics.history.backup-deleted": "Backup șters",
+    "diagnostics.activity.skipped": "Sărit",
+    "diagnostics.activity.backup-skipped": "Backup a fost omis",
+    "diagnostics.activity.schedule-check": "Verificare de rezervă programată",
+    "diagnostics.activity.backup-check-failed": "Verificarea de rezervă nu s-a putut finaliza. Programatorul va încerca din nou; examinați jurnalele de plugin dacă acest lucru continuă.",
+    "diagnostics.activity.backup-unchanged": "Dosarele și preferințele se potrivesc cu cea mai recentă copie de rezervă salvată. Nu a fost scris niciun fișier duplicat; au fost păstrate copiile de rezervă existente.",
+    "diagnostics.activity.backup-empty": "Nu sunt configurate foldere pentru acest tip. Nu a fost scris niciun fișier de rezervă; au fost păstrate copiile de rezervă existente.",
+    "diagnostics.activity.backup-saved": "Configurația a fost salvată într-o nouă copie de rezervă.",
+    "diagnostics.activity.backup-retained-at": "Backup salvat: $1",
+    "diagnostics.activity.backup-next": "Verificările rulează la fiecare $1 h când sunt activate.",
+    "diagnostics.activity.backup-memory": "Istoricul verificărilor serverului este păstrat în memorie și se resetează după repornirea serverului.",
+    "diagnostics.cards.backup-unchanged": "Ultima verificare nu a găsit modificări. Vârsta de rezervă: $1 h."
 }

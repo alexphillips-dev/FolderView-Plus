@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.workspace.description": "Monitore a integridade do plug-in, solucione problemas e compartilhe dados de suporte.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Ação: $1",
     "diagnostics.activity.exported": "Pacote de suporte exportado",
     "diagnostics.history.backup-restored": "Backup restaurado",
-    "diagnostics.history.backup-deleted": "Backup excluído"
+    "diagnostics.history.backup-deleted": "Backup excluído",
+    "diagnostics.activity.skipped": "Ignorado",
+    "diagnostics.activity.backup-skipped": "Backup ignorado",
+    "diagnostics.activity.schedule-check": "Verificação de backup agendada",
+    "diagnostics.activity.backup-check-failed": "A verificação de backup não pôde ser concluída. O agendador tentará novamente; revise os logs do plugin se isso continuar.",
+    "diagnostics.activity.backup-unchanged": "As pastas e preferências correspondem ao último backup salvo. Nenhum arquivo duplicado foi gravado; os backups existentes foram mantidos.",
+    "diagnostics.activity.backup-empty": "Nenhuma pasta está configurada para este tipo. Nenhum arquivo de backup foi gravado; os backups existentes foram mantidos.",
+    "diagnostics.activity.backup-saved": "A configuração foi salva em um novo backup.",
+    "diagnostics.activity.backup-retained-at": "Backup salvo: $1",
+    "diagnostics.activity.backup-next": "As verificações são executadas a cada $1 h enquanto ativadas.",
+    "diagnostics.activity.backup-memory": "O histórico de verificação do servidor é mantido na memória e redefinido após a reinicialização do servidor.",
+    "diagnostics.cards.backup-unchanged": "A última verificação não encontrou alterações. Idade do backup: $1 h."
 }

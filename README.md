@@ -168,6 +168,8 @@ Legacy CSS/JS migration and stable selector policy are documented in [docs/SUPPO
 
 New setups schedule a backup every hour by default; change or disable the interval in Advanced > Recovery. Existing saved schedules keep their chosen settings. Routine folder moves and reorders save immediately and use in-memory Undo/Redo without adding backup files. Manual backups and safety snapshots before destructive actions, imports, and bulk changes remain available, along with snapshot comparison and restore.
 
+Scheduled checks create a new snapshot only when folders or saved preferences differ from the latest usable backup. Unchanged and empty configurations show **Skipped** in Advanced > Logs with the reason, so duplicate snapshots do not replace older recovery points. Scheduler check timestamps and history stay in server memory to avoid routine USB writes; the server history resets after a restart, while actual backup files remain saved. Health checks recognize a recent unchanged check without treating the retained backup as overdue.
+
 Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. Advanced > Logs records recent backup, folder, import, and other meaningful Settings actions for quick review during the current session.
 
 ## Troubleshooting

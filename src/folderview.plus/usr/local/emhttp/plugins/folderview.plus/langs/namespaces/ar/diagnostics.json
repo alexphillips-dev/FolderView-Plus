@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "التشخيص",
     "diagnostics.workspace.description": "مراقبة صحة المكونات الإضافية واستكشاف المشكلات وإصلاحها ومشاركة بيانات الدعم.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "الإجراء: $1",
     "diagnostics.activity.exported": "تم تصدير حزمة الدعم",
     "diagnostics.history.backup-restored": "تمت استعادة النسخة الاحتياطية",
-    "diagnostics.history.backup-deleted": "تم حذف النسخة الاحتياطية"
+    "diagnostics.history.backup-deleted": "تم حذف النسخة الاحتياطية",
+    "diagnostics.activity.skipped": "تم تخطيه",
+    "diagnostics.activity.backup-skipped": "تم تخطي النسخة الاحتياطية",
+    "diagnostics.activity.schedule-check": "فحص النسخ الاحتياطي المقرر",
+    "diagnostics.activity.backup-check-failed": "تعذر إنهاء فحص النسخ الاحتياطي. سيقوم المجدول بإعادة المحاولة؛ مراجعة سجلات البرنامج المساعد إذا استمر هذا.",
+    "diagnostics.activity.backup-unchanged": "تتطابق المجلدات والتفضيلات مع أحدث نسخة احتياطية محفوظة. لم تتم كتابة أي ملف مكرر؛ تم الاحتفاظ بالنسخ الاحتياطية الموجودة.",
+    "diagnostics.activity.backup-empty": "لم يتم تكوين أي مجلدات لهذا النوع. لم تتم كتابة أي ملف نسخ احتياطي؛ تم الاحتفاظ بالنسخ الاحتياطية الموجودة.",
+    "diagnostics.activity.backup-saved": "تم حفظ التكوين في نسخة احتياطية جديدة.",
+    "diagnostics.activity.backup-retained-at": "النسخة الاحتياطية المحفوظة: $1",
+    "diagnostics.activity.backup-next": "يتم تشغيل عمليات التحقق كل $1 ساعة أثناء التمكين.",
+    "diagnostics.activity.backup-memory": "يتم الاحتفاظ بسجل فحص الخادم في الذاكرة ويتم إعادة تعيينه بعد إعادة تشغيل الخادم.",
+    "diagnostics.cards.backup-unchanged": "لم يجد الفحص الأخير أي تغييرات. عمر النسخ الاحتياطي: $1 ح."
 }

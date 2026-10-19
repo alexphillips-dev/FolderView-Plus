@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Teşhis",
     "diagnostics.workspace.description": "Eklenti sağlığını izleyin, sorunları giderin ve destek verilerini paylaşın.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "İşlem: $1",
     "diagnostics.activity.exported": "Destek paketi dışa aktarıldı",
     "diagnostics.history.backup-restored": "Yedekleme geri yüklendi",
-    "diagnostics.history.backup-deleted": "Yedekleme silindi"
+    "diagnostics.history.backup-deleted": "Yedekleme silindi",
+    "diagnostics.activity.skipped": "Atlandı",
+    "diagnostics.activity.backup-skipped": "Yedekleme atlandı",
+    "diagnostics.activity.schedule-check": "Zamanlanmış yedekleme kontrolü",
+    "diagnostics.activity.backup-check-failed": "Yedekleme kontrolü tamamlanamadı. Zamanlayıcı yeniden deneyecektir; bu durum devam ederse eklenti günlüklerini inceleyin.",
+    "diagnostics.activity.backup-unchanged": "Klasörler ve tercihler en son kaydedilen yedeklemeyle eşleşir. Hiçbir kopya dosya yazılmadı; mevcut yedekler tutuldu.",
+    "diagnostics.activity.backup-empty": "Bu tür için hiçbir klasör yapılandırılmadı. Hiçbir yedekleme dosyası yazılmadı; mevcut yedekler tutuldu.",
+    "diagnostics.activity.backup-saved": "Yapılandırma yeni bir yedeğe kaydedildi.",
+    "diagnostics.activity.backup-retained-at": "Kaydedilen yedekleme: $1",
+    "diagnostics.activity.backup-next": "Etkin durumdayken kontroller her $1 saatte bir çalıştırılır.",
+    "diagnostics.activity.backup-memory": "Sunucu kontrol geçmişi bellekte tutulur ve sunucu yeniden başlatıldığında sıfırlanır.",
+    "diagnostics.cards.backup-unchanged": "Son kontrolde herhangi bir değişiklik bulunamadı. Yedekleme yaşı: $1 sa."
 }

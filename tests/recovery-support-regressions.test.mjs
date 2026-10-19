@@ -25,7 +25,7 @@ const productionFactory = (overrides = {}) => {
     // be concealed by constructing the workspace with a different test-only wiring.
     const stubs = Object.fromEntries([...block.matchAll(/^            (\w+),?$/gm)].map(([, key]) => [key, noop]));
     const context = vm.createContext({ ...stubs, window: { setTimeout: fn => fn() }, document: {},
-        $: () => ({ length: 0 }), utils: {}, prefsByType: {}, recoverySelectedBackupByType: {}, filtersByType: {},
+        $: () => ({ length: 0 }), utils: {}, prefsByType: {}, backupScheduleByType: {}, recoverySelectedBackupByType: {}, filtersByType: {},
         templatesByType: {}, selectedOperationsTemplateIdByType: {}, settingsWorkspacesModule: workspaces,
         getFolderMap: () => ({}), folderNameForId: noop, getSortedBackupsForType: () => [],
         activeRecoveryWorkspaceType: 'docker', activeRulesWorkspaceType: 'docker', activeOperationsWorkspaceType: 'docker',
@@ -84,16 +84,18 @@ test('production environment import previews, confirms, locks, applies and refre
 test('out-of-order backup loads cannot replace a newer result and failures preserve known backups', async () => {
     const pending = [];
     const backups = { docker: [{ name: 'initial' }], vm: [] };
-    const context = vm.createContext({ normalizeManagedType: value => value, backupsByType: backups,
+    const schedules = { docker: {}, vm: {} };
+    const context = vm.createContext({ normalizeManagedType: value => value, backupsByType: backups, backupScheduleByType: schedules,
         fetchBackups: () => new Promise((resolve, reject) => pending.push({ resolve, reject })),
         setAdvancedModuleStatus: noop, markAdvancedModuleLoadSuccess: noop, markAdvancedModuleLoadError: noop,
         renderBackupRows: noop, renderBackupScheduleControls: noop, refreshSettingsUx: noop });
     const block = source.slice(source.indexOf('const backupRefreshSequence ='), source.indexOf('const refreshTemplates ='));
     const refresh = vm.runInContext(`${block}\nrefreshBackups;`, context);
     const old = refresh('docker', { quiet: true }), current = refresh('docker', { quiet: true });
-    pending[1].resolve([{ name: 'newest' }]); await current;
-    pending[0].resolve([{ name: 'obsolete' }]); await old;
+    pending[1].resolve({ backups: [{ name: 'newest' }], schedule: { lastRunAt: 'newest' } }); await current;
+    pending[0].resolve({ backups: [{ name: 'obsolete' }], schedule: { lastRunAt: 'obsolete' } }); await old;
     assert.equal(backups.docker[0].name, 'newest');
+    assert.equal(schedules.docker.lastRunAt, 'newest');
     const failed = refresh('docker', { quiet: true }); pending[2].reject(new Error('offline')); await failed;
     assert.equal(backups.docker[0].name, 'newest');
 });

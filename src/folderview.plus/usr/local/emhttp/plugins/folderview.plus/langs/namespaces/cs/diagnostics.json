@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Sledujte stav pluginu, řešte problémy a sdílejte data podpory.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Akce: $1",
     "diagnostics.activity.exported": "Balíček podpory byl exportován",
     "diagnostics.history.backup-restored": "Záloha obnovena",
-    "diagnostics.history.backup-deleted": "Záloha byla smazána"
+    "diagnostics.history.backup-deleted": "Záloha byla smazána",
+    "diagnostics.activity.skipped": "Přeskočeno",
+    "diagnostics.activity.backup-skipped": "Zálohování bylo přeskočeno",
+    "diagnostics.activity.schedule-check": "Plánovaná kontrola zálohování",
+    "diagnostics.activity.backup-check-failed": "Kontrola zálohy nemohla být dokončena. Plánovač se pokusí znovu; zkontrolovat protokoly pluginů, pokud to bude pokračovat.",
+    "diagnostics.activity.backup-unchanged": "Složky a předvolby odpovídají poslední uložené záloze. Nebyl zapsán žádný duplicitní soubor; stávající zálohy byly zachovány.",
+    "diagnostics.activity.backup-empty": "Pro tento typ nejsou nakonfigurovány žádné složky. Nebyl zapsán žádný záložní soubor; stávající zálohy byly zachovány.",
+    "diagnostics.activity.backup-saved": "Konfigurace byla uložena do nové zálohy.",
+    "diagnostics.activity.backup-retained-at": "Uložená záloha: $1",
+    "diagnostics.activity.backup-next": "Kontroly se spouštějí každých $1 h, pokud jsou povoleny.",
+    "diagnostics.activity.backup-memory": "Historie kontrol serveru se uchovává v paměti a po restartu serveru se resetuje.",
+    "diagnostics.cards.backup-unchanged": "Poslední kontrola nenalezla žádné změny. Věk zálohy: $1 h."
 }

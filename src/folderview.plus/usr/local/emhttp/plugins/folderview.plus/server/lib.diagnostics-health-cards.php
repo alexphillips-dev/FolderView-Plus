@@ -40,6 +40,7 @@
             $schedule = is_array($data['backupSchedule'] ?? null) ? $data['backupSchedule'] : [];
             $created = $backup ? strtotime((string)($backup['createdAt'] ?? '')) : false;
             $ageHours = $created !== false && $created > 0 ? max(0, (int)floor(($now - $created) / 3600)) : null;
+            $coverageAge = function_exists('backupScheduleCoverageAge') ? backupScheduleCoverageAge($schedule, $backup, $now, $ageHours) : $ageHours;
             $state = 'ready';
             if ((int)($data['folderCount'] ?? 0) === 0) {
                 $state = 'empty';
@@ -47,10 +48,11 @@
                 $state = 'missing';
             } elseif ((int)($backup['count'] ?? 0) <= 0 || (int)($backup['size'] ?? 0) <= 0 || $ageHours === null) {
                 $state = 'invalid';
-            } elseif (($schedule['enabled'] ?? false) === true && $ageHours > max(1, (int)($schedule['intervalHours'] ?? 24)) + 1) {
+            } elseif (($schedule['enabled'] ?? false) === true && $coverageAge > max(1, (int)($schedule['intervalHours'] ?? 24)) + 1) {
                 $state = 'overdue';
             }
-            $states[$type] = ['state' => $state, 'ageHours' => $ageHours, 'scheduled' => ($schedule['enabled'] ?? false) === true];
+            $states[$type] = ['state' => $state, 'ageHours' => $ageHours, 'scheduled' => ($schedule['enabled'] ?? false) === true,
+                'unchanged' => $coverageAge < $ageHours && ($schedule['skipReason'] ?? '') === 'unchanged-config'];
         }
         return $states;
     }

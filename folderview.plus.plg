@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.15.03">
-<!ENTITY md5 "75e3dca82a89ecb02bb1362803d4650c">
-<!ENTITY sha256 "7d30ecf61abc9a048cbd1d5fe5e3aee66b529d723bbfb80c92b1b43402ecb570">
+<!ENTITY version "2026.10.19.01">
+<!ENTITY md5 "86af4ce661aa5b52a7b11290e63b011c">
+<!ENTITY sha256 "e84c20510a2577559bdcc547d0b851ab09485ea447d17ae77ce669c982516937">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.01
+- Reliability: Keep hourly scheduled backup checks enabled by default for Docker and VMs, while creating a new snapshot only when folders or saved preferences have changed. Respect existing custom schedules, replace missing or invalid backups, and preserve older recovery points when a check is skipped.
+- Diagnostics: Show a Skipped status in Advanced Logs with a clear explanation for unchanged or empty configurations, the retained backup time when available, and the configured check interval. Recognize successful unchanged checks in backup health reporting without hiding a stopped scheduler.
+- Performance: Keep scheduler check timestamps and routine check history in server memory to reduce USB writes and avoid configuration revision changes solely for backup bookkeeping. Server check history resets after a restart; saved backup files remain available.
+- Compatibility: Preserve explicit manual backups, restore safety checkpoints, snapshot formats, and existing retention settings. Hard-refresh the webGUI after updating to load the new log and Recovery behavior.
+
 
 ###2026.10.15.03
 - Fix: Show FolderView3 migration results in Activity with localized validation, write, verification, and restoration outcomes.

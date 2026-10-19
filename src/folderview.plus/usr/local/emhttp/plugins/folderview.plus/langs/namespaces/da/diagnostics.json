@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostik",
     "diagnostics.workspace.description": "Overvåg plugin-sundhed, fejlfind problemer, og del supportdata.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Handling: $1",
     "diagnostics.activity.exported": "Supportpakke eksporteret",
     "diagnostics.history.backup-restored": "Backup gendannet",
-    "diagnostics.history.backup-deleted": "Backup slettet"
+    "diagnostics.history.backup-deleted": "Backup slettet",
+    "diagnostics.activity.skipped": "Sprang over",
+    "diagnostics.activity.backup-skipped": "Backup sprunget over",
+    "diagnostics.activity.schedule-check": "Planlagt backup-tjek",
+    "diagnostics.activity.backup-check-failed": "Sikkerhedskopieringen kunne ikke afsluttes. Planlæggeren vil prøve igen; gennemgå plugin-logfiler, hvis dette fortsætter.",
+    "diagnostics.activity.backup-unchanged": "Mapper og præferencer matcher den senest gemte sikkerhedskopi. Der blev ikke skrevet nogen dubletfil; eksisterende sikkerhedskopier blev opbevaret.",
+    "diagnostics.activity.backup-empty": "Der er ikke konfigureret nogen mapper til denne type. Ingen backup-fil blev skrevet; eksisterende sikkerhedskopier blev opbevaret.",
+    "diagnostics.activity.backup-saved": "Konfigurationen blev gemt i en ny sikkerhedskopi.",
+    "diagnostics.activity.backup-retained-at": "Gemt sikkerhedskopi: $1",
+    "diagnostics.activity.backup-next": "Kontroller kører hver $1 time, mens den er aktiveret.",
+    "diagnostics.activity.backup-memory": "Serverkontrolhistorik gemmes i hukommelsen og nulstilles efter en servergenstart.",
+    "diagnostics.cards.backup-unchanged": "Sidste kontrol fandt ingen ændringer. Alder for backup: $1 t."
 }

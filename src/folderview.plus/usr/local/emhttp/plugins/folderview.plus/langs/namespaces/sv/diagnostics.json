@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostik",
     "diagnostics.workspace.description": "Övervaka plugin-tillståndet, felsök problem och dela supportdata.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Åtgärd: $1",
     "diagnostics.activity.exported": "Supportpaket har exporterats",
     "diagnostics.history.backup-restored": "Säkerhetskopieringen återställd",
-    "diagnostics.history.backup-deleted": "Säkerhetskopiering raderad"
+    "diagnostics.history.backup-deleted": "Säkerhetskopiering raderad",
+    "diagnostics.activity.skipped": "Hoppade över",
+    "diagnostics.activity.backup-skipped": "Backup hoppade över",
+    "diagnostics.activity.schedule-check": "Schemalagd säkerhetskopiering",
+    "diagnostics.activity.backup-check-failed": "Säkerhetskopieringen kunde inte slutföras. Schemaläggaren kommer att försöka igen; granska pluginloggarna om detta fortsätter.",
+    "diagnostics.activity.backup-unchanged": "Mappar och inställningar matchar den senast sparade säkerhetskopian. Ingen dubblettfil skrevs; befintliga säkerhetskopior behölls.",
+    "diagnostics.activity.backup-empty": "Inga mappar är konfigurerade för denna typ. Ingen säkerhetskopia skrevs; befintliga säkerhetskopior behölls.",
+    "diagnostics.activity.backup-saved": "Konfigurationen sparades till en ny säkerhetskopia.",
+    "diagnostics.activity.backup-retained-at": "Sparad säkerhetskopia: $1",
+    "diagnostics.activity.backup-next": "Kontroller körs var $1 timme när den är aktiverad.",
+    "diagnostics.activity.backup-memory": "Serverkontrollhistoriken sparas i minnet och återställs efter en omstart av servern.",
+    "diagnostics.cards.backup-unchanged": "Senaste kontrollen hittade inga ändringar. Backup-ålder: $1 h."
 }

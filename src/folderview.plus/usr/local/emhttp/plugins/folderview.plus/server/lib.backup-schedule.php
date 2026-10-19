@@ -1,14 +1,17 @@
 <?php
+require_once __DIR__ . '/lib.backup-content.php';
+require_once __DIR__ . '/lib.backup-schedule-state.php';
 function getTypeBackupSchedule(string $type): array {
         $type = ensureType($type);
         $prefs = readTypePrefs($type);
         $schedule = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
-        return [
+        $normalized = [
             'enabled' => normalizeBool($schedule['enabled'] ?? true, true),
             'intervalHours' => normalizeIntInRange($schedule['intervalHours'] ?? 1, 1, 168, 1),
             'retention' => normalizeIntInRange($schedule['retention'] ?? 25, 1, 200, 25),
-            'lastRunAt' => is_string($schedule['lastRunAt'] ?? null) ? (string)$schedule['lastRunAt'] : ''
+            'lastRunAt' => '', 'lastStatus' => '', 'skipReason' => '', 'lastBackupAt' => ''
         ];
+        return readBackupScheduleRuntime($type, $normalized);
     }
 
     function getTypeBackupRetention(string $type): int {
@@ -24,42 +27,36 @@ function getTypeBackupSchedule(string $type): array {
         }
 
         $running[$type] = true;
-        try {
+        try { withConfigMutationLock(static function () use ($type): void {
             $schedule = getTypeBackupSchedule($type);
             if (($schedule['enabled'] ?? false) !== true) {
                 return;
             }
             $intervalHours = normalizeIntInRange($schedule['intervalHours'] ?? 1, 1, 168, 1);
             $now = time();
-            $lastRun = 0;
-            if (!empty($schedule['lastRunAt'])) {
-                $parsed = strtotime((string)$schedule['lastRunAt']);
-                if (is_int($parsed) || is_float($parsed)) {
-                    $lastRun = (int)$parsed;
-                }
-            }
+            $lastRun = strtotime((string)($schedule['lastRunAt'] ?? '')) ?: 0;
             $intervalSeconds = $intervalHours * 3600;
-            if ($lastRun > 0 && ($now - $lastRun) < $intervalSeconds) {
+            if ($lastRun > 0 && $lastRun <= $now && ($now - $lastRun) < $intervalSeconds) {
                 return;
             }
 
-            createBackupSnapshot($type, 'scheduled');
-            $prefs = readTypePrefs($type);
-            $nextSchedule = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
-            $nextSchedule['enabled'] = true;
-            $nextSchedule['intervalHours'] = $intervalHours;
-            $nextSchedule['retention'] = normalizeIntInRange($schedule['retention'] ?? 25, 1, 200, 25);
-            $nextSchedule['lastRunAt'] = gmdate('c', $now);
-            $prefs['backupSchedule'] = $nextSchedule;
-            writeTypePrefs($type, $prefs);
-            try {
-                appendDiagnosticsHistoryEvent('backup_schedule_run', $type, [
-                    'intervalHours' => $intervalHours,
-                    'retention' => $nextSchedule['retention']
-                ], 'ok', 'server');
-            } catch (Throwable $err) {
-                // Non-fatal.
+            $folders = readRawFolderMap($type);
+            if (count($folders) === 0) {
+                $result = ['skipped' => true, 'skipReason' => 'empty-folder-map', 'count' => 0];
+            } else {
+                $latest = latestBackupConfiguration($type);
+                if ($latest !== null && hash_equals($latest['fingerprint'], backupConfigurationFingerprint($folders, readTypePrefs($type)))) {
+                    $result = [...$latest, 'skipped' => true, 'skipReason' => 'unchanged-config'];
+                } else {
+                    $result = createBackupSnapshot($type, 'scheduled');
+                }
             }
+            recordBackupScheduleCheck($type, $schedule, $result, $now);
+        });
+        } catch (Throwable $error) {
+            try { appendDiagnosticsHistoryEvent('backup_schedule_run', $type, ['failureReason' => 'backup-check-failed'], 'error', 'scheduler'); }
+            catch (Throwable $historyError) { /* Preserve the original failure. */ }
+            throw $error;
         } finally {
             unset($running[$type]);
         }

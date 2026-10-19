@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.workspace.description": "Pārraugiet spraudņa stāvokli, novērsiet problēmas un kopīgojiet atbalsta datus.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Darbība: $1",
     "diagnostics.activity.exported": "Atbalsta komplekts ir eksportēts",
     "diagnostics.history.backup-restored": "Dublējums ir atjaunots",
-    "diagnostics.history.backup-deleted": "Dublējums izdzēsts"
+    "diagnostics.history.backup-deleted": "Dublējums izdzēsts",
+    "diagnostics.activity.skipped": "Izlaists",
+    "diagnostics.activity.backup-skipped": "Dublēšana ir izlaista",
+    "diagnostics.activity.schedule-check": "Plānotā dublējuma pārbaude",
+    "diagnostics.activity.backup-check-failed": "Dublējuma pārbaudi nevarēja pabeigt. Plānotājs mēģinās vēlreiz; pārskatiet spraudņu žurnālus, ja tas turpinās.",
+    "diagnostics.activity.backup-unchanged": "Mapes un preferences atbilst jaunākajai saglabātajai dublējumam. Netika uzrakstīts faila dublikāts; tika saglabātas esošās dublējumkopijas.",
+    "diagnostics.activity.backup-empty": "Šim tipam nav konfigurēta neviena mape. Netika uzrakstīts dublējuma fails; tika saglabātas esošās dublējumkopijas.",
+    "diagnostics.activity.backup-saved": "Konfigurācija tika saglabāta jaunā dublējumkopijā.",
+    "diagnostics.activity.backup-retained-at": "Saglabāts dublējums: $1",
+    "diagnostics.activity.backup-next": "Pārbaudes tiek veiktas ik pēc $1 h, kamēr tas ir iespējots.",
+    "diagnostics.activity.backup-memory": "Servera pārbaudes vēsture tiek saglabāta atmiņā un tiek atiestatīta pēc servera restartēšanas.",
+    "diagnostics.cards.backup-unchanged": "Pēdējā pārbaude neatrada nekādas izmaiņas. Rezerves vecums: $1 h."
 }

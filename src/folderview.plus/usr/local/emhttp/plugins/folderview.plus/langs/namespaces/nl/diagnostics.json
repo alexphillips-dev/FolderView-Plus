@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics",
-        "translation-context-revision": "6fa2341b576557b03891bd463033b09f6801cbe434d453af8a10af4d9b23d020"
+        "translation-context-revision": "95f27da953b057c44d7025fc6e4c2cd88e7a8394fa116ad2567e12d3650aebf9"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.workspace.description": "Controleer de gezondheid van plug-ins, los problemen op en deel ondersteuningsgegevens.",
@@ -254,5 +254,16 @@
     "diagnostics.activity.detail.action": "Actie: $1",
     "diagnostics.activity.exported": "Ondersteuningsbundel geëxporteerd",
     "diagnostics.history.backup-restored": "Back-up hersteld",
-    "diagnostics.history.backup-deleted": "Back-up verwijderd"
+    "diagnostics.history.backup-deleted": "Back-up verwijderd",
+    "diagnostics.activity.skipped": "Overgeslagen",
+    "diagnostics.activity.backup-skipped": "Back-up overgeslagen",
+    "diagnostics.activity.schedule-check": "Geplande back-upcontrole",
+    "diagnostics.activity.backup-check-failed": "De back-upcontrole kon niet worden voltooid. De planner zal het opnieuw proberen; bekijk de plug-inlogboeken als dit aanhoudt.",
+    "diagnostics.activity.backup-unchanged": "Mappen en voorkeuren komen overeen met de laatst opgeslagen back-up. Er is geen duplicaatbestand geschreven; bestaande back-ups werden bewaard.",
+    "diagnostics.activity.backup-empty": "Er zijn geen mappen geconfigureerd voor dit type. Er is geen back-upbestand geschreven; bestaande back-ups werden bewaard.",
+    "diagnostics.activity.backup-saved": "De configuratie is opgeslagen in een nieuwe back-up.",
+    "diagnostics.activity.backup-retained-at": "Opgeslagen back-up: $1",
+    "diagnostics.activity.backup-next": "Controles worden elke $1 uur uitgevoerd indien ingeschakeld.",
+    "diagnostics.activity.backup-memory": "De servercontrolegeschiedenis wordt in het geheugen bewaard en wordt gereset nadat de server opnieuw is opgestart.",
+    "diagnostics.cards.backup-unchanged": "Bij de laatste controle zijn geen wijzigingen gevonden. Back-upleeftijd: $1 u."
 }

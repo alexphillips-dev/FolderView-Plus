@@ -111,6 +111,25 @@ test('history formats persisted ISO timestamps without replacing them with the c
     for (const value of ['', undefined, null, 'invalid']) assert.equal(format(value), '');
 });
 
+test('saved numeric log timestamps include their calendar date across locales and time zones', () => {
+    const diagnostics = fs.readFileSync(`${root}/scripts/folderviewplus.activity-diagnostics.js`, 'utf8');
+    const block = diagnostics.slice(diagnostics.indexOf('const formatActivityTimestamp ='), diagnostics.indexOf('const normalizeActivityLevel ='));
+    const at = Date.UTC(2026, 0, 2, 1, 4);
+    for (const locale of ['en-US', 'de-DE', 'ar']) for (const timeZone of ['UTC', 'America/New_York', 'Asia/Tokyo']) {
+        const format = vm.runInNewContext(`${block}\nformatActivityTimestamp;`, {
+            FolderViewPlusI18n: { formatDate: (date, options) => new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(date) }
+        });
+        const displayed = format(at);
+        const parts = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone }).formatToParts(at);
+        assert.ok(parts.filter(part => part.type !== 'literal').every(part => displayed.includes(part.value)), `${locale}/${timeZone}: ${displayed}`);
+        assert.equal(format(String(at)), displayed);
+        assert.equal(format(new Date(at).toISOString()), displayed);
+        assert.notEqual(format(at + 86400000), displayed, 'events at the same time on different dates must be distinguishable');
+    }
+    const fallback = vm.runInNewContext(`${block}\nformatActivityTimestamp;`);
+    assert.match(fallback(at), /2026/);
+});
+
 test('Recovery history keeps selected actions on the active row and expands all snapshots', () => {
     const backups = Array.from({ length: 7 }, (_, index) => ({ name: `snapshot-${index}.json`, count: index === 0 ? 0 : 2,
         createdAt: `2026-09-2${9 - index}T12:00:00Z`, reason: 'manual' }));

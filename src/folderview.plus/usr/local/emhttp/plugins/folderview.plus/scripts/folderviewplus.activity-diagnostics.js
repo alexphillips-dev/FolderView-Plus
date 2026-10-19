@@ -1016,8 +1016,8 @@ const formatActivityTimestamp = (at) => {
     if (Number.isNaN(date.getTime())) {
         return '';
     }
-    const options = numeric ? { hour: '2-digit', minute: '2-digit' }
-        : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const options = { year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit' };
     return (globalThis.FolderViewPlusI18n?.formatDate?.(date, options) || date.toLocaleString('en', options));
 };
 

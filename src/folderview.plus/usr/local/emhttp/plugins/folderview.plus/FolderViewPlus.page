@@ -1379,7 +1379,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button id="fv-activity-center-clear" type="button" data-fv-onclick="clearActivityFeed()"><i class="fa fa-times"></i> <span data-i18n="common.actions.clear">Clear</span></button>
         </div>
     </div>
-    <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
+    <ul id="fv-activity-feed-list" class="fv-activity-feed-list" tabindex="0"></ul>
 </div>
 <hr>
 

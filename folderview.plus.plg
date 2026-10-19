@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.02">
-<!ENTITY md5 "408a4ef9d2be973dc99e931f7106e9d5">
-<!ENTITY sha256 "236471a92441c3b11cc777b67c794d8d8b691be024fe64e56fcf66b1bcfaa41b">
+<!ENTITY version "2026.10.19.03">
+<!ENTITY md5 "98240b4e282fa02942cec04e95e1428b">
+<!ENTITY sha256 "2721d505c639e4f75326ce5caaa75c9b93c38ccb4037349a1e3d297d8819fd5a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.03
+- UI/UX: Increase log status, timestamp, and message text sizes, along with the activity summary, for easier reading.
+- Fix: Show the full localized date and time for saved browser actions and server events in Logs, including after reloading the page.
+- Accessibility: Let dates wrap on narrow screens without overlapping status labels, and support keyboard scrolling through log history.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised Logs display.
+
 
 ###2026.10.19.02
 - UI/UX: Make the Latest and Empty badges in Recovery backup history larger and easier to read.

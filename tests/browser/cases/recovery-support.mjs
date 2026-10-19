@@ -1,6 +1,25 @@
 import assert from 'node:assert/strict';
 import { registerBackupScheduleCases } from './backup-schedule.mjs';
 
+const checkLogPresentation = async page => {
+    const result = await page.evaluate(() => {
+        const saved = JSON.parse(localStorage.getItem('fv.settings.logs.v1')).entries;
+        const rows = [...document.querySelectorAll('.fv-activity-item')];
+        const dateFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short', day: 'numeric' });
+        const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        return {
+            dates: rows.every((row, index) => dateFormat.formatToParts(saved[index].at)
+                .filter(part => part.type !== 'literal').every(part => row.querySelector('.fv-activity-time').textContent.includes(part.value))),
+            readable: rows.every(row => ['.fv-activity-level', '.fv-activity-time', '.fv-activity-text'].every(selector =>
+                parseFloat(getComputedStyle(row.querySelector(selector)).fontSize) >= rootSize * 1.2)),
+            overflow: rows.some(row => row.scrollWidth > row.clientWidth + 2),
+            overlap: rows.some(row => row.querySelector('.fv-activity-level').getBoundingClientRect().right
+                > row.querySelector('.fv-activity-time').getBoundingClientRect().left + 1)
+        };
+    });
+    assert.ok(result.dates && result.readable && !result.overflow && !result.overlap, JSON.stringify(result));
+};
+
 export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
     registerBackupScheduleCases({ test, baseUrl });
     test('Recovery mockup layout keeps history, policy, and actions usable for Docker and VMs', async ({ page }) => {
@@ -183,6 +202,12 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.equal(await clear.isDisabled(), false);
         assert.deepEqual(await page.locator('.fv-activity-text').allTextContents(),
             ['Helpful detail', 'Review needed', 'Tracked diagnostics_export', 'Folder move failed', 'Backup created']);
+        for (const rootFont of ['100%', '62.5%']) for (const width of [1180, 640, 390, 320]) {
+            await page.setViewportSize({ width, height: 800 });
+            await page.evaluate(font => { document.documentElement.style.fontSize = font; }, rootFont);
+            await checkLogPresentation(page);
+        }
+        await page.evaluate(() => document.documentElement.style.removeProperty('font-size'));
         const readPalette = () => page.evaluate(() => Object.fromEntries(
             [...document.querySelectorAll('.fv-activity-item')].map(item => {
                 const level = [...item.classList].find(name => name.startsWith('is-')).slice(3);
@@ -225,6 +250,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         });
         await mountLogs();
         assert.equal(await page.locator('.fv-activity-text').last().textContent(), 'Within retention');
+        await checkLogPresentation(page);
         assert.equal(await page.getByText('Expired issue').count(), 0);
         assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('fv.settings.logs.v1')).entries.length), 6);
         await page.evaluate(() => {
@@ -232,6 +258,10 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         });
         assert.equal(await page.locator('.fv-activity-item').count(), 100);
         assert.equal(await page.locator('.fv-activity-text').first().textContent(), 'Action 104');
+        const list = page.locator('#fv-activity-feed-list');
+        await list.focus();
+        await list.press('End');
+        await page.waitForFunction(() => document.getElementById('fv-activity-feed-list').scrollTop > 0);
         await clear.click();
         assert.equal(await clear.isDisabled(), true);
         assert.equal(await page.locator('.fv-activity-item').count(), 0);
@@ -292,6 +322,7 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         assert.equal(await page.evaluate(() => ['Private VM', '<unsafe>', '<private>', 'private-id'].some(value =>
             localStorage.getItem('fv.settings.logs.v1').includes(value))), false);
         assert.equal(await page.locator('.fv-activity-detail').count(), 5);
+        await checkLogPresentation(page);
         await page.locator('#fv-activity-center-clear').click();
         await mountLogs();
         await page.evaluate(() => {

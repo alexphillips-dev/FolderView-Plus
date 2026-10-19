@@ -4,7 +4,7 @@ import { registerDashboardRowSpacingCases } from './dashboard-row-spacing.mjs';
 import { registerDashboardRowExpansionCases } from './dashboard-row-expansion.mjs'; import { registerFolderHoverEffectCases } from './folder-hover-effects.mjs';
 import { registerSettingsHideEmptyCases } from './settings-hide-empty.mjs'; import { registerSettingsNestedDisplayCases } from './settings-nested-display.mjs';
 import { registerDockerHideEmptyCases } from './docker-hide-empty.mjs';
-import { registerDockerHierarchyMoveCases } from './docker-hierarchy-move.mjs';
+import { registerDockerHierarchyMoveCases } from './docker-hierarchy-move.mjs'; import { registerFolderBadgeCases } from './folder-badges.mjs';
 import { registerDockerFolderMenuStateCases } from './docker-folder-menu-state.mjs';
 
 export const registerForumReportFixtureCases = ({ test, baseUrl }) => {
@@ -13,7 +13,7 @@ registerDashboardRowSpacingCases({ test, baseUrl });
 registerDashboardRowExpansionCases({ test, baseUrl }); registerFolderHoverEffectCases({ test, baseUrl });
 registerSettingsHideEmptyCases({ test }); registerSettingsNestedDisplayCases({ test });
 registerDockerHideEmptyCases({ test });
-registerDockerHierarchyMoveCases({ test });
+registerDockerHierarchyMoveCases({ test }); registerFolderBadgeCases({ test, baseUrl });
 registerDockerFolderMenuStateCases({ test });
 test('Dashboard card layouts fill the widget despite fixed-width host tiles', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });

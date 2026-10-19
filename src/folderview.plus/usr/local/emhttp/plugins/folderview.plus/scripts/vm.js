@@ -1,5 +1,6 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const folderBadgeApi = window.FolderViewPlusFolderBadges;
 const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
@@ -304,6 +305,7 @@ const reportVmDegradedRuntimeState = (error, options = {}) => vmRuntimeDiagnosti
 const inferVmFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => vmRuntimeDiagnostics.inferCategory(error, fallbackCategory);
 const createVmRuntimeRequest = (url, options = {}) => vmRuntimeDiagnostics.createRequest(url, options);
 const vmBootstrapMissingModules = [];
+if (typeof folderBadgeApi?.applyStatus !== 'function') vmBootstrapMissingModules.push('runtime.folder-badges.js');
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     vmBootstrapMissingModules.push('folderviewplus.utils.js');
     setVmFatalBannerModuleStatus('folderviewplus.utils.js', 'missing', 'normalizePrefs unavailable');
@@ -2113,30 +2115,18 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-    $folderIcon.show();
-    let folderStatusKind;
     if (started > 0) {
-        folderStatusKind = 'running';
         $folderIcon.attr('class', 'fa fa-play started folder-load-status');
         $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
     } else if (paused > 0) {
-        folderStatusKind = 'paused';
         $folderIcon.attr('class', 'fa fa-pause paused folder-load-status');
         $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
     } else {
-        folderStatusKind = 'stopped';
         $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
         $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
     }
     const badgePrefs = folderTypePrefs?.badges || {};
-    const showRunningBadge = badgePrefs.running !== false;
-    const showStoppedBadge = badgePrefs.stopped === true;
-    if (folderStatusKind === 'running' && !showRunningBadge) {
-        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-    }
-    if (folderStatusKind === 'stopped' && !showStoppedBadge) {
-        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-    }
+    folderBadgeApi.applyStatus($folderIcon, badgePrefs);
 
 
     // Initialize switchButton with the correct checked state directly â€” no click() needed.
@@ -3387,6 +3377,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
     $folderIcon.removeClass('fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped green-text orange-text red-text')
         .addClass(`fa ${aggregate.icon} ${aggregate.className} ${aggregateColorClass} folder-load-status`)
         .removeAttr('aria-busy');
+    folderBadgeApi.applyStatus($folderIcon, folderTypePrefs?.badges);
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
         .text(aggregate.key === 'started' ? translateVmText("common.runtime.1-2-started", "$1/$2 Running", aggregate.count, total) : aggregate.key === 'paused' ? translateVmText("common.runtime.1-2-paused", "$1/$2 paused", aggregate.count, total) : translateVmText("common.runtime.1-2-stopped", "$1/$2 stopped", aggregate.count, total))
         .addClass(`fv-folder-state-${aggregate.className}`);

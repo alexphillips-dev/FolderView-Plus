@@ -1,11 +1,12 @@
 {
+  "folder-badges": ["^Folder badges"],
   "settings-transfer": ["Docker folder menu", "^audited confirmations", "^complete localization boundaries", "^Shared UI primitives"],
   "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",
     "Dashboard.*(rows|expansion|card layouts|folder effects)", "folder hover animations", "Folder action sheet", "Custom icon rename", "Settings chrome",
     "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",
-    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions", "Basic nested"
+    "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions", "Basic nested", "^Folder badges"
   ],
   "quick-finder": ["Quick finder"],
   "icon-browser": ["Icon browser", "Custom icon", "Deleting an uploaded"],

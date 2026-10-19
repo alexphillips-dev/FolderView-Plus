@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.05">
-<!ENTITY md5 "face6255d231208ba4a7944f20cdff87">
-<!ENTITY sha256 "1bde59b1c1620b64fd8a7bdf02c1b0b08ef4d27483b25bdd8929b79713ce4d3b">
+<!ENTITY version "2026.10.19.06">
+<!ENTITY md5 "b30351f85c67c59a132c4da75016495a">
+<!ENTITY sha256 "6a52a145601354506df56ba76afa9f5d96929d3aae3717897a1f2256f07dbcc5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.19.06
+- Fix: Keep Docker and VM folder status icons consistent with the Running and Stopped badge settings during initial display, nested-folder aggregation, and live status changes.
+- Reliability: Restore an enabled icon when a folder changes state, while keeping disabled icons hidden and preserving paused indicators, status counts, and folder update controls.
+- Compatibility: Hard-refresh the webGUI after updating to load the updated scripts.
+
 
 ###2026.10.19.05
 - UI/UX: Enlarge the Docker, VM, and sub-folder count icons in Basic settings so they are easier to read alongside their labels on desktop and mobile.

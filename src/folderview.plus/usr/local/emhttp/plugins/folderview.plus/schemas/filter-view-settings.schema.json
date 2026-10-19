@@ -26,7 +26,7 @@
     "badges": {
       "handler": "changeBadgePref",
       "path": "badges",
-      "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/vm.js"],
+      "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/vm.js", "scripts/docker.runtime.hierarchy.js", "scripts/runtime.folder-badges.js"],
       "settings": {
         "running": { "types": ["docker", "vm"], "kind": "boolean", "default": true, "liveApply": true },
         "stopped": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true },

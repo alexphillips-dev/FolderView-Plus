@@ -399,7 +399,6 @@
             const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
             const $folderState = $folderRow.find('span.folder-state');
             $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-            $folderIcon.show();
             if (started > 0) {
                 $folderIcon.attr('class', 'fa fa-play started folder-load-status');
                 $folderState.text(`${started}/${total} ${jq.i18n('started')}`).addClass('fv-folder-state-started');
@@ -410,6 +409,7 @@
                 $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
                 $folderState.text(`${stopped}/${total} ${jq.i18n('stopped')}`).addClass('fv-folder-state-stopped');
             }
+            deps.applyFolderStatusBadgeVisibility?.($folderIcon);
 
             if ($updateColumn.length && folder?.settings?.update_column !== true) {
                 renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);

@@ -31,6 +31,8 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/folder-badges.mjs", "limit": 75, "owner": "Docker and VM badge preference and refresh regressions", "requiredImports": ["../helpers/folder-badges-host.mjs"] },
+    { "file": "tests/browser/helpers/folder-badges-host.mjs", "limit": 60, "owner": "production Docker and actual VM summary host", "requiredImports": ["./docker-hide-empty-host.mjs"] },
     { "file": "tests/browser/cases/docker-settings-transfer.mjs", "limit": 150, "owner": "Production Docker copy and paste menus, selective requests, accessibility and viewport behavior", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/cases/backup-schedule.mjs", "limit": 80, "owner": "real PHP scheduled-backup outcomes displayed in Advanced Logs", "requiredImports": ["../../helpers/backup-schedule-fixture.mjs"] },
     { "file": "tests/browser/helpers/icon-card-layout.mjs", "limit": 40, "owner": "Compact built-in and pack card image size, readable labels and text containment" },
@@ -57,7 +59,7 @@
     { "file": "tests/browser/cases/dashboard-expansion-memory.mjs", "limit": 70, "owner": "buffered Dashboard expansion, clear and pagehide memory" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs", "./folder-badges.mjs"] },
     { "file": "tests/browser/cases/folder-hover-effects.mjs", "limit": 100, "owner": "folder accent stacking and hover animation rendering" },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
@@ -166,6 +168,7 @@
         "tests/browser/cases/settings-nested-display.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
+        "tests/browser/cases/folder-badges.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
         "tests/browser/cases/docker-settings-transfer.mjs",
         "tests/browser/cases/docker-nested-folder-menu.mjs",
@@ -173,6 +176,7 @@
         "tests/browser/cases/download-notice.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/folder-badges-host.mjs",
         "tests/browser/helpers/icon-card-layout.mjs",
         "tests/browser/helpers/folder-editor-headings.mjs",
         "tests/browser/helpers/folder-editor-help-touch.mjs",
@@ -203,10 +207,10 @@
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
-      "testCount": 123,
-      "assertionCount": 1637,
-      "pageEvaluateCount": 429,
-      "orderedTitleSha256": "8153179054023db706898973d4ac52f7af9524cdd06e686c46f8a4d5e0c0e3d4"
+      "testCount": 125,
+      "assertionCount": 1653,
+      "pageEvaluateCount": 433,
+      "orderedTitleSha256": "15817d71c80e7e1d54e89d05f8d0fc313cd0d571dd3e1b990e177203a584624a"
     }
   }
 }

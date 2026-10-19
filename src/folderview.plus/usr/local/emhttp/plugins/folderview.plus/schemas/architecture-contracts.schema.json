@@ -1,12 +1,13 @@
 {
   "schemaVersion": 2,
   "budgets": {
-    "maxBrowserGlobals": 376,
+    "maxBrowserGlobals": 377,
     "maxInlineActions": 78,
     "maxInlineActionOccurrences": 245,
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "scripts/runtime.folder-badges.js": { "limit": 23, "target": 23, "history": [23] },
       "scripts/folder.settings-menu.js": { "limit": 260, "target": 250, "history": [260] },
       "server/lib.folder-settings-transfer.php": { "limit": 100, "target": 90, "history": [100] },
       "scripts/folderviewplus.editor-diagnostics-model.js": {"limit": 60, "target": 60, "history": [60]},
@@ -183,7 +184,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js", "scripts/folder.webui-profiles.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js", "scripts/folder.webui-profiles.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -193,7 +194,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["vm"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/vm.runtime.lifecycle.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/vm.runtime.lifecycle.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addVMFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -781,6 +782,12 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/runtime.folder-badges.js", "owner": "folder-status-badge-visibility",
+      "consumers": ["docker", "vm"], "stateModel": "pure", "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFolderBadges"], "global": "FolderViewPlusFolderBadges",
+      "loader": "commonjs", "typeChecked": true, "exports": ["isStatusVisible", "applyStatus"]
+    },
     {
       "file": "scripts/folder.settings-menu.js",
       "owner": "docker-folder-settings-menu",

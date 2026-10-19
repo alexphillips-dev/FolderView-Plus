@@ -45,6 +45,7 @@ if (dockerHostCompatibilityDecision.runtimeActivationAllowed !== true) {
 }
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const folderBadgeApi = window.FolderViewPlusFolderBadges;
 let dockerQuickFinderApi = null;
 const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
@@ -355,6 +356,7 @@ const reportDockerDegradedRuntimeState = (error, options = {}) => dockerRuntimeD
 const inferDockerFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => dockerRuntimeDiagnostics.inferCategory(error, fallbackCategory);
 const createDockerRuntimeRequest = (url, options = {}) => dockerRuntimeDiagnostics.createRequest(url, options);
 const dockerBootstrapMissingModules = [];
+if (typeof folderBadgeApi?.applyStatus !== 'function') dockerBootstrapMissingModules.push('runtime.folder-badges.js');
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     dockerBootstrapMissingModules.push('folderviewplus.utils.js');
     setDockerFatalBannerModuleStatus('folderviewplus.utils.js', 'missing', 'normalizePrefs unavailable');
@@ -878,6 +880,7 @@ const getDockerRuntimeHierarchyApi = () => {
                 buildRuntimeContainerMapForFolder(folderId, includeDescendants),
             syncDockerFolderMemberRows: (id, runtimeContainers) => syncDockerFolderMemberRows(id, runtimeContainers),
             applyFolderStatusColorOverrides: ($row, settings) => applyFolderStatusColorOverrides($row, settings),
+            applyFolderStatusBadgeVisibility: ($icon) => folderBadgeApi.applyStatus($icon, folderTypePrefs?.badges),
             applyFolderAccentStyle: ($row, settings) => applyFolderAccentStyle($row, settings),
             applyFolderDropdownStyle: ($row, settings) => applyFolderDropdownStyle($row, settings),
             applyPreviewBorderStyle: (previewNode, settings) => applyPreviewBorderStyle(previewNode, settings),
@@ -5867,36 +5870,24 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-    $folderIcon.show();
-    let folderStatusKind;
     if (started > 0) {
-        folderStatusKind = 'running';
         $folderIcon.attr('class', 'fa fa-play started folder-load-status');
         $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
     } else if (paused > 0) {
-        folderStatusKind = 'paused';
         $folderIcon.attr('class', 'fa fa-pause paused folder-load-status');
         $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
     } else {
-        folderStatusKind = 'stopped';
         $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
         $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
     }
     const badgePrefs = folderTypePrefs?.badges || {};
-    const showRunningBadge = badgePrefs.running !== false;
-    const showStoppedBadge = badgePrefs.stopped === true;
     const showUpdateBadge = badgePrefs.updates !== false;
 
     if (!showUpdateBadge && !folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan', 6).end().remove();
     }
 
-    if (folderStatusKind === 'running' && !showRunningBadge) {
-        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-    }
-    if (folderStatusKind === 'stopped' && !showStoppedBadge) {
-        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-    }
+    folderBadgeApi.applyStatus($folderIcon, badgePrefs);
 
     if (!managerTypes.has('dockerman')) {
         $(`tr.folder-id-${id} td.folder-autostart`).empty();

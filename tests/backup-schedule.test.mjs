@@ -8,6 +8,27 @@ import { createBackupScheduleFixture as setup, runBackupScheduleFixture as run }
 const require = createRequire(import.meta.url);
 const detail = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-detail.js');
 const viewModel = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js');
+test('restore fixture isolates an inherited native autostart path', () => {
+    const ambient = setup();
+    const previous = process.env.FVPLUS_TEST_DOCKER_AUTOSTART_FILE;
+    let fixture;
+    try {
+        const inherited = path.join(ambient.root, 'host', 'not-a-file');
+        fs.mkdirSync(inherited);
+        process.env.FVPLUS_TEST_DOCKER_AUTOSTART_FILE = inherited;
+        fixture = setup();
+        const native = path.join(fixture.root, 'config', 'native-autostart');
+        fs.writeFileSync(native, 'fixture-native 5\n');
+        const result = fixture.run({ type: 'docker', scenario: 'restore' });
+        assert.equal(result.manual.skipped, false);
+        assert.equal(fs.readFileSync(native, 'utf8'), 'fixture-native 5\n');
+        assert.ok(fs.statSync(inherited).isDirectory());
+    } finally {
+        if (previous === undefined) delete process.env.FVPLUS_TEST_DOCKER_AUTOSTART_FILE;
+        else process.env.FVPLUS_TEST_DOCKER_AUTOSTART_FILE = previous;
+        fixture?.close(); ambient.close();
+    }
+});
 for (const type of ['docker', 'vm']) {
     test(`${type}: unchanged hourly checks preserve USB files, retention and revisions while logging skips`, () => {
         const result = run(type, 'unchanged');

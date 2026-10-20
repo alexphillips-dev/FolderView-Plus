@@ -5,18 +5,37 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.10">
-<!ENTITY md5 "c864fb905a5df1b201ca15fd0b76e61e">
-<!ENTITY sha256 "a645c01aacd642b21c37a3d53d476a522a18b8cddf05c659f07a544ef4e7e0e6">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.20.11">
+<!ENTITY md5 "7cc26a90f23429409225342eee55de7f">
+<!ENTITY sha256 "864816d0137fda83491d011e2d8c633f7fb895175e18d8bd804c8a3cbc5d2c80">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.11
+- Feature: Personalize the left side of the Docker toolbar with an optional heading. Enable it in Basic > Docker > Filters and view settings > Layout, then edit the initial "Change Me!" text, 14–48 px size, font, color, and Bold, Italic, Underline, or Strikethrough formatting. The title defaults to off and leaves the right-side controls in place.
+- UI/UX: Choose from 22 fonts with compact typeface previews and keyboard/touch navigation. The 18 bundled fonts are served locally by Unraid; name masking hides the heading when Privacy is active.
+- Feature: Use the Docker Clone menu to create an empty settings-only copy or transfer Appearance, Layout and previews, Behavior, Custom actions, or all portable settings. Suggested unique names, source/date/category details, clipboard clearing, and brief notifications make repeated transfers easier.
+- Reliability: Review changed paste categories before applying them. Real changes create a safety backup and preserve other settings, members, rules, child order, and member-specific WebUI profiles. Stale reviews are rejected; matching settings produce no write or duplicate backup.
+- Performance: Hourly backup schedules now check for changed folders and preferences before writing a snapshot. Unchanged and empty checks retain older recovery points and explain their Skipped status, interval, and retained backup time in Logs. Custom schedules, manual backups, safety checkpoints, and retention choices are preserved.
+- Diagnostics: Routine scheduler timestamps and server check history use RAM to reduce USB writes and reset at restart; saved backup files remain. Backup readiness recognizes a recent unchanged check while still detecting a stopped scheduler.
+- UI/UX: Read larger Latest/Empty history badges, grouped selected-backup buttons, larger log text with localized dates and times, and larger Docker/VM/sub-folder count icons in Basic settings.
+- Fix: Running and Stopped badges default to enabled for Docker and VMs, as does Updates for Docker. Existing Stopped settings are enabled once on the first preference load after updating and may be disabled again afterward. Existing Running/Updates choices remain saved, and indicators follow these choices during initial display, nested aggregation, and live changes.
+- Fix: Clear or replace a saved folder-default profile without retaining omitted settings/actions. Apply to all distinguishes Updated, Unchanged, and Skipped folders, including a complete no-op with zero updates.
+- Fix: Preserve a health warning threshold of zero, normalize displayed/saved critical thresholds consistently with scoring, retain per-folder overrides, and keep Dashboard graph None selected after reopening Settings.
+- Fix: Apply badge/empty-folder changes to already-open Docker and VM pages, and page-view changes to Docker, including saves from another tab. Native rows and expanded branches remain intact. Status-warning helper text also has improved light-theme contrast.
+- Fix: Preserve numeric edits in Filters and view settings during background refreshes and earlier autosave responses. Docker and VM thresholds, runtime limits, graph duration, and paired sliders retain drafts until committed, then display normalized saved values.
+- Fix: Keep keyboard focus on Docker toolbar controls and open menu items during background refreshes, including consecutive Show/Hide empty-folder actions. Unchanged refreshes keep the existing buttons. Refreshes leave focus elsewhere on the page unchanged and do not focus disabled controls.
+- Security: Update immutable scanning-action references and development validation dependencies with a matching software inventory.
+- Quality: Validate numeric drafts, toolbar keyboard focus, native control typography, Linux restore isolation, and settings transfers across Chromium, Firefox, and WebKit.
+- Compatibility: Refresh cached webGUI assets after installing, then check Settings, Docker, VMs, and Dashboard. A normal update retains saved configuration, customization, and backup files.
+
 
 ###2026.10.20.10
 - Fix: Preserve keyboard focus on the Docker toolbar when background status or preference refreshes rebuild its controls. View and Tools menus remain usable through consecutive actions, including showing and hiding empty folders.
@@ -9952,7 +9971,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

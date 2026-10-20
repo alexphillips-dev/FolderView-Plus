@@ -60,3 +60,55 @@ test('range-control lifecycle owns one namespaced binding and removes it on dest
     assert.deepEqual(calls.at(-1), ['off', '.fvViewSettingsRange']);
     assert.equal(lifecycle.snapshot().started, false);
 });
+
+const createNumberControls = () => {
+    const bindings = [];
+    const range = { tagName: 'INPUT', value: '60', min: '0', max: '100', dataset: { fvNumberTarget: 'docker-health-warn-threshold' }, style: { setProperty() {} } };
+    const input = { id: 'docker-health-warn-threshold', value: '60', parentElement: { querySelector: () => range } };
+    const doc = { activeElement: input, getElementById: id => id === input.id ? input : null, querySelectorAll: () => [range] };
+    const chain = {
+        on: (events, selector, handler) => { bindings.push({ events, selector, handler }); return chain; },
+        off: () => { bindings.length = 0; }
+    };
+    const lifecycle = viewSettings.createRangeControlLifecycle({ document: doc, window: { Event: class { constructor(type) { this.type = type; } } }, $: () => chain }).start();
+    const dispatch = (node, type) => {
+        const selector = node === range ? '[data-fv-number-target]' : 'input[type="number"]';
+        bindings.filter(binding => binding.selector.includes(selector) && binding.events.split(' ').some(event => event.split('.')[0] === type))
+            .forEach(binding => binding.handler.call(node, { type }));
+    };
+    input.dispatchEvent = event => dispatch(input, event.type);
+    return { lifecycle, input, range, doc, dispatch };
+};
+
+test('number drafts survive refreshes until change, then accept normalized and rollback values', () => {
+    const { lifecycle, input, range, dispatch } = createNumberControls();
+    input.value = '0'; dispatch(input, 'input');
+    lifecycle.setNumberValue(input.id, 60); lifecycle.refresh('docker');
+    assert.equal(input.value, '0'); assert.equal(range.value, '0');
+    input.value = '20'; dispatch(input, 'input'); dispatch(input, 'change');
+    lifecycle.setNumberValue(input.id, 65); lifecycle.refresh('docker');
+    assert.equal(input.value, '65'); assert.equal(range.value, '65');
+    lifecycle.setNumberValue(input.id, 60);
+    assert.equal(input.value, '60', 'failed saves can restore the authoritative value');
+});
+
+test('paired slider drafts survive refresh and commit through the number control', () => {
+    const { lifecycle, input, range, doc, dispatch } = createNumberControls();
+    doc.activeElement = range; range.value = '25'; dispatch(range, 'input');
+    lifecycle.setNumberValue(input.id, 60); lifecycle.refresh('docker');
+    assert.equal(input.value, '25'); assert.equal(range.value, '25');
+    dispatch(range, 'change'); lifecycle.setNumberValue(input.id, 30); lifecycle.refresh('docker');
+    assert.equal(input.value, '30'); assert.equal(range.value, '30');
+});
+
+test('blur and lifecycle cleanup release stale number drafts without duplicate bindings', () => {
+    const { lifecycle, input, doc, dispatch } = createNumberControls();
+    input.value = ''; dispatch(input, 'input');
+    lifecycle.setNumberValue(input.id, 60); assert.equal(input.value, '');
+    dispatch(input, 'focusout'); doc.activeElement = null;
+    lifecycle.setNumberValue(input.id, 60); assert.equal(input.value, '60');
+    doc.activeElement = input; input.value = '25'; dispatch(input, 'input');
+    lifecycle.destroy(); lifecycle.start(); lifecycle.setNumberValue(input.id, 60);
+    assert.equal(input.value, '60');
+    lifecycle.setNumberValue('removed-control', 1);
+});

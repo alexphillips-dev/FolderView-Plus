@@ -54,6 +54,17 @@
         const jq = options.$ || win.jQuery || win.$ || null;
         const namespace = '.fvViewSettingsRange';
         let started = false;
+        let numberDrafts = new WeakSet();
+
+        const setNumberValue = (id, value) => {
+            const input = doc?.getElementById?.(id);
+            if (!input) return;
+            const active = doc.activeElement;
+            // Table and save reconciliation can run between input and change.
+            if (numberDrafts.has(input) && (active === input || active?.dataset?.fvNumberTarget === id)) return;
+            numberDrafts.delete(input);
+            input.value = String(value);
+        };
 
         const update = (range, value) => {
             if (!range || String(range.tagName || '').toLowerCase() !== 'input') return;
@@ -79,14 +90,18 @@
                 .on(`input${namespace}`, '[data-fv-number-target]', function() {
                     const numberInput = doc.getElementById?.(String(this.dataset?.fvNumberTarget || ''));
                     if (!numberInput) return;
+                    numberDrafts.add(numberInput);
                     numberInput.value = this.value;
                     update(this, this.value);
                 })
                 .on(`change${namespace}`, '[data-fv-number-target]', function() {
                     const numberInput = doc.getElementById?.(String(this.dataset?.fvNumberTarget || ''));
+                    if (numberInput) numberDrafts.delete(numberInput);
                     numberInput?.dispatchEvent?.(new win.Event('change', { bubbles: true }));
                 })
-                .on(`input${namespace}`, '.fv-setting-range-control > input[type="number"]', function() {
+                .on(`input${namespace} change${namespace} focusout${namespace}`, '.fv-view-settings-grid input[type="number"]:not(#docker-page-title-size)', function(event) {
+                    if (event.type === 'input') numberDrafts.add(this);
+                    else numberDrafts.delete(this);
                     const range = this.parentElement?.querySelector?.(`[data-fv-number-target="${this.id}"]`);
                     if (range) update(range, this.value);
                 });
@@ -94,10 +109,11 @@
         };
         const destroy = () => {
             if (started && jq && doc) jq(doc).off(namespace);
+            numberDrafts = new WeakSet();
             started = false;
         };
         const snapshot = () => Object.freeze({ started });
-        const api = Object.freeze({ start, refresh, update, destroy, snapshot });
+        const api = Object.freeze({ start, refresh, update, setNumberValue, destroy, snapshot });
         return api;
     };
 

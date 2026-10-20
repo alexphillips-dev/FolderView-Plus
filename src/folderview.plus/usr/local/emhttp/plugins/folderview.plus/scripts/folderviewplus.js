@@ -7045,7 +7045,7 @@ const renderDashboardControls = (type) => {
         $('#docker-dashboard-preview-context').val(dashboard.previewContext);
         $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);
         $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
-        $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
+        setViewNumberValue('docker-dashboard-preview-graph-time', dashboard.previewGraphTime);
     } else {
         $('#vm-dashboard-privacy-mode').prop('checked', dashboard.privacyMode === true);
         $('#vm-dashboard-privacy-mask-disk-paths').prop('checked', dashboard.privacyMaskVmDiskPaths !== false);
@@ -7060,10 +7060,10 @@ const renderDashboardControls = (type) => {
 const renderRuntimeControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled === true);
-    $(`#${type}-live-refresh-seconds`).val(String(prefs.liveRefreshSeconds || 20));
+    setViewNumberValue(`${type}-live-refresh-seconds`, prefs.liveRefreshSeconds || 20);
     $(`#${type}-performance-profile`).val(prefs.performanceProfile || (prefs.performanceMode === true ? 'adaptive' : 'standard'));
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
-    $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
+    setViewNumberValue(`${type}-lazy-preview-threshold`, prefs.lazyPreviewThreshold || 30);
     $(`#${type}-page-view-mode`).val(
         typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(prefs.pageViewMode)
@@ -7080,6 +7080,7 @@ const dockerPageTitleSettings = window.FolderViewPlusFoundationModules.pageTitle
     onChange: (key, value) => changePageTitlePref('docker', key, value), onReset: () => resetDockerPageTitleAppearance()
 });
 const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecycle?.({ window, document, $ }) || null;
+const setViewNumberValue = (id, value) => viewSettingsRangeLifecycle?.setNumberValue ? viewSettingsRangeLifecycle.setNumberValue(id, value) : $(`#${id}`).val(String(value));
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
 window.addEventListener('pagehide', () => {
@@ -7090,14 +7091,13 @@ window.addEventListener('pagehide', () => {
     viewSettingsChangeController?.destroy?.();
     window.FolderViewPlusCspEvents?.unregisterOwner?.('settings');
 }, { once: true });
-
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
     $(`#${type}-status-mode`).val(status.mode);
     $(`#${type}-status-display-mode`).val(status.displayMode);
     $(`#${type}-status-trend-enabled`).prop('checked', status.trendEnabled === true);
     $(`#${type}-status-attention-accent`).prop('checked', status.attentionAccent === true);
-    $(`#${type}-status-warn-threshold`).val(String(status.warnStoppedPercent));
+    setViewNumberValue(`${type}-status-warn-threshold`, status.warnStoppedPercent);
     const showTrendControl = status.displayMode === 'detailed';
     $(`#${type}-status-trend-row`).toggleClass('is-hidden', !showTrendControl);
     bindViewSettingsRangeControls();
@@ -7109,16 +7109,16 @@ const renderHealthControls = (type) => {
     $(`#${type}-health-cards-enabled`).prop('checked', health.cardsEnabled === true);
     $(`#${type}-health-runtime-badge-enabled`).prop('checked', health.runtimeBadgeEnabled === true);
     if (type === 'docker') {
-        $(`#${type}-health-warn-threshold`).val(String(health.warnStoppedPercent));
-        $(`#${type}-health-critical-threshold`).val(String(health.criticalStoppedPercent));
+        setViewNumberValue(`${type}-health-warn-threshold`, health.warnStoppedPercent);
+        setViewNumberValue(`${type}-health-critical-threshold`, health.criticalStoppedPercent);
         $(`#${type}-health-profile`).val(health.profile);
         $(`#${type}-health-updates-mode`).val(health.updatesMode);
         $(`#${type}-health-all-stopped-mode`).val(health.allStoppedMode);
     }
-    $(`#${type}-resource-warn-vcpu`).val(String(health.vmResourceWarnVcpus));
-    $(`#${type}-resource-critical-vcpu`).val(String(health.vmResourceCriticalVcpus));
-    $(`#${type}-resource-warn-gib`).val(String(health.vmResourceWarnGiB));
-    $(`#${type}-resource-critical-gib`).val(String(health.vmResourceCriticalGiB));
+    setViewNumberValue(`${type}-resource-warn-vcpu`, health.vmResourceWarnVcpus);
+    setViewNumberValue(`${type}-resource-critical-vcpu`, health.vmResourceCriticalVcpus);
+    setViewNumberValue(`${type}-resource-warn-gib`, health.vmResourceWarnGiB);
+    setViewNumberValue(`${type}-resource-critical-gib`, health.vmResourceCriticalGiB);
     const summaryHost = document.getElementById(`${type}-basic-summary`);
     syncHealthSummaryVisibility(summaryHost, health.cardsEnabled === true);
     const showVmResourceThresholds = type === 'vm';

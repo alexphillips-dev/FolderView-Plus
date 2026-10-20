@@ -91,7 +91,10 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
             await page.waitForLoadState('networkidle');
             await page.waitForFunction(() => document.querySelector('tbody#docker tr[data-folder-id="fixture-folder-0"] .health-chip.is-warning'));
             assert.equal(await page.evaluate(() => window.FolderViewPlusFolderEditor.buildFolderQuickActionSummary('docker', 'fixture-folder-0').health), 'Degraded');
-            await warn.fill('60'); await warn.press('Tab');
+            await warn.fill('60');
+            await page.evaluate(() => renderHealthControls('docker'));
+            assert.equal(await warn.inputValue(), '60', 'background reconciliation preserves an active numeric draft');
+            await warn.press('Tab');
             await waitFor(page, () => host.prefs('docker').health.warnStoppedPercent === 60, 'warning threshold restored');
             await page.waitForLoadState('networkidle');
             await critical.fill('20'); await critical.press('Tab');
@@ -106,6 +109,34 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
             } }));
             assert.equal(override.warnThreshold, 0); assert.equal(override.criticalThreshold, 20);
             assert.equal(override.updatesMode, 'ignore'); assert.equal(override.allStoppedMode, 'warn');
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true });
+
+    test('Filters and view settings retain Docker and VM numeric drafts across table reconciliation', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        try {
+            await openSettings(page, host);
+            for (const type of ['docker', 'vm']) {
+                await page.locator(`#${type}-live-refresh-enabled`).check();
+                await page.waitForLoadState('networkidle');
+                await page.locator(`#${type}-lazy-preview-enabled`).check();
+                await page.waitForLoadState('networkidle');
+                const fields = [
+                    ['live-refresh-seconds', '45', prefs => prefs.liveRefreshSeconds],
+                    ['lazy-preview-threshold', '40', prefs => prefs.lazyPreviewThreshold],
+                    ['status-warn-threshold', '55', prefs => prefs.status.warnStoppedPercent]
+                ];
+                if (type === 'vm') fields.push(['resource-warn-vcpu', '8', prefs => prefs.health.vmResourceWarnVcpus], ['resource-warn-gib', '12', prefs => prefs.health.vmResourceWarnGiB]);
+                for (const [suffix, value, read] of fields) {
+                    const field = page.locator(`#${type}-${suffix}`);
+                    await field.fill(value);
+                    await page.evaluate(type => { renderRuntimeControls(type); renderStatusControls(type); renderHealthControls(type); }, type);
+                    assert.equal(await field.inputValue(), value, `${type} ${suffix} draft retained`);
+                    await field.press('Tab');
+                    await waitFor(page, () => String(read(host.prefs(type))) === value, `${type} ${suffix} persisted`);
+                    await page.waitForLoadState('networkidle');
+                }
+            }
         } finally { await closeHost(page, host); }
     }, { skipAccessibility: true });
 

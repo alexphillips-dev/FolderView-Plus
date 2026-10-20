@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.02">
-<!ENTITY md5 "8166a0768aa634d8e899b064bf769e8f">
-<!ENTITY sha256 "96fd02380a1ea4632cae005e4ef43ae50159852814bd4e044e2b4bf757db7610">
+<!ENTITY version "2026.10.20.08">
+<!ENTITY md5 "20974e654e6df3c5915b248d03c77645">
+<!ENTITY sha256 "4b118735f67b3e99f294266c06381608de3f0cd659381b0a844000216f4122a5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.08
+- Fix: Keep numeric entries in Filters and view settings intact while background table refreshes or earlier preference saves finish. Docker and VM warning/resource thresholds, refresh intervals, deferred-preview limits, and graph duration retain edits until committed.
+- Reliability: Paired sliders continue to follow the numeric entry; committed values still accept server normalization and failed-save recovery. Leaving Settings removes the draft tracking and event handlers.
+- Quality: Add a regression that reproduces the interrupted edit, plus Docker/VM persistence, slider, normalization, and cleanup checks across browser engines.
+- Compatibility: Refresh cached webGUI assets after updating. Saved settings and backup files are retained.
+
 
 ###2026.10.20.02
 - Fix: Clearing Docker or VM folder defaults now removes the entire saved profile so new folders stop inheriting it. Saving a different profile also removes settings that are absent from the replacement.

@@ -1198,7 +1198,7 @@
       "exports": ["normalizeType", "createChangeController", "createRangeControlLifecycle", "normalizeUiState", "createUiStateStore"],
       "lifecycleFactories": [
         { "name": "createChangeController", "exports": ["start", "destroy", "snapshot"] },
-        { "name": "createRangeControlLifecycle", "exports": ["start", "refresh", "destroy", "snapshot"] },
+        { "name": "createRangeControlLifecycle", "exports": ["start", "refresh", "setNumberValue", "destroy", "snapshot"] },
         { "name": "createUiStateStore", "exports": ["start", "destroy", "snapshot"] }
       ]
     },

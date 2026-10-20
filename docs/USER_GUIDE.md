@@ -12,6 +12,22 @@ Open `Settings -> FolderView Plus`.
 
 Settings search matches labels and common aliases. Change its scope when you want to search only the current mode or include all Advanced workspaces.
 
+## Custom Docker page title
+
+Open **Settings -> FolderView Plus -> Basic -> Docker -> Filters and view settings -> Layout** and enable the Docker page title. It is disabled by default; enabling it starts with **Change Me!**. Set the text, font, size, color, and any combination of **Bold**, **Italic**, **Underline**, and **Strikethrough**. Changes save automatically and the live preview shows the appearance. **Reset appearance** restores the title formatting defaults.
+
+The title appears at the far left above the Docker containers while the existing right-side controls keep their position. On narrow screens it sits above the controls. Disabling the title retains the saved text and formatting. Privacy with **Mask names and icons** hides the title.
+
+The font picker offers 22 choices, including 18 bundled fonts, and displays each font name in its typeface. Fonts are served from your Unraid host. Use arrows to navigate, type a font name to find it, Enter to select, or Escape to cancel. Text supports up to 100 characters; size accepts 14–48 px and defaults to 28 px.
+
+> **Screenshot placeholder — Docker title:** capture the Layout controls, compact font previews, all four formatting options, and the left-aligned Docker heading on desktop and phone using fictional text.
+
+## Status badges and saved defaults
+
+Running and Stopped badges are on by default for Docker and VMs; Docker Updates is also on by default. This update enables Stopped once for existing configurations on the first preference load. You may disable it again afterward, and the choice stays saved. Existing Running and Updates choices are preserved. Use **Status and badges** in Docker Filters and view settings for these controls. Changes to badges and empty-folder visibility also update already-open runtime pages.
+
+Saving folder defaults replaces the full starting profile. Clearing it removes the saved profile for future folders; existing folders change only when you explicitly use **Apply to all**. That operation reports separate Updated, Unchanged, and Skipped counts.
+
 ## Create a folder
 
 1. Open the Docker or VM table in Basic settings.
@@ -134,6 +150,20 @@ Common actions include:
 
 Folder locks and eligibility checks prevent unsupported runtime operations. Review destructive confirmations carefully because branch deletion can affect nested folders.
 
+## Clone and copy folder settings
+
+On Docker, open a folder's **Clone** menu:
+
+- **Clone folder** uses the existing full-folder clone workflow and suggests an unused copy name.
+- **Clone settings only** creates an empty folder with the source appearance, layout/previews, and behavior. It omits members, matching rules, custom actions, and member-specific WebUI profiles.
+- **Copy Folder Settings** copies all portable settings or only **Appearance**, **Layout and previews**, **Behavior**, or **Custom actions**.
+- **Paste settings from…** lets you apply all copied categories or one available category. Choices that were not copied explain why they are unavailable.
+- **View copied settings…** shows the source, copy date/time, included categories, and counts. **Clear copied settings** removes that copied profile.
+
+Copy uses a brief notification. Before a real paste, review the changed categories and source, then confirm. Other categories, membership, matching rules, WebUI profiles, and child order stay intact. Portable custom actions exclude actions tied to specific members. An identical paste reports that no change is needed and creates no backup; a real paste creates a safety snapshot. If the destination or clipboard changes during review, refresh and preview again.
+
+> **Screenshot placeholder — selective settings transfer:** capture Clone, Copy/Paste category submenus, clipboard details, and the confirmation with fictional folders.
+
 ## Rules and automatic assignment
 
 Advanced Auto-Rules are the primary automation system. Rules are evaluated in their saved priority order; the first enabled matching include or exclude decision wins.
@@ -184,6 +214,8 @@ Open `Advanced -> Recovery` to:
 
 The Recovery summary shows readiness and policy for the selected source. Select a history row to restore, download, or delete that snapshot. New setups enable scheduled backups every hour with retention of 25 snapshots; existing saved schedules retain their settings. Interval accepts 1–168 hours and retention 1–200. Routine moves, reorders, preference changes, and pins do not create individual snapshots. Restore recovers preferences alongside folders when present; older folder-only snapshots keep current preferences.
 
+Scheduled due-checks compare folders and saved preferences with the latest usable snapshot. Unchanged or empty configurations show **Skipped** in Advanced Logs with an explanation instead of creating duplicate files. Existing backups and retention remain intact when skipped. Check timestamps and server check history stay in memory and reset at restart; actual backup files remain saved. Backup health recognizes a recent unchanged check without hiding a stopped scheduler. **Create Backup Now** remains an explicit manual backup.
+
 Choose **Compare Snapshots** to open the snapshot chooser for the selected Docker or VM source. Select the **From snapshot** and **Compare with** targets; the second target can be another snapshot or **Current live folders**. Leave **Include preference changes** enabled to compare saved preferences as well.
 
 The results show the two sources, folder totals, and **Added**, **Changed**, **Removed**, and **Unchanged** counts. Folder changes are shown from the first source to the second. Expand **View changed values** to inspect a changed folder's values, and review preference differences in their own section. **Compare again** returns to the chooser with your selections. Comparison is a preview and does not restore or save configuration.
@@ -210,7 +242,7 @@ The Docker-page Privacy toggle hides selected values without changing the stored
 
 ## Diagnostics and support
 
-**Advanced -> Logs** shows completed actions, issues, and selected recovery events in a compact newest-first feed. The current browser keeps up to 100 entries for 30 days. **Clear** removes the saved feed and prevents cleared server events from reappearing; it does not undo configuration changes. Routine background diagnostic successes are omitted.
+**Advanced -> Logs** shows completed actions, issues, skipped scheduled checks, and selected recovery events in a newest-first feed with a localized date and time. Skipped checks explain whether configuration was unchanged or empty, the check interval, and the retained backup time when available. The current browser keeps up to 100 entries for 30 days. **Clear** removes the saved feed and prevents cleared server events from reappearing; it does not undo configuration changes. Routine background diagnostic successes are omitted.
 
 Open `Advanced -> Diagnostics` to run health checks, inspect core and advisory results, copy an issue report, and preview or export a support bundle. Use a sanitized bundle for public reports unless raw values are explicitly required.
 

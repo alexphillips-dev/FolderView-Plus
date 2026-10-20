@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.08">
-<!ENTITY md5 "20974e654e6df3c5915b248d03c77645">
-<!ENTITY sha256 "4b118735f67b3e99f294266c06381608de3f0cd659381b0a844000216f4122a5">
+<!ENTITY version "2026.10.20.10">
+<!ENTITY md5 "c864fb905a5df1b201ca15fd0b76e61e">
+<!ENTITY sha256 "a645c01aacd642b21c37a3d53d476a522a18b8cddf05c659f07a544ef4e7e0e6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.10
+- Fix: Preserve keyboard focus on the Docker toolbar when background status or preference refreshes rebuild its controls. View and Tools menus remain usable through consecutive actions, including showing and hiding empty folders.
+- Accessibility: Restore focus only to the matching enabled control. Open menu items are positioned before focus returns; refreshes leave focus elsewhere on the page unchanged.
+- Performance: Keep existing toolbar buttons when a status or preference notification does not change their content, avoiding unnecessary rebuilds during consecutive clicks.
+- Quality: Add regressions for toolbar triggers, open menu items, external focus, disabled controls, and consecutive empty-folder toggles across browser engines, themes, and screen sizes.
+- Compatibility: Hard-refresh the Docker page after updating. Saved settings, folder membership, and backup files are retained.
+
 
 ###2026.10.20.08
 - Fix: Keep numeric entries in Filters and view settings intact while background table refreshes or earlier preference saves finish. Docker and VM warning/resource thresholds, refresh intervals, deferred-preview limits, and graph duration retain edits until committed.

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
+import { createDockerHideEmptyHost, openDockerToolsAfterRefresh } from '../helpers/docker-hide-empty-host.mjs';
 
 export const registerDockerHideEmptyCases = ({ test }) => {
     test('Docker hide-empty keeps populated ancestors through expansion, toggles and refresh', async ({ page }) => {
@@ -18,9 +18,7 @@ export const registerDockerHideEmptyCases = ({ test }) => {
                 assert.equal(await page.locator('#docker_containers tr[id^="ct-"]').count(), host.memberCount, 'native members are neither lost nor duplicated');
             };
             const tool = async name => {
-                await page.waitForFunction(() => document.querySelector('#fvplus-docker-action-bar')?.getAttribute('aria-busy') === 'false'
-                    && document.querySelector('[data-fvplus-docker-menu="tools"]')?.disabled === false);
-                await page.locator('[data-fvplus-docker-menu="tools"]').press('ArrowDown');
+                await openDockerToolsAfterRefresh(page);
                 await page.locator(`[data-fvplus-docker-tool="${name}"]`).click();
             };
             const toggle = async expected => {
@@ -33,6 +31,12 @@ export const registerDockerHideEmptyCases = ({ test }) => {
             try {
                 await page.goto(host.url, { waitUntil: 'load' });
                 await expectFolders(host.populated);
+                const outside = await page.evaluate(() => {
+                    const input = document.createElement('input'); input.id = 'fixture-outside-focus'; document.body.append(input); input.focus();
+                    window.FolderViewPlusDockerRuntimeInternals.renderDockerRuntimeActionBar();
+                    return document.activeElement === input;
+                });
+                assert.equal(outside, true, 'refresh leaves focus outside the toolbar unchanged');
                 assert.equal(await row('parent').isVisible(), true);
                 assert.match(await row('parent').locator('.folder-state').textContent(), deep ? /1\/1/ : /29\/29/);
                 const child = deep ? 'branch' : 'childA';

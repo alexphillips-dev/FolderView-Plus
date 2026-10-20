@@ -77,6 +77,9 @@
         let eventsBound = false;
         let busy = false;
         let menuPositionFrame = 0;
+        let renderedBar = null;
+        let renderedMarkup = '';
+        let renderedBusy = false;
         let hiddenFolderUndo = null;
         let hiddenFolderUndoTimer = 0;
 
@@ -261,7 +264,6 @@
             folderFilterMode = 'all';
             return true;
         };
-
         const ensureHost = () => {
             let bar = doc?.getElementById?.(ACTION_BAR_ID);
             const legacyButton = doc?.getElementById?.('fvplus-docker-add-folder-btn');
@@ -282,10 +284,11 @@
             bar.setAttribute('aria-label', translate('docker.actions.label', 'FolderView actions'));
             return bar;
         };
-
         const sync = (mode = resolvePageViewMode(getPrefs())) => {
             const bar = ensureHost();
             if (!bar) return;
+            const focused = bar.contains?.(doc.activeElement) ? doc.activeElement : null;
+            const focusedAction = Array.from(focused?.attributes || []).find((attribute) => attribute.name.startsWith('data-fvplus-docker-'));
             const resolvedMode = normalizePageViewMode(mode);
             const isFolderView = resolvedMode === 'folderview';
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
@@ -309,7 +312,7 @@
             bar.dataset.mode = resolvedMode;
             bar.classList.toggle('is-busy', busy);
             bar.setAttribute('aria-busy', busy ? 'true' : 'false');
-            bar.innerHTML = `
+            const markup = `
                 <div class="fvplus-docker-action-primary">${folderControls}</div>
                 <div class="fvplus-docker-action-secondary">
                     ${buildActionButtonHtml({ action: 'manage-folders', label: translate('docker.actions.manage-folders', 'Manage Folders'), icon: 'fa-folder' })}
@@ -337,14 +340,27 @@
                     <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="toggle-reveal">${escapeHtml(translate('docker.visibility.show-hidden', 'Show hidden folders'))}</button>
                     <button type="button" class="fv-ui-button is-sm fvplus-docker-visibility-button" data-fvplus-docker-hidden="restore-all">${escapeHtml(translate('docker.visibility.restore-all', 'Restore all hidden folders'))}</button>
                 </div>` : ''}`;
+            if (renderedBar === bar && renderedMarkup === markup && renderedBusy === busy) {
+                queueOpenMenuPosition();
+                return;
+            }
+            bar.innerHTML = markup;
+            renderedBar = bar;
+            renderedMarkup = markup;
+            renderedBusy = busy;
+            let focusTarget = null;
             Array.from(bar.querySelectorAll('button')).forEach((button) => {
                 button.disabled = button.disabled || busy;
+                if (focusedAction && button.getAttribute(focusedAction.name) === focusedAction.value) focusTarget = button;
             });
+            if (focusTarget && !focusTarget.disabled) {
+                if (actionMenuOpen) positionOpenMenu();
+                focusTarget.focus({ preventScroll: true });
+            }
             queueOpenMenuPosition();
         };
 
         const positionOpenMenu = () => {
-            menuPositionFrame = 0;
             if (!actionMenuOpen) return;
             const bar = doc?.getElementById?.(ACTION_BAR_ID);
             const menu = bar?.querySelector?.('.fvplus-docker-action-menu.is-open');
@@ -378,7 +394,7 @@
         function queueOpenMenuPosition() {
             if (!actionMenuOpen || menuPositionFrame) return;
             if (typeof win?.requestAnimationFrame === 'function') {
-                menuPositionFrame = win.requestAnimationFrame(positionOpenMenu);
+                menuPositionFrame = win.requestAnimationFrame(() => { menuPositionFrame = 0; positionOpenMenu(); });
                 return;
             }
             win?.setTimeout?.(positionOpenMenu, 0);

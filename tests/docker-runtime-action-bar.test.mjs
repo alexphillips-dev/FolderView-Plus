@@ -240,3 +240,33 @@ test('hidden-folder Undo dismissal is scoped to the matching folder', () => {
     assert.equal(api.clearHiddenFolderUndo('updates'), false);
     assert.equal(api.clearHiddenFolderUndo('media'), true);
 });
+
+test('toolbar refresh restores matching enabled controls without taking external focus', () => {
+    const body = {};
+    const doc = { activeElement: body, body, addEventListener() {}, querySelectorAll: () => [], querySelector: () => null };
+    let buttons = [];
+    const makeButton = (disabled = false) => ({
+        disabled, attributes: [{ name: 'data-fvplus-docker-menu', value: 'tools' }],
+        getAttribute: name => name === 'data-fvplus-docker-menu' ? 'tools' : null,
+        focus: function() { doc.activeElement = this; }
+    });
+    const bar = { dataset: {}, classList: { toggle() {} }, setAttribute() {}, contains: node => buttons.includes(node), querySelectorAll: () => buttons };
+    Object.defineProperty(bar, 'innerHTML', { set() {
+        if (buttons.includes(doc.activeElement)) doc.activeElement = body;
+        buttons = buttons.map(button => makeButton(button.disabled));
+    } });
+    doc.getElementById = id => id === 'fvplus-docker-action-bar' ? bar : null;
+    const api = actionBarModule.createApi({ window: { addEventListener() {} }, document: doc });
+    buttons = [makeButton()];
+    buttons[0].focus();
+    const old = buttons[0];
+    api.sync();
+    assert.notEqual(buttons[0], old);
+    assert.equal(doc.activeElement, buttons[0], 'focus follows the logical control across replacement');
+    const settled = buttons[0]; api.sync();
+    assert.equal(buttons[0], settled, 'unchanged refreshes retain the actual button for pointer and keyboard interaction');
+    const outside = {}; doc.activeElement = outside;
+    api.sync(); assert.equal(doc.activeElement, outside);
+    buttons[0].disabled = true; doc.activeElement = buttons[0];
+    api.sync('host'); assert.equal(doc.activeElement, body, 'disabled controls do not receive restored focus');
+});

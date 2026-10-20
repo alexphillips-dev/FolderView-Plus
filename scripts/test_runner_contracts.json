@@ -210,8 +210,8 @@
         "tests/browser/helpers/icon-pack-filters.mjs"
       ],
       "testCount": 126,
-      "assertionCount": 1661,
-      "pageEvaluateCount": 436,
+      "assertionCount": 1664,
+      "pageEvaluateCount": 441,
       "orderedTitleSha256": "2cde8f8400265d946e0d64ac951470959608de35c93174cbf4e72ec3851364f0"
     }
   }

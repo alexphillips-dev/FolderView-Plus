@@ -1,7 +1,18 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import assert from 'node:assert/strict';
 import { createProductionPerfFixture } from '../../../scripts/lib/production-perf-fixture.mjs';
-
+export const openDockerToolsAfterRefresh = async page => {
+    await page.waitForFunction(() => document.querySelector('#fvplus-docker-action-bar')?.getAttribute('aria-busy') === 'false'
+        && document.querySelector('[data-fvplus-docker-menu="tools"]')?.disabled === false);
+    await page.locator('[data-fvplus-docker-menu="tools"]').focus();
+    await page.evaluate(() => { const sync = window.FolderViewPlusDockerRuntimeInternals.renderDockerRuntimeActionBar; sync('host'); sync('folderview'); });
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fvplus-docker-menu')), 'tools', 'background refresh retains the menu trigger focus');
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => document.activeElement?.getAttribute('data-fvplus-docker-tool') === 'toggle-empty');
+    await page.evaluate(() => { const sync = window.FolderViewPlusDockerRuntimeInternals.renderDockerRuntimeActionBar; sync('host'); sync('folderview'); });
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fvplus-docker-tool')), 'toggle-empty', 'open menu keeps its focused item after refresh');
+};
 export const createDockerHideEmptyHost = async (page, deep = false) => {
     const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: deep ? 2 : 29 });
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,

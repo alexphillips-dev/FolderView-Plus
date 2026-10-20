@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.10.20.06">
-<!ENTITY md5 "8ce9a1294901abc28527c7598a1ee2f7">
-<!ENTITY sha256 "63bca31553145bbadc14e71155dd1a0ec547d029da932fc3f7505494b522d506">
+<!ENTITY version "2026.10.20.07">
+<!ENTITY md5 "871aa27416cb0b0f018dd72695d14de4">
+<!ENTITY sha256 "60bf83e36811d3e901aabe4b3f0d2dc0e46f687f79e1424792462e1405486300">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,23 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.07
+- Feature: Personalize the left side of the Docker toolbar with an optional heading. Enable it in Basic > Docker > Filters and view settings > Layout, then edit the initial "Change Me!" text, 14–48 px size, font, color, and Bold, Italic, Underline, or Strikethrough formatting. The title defaults to off and leaves the right-side controls in place.
+- UI/UX: Choose from 22 fonts with compact typeface previews and keyboard/touch navigation. The 18 bundled fonts are served locally by Unraid; name masking hides the heading when Privacy is active.
+- Feature: Use the Docker Clone menu to create an empty settings-only copy or transfer Appearance, Layout and previews, Behavior, Custom actions, or all portable settings. Suggested unique names, source/date/category details, clipboard clearing, and brief notifications make repeated transfers easier.
+- Reliability: Review changed paste categories before applying them. Real changes create a safety backup and preserve other settings, members, rules, child order, and member-specific WebUI profiles. Stale reviews are rejected; matching settings produce no write or duplicate backup.
+- Performance: Hourly backup schedules now check for changed folders and preferences before writing a snapshot. Unchanged and empty checks retain older recovery points and explain their Skipped status, interval, and retained backup time in Logs. Custom schedules, manual backups, safety checkpoints, and retention choices are preserved.
+- Diagnostics: Routine scheduler timestamps and server check history use RAM to reduce USB writes and reset at restart; saved backup files remain. Backup readiness recognizes a recent unchanged check while still detecting a stopped scheduler.
+- UI/UX: Read larger Latest/Empty history badges, grouped selected-backup buttons, larger log text with localized dates and times, and larger Docker/VM/sub-folder count icons in Basic settings.
+- Fix: Running and Stopped badges default to enabled for Docker and VMs, as does Updates for Docker. Existing Stopped settings are enabled once on the first preference load after updating and may be disabled again afterward. Existing Running/Updates choices remain saved, and indicators follow these choices during initial display, nested aggregation, and live changes.
+- Fix: Clear or replace a saved folder-default profile without retaining omitted settings/actions. Apply to all distinguishes Updated, Unchanged, and Skipped folders, including a complete no-op with zero updates.
+- Fix: Preserve a health warning threshold of zero, normalize displayed/saved critical thresholds consistently with scoring, retain per-folder overrides, and keep Dashboard graph None selected after reopening Settings.
+- Fix: Apply badge/empty-folder changes to already-open Docker and VM pages, and page-view changes to Docker, including saves from another tab. Native rows and expanded branches remain intact. Status-warning helper text also has improved light-theme contrast.
+- Security: Update immutable scanning-action references and development validation dependencies with a matching software inventory.
+- Quality: Exercise native Unraid control typography and completed preference-save reconciliation in cross-browser fixtures, alongside isolated Linux restore and settings-transfer checks.
+- Compatibility: Refresh cached webGUI assets after installing, then check Settings, Docker, VMs, and Dashboard. A normal update retains saved configuration, customization, and backup files.
+
 
 ###2026.10.20.06
 - Feature: Personalize the left side of the Docker toolbar with an optional heading. Enable it in Basic > Docker > Filters and view settings > Layout, then edit the initial "Change Me!" text, 14–48 px size, font, color, and Bold, Italic, Underline, or Strikethrough formatting. The title defaults to off and leaves the right-side controls in place.

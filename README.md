@@ -29,6 +29,7 @@ FolderView Plus is a folder-first organization and management plugin for Unraid.
 
 - Organize Docker containers, VMs, and Dashboard views into folders.
 - Use nested folders, live previews, custom icons, and folder-level actions.
+- Add an optional Docker page title with local font previews and formatting, and copy selected folder-setting categories through the Clone menu.
 - Find folders and members directly on Docker and VMs with the expanding Quick finder and contextual shortcuts.
 - Build starter layouts with the beginner-friendly Setup Assistant.
 - Automate organization with rules, bulk assignment, templates, and Docker start order tools.
@@ -170,7 +171,7 @@ New setups schedule a backup every hour by default; change or disable the interv
 
 Scheduled checks create a new snapshot only when folders or saved preferences differ from the latest usable backup. Unchanged and empty configurations show **Skipped** in Advanced > Logs with the reason, so duplicate snapshots do not replace older recovery points. Scheduler check timestamps and history stay in server memory to avoid routine USB writes; the server history resets after a restart, while actual backup files remain saved. Health checks recognize a recent unchanged check without treating the retained backup as overdue.
 
-Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. Advanced > Logs records recent backup, folder, import, and other meaningful Settings actions for quick review during the current session.
+Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. Advanced > Logs records recent backup, folder, import, and other meaningful Settings actions with localized dates and times. The browser retains up to 100 entries for 30 days; routine server scheduler history resets at restart.
 
 ## Troubleshooting
 

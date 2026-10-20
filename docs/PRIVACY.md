@@ -15,7 +15,7 @@ The saved options are:
 
 | Option | What it masks |
 | --- | --- |
-| Mask names and icons | Container names, folder/member labels, and identifying icons in native rows and collapsed previews. |
+| Mask names and icons | Container names, folder/member labels, identifying icons in native rows and collapsed previews, and the optional custom Docker page title. |
 | Mask LAN IPs | The IP portion of values in the Docker `LAN IP:PORT` column. |
 | Mask ports | Port values, including the port portion of `LAN IP:PORT`. |
 | Mask volume paths | Container and host paths shown in volume mappings. |

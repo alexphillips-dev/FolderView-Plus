@@ -9,7 +9,7 @@
     'use strict';
     const isStatusVisible = (kind, badges = {}) => {
         if (kind === 'started') return badges?.running !== false;
-        if (kind === 'stopped') return badges?.stopped === true;
+        if (kind === 'stopped') return badges?.stopped !== false;
         return true;
     };
     const applyStatus = ($icon, badges = {}) => {

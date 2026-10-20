@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import { createDockerHideEmptyHost } from './docker-hide-empty-host.mjs';
 const scriptRoot = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/';
 
-export const createDockerBadgeHost = async page => {
+export const createDockerBadgeHost = async (page, initialBadges = { running: false, stopped: false, updates: false }) => {
     const host = await createDockerHideEmptyHost(page, true);
-    host.prefs().badges = { running: false, stopped: false, updates: false };
+    if (initialBadges) Object.assign(host.prefs(), { badges: initialBadges, runtimePrefsSchema: 5 });
     host.folders.direct.settings.update_column = true;
     const source = fs.readFileSync(scriptRoot + 'docker.js', 'utf8');
     const end = '})(window, window.jQuery || window.$);';

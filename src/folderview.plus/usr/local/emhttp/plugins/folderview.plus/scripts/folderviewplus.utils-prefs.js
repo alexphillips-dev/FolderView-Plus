@@ -14,7 +14,7 @@
         RULE_EFFECTS,
         RUNTIME_PREFS_SCHEMA,
         RUNTIME_TOGGLE_PREFS_SCHEMA,
-        PRIVACY_MODE_PREFS_SCHEMA,
+        PRIVACY_MODE_PREFS_SCHEMA, STOPPED_BADGE_PREFS_SCHEMA,
         DEFAULT_HEALTH_PREFS,
         DEFAULT_STATUS_PREFS,
         DEFAULT_DASHBOARD_PREFS,
@@ -68,10 +68,11 @@
                 labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : '', ...(rule.source === 'folderview3' ? { source: 'folderview3' } : {})
             }))
             .filter((rule) => rule.folderId !== '');
+        const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const incomingBadges = isPlainObject(incoming.badges) ? incoming.badges : {};
-        const badges = {
+        const badges = { // Enable once on upgrade; preserve opt-outs saved after schema 5.
             running: !Object.prototype.hasOwnProperty.call(incomingBadges, 'running') ? true : incomingBadges.running !== false,
-            stopped: incomingBadges.stopped === true,
+            stopped: runtimePrefsSchema < STOPPED_BADGE_PREFS_SCHEMA || incomingBadges.stopped !== false,
             updates: !Object.prototype.hasOwnProperty.call(incomingBadges, 'updates') ? true : incomingBadges.updates !== false
         };
         const backupScheduleRaw = isPlainObject(incoming.backupSchedule) ? incoming.backupSchedule : {};
@@ -192,7 +193,6 @@
         const startOrderWaitsSource = isPlainObject(incoming.dockerStartOrder?.containerWaits) ? incoming.dockerStartOrder.containerWaits : {}, containerWaits = {};
         Object.entries(startOrderWaitsSource).slice(0, 2000).forEach(([name, delay]) => { const normalizedName = String(name || '').trim().slice(0, 255); if (normalizedName) containerWaits[normalizedName] = clampNumber(delay, 0, 3600, 0); });
         const dockerStartOrder = { mode: ['unmanaged', 'docker-page', 'custom-batches'].includes(startOrderMode) ? startOrderMode : DEFAULT_DOCKER_START_ORDER.mode, remaining: ['after', 'before', 'keep'].includes(startOrderRemaining) ? startOrderRemaining : DEFAULT_DOCKER_START_ORDER.remaining, batches: startOrderBatches, containerWaits };
-        const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_TOGGLE_PREFS_SCHEMA;
         const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA;
         const liveRefreshEnabled = runtimePrefsReady ? incoming.liveRefreshEnabled === true : false;

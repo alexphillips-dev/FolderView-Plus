@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.19.10">
-<!ENTITY md5 "6c0783b5db3d99e69b336b1a0f218dba">
-<!ENTITY sha256 "99a4437b4cdeccceaa42fe5833ff737f3a1d8e89fd42c6d7d69373e7662392b0">
+<!ENTITY version "2026.10.20.01">
+<!ENTITY md5 "3e5b0912acf0b30a65b906fb16486a81">
+<!ENTITY sha256 "2bd147b66870f1e8fef7f455feda313005442327b3d58b2fd849da619bf3931c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.01
+- Fix: Enable Running, Stopped, and Updates folder badges by default. Running and Stopped apply to Docker and VM folders; Updates applies to Docker folders.
+- Reliability: Turn on the Stopped badge once for every existing Docker and VM configuration during the first preference load after updating, including configurations where it was previously disabled. You can turn it off again afterward and that choice stays saved. Existing Running and Updates choices are preserved.
+- Reliability: Keep Settings checkboxes, folder badge rendering, and diagnostic reports consistent with the new defaults. Hard-refresh the webGUI after updating.
+
 
 ###2026.10.19.10
 - Feature: Add Underline and Strikethrough options to the Docker page title. Use either independently or combine both with Bold and Italic in the preview and Docker heading.

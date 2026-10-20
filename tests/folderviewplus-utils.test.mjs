@@ -725,7 +725,7 @@ test('getAutoRuleDecision uses documented first-match priority for advanced dock
 
 test('normalizePrefs includes live refresh, performance profile, and backup schedule defaults', () => {
     const prefs = utils.normalizePrefs({});
-    assert.equal(prefs.runtimePrefsSchema, 4);
+    assert.equal(prefs.runtimePrefsSchema, 5);
     assert.equal(prefs.liveRefreshEnabled, false);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
@@ -843,7 +843,7 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
         lazyPreviewEnabled: true,
         lazyPreviewThreshold: 77
     });
-    assert.equal(legacy.runtimePrefsSchema, 4);
+    assert.equal(legacy.runtimePrefsSchema, 5);
     assert.equal(legacy.liveRefreshEnabled, false);
     assert.equal(legacy.performanceMode, false);
     assert.equal(legacy.performanceProfile, 'standard');

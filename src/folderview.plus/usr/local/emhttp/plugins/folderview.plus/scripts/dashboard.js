@@ -113,7 +113,7 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        runtimePrefsSchema: 4,
+        runtimePrefsSchema: 5,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceProfile: 'standard',

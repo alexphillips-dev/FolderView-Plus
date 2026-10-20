@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { createDockerBadgeHost, mountVmBadgeHost } from '../helpers/folder-badges-host.mjs';
+import { registerFolderBadgeDefaultCases } from './folder-badge-defaults.mjs';
 const profiles = [{ running: false, stopped: false }, { running: true, stopped: false }, { running: false, stopped: true }, { running: true, stopped: true }];
 
 export const registerFolderBadgeCases = ({ test, baseUrl }) => {
+    registerFolderBadgeDefaultCases({ test });
     test('Folder badges honor Docker preferences through nested aggregation, transitions and reload', async ({ page }) => {
         const host = await createDockerBadgeHost(page);
         const foldersBefore = JSON.stringify(host.folders);
@@ -54,6 +56,10 @@ export const registerFolderBadgeCases = ({ test, baseUrl }) => {
     test('Folder badges restore VM icon visibility after each runtime state and preference change', async ({ page }) => {
         await mountVmBadgeHost(page, baseUrl);
         const icon = page.locator('#load-folder-media');
+        for (const state of ['running', 'shutoff']) {
+            await page.evaluate(state => window.fixtureVmBadges({}, state), state);
+            assert.equal(await icon.evaluate(node => getComputedStyle(node).display !== 'none'), true, `default ${state}`);
+        }
         for (const badges of profiles) {
             await icon.evaluate(node => { node.style.display = 'none'; });
             for (const state of ['running', 'shutoff', 'paused', 'pmsuspended', 'running']) {

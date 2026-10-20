@@ -6904,7 +6904,7 @@ const persistManualOrder = async (type, order, { refresh = true } = {}) => {
 const renderBadgeToggles = (type) => {
     const badges = prefsByType[type]?.badges || {};
     $(`#${type}-badge-running`).prop('checked', badges.running !== false);
-    $(`#${type}-badge-stopped`).prop('checked', badges.stopped === true);
+    $(`#${type}-badge-stopped`).prop('checked', badges.stopped !== false);
     if (type === 'docker') {
         $('#docker-badge-updates').prop('checked', badges.updates !== false);
     }

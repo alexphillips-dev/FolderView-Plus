@@ -35,7 +35,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
 
         $badges = is_array($prefs['badges'] ?? null) ? $prefs['badges'] : [];
         $showRunningBadge = !array_key_exists('running', $badges) ? true : (bool)$badges['running'];
-        $showStoppedBadge = array_key_exists('stopped', $badges) && (bool)$badges['stopped'];
+        $showStoppedBadge = !array_key_exists('stopped', $badges) ? true : (bool)$badges['stopped'];
         $showUpdateBadge = !array_key_exists('updates', $badges) ? true : (bool)$badges['updates'];
 
         $parentById = [];

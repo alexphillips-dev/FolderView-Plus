@@ -20,9 +20,10 @@
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
-    const RUNTIME_PREFS_SCHEMA = 4;
+    const RUNTIME_PREFS_SCHEMA = 5;
     const RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
     const PRIVACY_MODE_PREFS_SCHEMA = 3;
+    const STOPPED_BADGE_PREFS_SCHEMA = 5;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
     const PERFORMANCE_PROFILE_OPTIONS = ['standard', 'adaptive', 'maximum'];
@@ -373,6 +374,7 @@
         RUNTIME_PREFS_SCHEMA,
         RUNTIME_TOGGLE_PREFS_SCHEMA,
         PRIVACY_MODE_PREFS_SCHEMA,
+        STOPPED_BADGE_PREFS_SCHEMA,
         APP_COLUMN_WIDTH_OPTIONS,
         THEME_COMPATIBILITY_MODE_OPTIONS,
         PERFORMANCE_PROFILE_OPTIONS,

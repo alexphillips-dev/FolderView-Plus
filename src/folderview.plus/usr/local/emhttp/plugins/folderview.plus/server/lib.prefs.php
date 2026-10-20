@@ -18,7 +18,7 @@
             'autoRules' => [],
             'badges' => [
                 'running' => true,
-                'stopped' => false,
+                'stopped' => true,
                 'updates' => true
             ],
             'runtimePrefsSchema' => FVPLUS_RUNTIME_PREFS_SCHEMA,
@@ -349,7 +349,7 @@
         $incoming = is_array($badges) ? $badges : [];
         return [
             'running' => !array_key_exists('running', $incoming) ? true : (bool)$incoming['running'],
-            'stopped' => !array_key_exists('stopped', $incoming) ? false : (bool)$incoming['stopped'],
+            'stopped' => !array_key_exists('stopped', $incoming) ? true : (bool)$incoming['stopped'],
             'updates' => !array_key_exists('updates', $incoming) ? true : (bool)$incoming['updates']
         ];
     }
@@ -517,6 +517,10 @@
         $normalized['autoRules'] = $normalizedRules;
         $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
         $runtimePrefsSchema = normalizeIntInRange($prefs['runtimePrefsSchema'] ?? 0, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, 0);
+        // Enable once on upgrade; preserve opt-outs saved after schema 5.
+        if ($runtimePrefsSchema < FVPLUS_STOPPED_BADGE_PREFS_SCHEMA) {
+            $normalized['badges']['stopped'] = true;
+        }
         $runtimePrefsReady = $runtimePrefsSchema >= FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA;
         $privacyModePrefsReady = $runtimePrefsSchema >= FVPLUS_PRIVACY_MODE_PREFS_SCHEMA;
         $normalized['runtimePrefsSchema'] = FVPLUS_RUNTIME_PREFS_SCHEMA;

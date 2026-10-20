@@ -63,12 +63,12 @@ echo json_encode([
 ], JSON_UNESCAPED_SLASHES);
 `;
 
-const runHarness = () => {
+const runHarness = (source = buildHarness()) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-prefs-save-'));
     const harnessPath = path.join(tempDir, 'prefs-save.php');
     const documentRoot = path.join(tempDir, 'document-root');
     fs.mkdirSync(documentRoot, { recursive: true });
-    fs.writeFileSync(harnessPath, buildHarness(), 'utf8');
+    fs.writeFileSync(harnessPath, source, 'utf8');
     try {
         return JSON.parse(execFileSync('php', [harnessPath], {
             cwd: repoRoot,
@@ -85,6 +85,54 @@ const runHarness = () => {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 };
+
+test('server enables stopped badges once on upgrade and preserves later opt-outs through saves and reloads', () => {
+    const cases = [{}, { badges: {} }, { badges: { running: false } }, { badges: { stopped: false } },
+        { badges: { updates: false } }, { badges: { running: false, stopped: false, updates: false } }]
+        .map(input => ({ ...input, runtimePrefsSchema: 5 }))
+        .concat([undefined, 0, 1, 2, 3, 4].map(runtimePrefsSchema => ({
+            runtimePrefsSchema, badges: { running: false, stopped: false, updates: false }
+        })));
+    const result = runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+require_once ${phpQuote(libPath)};
+$cases = json_decode(${phpQuote(JSON.stringify(cases))}, true);
+$result = [];
+foreach (['docker', 'vm'] as $type) {
+    $result[$type]['fresh'] = readTypePrefs($type)['badges'];
+    $result[$type]['freshDiagnostics'] = diagnosticsBuildStateSnapshot($type, [], [], [], 'sanitized')['summary']['badgePrefs'];
+    foreach ($cases as $input) {
+        writeJsonObjectWithLastGood(getTypePrefsPath($type), $input);
+        $loaded = readTypePrefs($type);
+        $persisted = readJsonObjectFile(getTypePrefsPath($type));
+        $saved = writeTypePrefs($type, mergeTypePrefsPatch($loaded, ['hideEmptyFolders' => true]));
+        $result[$type]['cases'][] = [
+            'loaded' => $loaded['badges'], 'persisted' => $persisted['badges'],
+            'saved' => $saved['badges'], 'reloaded' => readTypePrefs($type)['badges'],
+            'diagnostics' => diagnosticsBuildStateSnapshot($type, [], $loaded, [], 'sanitized')['summary']['badgePrefs']
+        ];
+        writeTypePrefs($type, mergeTypePrefsPatch($saved, ['badges' => ['stopped' => false]]));
+        $result[$type]['optOuts'][] = readTypePrefs($type)['badges']['stopped'];
+        $result[$type]['schemas'][] = readJsonObjectFile(getTypePrefsPath($type))['runtimePrefsSchema'];
+    }
+}
+echo json_encode($result, JSON_UNESCAPED_SLASHES);
+`);
+    const defaults = { running: true, stopped: true, updates: true };
+    for (const type of ['docker', 'vm']) {
+        assert.deepEqual(result[type].fresh, defaults);
+        assert.deepEqual(result[type].freshDiagnostics, defaults);
+        for (const [index, input] of cases.entries()) {
+            const expected = { ...defaults, ...input.badges };
+            if ((input.runtimePrefsSchema ?? 0) < 5) expected.stopped = true;
+            for (const [stage, badges] of Object.entries(result[type].cases[index])) {
+                assert.deepEqual(badges, expected, `${type} case ${index}: ${stage}`);
+            }
+            assert.equal(result[type].optOuts[index], false, `${type} case ${index}: later opt-out`);
+            assert.equal(result[type].schemas[index], 5, `${type} case ${index}: persisted migration`);
+        }
+    }
+});
 
 test('server preference merge preserves nested siblings, hourly defaults, and explicit schedules without backup files', () => {
     const result = runHarness();

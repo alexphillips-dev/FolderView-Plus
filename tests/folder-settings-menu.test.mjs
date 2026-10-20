@@ -18,7 +18,7 @@ const create = (options = {}) => {
     const transfer = transferModule.createApi({ window: win, schema });
     let refreshes = 0;
     const ui = { announce: message => notifications.push(message.message), alert: async message => alerts.push(message), confirm: async () => true, ...options.ui };
-    const api = menuModule.createApi({ window: win, transfer, ui, getFolder: () => folder, ensureUnlocked: () => true,
+    const api = menuModule.createApi({ window: win, transfer, getFolder: () => folder, ensureUnlocked: () => true,
         refresh: () => { refreshes++; }, post: async (_url, data) => { requests.push(data); return { result: { updatedCount: 1, folderRevision: 7, changes: { target: ['appearance'] } } }; },
         ...options, ui });
     return { api, transfer, win, notifications, alerts, requests, events, refreshes: () => refreshes };

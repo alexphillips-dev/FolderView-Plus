@@ -45,7 +45,7 @@
             if (key === '_metadata') {
                 continue;
             }
-            next[key] = isPlainObject(value)
+            next[key] = isPlainObject(value) && key !== 'folderDefaults'
                 ? mergePatch(isPlainObject(source[key]) ? source[key] : {}, value)
                 : cloneValue(value);
         }
@@ -57,8 +57,8 @@
         return Object.fromEntries(Object.entries(patch).flatMap(([key, value]) => {
             if (key === '_metadata') return [];
             const previous = baseline?.[key];
-            const next = isPlainObject(value) ? cleanPatch(value, previous) : cloneValue(value);
-            const unchanged = isPlainObject(value) ? Object.keys(next).length === 0 : JSON.stringify(value) === JSON.stringify(previous);
+            const next = isPlainObject(value) && key !== 'folderDefaults' ? cleanPatch(value, previous) : cloneValue(value);
+            const unchanged = isPlainObject(value) && key !== 'folderDefaults' ? Object.keys(next).length === 0 : JSON.stringify(value) === JSON.stringify(previous);
             return isPlainObject(baseline) && unchanged ? [] : [[key, next]];
         }));
     };

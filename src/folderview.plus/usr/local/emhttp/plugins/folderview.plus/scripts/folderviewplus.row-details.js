@@ -84,7 +84,7 @@
                 details.members.length,
                 details.countsByState,
                 details.updateCount,
-                Number(healthPrefs.warnStoppedPercent) || 60
+                healthPrefs.warnStoppedPercent
             );
             const severity = ['good', 'warn', 'critical', 'empty'].includes(health.severity) ? health.severity : 'empty';
             const reasonLines = Array.isArray(health.reasons)

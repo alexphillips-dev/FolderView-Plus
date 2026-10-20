@@ -52,7 +52,7 @@ const buildFolderQuickActionSummary = (type, folderId) => {
             members.length,
             countsByState,
             updateNames.length,
-            Number(normalizeHealthPrefs('docker').warnStoppedPercent) || 60
+            normalizeHealthPrefs('docker').warnStoppedPercent
         );
         summary.updatesCount = updateNames.length;
         summary.health = health?.text || 'Unknown';

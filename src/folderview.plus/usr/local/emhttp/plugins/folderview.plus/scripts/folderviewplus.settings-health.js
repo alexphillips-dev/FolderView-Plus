@@ -373,7 +373,7 @@
                         members.length,
                         { started, paused, stopped },
                         updateCount,
-                        Number(healthPrefs.warnStoppedPercent) || 60
+                        healthPrefs.warnStoppedPercent
                     );
                     if (dockerHealth && typeof dockerHealth === 'object') {
                         const severityKey = String(dockerHealth.filterSeverity || dockerHealth.severity || '').trim().toLowerCase();

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Mape koje koriste ovu ikonu: $1.",
     "common.counts.delete-backups": "Trajno izbrisati sigurnosne kopije za $1 (broj: $2)? Ova se radnja ne može poništiti.",
     "common.counts.delete-branch": "Trajno izbrisati mape u ovoj grani (broj: $1)? Ova se radnja ne može poništiti.",
-    "common.counts.profile-applied": "Spremljeni profil je primijenjen. Ažurirane mape: $1.",
+    "common.counts.profile-applied": "Primijenjen je spremljeni profil. Ažurirano: $1. Nepromijenjeno: $2. Preskočeno: $3.",
     "common.counts.folders-applied": "Ažurirane mape: $1. Prije ažuriranja stvorena je sigurnosna kopija.",
     "common.counts.folders-to-delete": "Mape za brisanje: $1.",
     "common.counts.folders-imported": "Uvezene mape: $1. Nadređena mapa: $2.",

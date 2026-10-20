@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.01">
-<!ENTITY md5 "3e5b0912acf0b30a65b906fb16486a81">
-<!ENTITY sha256 "2bd147b66870f1e8fef7f455feda313005442327b3d58b2fd849da619bf3931c">
+<!ENTITY version "2026.10.20.02">
+<!ENTITY md5 "8166a0768aa634d8e899b064bf769e8f">
+<!ENTITY sha256 "96fd02380a1ea4632cae005e4ef43ae50159852814bd4e044e2b4bf757db7610">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.02
+- Fix: Clearing Docker or VM folder defaults now removes the entire saved profile so new folders stop inheriting it. Saving a different profile also removes settings that are absent from the replacement.
+- Fix: Honor a Docker health warning threshold of zero and keep displayed warning/critical thresholds consistent with health scoring, including after a refresh. Per-folder overrides remain available.
+- Fix: Keep the Dashboard graph selector on None when that option is selected and after reopening Settings.
+- Fix: Apply Running/Stopped badge and empty-folder visibility changes to an already-open Docker or VM page. Docker Updates visibility and page-view changes also refresh correctly, including changes from another browser tab.
+- Fix: Report accurate updated, unchanged, and skipped folder counts when applying saved defaults, including when every folder already matches.
+- Accessibility: Improve the contrast of the status-warning helper text in light themes.
+- Compatibility: Hard-refresh the Unraid webGUI after updating to load the refreshed Settings, Docker, and VM scripts.
+
 
 ###2026.10.20.01
 - Fix: Enable Running, Stopped, and Updates folder badges by default. Running and Stopped apply to Docker and VM folders; Updates applies to Docker folders.

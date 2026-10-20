@@ -2977,7 +2977,10 @@ const applySavedFolderDefaultsToAll = async (type) => {
         ]);
         showToastMessage({
             title: 'Defaults applied',
-            message: surfaceT("common.counts.profile-applied", "Saved profile applied. Folders updated: $1.", Number(result.updatedCount) || targetIds.length),
+            message: surfaceT("common.counts.profile-applied", "Saved profile applied. Updated: $1. Unchanged: $2. Skipped: $3.",
+                Math.max(0, Number(result.updatedCount) || 0),
+                Math.max(0, Number(result.unchangedCount) || 0),
+                Math.max(0, (Array.isArray(result.skippedIds) ? result.skippedIds.length : 0) - (Number(result.unchangedCount) || 0))),
             level: 'success'
         });
         return true;
@@ -4391,7 +4394,7 @@ const resolveFolderHealthPolicy = (folder, fallbackThreshold) => {
 
     const fallbackWarn = Number.isFinite(Number(fallbackThreshold))
         ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
-        : Number(globalHealthPrefs.warnStoppedPercent || profileDefaults.warnStoppedPercent || 60);
+        : Number(globalHealthPrefs.warnStoppedPercent ?? profileDefaults.warnStoppedPercent ?? 60);
     let warnThreshold = fallbackWarn;
     let warnSource = Number.isFinite(Number(fallbackThreshold)) ? 'global-warn' : 'profile';
 
@@ -4404,8 +4407,8 @@ const resolveFolderHealthPolicy = (folder, fallbackThreshold) => {
         }
     }
 
-    let criticalThreshold = Number(globalHealthPrefs.criticalStoppedPercent || profileDefaults.criticalStoppedPercent || 90);
-    let criticalSource = Number(globalHealthPrefs.criticalStoppedPercent) ? 'global-critical' : 'profile';
+    let criticalThreshold = Number(globalHealthPrefs.criticalStoppedPercent ?? profileDefaults.criticalStoppedPercent ?? 90);
+    let criticalSource = Number.isFinite(Number(globalHealthPrefs.criticalStoppedPercent)) ? 'global-critical' : 'profile';
     const criticalRaw = settings.health_critical_stopped_percent;
     if (!(criticalRaw === '' || criticalRaw === null || criticalRaw === undefined)) {
         const parsedCritical = Number(criticalRaw);
@@ -6661,7 +6664,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 members.length,
                 countsByState,
                 updateCount,
-                Number(dockerHealthPrefs?.warnStoppedPercent) || 60
+                dockerHealthPrefs.warnStoppedPercent
             );
             if (healthSeverityFilterMode !== 'all' && healthStatus.filterSeverity !== healthSeverityFilterMode) {
                 renderedDiagnostics.hiddenHealth += 1;
@@ -6940,7 +6943,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         privacyMaskExternalUrls: dashboard.privacyMaskExternalUrls !== false,
         previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
         previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
-        previewGraph: Math.max(0, Math.min(4, Number(dashboard.previewGraph) || 1)),
+        previewGraph: dashboard.previewGraph,
         previewGraphTime: Math.max(5, Math.min(600, Number(dashboard.previewGraphTime) || 60))
     };
 };

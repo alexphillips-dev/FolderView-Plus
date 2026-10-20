@@ -421,7 +421,8 @@
                 !fvplusPrefsArrayIsList($value)
                 || (count($value) === 0 && is_array($currentValue) && !fvplusPrefsArrayIsList($currentValue))
             );
-            $shouldMergeObject = $valueRepresentsObject
+            // Match the client: folder defaults replace the complete saved profile.
+            $shouldMergeObject = $safeKey !== 'folderDefaults' && $valueRepresentsObject
                 && is_array($currentValue)
                 && !fvplusPrefsArrayIsList($currentValue);
             $merged[$safeKey] = $shouldMergeObject
@@ -619,6 +620,10 @@
             'vmResourceWarnGiB' => $healthVmResourceWarnGiB,
             'vmResourceCriticalGiB' => $healthVmResourceCriticalGiB
         ];
+        $normalized['health']['criticalStoppedPercent'] = min(100, max(
+            $normalized['health']['criticalStoppedPercent'],
+            $normalized['health']['warnStoppedPercent'] + 5
+        ));
         $statusIncoming = is_array($prefs['status'] ?? null) ? $prefs['status'] : [];
         $statusMode = strtolower(trim((string)($statusIncoming['mode'] ?? 'summary')));
         if (!in_array($statusMode, ['summary', 'dominant'], true)) {

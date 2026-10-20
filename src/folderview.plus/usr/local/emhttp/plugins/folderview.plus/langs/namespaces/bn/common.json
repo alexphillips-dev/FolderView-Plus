@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "এই আইকন ব্যবহারকারী ফোল্ডার: $1।",
     "common.counts.delete-backups": "$1-এর ব্যাকআপ স্ন্যাপশট স্থায়ীভাবে মুছবেন (সংখ্যা: $2)? এটি আর ফেরানো যাবে না।",
     "common.counts.delete-branch": "এই শাখার ফোল্ডার স্থায়ীভাবে মুছবেন (সংখ্যা: $1)? এটি আর ফেরানো যাবে না।",
-    "common.counts.profile-applied": "সংরক্ষিত প্রোফাইল প্রয়োগ করা হয়েছে। হালনাগাদ ফোল্ডার: $1।",
+    "common.counts.profile-applied": "সংরক্ষিত প্রোফাইল প্রয়োগ করা হয়েছে। আপডেট করা হয়েছে: $1৷ অপরিবর্তিত: $2। বাদ দেওয়া হয়েছে: $3৷",
     "common.counts.folders-applied": "হালনাগাদ ফোল্ডার: $1। হালনাগাদের আগে ব্যাকআপ তৈরি করা হয়েছে।",
     "common.counts.folders-to-delete": "মুছে ফেলার ফোল্ডার: $1।",
     "common.counts.folders-imported": "আমদানি করা ফোল্ডার: $1। মূল ফোল্ডার: $2।",

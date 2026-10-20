@@ -3168,6 +3168,7 @@ const addVMFolderContext = (id) => {
 // Global variables
 let loadedFolder = false;
 let globalFolders = {};
+let lastAppliedRuntimePrefs = null;
 const folderRegex = /^folder-/;
 let folderDebugMode  = false;
 let folderDebugModeWindow = [];
@@ -3689,6 +3690,7 @@ const bindVmRuntimeThemeReflow = () => {
 
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
+    lastAppliedRuntimePrefs = normalized;
     if (normalized.lazyPreviewEnabled !== true) {
         vmDeferredPreviewController.flush();
     }
@@ -3731,8 +3733,15 @@ const bindVmRuntimePreferenceSync = () => {
         if (snapshot?.type !== 'vm' || !snapshot?.prefs) {
             return;
         }
+        const previousPrefs = lastAppliedRuntimePrefs;
         folderTypePrefs = applyVmPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
         applyRuntimePrefs(folderTypePrefs);
+        if (previousPrefs && (
+            previousPrefs.hideEmptyFolders !== folderTypePrefs.hideEmptyFolders
+            || ['running', 'stopped'].some(key => previousPrefs.badges?.[key] !== folderTypePrefs.badges?.[key])
+        )) {
+            queueLoadlistRefresh();
+        }
     });
 };
 bindVmRuntimePreferenceSync();

@@ -2,6 +2,8 @@
   "page-title": ["^Docker page title"],
   "page-title-neighbors": ["^Basic custom groups", "^docker Dashboard folder effects"],
   "folder-badges": ["^Folder badges"],
+  "filter-view-fixes": ["^Filters and view settings", "^Docker view preferences", "^VM view preferences"],
+  "count-localization": ["^audited confirmations"],
   "settings-transfer": ["Docker folder menu", "^audited confirmations", "^complete localization boundaries", "^Shared UI primitives"],
   "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [

@@ -1138,6 +1138,11 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     line-height: 1.2;
 }
 
+#fv-settings-root #docker-status-warn-threshold-row .fv-setting-copy > small,
+#fv-settings-root #vm-status-warn-threshold-row .fv-setting-copy > small {
+    color: var(--fvplus-settings-text-primary);
+}
+
 .fv-view-settings-grid .setting-toggle {
     color: var(--fvplus-settings-text-primary);
     font-size: 11.5px;

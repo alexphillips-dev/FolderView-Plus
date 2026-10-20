@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Mappen die dit pictogram gebruiken: $1.",
     "common.counts.delete-backups": "Back-ups voor $1 definitief verwijderen (aantal: $2)? Dit kan niet ongedaan worden gemaakt.",
     "common.counts.delete-branch": "Mappen in deze tak definitief verwijderen (aantal: $1)? Dit kan niet ongedaan worden gemaakt.",
-    "common.counts.profile-applied": "Opgeslagen profiel toegepast. Bijgewerkte mappen: $1.",
+    "common.counts.profile-applied": "Opgeslagen profiel toegepast. Bijgewerkt: $1. Ongewijzigd: $2. Overgeslagen: $3.",
     "common.counts.folders-applied": "Bijgewerkte mappen: $1. Voor de update is een back-up gemaakt.",
     "common.counts.folders-to-delete": "Te verwijderen mappen: $1.",
     "common.counts.folders-imported": "Geïmporteerde mappen: $1. Bovenliggende map: $2.",

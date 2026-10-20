@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Mapes, kas izmanto šo ikonu: $1.",
     "common.counts.delete-backups": "Neatgriezeniski dzēst $1 dublējumkopijas (skaits: $2)? Šo darbību nevar atsaukt.",
     "common.counts.delete-branch": "Neatgriezeniski dzēst šī zara mapes (skaits: $1)? Šo darbību nevar atsaukt.",
-    "common.counts.profile-applied": "Saglabātais profils piemērots. Atjauninātās mapes: $1.",
+    "common.counts.profile-applied": "Lietots saglabātais profils. Atjaunināts: $1. Nemainīts: $2. Izlaists: $3.",
     "common.counts.folders-applied": "Atjauninātās mapes: $1. Pirms atjaunināšanas izveidota dublējumkopija.",
     "common.counts.folders-to-delete": "Dzēšamās mapes: $1.",
     "common.counts.folders-imported": "Importētās mapes: $1. Vecākmape: $2.",

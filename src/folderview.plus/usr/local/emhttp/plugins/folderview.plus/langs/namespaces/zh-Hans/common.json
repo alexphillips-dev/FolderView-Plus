@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "使用此图标的文件夹数：$1。",
     "common.counts.delete-backups": "永久删除 $1 的备份快照（数量：$2）？此操作无法撤销。",
     "common.counts.delete-branch": "永久删除此分支中的文件夹（数量：$1）？此操作无法撤销。",
-    "common.counts.profile-applied": "已应用保存的配置。更新的文件夹数：$1。",
+    "common.counts.profile-applied": "应用已保存的配置文件。更新：$1。不变：$2。跳过：$3。",
     "common.counts.folders-applied": "更新的文件夹数：$1。更新前已创建备份。",
     "common.counts.folders-to-delete": "要删除的文件夹数：$1。",
     "common.counts.folders-imported": "已导入的文件夹数：$1。父文件夹：$2。",

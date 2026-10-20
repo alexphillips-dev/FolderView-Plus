@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Bu simgeyi kullanan klasörler: $1.",
     "common.counts.delete-backups": "$1 yedek anlık görüntüleri kalıcı olarak silinsin mi (sayı: $2)? Bu işlem geri alınamaz.",
     "common.counts.delete-branch": "Bu daldaki klasörler kalıcı olarak silinsin mi (sayı: $1)? Bu işlem geri alınamaz.",
-    "common.counts.profile-applied": "Kaydedilen profil uygulandı. Güncellenen klasörler: $1.",
+    "common.counts.profile-applied": "Kaydedilen profil uygulandı. Güncellendi: $1. Değişmedi: $2. Atlandı: $3.",
     "common.counts.folders-applied": "Güncellenen klasörler: $1. Güncellemeden önce yedek oluşturuldu.",
     "common.counts.folders-to-delete": "Silinecek klasörler: $1.",
     "common.counts.folders-imported": "İçe aktarılan klasörler: $1. Üst klasör: $2.",

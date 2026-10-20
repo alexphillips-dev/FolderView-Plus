@@ -372,6 +372,21 @@ test('settings and dashboard layout commits reconcile without unrelated or stale
     assert.equal(serverPrefs.sortMode, 'manual');
 });
 
+test('coordinator coalesces saved default replacements without resurrecting removed settings', async () => {
+    const api = loadModule();
+    let current = { folderDefaults: { profile: { icon: 'fixture-icon', settings: { preview: 4, preview_rows: 3 }, actions: [] } },
+        dashboard: { privacyMaskNames: true }, _metadata: { prefsRevision: 1 } };
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs: value => value, debounceMs: 10,
+        writePrefs: async (_type, patch) => ({ prefs: (current = api.mergePatch(current, patch)) }) });
+    coordinator.reconcile('docker', current);
+    const clear = { sourceId: '', sourceName: '', profile: { icon: '', settings: {}, actions: [] } };
+    const smaller = { sourceId: 'other', sourceName: 'Other', profile: { icon: '', settings: { preview: 1 }, actions: [] } };
+    await Promise.all([coordinator.save('docker', { folderDefaults: clear }), coordinator.save('docker', { folderDefaults: smaller }),
+        coordinator.save('docker', { dashboard: { privacyMaskPorts: false } })]);
+    assert.deepEqual(JSON.parse(JSON.stringify(coordinator.getOptimisticPrefs('docker').folderDefaults)), smaller);
+    assert.deepEqual(JSON.parse(JSON.stringify(current.dashboard)), { privacyMaskNames: true, privacyMaskPorts: false });
+});
+
 test('merge patch preserves nested siblings and replaces arrays atomically', () => {
     const api = loadModule();
     const merged = api.mergePatch({

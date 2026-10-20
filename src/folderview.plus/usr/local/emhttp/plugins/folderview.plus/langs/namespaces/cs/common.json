@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Složky používající tuto ikonu: $1.",
     "common.counts.delete-backups": "Trvale odstranit snímky záloh pro $1 (počet: $2)? Tuto akci nelze vrátit zpět.",
     "common.counts.delete-branch": "Trvale odstranit složky v této větvi (počet: $1)? Tuto akci nelze vrátit zpět.",
-    "common.counts.profile-applied": "Uložený profil byl použit. Aktualizované složky: $1.",
+    "common.counts.profile-applied": "Byl použit uložený profil. Aktualizováno: $1. Beze změny: $2. Přeskočeno: $3.",
     "common.counts.folders-applied": "Aktualizované složky: $1. Před aktualizací byla vytvořena záloha.",
     "common.counts.folders-to-delete": "Složky k odstranění: $1.",
     "common.counts.folders-imported": "Importované složky: $1. Nadřazená složka: $2.",

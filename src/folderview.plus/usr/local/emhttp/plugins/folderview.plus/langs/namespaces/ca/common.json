@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Carpetes que utilitzen aquesta icona: $1.",
     "common.counts.delete-backups": "Voleu suprimir permanentment les còpies de seguretat de $1 (quantitat: $2)? Aquesta acció no es pot desfer.",
     "common.counts.delete-branch": "Voleu suprimir permanentment les carpetes d’aquesta branca (quantitat: $1)? Aquesta acció no es pot desfer.",
-    "common.counts.profile-applied": "S’ha aplicat el perfil desat. Carpetes actualitzades: $1.",
+    "common.counts.profile-applied": "S'ha aplicat el perfil desat. Actualitzat: $1. Sense canvis: $2. S'ha omès: $3.",
     "common.counts.folders-applied": "Carpetes actualitzades: $1. S’ha creat una còpia de seguretat abans de l’actualització.",
     "common.counts.folders-to-delete": "Carpetes que se suprimiran: $1.",
     "common.counts.folders-imported": "Carpetes importades: $1. Carpeta superior: $2.",

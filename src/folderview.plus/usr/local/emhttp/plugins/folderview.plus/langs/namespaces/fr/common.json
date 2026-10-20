@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Dossiers utilisant cette icône : $1.",
     "common.counts.delete-backups": "Supprimer définitivement les sauvegardes de $1 (nombre : $2) ? Cette action est irréversible.",
     "common.counts.delete-branch": "Supprimer définitivement les dossiers de cette branche (nombre : $1) ? Cette action est irréversible.",
-    "common.counts.profile-applied": "Profil enregistré appliqué. Dossiers mis à jour : $1.",
+    "common.counts.profile-applied": "Profil enregistré appliqué. Mise à jour : $1. Inchangé : $2. Ignoré : $3.",
     "common.counts.folders-applied": "Dossiers mis à jour : $1. Une sauvegarde a été créée avant la mise à jour.",
     "common.counts.folders-to-delete": "Dossiers à supprimer : $1.",
     "common.counts.folders-imported": "Dossiers importés : $1. Dossier parent : $2.",

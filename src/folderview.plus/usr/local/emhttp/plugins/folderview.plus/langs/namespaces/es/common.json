@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Carpetas que usan este icono: $1.",
     "common.counts.delete-backups": "¿Eliminar permanentemente las copias de seguridad de $1 (cantidad: $2)? Esta acción no se puede deshacer.",
     "common.counts.delete-branch": "¿Eliminar permanentemente las carpetas de esta rama (cantidad: $1)? Esta acción no se puede deshacer.",
-    "common.counts.profile-applied": "Perfil guardado aplicado. Carpetas actualizadas: $1.",
+    "common.counts.profile-applied": "Perfil guardado aplicado. Actualizado: $1. Sin cambios: $2. Omitido: $3.",
     "common.counts.folders-applied": "Carpetas actualizadas: $1. Se creó una copia de seguridad antes de la actualización.",
     "common.counts.folders-to-delete": "Carpetas que se eliminarán: $1.",
     "common.counts.folders-imported": "Carpetas importadas: $1. Carpeta superior: $2.",

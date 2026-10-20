@@ -7684,9 +7684,17 @@ const bindDockerRuntimePreferenceSync = () => {
         if (snapshot?.type !== 'docker' || !snapshot?.prefs) {
             return;
         }
+        const previousPrefs = lastAppliedRuntimePrefs;
         const nextPrefs = dockerHiddenFoldersApi.reconcilePrefs(applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs)));
         folderTypePrefs = nextPrefs;
         applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
+        if (previousPrefs && (
+            previousPrefs.hideEmptyFolders !== nextPrefs.hideEmptyFolders
+            || previousPrefs.pageViewMode !== nextPrefs.pageViewMode
+            || ['running', 'stopped', 'updates'].some(key => previousPrefs.badges?.[key] !== nextPrefs.badges?.[key])
+        )) {
+            queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-config-revision' });
+        }
     });
 };
 bindDockerRuntimePreferenceSync();

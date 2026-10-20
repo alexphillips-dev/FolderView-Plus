@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Mappar som använder den här ikonen: $1.",
     "common.counts.delete-backups": "Ta bort säkerhetskopior för $1 permanent (antal: $2)? Detta kan inte ångras.",
     "common.counts.delete-branch": "Ta bort mapparna i denna gren permanent (antal: $1)? Detta kan inte ångras.",
-    "common.counts.profile-applied": "Den sparade profilen har tillämpats. Uppdaterade mappar: $1.",
+    "common.counts.profile-applied": "Sparad profil tillämpas. Uppdaterad: $1. Oförändrat: $2. Hoppade över: $3.",
     "common.counts.folders-applied": "Uppdaterade mappar: $1. En säkerhetskopia skapades före uppdateringen.",
     "common.counts.folders-to-delete": "Mappar att ta bort: $1.",
     "common.counts.folders-imported": "Importerade mappar: $1. Överordnad mapp: $2.",

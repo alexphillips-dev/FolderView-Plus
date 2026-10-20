@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Pastas que utilizam este ícone: $1.",
     "common.counts.delete-backups": "Eliminar permanentemente as cópias de segurança de $1 (quantidade: $2)? Esta ação não pode ser anulada.",
     "common.counts.delete-branch": "Eliminar permanentemente as pastas deste ramo (quantidade: $1)? Esta ação não pode ser anulada.",
-    "common.counts.profile-applied": "Perfil guardado aplicado. Pastas atualizadas: $1.",
+    "common.counts.profile-applied": "Perfil salvo aplicado. Atualizado: $1. Inalterado: $2. Ignorado: $3.",
     "common.counts.folders-applied": "Pastas atualizadas: $1. Foi criada uma cópia de segurança antes da atualização.",
     "common.counts.folders-to-delete": "Pastas a eliminar: $1.",
     "common.counts.folders-imported": "Pastas importadas: $1. Pasta superior: $2.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Теки, що використовують цю піктограму: $1.",
     "common.counts.delete-backups": "Безповоротно видалити резервні знімки для $1 (кількість: $2)? Цю дію неможливо скасувати.",
     "common.counts.delete-branch": "Безповоротно видалити теки в цій гілці (кількість: $1)? Цю дію неможливо скасувати.",
-    "common.counts.profile-applied": "Збережений профіль застосовано. Оновлені теки: $1.",
+    "common.counts.profile-applied": "Збережений профіль застосовано. Оновлено: $1. Без змін: $2. Пропущено: $3.",
     "common.counts.folders-applied": "Оновлені теки: $1. Перед оновленням створено резервну копію.",
     "common.counts.folders-to-delete": "Теки для видалення: $1.",
     "common.counts.folders-imported": "Імпортовані теки: $1. Батьківська тека: $2.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Папки, использующие этот значок: $1.",
     "common.counts.delete-backups": "Безвозвратно удалить резервные снимки для $1 (количество: $2)? Это действие нельзя отменить.",
     "common.counts.delete-branch": "Безвозвратно удалить папки в этой ветви (количество: $1)? Это действие нельзя отменить.",
-    "common.counts.profile-applied": "Сохранённый профиль применён. Обновлённые папки: $1.",
+    "common.counts.profile-applied": "Сохраненный профиль применен. Обновлено: $1. Без изменений: $2. Пропущено: $3.",
     "common.counts.folders-applied": "Обновлённые папки: $1. Перед обновлением создана резервная копия.",
     "common.counts.folders-to-delete": "Папки для удаления: $1.",
     "common.counts.folders-imported": "Импортированные папки: $1. Родительская папка: $2.",

@@ -26,6 +26,7 @@ export const createDockerHideEmptyHost = async (page, deep = false) => {
     const hostScript = fs.readFileSync('tests/browser/fixtures/production-performance-host.js', 'utf8')
         .replace('window.loadlist = () => window.listview();', `const nativeRows = document.getElementById('docker_list').innerHTML;
 window.loadlist = () => {
+    window.fixtureNativeRefreshCount = (window.fixtureNativeRefreshCount || 0) + 1;
     const list = document.getElementById('docker_list');
     list.innerHTML = nativeRows;
     return window.listview();

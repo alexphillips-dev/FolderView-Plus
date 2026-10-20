@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "이 아이콘을 사용하는 폴더 수: $1.",
     "common.counts.delete-backups": "$1 백업 스냅샷을 영구 삭제하시겠습니까(개수: $2)? 이 작업은 취소할 수 없습니다.",
     "common.counts.delete-branch": "이 분기의 폴더를 영구 삭제하시겠습니까(개수: $1)? 이 작업은 취소할 수 없습니다.",
-    "common.counts.profile-applied": "저장된 프로필을 적용했습니다. 업데이트한 폴더 수: $1.",
+    "common.counts.profile-applied": "저장된 프로필이 적용되었습니다. 업데이트됨: $1. 변경되지 않음: $2. 건너뛴 항목: $3.",
     "common.counts.folders-applied": "업데이트한 폴더 수: $1. 업데이트 전에 백업을 만들었습니다.",
     "common.counts.folders-to-delete": "삭제할 폴더 수: $1.",
     "common.counts.folders-imported": "가져온 폴더 수: $1. 상위 폴더: $2.",

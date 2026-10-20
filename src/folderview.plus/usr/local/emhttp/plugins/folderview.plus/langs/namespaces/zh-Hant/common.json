@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "使用此圖示的資料夾數：$1。",
     "common.counts.delete-backups": "永久刪除 $1 的備份快照（數量：$2）？此操作無法復原。",
     "common.counts.delete-branch": "永久刪除此分支中的資料夾（數量：$1）？此操作無法復原。",
-    "common.counts.profile-applied": "已套用儲存的設定檔。更新的資料夾數：$1。",
+    "common.counts.profile-applied": "套用已儲存的設定檔。更新：$1。不變：$2。跳過：$3。",
     "common.counts.folders-applied": "更新的資料夾數：$1。更新前已建立備份。",
     "common.counts.folders-to-delete": "要刪除的資料夾數：$1。",
     "common.counts.folders-imported": "已匯入的資料夾數：$1。父資料夾：$2。",

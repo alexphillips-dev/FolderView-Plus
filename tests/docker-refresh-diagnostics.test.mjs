@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import fs from 'node:fs';
 import test from 'node:test';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -35,6 +36,21 @@ const createHarness = () => {
         persisted: () => JSON.parse(records.get(diagnostics.STORAGE_KEY) || '{}')
     };
 };
+
+test('Docker reload call sites use registered diagnostic reasons instead of creating unknown-host warnings', () => {
+    const source = fs.readFileSync(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'), 'utf8');
+    const sources = new Set([...source.matchAll(/reloadSource:\s*'([^']+)'/g)].map(match => match[1]));
+    assert.ok(sources.has('plugin-config-revision'));
+    for (const source of sources) {
+        const harness = createHarness();
+        const tracker = diagnostics.createTracker({ window: harness.window, storage: harness.storage, now: harness.now });
+        tracker.markReloadSource(source);
+        tracker.record('loadlist');
+        assert.equal(tracker.snapshot().reloadSources[source], 1, source);
+        assert.equal(tracker.snapshot().reloadSources['unknown-host-caller'], 0, source);
+        tracker.dispose();
+    }
+});
 
 test('refresh diagnostics classifies recurring full reloads without persisting runtime identities', () => {
     const harness = createHarness();

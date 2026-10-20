@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "a0dd2557a712360ddab00b2b1e476a8d7a5d32289398e351afeeca357d3b65a1"
+        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -125,7 +125,7 @@
     "common.counts.icon-references": "Mapper som bruker dette ikonet: $1.",
     "common.counts.delete-backups": "Slett sikkerhetskopier for $1 permanent (antall: $2)? Dette kan ikke angres.",
     "common.counts.delete-branch": "Slett mappene i denne grenen permanent (antall: $1)? Dette kan ikke angres.",
-    "common.counts.profile-applied": "Lagret profil er brukt. Oppdaterte mapper: $1.",
+    "common.counts.profile-applied": "Lagret profil brukt. Oppdatert: $1. Uendret: $2. Hoppet over: $3.",
     "common.counts.folders-applied": "Oppdaterte mapper: $1. En sikkerhetskopi ble opprettet før oppdateringen.",
     "common.counts.folders-to-delete": "Mapper som skal slettes: $1.",
     "common.counts.folders-imported": "Importerte mapper: $1. Overordnet mappe: $2.",

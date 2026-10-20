@@ -243,17 +243,13 @@
             previewGraphTime: clampNumber(incomingDashboard.previewGraphTime, 5, 600, DEFAULT_DASHBOARD_PREFS.previewGraphTime)
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
+        const warnStoppedPercent = clampNumber(incomingHealth.warnStoppedPercent, 0, 100, DEFAULT_HEALTH_PREFS.warnStoppedPercent);
         const health = {
             cardsEnabled: !Object.prototype.hasOwnProperty.call(incomingHealth, 'cardsEnabled')
                 ? DEFAULT_HEALTH_PREFS.cardsEnabled
                 : incomingHealth.cardsEnabled !== false,
             runtimeBadgeEnabled: incomingHealth.runtimeBadgeEnabled === true,
-            warnStoppedPercent: clampNumber(
-                incomingHealth.warnStoppedPercent,
-                0,
-                100,
-                DEFAULT_HEALTH_PREFS.warnStoppedPercent
-            ),
+            warnStoppedPercent,
             criticalStoppedPercent: clampNumber(
                 incomingHealth.criticalStoppedPercent,
                 0,
@@ -288,6 +284,7 @@
                 DEFAULT_HEALTH_PREFS.vmResourceCriticalGiB
             )
         };
+        health.criticalStoppedPercent = Math.min(100, Math.max(health.criticalStoppedPercent, health.warnStoppedPercent + 5));
         if (health.vmResourceCriticalVcpus <= health.vmResourceWarnVcpus) {
             health.vmResourceWarnVcpus = Math.min(511, health.vmResourceWarnVcpus);
             health.vmResourceCriticalVcpus = Math.min(512, health.vmResourceWarnVcpus + 1);

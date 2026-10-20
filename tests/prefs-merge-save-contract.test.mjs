@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { runConfigWriteFixture } from './helpers/config-write-fixture.mjs';
 
 test('a rejected preference save preserves patch state and the revision used for retry', () => {
@@ -18,6 +19,10 @@ test('a rejected preference save preserves patch state and the revision used for
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
+const require = createRequire(import.meta.url);
+const prefsStore = require(path.join(pluginRoot, 'scripts/folderviewplus.prefs-store.js'));
+const folderDefaults = require(path.join(pluginRoot, 'scripts/folder.editor.defaults.js'));
+const utils = require(path.join(pluginRoot, 'scripts/folderviewplus.utils.js'));
 const libPath = path.join(pluginRoot, 'server/lib.php');
 const prefsEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/prefs.php'), 'utf8');
 const phpQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
@@ -85,6 +90,82 @@ const runHarness = (source = buildHarness()) => {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 };
+
+test('saved defaults replace and clear through client patches, PHP persistence and new-folder inheritance', () => {
+    const initial = { sourceId: 'source', sourceName: 'Source', profile: {
+        icon: '/plugins/folderview.plus/images/folder-icon.png', settings: { preview: 4, preview_rows: 3 },
+        actions: [{ name: 'Fixture action', type: 1, command: 'echo fixture' }]
+    } };
+    const smaller = { sourceId: 'other', sourceName: 'Other', profile: { icon: '', settings: { preview: 1 }, actions: [] } };
+    const empty = { sourceId: '', sourceName: '', profile: { icon: '', settings: {}, actions: [] } };
+    const baseline = { folderDefaults: initial, dashboard: { privacyMaskNames: true, privacyMaskPorts: true } };
+    const replacement = prefsStore.cleanPatch({ folderDefaults: smaller }, baseline);
+    const clear = prefsStore.cleanPatch({ folderDefaults: empty }, baseline);
+    assert.deepEqual(prefsStore.mergePatch(baseline, replacement).folderDefaults, smaller);
+    assert.deepEqual(prefsStore.mergePatch(baseline, clear).folderDefaults, empty);
+    assert.deepEqual(prefsStore.cleanPatch({ ...baseline, dashboard: { ...baseline.dashboard, privacyMaskPorts: false } }, baseline),
+        { dashboard: { privacyMaskPorts: false } }, 'unmodified profiles must stay out of unrelated broad writes');
+    const result = runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+require_once ${phpQuote(libPath)};
+$initial = json_decode(${phpQuote(JSON.stringify(initial))}, true);
+$patches = json_decode(${phpQuote(JSON.stringify([replacement, clear]))}, true);
+$result = [];
+foreach (['docker', 'vm'] as $type) {
+    $prefs = defaultTypePrefs();
+    $prefs['folderDefaults'] = $initial;
+    $prefs['dashboard']['privacyMaskNames'] = false;
+    writeTypePrefs($type, $prefs);
+    $result[$type][] = ['prefs' => readTypePrefs($type)];
+    foreach ($patches as $patch) {
+        $before = readConfigMetadata($type, false);
+        writeTypePrefs($type, mergeTypePrefsPatch(readTypePrefs($type), $patch));
+        $saved = readTypePrefs($type);
+        $after = readConfigMetadata($type, false);
+        $result[$type][] = ['prefs' => $saved, 'before' => $before, 'after' => $after];
+    }
+}
+echo json_encode($result, JSON_UNESCAPED_SLASHES);`);
+    for (const type of ['docker', 'vm']) {
+        const [original, replaced, cleared] = result[type];
+        assert.equal(folderDefaults.readProfile(original.prefs).folder.actions.length, 1);
+        assert.equal(original.prefs.folderDefaults.profile.settings.preview_rows, 3);
+        assert.equal(original.prefs.folderDefaults.profile.icon, initial.profile.icon);
+        assert.equal(replaced.prefs.folderDefaults.profile.settings.preview, 1);
+        assert.equal(replaced.prefs.folderDefaults.profile.settings.preview_rows, undefined);
+        assert.equal(replaced.prefs.folderDefaults.profile.actions.length, 0);
+        assert.equal(folderDefaults.readProfile(replaced.prefs).folder.settings.preview, 1);
+        assert.equal(folderDefaults.readProfile(cleared.prefs), null);
+        assert.equal(Object.keys(cleared.prefs.folderDefaults.profile.settings).length, 0);
+        for (const step of [replaced, cleared]) {
+            assert.equal(step.prefs.dashboard.privacyMaskNames, false);
+            assert.equal(step.after.prefsRevision, step.before.prefsRevision + 1);
+            assert.equal(step.after.folderRevision, step.before.folderRevision);
+        }
+    }
+});
+
+test('health threshold pairs preserve zero and agree after JavaScript and PHP reload normalization', () => {
+    const cases = [[0, 90, 0, 90], [0, 0, 0, 5], [60, 20, 60, 65], [95, 10, 95, 100], [100, 0, 100, 100],
+        [-20, 150, 0, 100], ['invalid', 'invalid', 60, 90]];
+    const saved = runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+require_once ${phpQuote(libPath)};
+$cases = json_decode(${phpQuote(JSON.stringify(cases))}, true);
+$result = [];
+foreach ($cases as $case) {
+    writeTypePrefs('docker', ['health' => ['warnStoppedPercent' => $case[0], 'criticalStoppedPercent' => $case[1]]]);
+    $result[] = readTypePrefs('docker')['health'];
+}
+echo json_encode($result);`);
+    cases.forEach(([warn, critical, expectedWarn, expectedCritical], index) => {
+        const client = utils.normalizePrefs({ health: { warnStoppedPercent: warn, criticalStoppedPercent: critical } }).health;
+        assert.equal(client.warnStoppedPercent, expectedWarn);
+        assert.equal(client.criticalStoppedPercent, expectedCritical);
+        assert.equal(saved[index].warnStoppedPercent, expectedWarn);
+        assert.equal(saved[index].criticalStoppedPercent, expectedCritical);
+    });
+});
 
 test('server enables stopped badges once on upgrade and preserves later opt-outs through saves and reloads', () => {
     const cases = [{}, { badges: {} }, { badges: { running: false } }, { badges: { stopped: false } },

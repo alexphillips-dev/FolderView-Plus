@@ -5,18 +5,35 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.02">
-<!ENTITY md5 "8166a0768aa634d8e899b064bf769e8f">
-<!ENTITY sha256 "96fd02380a1ea4632cae005e4ef43ae50159852814bd4e044e2b4bf757db7610">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.20.03">
+<!ENTITY md5 "856f661f37af3923ace6b28c610676af">
+<!ENTITY sha256 "1c66fd199de03d697d033f4cf231bd4ff9a06304cff97bde46467c3c69565104">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.03
+- Feature: Add an optional Docker page title at the far left above containers, disabled by default with "Change Me!" as its initial text. Configure text, size, color, bold, italic, underline, and strikethrough from Basic > Docker > Filters and view settings > Layout without moving the right-side controls.
+- UI/UX: Offer 22 title fonts with compact previews, keyboard navigation, and touch-friendly choices. Eighteen bundled fonts load from the Unraid host without external font-service requests; Privacy name masking also hides the custom title.
+- Feature: Expand Docker folders' Clone menu with an empty settings-only clone and category-based Copy/Paste for appearance, layout and previews, behavior, custom actions, or all portable settings. Add unique copy-name suggestions, clipboard source/time/details, clearing, and brief copy notifications.
+- Reliability: Preview real settings-paste changes, preserve unrelated settings and member-specific configuration, create safety snapshots for changes, reject stale reviews, and skip identical pastes without new backups or configuration writes.
+- Performance: Keep hourly scheduled backup checks enabled by default while saving a new snapshot only when folders or saved preferences differ from the latest usable backup. Preserve custom schedules, manual backups, safety checkpoints, and older recovery points when a check is skipped.
+- Diagnostics: Explain unchanged and empty scheduled checks with a Skipped log status, retained backup time when available, and the configured interval. Keep routine scheduler bookkeeping in server memory to reduce USB writes; server check history resets at restart while backup files remain saved.
+- UI/UX: Enlarge Recovery history badges, keep selected-backup actions together, increase Logs text size, show localized dates and times, and enlarge Basic settings count icons.
+- Fix: Enable Running, Stopped, and Docker Updates badges by default and keep status icons consistent during initial rendering, nested aggregation, and live changes. Enable Stopped once for existing Docker and VM configurations on the first preference load after updating; users may disable it again afterward. Preserve existing Running and Updates choices.
+- Fix: Clearing or replacing Docker/VM folder defaults removes the previous saved profile instead of retaining omitted settings. Apply to all reports accurate updated, unchanged, and skipped counts, including zero updates.
+- Fix: Honor a Docker health warning threshold of zero and keep displayed and saved warning/critical thresholds consistent with scoring. Preserve per-folder overrides and keep Dashboard graph None selected after reopening Settings.
+- Fix: Refresh already-open Docker/VM views after badge or empty-folder visibility changes, and Docker after page-view changes, including changes from another tab. Preserve native rows and folder expansion.
+- Accessibility: Improve status-warning helper-text contrast in light themes and retain responsive, keyboard, and touch behavior across the changed controls.
+- Security: Refresh the pinned security-scanning actions and validation tooling dependencies.
+- Compatibility: Hard-refresh the Unraid webGUI after updating, then verify Settings, Docker, VMs, and Dashboard. Normal updates preserve configuration, backups, and saved customizations.
+
 
 ###2026.10.20.02
 - Fix: Clearing Docker or VM folder defaults now removes the entire saved profile so new folders stop inheriting it. Saving a different profile also removes settings that are absent from the replacement.
@@ -9835,7 +9852,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

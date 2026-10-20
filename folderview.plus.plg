@@ -5,18 +5,25 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.10.20.07">
-<!ENTITY md5 "871aa27416cb0b0f018dd72695d14de4">
-<!ENTITY sha256 "60bf83e36811d3e901aabe4b3f0d2dc0e46f687f79e1424792462e1405486300">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.10.20.08">
+<!ENTITY md5 "20974e654e6df3c5915b248d03c77645">
+<!ENTITY sha256 "4b118735f67b3e99f294266c06381608de3f0cd659381b0a844000216f4122a5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.20.08
+- Fix: Keep numeric entries in Filters and view settings intact while background table refreshes or earlier preference saves finish. Docker and VM warning/resource thresholds, refresh intervals, deferred-preview limits, and graph duration retain edits until committed.
+- Reliability: Paired sliders continue to follow the numeric entry; committed values still accept server normalization and failed-save recovery. Leaving Settings removes the draft tracking and event handlers.
+- Quality: Add a regression that reproduces the interrupted edit, plus Docker/VM persistence, slider, normalization, and cleanup checks across browser engines.
+- Compatibility: Refresh cached webGUI assets after updating. Saved settings and backup files are retained.
+
 
 ###2026.10.20.07
 - Feature: Personalize the left side of the Docker toolbar with an optional heading. Enable it in Basic > Docker > Filters and view settings > Layout, then edit the initial "Change Me!" text, 14–48 px size, font, color, and Bold, Italic, Underline, or Strikethrough formatting. The title defaults to off and leaves the right-side controls in place.
@@ -9919,7 +9926,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

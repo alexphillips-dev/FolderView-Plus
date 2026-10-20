@@ -27,6 +27,10 @@ export const createPageTitleHost = async (page, nativeToolbar = true) => {
     });
     await page.addInitScript(nativeToolbar => document.addEventListener('DOMContentLoaded', () => {
         if (!window.display) return;
+        // Native control typography: unraid/webgui's dynamix/styles/default-base.css.
+        const typography = document.createElement('style');
+        typography.textContent = 'input[type="text"]{font-family:inherit;font-size:13px}button{font-family:inherit;font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase}';
+        document.head.prepend(typography);
         const dark = matchMedia('(prefers-color-scheme: dark)').matches;
         window.display.theme = dark ? 'black' : 'white';
         document.body.style.backgroundColor = dark ? '#1d1d1f' : '#f5f6f8';

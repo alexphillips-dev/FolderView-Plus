@@ -83,6 +83,7 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
             await page.locator('#docker-dashboard-preview-context').selectOption('advanced');
             await page.locator('#docker-dashboard-preview-graph').selectOption('0');
             await waitFor(page, () => host.prefs('docker').dashboard.previewGraph === 0, 'None persisted');
+            await page.waitForLoadState('networkidle');
             assert.equal(await page.locator('#docker-dashboard-preview-graph').inputValue(), '0');
             const warn = page.locator('#docker-health-warn-threshold'), critical = page.locator('#docker-health-critical-threshold');
             await warn.fill('0'); await warn.press('Tab');

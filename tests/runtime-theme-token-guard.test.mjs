@@ -32,10 +32,10 @@ const sharedRuntimeModule = require(path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'
 ));
 const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
-const themeSurfaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js');
+const themeSurfaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-host.js');
 const themeSurfaceModule = require(path.join(
     repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-surface.js'
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-host.js'
 ));
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');

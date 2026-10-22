@@ -28,11 +28,10 @@ const installHost = async (page, baseUrl, root = 'body') => {
     // Native Unraid button skins remain present when an external theme is removed.
     await page.addStyleTag({ content: 'button { background-color:#242426; color:inherit; }' });
     await page.addStyleTag({ content: hostCss }).then(style => style.evaluate(node => { node.id = 'fixture-host-css'; }));
-    for (const name of ['folderviewplus.theme-host', 'folderviewplus.theme-surface', 'folderviewplus.theme-resolver']) {
+    for (const name of ['folderviewplus.theme-host', 'folderviewplus.theme-resolver']) {
         const present = await page.evaluate(name => name.endsWith('host')
             ? !!window.FolderViewPlusFoundationModules?.themeHost
-            : name.endsWith('surface') ? !!window.FolderViewPlusFoundationModules?.themeSurface
-                : !!window.FolderViewPlusThemeResolver, name);
+            : !!window.FolderViewPlusThemeResolver, name);
         if (!present) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
     }
     await page.evaluate(root => {

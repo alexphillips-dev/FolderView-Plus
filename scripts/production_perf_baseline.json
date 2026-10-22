@@ -18,9 +18,9 @@
         "longestFrameGapMs": 116.7,
         "mutationCallbacks": 109,
         "mutationRecords": 4824,
-        "domNodes": 3302,
-        "requests": 116,
-        "scriptRequests": 91,
+        "domNodes": 3303,
+        "requests": 117,
+        "scriptRequests": 92,
         "transferBytes": 3343990
       }
     },
@@ -39,9 +39,9 @@
         "longestFrameGapMs": 116.7,
         "mutationCallbacks": 109,
         "mutationRecords": 4824,
-        "domNodes": 3302,
-        "requests": 116,
-        "scriptRequests": 91,
+        "domNodes": 3303,
+        "requests": 117,
+        "scriptRequests": 92,
         "transferBytes": 56896
       }
     },
@@ -270,9 +270,9 @@
         "longestFrameGapMs": 133.3,
         "mutationCallbacks": 108,
         "mutationRecords": 4836,
-        "domNodes": 3302,
-        "requests": 123,
-        "scriptRequests": 91,
+        "domNodes": 3303,
+        "requests": 124,
+        "scriptRequests": 92,
         "transferBytes": 3763212
       }
     },
@@ -291,9 +291,9 @@
         "longestFrameGapMs": 133.3,
         "mutationCallbacks": 109,
         "mutationRecords": 4815,
-        "domNodes": 3302,
-        "requests": 123,
-        "scriptRequests": 91,
+        "domNodes": 3303,
+        "requests": 124,
+        "scriptRequests": 92,
         "transferBytes": 56896
       }
     },

@@ -1722,6 +1722,19 @@
       "exports": ["SCOPES", "defaultProfile", "normalizeLayer", "normalizeProfile", "normalizeState", "getActiveProfile", "resolveLayer"]
     },
     {
+      "file": "scripts/folderviewplus.theme-host.js",
+      "owner": "shared-host-theme-palette",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "themeHost",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["readPalette", "buildTokenMap", "adaptPalette", "editorTokens"]
+    },
+    {
       "file": "scripts/folderviewplus.theme-surface.js",
       "owner": "shared-theme-surface",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],

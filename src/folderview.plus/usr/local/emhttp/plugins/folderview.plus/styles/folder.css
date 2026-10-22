@@ -5979,3 +5979,36 @@ body.fv-editing-defaults .fv-modern-field-row:has([name="webui_profiles"]),
 body.fv-editing-defaults .fv-editor-panel[data-editor-panel="parent"] {
     display: none !important;
 }
+
+/* Host palettes take precedence over the editor's fallback light/dark chrome, including
+   detached action dialogs and icon pickers. Explicit element color overrides still win. */
+body[data-fv-theme-source="host"] :is(
+    .fv-folder-action-dialog.ui-dialog, .ui-multiselect-menu.multiselect-container,
+    .canvas form.folder-editor-form, .fv-icon-browser, #fvEditorChrome, #fvLivePanel, #fvEditorActionBar
+) {
+    --fv-editor-bg: var(--fvplus-editor-bg);
+    --fv-editor-panel: var(--fvplus-editor-panel);
+    --fv-editor-border: var(--fvplus-editor-border);
+    --fv-editor-border-strong: var(--fvplus-editor-border-strong);
+    --fv-editor-text-primary: var(--fvplus-editor-text-primary);
+    --fv-editor-muted: var(--fvplus-editor-muted);
+    --fv-editor-dim: var(--fvplus-editor-dim);
+    --fv-editor-accent: var(--fvplus-editor-accent);
+    --fv-editor-accent-soft: var(--fvplus-editor-accent-soft);
+    --fv-editor-control-surface: var(--fvplus-editor-control-surface);
+    --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover);
+    --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active);
+    --fv-editor-input-bg: var(--fvplus-editor-input-bg);
+    --fv-editor-inset-surface: var(--fvplus-editor-inset-surface);
+    --fv-editor-button-bg-top: var(--fvplus-ui-control);
+    --fv-editor-button-bg-bottom: var(--fvplus-ui-control);
+    --fv-editor-button-hover-top: var(--fvplus-ui-control-hover);
+    --fv-editor-button-hover-bottom: var(--fvplus-ui-control-hover);
+    --fv-editor-button-active-top: var(--fvplus-ui-control-active);
+    --fv-editor-button-active-bottom: var(--fvplus-ui-control-active);
+    --fv-editor-button-accent-fg: var(--fvplus-ui-text-primary);
+    --fv-editor-button-accent-top: var(--fvplus-ui-control-active);
+    --fv-editor-button-accent-bottom: var(--fvplus-ui-control-active);
+    --fv-editor-button-shadow-active: inset 0 0 0 1px var(--fvplus-ui-accent-soft);
+    --fv-editor-button-accent-shadow: inset 0 0 0 1px var(--fvplus-ui-accent-soft);
+}

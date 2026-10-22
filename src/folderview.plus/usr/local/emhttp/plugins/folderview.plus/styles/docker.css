@@ -1592,9 +1592,9 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    border: 1px solid rgba(128, 128, 128, 0.48) !important;
-    border-radius: 5px !important;
-    background: rgba(128, 128, 128, 0.08) !important;
+    border: 1px solid var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.48)) !important;
+    border-radius: var(--fvplus-ui-control-radius, 5px) !important;
+    background: var(--fvplus-ui-control, rgba(128, 128, 128, 0.08)) !important;
     color: inherit !important;
     font: inherit;
     font-size: 1.05rem !important;
@@ -1609,16 +1609,16 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 
 .fvplus-docker-action-button:hover,
 .fvplus-docker-action-button:focus-visible {
-    border-color: rgba(255, 154, 60, 0.72) !important;
-    background: rgba(255, 154, 60, 0.1) !important;
-    color: #ff9a3c !important;
+    border-color: var(--fvplus-theme-accent, #ff9a3c) !important;
+    background: var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.1)) !important;
+    color: var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c)) !important;
     outline: none;
 }
 
 .fvplus-docker-action-button.is-active {
-    border-color: rgba(255, 154, 60, 0.76) !important;
-    background: rgba(255, 154, 60, 0.14) !important;
-    color: #ff9a3c !important;
+    border-color: var(--fvplus-theme-accent, #ff9a3c) !important;
+    background: var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.14)) !important;
+    color: var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c)) !important;
 }
 
 .fvplus-docker-action-button:disabled,
@@ -1710,8 +1710,8 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 .fvplus-docker-action-menu-item:hover,
 .fvplus-docker-action-menu-item:focus-visible,
 .fvplus-docker-action-menu-item.is-selected {
-    background: rgba(255, 154, 60, 0.12) !important;
-    color: #ff9a3c !important;
+    background: var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.12)) !important;
+    color: var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c)) !important;
     outline: none;
 }
 

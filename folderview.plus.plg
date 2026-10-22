@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.20.10">
-<!ENTITY md5 "c864fb905a5df1b201ca15fd0b76e61e">
-<!ENTITY sha256 "a645c01aacd642b21c37a3d53d476a522a18b8cddf05c659f07a544ef4e7e0e6">
+<!ENTITY version "2026.10.22.01">
+<!ENTITY md5 "8d20a9dcbc4b815fa55d4d994caf315e">
+<!ENTITY sha256 "90f2f7a96544716b5573fb62d78d4bac7540580e435f1da2e170ab73c7b60aec">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.01
+- Feature: In Auto and Host theme modes, inherit supported active-theme colors, surfaces, borders, and button shapes across Docker controls, Settings, Dashboard actions, and the folder editor. Modern theme colors take precedence over stale native-theme metadata.
+- Accessibility: Keep control labels readable with custom accents and support modern CSS color formats. Safe and High Contrast modes remain available, and explicit folder status colors are preserved.
+- Compatibility: Document the theme integration contract for Aurora and other theme authors. Aurora v2026.10.21.2202 still requires an upstream change to its Docker page enhancements; this update does not correct its container-row reparenting or compact grid. Disable Aurora Page enhancements while retaining its colors and fonts until that integration is available.
+- Quality: Add browser coverage for theme changes, menu focus, desktop and mobile controls, detached editor dialogs, theme removal, and safety-mode round trips.
+- Compatibility: Hard-refresh the webGUI after updating. Saved settings, folder membership, and backup formats are retained.
+
 
 ###2026.10.20.10
 - Fix: Preserve keyboard focus on the Docker toolbar when background status or preference refreshes rebuild its controls. View and Tools menus remain usable through consecutive actions, including showing and hiding empty folders.

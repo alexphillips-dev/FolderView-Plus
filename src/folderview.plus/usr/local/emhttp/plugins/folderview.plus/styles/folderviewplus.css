@@ -13005,7 +13005,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
     box-sizing: border-box !important;
     border: 1px solid var(--fvplus-settings-button-outline) !important;
-    border-radius: 8px !important;
+    border-radius: var(--fvplus-ui-control-radius, 8px) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;

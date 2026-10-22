@@ -32,6 +32,9 @@ Disable a file without deleting it:
 - `mytheme.docker.css.disabled`
 
 ## Runtime Theme Tokens
+
+Auto and Host compatibility modes can follow the active webGUI theme without a custom override file. The resolver reads modern host color variables and updates FolderView Plus controls, menus and surfaces when theme classes/styles change. Safe and High Contrast modes keep fallback palettes; explicit per-folder status colors are retained. See [Host Palette Inputs](THEME_API_CONTRACT.md#host-palette-inputs) for supported inputs and [Compatibility](COMPATIBILITY.md#custom-themes) for Aurora's current layout restriction.
+
 Primary runtime tokens:
 
 - `--fvplus-status-started`

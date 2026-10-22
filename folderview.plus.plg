@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.01">
-<!ENTITY md5 "8d20a9dcbc4b815fa55d4d994caf315e">
-<!ENTITY sha256 "90f2f7a96544716b5573fb62d78d4bac7540580e435f1da2e170ab73c7b60aec">
+<!ENTITY version "2026.10.22.02">
+<!ENTITY md5 "9d58abe24a69636c8bae388ecbe82fe8">
+<!ENTITY sha256 "f7d8fe37a9ed897736df41dd2d0cef7c20d7d5b0b3ba8b5d7f64b84c8de3d39c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.02
+- Fix: Match the Docker folder toolbar to Aurora's native action buttons with the same text size, font, and padding. Apply the sizing to Add Folder, expand/collapse, filters, Manage Folders, View, and Tools, with counters kept inside the matching button height.
+- Compatibility: Apply the sizing while Aurora's colors and fonts stylesheet is loaded, and restore the standard toolbar sizing when it is removed. Existing mobile wrapping and theme colors remain available.
+- Quality: Compare rendered toolbar controls with native input and button controls across browsers, light/dark themes, root text sizes, and desktop/mobile widths; check native clicks, menu focus, and theme removal.
+
 
 ###2026.10.22.01
 - Feature: In Auto and Host theme modes, inherit supported active-theme colors, surfaces, borders, and button shapes across Docker controls, Settings, Dashboard actions, and the folder editor. Modern theme colors take precedence over stale native-theme metadata.

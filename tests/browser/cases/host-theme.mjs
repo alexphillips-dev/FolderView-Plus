@@ -98,6 +98,77 @@ test('Host theme Docker controls follow dark light and custom accents without mo
         ['media', 'plex', 'sonarr', 'updates', 'toolbox', 'empty', 'orphan']);
 });
 
+test('Host theme Aurora Docker toolbar matches native action sizing and restores its fallback', async ({ page }) => {
+    await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
+    for (const name of ['ui.primitives', 'ui.host-buttons']) {
+        const style = await page.addStyleTag({ url: `${baseUrl}/plugin/styles/${name}.css` });
+        await style.evaluate(node => document.querySelector('link[href*="styles/docker.css"]').before(node));
+    }
+    await page.addStyleTag({ content: 'html { font-size:10px; }' });
+    await installHost(page, baseUrl);
+    await page.evaluate(() => { document.getElementById('fixture-external-url').style.color = 'var(--link-text-color)'; });
+    const fallback = await page.locator('.fvplus-docker-action-button').first().evaluate(node => ({
+        padding: getComputedStyle(node).padding, fontSize: getComputedStyle(node).fontSize
+    }));
+    // Native button geometry from Aurora v2026.10.21.2202, without its Docker enhancer.
+    await page.route('**/plugins/Aurora-Theme/styles/theme.css*', route => route.fulfill({
+        contentType: 'text/css', body: `
+            :root { --tp-font-heading:Arial,sans-serif; }
+            button, input[type="button"] { padding:8px 16px; font-family:var(--tp-font-heading);
+                border:1px solid var(--border-color); border-radius:var(--tp-r-full);
+                font-size:1.2rem; font-weight:600; line-height:normal; letter-spacing:0; text-transform:none; }
+        `
+    }));
+    await page.evaluate(() => {
+        const link = document.createElement('link');
+        link.id = 'fixture-aurora-sizing'; link.rel = 'stylesheet';
+        link.href = '/plugins/Aurora-Theme/styles/theme.css?v=fixture'; document.head.append(link);
+        document.querySelector('.fvplus-docker-action-bar').insertAdjacentHTML('afterend',
+            '<div id="fixture-native-actions"><input type="button" value="Add Container"><button type="button">Start All</button></div>');
+        window.fixtureNativeActionClicks = 0;
+        document.querySelectorAll('#fixture-native-actions > *').forEach(node => {
+            node.addEventListener('click', () => window.fixtureNativeActionClicks++);
+        });
+    });
+    await page.waitForFunction(() => document.getElementById('fixture-aurora-sizing').sheet);
+    for (const rootSize of ['10px', '12px']) for (const light of [false, true]) {
+        await page.evaluate(size => { document.documentElement.style.fontSize = size; }, rootSize);
+        await switchHost(page, light);
+        await page.click('[data-fvplus-docker-action="filter-empty"]');
+        const metrics = await page.evaluate(() => {
+            const measure = node => {
+                const style = getComputedStyle(node), box = node.getBoundingClientRect();
+                return { label: node.value || node.textContent.trim(), height: box.height,
+                    padding: style.padding, fontSize: style.fontSize, fontFamily: style.fontFamily };
+            };
+            const native = [...document.querySelectorAll('#fixture-native-actions > *')].map(measure);
+            return { host: native[0], native,
+                own: [...document.querySelectorAll('.fvplus-docker-action-button')].map(measure) };
+        });
+        for (const native of metrics.native) assert.ok(Math.abs(native.height - metrics.host.height) <= 1);
+        assert.equal(metrics.own.length, 10);
+        for (const button of metrics.own) {
+            assert.ok(Math.abs(button.height - metrics.host.height) <= 1, `${button.label}: ${JSON.stringify(metrics)}`);
+            assert.equal(button.padding, metrics.host.padding);
+            assert.equal(button.fontSize, metrics.host.fontSize);
+            assert.equal(button.fontFamily, metrics.host.fontFamily);
+        }
+    }
+    await page.click('#fixture-native-actions input');
+    await page.click('#fixture-native-actions button');
+    assert.equal(await page.evaluate(() => window.fixtureNativeActionClicks), 2);
+    await page.click('[data-fvplus-docker-menu="view"]');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('[data-fvplus-docker-menu="view"]').evaluate(node => node === document.activeElement), true);
+    await page.evaluate(() => {
+        document.getElementById('fixture-aurora-sizing').remove(); document.documentElement.style.fontSize = '10px';
+    });
+    assert.deepEqual(await page.locator('.fvplus-docker-action-button').first().evaluate(node => ({
+        padding: getComputedStyle(node).padding, fontSize: getComputedStyle(node).fontSize
+    })), fallback);
+    await page.waitForFunction(() => [...document.getAnimations()].every(animation => animation.playState !== 'running'));
+});
+
 test('Host theme Settings controls inherit host surfaces and accent through theme changes', async ({ page }) => {
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     await page.evaluate(() => {
@@ -154,6 +225,7 @@ test('Host theme editor and detached action dialog keep host chrome in light and
         assert.equal(result.dialogColor, result.expectedColor);
         assert.equal(result.dialogBackground, result.expectedBackground);
     }
+    await page.waitForFunction(() => [...document.getAnimations()].every(animation => animation.playState !== 'running'));
 });
 
 test('Host theme modern CSS colors preserve explicit status colors and safety mode round trips', async ({ page }) => {

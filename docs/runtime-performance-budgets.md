@@ -110,3 +110,9 @@ to `settings` or `docker`. `settings,docker` selects both; `none` omits producti
 startup samples while the standard performance command still runs component
 benchmarks. Unknown values fail. Reports list skipped surfaces, and partial
 baseline updates preserve unmeasured cases; review every baseline change.
+
+The shared theme foundation publishes both host-palette and live binding APIs
+from one script on Settings, Docker, VMs, Dashboard, and the folder editor.
+This removes a parser-blocking request and its startup DOM checkpoint while
+retaining the existing API aliases and lifecycle cleanup. Startup callback
+budgets remain unchanged.

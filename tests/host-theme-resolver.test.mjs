@@ -8,6 +8,19 @@ const require = createRequire(import.meta.url);
 const themeHost = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-host.js');
 
 const source = fs.readFileSync(new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js', import.meta.url), 'utf8');
+
+test('one theme foundation asset provides palette and live surface binding APIs', () => {
+    const window = {};
+    const foundation = fs.readFileSync(new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-host.js', import.meta.url), 'utf8');
+    vm.runInNewContext(foundation, { window });
+    const modules = window.FolderViewPlusFoundationModules;
+    assert.equal(typeof modules.themeHost.readPalette, 'function');
+    assert.equal(typeof modules.themeHost.readCustomization, 'function');
+    assert.equal(modules.themeSurface.createBinding, modules.themeHost.createBinding);
+    assert.deepEqual(Object.keys(modules.themeSurface), ['createBinding']);
+    assert.ok(Object.isFrozen(modules.themeSurface));
+});
+
 const darkHost = {
     '--background-color': '#0a0c11', '--table-background-color': '#12151d',
     '--mild-background-color': '#161a23', '--text-color': '#e7eaf0',

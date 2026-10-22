@@ -115,7 +115,7 @@
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
       "scripts/docker.runtime.diagnostics.js": { "limit": 945, "target": 500, "history": [946, 945] },
       "scripts/folderviewplus.theme-resolver.js": { "limit": 930, "target": 700, "history": [930] },
-      "scripts/folderviewplus.theme-surface.js": { "limit": 113, "target": 100, "history": [113] },
+      "scripts/folderviewplus.theme-host.js": { "limit": 251, "target": 240, "history": [251] },
       "scripts/folderviewplus.diagnostics-actions.js": { "limit": 176, "target": 160, "history": [176] },
       "scripts/folderviewplus.starter-templates.js": { "limit": 915, "target": 500, "history": [915] },
       "scripts/folderviewplus.folder-editor.js": { "limit": 888, "target": 600, "history": [888] },
@@ -1723,29 +1723,16 @@
     },
     {
       "file": "scripts/folderviewplus.theme-host.js",
-      "owner": "shared-host-theme-palette",
+      "owner": "shared-theme-foundation",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
-      "stateModel": "pure",
+      "stateModel": "factory-owned",
       "dependsOn": [],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "themeHost",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["readPalette", "buildTokenMap", "adaptPalette", "editorTokens"]
-    },
-    {
-      "file": "scripts/folderviewplus.theme-surface.js",
-      "owner": "shared-theme-surface",
-      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
-      "stateModel": "factory-owned",
-      "dependsOn": [],
-      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
-      "global": "FolderViewPlusFoundationModules",
-      "globalMember": "themeSurface",
-      "loader": "commonjs",
-      "typeChecked": true,
-      "exports": ["createBinding"],
+      "exports": ["readPalette", "buildTokenMap", "adaptPalette", "editorTokens", "readCustomization", "createBinding"],
       "lifecycleFactories": [
         { "name": "createBinding", "exports": ["bind", "runApply", "queueApply", "disconnect"] }
       ]

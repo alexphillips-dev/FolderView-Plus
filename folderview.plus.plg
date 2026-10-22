@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.03">
-<!ENTITY md5 "766c6f5e45292236f6bb2198d888e243">
-<!ENTITY sha256 "0289833f1916e7ec2f3d6294d4ab626d2d178eb59df0cf78904a91b3c62dc934">
+<!ENTITY version "2026.10.22.05">
+<!ENTITY md5 "1d6a8c50366b7d3e5c713d4d6e7f812d">
+<!ENTITY sha256 "1d395dc9dc4e4358a4299ec0f5674205ccdf9e38e3a043e3495f0b187c78a86a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.05
+- Performance: Load the shared host palette and live theme binding from one asset across Settings, Docker, VMs, Dashboard, and the folder editor, reducing blocking requests and startup DOM work.
+- Compatibility: Preserve the existing theme APIs, live-change detection, cleanup, saved profiles, and color behavior. Hard-refresh after updating to load the revised script list.
+- Quality: Retain the existing startup budgets and add regression coverage for the combined asset and its API aliases.
+
 
 ###2026.10.22.03
 - Feature: Add Advanced > Themes above Appearance for host-theme status, GitHub imports and managed-theme actions. Appearance keeps the Customization layer, profiles, scopes, presets, token preview and custom CSS.

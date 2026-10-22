@@ -13,7 +13,7 @@ const functions = ['getSettingsSectionRegistrySignature', 'buildSettingsSections
 const mount = async (page, baseUrl) => {
     await page.goto(`${baseUrl}/settings?fvMode=advanced&fvAdvancedTab=themes`);
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    for (const script of ['folderviewplus.settings-sections', 'folderviewplus.settings-search', 'folderviewplus.theme-host', 'folderviewplus.theme-surface', 'folderviewplus.theme-resolver', 'folderviewplus.theme-profiles', 'folderviewplus.theme-workspace']) {
+    for (const script of ['folderviewplus.settings-sections', 'folderviewplus.settings-search', 'folderviewplus.theme-host', 'folderviewplus.theme-resolver', 'folderviewplus.theme-profiles', 'folderviewplus.theme-workspace']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${script}.js` });
     }
     await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });

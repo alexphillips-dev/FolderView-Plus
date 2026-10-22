@@ -5,18 +5,30 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.03">
-<!ENTITY md5 "766c6f5e45292236f6bb2198d888e243">
-<!ENTITY sha256 "0289833f1916e7ec2f3d6294d4ab626d2d178eb59df0cf78904a91b3c62dc934">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.22.04">
+<!ENTITY md5 "8aab93d6a9631ffbf9d23c401be1ab46">
+<!ENTITY sha256 "b19362371dbd1ae9f61586eab92972d669b6d579588671ed90511ec124c06c94">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.04
+- Feature: Follow active host-theme colors, surfaces, borders, and button shapes in Auto and Host modes across Settings, Docker, VMs, Dashboard, and the folder editor, including modern CSS color formats.
+- Feature: Add Advanced > Themes above Appearance for active host-theme status, GitHub imports, and managed-theme actions. Appearance keeps the Customization layer, profiles, scopes, presets, token preview, and custom CSS; switching tabs preserves drafts.
+- Fix: Detect Aurora's enabled color theme separately from imported managed themes, including when Page enhancements are disabled. Host themes remain managed through Unraid.
+- Fix: Match the Docker folder toolbar buttons and counters to Aurora's native action-button sizing, including desktop and mobile wrapping.
+- Fix: Preserve saved accent, panel, border, and status color customizations during host-theme refreshes. Removing a customization restores inherited colors; Safe and High Contrast modes retain recovery palettes and explicit folder status choices remain authoritative.
+- Accessibility: Improve theme-summary, heading, control-label, and preview readability in light and dark themes, while keeping keyboard focus and detached editor dialogs usable.
+- Localization: Update theme workspace wording across all supported locales and preserve the Unraid product name.
+- Compatibility: Aurora's Docker Page enhancements still require upstream FolderView Plus support. If folder rows move or compress, disable Page enhancements in Settings > User Utilities > Aurora Theme, apply, and hard-refresh; Aurora's colors and fonts can remain enabled. Reviewed Aurora 2026.10.22.1752 still detects the older Folder View plugins rather than FolderView Plus.
+- Compatibility: Hard-refresh Settings, Docker, VMs, and Dashboard after updating. Existing settings, folder membership, profiles, and export/backup formats are preserved; no configuration reset is required.
+
 
 ###2026.10.22.03
 - Feature: Add Advanced > Themes above Appearance for host-theme status, GitHub imports and managed-theme actions. Appearance keeps the Customization layer, profiles, scopes, presets, token preview and custom CSS.
@@ -9874,7 +9886,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

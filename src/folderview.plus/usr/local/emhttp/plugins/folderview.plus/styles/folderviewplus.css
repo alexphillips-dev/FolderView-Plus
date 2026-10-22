@@ -3109,7 +3109,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-theme-workspace-shell {
+    --fvplus-settings-title-accent: var(--fvplus-settings-accent-strong);
     border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+}
+
+.fv-theme-workspace-panel .settings-mini-title {
+    opacity: 1;
 }
 
 .fv-theme-workspace-body {
@@ -3134,7 +3139,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     gap: 4px;
 }
 
-.fv-theme-summary-card span {
+.fv-theme-summary-card {
     color: var(--fvplus-settings-text-muted, #c7c7c7);
     font-size: 11px;
     text-transform: uppercase;
@@ -3142,8 +3147,9 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-theme-summary-card strong {
-    color: var(--fvplus-settings-text, #f2f2f2);
+    color: var(--fvplus-settings-text-primary);
     font-size: 13px;
+    text-transform: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -3708,7 +3714,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     justify-content: space-between;
     gap: 10px;
     align-items: center;
-    color: var(--fvplus-settings-text, #f2f2f2);
+    color: var(--fvplus-settings-text-primary);
     font-weight: 700;
 }
 
@@ -3864,9 +3870,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     --fvplus-theme-accent: var(--fvplus-settings-accent, #f0a030);
     --fvplus-theme-surface-panel: var(--fvplus-settings-surface-panel, #1b1d20);
     --fvplus-theme-border-subtle: var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
-    --fvplus-status-started: #55b72d;
-    --fvplus-status-paused: #b8860b;
-    --fvplus-status-stopped: #ff4d4d;
     --fvplus-graph-cpu: #5aa4ff;
     --fvplus-graph-mem: #6bd676;
     border: 1px solid var(--fvplus-theme-border-subtle);
@@ -3893,7 +3896,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-theme-preview-card strong {
-    color: var(--fvplus-settings-text, #f2f2f2);
+    color: var(--fvplus-settings-text-primary);
     font-size: 16px;
 }
 
@@ -3911,15 +3914,15 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-theme-preview-status.is-started {
-    color: var(--fvplus-status-started);
+    color: var(--fvplus-status-started, var(--fvplus-settings-text-primary));
 }
 
 .fv-theme-preview-status.is-paused {
-    color: var(--fvplus-status-paused);
+    color: var(--fvplus-status-paused, #d09a24);
 }
 
 .fv-theme-preview-status.is-stopped {
-    color: var(--fvplus-status-stopped);
+    color: var(--fvplus-status-stopped, #ff7474);
 }
 
 .fv-theme-preview-bars {

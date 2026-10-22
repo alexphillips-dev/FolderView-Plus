@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Pārsvītrojums",
     "settings.page-title.color": "Krāsa",
     "settings.page-title.preview": "Virsraksta priekšskatījums",
-    "settings.page-title.reset": "Atiestatīt izskatu"
+    "settings.page-title.reset": "Atiestatīt izskatu",
+    "settings.navigation.themes": "Motīvi",
+    "settings.theme.manager-help": "Skatiet aktīvo saimniekdatora motīvu un pārvaldiet importētos GitHub motīvus FolderView Plus izpildlaika lapām.",
+    "settings.theme.host-default": "Unraid noklusējums",
+    "settings.theme.managed-layer": "Aktīvs pārvaldīts motīvs",
+    "settings.theme.host-status": "Saimniekdatora motīvs: $1. Instalētās saimniekdatora tēmas tiek pārvaldītas pakalpojumā Unraid."
 }

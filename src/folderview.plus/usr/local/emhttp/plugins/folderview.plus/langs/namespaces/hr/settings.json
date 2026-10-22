@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Precrtano",
     "settings.page-title.color": "Boja",
     "settings.page-title.preview": "Pregled naslova",
-    "settings.page-title.reset": "Resetiraj izgled"
+    "settings.page-title.reset": "Resetiraj izgled",
+    "settings.navigation.themes": "Teme",
+    "settings.theme.manager-help": "Pogledajte aktivnu temu hosta i upravljajte uvezenim GitHub temama za FolderView Plus runtime stranice.",
+    "settings.theme.host-default": "Zadana tema Unraid",
+    "settings.theme.managed-layer": "Aktivna upravljana tema",
+    "settings.theme.host-status": "Tema domaćina: $1. Instaliranim temama hosta upravlja se u Unraidu."
 }

@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Gennemstregning",
     "settings.page-title.color": "Farve",
     "settings.page-title.preview": "Forhåndsvisning af titel",
-    "settings.page-title.reset": "Nulstil udseende"
+    "settings.page-title.reset": "Nulstil udseende",
+    "settings.navigation.themes": "Temaer",
+    "settings.theme.manager-help": "Se det aktive værtstema og administrer importerede GitHub-temaer til FolderView Plus-runtime-sider.",
+    "settings.theme.host-default": "Unraid-standard",
+    "settings.theme.managed-layer": "Aktivt administreret tema",
+    "settings.theme.host-status": "Værtstema: $1. Installerede værtstemaer administreres i Unraid."
 }

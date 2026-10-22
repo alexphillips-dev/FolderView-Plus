@@ -89,6 +89,8 @@ Both page and card colors must be usable before host surfaces replace the fallba
 
 The resolved palette supplies existing runtime, Settings, editor, Dashboard and menu tokens. The additive `--fvplus-ui-control-radius` output controls supported button corners. `--fvplus-control-accent-text` supplies readable toolbar text when the accent itself has insufficient contrast against an accent-tinted surface; borders and backgrounds retain the resolved accent.
 
+Managed customization assets also emit `--fvplus-custom-theme-accent`, `--fvplus-custom-theme-surface-panel`, `--fvplus-custom-theme-border-subtle`, and `--fvplus-custom-status-{started,paused,stopped}` as resolver inputs. These are derived from the existing profile variables and are never written by the resolver. Auto and Host modes apply these inputs over the host palette, subject to the existing contrast checks; Safe and High Contrast use their recovery palettes. This separates saved customization from resolved output and prevents either stale output feedback or a later resolver pass from erasing the saved layer. Graph tokens continue to be consumed directly from the generated stylesheet.
+
 `data-fv-theme-source="host"` on resolver targets identifies an applied host palette. `fallback` means the normal fallback or safety palette is active. Safe and High Contrast modes retain their recovery behavior. Removing host inputs clears previous host overrides on the next theme reflow. Explicit per-folder status colors retain precedence.
 
 ## Layout Ownership for Theme Integrations

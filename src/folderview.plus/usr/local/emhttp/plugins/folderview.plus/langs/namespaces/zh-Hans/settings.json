@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "删除线",
     "settings.page-title.color": "颜色",
     "settings.page-title.preview": "标题预览",
-    "settings.page-title.reset": "重置外观"
+    "settings.page-title.reset": "重置外观",
+    "settings.navigation.themes": "主题",
+    "settings.theme.manager-help": "查看活动主机主题并管理FolderView Plus运行时页面导入的GitHub主题。",
+    "settings.theme.host-default": "Unraid 默认主题",
+    "settings.theme.managed-layer": "当前启用的托管主题",
+    "settings.theme.host-status": "主机主题：$1。安装的主机主题在 Unraid 中进行管理。"
 }

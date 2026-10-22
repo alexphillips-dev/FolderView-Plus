@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Tachado",
     "settings.page-title.color": "Color",
     "settings.page-title.preview": "Vista previa del título",
-    "settings.page-title.reset": "Restablecer apariencia"
+    "settings.page-title.reset": "Restablecer apariencia",
+    "settings.navigation.themes": "Temas",
+    "settings.theme.manager-help": "Vea el tema del host activo y administre temas de GitHub importados para las páginas de tiempo de ejecución de FolderView Plus.",
+    "settings.theme.host-default": "Predeterminado de Unraid",
+    "settings.theme.managed-layer": "Tema administrado activo",
+    "settings.theme.host-status": "Tema anfitrión: $1. Los temas de host instalados se administran en Unraid."
 }

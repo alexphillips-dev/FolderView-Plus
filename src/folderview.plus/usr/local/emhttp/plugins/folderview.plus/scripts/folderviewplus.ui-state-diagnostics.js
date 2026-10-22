@@ -11,7 +11,7 @@
     const STALE_AFTER_MS = 30 * 60 * 1000;
     const KINDS = ['settings', 'bulk', 'compare', 'editor'];
     const TYPES = ['docker', 'vm'];
-    const WORKSPACES = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs', 'basic'];
+    const WORKSPACES = ['automation', 'rules', 'recovery', 'operations', 'startup', 'themes', 'appearance', 'diagnostics', 'logs', 'basic'];
     const FIELDS = {
         settings: {
             counts: ['totalFolders', 'displayedFolders', 'hiddenSearch', 'hiddenCollapsed', 'hiddenEmpty', 'hiddenQuick', 'hiddenStatus', 'hiddenUpdates', 'hiddenHealth', 'parentsKeptByDescendants'],

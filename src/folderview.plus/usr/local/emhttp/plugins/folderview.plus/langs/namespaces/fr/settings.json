@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Barré",
     "settings.page-title.color": "Couleur",
     "settings.page-title.preview": "Aperçu du titre",
-    "settings.page-title.reset": "Réinitialiser l'apparence"
+    "settings.page-title.reset": "Réinitialiser l'apparence",
+    "settings.navigation.themes": "Thèmes",
+    "settings.theme.manager-help": "Consultez le thème hôte actif et gérez les thèmes GitHub importés pour les pages d'exécution FolderView Plus.",
+    "settings.theme.host-default": "Thème Unraid par défaut",
+    "settings.theme.managed-layer": "Thème géré actif",
+    "settings.theme.host-status": "Thème hôte : $1. Les thèmes hôtes installés sont gérés dans Unraid."
 }

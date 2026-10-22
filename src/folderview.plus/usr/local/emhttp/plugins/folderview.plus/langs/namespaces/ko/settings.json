@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "취소선",
     "settings.page-title.color": "색상",
     "settings.page-title.preview": "제목 미리보기",
-    "settings.page-title.reset": "외모 재설정"
+    "settings.page-title.reset": "외모 재설정",
+    "settings.navigation.themes": "테마",
+    "settings.theme.manager-help": "활성 호스트 테마를 확인하고 FolderView Plus 런타임 페이지에 대해 가져온 GitHub 테마를 관리하세요.",
+    "settings.theme.host-default": "Unraid 기본값",
+    "settings.theme.managed-layer": "활성 관리형 테마",
+    "settings.theme.host-status": "호스트 테마: $1. 설치된 호스트 테마는 Unraid에서 관리됩니다."
 }

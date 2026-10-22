@@ -1,5 +1,6 @@
 {
   "host-theme": ["^Host theme"],
+  "settings-themes": ["^Themes", "^Appearance", "^Advanced navigation", "^German workspaces"],
   "page-title": ["^Docker page title"],
   "page-title-neighbors": ["^Basic custom groups", "^docker Dashboard folder effects"],
   "folder-badges": ["^Folder badges"],
@@ -8,6 +9,7 @@
   "settings-transfer": ["Docker folder menu", "^audited confirmations", "^complete localization boundaries", "^Shared UI primitives"],
   "backup-schedule": ["^Scheduled backup skips", "^Recovery mockup", "^Logs"],
   "layout": [
+    "^Themes", "^Appearance", "^Advanced navigation",
     "^Host theme",
     "^Docker page title",
     "Settings alerts", "Bulk move workspace matches", "Snapshot comparison opens",

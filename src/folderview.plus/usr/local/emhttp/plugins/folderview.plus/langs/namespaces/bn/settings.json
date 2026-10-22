@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "মাঝ বরাবর দাগ",
     "settings.page-title.color": "রঙ",
     "settings.page-title.preview": "শিরোনামের পূর্বরূপ",
-    "settings.page-title.reset": "চেহারা রিসেট করুন"
+    "settings.page-title.reset": "চেহারা রিসেট করুন",
+    "settings.navigation.themes": "থিম",
+    "settings.theme.manager-help": "সক্রিয় হোস্ট থিম দেখুন এবং FolderView Plus রানটাইম পৃষ্ঠাগুলির জন্য আমদানি করা GitHub থিমগুলি পরিচালনা করুন৷",
+    "settings.theme.host-default": "Unraid ডিফল্ট",
+    "settings.theme.managed-layer": "সক্রিয় পরিচালিত থিম",
+    "settings.theme.host-status": "হোস্ট থিম: $1। ইনস্টল করা হোস্ট থিম Unraid-এ পরিচালিত হয়।"
 }

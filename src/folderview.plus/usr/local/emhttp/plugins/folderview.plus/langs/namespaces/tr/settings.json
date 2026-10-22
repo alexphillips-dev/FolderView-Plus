@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Üstü çizili",
     "settings.page-title.color": "Renk",
     "settings.page-title.preview": "Başlık önizlemesi",
-    "settings.page-title.reset": "Görünümü sıfırla"
+    "settings.page-title.reset": "Görünümü sıfırla",
+    "settings.navigation.themes": "Temalar",
+    "settings.theme.manager-help": "Etkin ana bilgisayar temasını görün ve FolderView Plus çalışma zamanı sayfaları için içe aktarılan GitHub temalarını yönetin.",
+    "settings.theme.host-default": "Unraid varsayılanı",
+    "settings.theme.managed-layer": "Etkin yönetilen tema",
+    "settings.theme.host-status": "Ana makine teması: $1. Yüklü ana makine temaları Unraid'de yönetilir."
 }

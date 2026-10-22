@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Přeškrtnutí",
     "settings.page-title.color": "Barva",
     "settings.page-title.preview": "Náhled titulu",
-    "settings.page-title.reset": "Obnovit vzhled"
+    "settings.page-title.reset": "Obnovit vzhled",
+    "settings.navigation.themes": "Motivy",
+    "settings.theme.manager-help": "Podívejte se na motiv aktivního hostitele a spravujte importovaná témata GitHub pro běhové stránky FolderView Plus.",
+    "settings.theme.host-default": "Výchozí Unraid",
+    "settings.theme.managed-layer": "Aktivní spravovaný motiv",
+    "settings.theme.host-status": "Motiv hostitele: $1. Nainstalovaná hostitelská témata se spravují v Unraid."
 }

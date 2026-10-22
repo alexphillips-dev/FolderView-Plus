@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Gjennomstreking",
     "settings.page-title.color": "Farge",
     "settings.page-title.preview": "Forhåndsvisning av tittel",
-    "settings.page-title.reset": "Tilbakestill utseendet"
+    "settings.page-title.reset": "Tilbakestill utseendet",
+    "settings.navigation.themes": "Temaer",
+    "settings.theme.manager-help": "Se det aktive vertstemaet og administrer importerte GitHub-temaer for FolderView Plus-kjøretidssider.",
+    "settings.theme.host-default": "Unraid-standard",
+    "settings.theme.managed-layer": "Aktivt administrert tema",
+    "settings.theme.host-status": "Vertstema: $1. Installerte vertstemaer administreres i Unraid."
 }

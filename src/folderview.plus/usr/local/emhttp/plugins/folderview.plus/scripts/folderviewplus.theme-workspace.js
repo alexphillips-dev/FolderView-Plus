@@ -106,9 +106,9 @@
             if (!documentRef) {
                 return;
             }
-            const node = documentRef.getElementById('fv-theme-workspace-status');
-            if (node) {
-                node.textContent = String(message || '').trim() || 'Theme workspace idle.';
+            for (const id of ['fv-theme-workspace-status', 'fv-theme-profile-plan']) {
+                const node = documentRef.getElementById(id);
+                if (node) node.textContent = String(message || '').trim() || 'Theme workspace idle.';
             }
         };
 
@@ -166,6 +166,22 @@
         const scopeLabel = (scope) => scope === 'global' ? translate("settings.theme.scope-global", "Global")
             : ({ docker: 'Docker', vm: 'VMs', dashboard: 'Dashboard' }[scope] || scope);
         const getActiveTheme = () => workspace.themes.find((theme) => theme.id === workspace.activeThemeId) || null;
+        const getHostThemeName = () => {
+            const win = deps.window || documentRef?.defaultView;
+            const auroraActive = Array.from(documentRef?.querySelectorAll('link[rel~="stylesheet"][href]') || []).some((link) => {
+                if (link.disabled || (link.media && !win?.matchMedia?.(link.media).matches)) return false;
+                try {
+                    const url = new URL(link.href, documentRef.baseURI);
+                    return url.origin === new URL(documentRef.baseURI).origin
+                        && /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i.test(url.pathname);
+                } catch (_error) { return false; }
+            });
+            if (auroraActive) return 'Aurora Theme';
+            const name = String(documentRef?.documentElement?.getAttribute('data-fvplus-host-theme')
+                || documentRef?.body?.getAttribute('data-fvplus-host-theme') || win?.FolderViewPlusHostThemeName || '').trim();
+            return ({ black: 'Unraid Black', white: 'Unraid White', gray: 'Unraid Gray', azure: 'Unraid Azure' })[name.toLowerCase()]
+                || name || translate('settings.theme.host-default', 'Unraid default');
+        };
 
         const renderProfileControls = () => {
             if (!documentRef) return;
@@ -195,7 +211,8 @@
             const activeFiles = Array.isArray(activeTheme?.files) ? activeTheme.files : [];
             const targets = ['docker', 'vm', 'dashboard'].filter((target) => activeFiles.some((file) => Array.isArray(file.tabs) && file.tabs.includes(target)));
             host.innerHTML = [
-                [translate("settings.theme.active-theme", "Active theme"), activeTheme ? (activeTheme.name || activeTheme.id) : translate("settings.theme.none", "None"), Boolean(activeTheme)],
+                [translate("settings.theme.active-theme", "Active theme"), getHostThemeName(), true],
+                [translate('settings.theme.managed-layer', 'Active managed theme'), activeTheme ? (activeTheme.name || activeTheme.id) : translate("settings.theme.none", "None"), Boolean(activeTheme)],
                 [translate("settings.theme.profile-scope", "Profile / scope"), `${profileLabel(getActiveProfile())} / ${scopeLabel(activeScope)}`, getActiveProfile().id !== 'default' || getActiveProfile().name !== 'Default profile'],
                 [translate("settings.theme.managed-themes", "Managed themes"), String(workspace.themes.length)],
                 [translate("settings.theme.last-checked", "Last checked"), formatDateShort(workspace.lastCheckedAt)],
@@ -203,7 +220,7 @@
                 [translate("settings.theme.output-targets", "Output targets"), targets.length ? targets.join(', ') : translate("settings.theme.custom-layer-only", "Token/custom layer only")]
             ].map(([label, value, userContent]) => `
                 <div class="fv-theme-summary-card">
-                    <span>${escapeHtml(label)}</span>
+                    ${escapeHtml(label)}
                     <strong ${userContent ? 'data-fvplus-user-content' : ''} title="${escapeHtml(value)}">${escapeHtml(value)}</strong>
                 </div>
             `).join('');
@@ -385,10 +402,13 @@
                 updateButton.title = updateButton.disabled
                     ? translate('settings.theme.no-updates', 'No managed theme updates are available.') : '';
             }
+            const disableButton = documentRef?.getElementById('fv-theme-disable-managed');
+            if (disableButton) disableButton.disabled = !getActiveTheme();
             const activeTheme = getActiveTheme();
-            setStatus(activeTheme
+            const hostStatus = translate('settings.theme.host-status', 'Host theme: $1. Installed host themes are managed in Unraid.', getHostThemeName());
+            setStatus(`${hostStatus} ${activeTheme
                 ? translate("settings.theme.active-status", "Managed theme active: $1.", activeTheme.name || activeTheme.id)
-                : translate("settings.theme.no-active-theme", "No managed theme is currently active."));
+                : translate("settings.theme.no-active-theme", "No managed theme is currently active.")}`);
         };
 
         const setWorkspace = (nextWorkspace) => {
@@ -653,6 +673,7 @@
         return Object.freeze({
             TOKEN_DEFINITIONS,
             getWorkspace: () => workspace,
+            renderSummary,
             renderWorkspace,
             setWorkspace,
             bindEvents,

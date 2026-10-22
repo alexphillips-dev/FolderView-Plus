@@ -150,7 +150,8 @@ Recommended first setup:
 | Bulk assignment | Move many Docker containers or VMs at once. |
 | Rules | Ordered assignment rules with testing, matching, and conflict review. |
 | Docker start order | Set Docker autostart order from folder order or custom startup batches. |
-| Appearance | Theme and display controls for the plugin experience. |
+| Themes | Active host-theme status, GitHub CSS imports, and managed-theme activation and updates. |
+| Appearance | Customization profiles, page scopes, color presets, token previews, and custom CSS. |
 | Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
 | Diagnostics | Health checks, support reports, runtime diagnostics, and troubleshooting helpers. |
 | Logs | Recent Settings actions and issues, newest first, with a Clear control. |

@@ -23,6 +23,16 @@ test('browser identification reports only a normalized family and numeric report
     ]) assert.deepEqual(diagnostics.browserInfo({ userAgent }), { family, reportedVersion });
 });
 
+test('Themes is retained in Settings diagnostics while unknown workspace names remain excluded', () => {
+    const host = createHost();
+    for (const workspace of ['themes', 'appearance', 'private-workspace']) {
+        host.api.record('settings', 'docker', { surface: { mode: 'advanced', workspace } });
+        assert.equal(host.api.collect().channels.settings.docker.latest.data.surface.workspace,
+            workspace === 'private-workspace' ? 'none' : workspace);
+    }
+    assert.doesNotMatch(JSON.stringify(host.api.collect()), /private-workspace/);
+});
+
 test('UI records allowlist aggregate values even when persistent storage is forged', () => {
     const host = createHost();
     host.storage.set(diagnostics.STORAGE_KEY, JSON.stringify({

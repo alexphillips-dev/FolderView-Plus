@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.02">
-<!ENTITY md5 "9d58abe24a69636c8bae388ecbe82fe8">
-<!ENTITY sha256 "f7d8fe37a9ed897736df41dd2d0cef7c20d7d5b0b3ba8b5d7f64b84c8de3d39c">
+<!ENTITY version "2026.10.22.03">
+<!ENTITY md5 "766c6f5e45292236f6bb2198d888e243">
+<!ENTITY sha256 "0289833f1916e7ec2f3d6294d4ab626d2d178eb59df0cf78904a91b3c62dc934">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.03
+- Feature: Add Advanced > Themes above Appearance for host-theme status, GitHub imports and managed-theme actions. Appearance keeps the Customization layer, profiles, scopes, presets, token preview and custom CSS.
+- Fix: Identify an active Aurora color theme separately from imported managed themes, including when Aurora page enhancements are disabled. Host themes continue to be managed through Unraid.
+- Fix: Keep save and error feedback visible in Appearance after separating the tabs, and preserve customization drafts when switching between them.
+- Accessibility: Use theme-aware text and status colors in theme summaries, imported-theme titles and customization previews, with readable headings in light mode.
+- Fix: Keep saved accent, panel, border and status color customizations active when the runtime follows Aurora or a native Unraid theme. Safe and High Contrast modes retain their recovery palettes.
+- Localization: Update theme workspace translations across all supported locales, preserving the Unraid product name.
+- Compatibility: Aurora's Docker page enhancements still require upstream FolderView Plus support. Keep Page enhancements disabled in Aurora if its Docker layout moves or compresses folder rows.
+
 
 ###2026.10.22.02
 - Fix: Match the Docker folder toolbar to Aurora's native action buttons with the same text size, font, and padding. Apply the sizing to Add Folder, expand/collapse, filters, Manage Folders, View, and Tools, with counters kept inside the matching button height.

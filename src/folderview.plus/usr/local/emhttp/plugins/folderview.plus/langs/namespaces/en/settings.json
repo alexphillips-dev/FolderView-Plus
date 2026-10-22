@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Strikethrough",
     "settings.page-title.color": "Color",
     "settings.page-title.preview": "Title preview",
-    "settings.page-title.reset": "Reset appearance"
+    "settings.page-title.reset": "Reset appearance",
+    "settings.navigation.themes": "Themes",
+    "settings.theme.manager-help": "See the active host theme and manage imported GitHub themes for FolderView Plus runtime pages.",
+    "settings.theme.host-default": "Unraid default",
+    "settings.theme.managed-layer": "Active managed theme",
+    "settings.theme.host-status": "Host theme: $1. Installed host themes are managed in Unraid."
 }

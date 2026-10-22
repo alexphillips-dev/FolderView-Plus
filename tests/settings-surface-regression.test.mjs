@@ -41,7 +41,7 @@ const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/fo
 test('Advanced navigation groups sections and preserves focus when switching', () => {
     assert.match(settingsPage, /id="fv-advanced-workspace"[\s\S]*id="fv-advanced-nav"[\s\S]*id="fv-advanced-content"/);
     assert.match(settingsJs, /tabs: \['operations', 'automation', 'rules', 'startup'\]/);
-    assert.match(settingsJs, /tabs: \['appearance'\]/);
+    assert.match(settingsJs, /tabs: \['themes', 'appearance'\]/);
     assert.match(settingsJs, /tabs: \['recovery', 'diagnostics', 'logs'\]/);
     assert.match(settingsPage, /class="fv-advanced-sidebar"[\s\S]*class="fv-advanced-sidebar-title"[\s\S]*id="fv-advanced-nav"/);
     assert.match(settingsCss, /\.fv-advanced-nav-group \+ \.fv-advanced-nav-group \{[\s\S]*border-top:/);
@@ -328,7 +328,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 id="fv-bulk-title" data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk Move Containers<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'\];/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'themes', 'appearance', 'diagnostics', 'logs'\];/);
     assert.equal(window.ADVANCED_GROUP_LABELS.rules, 'Rules');
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
@@ -341,8 +341,9 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
 });
 
-test('theme workspace lives in its own Appearance advanced tab', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+test('Themes manages imported themes separately from the Appearance customization layer', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="themes" data-fv-advanced="1" data-fv-advanced-group="themes"[^>]*>Themes<\/h2>/);
+    assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance"[^>]*>Appearance<\/h2>/);
     assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
     assert.match(settingsPage, /id="fv-theme-profile-toolbar"/);
     assert.match(themeWorkspaceJs, /id="fv-theme-profile-select"/);
@@ -363,6 +364,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     const window = {};
     vm.runInNewContext(settingsSectionsJs, { window });
     assert.equal(window.ADVANCED_GROUP_LABELS.appearance, 'Appearance');
+    assert.equal(window.ADVANCED_GROUP_LABELS.themes, 'Themes');
     assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
     assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
     assert.match(settingsCss, /\.fv-theme-import-row > button,/);

@@ -71,6 +71,28 @@ const expectAccent = async (page, selector) => {
 };
 
 export const registerHostThemeFixtureCases = ({ test, baseUrl }) => {
+for (const [surface, route] of [['Docker', 'runtime'], ['VM', 'vm-lifecycle'], ['Dashboard', 'dashboard-layout']]) {
+test(`Host theme saved customization survives theme refreshes on ${surface}`, async ({ page }) => {
+    await page.goto(`${baseUrl}/${route}`, { waitUntil: 'load' });
+    await installHost(page, baseUrl);
+    const layer = await page.addStyleTag({ content: ':root { --fvplus-theme-accent:#c084fc; --fvplus-custom-theme-accent:#c084fc; --fvplus-theme-surface-panel:#202535; --fvplus-custom-theme-surface-panel:#202535; }' });
+    await page.evaluate(() => window.fixtureHostBinding.runApply('stylesheet-loaded'));
+    await page.waitForFunction(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-accent').trim() === 'rgb(192, 132, 252)');
+    const before = await page.evaluate(() => document.querySelectorAll('tr.folder, [data-folder-id]').length);
+    await page.evaluate(() => { document.documentElement.style.setProperty('--link-text-color', '#4f8bff'); window.fixtureHostBinding.runApply('refresh'); });
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-surface-panel').trim()), 'rgb(32, 37, 53)');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-accent').trim()), 'rgb(192, 132, 252)');
+    await page.evaluate(() => { window.fixtureHostMode = 'safe'; window.fixtureHostBinding.runApply('recovery'); });
+    assert.notEqual(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-accent').trim()), 'rgb(192, 132, 252)');
+    await page.evaluate(() => { window.fixtureHostMode = 'auto'; window.fixtureHostBinding.runApply('restore'); });
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-accent').trim()), 'rgb(192, 132, 252)');
+    await layer.evaluate(node => node.remove());
+    await page.evaluate(() => window.fixtureHostBinding.runApply('stylesheet-removed'));
+    await page.waitForFunction(() => getComputedStyle(document.body).getPropertyValue('--fvplus-theme-accent').trim() === 'rgb(79, 139, 255)');
+    assert.equal(await page.evaluate(() => document.querySelectorAll('tr.folder, [data-folder-id]').length), before);
+    await page.waitForFunction(() => [...document.getAnimations()].every(animation => animation.playState !== 'running'));
+});
+}
 test('Host theme Docker controls follow dark light and custom accents without moving folder rows', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await installHost(page, baseUrl);

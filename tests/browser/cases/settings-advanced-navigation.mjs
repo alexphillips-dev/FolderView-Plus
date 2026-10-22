@@ -14,14 +14,11 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         await page.setViewportSize({ width: 1440, height: 900 });
         await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
         await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.settings-sections.js` });
         await page.addScriptTag({ content: `(() => {
             const $ = window.jQuery;
-            const tabs = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'];
-            const ADVANCED_GROUPS = tabs;
-            const ADVANCED_GROUP_LABELS = {
-                automation: 'Bulk assignment', rules: 'Rules', recovery: 'Recovery', operations: 'Operations',
-                startup: 'Docker start order', appearance: 'Appearance', diagnostics: 'Diagnostics', logs: 'Logs'
-            };
+            const { ADVANCED_GROUPS, ADVANCED_GROUP_LABELS } = window.FolderViewPlusSettingsSections;
+            const tabs = ADVANCED_GROUPS;
             const settingsUiState = { mode: 'advanced', advancedTab: 'operations',
                 sections: tabs.map((advancedGroup) => ({ advanced: true, advancedGroup })) };
             const surfaceT = (_key, fallback) => fallback;
@@ -60,13 +57,13 @@ export const registerSettingsAdvancedNavigationCase = ({ test, baseUrl }) => {
         });
         assert.equal(desktop.columns, 2);
         assert.ok(desktop.navRight < desktop.contentLeft && desktop.navWidth <= 246);
-        assert.equal(desktop.buttons, 8);
+        assert.equal(desktop.buttons, 9);
         assert.ok(desktop.buttonMargin === '0px' && desktop.buttonGap <= 5, JSON.stringify(desktop));
         assert.equal(desktop.pickerHidden, true);
         assert.equal(desktop.active, 1);
         assert.equal(desktop.sticky, 'sticky');
         assert.ok(desktop.aligned && desktop.visibleTitles === 1 && desktop.labelScale >= 1.2, JSON.stringify(desktop));
-        assert.deepEqual(desktop.groups, ['operations,automation,rules,startup', 'appearance', 'recovery,diagnostics,logs']);
+        assert.deepEqual(desktop.groups, ['operations,automation,rules,startup', 'themes,appearance', 'recovery,diagnostics,logs']);
         await page.locator('[data-fv-advanced-tab="operations"]').focus();
         const focusKept = await page.evaluate(() => {
             const button = document.activeElement;

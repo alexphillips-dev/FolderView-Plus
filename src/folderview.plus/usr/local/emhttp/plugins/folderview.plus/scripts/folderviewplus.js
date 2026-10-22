@@ -1732,7 +1732,7 @@ const renderAdvancedNav = () => {
     const available = new Set(advancedSections.map((section) => section.advancedGroup));
     const navigationGroups = [
         { key: 'workflows', label: surfaceT('settings.navigation.workflows', 'Workflows'), tabs: ['operations', 'automation', 'rules', 'startup'] },
-        { key: 'appearance', label: surfaceT('settings.navigation.appearance', 'Appearance'), tabs: ['appearance'] },
+        { key: 'appearance', label: surfaceT('settings.navigation.appearance', 'Appearance'), tabs: ['themes', 'appearance'] },
         { key: 'support', label: surfaceT('settings.navigation.support', 'Support'), tabs: ['recovery', 'diagnostics', 'logs'] }
     ].map((group) => ({ ...group, tabs: group.tabs.filter((tab) => available.has(tab)) }))
         .filter((group) => group.tabs.length > 0);
@@ -1743,7 +1743,7 @@ const renderAdvancedNav = () => {
     if (container.data('fvNavSignature') !== signature) {
         const icons = {
             automation: 'fa-tasks', rules: 'fa-balance-scale', recovery: 'fa-history',
-            operations: 'fa-bolt', startup: 'fa-sort-amount-asc', appearance: 'fa-paint-brush',
+            operations: 'fa-bolt', startup: 'fa-sort-amount-asc', themes: 'fa-picture-o', appearance: 'fa-paint-brush',
             diagnostics: 'fa-stethoscope', logs: 'fa-list-alt'
         };
         const groupsHtml = navigationGroups.map((group) => `
@@ -8441,6 +8441,7 @@ const renderActiveAdvancedSecondarySurfaces = () => {
         refreshSettingsUx({ renderSecondaryWorkspaces: false });
         return;
     }
+    if (shouldRefreshSecondaryAdvancedGroup('themes')) getThemeWorkspaceApi().renderSummary();
     if (shouldRefreshSecondaryAdvancedGroup('rules')) {
         renderRulesTable('docker');
         renderRulesTable('vm');
@@ -11390,7 +11391,7 @@ if (window.FolderViewPlusUI?.registerAction) {
         });
         void getThemeWorkspaceApi().readWorkspace()
             .then(() => {
-                if (settingsUiState.mode === 'advanced' && settingsUiState.advancedTab === 'appearance') {
+                if (settingsUiState.mode === 'advanced' && ['themes', 'appearance'].includes(settingsUiState.advancedTab)) {
                     scheduleActiveAdvancedSecondarySurfaces({ immediate: true });
                 }
             })

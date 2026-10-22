@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Text tăiat",
     "settings.page-title.color": "Culoare",
     "settings.page-title.preview": "Previzualizare titlu",
-    "settings.page-title.reset": "Resetați aspectul"
+    "settings.page-title.reset": "Resetați aspectul",
+    "settings.navigation.themes": "Teme",
+    "settings.theme.manager-help": "Vedeți tema gazdă activă și gestionați temele GitHub importate pentru paginile de rulare FolderView Plus.",
+    "settings.theme.host-default": "Tema implicită Unraid",
+    "settings.theme.managed-layer": "Temă gestionată activă",
+    "settings.theme.host-status": "Tema gazdă: $1. Temele gazdă instalate sunt gestionate în Unraid."
 }

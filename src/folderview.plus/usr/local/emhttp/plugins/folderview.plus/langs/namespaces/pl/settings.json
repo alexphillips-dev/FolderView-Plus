@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Przekreślenie",
     "settings.page-title.color": "Kolor",
     "settings.page-title.preview": "Podgląd tytułu",
-    "settings.page-title.reset": "Zresetuj wygląd"
+    "settings.page-title.reset": "Zresetuj wygląd",
+    "settings.navigation.themes": "Motywy",
+    "settings.theme.manager-help": "Zobacz aktywny motyw hosta i zarządzaj zaimportowanymi motywami GitHub dla stron wykonawczych FolderView Plus.",
+    "settings.theme.host-default": "Domyślny motyw Unraid",
+    "settings.theme.managed-layer": "Aktywny motyw zarządzany",
+    "settings.theme.host-status": "Temat hosta: $1. Zainstalowane motywy hosta są zarządzane w Unraid."
 }

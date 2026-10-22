@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Áthúzás",
     "settings.page-title.color": "Szín",
     "settings.page-title.preview": "Cím előnézete",
-    "settings.page-title.reset": "Megjelenés visszaállítása"
+    "settings.page-title.reset": "Megjelenés visszaállítása",
+    "settings.navigation.themes": "Témák",
+    "settings.theme.manager-help": "Tekintse meg az aktív gazdagép-témát, és kezelje az importált GitHub-témákat a FolderView Plus futásidejű oldalaihoz.",
+    "settings.theme.host-default": "Alapértelmezett Unraid",
+    "settings.theme.managed-layer": "Aktív kezelt téma",
+    "settings.theme.host-status": "Gazdatéma: $1. A telepített gazdagéptémákat az Unraid kezeli."
 }

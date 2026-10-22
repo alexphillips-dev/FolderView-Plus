@@ -14,6 +14,14 @@ Custom extension directories:
 
 Legacy override roots are also supported (`folder.view`, `folder.view2`, `folder.view3`) for migration compatibility.
 
+## Settings workspaces
+
+Open **Settings → FolderView Plus → Advanced → Themes** to see the active host theme and manage imported GitHub CSS themes. Aurora is identified from its enabled color stylesheet, including when its page enhancements are disabled. If Aurora is switched off for the browser or its colors are disabled, the status falls back to the native Unraid theme. The separate **Active managed theme** card and managed-theme count describe only themes imported into FolderView Plus. Installed host themes remain managed through Unraid.
+
+The **Appearance** tab below Themes contains the **Customization layer**: profiles, global and page scopes, color presets, token controls, preview and custom CSS. Switching between these tabs preserves the current customization draft. Save customization changes in Appearance; activate, update, disable or delete imported themes in Themes. Both tabs display operation feedback.
+
+Saved color tokens apply to Docker, VMs and Dashboard in Auto and Host modes. The generated stylesheet includes separate customization inputs so repeated host-theme resolution preserves those choices. Removing a customization restores the surrounding theme; Safe and High Contrast modes retain their recovery colors. Existing profiles and exports keep the same data format.
+
 ## File Naming
 Use `name.tab.ext` where:
 

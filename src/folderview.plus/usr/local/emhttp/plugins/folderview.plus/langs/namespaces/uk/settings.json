@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Закреслення",
     "settings.page-title.color": "Колір",
     "settings.page-title.preview": "Попередній перегляд заголовка",
-    "settings.page-title.reset": "Скинути зовнішній вигляд"
+    "settings.page-title.reset": "Скинути зовнішній вигляд",
+    "settings.navigation.themes": "Теми",
+    "settings.theme.manager-help": "Переглядайте активну тему хосту та керуйте імпортованими темами GitHub для сторінок виконання FolderView Plus.",
+    "settings.theme.host-default": "Типова тема Unraid",
+    "settings.theme.managed-layer": "Активна керована тема",
+    "settings.theme.host-status": "Тема хоста: $1. Встановлені теми хосту керуються в Unraid."
 }

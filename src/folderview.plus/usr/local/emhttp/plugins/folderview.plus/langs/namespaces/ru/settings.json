@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Зачёркнутый",
     "settings.page-title.color": "Цвет",
     "settings.page-title.preview": "Предварительный просмотр названия",
-    "settings.page-title.reset": "Сбросить внешний вид"
+    "settings.page-title.reset": "Сбросить внешний вид",
+    "settings.navigation.themes": "Темы",
+    "settings.theme.manager-help": "Просматривайте активную тему хоста и управляйте импортированными темами GitHub для страниц среды выполнения FolderView Plus.",
+    "settings.theme.host-default": "Тема Unraid по умолчанию",
+    "settings.theme.managed-layer": "Активная управляемая тема",
+    "settings.theme.host-status": "Хост-тема: $1. Установленные темы хоста управляются в Unraid."
 }

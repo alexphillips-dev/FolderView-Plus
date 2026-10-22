@@ -69,6 +69,27 @@ test('modern host palette wins over stale legacy colors and supplies shared comp
     assert.equal(f.writes(), writes, 'an identical palette must not wake style observers again');
 });
 
+test('saved customization inputs survive repeated resolver passes and disappear cleanly when removed', () => {
+    for (const host of [{ ...darkHost }, {}]) {
+        const f = fixture({ ...host, '--fvplus-custom-theme-accent': '#c084fc',
+            '--fvplus-custom-theme-surface-panel': '#202535', '--fvplus-custom-theme-border-subtle': '#9499aa',
+            '--fvplus-custom-status-started': '#80e080', '--fvplus-custom-status-paused': '#e0c080', '--fvplus-custom-status-stopped': '#ffaaaa' });
+        for (let repeat = 0; repeat < 3; repeat++) {
+            const snapshot = f.api.applyResolvedThemeTokens();
+            assert.equal(snapshot.tokens.accent, 'rgb(192, 132, 252)');
+            assert.equal(snapshot.tokens.surfacePanel, 'rgb(32, 37, 53)');
+            assert.equal(snapshot.tokens.borderSubtle, 'rgb(148, 153, 170)');
+            assert.equal(snapshot.tokens.statusStarted, 'rgb(128, 224, 128)');
+            assert.equal(snapshot.tokens.statusPaused, 'rgb(224, 192, 128)');
+            assert.equal(snapshot.tokens.statusStopped, 'rgb(255, 170, 170)');
+        }
+        assert.notEqual(f.api.applyResolvedThemeTokens('recovery', { modeInput: 'safe' }).tokens.accent, 'rgb(192, 132, 252)');
+        f.api.applyResolvedThemeTokens();
+        for (const key of Object.keys(f.host)) if (key.startsWith('--fvplus-custom-')) delete f.host[key];
+        assert.equal(f.api.applyResolvedThemeTokens().tokens.accent, host['--link-text-color'] ? 'rgb(79, 139, 255)' : 'rgb(255, 138, 31)');
+    }
+});
+
 test('host palette switches to light and custom accents even if server theme metadata is stale', () => {
     const f = fixture({ ...darkHost });
     f.window.FolderViewPlusHostThemeName = 'black';

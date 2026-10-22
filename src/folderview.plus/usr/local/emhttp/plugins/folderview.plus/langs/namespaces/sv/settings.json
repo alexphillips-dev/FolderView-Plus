@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Genomstruken",
     "settings.page-title.color": "Färg",
     "settings.page-title.preview": "Förhandsgranskning av titel",
-    "settings.page-title.reset": "Återställ utseende"
+    "settings.page-title.reset": "Återställ utseende",
+    "settings.navigation.themes": "Teman",
+    "settings.theme.manager-help": "Se det aktiva värdtemat och hantera importerade GitHub-teman för Runtime-sidor för FolderView Plus.",
+    "settings.theme.host-default": "Unraid-standard",
+    "settings.theme.managed-layer": "Aktivt hanterat tema",
+    "settings.theme.host-status": "Värdtema: $1. Installerade värdteman hanteras i Unraid."
 }

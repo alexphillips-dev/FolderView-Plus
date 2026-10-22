@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Durchstreichen",
     "settings.page-title.color": "Farbe",
     "settings.page-title.preview": "Titelvorschau",
-    "settings.page-title.reset": "Aussehen zurücksetzen"
+    "settings.page-title.reset": "Aussehen zurücksetzen",
+    "settings.navigation.themes": "Designs",
+    "settings.theme.manager-help": "Sehen Sie sich das aktive Host-Design an und verwalten Sie importierte GitHub-Designs für FolderView Plus-Laufzeitseiten.",
+    "settings.theme.host-default": "Unraid-Standard",
+    "settings.theme.managed-layer": "Aktives verwaltetes Design",
+    "settings.theme.host-status": "Host-Design: $1. Installierte Host-Designs werden in Unraid verwaltet."
 }

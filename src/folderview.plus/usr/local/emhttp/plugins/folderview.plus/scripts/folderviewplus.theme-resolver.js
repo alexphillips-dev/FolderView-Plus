@@ -604,14 +604,14 @@
             ? (prefersDark ? 'dark' : 'light')
             : detectedClassification;
 
-        const paletteByMode = buildThemePaletteForMode({
+        const paletteByMode = Object.assign(buildThemePaletteForMode({
             mode: requestedMode === 'auto' ? 'host' : requestedMode,
             classification,
             hostText: hostForeground,
             hostBackground: rootBackground,
             accent: hostAccent,
             hostColors
-        });
+        }), hostThemeModule?.readCustomization?.(styleSources, requestedMode, resolveThemeColorCandidate));
         const safePalette = buildThemePaletteForMode({
             mode: 'safe',
             classification,
@@ -669,7 +669,7 @@
 
         const statusStarted = resolveThemeStatusColor(
             'statusStarted',
-            selectedPalette.runtimeForeground,
+            selectedPalette.customStarted || selectedPalette.runtimeForeground,
             rootBackground,
             THEME_CONTRAST_RULES.statusStarted,
             [safePalette.runtimeForeground, highContrastPalette.runtimeForeground]

@@ -71,11 +71,11 @@ if (!empty($fvplusRuntimeConflicts)) {
 <nav id="fv-advanced-nav" class="fv-advanced-nav" aria-label="Advanced sections" data-i18n="[aria-label]settings.navigation.sections"></nav>
 </div>
 <div id="fv-advanced-content" class="fv-advanced-content">
-<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace</h2>
+<h2 data-fv-section="themes" data-fv-advanced="1" data-fv-advanced-group="themes" data-i18n="settings.navigation.themes">Themes</h2>
 <div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
     <div class="rules-panel fv-theme-workspace-shell">
         <div class="rules-header">
-            <span class="rules-help">Manage imported GitHub themes, color token overrides, and optional custom CSS for FolderView Plus runtime pages.</span>
+            <span class="rules-help" data-i18n="settings.theme.manager-help">See the active host theme and manage imported GitHub themes for FolderView Plus runtime pages.</span>
         </div>
         <div class="fv-theme-workspace-body">
             <div id="fv-theme-workspace-summary" class="fv-theme-workspace-summary" aria-live="polite"></div>
@@ -101,7 +101,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Managed themes</span>
                             <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
                         </div>
-                        <div class="fv-theme-module-actions"><button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button></div>
+                        <div class="fv-theme-module-actions"><button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button><button id="fv-theme-update-available" type="button"><i class="fa fa-cloud-download"></i> Update available</button><button id="fv-theme-disable-managed" type="button" data-fv-onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button></div>
                     </div>
                     <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
                         <div class="fv-theme-empty-state">
@@ -111,6 +111,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </section>
             </div>
+        </div>
+    </div>
+</div>
+<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance" data-i18n="settings.navigation.appearance">Appearance</h2>
+<div id="fv-theme-appearance-panel" class="fv-theme-workspace-panel rules-panel fv-theme-workspace-shell">
             <section class="fv-theme-module fv-theme-customize-module">
                 <div class="fv-theme-module-head">
                     <div>
@@ -160,11 +165,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="fv-theme-customize-actions">
                     <button type="button" data-fv-onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
-                    <button type="button" data-fv-onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
                 </div>
             </section>
-        </div>
-    </div>
 </div>
 
 <div class="fv-basic-workspace-heading" data-fv-section-row="1">

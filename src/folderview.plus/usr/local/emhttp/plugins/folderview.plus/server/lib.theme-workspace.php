@@ -201,11 +201,11 @@ function getThemeWorkspacePath(): string {
         $lines = [':root {'];
         foreach ($variables as $token => $value) {
             $lines[] = "  $token: $value;";
+            if (in_array($token, ['--fvplus-theme-accent', '--fvplus-theme-surface-panel', '--fvplus-theme-border-subtle', '--fvplus-status-started', '--fvplus-status-paused', '--fvplus-status-stopped'], true)) $lines[] = '  --fvplus-custom-' . substr($token, strlen('--fvplus-')) . ": $value;";
         }
         $lines[] = '}';
         return implode("\n", $lines);
     }
-
     function writeThemeWorkspaceManagedAssetsUnprotected(array $workspace): void {
         $normalized = normalizeThemeWorkspacePayload($workspace);
         $activeTheme = null;

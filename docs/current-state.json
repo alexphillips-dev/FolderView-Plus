@@ -33,6 +33,7 @@
       { "id": "recovery", "label": "Recovery" },
       { "id": "operations", "label": "Operations" },
       { "id": "startup", "label": "Docker start order" },
+      { "id": "themes", "label": "Themes" },
       { "id": "appearance", "label": "Appearance" },
       { "id": "diagnostics", "label": "Diagnostics" },
       { "id": "logs", "label": "Logs" }

@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "取り消し線",
     "settings.page-title.color": "色",
     "settings.page-title.preview": "タイトルプレビュー",
-    "settings.page-title.reset": "外観をリセットする"
+    "settings.page-title.reset": "外観をリセットする",
+    "settings.navigation.themes": "テーマ",
+    "settings.theme.manager-help": "アクティブなホスト テーマを確認し、FolderView Plus ランタイム ページにインポートされた GitHub テーマを管理します。",
+    "settings.theme.host-default": "Unraid の既定",
+    "settings.theme.managed-layer": "アクティブな管理対象テーマ",
+    "settings.theme.host-status": "ホスト テーマ: $1。インストールされたホスト テーマは Unraid で管理されます。"
 }

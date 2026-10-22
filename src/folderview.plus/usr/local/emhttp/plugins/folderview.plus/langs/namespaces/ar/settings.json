@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "يتوسطه خط",
     "settings.page-title.color": "اللون",
     "settings.page-title.preview": "معاينة العنوان",
-    "settings.page-title.reset": "إعادة ضبط المظهر"
+    "settings.page-title.reset": "إعادة ضبط المظهر",
+    "settings.navigation.themes": "السمات",
+    "settings.theme.manager-help": "شاهد سمة المضيف النشطة وقم بإدارة سمات GitHub المستوردة لصفحات وقت تشغيل FolderView Plus.",
+    "settings.theme.host-default": "إعداد Unraid الافتراضي",
+    "settings.theme.managed-layer": "السمة المُدارة النشطة",
+    "settings.theme.host-status": "سمة المضيف: $1. تتم إدارة سمات المضيف المثبتة في Unraid."
 }

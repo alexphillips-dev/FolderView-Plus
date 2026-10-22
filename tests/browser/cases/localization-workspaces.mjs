@@ -94,7 +94,7 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
             const parsed = new DOMParser().parseFromString(source, 'text/html');
             const root = document.getElementById('fv-settings-root');
             root.innerHTML = parsed.querySelector('[data-fv-section="logs"]').outerHTML
-                + ['fv-activity-feed-panel', 'fv-theme-workspace-panel']
+                + ['fv-activity-feed-panel', 'fv-theme-workspace-panel', 'fv-theme-appearance-panel']
                     .map(id => parsed.getElementById(id).outerHTML).join('')
                 + '<section id="german-recovery"></section><section id="german-operations"></section><section id="german-support"></section>';
             const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')

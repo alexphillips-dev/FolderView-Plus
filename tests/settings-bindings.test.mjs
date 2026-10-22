@@ -125,7 +125,8 @@ test('settings page loads extracted settings metadata before the main runtime', 
 });
 
 test('settings page exposes theme workspace and saved folder defaults controls', () => {
-    assert.match(page, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+    assert.match(page, /<h2 data-fv-section="themes" data-fv-advanced="1" data-fv-advanced-group="themes"[^>]*>Themes<\/h2>/);
+    assert.match(page, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance"[^>]*>Appearance<\/h2>/);
     assert.match(page, /id="fv-theme-workspace-panel"/);
     assert.match(page, /id="fv-theme-github-source"/);
     assert.match(page, /id="fv-theme-workspace-list"/);

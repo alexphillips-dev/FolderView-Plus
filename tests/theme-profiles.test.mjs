@@ -98,3 +98,63 @@ test('theme rollback distinguishes empty/missing assets and restores captured mo
     assert.equal(result.emptyBytes, '');
     assert.equal(result.missingExists, false);
 });
+
+test('managed theme actions persist independently of customization layers and generate the correct page assets', () => {
+    const sandbox = fs.mkdtempSync(path.join(process.cwd(), 'tmp', 'fvplus-theme-actions-'));
+    const quote = value => `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+    for (const dir of ['config', 'source', 'document-root']) fs.mkdirSync(path.join(sandbox, dir));
+    const php = `
+        require_once ${quote(path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'))};
+        $workspace = defaultThemeWorkspace();
+        $workspace['themes'] = [
+            ['id' => 'first', 'name' => 'First', 'source' => ['canCheckUpdates' => false], 'files' => [
+                ['path' => 'docker.css', 'content' => '.first-docker { opacity: .9; }', 'tabs' => ['docker']]]],
+            ['id' => 'second', 'name' => 'Second', 'source' => ['canCheckUpdates' => false], 'files' => [
+                ['path' => 'vm.css', 'content' => '.second-vm { opacity: .8; }', 'tabs' => ['vm']]]]
+        ];
+        $workspace['activeThemeId'] = 'first';
+        $workspace['profiles'][0]['layers']['global']['variables'] = ['--fvplus-theme-accent' => '#123456'];
+        $workspace['profiles'][0]['layers']['docker']['customCss'] = '.custom-docker { opacity: .7; }';
+        writeThemeWorkspace($workspace);
+        $assets = static function(): array {
+            $result = [];
+            foreach (['docker', 'vm', 'dashboard'] as $scope) $result[$scope] = file_get_contents(fvplusThemeWorkspaceGeneratedCssPath($scope));
+            return $result;
+        };
+        $first = $assets();
+        deactivateThemeWorkspaceTheme();
+        $disabled = $assets();
+        activateThemeWorkspaceTheme('second');
+        $second = $assets();
+        $checked = checkThemeWorkspaceUpdates();
+        $deleted = deleteThemeWorkspaceTheme('second');
+        $before = file_get_contents(getThemeWorkspacePath());
+        $rejected = false;
+        try { activateThemeWorkspaceTheme('missing'); } catch (RuntimeException $error) { $rejected = true; }
+        echo json_encode(['first' => $first, 'disabled' => $disabled, 'second' => $second, 'checked' => $checked,
+            'deleted' => $deleted, 'persisted' => readThemeWorkspace(), 'rejected' => $rejected,
+            'unchanged' => $before === file_get_contents(getThemeWorkspacePath())]);
+    `;
+    try {
+        const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: {
+            ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(sandbox, 'config'), FVPLUS_TEST_SOURCE_DIR: path.join(sandbox, 'source'),
+            FVPLUS_TEST_DOCUMENT_ROOT: path.join(sandbox, 'document-root')
+        } }));
+        assert.match(result.first.docker, /first-docker/);
+        for (const scope of ['docker', 'vm', 'dashboard']) assert.match(result.first[scope], /--fvplus-custom-theme-accent: #123456/);
+        assert.doesNotMatch(result.first.vm, /first-docker/);
+        for (const stage of ['disabled', 'second']) {
+            for (const scope of ['docker', 'vm', 'dashboard']) assert.match(result[stage][scope], /--fvplus-theme-accent: #123456/);
+            assert.match(result[stage].docker, /custom-docker/);
+            assert.doesNotMatch(result[stage].vm, /custom-docker/);
+        }
+        assert.doesNotMatch(result.disabled.docker, /first-docker/);
+        assert.match(result.second.vm, /second-vm/);
+        assert.doesNotMatch(result.second.dashboard, /second-vm/);
+        assert.equal(result.checked.updateCount, 0);
+        assert.equal(result.persisted.activeThemeId, '');
+        assert.equal(result.persisted.themes.length, 1);
+        assert.equal(result.persisted.profiles[0].layers.global.variables['--fvplus-theme-accent'], '#123456');
+        assert.equal(result.rejected && result.unchanged, true);
+    } finally { fs.rmSync(sandbox, { recursive: true, force: true }); }
+});

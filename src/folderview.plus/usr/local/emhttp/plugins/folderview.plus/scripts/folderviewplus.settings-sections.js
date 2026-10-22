@@ -4,6 +4,7 @@ const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const ADVANCED_SECTION_KEYS = new Set([
+    'themes',
     'theme-workspace',
     'auto-assignment',
     'bulk-assignment',
@@ -14,7 +15,7 @@ const ADVANCED_SECTION_KEYS = new Set([
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics', 'logs'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'themes', 'appearance', 'diagnostics', 'logs'];
 const translate = (key, fallback) => window.FolderViewPlusI18n?.t?.(key, fallback) || fallback;
 const ADVANCED_GROUP_LABELS = {
     get automation() { return translate("settings.navigation.bulk-assignment", "Bulk assignment"); },
@@ -22,6 +23,7 @@ const ADVANCED_GROUP_LABELS = {
     get recovery() { return translate("settings.navigation.recovery", "Recovery"); },
     get operations() { return translate("settings.navigation.operations", "Operations"); },
     get startup() { return translate("settings.navigation.docker-start-order", "Docker start order"); },
+    get themes() { return translate("settings.navigation.themes", "Themes"); },
     get appearance() { return translate("settings.navigation.appearance", "Appearance"); },
     get diagnostics() { return translate("diagnostics.title", "Diagnostics"); },
     get logs() { return translate('logs', 'Logs'); }
@@ -30,6 +32,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     customizations: 'instant',
     docker: 'instant',
     vms: 'instant',
+    themes: 'instant',
     'theme-workspace': 'instant',
     'auto-assignment': 'instant',
     'conflict-inspector': 'instant',
@@ -41,6 +44,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
+    themes: 'themes',
     'theme-workspace': 'appearance',
     'auto-assignment': 'rules',
     'bulk-assignment': 'automation',
@@ -65,6 +69,7 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     recovery: Object.freeze(['docker_backups', 'vm_backups']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
     startup: Object.freeze([]),
+    themes: Object.freeze([]),
     appearance: Object.freeze([]),
     diagnostics: Object.freeze(['change_history']),
     logs: Object.freeze(['change_history'])
@@ -119,6 +124,7 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
         'health check',
         'copy diagnostics'
     ]),
+    themes: Object.freeze(['host theme', 'Aurora', 'import theme', 'GitHub', 'managed themes', 'theme updates']),
     'theme-workspace': Object.freeze([
         'theme fallback',
         'custom css',

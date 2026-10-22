@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "刪除線",
     "settings.page-title.color": "顏色",
     "settings.page-title.preview": "標題預覽",
-    "settings.page-title.reset": "重置外觀"
+    "settings.page-title.reset": "重置外觀",
+    "settings.navigation.themes": "主題",
+    "settings.theme.manager-help": "檢視活動主機主題並管理FolderView Plus執行時間頁面匯入的GitHub主題。",
+    "settings.theme.host-default": "Unraid 預設主題",
+    "settings.theme.managed-layer": "目前啟用的受管理主題",
+    "settings.theme.host-status": "主機主題：$1。安裝的主機主題在 Unraid 中進行管理。"
 }

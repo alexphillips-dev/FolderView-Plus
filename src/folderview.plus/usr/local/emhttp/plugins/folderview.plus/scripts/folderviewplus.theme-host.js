@@ -135,5 +135,17 @@
         editorNavCountText: toCss(palette.accent)
     });
 
-    return Object.freeze({ readPalette, buildTokenMap, adaptPalette, editorTokens });
+    const readCustomization = (styleSources, mode, resolveColorCandidate) => {
+        if (!['auto', 'host'].includes(mode)) return {};
+        const result = {};
+        const inputs = { accent: 'theme-accent', surfacePanel: 'theme-surface-panel', borderSubtle: 'theme-border-subtle',
+            customStarted: 'status-started', statusPaused: 'status-paused', statusStopped: 'status-stopped' };
+        for (const [field, suffix] of Object.entries(inputs)) {
+            const color = resolveColorCandidate(styleSources, [`--fvplus-custom-${suffix}`], null);
+            if (color) result[field] = color;
+        }
+        return result;
+    };
+
+    return Object.freeze({ readPalette, buildTokenMap, adaptPalette, editorTokens, readCustomization });
 }));

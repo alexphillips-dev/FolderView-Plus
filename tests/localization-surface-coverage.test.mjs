@@ -19,8 +19,12 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    // Revised editor help consolidates obsolete link and HTML fragments.
-    assert.ok(surface.byPhrase.size >= 2997, 'retain the audited conditional UI surfaces');
+    // The Themes split replaces two retired legacy phrases with five semantic Settings messages.
+    assert.ok(surface.byPhrase.size >= 2995, 'retain the audited conditional UI surfaces');
+    const settings = readJson(path.join(namespacesRoot, 'en/settings.json'));
+    for (const key of ['settings.navigation.themes', 'settings.theme.manager-help', 'settings.theme.host-default', 'settings.theme.managed-layer', 'settings.theme.host-status']) {
+        assert.ok(settings[key], `replacement semantic message must exist: ${key}`);
+    }
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });
@@ -32,6 +36,8 @@ test('all shipped surface catalogs are complete and preserve runtime parameters'
 
     assert.equal(locales.length, 27);
     for (const locale of locales) {
+        const settings = readJson(path.join(namespacesRoot, locale, 'settings.json'));
+        assert.match(settings['settings.theme.host-default'], /Unraid/, `${locale} preserves the host product name`);
         const catalog = messagesOnly(readJson(path.join(namespacesRoot, locale, 'legacy-surface.json')));
         assert.deepEqual(Object.keys(catalog).sort(), englishKeys, `${locale} surface keys must match English`);
         for (const key of englishKeys) {

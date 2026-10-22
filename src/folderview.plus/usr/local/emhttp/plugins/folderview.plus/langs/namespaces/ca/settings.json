@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Ratllat",
     "settings.page-title.color": "Color",
     "settings.page-title.preview": "Vista prèvia del títol",
-    "settings.page-title.reset": "Restableix l'aparença"
+    "settings.page-title.reset": "Restableix l'aparença",
+    "settings.navigation.themes": "Temes",
+    "settings.theme.manager-help": "Consulteu el tema de l'amfitrió actiu i gestioneu els temes importats de GitHub per a les pàgines d'execució de FolderView Plus.",
+    "settings.theme.host-default": "Predeterminat d’Unraid",
+    "settings.theme.managed-layer": "Tema gestionat actiu",
+    "settings.theme.host-status": "Tema de l'amfitrió: $1. Els temes d'amfitrió instal·lats es gestionen a Unraid."
 }

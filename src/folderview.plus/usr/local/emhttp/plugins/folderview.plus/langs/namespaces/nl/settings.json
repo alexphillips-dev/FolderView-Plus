@@ -240,5 +240,10 @@
     "settings.page-title.strikethrough": "Doorhalen",
     "settings.page-title.color": "Kleur",
     "settings.page-title.preview": "Titelvoorbeeld",
-    "settings.page-title.reset": "Uiterlijk resetten"
+    "settings.page-title.reset": "Uiterlijk resetten",
+    "settings.navigation.themes": "Thema's",
+    "settings.theme.manager-help": "Bekijk het actieve hostthema en beheer geïmporteerde GitHub-thema's voor FolderView Plus runtime-pagina's.",
+    "settings.theme.host-default": "Unraid-standaard",
+    "settings.theme.managed-layer": "Actief beheerd thema",
+    "settings.theme.host-status": "Hostthema: $1. Geïnstalleerde hostthema's worden beheerd in Unraid."
 }

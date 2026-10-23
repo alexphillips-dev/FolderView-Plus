@@ -41,6 +41,7 @@
     { "file": "tests/browser/cases/folder-badge-defaults.mjs", "limit": 65, "owner": "default badge visibility and post-upgrade Settings opt-outs", "requiredImports": ["../helpers/folder-badges-host.mjs", "../helpers/settings-hide-empty-host.mjs"] },
     { "file": "tests/browser/helpers/folder-badges-host.mjs", "limit": 60, "owner": "production Docker and actual VM summary host", "requiredImports": ["./docker-hide-empty-host.mjs"] },
     { "file": "tests/browser/cases/docker-settings-transfer.mjs", "limit": 150, "owner": "Production Docker copy and paste menus, selective requests, accessibility and viewport behavior", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
+    { "file": "tests/browser/cases/docker-folder-menu-viewport.mjs", "limit": 100, "owner": "Docker folder menu bottom-edge scrolling and native and Aurora submenu geometry", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/cases/backup-schedule.mjs", "limit": 80, "owner": "real PHP scheduled-backup outcomes displayed in Advanced Logs", "requiredImports": ["../../helpers/backup-schedule-fixture.mjs"] },
     { "file": "tests/browser/helpers/icon-card-layout.mjs", "limit": 40, "owner": "Compact built-in and pack card image size, readable labels and text containment" },
     { "file": "tests/browser/helpers/folder-editor-headings.mjs", "limit": 80, "owner": "Folder editor panel heading deduplication, help association and rerender lifecycle" },
@@ -178,6 +179,7 @@
         "tests/browser/cases/folder-badges.mjs",
         "tests/browser/cases/folder-badge-defaults.mjs",
         "tests/browser/cases/docker-folder-menu-state.mjs",
+        "tests/browser/cases/docker-folder-menu-viewport.mjs",
         "tests/browser/cases/docker-settings-transfer.mjs",
         "tests/browser/cases/docker-nested-folder-menu.mjs",
         "tests/browser/cases/docker-folder-feedback.mjs",
@@ -222,8 +224,8 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 136,
-      "assertionCount": 1796,
-      "pageEvaluateCount": 546,
+      "assertionCount": 1806,
+      "pageEvaluateCount": 548,
       "orderedTitleSha256": "3b4e28bf46690fb0bb05d0cc96ad6d7ec402936e614f709041d48e8a01d3caf7"
     }
   }

@@ -6471,7 +6471,7 @@ const positionDockerContextElementInsideViewport = (element) => {
     if (!element || typeof element.getBoundingClientRect !== 'function') {
         return false;
     }
-    const rect = element.getBoundingClientRect();
+    let rect = element.getBoundingClientRect();
     if (!rect.width || !rect.height) {
         return false;
     }
@@ -6481,38 +6481,18 @@ const positionDockerContextElementInsideViewport = (element) => {
         return false;
     }
     const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
-    const style = window.getComputedStyle(element);
-    const fixed = style.position === 'fixed';
-    const scrollX = fixed ? 0 : (window.pageXOffset || document.documentElement.scrollLeft || 0);
-    const scrollY = fixed ? 0 : (window.pageYOffset || document.documentElement.scrollTop || 0);
-    let nextTop = rect.top + scrollY;
-    let nextLeft = rect.left + scrollX;
-    let changed = false;
-
     element.classList.add('fvplus-docker-context-menu');
     if (!element.classList.contains('fv-settings-transfer-menu')) element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+    element.classList.toggle('fvplus-context-menu-scroll', element.scrollHeight > element.clientHeight + 1);
+    // Measure after sizing and scrolling styles have taken effect.
+    rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+    const nextTop = Math.max(margin, Math.min(rect.top, viewportHeight - margin - rect.height));
+    const nextLeft = Math.max(margin, Math.min(rect.left, viewportWidth - margin - rect.width));
 
-    if (rect.bottom > viewportHeight - margin) {
-        nextTop -= rect.bottom - (viewportHeight - margin);
-        changed = true;
-    }
-    if (rect.top < margin) {
-        nextTop += margin - rect.top;
-        changed = true;
-    }
-    if (rect.right > viewportWidth - margin) {
-        nextLeft -= rect.right - (viewportWidth - margin);
-        changed = true;
-    }
-    if (rect.left < margin) {
-        nextLeft += margin - rect.left;
-        changed = true;
-    }
-
-    if (changed) {
-        element.style.top = `${Math.max(margin + scrollY, nextTop)}px`;
-        element.style.left = `${Math.max(margin + scrollX, nextLeft)}px`;
-    }
+    // Apply a delta to the CSS coordinates: rect coordinates already include theme margins.
+    if (nextTop !== rect.top) element.style.top = `${(Number.parseFloat(style.top) || 0) + nextTop - rect.top}px`;
+    if (nextLeft !== rect.left) element.style.left = `${(Number.parseFloat(style.left) || 0) + nextLeft - rect.left}px`;
     return true;
 };
 const adjustDockerContextSubmenuViewportPlacement = (listItem) => {

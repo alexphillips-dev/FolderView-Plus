@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.08">
-<!ENTITY md5 "b7e1f9d5d1edef8042db17e83c616a0d">
-<!ENTITY sha256 "86a6fe60302465baa097e37adaccf6ff1553e9bd4ee1f76bdc029141ecffddf0">
+<!ENTITY version "2026.10.22.09">
+<!ENTITY md5 "73800e0395aea44a523929c040ae77af">
+<!ENTITY sha256 "dca876e62441804cb618402cfd7fed97b018aa9a47a1b74d7856ddbb25cbca11">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.09
+- Fix: Keep Docker folder action menus inside the screen when opened near the bottom, including with Aurora's menu spacing and on scrolled pages.
+- Fix: Let tall Docker folder menus scroll so their final actions remain reachable in short windows. Nested Clone and copied-settings menus remain usable.
+- Compatibility: Keep submenu arrows at the right edge in Aurora and native themes across Docker and VM folder menus.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised menu positioning and styles. Saved settings and folder contents are retained.
+
 
 ###2026.10.22.08
 - UI/UX: Increase the Docker toolbar divider spacing between Collapse All and Unassigned so folder actions and filters are easier to distinguish.

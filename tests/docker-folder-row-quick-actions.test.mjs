@@ -317,8 +317,8 @@ test('docker context menus clamp main and nested menus inside the viewport', () 
     assert.match(dockerScript, /const positionDockerContextElementInsideViewport = \(element\) =>/);
     assert.match(dockerScript, /rect\.bottom > viewportHeight - margin/);
     assert.match(dockerScript, /rect\.right > viewportWidth - margin/);
-    assert.match(dockerScript, /element\.style\.top = `\$\{Math\.max\(margin \+ scrollY,\s*nextTop\)\}px`;/);
-    assert.match(dockerScript, /element\.style\.left = `\$\{Math\.max\(margin \+ scrollX,\s*nextLeft\)\}px`;/);
+    assert.match(dockerScript, /Number\.parseFloat\(style\.top\)/);
+    assert.match(dockerScript, /Number\.parseFloat\(style\.left\)/);
     assert.match(dockerScript, /const adjustDockerContextSubmenuViewportPlacement = \(listItem\) =>/);
     assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-up'\);/);
     assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-left'\);/);

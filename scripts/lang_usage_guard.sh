@@ -37,6 +37,7 @@ const allowUnusedKeys = new Set(
   'custom-actions-type-1',
   'folderviewplus-desc',
   'member-preview-visible',
+  'settings.theme.host-default', // Retained by the host-theme catalog contract after the Themes split.
   'updating'
 ].forEach((key) => allowUnusedKeys.add(key));
 

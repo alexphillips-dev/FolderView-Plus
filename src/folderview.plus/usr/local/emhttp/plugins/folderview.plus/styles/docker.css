@@ -1438,7 +1438,11 @@ div.folder-preview-4 span.outer {
 
 .fvplus-docker-context-menu {
     --fvplus-docker-menu-danger: var(--fvplus-graphite-danger);
-    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+.fvplus-docker-context-menu.fvplus-context-menu-scroll {
+    overflow: auto !important;
 }
 
 body[data-fv-theme-class="light"] .fvplus-docker-context-menu {
@@ -1859,6 +1863,6 @@ body.fvplus-privacy-docker-runtime-mask-names .fv-docker-feedback-name { filter:
 
 .fv-settings-transfer-toast { position: fixed; inset: auto 1rem 1rem auto; z-index: 10000; max-width: min(420px, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--fvplus-ui-border-subtle); border-radius: 8px; background: var(--fvplus-ui-strong); color: var(--fvplus-ui-text-primary); font-size: 1.2rem; overflow-wrap: anywhere; }
 .fvplus-docker-context-menu a[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
-.fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
+.fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; margin: 0; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
 .fv-settings-transfer-menu > li > a { white-space: normal; overflow-wrap: anywhere; }
 @media (pointer: coarse) { .fv-settings-transfer-menu > li > a { box-sizing: border-box; min-height: 44px; } }

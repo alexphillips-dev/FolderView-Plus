@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Gem ændringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Temaer",
     "settings.theme.manager-help": "Se det aktive værtstema og administrer importerede GitHub-temaer til FolderView Plus-runtime-sider.",
     "settings.theme.host-default": "Unraid-standard",
+    "settings.theme.host-unidentified": "Uidentificeret værtstema",
+    "settings.theme.identity-source": "Værtsidentitetskilde",
+    "settings.theme.identity-declared": "Angivet af temaet",
+    "settings.theme.identity-recognized": "Genkendt stylesheet",
+    "settings.theme.identity-native": "Unraid basistema",
+    "settings.theme.adaptation": "Tematilpasning",
+    "settings.theme.adaptation-system": "System forcerede farver",
+    "settings.theme.adaptation-variables": "Værtens CSS-variabler",
+    "settings.theme.adaptation-computed": "Native beregnede stilarter",
+    "settings.theme.adaptation-contrast": "Gendannelsespalet: værtskontrast",
+    "settings.theme.adaptation-requested": "Gendannelsespalet: valgt tilstand",
+    "settings.theme.adaptation-fallback": "Plugin-palet: værtsinputs er ikke tilgængelige",
+    "settings.theme.native-controls": "Kontrolelementernes størrelse",
+    "settings.theme.controls-host": "Størrelsen følger værtens kontrolelementer",
+    "settings.theme.controls-default": "Plugin standarder",
     "settings.theme.managed-layer": "Aktivt administreret tema",
     "settings.theme.host-status": "Værtstema: $1. Installerede værtstemaer administreres i Unraid."
 }

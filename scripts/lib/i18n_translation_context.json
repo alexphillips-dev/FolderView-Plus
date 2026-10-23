@@ -31,12 +31,20 @@
             "Skipped": "Ignoré",
             "Open console": "Ouvrir la console",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Les dossiers Docker et VM ainsi que les préférences enregistrées seront remplacés, y compris les règles, la confidentialité, les groupes, l'intégrité, les performances, les valeurs par défaut et les planifications de sauvegarde. Des points de contrôle de récupération sont créés avant l'application.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "La source de FolderView3 ou la configuration actuelle a été modifiée après l'aperçu. Prévisualisez-le à nouveau avant d’appliquer les modifications."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "La source de FolderView3 ou la configuration actuelle a été modifiée après l'aperçu. Prévisualisez-le à nouveau avant d’appliquer les modifications.",
+            "Declared by theme": "Déclaré par le thème",
+            "Host CSS variables": "Variables CSS de l’hôte",
+            "Control sizing": "Taille des commandes",
+            "Following host controls": "La taille suit les commandes de l’hôte"
         },
         "it": {
             "Open console": "Apri console",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Verranno sostituite sia le cartelle Docker che quelle VM e le preferenze salvate, incluse regole, privacy, gruppi, integrità, prestazioni, impostazioni predefinite e pianificazioni di backup. I checkpoint di ripristino vengono creati prima dell'applicazione.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "L'origine di FolderView3 o la configurazione corrente sono cambiate dopo l'anteprima. Visualizzalo nuovamente in anteprima prima dell'applicazione."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "L'origine di FolderView3 o la configurazione corrente sono cambiate dopo l'anteprima. Visualizzalo nuovamente in anteprima prima dell'applicazione.",
+            "Declared by theme": "Dichiarato dal tema",
+            "Host CSS variables": "Variabili CSS dell’host",
+            "Control sizing": "Dimensioni dei controlli",
+            "Following host controls": "Le dimensioni seguono i controlli dell’host"
         },
         "cs": {
             "Close search": "Zavřít hledání",
@@ -47,7 +55,11 @@
             "Import ops": "Operace importu",
             "runtime snapshot": "snímek běhového prostředí",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Docker i VM složky a uložené předvolby budou nahrazeny, včetně pravidel, soukromí, skupin, stavu, výkonu, výchozích nastavení a plánů zálohování. Kontrolní body obnovy jsou vytvořeny před aplikací.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Zdroj FolderView3 nebo aktuální konfigurace se po náhledu změnily. Před aplikací si jej znovu prohlédněte."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Zdroj FolderView3 nebo aktuální konfigurace se po náhledu změnily. Před aplikací si jej znovu prohlédněte.",
+            "Declared by theme": "Název uvedený motivem",
+            "Host CSS variables": "Proměnné CSS hostitele",
+            "Control sizing": "Velikost ovládacích prvků",
+            "Following host controls": "Velikost podle ovládacích prvků hostitele"
         },
         "hu": {
             "Preferences": "Beállítások",
@@ -55,12 +67,20 @@
             "$1 refs": "Hivatkozások: $1",
             "FolderView Plus Export": "FolderView Plus-export",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "A Docker és a VM mappák és a mentett beállítások is lecserélődnek, beleértve a szabályokat, az adatvédelmet, a csoportokat, az állapotot, a teljesítményt, az alapértelmezett értékeket és a biztonsági mentés ütemezését. A helyreállítási ellenőrzőpontok az alkalmazás előtt jönnek létre.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A FolderView3 forrása vagy jelenlegi konfigurációja módosult az előnézet után. A módosítások alkalmazása előtt tekintse meg újra az előnézetet."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A FolderView3 forrása vagy jelenlegi konfigurációja módosult az előnézet után. A módosítások alkalmazása előtt tekintse meg újra az előnézetet.",
+            "Declared by theme": "A téma által megadva",
+            "Host CSS variables": "A gazdagép CSS-változói",
+            "Control sizing": "Vezérlőelemek mérete",
+            "Following host controls": "A méret a gazdagép vezérlőelemeit követi"
         },
         "lv": {
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Sākuma mapes: $1 (atlasītas: $2; izlaistas esošās: $3; automātiski piešķirtas atbilstības: $4; jāpārskata: $5; bez atbilstības: $6)",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Tiks aizstātas gan Docker, gan VM mapes un saglabātās preferences, tostarp noteikumi, privātums, grupas, veselība, veiktspēja, noklusējuma iestatījumi un dublēšanas grafiki. Pirms izmaiņu piemērošanas tiek izveidoti atkopšanas kontrolpunkti.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 avots vai pašreizējā konfigurācija ir mainīta pēc priekšskatījuma. Pirms izmaiņu piemērošanas vēlreiz priekšskatiet to."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 avots vai pašreizējā konfigurācija ir mainīta pēc priekšskatījuma. Pirms izmaiņu piemērošanas vēlreiz priekšskatiet to.",
+            "Declared by theme": "Tēmas norādīts nosaukums",
+            "Host CSS variables": "Resursdatora CSS mainīgie",
+            "Control sizing": "Vadīklu izmērs",
+            "Following host controls": "Izmērs atbilst resursdatora vadīklām"
         },
         "ro": {
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Dosare inițiale: $1 (selectate: $2; existente omise: $3; potriviri atribuite automat: $4; necesită verificare: $5; fără potrivire: $6)",
@@ -71,7 +91,11 @@
             "Import config": "Importă configurația",
             "Manual $1": "Atribuire manuală: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Ambele foldere Docker și VM și preferințele salvate vor fi înlocuite, inclusiv regulile, confidențialitatea, grupurile, sănătatea, performanța, valorile implicite și programele de backup. Punctele de control de recuperare sunt create înainte de aplicare.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Sursa FolderView3 sau configurația curentă a fost schimbată după previzualizare. Previzualizează-l din nou înainte de a aplica."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Sursa FolderView3 sau configurația curentă a fost schimbată după previzualizare. Previzualizează-l din nou înainte de a aplica.",
+            "Declared by theme": "Declarat de temă",
+            "Host CSS variables": "Variabilele CSS ale gazdei",
+            "Control sizing": "Dimensiunea comenzilor",
+            "Following host controls": "Dimensiunea urmează comenzile gazdei"
         },
         "ja": {
             "Starting containers": "コンテナを起動中",
@@ -85,7 +109,11 @@
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "このスナップショットのフォルダーと保存済みの設定を復元しますか？復元前に安全のためのバックアップが作成されます。",
             "Replace mode will delete $1 existing $2 folders.": "置換モードでは、既存の $2 フォルダーを $1 個削除します。",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Docker フォルダーと VM フォルダーの両方と、ルール、プライバシー、グループ、健全性、パフォーマンス、デフォルト、バックアップ スケジュールなどの保存された設定が置き換えられます。リカバリ チェックポイントは適用前に作成されます。",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 のソースまたは現在の構成がプレビュー後に変更されました。適用する前にもう一度プレビューしてください。"
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 のソースまたは現在の構成がプレビュー後に変更されました。適用する前にもう一度プレビューしてください。",
+            "Declared by theme": "テーマが提供する名前",
+            "Host CSS variables": "ホストのCSS変数",
+            "Control sizing": "操作部品のサイズ",
+            "Following host controls": "サイズはホストの操作部品に追従"
         },
         "bn": {
             "Containers": "কন্টেইনার",
@@ -94,7 +122,11 @@
             "Choose the containers you want to move to $1.": "আপনি যে কনটেইনারগুলি $1-এ সরাতে চান সেগুলি বেছে নিন।",
             "Select the folder that will receive the containers.": "কনটেইনারগুলি যে ফোল্ডারে যাবে সেটি বেছে নিন।",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "নিয়ম, গোপনীয়তা, গোষ্ঠী, স্বাস্থ্য, কর্মক্ষমতা, ডিফল্ট এবং ব্যাকআপ সময়সূচী সহ ডকার এবং ভিএম ফোল্ডার এবং সংরক্ষিত পছন্দগুলি উভয়ই প্রতিস্থাপন করা হবে। পরিবর্তনগুলি প্রয়োগ করার আগে রিকভারি চেকপয়েন্ট তৈরি করা হয়।",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 উত্স বা বর্তমান কনফিগারেশন পূর্বরূপের পরে পরিবর্তিত হয়েছে৷ পরিবর্তনগুলি প্রয়োগ করার আগে এটি আবার পূর্বরূপ দেখুন।"
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 উত্স বা বর্তমান কনফিগারেশন পূর্বরূপের পরে পরিবর্তিত হয়েছে৷ পরিবর্তনগুলি প্রয়োগ করার আগে এটি আবার পূর্বরূপ দেখুন।",
+            "Declared by theme": "থিমের দেওয়া পরিচয়",
+            "Host CSS variables": "হোস্টের CSS ভেরিয়েবল",
+            "Control sizing": "নিয়ন্ত্রণগুলির আকার",
+            "Following host controls": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে"
         },
         "ca": {
             "VMs: $1": "Màquines virtuals: $1",
@@ -104,7 +136,11 @@
             "$1 refs": "Referències: $1",
             "Manual $1": "Assignació manual: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Se substituiran les carpetes Docker i VM i les preferències desades, incloses les regles, la privadesa, els grups, la salut, el rendiment, els valors predeterminats i les programacions de còpia de seguretat. Els punts de control de recuperació es creen abans d'aplicar-los.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "L'origen de FolderView3 o la configuració actual ha canviat després de la vista prèvia. Previsualitzeu-lo de nou abans d'aplicar els canvis."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "L'origen de FolderView3 o la configuració actual ha canviat després de la vista prèvia. Previsualitzeu-lo de nou abans d'aplicar els canvis.",
+            "Declared by theme": "Declarat pel tema",
+            "Host CSS variables": "Variables CSS de l’amfitrió",
+            "Control sizing": "Mida dels controls",
+            "Following host controls": "La mida segueix els controls de l’amfitrió"
         },
         "sv": {
             "Read-only comparison": "Jämförelse utan ändringar",
@@ -123,7 +159,11 @@
             "Snapshot plugin $1": "Ögonblicksbild av insticksprogram $1",
             "$1 refs": "Referenser: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Både Docker- och VM-mappar och sparade inställningar kommer att ersättas, inklusive regler, sekretess, grupper, hälsa, prestanda, standardinställningar och säkerhetskopieringsscheman. Återställningskontrollpunkter skapas innan du tillämpar ändringarna.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 källa eller aktuell konfiguration ändrades efter förhandsgranskning. Förhandsgranska den igen innan du tillämpar ändringarna."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 källa eller aktuell konfiguration ändrades efter förhandsgranskning. Förhandsgranska den igen innan du tillämpar ändringarna.",
+            "Declared by theme": "Angivet av temat",
+            "Host CSS variables": "Värdens CSS-variabler",
+            "Control sizing": "Storlek på kontroller",
+            "Following host controls": "Storleken följer värdens kontroller"
         },
         "zh-Hans": {
             "Previous configuration restored": "已恢复先前的配置",
@@ -135,7 +175,11 @@
             "Remove batch": "移除批次",
             "Container": "容器",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Docker 和 VM 文件夹以及保存的首选项都将被替换，包括规则、隐私、组、运行状况、性能、默认值和备份计划。恢复检查点是在应用之前创建的。",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "预览后，FolderView3 源或当前配置发生更改。应用更改前请再次预览。"
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "预览后，FolderView3 源或当前配置发生更改。应用更改前请再次预览。",
+            "Declared by theme": "主题提供的名称",
+            "Host CSS variables": "宿主 CSS 变量",
+            "Control sizing": "控件尺寸",
+            "Following host controls": "尺寸随宿主控件调整"
         },
         "zh-Hant": {
             "Previous configuration restored": "已恢復先前的配置",
@@ -146,7 +190,11 @@
             "Move VMs ($1)": "移動虛擬機器 ($1)",
             "Move VMs (0)": "移動虛擬機器 (0)",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Docker 和 VM 資料夾以及已儲存的首選項都將被替換，包括規則、隱私、群組、執行狀況、效能、預設值和備份計劃。恢復檢查點是在應用之前建立的。",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "預覽後，FolderView3 來源或目前配置發生變更。套用變更前請再次預覽。"
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "預覽後，FolderView3 來源或目前配置發生變更。套用變更前請再次預覽。",
+            "Declared by theme": "主題提供的名稱",
+            "Host CSS variables": "宿主 CSS 變數",
+            "Control sizing": "控制項尺寸",
+            "Following host controls": "尺寸隨宿主控制項調整"
         },
         "da": {
             "Browser Quick Guide": "Hurtig vejledning til browseren",
@@ -166,13 +214,21 @@
             "Start batch $1": "Start gruppe $1",
             "$1 refs": "Referencer: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Både Docker- og VM-mapper og gemte præferencer vil blive erstattet, inklusive regler, privatliv, grupper, sundhed, ydeevne, standardindstillinger og sikkerhedskopieringsplaner. Gendannelseskontrolpunkter oprettes før ændringerne anvendes.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 kilde eller nuværende konfiguration ændret efter forhåndsvisning. Forhåndsvis det igen, før du anvender ændringerne."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 kilde eller nuværende konfiguration ændret efter forhåndsvisning. Forhåndsvis det igen, før du anvender ændringerne.",
+            "Declared by theme": "Angivet af temaet",
+            "Host CSS variables": "Værtens CSS-variabler",
+            "Control sizing": "Kontrolelementernes størrelse",
+            "Following host controls": "Størrelsen følger værtens kontrolelementer"
         },
         "pl": {
             "Disabled": "Wyłączone",
             "Clear": "Wyczyść",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Zarówno foldery Dockera, jak i VM oraz zapisane preferencje zostaną zastąpione, w tym reguły, prywatność, grupy, stan, wydajność, ustawienia domyślne i harmonogramy tworzenia kopii zapasowych. Punkty kontrolne odzyskiwania są tworzone przed zastosowaniem.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Źródło FolderView3 lub bieżąca konfiguracja zostały zmienione po podglądzie. Wyświetl podgląd ponownie przed zastosowaniem."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Źródło FolderView3 lub bieżąca konfiguracja zostały zmienione po podglądzie. Wyświetl podgląd ponownie przed zastosowaniem.",
+            "Declared by theme": "Nazwa podana przez motyw",
+            "Host CSS variables": "Zmienne CSS hosta",
+            "Control sizing": "Rozmiar elementów sterujących",
+            "Following host controls": "Rozmiar zgodny z elementami sterującymi hosta"
         },
         "de": {
             "Starting containers": "Container werden gestartet",
@@ -204,7 +260,11 @@
             "Inherited": "Geerbt",
             "Toggle $1": "$1 umschalten",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Sowohl Docker- als auch VM-Ordner und gespeicherte Einstellungen werden ersetzt, einschließlich Regeln, Datenschutz, Gruppen, Zustand, Leistung, Standardeinstellungen und Sicherungszeitpläne. Vor der Anwendung werden Wiederherstellungsprüfpunkte erstellt.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Die FolderView3-Quelle oder aktuelle Konfiguration wurde nach der Vorschau geändert. Sehen Sie es sich noch einmal in der Vorschau an, bevor Sie es anwenden."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Die FolderView3-Quelle oder aktuelle Konfiguration wurde nach der Vorschau geändert. Sehen Sie es sich noch einmal in der Vorschau an, bevor Sie es anwenden.",
+            "Declared by theme": "Vom Theme angegeben",
+            "Host CSS variables": "CSS-Variablen des Hosts",
+            "Control sizing": "Größe der Bedienelemente",
+            "Following host controls": "Größe folgt den Bedienelementen des Hosts"
         },
         "es": {
             "Skipped": "Omitido",
@@ -213,18 +273,30 @@
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "¿Restaurar las carpetas y las preferencias guardadas de esta instantánea? Primero se crea una copia de seguridad.",
             "Manual $1": "Asignación manual: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Se reemplazarán las carpetas de Docker y VM y las preferencias guardadas, incluidas las reglas, la privacidad, los grupos, el estado, el rendimiento, los valores predeterminados y los programas de respaldo. Los puntos de control de recuperación se crean antes de aplicar los cambios.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "La fuente de FolderView3 o la configuración actual cambiaron después de la vista previa. Vuelva a obtener una vista previa antes de aplicar."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "La fuente de FolderView3 o la configuración actual cambiaron después de la vista previa. Vuelva a obtener una vista previa antes de aplicar.",
+            "Declared by theme": "Declarado por el tema",
+            "Host CSS variables": "Variables CSS del host",
+            "Control sizing": "Tamaño de los controles",
+            "Following host controls": "El tamaño sigue los controles del host"
         },
         "hr": {
             "Disabled": "Onemogućeno",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Dijagnostika pokretanja uređivača mapa FolderView Plus",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "I Docker i VM mape i spremljene postavke bit će zamijenjene, uključujući pravila, privatnost, grupe, zdravlje, performanse, zadane postavke i rasporede sigurnosnog kopiranja. Kontrolne točke oporavka stvaraju se prije primjene.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Izvor FolderView3 ili trenutna konfiguracija promijenjeni su nakon pregleda. Ponovno ga pregledajte prije primjene."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Izvor FolderView3 ili trenutna konfiguracija promijenjeni su nakon pregleda. Ponovno ga pregledajte prije primjene.",
+            "Declared by theme": "Naziv koji navodi tema",
+            "Host CSS variables": "CSS varijable glavnog sučelja",
+            "Control sizing": "Veličina kontrola",
+            "Following host controls": "Veličina prati kontrole glavnog sučelja"
         },
         "ko": {
             "Disabled": "비활성화됨",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "규칙, 개인 정보 보호, 그룹, 상태, 성능, 기본값 및 백업 일정을 포함하여 Docker 및 VM 폴더와 저장된 기본 설정이 모두 대체됩니다. 적용하기 전에 복구 체크포인트가 생성됩니다.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "미리보기 후 FolderView3 소스 또는 현재 구성이 변경되었습니다. 변경 사항을 적용하기 전에 다시 미리 확인해 보세요."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "미리보기 후 FolderView3 소스 또는 현재 구성이 변경되었습니다. 변경 사항을 적용하기 전에 다시 미리 확인해 보세요.",
+            "Declared by theme": "테마에서 제공한 이름",
+            "Host CSS variables": "호스트 CSS 변수",
+            "Control sizing": "컨트롤 크기",
+            "Following host controls": "크기가 호스트 컨트롤을 따름"
         },
         "nb": {
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Oppstartsdiagnostikk for mapperedigering i FolderView Plus",
@@ -237,21 +309,33 @@
             "Status trend $1": "Statusutvikling $1",
             "$1 refs": "Referanser: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Både Docker- og VM-mapper og lagrede preferanser vil bli erstattet, inkludert regler, personvern, grupper, helse, ytelse, standardinnstillinger og sikkerhetskopieringsplaner. Gjenopprettingssjekkpunkter opprettes før endringene brukes.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3-kilden eller gjeldende konfigurasjon endret etter forhåndsvisning. Forhåndsvis den på nytt før du bruker endringene."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3-kilden eller gjeldende konfigurasjon endret etter forhåndsvisning. Forhåndsvis den på nytt før du bruker endringene.",
+            "Declared by theme": "Oppgitt av temaet",
+            "Host CSS variables": "Vertens CSS-variabler",
+            "Control sizing": "Størrelse på kontroller",
+            "Following host controls": "Størrelsen følger vertens kontroller"
         },
         "nl": {
             "Score": "Score",
             "type mismatch": "typen komen niet overeen",
             "Containers: $1": "Docker-containers: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Zowel Docker- als VM-mappen en opgeslagen voorkeuren worden vervangen, inclusief regels, privacy, groepen, gezondheid, prestaties, standaardinstellingen en back-upschema's. Herstelcontrolepunten worden gemaakt voordat u de wijzigingen toepast.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3-bron of huidige configuratie gewijzigd na voorbeeld. Bekijk het opnieuw voordat u de wijzigingen toepast."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3-bron of huidige configuratie gewijzigd na voorbeeld. Bekijk het opnieuw voordat u de wijzigingen toepast.",
+            "Declared by theme": "Opgegeven door het thema",
+            "Host CSS variables": "CSS-variabelen van de host",
+            "Control sizing": "Grootte van bedieningselementen",
+            "Following host controls": "Grootte volgt de bedieningselementen van de host"
         },
         "pt-BR": {
             "Containers": "Contêineres",
             "Manual $1": "Atribuição manual: $1",
             "VMs: $1": "Máquinas virtuais: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "As pastas Docker e VM e as preferências salvas serão substituídas, incluindo regras, privacidade, grupos, integridade, desempenho, padrões e agendamentos de backup. Os pontos de verificação de recuperação são criados antes da aplicação.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A origem do FolderView3 ou a configuração atual foram alteradas após a visualização. Visualize-o novamente antes de aplicar."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A origem do FolderView3 ou a configuração atual foram alteradas após a visualização. Visualize-o novamente antes de aplicar.",
+            "Declared by theme": "Declarado pelo tema",
+            "Host CSS variables": "Variáveis CSS do host",
+            "Control sizing": "Tamanho dos controles",
+            "Following host controls": "O tamanho segue os controles do host"
         },
         "pt-PT": {
             "Containers": "Contentores",
@@ -259,7 +343,11 @@
             "Manual $1": "Atribuição manual: $1",
             "VMs: $1": "Máquinas virtuais: $1",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "As pastas Docker e VM e as preferências salvas serão substituídas, incluindo regras, privacidade, grupos, integridade, desempenho, padrões e agendamentos de backup. Os pontos de verificação de recuperação são criados antes da aplicação.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A origem do FolderView3 ou a configuração atual foram alteradas após a visualização. Visualize-o novamente antes de aplicar."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "A origem do FolderView3 ou a configuração atual foram alteradas após a visualização. Visualize-o novamente antes de aplicar.",
+            "Declared by theme": "Declarado pelo tema",
+            "Host CSS variables": "Variáveis CSS do anfitrião",
+            "Control sizing": "Tamanho dos controlos",
+            "Following host controls": "O tamanho segue os controlos do anfitrião"
         },
         "uk": {
             "Choose a snapshot and a comparison target. No changes will be saved.": "Виберіть знімок і джерело для порівняння. Жодні зміни не буде збережено.",
@@ -267,7 +355,29 @@
             "Preference changes: $1": "Зміни налаштувань: $1",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Діагностика запуску редактора папок FolderView Plus",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Буде замінено папки Docker і VM, а також збережені параметри, зокрема правила, конфіденційність, групи, працездатність, продуктивність, параметри за замовчуванням і розклади резервного копіювання. Контрольні точки відновлення створюються перед застосуванням.",
-            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Джерело FolderView3 або поточну конфігурацію змінено після попереднього перегляду. Перегляньте його ще раз перед застосуванням."
+            "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "Джерело FolderView3 або поточну конфігурацію змінено після попереднього перегляду. Перегляньте його ще раз перед застосуванням.",
+            "Declared by theme": "Назва, надана темою",
+            "Host CSS variables": "CSS-змінні хоста",
+            "Control sizing": "Розмір елементів керування",
+            "Following host controls": "Розмір відповідає елементам керування хоста"
+        },
+        "ar": {
+            "Declared by theme": "مُعلن بواسطة السمة",
+            "Host CSS variables": "متغيرات CSS للمضيف",
+            "Control sizing": "حجم عناصر التحكم",
+            "Following host controls": "الحجم يتبع عناصر تحكم المضيف"
+        },
+        "ru": {
+            "Declared by theme": "Название, указанное темой",
+            "Host CSS variables": "CSS-переменные хоста",
+            "Control sizing": "Размер элементов управления",
+            "Following host controls": "Размер соответствует элементам управления хоста"
+        },
+        "tr": {
+            "Declared by theme": "Tema tarafından belirtilen ad",
+            "Host CSS variables": "Ana bilgisayarın CSS değişkenleri",
+            "Control sizing": "Denetim boyutu",
+            "Following host controls": "Boyut ana bilgisayarın denetimlerini izler"
         }
     }
 }

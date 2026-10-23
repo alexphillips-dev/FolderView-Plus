@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Änderungen speichern",
     "settings.rules.regex-placeholder": "Regex-Muster (z. B. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Designs",
     "settings.theme.manager-help": "Sehen Sie sich das aktive Host-Design an und verwalten Sie importierte GitHub-Designs für FolderView Plus-Laufzeitseiten.",
     "settings.theme.host-default": "Unraid-Standard",
+    "settings.theme.host-unidentified": "Unbekanntes Host-Theme",
+    "settings.theme.identity-source": "Host-Identitätsquelle",
+    "settings.theme.identity-declared": "Vom Theme angegeben",
+    "settings.theme.identity-recognized": "Anerkanntes Stylesheet",
+    "settings.theme.identity-native": "Unraid-Basisthema",
+    "settings.theme.adaptation": "Themenanpassung",
+    "settings.theme.adaptation-system": "Systemerzwungene Farben",
+    "settings.theme.adaptation-variables": "CSS-Variablen des Hosts",
+    "settings.theme.adaptation-computed": "Native berechnete Stile",
+    "settings.theme.adaptation-contrast": "Wiederherstellungspalette: Host-Kontrast",
+    "settings.theme.adaptation-requested": "Wiederherstellungspalette: ausgewählter Modus",
+    "settings.theme.adaptation-fallback": "Plugin-Palette: Host-Eingaben nicht verfügbar",
+    "settings.theme.native-controls": "Größe der Bedienelemente",
+    "settings.theme.controls-host": "Größe folgt den Bedienelementen des Hosts",
+    "settings.theme.controls-default": "Plugin-Standardeinstellungen",
     "settings.theme.managed-layer": "Aktives verwaltetes Design",
     "settings.theme.host-status": "Host-Design: $1. Installierte Host-Designs werden in Unraid verwaltet."
 }

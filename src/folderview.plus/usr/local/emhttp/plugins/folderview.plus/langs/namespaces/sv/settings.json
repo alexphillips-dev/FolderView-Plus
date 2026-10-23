@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Teman",
     "settings.theme.manager-help": "Se det aktiva värdtemat och hantera importerade GitHub-teman för Runtime-sidor för FolderView Plus.",
     "settings.theme.host-default": "Unraid-standard",
+    "settings.theme.host-unidentified": "Oidentifierat värdtema",
+    "settings.theme.identity-source": "Värdidentitetskälla",
+    "settings.theme.identity-declared": "Angivet av temat",
+    "settings.theme.identity-recognized": "Igenkänd stilmall",
+    "settings.theme.identity-native": "Unraid bastema",
+    "settings.theme.adaptation": "Temaanpassning",
+    "settings.theme.adaptation-system": "Systemtvingade färger",
+    "settings.theme.adaptation-variables": "Värdens CSS-variabler",
+    "settings.theme.adaptation-computed": "Inbyggda beräknade stilar",
+    "settings.theme.adaptation-contrast": "Återställningspalett: värdkontrast",
+    "settings.theme.adaptation-requested": "Återställningspalett: valt läge",
+    "settings.theme.adaptation-fallback": "Plugin-palett: värdingångar är inte tillgängliga",
+    "settings.theme.native-controls": "Storlek på kontroller",
+    "settings.theme.controls-host": "Storleken följer värdens kontroller",
+    "settings.theme.controls-default": "Plugin standardinställningar",
     "settings.theme.managed-layer": "Aktivt hanterat tema",
     "settings.theme.host-status": "Värdtema: $1. Installerade värdteman hanteras i Unraid."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Guardar cambios",
     "settings.rules.regex-placeholder": "Patrón de expresiones regulares (por ejemplo, ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Temas",
     "settings.theme.manager-help": "Vea el tema del host activo y administre temas de GitHub importados para las páginas de tiempo de ejecución de FolderView Plus.",
     "settings.theme.host-default": "Predeterminado de Unraid",
+    "settings.theme.host-unidentified": "Tema de host no identificado",
+    "settings.theme.identity-source": "Fuente de identidad del host",
+    "settings.theme.identity-declared": "Declarado por el tema",
+    "settings.theme.identity-recognized": "Hoja de estilo reconocida",
+    "settings.theme.identity-native": "Tema base no atacado",
+    "settings.theme.adaptation": "Adaptación del tema",
+    "settings.theme.adaptation-system": "Colores forzados del sistema",
+    "settings.theme.adaptation-variables": "Variables CSS del host",
+    "settings.theme.adaptation-computed": "Estilos calculados nativos",
+    "settings.theme.adaptation-contrast": "Paleta de recuperación: contraste del anfitrión",
+    "settings.theme.adaptation-requested": "Paleta de recuperación: modo seleccionado",
+    "settings.theme.adaptation-fallback": "Paleta de complementos: entradas de host no disponibles",
+    "settings.theme.native-controls": "Tamaño de los controles",
+    "settings.theme.controls-host": "El tamaño sigue los controles del host",
+    "settings.theme.controls-default": "Valores predeterminados del complemento",
     "settings.theme.managed-layer": "Tema administrado activo",
     "settings.theme.host-status": "Tema anfitrión: $1. Los temas de host instalados se administran en Unraid."
 }

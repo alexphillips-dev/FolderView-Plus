@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Теми",
     "settings.theme.manager-help": "Переглядайте активну тему хосту та керуйте імпортованими темами GitHub для сторінок виконання FolderView Plus.",
     "settings.theme.host-default": "Типова тема Unraid",
+    "settings.theme.host-unidentified": "Невідома тема хоста",
+    "settings.theme.identity-source": "Джерело ідентифікатора хоста",
+    "settings.theme.identity-declared": "Назва, надана темою",
+    "settings.theme.identity-recognized": "Розпізнана таблиця стилів",
+    "settings.theme.identity-native": "Базова тема Unraid",
+    "settings.theme.adaptation": "Адаптація теми",
+    "settings.theme.adaptation-system": "Системні форсовані кольори",
+    "settings.theme.adaptation-variables": "CSS-змінні хоста",
+    "settings.theme.adaptation-computed": "Власні обчислені стилі",
+    "settings.theme.adaptation-contrast": "Палітра відновлення: контраст хоста",
+    "settings.theme.adaptation-requested": "Палітра відновлення: обраний режим",
+    "settings.theme.adaptation-fallback": "Палітра плагінів: вхідні дані хоста недоступні",
+    "settings.theme.native-controls": "Розмір елементів керування",
+    "settings.theme.controls-host": "Розмір відповідає елементам керування хоста",
+    "settings.theme.controls-default": "Стандартні параметри плагіна",
     "settings.theme.managed-layer": "Активна керована тема",
     "settings.theme.host-status": "Тема хоста: $1. Встановлені теми хосту керуються в Unraid."
 }

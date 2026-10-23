@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "主题",
     "settings.theme.manager-help": "查看活动主机主题并管理FolderView Plus运行时页面导入的GitHub主题。",
     "settings.theme.host-default": "Unraid 默认主题",
+    "settings.theme.host-unidentified": "未知的主机主题",
+    "settings.theme.identity-source": "主机身份来源",
+    "settings.theme.identity-declared": "主题提供的名称",
+    "settings.theme.identity-recognized": "公认的样式表",
+    "settings.theme.identity-native": "Unraid基础主题",
+    "settings.theme.adaptation": "主题适配",
+    "settings.theme.adaptation-system": "系统强制颜色",
+    "settings.theme.adaptation-variables": "宿主 CSS 变量",
+    "settings.theme.adaptation-computed": "原生计算样式",
+    "settings.theme.adaptation-contrast": "恢复调色板：主机对比度",
+    "settings.theme.adaptation-requested": "恢复调色板：选择模式",
+    "settings.theme.adaptation-fallback": "插件调色板：主机输入不可用",
+    "settings.theme.native-controls": "控件尺寸",
+    "settings.theme.controls-host": "尺寸随宿主控件调整",
+    "settings.theme.controls-default": "插件默认值",
     "settings.theme.managed-layer": "当前启用的托管主题",
     "settings.theme.host-status": "主机主题：$1。安装的主机主题在 Unraid 中进行管理。"
 }

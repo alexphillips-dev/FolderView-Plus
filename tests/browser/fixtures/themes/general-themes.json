@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "description": "Versioned synthetic host contracts, not certified copies of third-party themes.",
+  "scenarios": [
+    { "id": "dark", "source": "variables", "classification": "dark" },
+    { "id": "light", "source": "variables", "classification": "light" },
+    { "id": "direct-css", "source": "computed", "classification": "dark" },
+    { "id": "legacy", "source": "computed", "classification": "light" },
+    { "id": "modern", "source": "variables", "classification": "dark" },
+    { "id": "transparent", "source": "variables", "classification": "dark" },
+    { "id": "large-type", "source": "variables", "classification": "dark", "largeType": true },
+    { "id": "mixed-recovery", "source": "fallback", "classification": "light", "recovery": true }
+  ]
+}

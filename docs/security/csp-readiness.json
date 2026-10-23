@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 286,
+    "scannedFiles": 287,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -21,7 +21,7 @@
   "totals": {
     "inlineEventAttributes": 0,
     "inlineScriptBlocks": 0,
-    "externalScriptTags": 249,
+    "externalScriptTags": 253,
     "inlineStyleBlocks": 0,
     "inlineStyleAttributes": 0,
     "evalCalls": 0,
@@ -352,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 6092,
+      "line": 6070,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -382,7 +382,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 190,
+      "line": 186,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -392,7 +392,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 195,
+      "line": 191,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -402,7 +402,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 213,
+      "line": 209,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -412,7 +412,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 231,
+      "line": 236,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -422,7 +422,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 254,
+      "line": 259,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -432,7 +432,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 273,
+      "line": 278,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -442,7 +442,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 282,
+      "line": 287,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -452,7 +452,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 311,
+      "line": 316,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -462,7 +462,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 336,
+      "line": 341,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -472,7 +472,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 344,
+      "line": 349,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -526,7 +526,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 42,
+      "externalScriptTags": 43,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -550,7 +550,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 54,
+      "externalScriptTags": 55,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -562,7 +562,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 79,
+      "externalScriptTags": 80,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,
@@ -574,7 +574,7 @@
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page",
       "inlineEventAttributes": 0,
       "inlineScriptBlocks": 0,
-      "externalScriptTags": 48,
+      "externalScriptTags": 49,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,

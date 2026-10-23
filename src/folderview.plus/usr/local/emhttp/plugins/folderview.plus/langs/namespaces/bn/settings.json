@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "থিম",
     "settings.theme.manager-help": "সক্রিয় হোস্ট থিম দেখুন এবং FolderView Plus রানটাইম পৃষ্ঠাগুলির জন্য আমদানি করা GitHub থিমগুলি পরিচালনা করুন৷",
     "settings.theme.host-default": "Unraid ডিফল্ট",
+    "settings.theme.host-unidentified": "অজ্ঞাত হোস্ট থিম",
+    "settings.theme.identity-source": "হোস্ট পরিচয় উৎস",
+    "settings.theme.identity-declared": "থিমের দেওয়া পরিচয়",
+    "settings.theme.identity-recognized": "স্বীকৃত স্টাইলশীট",
+    "settings.theme.identity-native": "Unraid বেস থিম",
+    "settings.theme.adaptation": "থিম অভিযোজন",
+    "settings.theme.adaptation-system": "সিস্টেম জোরপূর্বক রং",
+    "settings.theme.adaptation-variables": "হোস্টের CSS ভেরিয়েবল",
+    "settings.theme.adaptation-computed": "নেটিভ গণনা শৈলী",
+    "settings.theme.adaptation-contrast": "রিকভারি প্যালেট: হোস্ট কনট্রাস্ট",
+    "settings.theme.adaptation-requested": "পুনরুদ্ধার প্যালেট: নির্বাচিত মোড",
+    "settings.theme.adaptation-fallback": "প্লাগইন প্যালেট: হোস্ট ইনপুট অনুপলব্ধ৷",
+    "settings.theme.native-controls": "নিয়ন্ত্রণগুলির আকার",
+    "settings.theme.controls-host": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে",
+    "settings.theme.controls-default": "প্লাগইন ডিফল্ট",
     "settings.theme.managed-layer": "সক্রিয় পরিচালিত থিম",
     "settings.theme.host-status": "হোস্ট থিম: $1। ইনস্টল করা হোস্ট থিম Unraid-এ পরিচালিত হয়।"
 }

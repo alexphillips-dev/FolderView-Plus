@@ -87,7 +87,7 @@ body.fv-ui-modal-open { overflow: hidden; }
     background: var(--fvplus-ui-card);
     border: 1px solid var(--fvplus-ui-border-subtle);
     border-radius: var(--fv-ui-radius-md);
-    color: var(--fvplus-ui-text-primary);
+    color: var(--fvplus-ui-card-fg, var(--fvplus-ui-text-primary));
     overflow: clip;
 }
 .fv-ui-disclosure > summary {

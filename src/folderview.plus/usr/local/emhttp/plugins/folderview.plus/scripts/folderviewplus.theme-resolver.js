@@ -519,14 +519,14 @@
         const baseTokens = stringifyThemeTokens(palette);
         const host = palette.hostColors;
         return {
-            ...baseTokens,
+            ...baseTokens, ...palette.surfaceTokens,
             hostPage: host ? themeRgbaToCss(host.page) : '',
             hostInput: host ? themeRgbaToCss(host.input || host.card) : '',
             hostControl: host ? themeRgbaToCss(host.control || host.card) : '',
             hostControlHover: host ? themeRgbaToCss(host.controlHover || host.subtle || host.card) : '',
             hostControlRadius: host?.radius || '',
             themeForeground: baseTokens.textPrimary,
-            settingsTextPrimary: baseTokens.textPrimary,
+            settingsTextPrimary: host ? (palette.surfaceTokens?.hostPanelText || baseTokens.textPrimary) : baseTokens.textPrimary,
             settingsTextMuted: baseTokens.textMuted,
             settingsTextDim: baseTokens.textDim,
             settingsBorderSubtle: baseTokens.borderSubtle,
@@ -566,9 +566,9 @@
             || (html?.classList?.contains('Theme--black') ? 'black' : '')
             || ''
         ).trim();
-        // Read host inputs, never our output, so theme removal cannot feed back stale colors.
-        const hostPage = resolveThemeColorCandidate(styleSources, ['--background-color'], null);
-        const hostCard = resolveThemeColorCandidate(styleSources, ['--table-background-color', '--dashboard-background-color'], null);
+        const computedHost = hostThemeModule?.readComputedPalette?.(styleSources, { document: doc, window: win, parseColor: parseThemeColorToRgba, isColorUsable: isThemeSurfaceColorUsable });
+        const hostPage = resolveThemeColorCandidate(styleSources, ['--background-color'], computedHost?.page);
+        const hostCard = resolveThemeColorCandidate(styleSources, ['--table-background-color', '--dashboard-background-color'], computedHost?.card);
         const rootBackground = resolveThemeSurfaceColor(
             hostPage,
             parseThemeColorToRgba(rootStyle?.backgroundColor),
@@ -579,17 +579,17 @@
         const hostForeground = resolveThemeColorCandidate(
             styleSources,
             ['--text-color', '--text'],
-            parseThemeColorToRgba(rootStyle?.color) || parseThemeColorToRgba(bodyStyle?.color) || parseThemeColorToRgba('#e7eef9')
+            computedHost?.text || parseThemeColorToRgba(rootStyle?.color) || parseThemeColorToRgba(bodyStyle?.color) || parseThemeColorToRgba('#e7eef9')
         );
         const hostAccent = resolveThemeColorCandidate(
             styleSources,
             ['--link-text-color', '--brand-orange', '--accent', '--orange'],
-            parseThemeColorToRgba('#ff8a1f')
+            computedHost?.accent || parseThemeColorToRgba('#ff8a1f')
         );
         const hostColors = hostThemeModule?.readPalette(styleSources, hostPage, hostCard, {
             resolveColorCandidate: resolveThemeColorCandidate,
             isColorUsable: isThemeSurfaceColorUsable,
-            window: win
+            window: win, computedPalette: computedHost
         }) || null;
         const backgroundLuminance = themeRgbaLuminance(rootBackground);
         const foregroundLuminance = themeRgbaLuminance(hostForeground);
@@ -667,36 +667,35 @@
             contrastChecks.splice(0, contrastChecks.length, ...evaluateChecks(selectedPalette));
         }
 
+        const surfaceContrast = hostThemeModule?.resolveSurfaceContrast?.(selectedPalette, rootBackground, { contrastRatio:themeContrastRatio, blendColors:themeBlendColors, toCss:themeRgbaToCss, parseColor:parseThemeColorToRgba });
+        selectedPalette.surfaceTokens = surfaceContrast?.tokens || {};
+        contrastChecks.push(...(surfaceContrast?.checks || []));
+        const statusBackground = surfaceContrast?.statusBackground || rootBackground;
         const statusStarted = resolveThemeStatusColor(
             'statusStarted',
-            selectedPalette.customStarted || selectedPalette.runtimeForeground,
-            rootBackground,
+            selectedPalette.customStarted || surfaceContrast?.cardForeground || selectedPalette.runtimeForeground,
+            statusBackground,
             THEME_CONTRAST_RULES.statusStarted,
             [safePalette.runtimeForeground, highContrastPalette.runtimeForeground]
         );
         const statusPaused = resolveThemeStatusColor(
             'statusPaused',
             selectedPalette.statusPaused,
-            rootBackground,
+            statusBackground,
             THEME_CONTRAST_RULES.statusPaused,
-            [safePalette.statusPaused, highContrastPalette.statusPaused]
+            [safePalette.statusPaused, highContrastPalette.statusPaused, parseThemeColorToRgba('#8a5d00'), parseThemeColorToRgba('#ffd36b')]
         );
         const statusStopped = resolveThemeStatusColor(
             'statusStopped',
             selectedPalette.statusStopped,
-            rootBackground,
+            statusBackground,
             THEME_CONTRAST_RULES.statusStopped,
-            [safePalette.statusStopped, highContrastPalette.statusStopped]
+            [safePalette.statusStopped, highContrastPalette.statusStopped, parseThemeColorToRgba('#c62828'), parseThemeColorToRgba('#ff8a8a')]
         );
         selectedPalette.runtimeForeground = statusStarted.color;
         selectedPalette.statusPaused = statusPaused.color;
         selectedPalette.statusStopped = statusStopped.color;
-        const accentTextSurfaces = [rootBackground, selectedPalette.surfacePanel].map((surface) => (
-            themeBlendColors(selectedPalette.accent, surface, 0.14)
-        ));
-        selectedPalette.controlAccentText = accentTextSurfaces.every((surface) => (
-            themeContrastRatio(selectedPalette.accent, surface) >= THEME_CONTRAST_RULES.textPrimary
-        )) ? selectedPalette.accent : selectedPalette.textPrimary;
+        selectedPalette.controlAccentText = surfaceContrast?.accentText || selectedPalette.textPrimary;
 
         const warnings = [];
         const adjustments = [];
@@ -720,6 +719,7 @@
             requestedMode,
             appliedMode: modeApplied,
             hostPaletteApplied: !!selectedPalette.hostColors,
+            hostIntegration: hostThemeModule?.describeIntegration?.({ document:doc, window:win, hostColors, applied:!!selectedPalette.hostColors, requestedMode, appliedMode:modeApplied }),
             prefersDark,
             classification,
             detectedClassification,
@@ -728,7 +728,7 @@
             rootLuminance: Number(backgroundLuminance.toFixed(4)),
             hostTextLuminance: Number(foregroundLuminance.toFixed(4)),
             hostContrast: Number(hostContrast.toFixed(3)),
-            autoHealed: modeApplied !== requestedMode || accentResolution.autoHealed || statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed,
+            autoHealed: modeApplied !== requestedMode || accentResolution.autoHealed || statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed || contrastChecks.some(check => check.adjusted),
             contrastChecks,
             statusChecks: {
                 started: { ratio: Number(statusStarted.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStarted, autoHealed: statusStarted.autoHealed },
@@ -749,10 +749,9 @@
             return snapshot;
         }
         const tokens = snapshot.tokens || {};
-        // The aliases below bridge component chrome through the one resolved host palette.
-        // Empty values remove previous overrides when returning to Safe/High Contrast or
-        // when the external theme is removed; per-folder color overrides stay on their rows.
-        const hostTokenMap = hostThemeModule?.buildTokenMap(tokens, snapshot.hostPaletteApplied) || {};
+        const hostTokenMap = hostThemeModule?.buildTokenMap(tokens, snapshot.hostPaletteApplied, { document: doc, window: options.window || window }) || {};
+        hostThemeModule?.applyControlState?.(doc, hostTokenMap);
+        if (snapshot.hostIntegration) snapshot.hostIntegration.nativeControls = !!hostTokenMap['--fvplus-host-control-font-size'];
         const rootTokenMap = {
             ...hostTokenMap,
             '--fvplus-theme-foreground': tokens.themeForeground || '',
@@ -837,6 +836,7 @@
             '--fvplus-editor-nav-count-text': tokens.editorNavCountText || '',
             '--fvplus-editor-info': tokens.editorInfo || ''
         };
+        hostThemeModule?.applySystemColors?.(rootTokenMap, options.window || window);
         for (const target of targets) {
             for (const [token, value] of Object.entries(rootTokenMap)) {
                 const normalizedValue = String(value || '');

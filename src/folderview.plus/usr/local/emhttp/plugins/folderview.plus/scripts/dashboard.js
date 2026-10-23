@@ -2458,7 +2458,7 @@ let dashboardFolderRenderCompleteByType = {
     vm: false
 };
 let dashboardThemeReflowBound = false;
-let dashboardThemeReflowObserver = null;
+let dashboardThemeReflowUnsubscribe = null;
 let dashboardThemeReflowTimer = 0;
 bindDashboardQuickActionSyncHandlers();
 
@@ -2485,40 +2485,9 @@ const bindDashboardThemeReflowHandlers = () => {
         return;
     }
     dashboardThemeReflowBound = true;
-    if (typeof MutationObserver === 'function') {
-        dashboardThemeReflowObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations || []) {
-                if (mutation.type !== 'attributes') {
-                    continue;
-                }
-                const attr = String(mutation.attributeName || '').toLowerCase();
-                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                    queueDashboardThemeReflow('observer');
-                    return;
-                }
-            }
-        });
-        if (document.documentElement) {
-            dashboardThemeReflowObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-        if (document.body) {
-            dashboardThemeReflowObserver.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-    }
-    if (typeof window.matchMedia === 'function') {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        if (media && typeof media.addEventListener === 'function') {
-            media.addEventListener('change', () => queueDashboardThemeReflow('prefers-color-scheme'));
-        } else if (media && typeof media.addListener === 'function') {
-            media.addListener(() => queueDashboardThemeReflow('prefers-color-scheme'));
-        }
-    }
+    dashboardThemeReflowUnsubscribe = window.FolderViewPlusFoundationModules?.themeIntegration?.observeThemeChanges(queueDashboardThemeReflow, {
+        document, window, onSuspend:() => { window.clearTimeout(dashboardThemeReflowTimer); dashboardThemeReflowTimer = 0; }
+    });
 };
 bindDashboardThemeReflowHandlers();
 applyDashboardResolvedThemeTokens('dashboard:bind');
@@ -3138,13 +3107,16 @@ window.addEventListener("keydown", (e) => {
         loadlist();
     }
 });
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', function releaseDashboardPage(event) {
     dashboardStorageWriter?.flush?.();
+    if (event?.persisted) return;
     dashboardLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dashboardThemeReflowTimer);
+    dashboardThemeReflowUnsubscribe?.();
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
     dashboardDockerProviderRegistry?.dispose?.();
-}, { once: true });
+    window.removeEventListener('pagehide', releaseDashboardPage);
+});
 })(window, window.jQuery || window.$);

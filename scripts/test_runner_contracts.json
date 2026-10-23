@@ -31,6 +31,12 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/host-theme-maintainer.mjs", "limit": 100, "owner": "maintainer theme load order and native lifecycle compatibility contract" },
+    { "file": "tests/browser/cases/settings-themes.mjs", "limit": 360, "owner": "Themes and Appearance navigation actions and host adaptation status" },
+    { "file": "tests/browser/cases/host-theme-accessibility.mjs", "limit": 130, "owner": "mixed surface contrast and operating system forced colors across plugin pages" },
+    { "file": "tests/browser/cases/host-theme.mjs", "limit": 400, "owner": "shared host palette, native control and theme lifecycle regressions", "requiredImports": ["../helpers/host-theme.mjs", "./host-theme-matrix.mjs"] },
+    { "file": "tests/browser/cases/host-theme-matrix.mjs", "limit": 150, "owner": "representative host contracts on all runtime surfaces", "requiredImports": ["../helpers/host-theme.mjs"] },
+    { "file": "tests/browser/helpers/host-theme.mjs", "limit": 100, "owner": "shared synthetic host installation and palette changes" },
     { "file": "tests/browser/cases/folder-badges.mjs", "limit": 75, "owner": "Docker and VM badge preference and refresh regressions", "requiredImports": ["../helpers/folder-badges-host.mjs"] },
     { "file": "tests/browser/cases/folder-badge-defaults.mjs", "limit": 65, "owner": "default badge visibility and post-upgrade Settings opt-outs", "requiredImports": ["../helpers/folder-badges-host.mjs", "../helpers/settings-hide-empty-host.mjs"] },
     { "file": "tests/browser/helpers/folder-badges-host.mjs", "limit": 60, "owner": "production Docker and actual VM summary host", "requiredImports": ["./docker-hide-empty-host.mjs"] },
@@ -175,7 +181,12 @@
         "tests/browser/cases/docker-settings-transfer.mjs",
         "tests/browser/cases/docker-nested-folder-menu.mjs",
         "tests/browser/cases/docker-folder-feedback.mjs",
-        "tests/browser/cases/download-notice.mjs"
+        "tests/browser/cases/download-notice.mjs",
+        "tests/browser/cases/host-theme.mjs",
+        "tests/browser/cases/host-theme-matrix.mjs",
+        "tests/browser/cases/host-theme-accessibility.mjs",
+        "tests/browser/cases/host-theme-maintainer.mjs",
+        "tests/browser/cases/settings-themes.mjs"
       ],
       "supportFiles": [
         "tests/browser/helpers/folder-badges-host.mjs",
@@ -207,12 +218,13 @@
         "tests/browser/helpers/dashboard-row-expansion.mjs",
         "tests/browser/helpers/icon-browser-host.mjs",
         "tests/browser/helpers/upload-card-layout.mjs",
-        "tests/browser/helpers/icon-pack-filters.mjs"
+        "tests/browser/helpers/icon-pack-filters.mjs",
+        "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 126,
-      "assertionCount": 1664,
-      "pageEvaluateCount": 441,
-      "orderedTitleSha256": "2cde8f8400265d946e0d64ac951470959608de35c93174cbf4e72ec3851364f0"
+      "testCount": 136,
+      "assertionCount": 1792,
+      "pageEvaluateCount": 545,
+      "orderedTitleSha256": "3b4e28bf46690fb0bb05d0cc96ad6d7ec402936e614f709041d48e8a01d3caf7"
     }
   }
 }

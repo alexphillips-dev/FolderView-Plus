@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const browserModulePath = path.join(
@@ -44,8 +45,9 @@ const loadRuntimePageDiagnostics = (root = {}) => {
     return context.module.exports;
 };
 
-const loadTelemetryModule = (root = {}) => {
+const loadTelemetryModule = (root = {}, integrationAvailable = true) => {
     const context = {
+        require: integrationAvailable ? createRequire(telemetryModulePath) : undefined,
         globalThis: root,
         module: { exports: {} },
         exports: {},
@@ -57,6 +59,38 @@ const loadTelemetryModule = (root = {}) => {
     });
     return context.module.exports;
 };
+
+test('sanitized theme exports keep only bounded canonical adaptation evidence and never host content', () => {
+    const telemetry=loadTelemetryModule();
+    const secret='private-theme-10.4.5.6-/mnt/user/private-https://host.invalid/token';
+    const raw={htmlClassList:[secret],pluginAssets:{stylesheets:[secret]},tokens:{html:{color:secret}},warnings:[secret],adjustments:[secret],
+        resolver:{hostThemeName:secret,requestedMode:'auto',appliedMode:'auto',classification:'dark',hostPaletteApplied:true,
+            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret},
+            contrastChecks:[{name:'surface.hostControlText',ratio:7,minRatio:4.5,passed:true},{name:secret,ratio:21}],
+            statusChecks:{started:{ratio:12,minRatio:4.5},private:secret}}};
+    const safe=telemetry.sanitizeThemeTelemetry(raw);
+    assert.equal(JSON.stringify(safe).includes(secret),false);
+    assert.equal(safe.resolver.hostIntegration.paletteSource,'computed');
+    assert.equal(safe.resolver.contrastChecks.length,1);
+    assert.equal(safe.resolver.contrastChecks[0].ratio,7);
+    assert.equal(safe.resolver.statusChecks.started.passed,true);
+    assert.equal(safe.resolver.statusChecks.paused.passed,false);
+    raw.resolver.statusChecks.paused={ratio:2,minRatio:3};
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.statusChecks.paused.passed,false);
+    raw.resolver.statusChecks.paused={ratio:7,minRatio:3,passed:false};
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.statusChecks.paused.passed,false);
+    assert.equal(safe.warnings.length,1);
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw,'full'),raw);
+    assert.equal(telemetry.sanitizeThemeTelemetry(secret),null);
+    assert.equal(loadTelemetryModule({},false).sanitizeThemeTelemetry(raw),null,'missing adapter must omit raw theme data');
+    const bundle=telemetry.createApi({collectThemeTelemetrySnapshot:()=>raw}).collectSupportBundleUiTelemetry({bundleMeta:{privacyMode:'sanitized'}});
+    assert.equal(JSON.stringify(bundle.uiTelemetry.theme).includes(secret),false);
+    assert.equal(bundle.redactionManifest.privacySelfCheck.status,'passed');
+    assert.equal(telemetry.buildUiTelemetryPrivacySelfCheck({theme:{resolver:{hostThemeName:secret}}}).status,'failed');
+    raw.resolver.hostIntegration.paletteSource=secret;raw.resolver.contrastChecks[0].ratio=Infinity;
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.paletteSource,'fallback');
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.contrastChecks[0].ratio,0);
+});
 
 test('support bundle browser telemetry resolves useful asset version tokens when host autov returns v=0', () => {
     const root = {

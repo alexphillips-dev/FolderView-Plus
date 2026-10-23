@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "diagnostics",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
+    "diagnostics.cards.theme-integration": "Palettekilde: $1. Årsag til gendannelse: $2. Indbygget størrelse: $3.",
     "diagnostics.title": "Diagnostik",
     "diagnostics.workspace.description": "Overvåg plugin-sundhed, fejlfind problemer, og del supportdata.",
     "diagnostics.actions.run": "Kør sundhedstjek",

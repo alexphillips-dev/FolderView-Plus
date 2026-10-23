@@ -957,7 +957,7 @@ let setupAssistantLastFocusedElement = null;
 let overflowGuardBound = false;
 let mobileLayoutGuardBound = false;
 let settingsThemeReflowBound = false;
-let settingsThemeReflowObserver = null;
+let settingsThemeReflowUnsubscribe = null;
 let settingsThemeReflowTimer = null;
 let lastThemeResolverSnapshot = null;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
@@ -1034,7 +1034,8 @@ const applySettingsThemeAwareReflow = () => {
     applySettingsResolvedThemeTokens('settings-reflow');
     syncCompactMobileLayoutClass();
     enforceNoHorizontalOverflow();
-    refreshSettingsUx();
+    refreshSettingsUx({ renderSecondaryWorkspaces: false });
+    if (shouldRefreshSecondaryAdvancedGroup('themes')) getThemeWorkspaceApi().renderSummary();
 };
 
 const queueSettingsThemeAwareReflow = (reason = 'theme-change') => {
@@ -1053,40 +1054,15 @@ const initThemeAwareSettingsReflow = () => {
         return;
     }
     settingsThemeReflowBound = true;
-    if (typeof MutationObserver === 'function') {
-        settingsThemeReflowObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations || []) {
-                if (mutation.type !== 'attributes') {
-                    continue;
-                }
-                const attr = String(mutation.attributeName || '').toLowerCase();
-                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                    queueSettingsThemeAwareReflow('observer');
-                    return;
-                }
-            }
-        });
-        if (document.documentElement) {
-            settingsThemeReflowObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-        if (document.body) {
-            settingsThemeReflowObserver.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-    }
-    if (typeof window.matchMedia === 'function') {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        if (media && typeof media.addEventListener === 'function') {
-            media.addEventListener('change', () => queueSettingsThemeAwareReflow('prefers-color-scheme'));
-        } else if (media && typeof media.addListener === 'function') {
-            media.addListener(() => queueSettingsThemeAwareReflow('prefers-color-scheme'));
-        }
-    }
+    settingsThemeReflowUnsubscribe = window.FolderViewPlusFoundationModules?.themeIntegration?.observeThemeChanges(queueSettingsThemeAwareReflow, {
+        document, window, onSuspend:() => { window.clearTimeout(settingsThemeReflowTimer); settingsThemeReflowTimer = null; }
+    });
+    const teardown = event => {
+        if (event.persisted) return;
+        settingsThemeReflowUnsubscribe?.(); settingsThemeReflowUnsubscribe = null; settingsThemeReflowBound = false;
+        window.removeEventListener('pagehide', teardown);
+    };
+    window.addEventListener('pagehide', teardown);
 };
 configureThemeResolverRuntimeApi({
     getMode: getEffectiveThemeCompatibilityMode,
@@ -3411,6 +3387,8 @@ const getThemeWorkspaceApi = (() => {
         cachedApi = themeWorkspaceModule.createApi({
             window,
             document,
+            getThemeSnapshot: () => lastThemeResolverSnapshot,
+            shouldRenderSummary: () => shouldRefreshSecondaryAdvancedGroup('themes'),
             $,
             escapeHtml,
             apiGetJson,

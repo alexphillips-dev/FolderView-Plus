@@ -13,7 +13,7 @@ const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugin
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 
 test('Dashboard pagehide flushes its shared pending writer before lifecycle disposal', () => {
-    assert.match(dashboardJs, /window\.addEventListener\('pagehide', \(\) => \{\s*dashboardStorageWriter\?\.flush\?\.\(\);\s*dashboardLiveRefreshController\.dispose\(\);/);
+    assert.match(dashboardJs, /window\.addEventListener\('pagehide', function releaseDashboardPage\(event\) \{\s*dashboardStorageWriter\?\.flush\?\.\(\);\s*if \(event\?\.persisted\) return;\s*dashboardLiveRefreshController\.dispose\(\);/);
 });
 
 test('docker runtime persists expanded/collapsed folder state and restores it during render', () => {

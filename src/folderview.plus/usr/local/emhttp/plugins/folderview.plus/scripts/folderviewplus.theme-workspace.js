@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.theme-profiles.js'));
+        module.exports = factory(require('./folderviewplus.theme-profiles.js'), require('./folderviewplus.theme-integration.js'));
         return;
     }
-    root.FolderViewPlusThemeWorkspace = factory(root.FolderViewPlusFoundationModules?.themeProfiles);
+    root.FolderViewPlusThemeWorkspace = factory(root.FolderViewPlusFoundationModules?.themeProfiles, root.FolderViewPlusFoundationModules?.themeIntegration);
     root.FolderViewPlusThemeWorkspaceModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function(themeProfiles) {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(themeProfiles, integration) {
     if (!themeProfiles || typeof themeProfiles.normalizeState !== 'function') {
         throw new Error('FolderView Plus theme profiles are unavailable.');
     }
@@ -166,21 +166,17 @@
         const scopeLabel = (scope) => scope === 'global' ? translate("settings.theme.scope-global", "Global")
             : ({ docker: 'Docker', vm: 'VMs', dashboard: 'Dashboard' }[scope] || scope);
         const getActiveTheme = () => workspace.themes.find((theme) => theme.id === workspace.activeThemeId) || null;
-        const getHostThemeName = () => {
-            const win = deps.window || documentRef?.defaultView;
-            const auroraActive = Array.from(documentRef?.querySelectorAll('link[rel~="stylesheet"][href]') || []).some((link) => {
-                if (link.disabled || (link.media && !win?.matchMedia?.(link.media).matches)) return false;
-                try {
-                    const url = new URL(link.href, documentRef.baseURI);
-                    return url.origin === new URL(documentRef.baseURI).origin
-                        && /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i.test(url.pathname);
-                } catch (_error) { return false; }
-            });
-            if (auroraActive) return 'Aurora Theme';
-            const name = String(documentRef?.documentElement?.getAttribute('data-fvplus-host-theme')
-                || documentRef?.body?.getAttribute('data-fvplus-host-theme') || win?.FolderViewPlusHostThemeName || '').trim();
-            return ({ black: 'Unraid Black', white: 'Unraid White', gray: 'Unraid Gray', azure: 'Unraid Azure' })[name.toLowerCase()]
-                || name || translate('settings.theme.host-default', 'Unraid default');
+        const getHostIdentity = () => integration?.readHostIdentity(documentRef, deps.window || documentRef?.defaultView) || { name:'', source:'unknown' };
+        const getHostThemeName = () => getHostIdentity().name || translate('settings.theme.host-unidentified', 'Unidentified host theme');
+        const getAdaptationLabel = () => {
+            const snapshot = deps.getThemeSnapshot?.() || (deps.window || documentRef?.defaultView)?.FolderViewPlusThemeResolver?.buildResolvedThemeSnapshot();
+            const state = snapshot?.hostIntegration;
+            if (state?.paletteSource === 'system') return translate('settings.theme.adaptation-system', 'System forced colors');
+            if (state?.paletteSource === 'variables') return translate('settings.theme.adaptation-variables', 'Host CSS variables');
+            if (state?.paletteSource === 'computed') return translate('settings.theme.adaptation-computed', 'Native computed styles');
+            if (state?.reason === 'contrast-recovery') return translate('settings.theme.adaptation-contrast', 'Recovery palette: host contrast');
+            if (state?.reason === 'requested-recovery') return translate('settings.theme.adaptation-requested', 'Recovery palette: selected mode');
+            return translate('settings.theme.adaptation-fallback', 'Plugin palette: host inputs unavailable');
         };
 
         const renderProfileControls = () => {
@@ -198,7 +194,7 @@
         };
 
         const renderSummary = () => {
-            if (!documentRef) {
+            if (!documentRef || deps.shouldRenderSummary?.() === false) {
                 return;
             }
             const host = documentRef.getElementById('fv-theme-workspace-summary');
@@ -213,6 +209,15 @@
             host.innerHTML = [
                 [translate("settings.theme.active-theme", "Active theme"), getHostThemeName(), true],
                 [translate('settings.theme.managed-layer', 'Active managed theme'), activeTheme ? (activeTheme.name || activeTheme.id) : translate("settings.theme.none", "None"), Boolean(activeTheme)],
+                [translate('settings.theme.identity-source', 'Host identity source'), ({
+                    declared: translate('settings.theme.identity-declared', 'Declared by theme'),
+                    recognized: translate('settings.theme.identity-recognized', 'Recognized stylesheet'),
+                    'native-base': translate('settings.theme.identity-native', 'Unraid base theme'),
+                    unknown: translate('settings.theme.host-unidentified', 'Unidentified host theme')
+                })[getHostIdentity().source]],
+                [translate('settings.theme.adaptation', 'Theme adaptation'), getAdaptationLabel()],
+                [translate('settings.theme.native-controls', 'Control sizing'), documentRef.documentElement?.getAttribute('data-fv-host-controls') === 'host'
+                    ? translate('settings.theme.controls-host', 'Following host controls') : translate('settings.theme.controls-default', 'Plugin defaults')],
                 [translate("settings.theme.profile-scope", "Profile / scope"), `${profileLabel(getActiveProfile())} / ${scopeLabel(activeScope)}`, getActiveProfile().id !== 'default' || getActiveProfile().name !== 'Default profile'],
                 [translate("settings.theme.managed-themes", "Managed themes"), String(workspace.themes.length)],
                 [translate("settings.theme.last-checked", "Last checked"), formatDateShort(workspace.lastCheckedAt)],

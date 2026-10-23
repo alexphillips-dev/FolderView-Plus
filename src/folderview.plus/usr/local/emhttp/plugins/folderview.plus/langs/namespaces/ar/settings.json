@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "السمات",
     "settings.theme.manager-help": "شاهد سمة المضيف النشطة وقم بإدارة سمات GitHub المستوردة لصفحات وقت تشغيل FolderView Plus.",
     "settings.theme.host-default": "إعداد Unraid الافتراضي",
+    "settings.theme.host-unidentified": "موضوع مضيف غير محدد",
+    "settings.theme.identity-source": "مصدر هوية المضيف",
+    "settings.theme.identity-declared": "مُعلن بواسطة السمة",
+    "settings.theme.identity-recognized": "ورقة الأنماط المعترف بها",
+    "settings.theme.identity-native": "موضوع قاعدة Unraid",
+    "settings.theme.adaptation": "التكيف مع الموضوع",
+    "settings.theme.adaptation-system": "الألوان القسرية للنظام",
+    "settings.theme.adaptation-variables": "متغيرات CSS للمضيف",
+    "settings.theme.adaptation-computed": "الأنماط المحسوبة الأصلية",
+    "settings.theme.adaptation-contrast": "لوحة الاسترداد: تباين المضيف",
+    "settings.theme.adaptation-requested": "لوحة الاسترداد: الوضع المحدد",
+    "settings.theme.adaptation-fallback": "لوحة المكونات الإضافية: مدخلات المضيف غير متوفرة",
+    "settings.theme.native-controls": "حجم عناصر التحكم",
+    "settings.theme.controls-host": "الحجم يتبع عناصر تحكم المضيف",
+    "settings.theme.controls-default": "افتراضيات البرنامج المساعد",
     "settings.theme.managed-layer": "السمة المُدارة النشطة",
     "settings.theme.host-status": "سمة المضيف: $1. تتم إدارة سمات المضيف المثبتة في Unraid."
 }

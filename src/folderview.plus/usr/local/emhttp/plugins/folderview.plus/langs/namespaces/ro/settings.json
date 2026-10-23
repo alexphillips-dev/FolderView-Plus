@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Teme",
     "settings.theme.manager-help": "Vedeți tema gazdă activă și gestionați temele GitHub importate pentru paginile de rulare FolderView Plus.",
     "settings.theme.host-default": "Tema implicită Unraid",
+    "settings.theme.host-unidentified": "Tema gazdă neidentificată",
+    "settings.theme.identity-source": "Sursa de identitate a gazdei",
+    "settings.theme.identity-declared": "Declarat de temă",
+    "settings.theme.identity-recognized": "Foaie de stil recunoscută",
+    "settings.theme.identity-native": "Tema de bază neraid",
+    "settings.theme.adaptation": "Adaptarea temei",
+    "settings.theme.adaptation-system": "Culori forțate de sistem",
+    "settings.theme.adaptation-variables": "Variabilele CSS ale gazdei",
+    "settings.theme.adaptation-computed": "Stiluri native calculate",
+    "settings.theme.adaptation-contrast": "Paleta de recuperare: contrastul gazdei",
+    "settings.theme.adaptation-requested": "Paleta de recuperare: modul selectat",
+    "settings.theme.adaptation-fallback": "Paleta de pluginuri: intrările gazdei nu sunt disponibile",
+    "settings.theme.native-controls": "Dimensiunea comenzilor",
+    "settings.theme.controls-host": "Dimensiunea urmează comenzile gazdei",
+    "settings.theme.controls-default": "Valoarea implicită a pluginului",
     "settings.theme.managed-layer": "Temă gestionată activă",
     "settings.theme.host-status": "Tema gazdă: $1. Temele gazdă instalate sunt gestionate în Unraid."
 }

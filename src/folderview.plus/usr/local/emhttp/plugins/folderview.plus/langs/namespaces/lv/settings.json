@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Saglabāt izmaiņas",
     "settings.rules.regex-placeholder": "Regex modelis (piem., ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Motīvi",
     "settings.theme.manager-help": "Skatiet aktīvo saimniekdatora motīvu un pārvaldiet importētos GitHub motīvus FolderView Plus izpildlaika lapām.",
     "settings.theme.host-default": "Unraid noklusējums",
+    "settings.theme.host-unidentified": "Neidentificēta saimniekdatora tēma",
+    "settings.theme.identity-source": "Saimniekdatora identitātes avots",
+    "settings.theme.identity-declared": "Tēmas norādīts nosaukums",
+    "settings.theme.identity-recognized": "Atpazīta stila lapa",
+    "settings.theme.identity-native": "Unraid bāzes tēma",
+    "settings.theme.adaptation": "Tēmas adaptācija",
+    "settings.theme.adaptation-system": "Sistēmas piespiedu krāsas",
+    "settings.theme.adaptation-variables": "Resursdatora CSS mainīgie",
+    "settings.theme.adaptation-computed": "Vietējie aprēķinātie stili",
+    "settings.theme.adaptation-contrast": "Atkopšanas palete: saimniekdatora kontrasts",
+    "settings.theme.adaptation-requested": "Atkopšanas palete: atlasītais režīms",
+    "settings.theme.adaptation-fallback": "Spraudņu palete: resursdatora ievades nav pieejamas",
+    "settings.theme.native-controls": "Vadīklu izmērs",
+    "settings.theme.controls-host": "Izmērs atbilst resursdatora vadīklām",
+    "settings.theme.controls-default": "Spraudņa noklusējuma iestatījumi",
     "settings.theme.managed-layer": "Aktīvs pārvaldīts motīvs",
     "settings.theme.host-status": "Saimniekdatora motīvs: $1. Instalētās saimniekdatora tēmas tiek pārvaldītas pakalpojumā Unraid."
 }

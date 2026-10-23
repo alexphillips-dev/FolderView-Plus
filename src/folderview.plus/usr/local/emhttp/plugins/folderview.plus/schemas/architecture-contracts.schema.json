@@ -115,6 +115,7 @@
       "scripts/folder.editor.chrome.js": { "limit": 1006, "target": 500, "history": [1006] },
       "scripts/docker.runtime.diagnostics.js": { "limit": 945, "target": 500, "history": [946, 945] },
       "scripts/folderviewplus.theme-resolver.js": { "limit": 930, "target": 700, "history": [930] },
+      "scripts/folderviewplus.theme-integration.js": { "limit": 450, "target": 400, "history": [450] },
       "scripts/folderviewplus.theme-host.js": { "limit": 251, "target": 240, "history": [251] },
       "scripts/folderviewplus.diagnostics-actions.js": { "limit": 176, "target": 160, "history": [176] },
       "scripts/folderviewplus.starter-templates.js": { "limit": 915, "target": 500, "history": [915] },
@@ -1722,17 +1723,55 @@
       "exports": ["SCOPES", "defaultProfile", "normalizeLayer", "normalizeProfile", "normalizeState", "getActiveProfile", "resolveLayer"]
     },
     {
+      "file": "scripts/folderviewplus.theme-integration.js",
+      "owner": "host-theme-integration",
+      "consumers": [
+        "settings",
+        "docker",
+        "vm",
+        "dashboard",
+        "folder-editor"
+      ],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": [
+        "FolderViewPlusFoundationModules"
+      ],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "themeIntegration",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": [
+        "readNativeControls",
+        "controlTokens",
+        "applyControlState",
+        "diagnosticMessages", "sanitizeDiagnostics", "isDiagnosticCheckName", "applySystemColors", "readHostIdentity", "describeIntegration", "readComputedPalette", "resolveSurfaceContrast", "observeThemeChanges",
+        "createBinding"
+      ],
+      "lifecycleFactories": [
+        {
+          "name": "createBinding",
+          "exports": [
+            "bind",
+            "runApply",
+            "queueApply",
+            "disconnect"
+          ]
+        }
+      ]
+    },
+    {
       "file": "scripts/folderviewplus.theme-host.js",
       "owner": "shared-theme-foundation",
       "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
       "stateModel": "factory-owned",
-      "dependsOn": [],
+      "dependsOn": ["scripts/folderviewplus.theme-integration.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "themeHost",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["readPalette", "buildTokenMap", "adaptPalette", "editorTokens", "readCustomization", "createBinding"],
+      "exports": ["readPalette", "buildTokenMap", "adaptPalette", "editorTokens", "readCustomization", "createBinding", "applyControlState", "applySystemColors", "readComputedPalette", "resolveSurfaceContrast", "describeIntegration"],
       "lifecycleFactories": [
         { "name": "createBinding", "exports": ["bind", "runApply", "queueApply", "disconnect"] }
       ]

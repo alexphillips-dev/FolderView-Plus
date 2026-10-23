@@ -2070,7 +2070,7 @@ const collectThemeDiagnostics = () => {
     }
     if (resolverSnapshot?.autoHealed) adjustments.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
     if (Array.isArray(resolverSnapshot?.warnings)) warnings.push(...resolverSnapshot.warnings);
-    if (Array.isArray(resolverSnapshot?.adjustments)) adjustments.push(...resolverSnapshot.adjustments);
+    adjustments.push(...(Array.isArray(resolverSnapshot?.adjustments) ? resolverSnapshot.adjustments : []), ...(window.FolderViewPlusFoundationModules?.themeIntegration?.diagnosticMessages?.(resolverSnapshot, diagnosticsT) || []));
 
     return {
         generatedAt: new Date().toISOString(),

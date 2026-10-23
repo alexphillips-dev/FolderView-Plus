@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Témák",
     "settings.theme.manager-help": "Tekintse meg az aktív gazdagép-témát, és kezelje az importált GitHub-témákat a FolderView Plus futásidejű oldalaihoz.",
     "settings.theme.host-default": "Alapértelmezett Unraid",
+    "settings.theme.host-unidentified": "Azonosítatlan gazdagép-téma",
+    "settings.theme.identity-source": "Gazdaazonosító forrása",
+    "settings.theme.identity-declared": "A téma által megadva",
+    "settings.theme.identity-recognized": "Elismert stíluslap",
+    "settings.theme.identity-native": "Unraid alaptéma",
+    "settings.theme.adaptation": "Téma adaptáció",
+    "settings.theme.adaptation-system": "Rendszer kényszerített színek",
+    "settings.theme.adaptation-variables": "A gazdagép CSS-változói",
+    "settings.theme.adaptation-computed": "Natív számítási stílusok",
+    "settings.theme.adaptation-contrast": "Helyreállítási paletta: gazdagép kontraszt",
+    "settings.theme.adaptation-requested": "Helyreállítási paletta: kiválasztott mód",
+    "settings.theme.adaptation-fallback": "Plugin paletta: a gazdagép bemenetek nem érhetők el",
+    "settings.theme.native-controls": "Vezérlőelemek mérete",
+    "settings.theme.controls-host": "A méret a gazdagép vezérlőelemeit követi",
+    "settings.theme.controls-default": "A beépülő modulok alapértelmezett beállításai",
     "settings.theme.managed-layer": "Aktív kezelt téma",
     "settings.theme.host-status": "Gazdatéma: $1. A telepített gazdagéptémákat az Unraid kezeli."
 }

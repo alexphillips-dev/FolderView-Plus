@@ -111,8 +111,25 @@ startup samples while the standard performance command still runs component
 benchmarks. Unknown values fail. Reports list skipped surfaces, and partial
 baseline updates preserve unmeasured cases; review every baseline change.
 
-The shared theme foundation publishes both host-palette and live binding APIs
-from one script on Settings, Docker, VMs, Dashboard, and the folder editor.
-This removes a parser-blocking request and its startup DOM checkpoint while
-retaining the existing API aliases and lifecycle cleanup. Startup callback
-budgets remain unchanged.
+The general theme integration uses one shared integration module ahead of the
+existing host-palette facade on Settings, Docker, VMs, Dashboard, and the folder
+editor. Native sampling, contrast checks, diagnostic projection and document
+subscriptions share that implementation; existing API aliases remain available.
+Theme-only Settings reflow skips secondary data-workspace rebuilding, and the
+Themes summary defers rendering until its tab or all-Advanced search is active.
+
+Relative to published dev 2026.10.22.05 (`47385864df6f72f4d5fc59f0092604ad1b14e50f`),
+this feature adds 21,728 JavaScript bytes (5,949 gzip) and 5,896 CSS bytes
+(833 gzip), measured at compression level 9. Only those signed feature deltas
+are recorded in aggregate static-size allowances. Existing per-asset baselines,
+line budgets, the 8% growth policy, and startup timing, count and callback
+limits remain unchanged.
+
+The historical startup timing reference predates the current published source.
+During this change, both the published source and candidate exceeded some
+historical Settings and representative Docker timings on Chromium 156.
+Qualification therefore records historical failures separately and also compares
+the candidate with a local remeasurement of the published Settings and
+representative Docker source using the same fixture, browser, sample count and
+existing budget policy. Larger Docker cases retain their committed references.
+This paired measurement does not replace or reset the committed timing baseline.

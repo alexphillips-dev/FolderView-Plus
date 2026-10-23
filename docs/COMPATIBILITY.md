@@ -68,6 +68,8 @@ FolderView Plus uses shared theme tokens and tests normal dark/light behavior. T
 
 Auto and Host theme compatibility modes inherit modern host text, accent, surface and button variables, including those supplied by Aurora Theme. Safe and High Contrast modes remain available, and explicit folder status colors are preserved. See [Host Palette Inputs](THEME_API_CONTRACT.md#host-palette-inputs).
 
+General adaptation also samples usable native computed styles when no page/card variable contract exists, follows native control metrics, and responds to stylesheet/font changes. Themes reports identity separately from adaptation. Synthetic fixtures cover multiple color, sizing and recovery contracts across all five plugin surfaces; they do not certify every third-party theme. Theme authors can use the [maintainer integration fixture](THEME_GUIDE.md#maintainer-integration-fixture) to check load order and renderer ownership.
+
 **Aurora Theme v2026.10.21.2202:** palette inheritance is supported, but its Page enhancements do not recognize `folderview.plus`. Its Docker enhancer can move stored container rows out of folders and apply a compact grid to folder rows. Until Aurora supplies a compatible integration, set **Settings → User Utilities → Aurora Theme → Page enhancements → Disabled**, Apply, then hard-refresh. Colours and fonts and the selected navigation layout can remain enabled. This disables Aurora's page enhancements globally; it does not change saved FolderView Plus folder data. The legacy Aurora/FolderViewPlugin switch is not a complete Plus integration. Theme maintainers should follow [Layout Ownership for Theme Integrations](THEME_API_CONTRACT.md#layout-ownership-for-theme-integrations).
 
 ### Custom CSS and JavaScript

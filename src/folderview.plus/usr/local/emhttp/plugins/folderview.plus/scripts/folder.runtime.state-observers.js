@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.theme-integration.js'));
         return;
     }
-    root.FolderViewPlusRuntimeStateObservers = factory();
+    root.FolderViewPlusRuntimeStateObservers = factory(root.FolderViewPlusFoundationModules?.themeIntegration);
     root.FolderViewPlusRuntimeStateObserversModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(themeIntegration) {
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
@@ -253,7 +253,8 @@
 
         let viewportBound = false;
         let themeReflowBound = false;
-        let themeReflowObserver = null;
+        let themeUnsubscribe = null;
+        let viewportReapply = null;
         let themeReflowTimer = null;
 
         const bindViewportWidthSync = () => {
@@ -262,6 +263,7 @@
             }
             viewportBound = true;
             const reapply = () => scheduleReflow(viewportReason, viewportDelayMs);
+            viewportReapply = reapply;
             win.addEventListener('resize', reapply, { passive: true });
             win.addEventListener('orientationchange', reapply, { passive: true });
         };
@@ -283,47 +285,27 @@
                 return;
             }
             themeReflowBound = true;
-            const onThemeChange = () => queueThemeReflow('observer');
-            if (typeof MutationObserver === 'function') {
-                themeReflowObserver = new MutationObserver((mutations) => {
-                    for (const mutation of mutations || []) {
-                        if (mutation.type !== 'attributes') {
-                            continue;
-                        }
-                        const attr = String(mutation.attributeName || '').toLowerCase();
-                        if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                            onThemeChange();
-                            return;
-                        }
-                    }
-                });
-                if (doc.documentElement) {
-                    themeReflowObserver.observe(doc.documentElement, {
-                        attributes: true,
-                        attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-                    });
-                }
-                if (doc.body) {
-                    themeReflowObserver.observe(doc.body, {
-                        attributes: true,
-                        attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-                    });
-                }
+            const integration = win?.FolderViewPlusFoundationModules?.themeIntegration || themeIntegration;
+            themeUnsubscribe = integration?.observeThemeChanges(queueThemeReflow, { document:doc, window:win,
+                onSuspend:() => { if (themeReflowTimer !== null) win.clearTimeout(themeReflowTimer); themeReflowTimer = null; } });
+            win?.addEventListener?.('pagehide', dispose);
+        };
+        const dispose = (event = null) => {
+            if (event?.persisted) return;
+            if (themeReflowTimer !== null) win.clearTimeout(themeReflowTimer);
+            themeReflowTimer = null; themeUnsubscribe?.(); themeUnsubscribe = null;
+            if (viewportReapply) {
+                win?.removeEventListener?.('resize', viewportReapply);
+                win?.removeEventListener?.('orientationchange', viewportReapply);
             }
-            if (typeof win.matchMedia === 'function') {
-                const media = win.matchMedia('(prefers-color-scheme: dark)');
-                if (media && typeof media.addEventListener === 'function') {
-                    media.addEventListener('change', () => queueThemeReflow('prefers-color-scheme'));
-                } else if (media && typeof media.addListener === 'function') {
-                    media.addListener(() => queueThemeReflow('prefers-color-scheme'));
-                }
-            }
+            win?.removeEventListener?.('pagehide', dispose);
+            viewportReapply = null; viewportBound = false; themeReflowBound = false;
         };
 
         return Object.freeze({
             bindViewportWidthSync,
             queueThemeReflow,
-            bindThemeReflow
+            bindThemeReflow, dispose
         });
     };
 

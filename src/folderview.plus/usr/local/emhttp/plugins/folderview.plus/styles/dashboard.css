@@ -275,7 +275,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     max-height: var(--fvplus-dashboard-quick-action-size) !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 0 !important;
+    border: var(--fvplus-system-control-border, 0) !important;
     border-radius: var(--fvplus-ui-control-radius, 5px);
     background: linear-gradient(180deg, var(--fvplus-dashboard-quick-action-bg-top), var(--fvplus-dashboard-quick-action-bg-bottom)) !important;
     color: var(--fvplus-dashboard-quick-action-fg);
@@ -291,14 +291,15 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 
 .fv-dashboard-quick-action:hover {
     text-decoration: none;
-    color: var(--fvplus-dashboard-accent);
+    --fvplus-dashboard-quick-action-fg: var(--fvplus-dashboard-quick-action-hover-fg, var(--fvplus-dashboard-accent));
+    color: var(--fvplus-dashboard-quick-action-fg);
     border-color: transparent !important;
     background: linear-gradient(180deg, var(--fvplus-dashboard-quick-action-hover-top), var(--fvplus-dashboard-quick-action-hover-bottom)) !important;
     box-shadow: var(--fvplus-dashboard-quick-action-shadow-hover) !important;
 }
 
 .fv-dashboard-quick-action:focus-visible {
-    outline: 2px solid var(--fv-ui-info);
+    outline: 2px solid var(--fvplus-system-focus-color, var(--fv-ui-info));
     outline-offset: 1px;
 }
 

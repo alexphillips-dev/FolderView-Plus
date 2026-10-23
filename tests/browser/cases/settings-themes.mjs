@@ -13,7 +13,7 @@ const functions = ['getSettingsSectionRegistrySignature', 'buildSettingsSections
 const mount = async (page, baseUrl) => {
     await page.goto(`${baseUrl}/settings?fvMode=advanced&fvAdvancedTab=themes`);
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    for (const script of ['folderviewplus.settings-sections', 'folderviewplus.settings-search', 'folderviewplus.theme-host', 'folderviewplus.theme-resolver', 'folderviewplus.theme-profiles', 'folderviewplus.theme-workspace']) {
+    for (const script of ['folderviewplus.settings-sections', 'folderviewplus.settings-search', 'folderviewplus.theme-integration', 'folderviewplus.theme-host', 'folderviewplus.theme-resolver', 'folderviewplus.theme-profiles', 'folderviewplus.theme-workspace']) {
         await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${script}.js` });
     }
     await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
@@ -88,6 +88,36 @@ const chooseTab = async (page, tab) => {
 };
 
 export const registerSettingsThemeCases = ({ test, baseUrl }) => {
+    test('Themes separates generic identity palette adaptation native sizing and recovery', async ({ page }) => {
+        await mount(page,baseUrl);
+        await page.evaluate(()=>{
+            const style=document.createElement('style');style.id='fixture-generic-theme';
+            style.textContent=':root {--background-color:#101827;--table-background-color:#172136;--text-color:#f1f5f9;--alt-text-color:#cbd5e1;--link-text-color:#80bfff;--button-background:#172136} body {background:#101827;color:#f1f5f9}';
+            document.head.append(style);
+            document.documentElement.removeAttribute('data-fvplus-host-theme');
+            document.body.removeAttribute('data-fvplus-host-theme');
+            window.FolderViewPlusThemeResolver.applyResolvedThemeTokens('generic-fixture',{root:'#fv-settings-root',sampleRoot:'body'});
+            themeApi.renderSummary();
+        });
+        assert.equal(await page.locator('.fv-theme-summary-card strong').first().innerText(),'Unidentified host theme');
+        assert.match(await page.locator('#fv-theme-workspace-summary').innerText(),/Host CSS variables/);
+        await page.evaluate(()=>{document.documentElement.setAttribute('data-fvplus-theme-name','Example <img src=x onerror=alert(1)>');themeApi.renderSummary();});
+        assert.equal(await page.locator('.fv-theme-summary-card strong').first().innerText(),'Example <img src=x onerror=alert(1)>');
+        assert.equal(await page.locator('#fv-theme-workspace-summary img').count(),0);
+        assert.match(await page.locator('#fv-theme-workspace-summary').innerText(),/Declared by theme/);
+        await page.evaluate(()=>{
+            const resolver=window.FolderViewPlusThemeResolver;
+            window.fixtureRecoverySnapshot=resolver.applyResolvedThemeTokens('generic-recovery',{modeInput:'safe',root:'#fv-settings-root',sampleRoot:'body'});
+            window.fixtureRecoveryApi=window.FolderViewPlusThemeWorkspace.createApi({window,document,getThemeSnapshot:()=>window.fixtureRecoverySnapshot,
+                escapeHtml:value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')});
+            window.fixtureRecoveryApi.renderSummary();
+        });
+        assert.match(await page.locator('#fv-theme-workspace-summary').innerText(),/Recovery palette: selected mode/);
+        assert.match(await page.locator('#fv-theme-workspace-summary').innerText(),/Plugin defaults/);
+        await page.evaluate(()=>{document.getElementById('fixture-generic-theme').remove();document.documentElement.removeAttribute('data-fvplus-theme-name');
+            document.documentElement.setAttribute('data-fvplus-host-theme','black');window.FolderViewPlusThemeResolver.applyResolvedThemeTokens('restore',{root:'#fv-settings-root',sampleRoot:'body'});themeApi.renderSummary();});
+        await page.waitForFunction(()=>[...document.getAnimations()].every(animation=>animation.playState!=='running'));
+    });
     test('Themes and Appearance route production sections, search and preserve customization drafts', async ({ page }) => {
         await mount(page, baseUrl);
         assert.equal(await page.locator('#fv-theme-workspace-panel').isVisible(), true);

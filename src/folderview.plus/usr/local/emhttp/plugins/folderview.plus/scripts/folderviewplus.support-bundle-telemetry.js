@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(root);
+        module.exports = factory(root, typeof require === 'function' ? require('./folderviewplus.theme-integration.js') : root?.FolderViewPlusFoundationModules?.themeIntegration);
         return;
     }
-    root.FolderViewPlusSupportBundleTelemetry = factory(root);
+    root.FolderViewPlusSupportBundleTelemetry = factory(root, root.FolderViewPlusFoundationModules?.themeIntegration);
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(root, themeIntegration) {
     const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
     const downloadDiagnosticsModule = root?.FolderViewPlusDownloadDiagnostics || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
@@ -69,6 +69,9 @@
     ]));
 
     const normalizePrivacyMode = (value) => (String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized');
+
+    const sanitizeThemeTelemetry = (value, privacy = 'sanitized') => normalizePrivacyMode(privacy) === 'full'
+        ? value : themeIntegration?.sanitizeDiagnostics?.(value) || null;
 
     const hashValue = (value, saltSeed = '') => {
         const input = `${String(saltSeed || '')}|${String(value || '')}`;
@@ -140,7 +143,8 @@
                 return;
             }
             counters.checkedFieldCount += 1;
-            const isThemeMetadata = path[0] === 'theme';
+            const isThemeMetadata = path[0] === 'theme' && ((key === 'name' && themeIntegration?.isDiagnosticCheckName?.(value))
+                || (key === 'hostThemeName' && ['black','white','gray','azure'].includes(value)));
             if (!isThemeMetadata && (
                 SUPPORT_BUNDLE_UI_ID_KEYS.has(key)
                 || SUPPORT_BUNDLE_UI_NAME_KEYS.has(key)
@@ -580,7 +584,7 @@
                 'folderEditorDebug',
                 collectFolderEditorDebugDiagnostics()
             );
-            existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
+            existingUiTelemetry.theme = sanitizeThemeTelemetry(collectThemeTelemetrySnapshot(), privacyMode);
             existingUiTelemetry.localization = uiRedactor.sanitizeValue(
                 'uiTelemetry.localization',
                 'localization',
@@ -623,6 +627,7 @@
         createApi,
         createUiTelemetryRedactor,
         buildUiTelemetryPrivacySelfCheck,
+        sanitizeThemeTelemetry,
         normalizePrivacyMode,
         hashValue,
         SUPPORT_BUNDLE_UI_ID_KEYS,

@@ -1604,7 +1604,7 @@ $fvplusSettingsFoundationAssets = [
         '/plugins/folderview.plus/scripts/runtime.performance-telemetry.js',
         '/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js',
         '/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js',
-        '/plugins/folderview.plus/scripts/folderviewplus.theme-host.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.theme-integration.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-host.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js',
         '/plugins/folderview.plus/scripts/folder.settings-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.theme-profiles.js',
         '/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
         '/plugins/folderview.plus/scripts/folderviewplus.chrome.js'

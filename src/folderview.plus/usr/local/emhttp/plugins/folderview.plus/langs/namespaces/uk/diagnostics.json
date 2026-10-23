@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
     },
+    "diagnostics.cards.theme-integration": "Джерело палітри: $1. Причина відновлення: $2. Власний розмір: $3.",
     "diagnostics.title": "Діагностика",
     "diagnostics.workspace.description": "Відстежуйте справність плагінів, вирішуйте проблеми та діліться даними підтримки.",
     "diagnostics.actions.run": "Запустити перевірку стану здоров'я",

@@ -1581,6 +1581,9 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 
 .fvplus-docker-action-secondary {
     margin-left: auto;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding-right: 64px; /* Keep the host's floating page-scroll control clear of Tools. */
 }
 
 .fvplus-docker-action-button {
@@ -1651,7 +1654,7 @@ html[data-fv-host-controls="host"] .fvplus-docker-action-count {
 .fvplus-docker-action-separator {
     width: 1px;
     height: 23px;
-    margin: 0 0.15rem;
+    margin: 0 0.75rem;
     background: rgba(128, 128, 128, 0.38);
 }
 

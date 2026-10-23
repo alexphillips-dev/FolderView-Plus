@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.22.07">
-<!ENTITY md5 "6118eb935f1f66d992117419b32bf568">
-<!ENTITY sha256 "fa8ba28e3ab270dea08b6a2a2bf026b4e94b9563702c5d48d42546eeef686125">
+<!ENTITY version "2026.10.22.08">
+<!ENTITY md5 "b7e1f9d5d1edef8042db17e83c616a0d">
+<!ENTITY sha256 "86a6fe60302465baa097e37adaccf6ff1553e9bd4ee1f76bdc029141ecffddf0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.22.08
+- UI/UX: Increase the Docker toolbar divider spacing between Collapse All and Unassigned so folder actions and filters are easier to distinguish.
+- Fix: Leave space after Manage Folders, View, and Tools so the floating page-scroll arrow does not cover the controls, including when the toolbar wraps on smaller screens.
+- Compatibility: Hard-refresh the webGUI after updating to load the revised toolbar styles.
+
 
 ###2026.10.22.07
 - Compatibility: Follow host theme colors through supported CSS variables or usable native styles across Docker, VMs, Dashboard, Settings, and the folder editor.

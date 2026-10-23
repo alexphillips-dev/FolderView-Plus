@@ -201,6 +201,33 @@ test('Host theme generic Docker toolbar matches native action sizing and restore
     await page.click('[data-fvplus-docker-menu="view"]');
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('[data-fvplus-docker-menu="view"]').evaluate(node => node === document.activeElement), true);
+    const spacing = await page.evaluate(() => {
+        const box = selector => document.querySelector(selector).getBoundingClientRect();
+        const collapse = box('[data-fvplus-docker-action="collapse-all"]');
+        const unassigned = box('[data-fvplus-docker-action="filter-unassigned"]');
+        const add = box('[data-fvplus-docker-action="add-folder"]');
+        const expand = box('[data-fvplus-docker-action="expand-all"]');
+        const tools = box('[data-fvplus-docker-menu="tools"]');
+        const arrow = document.createElement('button');
+        arrow.id = 'fixture-page-up'; arrow.textContent = '↑';
+        arrow.setAttribute('aria-label', 'Scroll page up');
+        Object.assign(arrow.style, { position: 'fixed', right: '12px', top: `${tools.top}px`,
+            width: '44px', height: '44px', padding: '0', borderRadius: '50%', zIndex: '11000' });
+        document.body.append(arrow);
+        const arrowLeft = arrow.getBoundingClientRect().left;
+        return { dividerVisible: getComputedStyle(document.querySelector('.fvplus-docker-action-separator')).display !== 'none',
+            sameRow: Math.abs(collapse.top - unassigned.top) < 1,
+            dividerGap: unassigned.left - collapse.right, buttonGap: expand.left - add.right,
+            clearance: [...document.querySelectorAll('.fvplus-docker-action-secondary > button, .fvplus-docker-action-secondary > span > button')]
+                .map(node => arrowLeft - node.getBoundingClientRect().right) };
+    });
+    if (spacing.dividerVisible && spacing.sameRow) assert.ok(spacing.dividerGap >= spacing.buttonGap + 16, JSON.stringify(spacing));
+    assert.equal(spacing.clearance.length, 3);
+    assert.ok(spacing.clearance.every(value => value >= 8), `page-up arrow clearance: ${JSON.stringify(spacing)}`);
+    await page.click('[data-fvplus-docker-menu="tools"]');
+    assert.equal(await page.locator('[data-fvplus-docker-menu="tools"]').getAttribute('aria-expanded'), 'true');
+    await page.keyboard.press('Escape');
+    await page.locator('#fixture-page-up').evaluate(node => node.remove());
     await page.evaluate(() => {
         document.getElementById('fixture-aurora-sizing').remove(); document.getElementById('fixture-native-actions').remove();
         document.documentElement.style.fontSize = '10px'; window.fixtureHostBinding.runApply('native-controls-removed');

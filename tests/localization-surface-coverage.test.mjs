@@ -19,12 +19,14 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    // The Themes split replaces two retired legacy phrases with five semantic Settings messages.
-    assert.ok(surface.byPhrase.size >= 2995, 'retain the audited conditional UI surfaces');
+    // Theme and rule-preview messages retain semantic keys after retiring obsolete source surfaces.
+    assert.ok(surface.byPhrase.size >= 2993, 'retain the audited conditional UI surfaces');
     const settings = readJson(path.join(namespacesRoot, 'en/settings.json'));
     for (const key of ['settings.navigation.themes', 'settings.theme.manager-help', 'settings.theme.host-default', 'settings.theme.managed-layer', 'settings.theme.host-status']) {
         assert.ok(settings[key], `replacement semantic message must exist: ${key}`);
     }
+    const common = readJson(path.join(namespacesRoot, 'en/common.json'));
+    for (const key of ['common.server.rules-preview-changed', 'common.server.rules-preview-invalid', 'common.repair.rules-preview-moves-manual']) assert.ok(common[key]);
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Resulterend pad: $1",
     "common.repair.move-preview-branch": "Mappen in filiaal: $1",
     "common.repair.preview-show-more": "Meer weergeven ($1)",
-    "common.repair.wait-for-tree-move": "Wacht tot de huidige mapverplaatsing is voltooid."
+    "common.repair.wait-for-tree-move": "Wacht tot de huidige mapverplaatsing is voltooid.",
+    "common.server.rules-preview-config": "Configuratie is niet beschikbaar. Laad de instellingen opnieuw voordat u een voorbeeld van de regels bekijkt.",
+    "common.server.rules-preview-digest": "Ongeldige voorbeeldoverzicht.",
+    "common.server.rules-preview-changed": "Het voorbeeld is gewijzigd. Voer het voorbeeld opnieuw uit voordat u de wijzigingen toepast.",
+    "common.server.rules-preview-invalid": "Corrigeer ongeldige regels voordat u het voorbeeld toepast.",
+    "common.server.rules-save-invalid": "Corrigeer ongeldige regels voordat u deze opslaat.",
+    "common.repair.rules-preview-no-changes": "Voor deze preview zijn geen toewijzingswijzigingen nodig.",
+    "common.repair.rules-preview-moves-manual": "Bestaande handmatige toewijzingen worden verplaatst naar de voorbeeldmappen."
 }

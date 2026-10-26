@@ -222,84 +222,17 @@
             return names.map((name) => `${name}:${normalizeVmStateToken(map[name])}`).join('|');
         };
 
-        const buildDashboardDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => {
-            const folderMap = folders && typeof folders === 'object' ? folders : {};
-            const infoByName = containersInfo && typeof containersInfo === 'object' ? containersInfo : {};
-            const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-                .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-            const labelBuckets = new Map();
-            for (const name of names) {
-                const labels = infoByName[name]?.Labels || {};
-                const labelValue = getFolderLabelValue(labels);
-                if (!labelValue) {
-                    continue;
-                }
-                if (!labelBuckets.has(labelValue)) {
-                    labelBuckets.set(labelValue, []);
-                }
-                labelBuckets.get(labelValue).push(name);
-            }
-            const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-            const cache = {};
-            for (const [folderId, folder] of Object.entries(folderMap)) {
-                const explicit = Array.isArray(folder?.containers)
-                    ? folder.containers.filter((name) => infoByName[name])
-                    : [];
-                let regexMatches = [];
-                const regexRaw = String(folder?.regex || '').trim();
-                if (regexRaw) {
-                    try {
-                        const regex = new RegExp(regexRaw);
-                        regexMatches = names.filter((name) => regex.test(name));
-                    } catch (_error) {
-                        regexMatches = [];
-                    }
-                }
-                const labelMatches = [...(labelBuckets.get(String(folder?.name || '')) || [])];
-                const ruleMatches = utils.getAutoRuleMatches({
-                    rules,
-                    folderId,
-                    names,
-                    infoByName,
-                    type: 'docker'
-                });
-                cache[folderId] = { explicit, regex: regexMatches, label: labelMatches, rules: ruleMatches };
-            }
-            return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'docker', rules }) || cache;
-        };
+        const buildDashboardDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => utils.buildFolderMatchCache({
+            type: 'docker', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: containersInfo || {},
+            names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(containersInfo || {}, name)) : [],
+            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+        });
 
-        const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
-            const folderMap = folders && typeof folders === 'object' ? folders : {};
-            const infoByName = vmInfo && typeof vmInfo === 'object' ? vmInfo : {};
-            const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-                .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-            const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-            const cache = {};
-            for (const [folderId, folder] of Object.entries(folderMap)) {
-                const explicit = Array.isArray(folder?.containers)
-                    ? folder.containers.filter((name) => infoByName[name])
-                    : [];
-                let regexMatches = [];
-                const regexRaw = String(folder?.regex || '').trim();
-                if (regexRaw) {
-                    try {
-                        const regex = new RegExp(regexRaw);
-                        regexMatches = names.filter((name) => regex.test(name));
-                    } catch (_error) {
-                        regexMatches = [];
-                    }
-                }
-                const ruleMatches = utils.getAutoRuleMatches({
-                    rules,
-                    folderId,
-                    names,
-                    infoByName,
-                    type: 'vm'
-                });
-                cache[folderId] = { explicit, regex: regexMatches, rules: ruleMatches };
-            }
-            return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'vm', rules }) || cache;
-        };
+        const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => utils.buildFolderMatchCache({
+            type: 'vm', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: vmInfo || {},
+            names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(vmInfo || {}, name)) : [],
+            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+        });
 
         return Object.freeze({
             getPrefsOrderedFolderMap,

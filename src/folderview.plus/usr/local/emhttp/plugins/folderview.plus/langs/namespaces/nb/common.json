@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Resulterende bane: $1",
     "common.repair.move-preview-branch": "Mapper i filial: $1",
     "common.repair.preview-show-more": "Vis mer ($1)",
-    "common.repair.wait-for-tree-move": "Vent til den gjeldende mappeflyttingen er ferdig."
+    "common.repair.wait-for-tree-move": "Vent til den gjeldende mappeflyttingen er ferdig.",
+    "common.server.rules-preview-config": "Konfigurasjonen er utilgjengelig. Last inn innstillinger på nytt før du forhåndsviser regler.",
+    "common.server.rules-preview-digest": "Ugyldig forhåndsvisningssammendrag.",
+    "common.server.rules-preview-changed": "Forhåndsvisningen er endret. Kjør forhåndsvisningen på nytt før du bruker endringene.",
+    "common.server.rules-preview-invalid": "Rett ugyldige regler før du bruker forhåndsvisningen.",
+    "common.server.rules-save-invalid": "Rett ugyldige regler før du lagrer.",
+    "common.repair.rules-preview-no-changes": "Ingen tildelingsendringer er nødvendig for denne forhåndsvisningen.",
+    "common.repair.rules-preview-moves-manual": "Eksisterende manuelle oppgaver vil bli flyttet til de forhåndsviste mappene."
 }

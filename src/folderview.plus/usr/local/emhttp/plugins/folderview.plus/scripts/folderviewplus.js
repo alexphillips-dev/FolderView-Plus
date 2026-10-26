@@ -622,8 +622,8 @@ let smartRuleSuggestionCacheByType = {
     vm: []
 };
 let lastRulePreviewRowsByType = {
-    docker: [],
-    vm: []
+    docker: null,
+    vm: null
 };
 let selectedTemplateIdsByType = {
     docker: new Set(),
@@ -874,12 +874,14 @@ const advancedOperationLockByType = {
     docker: {
         backups: false,
         templates: false,
-        bulk: false
+        bulk: false,
+        'rule-preview-apply': false
     },
     vm: {
         backups: false,
         templates: false,
-        bulk: false
+        bulk: false,
+        'rule-preview-apply': false
     }
 };
 const setupAssistantState = {
@@ -1432,7 +1434,7 @@ const isInputInvalidForUi = (input) => {
     if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && document.getElementById(input.id.replace('-pattern', '-regex'))?.checked && String(input.value || '').trim()) {
         try {
             // eslint-disable-next-line no-new
-            new RegExp(String(input.value || '').trim());
+            new RegExp(String(input.value || '').trim(), 'u');
         } catch (_error) {
             return true;
         }
@@ -3746,17 +3748,9 @@ const getEffectiveMemberSnapshot = (type, folders) => {
     const names = Object.keys(info);
     const rules = prefsByType[type]?.autoRules || [];
     const snapshot = {};
+    const membership = utils.buildMembershipSnapshot({ type, folders: folders || {}, names, infoByName: info, rules });
     for (const [folderId, folder] of Object.entries(folders || {})) {
-        const members = utils.getEffectiveFolderMembers({
-            type,
-            folderId,
-            folder,
-            folders,
-            names,
-            infoByName: info,
-            rules
-        });
-        snapshot[String(folderId)] = members;
+        snapshot[String(folderId)] = utils.getEffectiveFolderMembers({ type, folderId, folder, folders, snapshot: membership });
     }
     return snapshot;
 };
@@ -7395,7 +7389,7 @@ const getAutoRuleProblems = (type, rule) => {
         } else {
             try {
                 // eslint-disable-next-line no-new
-                new RegExp(pattern);
+                new RegExp(pattern, 'u');
             } catch (_error) {
                 issues.push('Invalid regex');
             }
@@ -7745,47 +7739,6 @@ const saveSelectedSmartRuleSuggestions = async (type) => {
     }
 };
 
-const buildRulePreviewRows = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const rules = prefsByType[resolvedType]?.autoRules || [];
-    const info = infoByType[resolvedType] || {};
-    return Object.keys(info)
-        .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true }))
-        .map((name) => {
-            const decision = utils.getAutoRuleDecision({
-                rules,
-                name,
-                infoByName: info,
-                type: resolvedType
-            });
-            if (decision.blockedBy) {
-                return {
-                    item: name,
-                    result: 'blocked',
-                    folderId: String(decision.blockedBy.folderId || ''),
-                    folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
-                    rule: ruleDescription(decision.blockedBy)
-                };
-            }
-            if (decision.assignedRule) {
-                return {
-                    item: name,
-                    result: 'assigned',
-                    folderId: String(decision.assignedRule.folderId || ''),
-                    folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
-                    rule: ruleDescription(decision.assignedRule)
-                };
-            }
-            return {
-                item: name,
-                result: 'unassigned',
-                folderId: '',
-                folder: '-',
-                rule: '-'
-            };
-        });
-};
-
 const renderRulePreviewRows = (type, rows) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const root = $(`#${resolvedType}-rule-sim-output`);
@@ -7810,10 +7763,10 @@ const renderRulePreviewRows = (type, rows) => {
         <div class="fv-rule-preview-table" role="table" aria-label="${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview">
             ${safeRows.map((row) => `
                 <div class="fv-rule-preview-row is-${escapeHtml(row.result)}" role="row">
-                    <span class="fv-rule-preview-result">${escapeHtml(row.result)}</span>
-                    <strong>${escapeHtml(row.item)}</strong>
-                    <span>${escapeHtml(row.folder)}</span>
-                    <small>${escapeHtml(row.rule)}</small>
+                    <span role="cell" class="fv-rule-preview-result">${escapeHtml(row.result)}</span>
+                    <strong role="cell">${escapeHtml(row.item)}</strong>
+                    <span role="cell">${escapeHtml(row.folder)}</span>
+                    <small role="cell">${escapeHtml(row.rule)}</small>
                 </div>
             `).join('')}
         </div>
@@ -10008,7 +9961,7 @@ const addAutoRule = async (type) => {
             return;
         }
         try {
-            new RegExp(normalizedRule.pattern);
+            new RegExp(normalizedRule.pattern, 'u');
         } catch (error) {
             swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
             return;
@@ -10241,7 +10194,7 @@ const testAutoRule = (type) => {
         rules,
         name: testName,
         infoByName: info,
-        type
+        type, folders: getFolderMap(type)
     });
     const firstMatch = decision.assignedRule;
 
@@ -10794,131 +10747,82 @@ const bulkRuleAction = async (type, action) => {
     }
 };
 
+const rulePreviewInputSignature = (type) => utils.getMembershipSignature({
+    type, folders: getFolderMap(type), rules: prefsByType[type]?.autoRules || [], infoByName: infoByType[type] || {}
+});
+
 const runRuleSimulator = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const rows = buildRulePreviewRows(resolvedType);
-    lastRulePreviewRowsByType[resolvedType] = rows;
-    renderRulePreviewRows(resolvedType, rows);
-    const summary = {
-        total: rows.length,
-        assigned: rows.filter((row) => row.result === 'assigned').length,
-        blocked: rows.filter((row) => row.result === 'blocked').length,
-        unassigned: rows.filter((row) => row.result === 'unassigned').length
-    };
-    await trackDiagnosticsEvent({
-        eventType: 'rule_simulator',
-        type: resolvedType,
-        details: summary
-    });
+    const pending = { clientSignature: rulePreviewInputSignature(resolvedType) };
+    lastRulePreviewRowsByType[resolvedType] = pending;
+    try {
+        const response = await apiGetJson('/plugins/folderview.plus/server/rule_preview.php?type=' + resolvedType);
+        if (lastRulePreviewRowsByType[resolvedType] !== pending) return;
+        if (pending.clientSignature !== rulePreviewInputSignature(resolvedType)) {
+            throw new Error(surfaceT("common.server.rules-preview-changed", "The preview changed. Run the preview again before applying."));
+        }
+        if (!response?.ok || !response?.preview || !Array.isArray(response.preview.rows)) throw new Error(response?.error || 'Rule preview assignment transaction failed.');
+        const preview = response.preview;
+        const rows = preview.rows.map((row) => ({ ...row, folder: row.folderName || '-', rule: row.matchedRule ? ruleDescription(row.matchedRule) : '-' }));
+        lastRulePreviewRowsByType[resolvedType] = { ...preview, rows, clientSignature: pending.clientSignature };
+        renderRulePreviewRows(resolvedType, rows);
+        await trackDiagnosticsEvent({ eventType: 'rule_simulator', type: resolvedType, details: {
+            total: rows.length, assigned: rows.filter((row) => row.result === 'assigned').length,
+            blocked: rows.filter((row) => row.result === 'blocked').length, unassigned: rows.filter((row) => row.result === 'unassigned').length
+        } });
+    } catch (error) {
+        if (lastRulePreviewRowsByType[resolvedType] !== pending) return;
+        lastRulePreviewRowsByType[resolvedType] = null;
+        showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"), error);
+    }
 };
 
 const applyRuleSimulatorAssignments = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const cachedRows = lastRulePreviewRowsByType[resolvedType] || [];
-    const rows = cachedRows.length ? cachedRows : buildRulePreviewRows(resolvedType);
-    lastRulePreviewRowsByType[resolvedType] = rows;
-    renderRulePreviewRows(resolvedType, rows);
-
-    const targetRows = rows.filter((row) => row?.result === 'assigned' && String(row?.folderId || '').trim() && String(row?.item || '').trim());
-    if (!targetRows.length) {
-        swal({
-            title: 'Nothing to apply',
-            text: `No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are assigned by the current rule preview.`,
-            type: 'info'
-        });
-        return;
+    const preview = lastRulePreviewRowsByType[resolvedType];
+    const assertCurrent = () => {
+        if (!preview?.digest || lastRulePreviewRowsByType[resolvedType] !== preview || preview.clientSignature !== rulePreviewInputSignature(resolvedType)) {
+            throw new Error(surfaceT("common.server.rules-preview-changed", "The preview changed. Run the preview again before applying."));
+        }
+    };
+    try { assertCurrent(); } catch (error) {
+        showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"), error); return;
     }
-
-    const byFolder = new Map();
-    targetRows.forEach((row) => {
-        const folderId = String(row.folderId || '').trim();
-        const item = String(row.item || '').trim();
-        if (!folderId || !item) {
-            return;
-        }
-        if (!byFolder.has(folderId)) {
-            byFolder.set(folderId, []);
-        }
-        byFolder.get(folderId).push(item);
-    });
-
+    if (!preview.ready) {
+        showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"),
+            new Error(surfaceT("common.server.rules-preview-invalid", "Correct invalid rules before applying the preview."))); return;
+    }
+    const targetRows = preview.rows.filter((row) => row.apply);
+    if (!targetRows.length) {
+        swal({ title: 'Nothing to apply', text: surfaceT("common.repair.rules-preview-no-changes", "No assignment changes are needed for this preview."), type: 'info' }); return;
+    }
+    const folderCount = preview.assignments.length;
     swal({
         title: 'Apply previewed assignments?',
-        text: surfaceT("common.counts.assign-folders", "Items to assign: $1. Destination folders: $2. A backup will be created first.", targetRows.length, byFolder.size),
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Apply assignments',
-        cancelButtonText: 'Cancel',
-        showLoaderOnConfirm: true
+        text: surfaceT("common.counts.assign-folders", "Items to assign: $1. Destination folders: $2. A backup will be created first.", targetRows.length, folderCount) + ' ' + surfaceT('common.repair.rules-preview-moves-manual', 'Existing manual assignments will be moved to the previewed folders.'),
+        type: 'warning', showCancelButton: true, confirmButtonText: 'Apply assignments', cancelButtonText: 'Cancel', showLoaderOnConfirm: true
     }, async (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        if (!ensureRuntimeConflictActionAllowed(`Apply ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignments`)) {
-            return;
-        }
-
+        if (!confirmed || !ensureRuntimeConflictActionAllowed(`Apply ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignments`)) return;
         await withAdvancedOperationLock(resolvedType, 'rule-preview-apply', `${resolvedType.toUpperCase()} rule preview assignment`, async () => {
-            let backup = null;
-            let assignedCount = 0;
-            let skippedInvalidCount = 0;
-            const failed = [];
-
             try {
-                backup = await createBackup(resolvedType, 'before-rule-preview-assign');
-                const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
-                    type: resolvedType,
-                    assignments: JSON.stringify(Array.from(byFolder.entries()).map(([folderId, items]) => ({ folderId, items })))
-                });
-                if (!response?.ok || !response?.result) {
-                    throw new Error(response?.error || 'Rule preview assignment transaction failed.');
-                }
-                const batchResults = Array.isArray(response.result.results) ? response.result.results : [];
-                const resultByFolder = new Map(batchResults.map((result) => [String(result?.folderId || '').trim(), result]));
-                for (const [folderId, items] of byFolder.entries()) {
-                    const result = resultByFolder.get(folderId) || {};
-                    assignedCount += Array.isArray(result.assigned) ? result.assigned.length : 0;
-                    skippedInvalidCount += Array.isArray(result.skippedInvalid) ? result.skippedInvalid.length : 0;
-                    const assignedSet = new Set((Array.isArray(result.assigned) ? result.assigned : []).map((item) => String(item || '').trim()));
-                    const invalidSet = new Set((Array.isArray(result.skippedInvalid) ? result.skippedInvalid : []).map((item) => String(item || '').trim()));
-                    items.forEach((item) => {
-                        if (!assignedSet.has(item) && !invalidSet.has(item)) {
-                            failed.push(`${item}: not applied by server response`);
-                        }
-                    });
-                }
-
+                assertCurrent();
+                const response = await apiPostJson('/plugins/folderview.plus/server/rule_preview.php', { type: resolvedType, expectedDigest: preview.digest });
+                if (!response?.ok || !response?.result) throw new Error(response?.error || 'Rule preview assignment transaction failed.');
+                const { assignedCount = 0, skippedInvalidCount = 0, backup } = response.result;
+                lastRulePreviewRowsByType[resolvedType] = null;
                 await Promise.allSettled([refreshType(resolvedType), refreshBackups(resolvedType)]);
-                lastRulePreviewRowsByType[resolvedType] = buildRulePreviewRows(resolvedType);
-                renderRulePreviewRows(resolvedType, lastRulePreviewRowsByType[resolvedType]);
-
-                const failedCount = failed.length;
-                showActionSummaryToast({
-                    title: 'Rule preview assignments complete',
-                    message: `${assignedCount} assigned | ${skippedInvalidCount} invalid | ${failedCount} failed`,
-                    level: failedCount > 0 ? 'warning' : 'success',
-                    type: resolvedType
-                });
-                addActivityEntry(surfaceT("common.repair.2-rule-preview-assignments-applied-1-91085b", "$2 rule preview assignments applied: $1.", assignedCount, resolvedType === "docker" ? "Docker" : "VM"), failedCount > 0 ? 'warning' : 'success');
-                await trackDiagnosticsEvent({
-                    eventType: 'rule_preview_apply',
-                    type: resolvedType,
-                    details: {
-                        folderCount: byFolder.size,
-                        itemCount: targetRows.length,
-                        assignedCount,
-                        skippedInvalidCount,
-                        failedCount
-                    }
-                });
+                await runRuleSimulator(resolvedType);
+                showActionSummaryToast({ title: 'Rule preview assignments complete', message: `${assignedCount} assigned | ${skippedInvalidCount} invalid | 0 failed`, level: 'success', type: resolvedType });
+                addActivityEntry(surfaceT("common.repair.2-rule-preview-assignments-applied-1-91085b", "$2 rule preview assignments applied: $1.", assignedCount, resolvedType === "docker" ? "Docker" : "VM"), 'success');
+                await trackDiagnosticsEvent({ eventType: 'rule_preview_apply', type: resolvedType, details: { folderCount, itemCount: targetRows.length, assignedCount, skippedInvalidCount, failedCount: 0 } });
                 await offerUndoAction(resolvedType, backup, 'Rule preview assignment');
             } catch (error) {
+                lastRulePreviewRowsByType[resolvedType] = null;
                 showError(surfaceT("common.repair.rule-preview-assignment-failed-7eb267", "Rule preview assignment failed"), error);
             }
         });
     });
 };
-
 const toggleTemplateSelection = (type, templateId, checked) => {
     const selected = selectedTemplateIdsByType[type] || new Set();
     if (checked) {

@@ -1817,7 +1817,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
             folderId: id,
             names: order,
             infoByName: containersInfo,
-            type: 'docker'
+            type: 'docker', folders: globalFolders.docker
         });
     ruleMatches.forEach(pushCombined);
 
@@ -2088,7 +2088,7 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             folderId: id,
             names: order,
             infoByName: vmInfo,
-            type: 'vm'
+            type: 'vm', folders: globalFolders.vms
         });
     ruleMatches.forEach(pushCombined);
 
@@ -2584,7 +2584,9 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
             ...prior,
             ...entry,
             shortId: String(entry.id || entry.shortId || prior.shortId || '').replace(/^sha256:/i, '').slice(0, 12),
-            Labels: { ...(prior.Labels || {}), ...(entry.Labels || {}) },
+            Labels: entry.Labels && typeof entry.Labels === 'object' ? { ...entry.Labels } : { ...(prior.Labels || {}) },
+            image: String(entry.Image ?? entry.image ?? prior.image ?? prior.Image ?? ''),
+            Image: String(entry.Image ?? entry.image ?? prior.image ?? prior.Image ?? ''),
             info: {
                 ...priorInfo,
                 ...sourceInfo,
@@ -2725,12 +2727,15 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
         const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
             ? runtimeSnapshotApi.diffRuntimeRows(resolvedType, dashboardRuntimeInfoByType[resolvedType], nextRuntimeInfo)
             : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
+        const matchingInputs = { type: resolvedType, rules: folderTypePrefs[resolvedType]?.autoRules || [] };
+        const membershipChanged = utils.getMembershipSignature({ ...matchingInputs, infoByName: dashboardRuntimeInfoByType[resolvedType] })
+            !== utils.getMembershipSignature({ ...matchingInputs, infoByName: nextRuntimeInfo });
         dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
         lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
             ? buildDockerStateSignature(parsed, true)
             : buildVmStateSignature(parsed, true);
         if (snapshot) rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
-        if (rowDiff.structuralChanged) {
+        if (rowDiff.structuralChanged || membershipChanged) {
             window.FolderViewPlusDashboardRowReconciliation = {
                 ...(window.FolderViewPlusDashboardRowReconciliation || {}),
                 [resolvedType]: {

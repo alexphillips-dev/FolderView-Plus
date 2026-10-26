@@ -12,6 +12,7 @@ const endpointPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/p
 const chromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
 const rulesSource = fs.readFileSync(rulesPath, 'utf8');
+const engineSource = fs.readFileSync(path.join(path.dirname(libPath), 'lib.rules-engine.php'), 'utf8');
 const libSource = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
 const endpointSource = fs.readFileSync(endpointPath, 'utf8');
 const chromeSource = fs.readFileSync(chromePath, 'utf8');
@@ -88,7 +89,7 @@ test('legacy conversion endpoint uses guarded transactional migration with rollb
 });
 
 test('PHP auto-rule engine returns on the first matching include or exclude', () => {
-    const decisionBody = libSource.match(/function autoRuleDecision\([\s\S]*?\n    \}/)?.[0] || '';
+    const decisionBody = engineSource.match(/function fvplusEvaluateRules\([\s\S]*?\n    \}/)?.[0] || '';
     assert.doesNotMatch(decisionBody, /firstIncludeRule/);
-    assert.match(decisionBody, /if \(\$effect === 'exclude'\)[\s\S]*'blockedBy' => \$rule[\s\S]*return \[[\s\S]*'assignedRule' => \$rule/);
+    assert.match(decisionBody, /\$exclude = [\s\S]*'assignedRule' => \$exclude \? null : \$rule[\s\S]*'blockedBy' => \$exclude \? \$rule : null/);
 });

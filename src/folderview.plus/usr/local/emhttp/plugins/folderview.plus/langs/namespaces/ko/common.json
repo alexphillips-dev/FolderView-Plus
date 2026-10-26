@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "결과 경로: $1",
     "common.repair.move-preview-branch": "분기의 폴더: $1",
     "common.repair.preview-show-more": "자세히 보기($1)",
-    "common.repair.wait-for-tree-move": "현재 폴더 이동이 완료될 때까지 기다립니다."
+    "common.repair.wait-for-tree-move": "현재 폴더 이동이 완료될 때까지 기다립니다.",
+    "common.server.rules-preview-config": "구성을 사용할 수 없습니다. 규칙을 미리보기 전에 설정을 다시 로드하세요.",
+    "common.server.rules-preview-digest": "미리보기 다이제스트가 잘못되었습니다.",
+    "common.server.rules-preview-changed": "미리보기가 변경되었습니다. 적용하기 전에 미리보기를 다시 실행하세요.",
+    "common.server.rules-preview-invalid": "미리보기를 적용하기 전에 잘못된 규칙을 수정하세요.",
+    "common.server.rules-save-invalid": "저장하기 전에 잘못된 규칙을 수정하세요.",
+    "common.repair.rules-preview-no-changes": "이 미리보기에는 할당 변경이 필요하지 않습니다.",
+    "common.repair.rules-preview-moves-manual": "기존 수동 할당은 미리보기 폴더로 이동됩니다."
 }

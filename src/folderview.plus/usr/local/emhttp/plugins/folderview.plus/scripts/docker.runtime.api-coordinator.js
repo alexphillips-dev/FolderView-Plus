@@ -60,8 +60,8 @@
         const fields = asObject(capabilities.containerFields);
         const flags = stateFlags(container.state);
         const labels = fields.labels === true && container.labels && typeof container.labels === 'object'
-            ? { ...asObject(source.Labels), ...container.labels }
-            : { ...asObject(source.Labels) };
+            ? { ...container.labels }
+            : { ...asObject(source.Labels || asObject(info.Config).Labels) };
         const nextState = {
             ...previousState,
             Running: flags.running,
@@ -77,22 +77,21 @@
         }
         const next = {
             ...source,
-            name: normalizeName(container.name) || normalizeName(source.name),
-            id: String(container.id || source.id || '').trim(),
+            name: normalizeName(container.name) || normalizeName(source.name), id: String(container.id || source.id || '').trim(),
             shortId: String(container.shortId || source.shortId || '').trim(),
-            state: String(container.state || source.state || '').trim(),
-            status: String(container.status || source.status || '').trim(),
-            running: flags.running,
-            paused: flags.paused,
+            state: String(container.state || source.state || '').trim(), status: String(container.status || source.status || '').trim(),
+            running: flags.running, paused: flags.paused,
             autostart: container.autoStart === true,
-            Labels: labels,
-            info: {
+            Labels: labels, info: {
                 ...info,
                 Id: String(container.id || info.Id || '').trim(),
-                State: nextState
+                Config: { ...asObject(info.Config), Labels: labels }, State: nextState
             }
         };
-        if (fields.image === true) next.image = String(container.image || source.image || '').trim();
+        if (fields.image === true && container.image) {
+            next.image = next.Image = String(container.image).trim();
+            next.info.Config.Image = next.image;
+        }
         if (fields.iconUrl === true && container.iconUrl !== null) {
             next.icon = String(container.iconUrl || source.icon || '').trim();
         }
@@ -106,13 +105,14 @@
         const state = asObject(asObject(entry.info).State);
         return JSON.stringify({
             id: runtimeIdentity(entry),
-            running: state.Running === true,
-            paused: state.Paused === true,
-            status: String(state.Status || ''),
-            autostart: state.Autostart === true,
+            running: state.Running === true, paused: state.Paused === true,
+            status: String(state.Status || ''), autostart: state.Autostart === true,
             updated: typeof state.Updated === 'boolean' ? state.Updated : null,
             orphaned: entry.isOrphaned === true,
-            rebuild: typeof entry.isRebuildReady === 'boolean' ? entry.isRebuildReady : null
+            rebuild: typeof entry.isRebuildReady === 'boolean' ? entry.isRebuildReady : null,
+            labels: Object.entries(asObject(entry.Labels || asObject(asObject(entry.info).Config).Labels)).sort(([a], [b]) => a.localeCompare(b)),
+            image: String(entry.image ?? entry.Image ?? asObject(asObject(entry.info).Config).Image ?? ''),
+            webui: String(state.WebUi || ''), icon: String(entry.icon || '')
         });
     };
     const mergeProviderContainers = (runtimeMap = {}, containers = [], capabilities = {}) => {

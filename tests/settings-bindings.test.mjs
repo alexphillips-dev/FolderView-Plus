@@ -687,7 +687,7 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /registerActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
-    assert.match(libPhp, /function bulkAssignItemsToFolders\(string \$type, array \$assignments\): array/);
+    assert.match(libPhp, /function bulkAssignItemsToFolders\(string \$type, array \$assignments, \?array \$verifiedInventory = null\): array/);
     assert.match(libPhp, /withConfigMutationLock\(static function \(\) use \(\$type, \$normalizedByFolder/);
     assert.match(libPhp, /writeRawFolderMap\(\$type, \$nextFolders\)/);
     assert.match(libPhp, /'skippedInvalid' => \$skippedInvalid/);

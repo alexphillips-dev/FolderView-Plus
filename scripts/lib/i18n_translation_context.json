@@ -74,6 +74,7 @@
             "Following host controls": "A méret a gazdagép vezérlőelemeit követi"
         },
         "lv": {
+            "The preview changed. Run the preview again before applying.": "Priekšskatījums ir mainījies. Pirms izmaiņu piemērošanas vēlreiz palaidiet priekšskatījumu.",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Sākuma mapes: $1 (atlasītas: $2; izlaistas esošās: $3; automātiski piešķirtas atbilstības: $4; jāpārskata: $5; bez atbilstības: $6)",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Tiks aizstātas gan Docker, gan VM mapes un saglabātās preferences, tostarp noteikumi, privātums, grupas, veselība, veiktspēja, noklusējuma iestatījumi un dublēšanas grafiki. Pirms izmaiņu piemērošanas tiek izveidoti atkopšanas kontrolpunkti.",
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "FolderView3 avots vai pašreizējā konfigurācija ir mainīta pēc priekšskatījuma. Pirms izmaiņu piemērošanas vēlreiz priekšskatiet to.",
@@ -116,6 +117,7 @@
             "Following host controls": "サイズはホストの操作部品に追従"
         },
         "bn": {
+            "The preview changed. Run the preview again before applying.": "প্রিভিউ পরিবর্তিত হয়েছে। পরিবর্তনগুলি প্রয়োগ করার আগে আবার প্রিভিউ চালান।",
             "Containers": "কন্টেইনার",
             "VMs: $1": "ভার্চুয়াল মেশিন: $1",
             "Choose the containers you want to move.": "আপনি যে কনটেইনারগুলি সরাতে চান সেগুলি বেছে নিন।",
@@ -129,6 +131,11 @@
             "Following host controls": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে"
         },
         "ca": {
+            "Configuration is unavailable. Reload Settings before previewing rules.": "La configuració no està disponible. Torneu a carregar la configuració abans de previsualitzar les regles.",
+            "Invalid preview digest.": "La signatura de la previsualització no és vàlida.",
+            "Correct invalid rules before saving.": "Corregiu les regles no vàlides abans de desar-les.",
+
+            "The preview changed. Run the preview again before applying.": "La previsualització ha canviat. Torneu a executar-la abans d’aplicar els canvis.",
             "VMs: $1": "Màquines virtuals: $1",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "Voleu restaurar les carpetes i les preferències desades d'aquesta instantània? Primer es crea una còpia de seguretat.",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Carpetes inicials: $1 (seleccionades: $2; existents que s'ometen: $3; coincidències assignades automàticament: $4; pendents de revisió: $5; sense coincidències: $6)",
@@ -143,6 +150,7 @@
             "Following host controls": "La mida segueix els controls de l’amfitrió"
         },
         "sv": {
+            "The preview changed. Run the preview again before applying.": "Förhandsvisningen har ändrats. Kör förhandsvisningen igen innan du tillämpar ändringarna.",
             "Read-only comparison": "Jämförelse utan ändringar",
             "FolderView3 export": "FolderView3-export",
             "Open WebUI profile": "Öppna webbgränssnittsprofil",
@@ -182,6 +190,7 @@
             "Following host controls": "尺寸随宿主控件调整"
         },
         "zh-Hant": {
+            "The preview changed. Run the preview again before applying.": "預覽已變更。套用變更前，請再次執行預覽。",
             "Previous configuration restored": "已恢復先前的配置",
             "Containers": "容器",
             "Reveal": "定位",
@@ -299,6 +308,7 @@
             "Following host controls": "크기가 호스트 컨트롤을 따름"
         },
         "nb": {
+            "The preview changed. Run the preview again before applying.": "Forhåndsvisningen er endret. Kjør forhåndsvisningen på nytt før du bruker endringene.",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Oppstartsdiagnostikk for mapperedigering i FolderView Plus",
             "Docker autostart $1 for $2.": "Automatisk Docker-start: $1 for $2.",
             "Docker container": "Docker-container",
@@ -316,6 +326,7 @@
             "Following host controls": "Størrelsen følger vertens kontroller"
         },
         "nl": {
+            "The preview changed. Run the preview again before applying.": "Het voorbeeld is gewijzigd. Voer het voorbeeld opnieuw uit voordat u de wijzigingen toepast.",
             "Score": "Score",
             "type mismatch": "typen komen niet overeen",
             "Containers: $1": "Docker-containers: $1",

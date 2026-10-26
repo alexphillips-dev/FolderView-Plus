@@ -1,5 +1,9 @@
 # Runtime performance budgets
 
+Routine dev runs cap performance inventories at 500 resources. The retained
+2,000-resource cases require an explicit large-inventory test request and do not
+block dev validation or publication.
+
 FolderView Plus validates browser runtime performance in addition to static asset and package size. The Chromium benchmark uses deterministic fixtures in a separate performance lane. It runs for performance-sensitive changes, scheduled qualification or explicit manual requests, rather than as part of every functional browser pass. No live Unraid host is required.
 
 ## Scenario matrix
@@ -133,3 +137,28 @@ the candidate with a local remeasurement of the published Settings and
 representative Docker source using the same fixture, browser, sample count and
 existing budget policy. Larger Docker cases retain their committed references.
 This paired measurement does not replace or reset the committed timing baseline.
+
+
+The October 26 rules and membership extraction adds a measured net 6,353 JavaScript
+bytes (3,294 gzip at level 9) relative to dev 5c8167caceb5d596f9fdd5f418a05ac7ae495107.
+The aggregate JavaScript baselines include exactly that feature delta. Per-asset
+baselines, CSS baselines, absolute ceilings, and the 8% growth policy are retained.
+The new core compiles each predicate once per snapshot; contract tests count
+constructions across multiple folders and resources.
+
+
+The shared rules module also adds one external script to each measured Settings
+and Docker startup. Only request and script-request count baselines increase by
+one for cold and warm cases. Three controlled RTL cold pairs measured 110/110/109 observer callbacks with
+that separate script versus 106/106/106 with identical engine code combined into
+the preceding script. Only that case's callback baseline includes the measured
+median delta of four. Timing, DOM-node, mutation-record, absolute ceilings and
+regression policies are retained.
+
+
+Routine component and production benchmark commands cap inventories at 500
+resources. The retained 2,000-resource scenario is excluded and recorded in JSON
+reports, so it does not block routine dev validation or publication.
+FVPLUS_PERF_MAX_RESOURCES can lower the cap; zero includes all retained scenarios
+only for an explicitly requested large-inventory investigation. Partial baseline
+updates preserve measurements for excluded scenarios.

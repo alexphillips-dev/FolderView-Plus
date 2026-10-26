@@ -1159,12 +1159,13 @@ const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
     };
 };
 
-const serializePrefsDiffValue = (value) => {
+const serializePrefsDiffValue = (value, key = '') => {
+    if (key === 'autoRules') return JSON.stringify(value, null, 2);
     if (value === undefined) {
         return '(unset)';
     }
     if (Array.isArray(value)) {
-        const preview = value.slice(0, 5).map((item) => String(item));
+        const preview = value.slice(0, 5).map((item) => item && typeof item === 'object' ? JSON.stringify(item) : String(item));
         const suffix = value.length > 5 ? ` (+${value.length - 5} more)` : '';
         return importT('common.repair.items-summary', 'Items: $1. $2', value.length, preview.join(', ') + suffix);
     }
@@ -1182,6 +1183,7 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
     const left = utils.normalizePrefs(leftPrefs || {});
     const right = utils.normalizePrefs(rightPrefs || {});
     const descriptors = [
+        { key: 'autoRules', label: importT('settings.navigation.rules', 'Rules') },
         { key: 'sortMode', label: 'Sort mode' },
         { key: 'manualOrder', label: 'Manual order' },
         { key: 'pinnedFolderIds', label: 'Pinned folders' },
@@ -1304,7 +1306,7 @@ const renderBackupComparePrefsDiff = ({ includePrefs, prefsDiff, prefsAvailable 
     }
     const body = prefsDiff.rows.map((row) => `<article class="fv-compare-change">
         <header><strong>${escapeHtml(window.FolderViewPlusI18n?.message?.(row.label) || row.label || row.key || '-')}</strong></header>
-        ${renderBackupCompareValuePair(serializePrefsDiffValue(row.before), serializePrefsDiffValue(row.after))}
+        ${renderBackupCompareValuePair(serializePrefsDiffValue(row.before, row.key), serializePrefsDiffValue(row.after, row.key))}
     </article>`).join('');
     container.html(`
         <p class="backup-compare-prefs-title">${escapeHtml(importT('legacy.surface.83026f419d9a7e18', 'Preference changes: $1', prefsDiff.rows.length))}</p>

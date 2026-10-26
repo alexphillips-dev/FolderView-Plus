@@ -31,6 +31,8 @@
     }
   ],
   "modules": [
+    {"file": "tests/browser/helpers/docker-expansion-cleanup.mjs", "limit": 35, "owner": "await expansion persistence before fixture navigation and teardown"},
+    {"file": "tests/browser/cases/settings-rules-preview.mjs", "limit": 70, "owner": "authoritative rules preview and digest-bound apply browser contract"},
     { "file": "tests/browser/cases/host-theme-maintainer.mjs", "limit": 100, "owner": "maintainer theme load order and native lifecycle compatibility contract" },
     { "file": "tests/browser/cases/settings-themes.mjs", "limit": 360, "owner": "Themes and Appearance navigation actions and host adaptation status" },
     { "file": "tests/browser/cases/host-theme-accessibility.mjs", "limit": 130, "owner": "mixed surface contrast and operating system forced colors across plugin pages" },
@@ -146,6 +148,7 @@
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-rules.mjs",
+        "tests/browser/cases/settings-rules-preview.mjs",
         "tests/browser/cases/settings-runtime-actions.mjs",
         "tests/browser/cases/settings-folder-groups.mjs",
         "tests/browser/cases/settings-alerts-health.mjs",
@@ -215,6 +218,7 @@
         "tests/browser/helpers/settings-alerts-health-layout.mjs",
         "tests/browser/helpers/settings-hide-empty-host.mjs",
         "tests/browser/helpers/docker-hide-empty-host.mjs",
+        "tests/browser/helpers/docker-expansion-cleanup.mjs",
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs",
@@ -223,10 +227,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 136,
-      "assertionCount": 1806,
-      "pageEvaluateCount": 548,
-      "orderedTitleSha256": "3b4e28bf46690fb0bb05d0cc96ad6d7ec402936e614f709041d48e8a01d3caf7"
+      "testCount": 137,
+      "assertionCount": 1814,
+      "pageEvaluateCount": 551,
+      "orderedTitleSha256": "2aea85f8ac5ec21ada8a70a69dbfe7482dc93383883d90b1e21d6b99ed024db1"
     }
   }
 }

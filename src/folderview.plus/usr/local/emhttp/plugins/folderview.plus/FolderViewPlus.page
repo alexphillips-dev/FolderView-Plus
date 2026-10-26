@@ -987,7 +987,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <h3>Test the current rule set</h3>
             <span class="rules-help">Use the same source switch here to test one item, preview all assignments, and inspect conflicts.</span>
         </div>
-        <div class="fv-rules-source-switch bulk-source-switch" role="tablist" aria-label="Rules troubleshooting source switcher">
+        <div class="fv-rules-source-switch bulk-source-switch" role="group" aria-label="Rules troubleshooting source switcher">
             <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cube"></i> Docker</button>
             <button type="button" class="fv-rules-source-btn fv-workspace-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
         </div>
@@ -1596,7 +1596,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <?php
 $fvplusSettingsFoundationAssets = [
-        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.folder-groups-model.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.membership.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-normalization.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-hierarchy.js', '/plugins/folderview.plus/scripts/folderviewplus.folder-groups-model.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-ordering.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-transfer.js', '/plugins/folderview.plus/scripts/folderviewplus.membership.js', '/plugins/folderview.plus/scripts/folderviewplus.rules-engine.js', '/plugins/folderview.plus/scripts/folderviewplus.utils-rules.js', '/plugins/folderview.plus/scripts/folderviewplus.rule-templates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.utils.js',
         '/plugins/folderview.plus/scripts/folderviewplus.rules-workspace.js',
         '/plugins/folderview.plus/scripts/folderviewplus.ui.js',

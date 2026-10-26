@@ -347,7 +347,7 @@
             const data = await transport.query(
                 useCurrentShape
                     ? buildCurrentContainersQuery(capabilities)
-                    : LEGACY_CONTAINERS_QUERY,
+                    : LEGACY_CONTAINERS_QUERY.replace('id names state status autoStart', buildContainerSelection(capabilities)),
                 {},
                 {
                     ...options,

@@ -78,50 +78,14 @@ function dockerSyncOrderLockPath(): string {
             $allContainerNames = array_keys($infoByName);
         }
 
-        $ruleTargetByName = [];
-        $labelTargetByName = [];
-        foreach ($allContainerNames as $name) {
-            $decision = autoRuleDecision($rules, $name, $infoByName, 'docker');
-            $assignedRule = is_array($decision['assignedRule'] ?? null) ? $decision['assignedRule'] : null;
-            $ruleTargetByName[$name] = $assignedRule ? (string)($assignedRule['folderId'] ?? '') : '';
-            $labels = dockerInfoLabelsForName($infoByName, $name);
-            $labelTargetByName[$name] = getFolderLabelValueFromLabels($labels);
-        }
-
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
-        $legacyMembership = buildLegacyFolderMembership($orderedFolders, $allContainerNames, $infoByName, 'docker', $rules);
-        $folderContainers = [];
-        $folderNames = [];
-        $assignedContainers = [];
+        $snapshot = fvplusBuildMembershipSnapshot('docker', $folders, $rules, $infoByName, $allContainerNames, array_keys($orderedFolders));
+        $folderContainers = []; $folderNames = []; $assignedContainers = [];
         foreach ($orderedFolders as $folderId => $folder) {
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            if (!empty($folder['regex'])) {
-                $regex = '/' . str_replace('/', '\/', $folder['regex']) . '/';
-                foreach ($allContainerNames as $name) {
-                    if (@preg_match($regex, $name) && !in_array($name, $members, true)) {
-                        $members[] = $name;
-                    }
-                }
-            }
-            $folderName = trim((string)($folder['name'] ?? ''));
-            if ($folderName !== '') {
-                foreach ($allContainerNames as $name) {
-                    if (($labelTargetByName[$name] ?? '') === $folderName && !in_array($name, $members, true)) {
-                        $members[] = $name;
-                    }
-                }
-            }
-            foreach ($allContainerNames as $name) {
-                if (($ruleTargetByName[$name] ?? '') === (string)$folderId && !in_array($name, $members, true)) {
-                    $members[] = $name;
-                }
-            }
-            if (array_key_exists($folderId, $legacyMembership)) $members = $legacyMembership[$folderId];
-            $members = array_values(array_filter($members, function($m) use ($allContainerNames, $assignedContainers) {
-                return in_array($m, $allContainerNames, true) && !in_array($m, $assignedContainers, true);
-            }));
             $placeholder = "folder-$folderId";
+            $members = $snapshot['byFolder'][$folderId]['displayMembers'] ?? [];
             $folderContainers[$placeholder] = $members;
+            $folderName = trim((string)($folder['name'] ?? ''));
             $folderNames[$placeholder] = $folderName !== '' ? $folderName : $placeholder;
             $assignedContainers = array_merge($assignedContainers, $members);
         }

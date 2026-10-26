@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Chemin résultant : $1",
     "common.repair.move-preview-branch": "Dossiers dans la branche : $1",
     "common.repair.preview-show-more": "Afficher plus ($1)",
-    "common.repair.wait-for-tree-move": "Attendez la fin du déplacement du dossier en cours."
+    "common.repair.wait-for-tree-move": "Attendez la fin du déplacement du dossier en cours.",
+    "common.server.rules-preview-config": "La configuration n'est pas disponible. Rechargez les paramètres avant de prévisualiser les règles.",
+    "common.server.rules-preview-digest": "Résumé d'aperçu non valide.",
+    "common.server.rules-preview-changed": "L'aperçu a changé. Exécutez à nouveau l’aperçu avant de l’appliquer.",
+    "common.server.rules-preview-invalid": "Corrigez les règles non valides avant d'appliquer l'aperçu.",
+    "common.server.rules-save-invalid": "Corrigez les règles invalides avant de sauvegarder.",
+    "common.repair.rules-preview-no-changes": "Aucune modification d’affectation n’est nécessaire pour cet aperçu.",
+    "common.repair.rules-preview-moves-manual": "Les affectations manuelles existantes seront déplacées vers les dossiers prévisualisés."
 }

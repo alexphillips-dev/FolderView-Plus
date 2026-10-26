@@ -355,6 +355,7 @@ const capabilityPayload = ({
                 'status',
                 'autoStart',
                 'image',
+                'labels',
                 'ports',
                 'mounts',
                 'autoStartOrder',
@@ -706,6 +707,10 @@ test('GraphQL provider supports current and documented legacy container query sh
         const containers = await provider.listContainers({ force: true });
         assert.equal(containers.length, 1);
         assert.equal(containers[0].name, shape.expectedName);
+        const listQuery = harness.calls.find((call) => call.body.query.includes(shape.currentQuery ? 'query FVPlusDockerContainers' : 'query FVPlusLegacyDockerContainers')).body.query;
+        const caps = provider.getCapabilities();
+        for (const field of ['labels', 'image']) if (caps.containerFields?.[field] === true) assert.ok(listQuery.includes(field));
+
         assert.equal(
             providers.resolveContainerIdentity('abcdef123456', containers)?.id,
             'server:abcdef1234567890'

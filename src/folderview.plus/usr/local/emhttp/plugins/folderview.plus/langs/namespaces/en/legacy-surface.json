@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "translation-context-revision": "34de43e0de27d9561ffd13ee8099bf849b4459af806e9123e1ef1f0d2b4d6785"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -56,7 +56,7 @@
     "legacy.surface.6faa44c90b6d1781": "$1 active of $2 total rules",
     "legacy.surface.1d9afac027faae61": "$1 applied.",
     "legacy.surface.8d0b05bf621fa55c": "$1 assigned",
-    "legacy.surface.ed2f7514c385c37b": "$1 assigned | $2 invalid | $3 failed",
+    "legacy.surface.eac2e977d2f78874": "$1 assigned | $2 invalid | 0 failed",
     "legacy.surface.3db1a8488c8cfe57": "$1 auto-assign works only with Smart category and is currently disabled.",
     "legacy.surface.3c9327310859db0e": "$1 available",
     "legacy.surface.df2f4d28a63ddaae": "$1 Backup created: $2.",
@@ -206,7 +206,6 @@
     "legacy.surface.00a5dcf74c0d6e92": "$1, warning at $2%",
     "legacy.surface.402f6578414eff0a": "$1; $2 ms",
     "legacy.surface.86cb6984e2d42141": "$1: $2ms latest, $3, $4, $5.",
-    "legacy.surface.215195e84adebf14": "$1: not applied by server response",
     "legacy.surface.ca1ef387e204031f": "$1/$2 active",
     "legacy.surface.806522d99df2c283": "$1/$2 checks passed",
     "legacy.surface.1ef3578e1c747c46": "$1/$2 included",
@@ -1675,7 +1674,6 @@
     "legacy.surface.0914a50b88414bf9": "newly assigned",
     "legacy.surface.c08ac736a5e29c29": "Next page",
     "legacy.surface.1ea442a134b2a184": "No",
-    "legacy.surface.46a182adba8a4bc9": "No $1 are assigned by the current rule preview.",
     "legacy.surface.f03ebf0453a5a10a": "No $1 are available to preview right now.",
     "legacy.surface.8b50dc18b346f351": "No $1 folder defaults saved yet.",
     "legacy.surface.e224db16c0b979d0": "No $1 folders are available to save as manual order.",

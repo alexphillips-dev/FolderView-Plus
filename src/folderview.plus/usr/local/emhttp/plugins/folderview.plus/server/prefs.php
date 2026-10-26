@@ -32,7 +32,9 @@ fvplus_json_try(function (): array {
     }
 
     $current = readTypePrefs($type);
-    $next = normalizeTypePrefs(mergeTypePrefsPatch($current, $decoded));
+    $merged = mergeTypePrefsPatch($current, $decoded);
+    fvplusValidateRuleChanges($type, $current['autoRules'] ?? [], $merged['autoRules'] ?? []);
+    $next = normalizeTypePrefs($merged);
     $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
     $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
     $configChanged = $currentJson !== $nextJson;
@@ -49,6 +51,7 @@ fvplus_json_try(function (): array {
     }
     $metadata = readConfigMetadata($type, false);
     $dockerOrderChanged = $type === 'docker' && (
+        $current['autoRules'] !== $saved['autoRules'] ||
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
         || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
         || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])

@@ -47,7 +47,6 @@
     const normalizeType = (type) => type === 'vm' ? 'vm' : 'docker', translate = (key, fallback) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key;
     const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const createRuleId = (prefix = 'template-rule') => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-
     const listTemplates = (type) => {
         const normalizedType = normalizeType(type);
         return Object.entries(TEMPLATE_DEFINITIONS)
@@ -154,6 +153,7 @@
         const infoByName = buildInfoIndex(items);
         const targetFolderId = String(rule?.folderId || '');
         const existingRules = Array.isArray(rules) ? rules : [];
+        const candidateRules = insertBeforeCatchAll(existingRules, rule);
         const folderMap = folders && typeof folders === 'object' ? folders : {};
         const manuallyAssigned = new Set();
         Object.values(folderMap).forEach((folder) => {
@@ -172,8 +172,8 @@
                 result.manualMembers.push(name);
                 return;
             }
-            const decision = utils.getAutoRuleDecision({ rules: existingRules, name, infoByName, type: normalizeType(type) });
-            if (decision?.matchedRule) {
+            const decision = utils.getAutoRuleDecision({ rules: candidateRules, name, infoByName, type: normalizeType(type), folders: folderMap });
+            if (decision?.matchedRule !== rule) {
                 result.alreadyControlled.push(name);
             } else if (rule?.effect !== 'exclude' && targetFolderId) {
                 result.newlyAssigned.push(name);

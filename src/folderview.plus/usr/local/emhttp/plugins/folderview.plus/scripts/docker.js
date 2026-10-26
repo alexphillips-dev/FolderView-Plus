@@ -815,6 +815,7 @@ const getDockerRuntimeInfoApi = () => {
             window,
             document,
             $,
+            utils, grouping: dockerFolderGroupingModule,
             getDockerRuntimeInfoMap: () => dockerRuntimeInfoByName,
             setDockerRuntimeInfoMap: (next) => {
                 dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
@@ -993,6 +994,7 @@ const buildDockerIsolatedViewDeps = () => ({
     setRuntimeState: (snapshot = {}) => {
         const folders = snapshot?.folders && typeof snapshot.folders === 'object' ? snapshot.folders : {};
         globalFolders = folders;
+        getDockerRuntimeInfoApi().setMembershipSnapshot(utils.getMembershipSnapshotFromCache(snapshot.matchCache));
         dockerFolderHierarchy = snapshot?.hierarchy && typeof snapshot.hierarchy === 'object'
             ? snapshot.hierarchy
             : buildFolderHierarchy(folders);
@@ -3104,58 +3106,11 @@ const buildDockerStateSignature = (source, fromStateMode = false) => {
     return tokens.join('|');
 };
 
-const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => {
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const infoByName = containersInfo && typeof containersInfo === 'object' ? containersInfo : {};
-    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-    const labelBuckets = new Map();
-    for (const name of names) {
-        const labels = infoByName[name]?.Labels || {};
-        const labelValue = getFolderLabelValue(labels);
-        if (!labelValue) {
-            continue;
-        }
-        if (!labelBuckets.has(labelValue)) {
-            labelBuckets.set(labelValue, []);
-        }
-        labelBuckets.get(labelValue).push(name);
-    }
-
-    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-    const cache = {};
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const explicit = Array.isArray(folder?.containers)
-            ? folder.containers.filter((name) => infoByName[name])
-            : [];
-        let regexMatches = [];
-        const regexRaw = String(folder?.regex || '').trim();
-        if (regexRaw) {
-            try {
-                const regex = new RegExp(regexRaw);
-                regexMatches = names.filter((name) => regex.test(name));
-            } catch (_error) {
-                regexMatches = [];
-            }
-        }
-        const labelMatches = [...(labelBuckets.get(String(folder?.name || '')) || [])];
-        const ruleMatches = utils.getAutoRuleMatches({
-            rules,
-            folderId,
-            names,
-            infoByName,
-            type: 'docker'
-        });
-        cache[folderId] = {
-            explicit,
-            regex: regexMatches,
-            label: labelMatches,
-            rules: ruleMatches
-        };
-    }
-    return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'docker', rules }) || cache;
-};
-
+const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => utils.buildFolderMatchCache({
+    type: 'docker', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: containersInfo || {},
+    names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(containersInfo || {}, name)) : [],
+    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+});
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-docker');
     if (existing && existing.parentNode) {
@@ -3857,6 +3812,9 @@ const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
         : (Array.isArray(changedNames) ? new Set(changedNames.map((name) => String(name || '').trim()).filter(Boolean)) : null);
     const runtimeInfoApi = getDockerRuntimeInfoApi();
     const previewActionsApi = getDockerPreviewActionsApi();
+    if (runtimeInfoApi?.membershipInputsChanged?.(dockerRuntimeInfoByName)) {
+        queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-config-revision' });
+    }
     if (runtimeInfoApi && previewActionsApi && typeof runtimeInfoApi.buildRuntimeContainerEntry === 'function' && typeof previewActionsApi.syncDockerRuntimeRows === 'function') {
         const runtimeRows = {};
         const names = changedSet ? Array.from(changedSet) : Object.keys(dockerRuntimeInfoByName || {});
@@ -4766,6 +4724,7 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
+    getDockerRuntimeInfoApi().setMembershipSnapshot(utils.getMembershipSnapshotFromCache(folderMatchCache));
     dockerRuntimePerformanceTelemetry?.end?.('renderPreparation');
     dockerRuntimePerformanceTelemetry?.begin?.('folderRows');
     // Draw the folders in the order
@@ -5066,7 +5025,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
             folderId: id,
             names: orderSnapshotAtFolderStart,
             infoByName: containersInfo,
-            type: 'docker'
+            type: 'docker', folders: globalFolders
         });
     ruleMatches.forEach(pushCombined);
     if (FOLDER_VIEW_DEBUG_MODE) {
@@ -6028,7 +5987,7 @@ const appendDockerPreviewActionButtons = ($target, settings = {}, containerName 
 const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
-        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames);
+        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames, false);
     }
 };
 
@@ -7497,7 +7456,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             });
             return false;
         }
-        if (rowDiff.hasChanges) {
+        if (rowDiff.hasChanges || getDockerRuntimeInfoApi().membershipInputsChanged(nextRuntimeInfo)) {
             syncDockerVisibleFoldersFromRuntimeCache(rowDiff.changed);
         }
         return true;

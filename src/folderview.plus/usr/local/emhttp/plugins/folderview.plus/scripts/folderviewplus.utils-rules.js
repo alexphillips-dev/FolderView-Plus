@@ -1,290 +1,28 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-transfer.js'), require('./folderviewplus.membership.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-transfer.js'), require('./folderviewplus.membership.js'), require('./folderviewplus.rules-engine.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.utilityRules = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityTransfer, modules.legacyMembership);
-}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer, membership) {
+    modules.utilityRules = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityTransfer, modules.legacyMembership, modules.rulesEngine);
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer, membership, engine) {
     'use strict';
     const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization, utilityPrefs, utilityTransfer);
     const {
         isPlainObject,
-        LEGACY_FOLDER_LABEL_KEYS,
         RUNTIME_ACTIONS_BY_TYPE,
         normalizeFolderMap,
-        normalizePrefs,
-        normalizeMemberList
+        normalizePrefs
     } = utilityDependencies;
-    const regexMatches = (pattern, input) => {
-        if (!pattern) {
-            return false;
-        }
-        try {
-            return new RegExp(pattern).test(input);
-        } catch (err) {
-            return false;
-        }
-    };
+    const { regexMatches, getDockerLabels, getDockerImage, basenameFromPathish, getComposeProjectFromLabels, isComposeManagedFromLabels, getComposeProject, getFolderLabelValue,
+        ruleMatchesItem, getAutoRuleDecision, getAutoRuleFirstMatch, getAutoRuleMatches, buildLegacyMembership, reconcileLegacyMatchCache, getEffectiveFolderMembers, buildMembershipSnapshot, getMembershipSignature, getMembershipBranchMembers, compileRuleSet } = engine;
 
-    const getDockerLabels = (infos, name) => {
-        const item = infos[name] || {};
-        return item.Labels || item.info?.Config?.Labels || {};
-    };
-
-    const getDockerImage = (infos, name) => {
-        const item = infos[name] || {};
-        return String(item.info?.Config?.Image || item.Image || '');
-    };
-
-    const basenameFromPathish = (value) => {
-        const trimmed = String(value || '').trim();
-        if (!trimmed) {
-            return '';
-        }
-        const firstEntry = trimmed.split(',')[0].trim();
-        if (!firstEntry) {
-            return '';
-        }
-        const normalized = firstEntry.replace(/\\/g, '/').replace(/\/+$/, '');
-        if (!normalized) {
-            return '';
-        }
-        const parts = normalized.split('/');
-        return String(parts[parts.length - 1] || '').trim();
-    };
-
-    const getComposeProjectFromLabels = (labels) => {
-        const source = isPlainObject(labels) ? labels : {};
-
-        const explicit = String(source['com.docker.compose.project'] || '').trim();
-        if (explicit) {
-            return explicit;
-        }
-
-        const fromWorkingDir = basenameFromPathish(source['com.docker.compose.project.working_dir']);
-        if (fromWorkingDir) {
-            return fromWorkingDir;
-        }
-
-        const configFiles = String(source['com.docker.compose.project.config_files'] || '').trim();
-        if (configFiles) {
-            const firstConfig = configFiles.split(',')[0].trim();
-            if (firstConfig) {
-                const normalized = firstConfig.replace(/\\/g, '/');
-                const dir = normalized.split('/').slice(0, -1).join('/');
-                const fromConfigDir = basenameFromPathish(dir);
-                if (fromConfigDir) {
-                    return fromConfigDir;
-                }
-            }
-        }
-
-        return '';
-    };
-
-    const isComposeManagedFromLabels = (labels) => {
-        const source = isPlainObject(labels) ? labels : {};
-        const manager = String(source['net.unraid.docker.managed'] || '').trim().toLowerCase();
-        return manager === 'composeman' || getComposeProjectFromLabels(source) !== '';
-    };
-
-    const getComposeProject = (infos, name) => {
-        const labels = getDockerLabels(infos, name);
-        return getComposeProjectFromLabels(labels);
-    };
-
-    const getFolderLabelValue = (labels) => membership.labelValue(isPlainObject(labels) ? labels : {}, LEGACY_FOLDER_LABEL_KEYS);
-
-    const ruleMatchesItem = (rule, name, infos, type) => {
-        if (!isPlainObject(rule)) {
-            return false;
-        }
-        if (rule.kind === 'name_regex') {
-            return regexMatches(String(rule.pattern || ''), name);
-        }
-
-        if (type !== 'docker') {
-            return false;
-        }
-
-        if (rule.kind === 'label') {
-            if (type !== 'docker') {
-                return false;
-            }
-            const key = String(rule.labelKey || '');
-            if (!key) {
-                return false;
-            }
-            const labels = getDockerLabels(infos, name);
-            const labelValue = labels[key];
-            if (typeof labelValue === 'undefined') {
-                return false;
-            }
-            return rule.labelValue === '' || String(labelValue) === String(rule.labelValue);
-        }
-
-        if (rule.kind === 'label_contains') {
-            const key = String(rule.labelKey || '');
-            const expected = String(rule.labelValue || '');
-            if (!key || expected === '') {
-                return false;
-            }
-            const labels = getDockerLabels(infos, name);
-            const labelValue = labels[key];
-            if (typeof labelValue === 'undefined') {
-                return false;
-            }
-            return String(labelValue).toLowerCase().includes(expected.toLowerCase());
-        }
-
-        if (rule.kind === 'label_starts_with') {
-            const key = String(rule.labelKey || '');
-            const expected = String(rule.labelValue || '');
-            if (!key || expected === '') {
-                return false;
-            }
-            const labels = getDockerLabels(infos, name);
-            const labelValue = labels[key];
-            if (typeof labelValue === 'undefined') {
-                return false;
-            }
-            return String(labelValue).toLowerCase().startsWith(expected.toLowerCase());
-        }
-
-        if (rule.kind === 'image_regex') {
-            return regexMatches(String(rule.pattern || ''), getDockerImage(infos, name));
-        }
-
-        if (rule.kind === 'compose_project_regex') {
-            return regexMatches(String(rule.pattern || ''), getComposeProject(infos, name));
-        }
-
-        return false;
-    };
-
-    const getAutoRuleDecision = ({ rules, name, infoByName, type }) => {
-        const infos = isPlainObject(infoByName) ? infoByName : {};
-        for (const rule of (Array.isArray(rules) ? rules : [])) {
-            if (!isPlainObject(rule) || rule.enabled === false) {
-                continue;
-            }
-            if (ruleMatchesItem(rule, name, infos, type)) {
-                if (rule.effect === 'exclude') {
-                    return {
-                        assignedRule: null,
-                        blockedBy: rule,
-                        matchedRule: rule
-                    };
-                }
-                return {
-                    assignedRule: rule,
-                    blockedBy: null,
-                    matchedRule: rule
-                };
-            }
-        }
-        return {
-            assignedRule: null,
-            blockedBy: null,
-            matchedRule: null
-        };
-    };
-
-    const getAutoRuleFirstMatch = ({ rules, name, infoByName, type }) => {
-        const decision = getAutoRuleDecision({ rules, name, infoByName, type });
-        return decision.assignedRule;
-    };
-
-    const getAutoRuleMatches = ({ rules, folderId, names, infoByName, type }) => {
-        const allNames = Array.isArray(names) ? names : [];
-        const targetFolderId = String(folderId || '');
-
-        const matches = [];
-        for (const name of allNames) {
-            const firstMatch = getAutoRuleFirstMatch({
-                rules,
-                name,
-                infoByName,
-                type
-            });
-            if (firstMatch && String(firstMatch.folderId || '') === targetFolderId) {
-                matches.push(name);
-            }
-        }
-        return Array.from(new Set(matches));
-    };
-
-    const buildLegacyMembership = (options) => membership.build({ ...options, getAutoRuleDecision, getFolderLabelValue, getDockerLabels, normalizeMemberList });
-    const reconcileLegacyMatchCache = (cache, options) => membership.reconcileCache(cache, buildLegacyMembership(options));
-    const getEffectiveFolderMembers = ({ type, folderId, folder, folders, names, infoByName, rules }) => {
-        const normalizedType = type === 'vm' ? 'vm' : 'docker';
-        const targetFolderId = String(folderId || '');
-        const targetFolder = isPlainObject(folder) ? folder : {};
-        const infos = isPlainObject(infoByName) ? infoByName : {};
-        const allNames = Array.isArray(names) && names.length
-            ? Array.from(new Set(names.map((name) => String(name || '')).filter((name) => name !== '')))
-            : Object.keys(infos);
-        const reasonsByName = {};
-        const legacy = membership.effective(buildLegacyMembership({ type, folders, names: allNames, infoByName: infos, rules }), targetFolderId);
-        if (legacy) return legacy;
-        const addReason = (name, reason) => {
-            if (!name || !reason) {
-                return;
-            }
-            if (!reasonsByName[name]) {
-                reasonsByName[name] = [];
-            }
-            if (!reasonsByName[name].includes(reason)) {
-                reasonsByName[name].push(reason);
-            }
-        };
-
-        for (const member of normalizeMemberList(targetFolder.containers)) {
-            addReason(member, 'manual');
-        }
-
-        const regex = String(targetFolder.regex || '');
-        if (regex) {
-            for (const name of allNames) {
-                if (regexMatches(regex, name)) {
-                    addReason(name, 'regex');
-                }
-            }
-        }
-
-        if (normalizedType === 'docker') {
-            const folderName = String(targetFolder.name || '').trim();
-            if (folderName) {
-                for (const name of allNames) {
-                    const labels = getDockerLabels(infos, name);
-                    if (getFolderLabelValue(labels) === folderName) {
-                        addReason(name, 'label');
-                    }
-                }
-            }
-        }
-
-        if (targetFolderId !== '') {
-            for (const name of allNames) {
-                const decision = getAutoRuleDecision({
-                    rules,
-                    name,
-                    infoByName: infos,
-                    type: normalizedType
-                });
-                const assignedFolderId = String(decision?.assignedRule?.folderId || '');
-                if (assignedFolderId !== '' && assignedFolderId === targetFolderId) {
-                    addReason(name, 'rule');
-                }
-            }
-        }
-
-        const members = Object.keys(reasonsByName).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-        return {
-            members,
-            reasonsByName
-        };
+    const getMembershipSnapshotFromCache = (cache) => cache?.[Symbol.for('folderview.plus.membership')] || null;
+    const buildFolderMatchCache = (options) => {
+        const snapshot = buildMembershipSnapshot(options);
+        const cache = Object.fromEntries(Object.entries(snapshot.matchCache).map(([id, buckets]) => [id, Object.fromEntries(Object.entries(buckets).map(([key, names]) => [key, [...names]]))]));
+        Object.defineProperty(cache, Symbol.for('folderview.plus.membership'), { value: snapshot });
+        return cache;
     };
 
     const dockerRuntimeStateKind = (item) => {
@@ -364,7 +102,7 @@
         return 'Action is not supported for this item.';
     };
 
-    const planFolderRuntimeAction = ({ type, folderId, folder, folders, names, infoByName, rules, action }) => {
+    const planFolderRuntimeAction = ({ type, folderId, folder, folders, names, infoByName, rules, action, snapshot }) => {
         const normalizedType = type === 'vm' ? 'vm' : 'docker';
         const normalizedAction = String(action || '').toLowerCase();
         const validActions = RUNTIME_ACTIONS_BY_TYPE[normalizedType] || [];
@@ -388,7 +126,7 @@
             folders,
             names,
             infoByName,
-            rules
+            rules, snapshot
         });
         const infos = isPlainObject(infoByName) ? infoByName : {};
         const countsByState = {
@@ -441,42 +179,14 @@
 
         const rows = [];
         let conflictCount = 0;
-        const legacy = buildLegacyMembership({ type: normalizedType, folders: folderMap, names, infoByName: infos, rules: normalizedPrefs.autoRules });
+        const snapshot = buildMembershipSnapshot({ type: normalizedType, folders: folderMap, rules: normalizedPrefs.autoRules, infoByName: infos });
 
         for (const name of names) {
             const matchedFolders = [];
-            const labels = getDockerLabels(infos, name);
-            const legacyLabelTarget = normalizedType === 'docker' ? getFolderLabelValue(labels) : '';
-            const ruleDecision = getAutoRuleDecision({
-                rules: normalizedPrefs.autoRules,
-                name,
-                infoByName: infos,
-                type: normalizedType
-            });
-
+            const ruleDecision = snapshot.decisionsByName[name];
             for (const [folderId, folder] of Object.entries(folderMap)) {
-                const reasons = [];
-                if (membership.appendConflict(legacy, folderId, name, folder, matchedFolders)) continue;
-                const members = Array.isArray(folder.containers) ? folder.containers.map((item) => String(item)) : [];
-                if (members.includes(name)) {
-                    reasons.push('manual');
-                }
-                if (regexMatches(String(folder.regex || ''), name)) {
-                    reasons.push('regex');
-                }
-                if (normalizedType === 'docker' && legacyLabelTarget && legacyLabelTarget === String(folder.name || '')) {
-                    reasons.push('label');
-                }
-                if (ruleDecision.assignedRule && String(ruleDecision.assignedRule.folderId || '') === String(folderId)) {
-                    reasons.push('rule');
-                }
-                if (reasons.length) {
-                    matchedFolders.push({
-                        folderId,
-                        folderName: String(folder.name || folderId),
-                        reasons
-                    });
-                }
+                const reasons = snapshot.byFolder[folderId]?.reasonsByName[name] || [];
+                if (reasons.length) matchedFolders.push({ folderId, folderName: String(folder.name || folderId), reasons: [...reasons] });
             }
 
             const hasConflict = matchedFolders.length > 1;
@@ -507,7 +217,7 @@
 
 
     return Object.freeze({
-        regexMatches,
+        buildFolderMatchCache, getMembershipSnapshotFromCache, buildMembershipSnapshot, getMembershipSignature, getMembershipBranchMembers, compileRuleSet, regexMatches,
         getDockerLabels,
         getDockerImage,
         basenameFromPathish,

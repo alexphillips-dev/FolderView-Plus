@@ -51,7 +51,7 @@
                     rules: ruleList,
                     name,
                     infoByName,
-                    type: itemTypeFromItems(sourceItems)
+                    type: itemTypeFromItems(sourceItems), folders: folderMap
                 });
                 const assignedFolderId = String(decision?.assignedRule?.folderId || '').trim();
                 if (decision?.blockedBy || (assignedFolderId && assignedFolderId !== targetFolderId)) {

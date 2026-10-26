@@ -2,7 +2,6 @@
 // Extracted from folderviewplus.js to keep core settings runtime easier to maintain.
 const wizardPersistenceModule = window.FolderViewPlusFoundationModules?.wizardPersistence || null;
 const wizardReviewModule = window.FolderViewPlusFoundationModules?.wizardReview || null;
-
 const setupAssistantT = (key, fallback = '', ...params) => {
     if (window.FolderViewPlusI18n?.t) {
         return window.FolderViewPlusI18n.t(key, fallback, ...params);
@@ -1479,6 +1478,7 @@ const applySetupAssistantRulesForType = async (type) => {
 
     const existingPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
     const existingRules = Array.isArray(existingPrefs.autoRules) ? [...existingPrefs.autoRules] : [];
+    const additions = [];
     let created = 0;
     let skipped = 0;
     let changed = false;
@@ -1501,7 +1501,7 @@ const applySetupAssistantRulesForType = async (type) => {
             continue;
         }
 
-        const duplicate = existingRules.some((rule) => (
+        const duplicate = [...existingRules, ...additions].some((rule) => (
             String(rule.folderId || '') === folderId
             && String(rule.kind || '') === 'name_regex'
             && String(rule.effect || 'include') === 'include'
@@ -1512,7 +1512,7 @@ const applySetupAssistantRulesForType = async (type) => {
             continue;
         }
 
-        existingRules.push({
+        additions.push({
             id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
             enabled: true,
             folderId,
@@ -1532,7 +1532,7 @@ const applySetupAssistantRulesForType = async (type) => {
 
     const nextPrefs = utils.normalizePrefs({
         ...existingPrefs,
-        autoRules: existingRules
+        autoRules: ruleTemplatesModule.insertBeforeCatchAll(existingRules, additions)
     });
     prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
     return { created, skipped };

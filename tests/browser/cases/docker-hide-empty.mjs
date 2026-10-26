@@ -1,3 +1,4 @@
+import { waitForDockerExpansionSave } from '../helpers/docker-expansion-cleanup.mjs';
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost, openDockerToolsAfterRefresh } from '../helpers/docker-hide-empty-host.mjs';
 
@@ -71,7 +72,7 @@ export const registerDockerHideEmptyCases = ({ test }) => {
                 assert.equal(await row('empty').count(), 0, 'an entirely empty branch stays hidden');
                 assert.equal(await row('emptyChild').count(), 0);
             } finally {
-                await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+                await waitForDockerExpansionSave(page);
                 await page.waitForLoadState('networkidle');
                 await page.goto('about:blank');
                 await page.unrouteAll({ behavior: 'wait' });

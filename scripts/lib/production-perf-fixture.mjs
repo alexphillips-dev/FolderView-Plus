@@ -79,6 +79,7 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
                 ? { ok: true, kind: 'runtime_config_bootstrap', schemaVersion: 1, snapshots: { docker: snapshot('docker'), vm: snapshot('vm') } } : snapshot(type));
             if (endpoint === 'read.php') return send(snapshot(type).folders);
             if (endpoint === 'read_info.php') return send(snapshot(type).runtime);
+            if (endpoint === 'reconcile_member_identities.php' && req.method === 'POST') return send({ ok: true, result: {} });
             if (endpoint === 'read_order.php') return send(snapshot(type).order);
             if (endpoint === 'prefs.php') return send({ ok: true, prefs, metadata: {} });
             if (endpoint === 'version.php') return send('benchmark', 'text/plain');

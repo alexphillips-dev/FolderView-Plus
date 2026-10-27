@@ -664,6 +664,25 @@ test('CI includes shellcheck linting for repository shell scripts', () => {
     assert.match(runCiSuite, /shellcheck -x --source-path=SCRIPTDIR "\$\{file\}"/);
 });
 
+test('validation pins the qualified runner and isolates every Playwright cache restore', () => {
+    for (const file of ['.github/workflows/ci.yml', '.github/workflows/scheduled-validation.yml']) {
+        const workflow = fs.readFileSync(file, 'utf8');
+        const runners = [...workflow.matchAll(/^\s+runs-on:\s*(.+)$/gm)].map(match => match[1].trim());
+        assert.ok(runners.length > 0, file);
+        assert.ok(runners.every(runner => runner === 'ubuntu-24.04'), file);
+    }
+    const browserCache = setupCiEnvAction.split('    - name: Restore Playwright browser cache')[1]
+        .split('    - name: Select required Playwright engines')[0];
+    const keys = browserCache.split(/\r?\n/).map(line => line.trim())
+        .filter(line => line.startsWith('key:') || line.startsWith('${{ runner.os }}'));
+    assert.equal(keys.length, 2);
+    for (const key of keys) {
+        for (const field of ['runner.os', 'env.ImageOS', 'runner.arch', 'inputs.browsers']) {
+            assert.ok(key.includes('${{ ' + field + ' }}'), field);
+        }
+    }
+});
+
 test('shared script library and doctor preflight exist with required helpers', () => {
     assert.match(sharedLib, /fvplus::require_commands/);
     assert.match(sharedLib, /fvplus::read_plg_version/);

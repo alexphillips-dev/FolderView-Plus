@@ -65,7 +65,10 @@ monitoring; local tests cannot prove hosted runner or ruleset acceptance.
 | CodeQL, OSV, Scorecard and attestations | Retained security and publication checks |
 
 CI uses shallow checkouts for ordinary jobs and blob-filtered full history where
-versioning requires it. Validation tooling uses Node 24 LTS. Browser jobs install
+versioning requires it. Functional and benchmark validation uses Ubuntu 24.04
+and Node 24 LTS. Playwright caches are isolated by runner image, architecture
+and browser engine so a runner migration cannot restore incompatible binaries.
+Browser jobs install
 only their engine. Locked Node
 dependencies are reused only with a matching installation stamp; missing or
 changed lockfiles cause a clean install. CI publishes lane results and timing

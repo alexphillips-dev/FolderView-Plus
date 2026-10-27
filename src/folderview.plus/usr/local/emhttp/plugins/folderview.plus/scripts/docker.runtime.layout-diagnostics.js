@@ -191,7 +191,7 @@
             if (doc.hidden) onSnapshot(true); else schedule();
         });
         listen(win, 'pagehide', () => { stop(); suspended = true; onSnapshot(true); });
-        listen(win, 'pageshow', () => { stop(); suspended = false; previous = null; directions = []; schedule(); });
+        listen(win, 'pageshow', () => { if (!suspended) return; stop(); suspended = false; previous = null; directions = []; schedule(); });
         listen(win, 'resize', () => recordTrigger('viewport'));
         schedule(state.startupDelayMs);
         return Object.freeze({ sample, recordTrigger, getSnapshot: () => JSON.parse(JSON.stringify(state)),

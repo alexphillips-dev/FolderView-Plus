@@ -191,6 +191,18 @@ test('column sampling distinguishes page motion, column resizing, reversal and n
     assert.equal(f.timers.size, 0); assert.equal(f.listeners.size, 0);
 });
 
+test('initial and duplicate pageshow events preserve startup delay and only suspended pages resume', () => {
+    const f = columnFixture(), initialTimer = [...f.timers.keys()][0];
+    f.window.emit('pageshow'); f.window.emit('pageshow');
+    assert.deepEqual(f.delays, [5000]);
+    assert.equal([...f.timers.keys()][0], initialTimer);
+    f.window.emit('pagehide'); assert.equal(f.timers.size, 0);
+    f.window.emit('pageshow'); f.window.emit('pageshow');
+    assert.deepEqual(f.delays, [5000, 1000]);
+    assert.equal(f.timers.size, 1);
+    f.tracker.destroy(); assert.equal(f.listeners.size, 0);
+});
+
 test('column history is bounded and hidden or suspended pages retain captures without false movement', () => {
     const f = columnFixture(); f.tick();
     for (let index = 0; index < 50; index++) {

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.27.02">
-<!ENTITY md5 "ffa90e50ffe95f3f6bef4f6b8a59ff85">
-<!ENTITY sha256 "15ef76fef0923f5bed527ab49da111dfcbae37b42c1ff119cab8ec2858e4bd8c">
+<!ENTITY version "2026.10.27.03">
+<!ENTITY md5 "c445036369b332474c47744bfdbd2536">
+<!ENTITY sha256 "631b26c3b2f937c453dfe873b4b3090d918e573363ef22311cdb19f39008c5c2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.27.03
+- Fix: Prevent repeated idle Docker-list rebuilds when lightweight state and detailed container responses contain equivalent information in different orders. Keep grouped folders and column positions stable through detail loading.
+- Reliability: Continue detecting real container identity, image, label, and membership changes while preserving explicit member order, folder display order, and rule priority. Apply the same stable comparison to Dashboard, VM, and Settings preview consumers.
+- Diagnostics: Honor the five-second column-recording startup delay on the initial page-show event, while retaining sampling resume after page suspension.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Recheck idle Docker behavior with your existing Aurora settings and export a fresh sanitized support bundle if movement continues.
+
 
 ###2026.10.27.02
 - Compatibility: Retain the existing browser geometry-helper API alongside the new Aurora and Docker column-movement diagnostics. Existing consumers continue to receive the same geometry measurements after the diagnostics module extraction.

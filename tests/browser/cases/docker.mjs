@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { exerciseDockerColumnDiagnostics } from '../helpers/docker-column-diagnostics.mjs';
+import { exerciseDockerMembershipRefresh } from '../helpers/docker-membership-refresh.mjs';
 import {
     exerciseChildFolderPreviewContext,
     exerciseDockerPreviewContextDiagnostics,
@@ -7,6 +8,7 @@ import {
 } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
+test('Docker detail hydration preserves idle folders and columns with reordered equivalent facts', exerciseDockerMembershipRefresh, { skipAccessibility: true });
 test('Docker column diagnostics capture idle resizing and retain evidence on page exit', async ({ page }) => {
     await exerciseDockerColumnDiagnostics({ page, baseUrl });
 }, { skipAccessibility: true });

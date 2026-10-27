@@ -166,7 +166,7 @@
             if (String(rule?.kind || '').startsWith('label') && rule.labelKey) labelKeys.add(String(rule.labelKey));
             if (rule?.kind === 'compose_project_regex') for (const key of ['com.docker.compose.project', 'com.docker.compose.project.working_dir', 'com.docker.compose.project.config_files']) labelKeys.add(key);
         }
-        const info = Object.fromEntries(Object.keys(infoByName).map(name => [name, {
+        const info = Object.fromEntries(Object.keys(infoByName).sort().map(name => [name, {
             id: type === 'vm' ? String(infoByName[name]?.uuid || infoByName[name]?.id || '') : String(infoByName[name]?.shortId || infoByName[name]?.id || infoByName[name]?.Id || infoByName[name]?.info?.Id || '').split(':').pop().slice(0, 12),
             Labels: Object.fromEntries(Object.entries(getDockerLabels(infoByName, name)).filter(([key]) => labelKeys.has(key)).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)),
             Image: getDockerImage(infoByName, name)

@@ -15,7 +15,10 @@ export const exerciseDockerColumnDiagnostics = async ({ page, baseUrl }) => {
             window, document, getViewMode: () => 'basic',
             onColumnSnapshot: () => localStorage.setItem('fixture.columnMovement', JSON.stringify(window.columnFixtureTracker.getSnapshot()))
         });
+        window.dispatchEvent(new Event('pageshow'));
     });
+    await page.waitForTimeout(1200);
+    assert.equal(await page.evaluate(() => window.columnFixtureTracker.getSnapshot().columnMovement.sampleCount), 0);
     await page.waitForFunction(() => window.columnFixtureTracker.getSnapshot().columnMovement.sampleCount > 0);
     await page.evaluate(() => {
         window.columnFixtureTracker.recordColumnTrigger('host-loadlist');

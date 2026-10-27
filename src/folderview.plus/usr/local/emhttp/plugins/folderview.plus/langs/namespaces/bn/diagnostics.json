@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
+    "diagnostics.cards.theme-integration": "প্যালেট উত্স: $1৷ পুনরুদ্ধারের কারণ: $2। নেটিভ সাইজিং: $3৷",
     "diagnostics.title": "ডায়াগনস্টিকস",
     "diagnostics.workspace.description": "প্লাগইন স্বাস্থ্য নিরীক্ষণ করুন, সমস্যা সমাধান করুন এবং সমর্থন ডেটা ভাগ করুন।",
     "diagnostics.actions.run": "স্বাস্থ্য পরীক্ষা চালান",

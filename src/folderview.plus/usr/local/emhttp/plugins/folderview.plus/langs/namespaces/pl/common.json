@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Wynikowa ścieżka: $1",
     "common.repair.move-preview-branch": "Foldery w oddziale: $1",
     "common.repair.preview-show-more": "Pokaż więcej ($1)",
-    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu."
+    "common.repair.wait-for-tree-move": "Poczekaj na zakończenie przenoszenia bieżącego folderu.",
+    "common.server.rules-preview-config": "Konfiguracja jest niedostępna. Załaduj ponownie ustawienia przed podglądem reguł.",
+    "common.server.rules-preview-digest": "Nieprawidłowe podsumowanie podglądu.",
+    "common.server.rules-preview-changed": "Podgląd uległ zmianie. Przed zastosowaniem ponownie uruchom podgląd.",
+    "common.server.rules-preview-invalid": "Popraw nieprawidłowe reguły przed zastosowaniem podglądu.",
+    "common.server.rules-save-invalid": "Przed zapisaniem popraw nieprawidłowe reguły.",
+    "common.repair.rules-preview-no-changes": "W przypadku tej wersji zapoznawczej nie są potrzebne żadne zmiany przypisań.",
+    "common.repair.rules-preview-moves-manual": "Istniejące przypisania ręczne zostaną przeniesione do przeglądanych folderów."
 }

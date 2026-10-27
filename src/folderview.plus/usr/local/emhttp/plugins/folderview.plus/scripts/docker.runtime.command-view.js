@@ -745,7 +745,6 @@
                 runtimeInfoByName,
                 stateSignature: buildStateSignature(runtimeState, true)
             };
-            setRuntimeState(snapshot);
             return snapshot;
         };
 
@@ -759,6 +758,7 @@
                 if (token !== renderToken) {
                     return { ok: false, stale: true };
                 }
+                setRuntimeState(snapshot);
                 const rendered = renderSnapshot(snapshot);
                 bindEvents();
                 return { ok: rendered, snapshot };

@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
+import {registerRulesPreviewCase} from './settings-rules-preview.mjs'; import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {createProductionPerfFixture} from '../../../scripts/lib/production-perf-fixture.mjs';
 import {verifyWorkspaceControls} from '../helpers/settings-workspace-controls.mjs';
-
 const withRulesFixture = async (page, run) => {
     const {server, folders, names} = createProductionPerfFixture(process.cwd(), {members:12, folders:4, nestedFolders:0});
     const initial = ['fixture', 'media', 'db', 'dev', 'project', '^test-'].map((pattern, index) => ({
@@ -57,9 +56,7 @@ const withRulesFixture = async (page, run) => {
         await page.evaluate(() => { if (matchMedia('(prefers-color-scheme: light)').matches) document.getElementById('fv-settings-root').dataset.fvThemeClass = 'light'; });
         await run(state);
     } finally {
-        await page.unroute('**/server/prefs.php');
-        await page.unroute('**/server/runtime_snapshot.php?*');
-        await page.unroute('**/server/templates.php?*');
+        await page.unrouteAll({behavior:'wait'});
         page.once('close', () => {
             server.closeAllConnections();
             server.close();
@@ -226,4 +223,5 @@ test('Rules workspace respects theme, touch widths, advanced fields and failed s
         await verifyWorkspaceControls(page);
     });
 });
+registerRulesPreviewCase({test, withRulesFixture});
 };

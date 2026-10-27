@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Temalar",
     "settings.theme.manager-help": "Etkin ana bilgisayar temasını görün ve FolderView Plus çalışma zamanı sayfaları için içe aktarılan GitHub temalarını yönetin.",
     "settings.theme.host-default": "Unraid varsayılanı",
+    "settings.theme.host-unidentified": "Tanımlanamayan ana bilgisayar teması",
+    "settings.theme.identity-source": "Ana makine kimliği kaynağı",
+    "settings.theme.identity-declared": "Tema tarafından belirtilen ad",
+    "settings.theme.identity-recognized": "Tanınan stil sayfası",
+    "settings.theme.identity-native": "Baskını kaldır temel teması",
+    "settings.theme.adaptation": "Tema uyarlaması",
+    "settings.theme.adaptation-system": "Sistem zorunlu renkler",
+    "settings.theme.adaptation-variables": "Ana bilgisayarın CSS değişkenleri",
+    "settings.theme.adaptation-computed": "Yerel bilgisayarlı stiller",
+    "settings.theme.adaptation-contrast": "Kurtarma paleti: ana bilgisayar kontrastı",
+    "settings.theme.adaptation-requested": "Kurtarma paleti: seçilen mod",
+    "settings.theme.adaptation-fallback": "Eklenti paleti: ana bilgisayar girişleri kullanılamıyor",
+    "settings.theme.native-controls": "Denetim boyutu",
+    "settings.theme.controls-host": "Boyut ana bilgisayarın denetimlerini izler",
+    "settings.theme.controls-default": "Eklenti varsayılanları",
     "settings.theme.managed-layer": "Etkin yönetilen tema",
     "settings.theme.host-status": "Ana makine teması: $1. Yüklü ana makine temaları Unraid'de yönetilir."
 }

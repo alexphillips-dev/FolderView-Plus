@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "ফলাফলের পথ: $1",
     "common.repair.move-preview-branch": "শাখায় ফোল্ডার: $1",
     "common.repair.preview-show-more": "আরো দেখান ($1)",
-    "common.repair.wait-for-tree-move": "বর্তমান ফোল্ডার সরানো শেষ হওয়ার জন্য অপেক্ষা করুন।"
+    "common.repair.wait-for-tree-move": "বর্তমান ফোল্ডার সরানো শেষ হওয়ার জন্য অপেক্ষা করুন।",
+    "common.server.rules-preview-config": "কনফিগারেশন অনুপলব্ধ. নিয়মের পূর্বরূপ দেখার আগে সেটিংস পুনরায় লোড করুন।",
+    "common.server.rules-preview-digest": "অবৈধ প্রিভিউ ডাইজেস্ট।",
+    "common.server.rules-preview-changed": "প্রিভিউ পরিবর্তিত হয়েছে। পরিবর্তনগুলি প্রয়োগ করার আগে আবার প্রিভিউ চালান।",
+    "common.server.rules-preview-invalid": "প্রিভিউ প্রয়োগ করার আগে ভুল নিয়ম সংশোধন করুন।",
+    "common.server.rules-save-invalid": "সংরক্ষণ করার আগে ভুল নিয়ম সংশোধন করুন।",
+    "common.repair.rules-preview-no-changes": "এই পূর্বরূপের জন্য কোনো অ্যাসাইনমেন্ট পরিবর্তনের প্রয়োজন নেই।",
+    "common.repair.rules-preview-moves-manual": "বিদ্যমান ম্যানুয়াল অ্যাসাইনমেন্টগুলি প্রিভিউ করা ফোল্ডারে সরানো হবে।"
 }

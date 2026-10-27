@@ -61,7 +61,7 @@ const capabilities = {
     }
 };
 
-test('API merge updates schema-confirmed runtime state without erasing PHP metadata', () => {
+test('API merge updates schema-confirmed runtime state and replaces authoritative matching metadata', () => {
     const current = { app: runtimeEntry('app', { running: false, updated: true }) };
     const result = coordinatorModule.mergeProviderContainers(current, [
         apiContainer('app', { isUpdateAvailable: true, isOrphaned: true })
@@ -74,7 +74,7 @@ test('API merge updates schema-confirmed runtime state without erasing PHP metad
     assert.equal(result.runtimeMap.app.info.State.Updated, false);
     assert.equal(result.runtimeMap.app.info.State.manager, 'dockerman');
     assert.equal(result.runtimeMap.app.info.State.WebUi, '/api-webui');
-    assert.equal(result.runtimeMap.app.Labels['fixture.preserved'], 'yes');
+    assert.equal(result.runtimeMap.app.Labels['fixture.preserved'], undefined);
     assert.equal(result.runtimeMap.app.Labels['fixture.api'], 'yes');
     assert.equal(result.runtimeMap.app.isOrphaned, true);
 });
@@ -88,6 +88,7 @@ test('API merge preserves optional fallback values when fields are not in the sc
     assert.equal(result.runtimeMap.app.info.State.Updated, false);
     assert.equal(result.runtimeMap.app.info.State.WebUi, '/legacy');
     assert.equal(result.runtimeMap.app.Labels['fixture.api'], undefined);
+    assert.equal(result.runtimeMap.app.Labels['fixture.preserved'], 'yes');
 });
 
 test('API merge treats identity-set changes as structural and does not invent host rows', () => {
@@ -269,4 +270,16 @@ test('integration guards configuration revisions and schedules targeted lifecycl
     assert.equal(targetedReads, 2);
     integration.dispose();
     assert.equal(integration.status(), null);
+});
+
+test('metadata-only API updates invalidate membership even with identical runtime state', () => {
+    const utils = require(path.join(scriptsRoot, 'folderviewplus.utils.js'));
+    const base = apiContainer('app', { labels: { stack: 'media', 'com.docker.compose.project.working_dir': '/mnt/user/old' }, image: 'repo/old' });
+    const current = coordinatorModule.mergeProviderContainers({ app: runtimeEntry('app') }, [base], capabilities).runtimeMap;
+    for (const change of [{ labels: {} }, { image: 'repo/new' }, { labels: { ...base.labels, 'com.docker.compose.project.working_dir': '/mnt/user/new' } }]) {
+        const result = coordinatorModule.mergeProviderContainers(current, [{ ...base, ...change }], capabilities);
+        assert.deepEqual(result.changed, ['app']);
+        const options = { type: 'docker', rules: [{ enabled: true, kind: 'label', labelKey: 'stack' }, { enabled: true, kind: 'compose_project_regex', pattern: '.' }] };
+        assert.notEqual(utils.getMembershipSignature({ ...options, infoByName: current }), utils.getMembershipSignature({ ...options, infoByName: result.runtimeMap }));
+    }
 });

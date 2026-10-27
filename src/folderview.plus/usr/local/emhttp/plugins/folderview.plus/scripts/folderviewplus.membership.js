@@ -25,7 +25,7 @@
         for (const name of available) {
             if (manual.has(name)) continue;
             const labelOwner = type === 'docker' ? labels.get(getFolderLabelValue(getDockerLabels(infos, name))) || '' : '';
-            const owner = labelOwner || String(getAutoRuleDecision({ rules, name, infoByName: infos, type }).assignedRule?.folderId || '');
+            const owner = labelOwner || String(getAutoRuleDecision({ rules, name, infoByName: infos, type, folders: folderMap }).assignedRule?.folderId || '');
             if (Object.prototype.hasOwnProperty.call(result, owner)) (labelOwner ? labelMembers : result)[owner].push(name);
         }
         for (const id of Object.keys(result)) result[id].push(...labelMembers[id]);

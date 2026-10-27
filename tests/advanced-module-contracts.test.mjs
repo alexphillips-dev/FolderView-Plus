@@ -107,7 +107,7 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSupportBundleBrowser = factory\(root\)/);
     assert.match(script, /FolderViewPlusDownloadDiagnostics = factory\(root\)/);
     assert.match(script, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
-    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(root\)/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(root, root\.FolderViewPlusFoundationModules\?\.themeIntegration\)/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModelModuleLoaded = true/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModel = factory\(\)/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModuleLoaded = true/);

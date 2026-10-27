@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Zapisz zmiany",
     "settings.rules.regex-placeholder": "Wzorzec wyrażenia regularnego (np. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Motywy",
     "settings.theme.manager-help": "Zobacz aktywny motyw hosta i zarządzaj zaimportowanymi motywami GitHub dla stron wykonawczych FolderView Plus.",
     "settings.theme.host-default": "Domyślny motyw Unraid",
+    "settings.theme.host-unidentified": "Niezidentyfikowany motyw hosta",
+    "settings.theme.identity-source": "Źródło tożsamości hosta",
+    "settings.theme.identity-declared": "Nazwa podana przez motyw",
+    "settings.theme.identity-recognized": "Uznany arkusz stylów",
+    "settings.theme.identity-native": "Motyw bazowy Unraid",
+    "settings.theme.adaptation": "Adaptacja tematu",
+    "settings.theme.adaptation-system": "Systemowe wymuszone kolory",
+    "settings.theme.adaptation-variables": "Zmienne CSS hosta",
+    "settings.theme.adaptation-computed": "Natywne style obliczone",
+    "settings.theme.adaptation-contrast": "Paleta odzyskiwania: kontrast hosta",
+    "settings.theme.adaptation-requested": "Paleta odzyskiwania: wybrany tryb",
+    "settings.theme.adaptation-fallback": "Paleta wtyczek: wejścia hosta niedostępne",
+    "settings.theme.native-controls": "Rozmiar elementów sterujących",
+    "settings.theme.controls-host": "Rozmiar zgodny z elementami sterującymi hosta",
+    "settings.theme.controls-default": "Domyślne ustawienia wtyczki",
     "settings.theme.managed-layer": "Aktywny motyw zarządzany",
     "settings.theme.host-status": "Temat hosta: $1. Zainstalowane motywy hosta są zarządzane w Unraid."
 }

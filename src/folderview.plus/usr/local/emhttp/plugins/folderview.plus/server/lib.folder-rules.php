@@ -143,7 +143,7 @@ function legacyRegexMigrationLockPath(string $type): string {
         return $result;
     }
 
-    function bulkAssignItemsToFolders(string $type, array $assignments): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null): array {
         $type = ensureType($type);
         if (count($assignments) <= 0) {
             throw new RuntimeException('At least one folder assignment is required.');
@@ -152,7 +152,7 @@ function legacyRegexMigrationLockPath(string $type): string {
             throw new RuntimeException('Bulk assignment exceeds the maximum target folder count.');
         }
 
-        $validSet = array_fill_keys(array_keys(readInfo($type)), true);
+        $validSet = array_fill_keys(array_keys($verifiedInventory ?? readInfo($type)), true);
         $normalizedByFolder = [];
         $skippedByFolder = [];
         $targetByItem = [];

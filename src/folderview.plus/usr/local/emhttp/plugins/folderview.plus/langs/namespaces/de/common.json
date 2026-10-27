@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Resultierender Pfad: $1",
     "common.repair.move-preview-branch": "Ordner im Zweig: $1",
     "common.repair.preview-show-more": "Mehr anzeigen ($1)",
-    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist."
+    "common.repair.wait-for-tree-move": "Warten Sie, bis die Verschiebung des aktuellen Ordners abgeschlossen ist.",
+    "common.server.rules-preview-config": "Die Konfiguration ist nicht verfügbar. Laden Sie die Einstellungen neu, bevor Sie die Regeln in der Vorschau anzeigen.",
+    "common.server.rules-preview-digest": "Ungültiger Vorschau-Digest.",
+    "common.server.rules-preview-changed": "Die Vorschau hat sich geändert. Führen Sie die Vorschau vor der Anwendung erneut aus.",
+    "common.server.rules-preview-invalid": "Korrigieren Sie ungültige Regeln, bevor Sie die Vorschau anwenden.",
+    "common.server.rules-save-invalid": "Korrigieren Sie ungültige Regeln vor dem Speichern.",
+    "common.repair.rules-preview-no-changes": "Für diese Vorschau sind keine Zuweisungsänderungen erforderlich.",
+    "common.repair.rules-preview-moves-manual": "Vorhandene manuelle Zuweisungen werden in die Vorschauordner verschoben."
 }

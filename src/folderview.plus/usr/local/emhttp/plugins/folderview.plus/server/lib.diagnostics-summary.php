@@ -27,11 +27,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
         $validNames = array_keys($infoByName);
         $validNameSet = array_fill_keys($validNames, true);
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $ruleTargetByName = [];
-        foreach ($validNames as $name) {
-            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
-            $ruleTargetByName[$name] = $rule ? (string)($rule['folderId'] ?? '') : '';
-        }
+        $membership = fvplusBuildMembershipSnapshot($type, $folders, $rules, $infoByName);
 
         $badges = is_array($prefs['badges'] ?? null) ? $prefs['badges'] : [];
         $showRunningBadge = !array_key_exists('running', $badges) ? true : (bool)$badges['running'];
@@ -109,31 +105,7 @@ function diagnosticsStateKindForDockerItem(array $item): string {
 
         foreach ($folders as $folderId => $folder) {
             $safeFolderId = (string)$folderId;
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            $regex = (string)($folder['regex'] ?? '');
-            if ($regex !== '' && diagnosticsRegexIsValid($regex)) {
-                foreach ($validNames as $name) {
-                    if (diagnosticsRegexMatches($regex, $name) && !in_array($name, $members, true)) {
-                        $members[] = $name;
-                    }
-                }
-            }
-            if ($type === 'docker') {
-                $folderName = trim((string)($folder['name'] ?? ''));
-                if ($folderName !== '') {
-                    foreach ($validNames as $name) {
-                        $labelValue = getFolderLabelValueFromLabels(dockerInfoLabelsForName($infoByName, $name));
-                        if ($labelValue !== '' && $labelValue === $folderName && !in_array($name, $members, true)) {
-                            $members[] = $name;
-                        }
-                    }
-                }
-            }
-            foreach ($validNames as $name) {
-                if (($ruleTargetByName[$name] ?? '') === (string)$folderId && !in_array($name, $members, true)) {
-                    $members[] = $name;
-                }
-            }
+            $members = $membership['byFolder'][$folderId]['members'] ?? [];
             if ($type === 'docker') {
                 $webuiProfileDiagnostics = fvplusMergeWebuiProfileDiagnostics($webuiProfileDiagnostics, fvplusBuildWebuiProfileDiagnostics($folder['settings'] ?? [], $members));
             }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Percorso risultante: $1",
     "common.repair.move-preview-branch": "Cartelle nel ramo: $1",
     "common.repair.preview-show-more": "Mostra altro ($1)",
-    "common.repair.wait-for-tree-move": "Attendi il completamento dello spostamento della cartella corrente."
+    "common.repair.wait-for-tree-move": "Attendi il completamento dello spostamento della cartella corrente.",
+    "common.server.rules-preview-config": "La configurazione non è disponibile. Ricarica le impostazioni prima di visualizzare l'anteprima delle regole.",
+    "common.server.rules-preview-digest": "Digest di anteprima non valido.",
+    "common.server.rules-preview-changed": "L'anteprima è cambiata. Esegui nuovamente l'anteprima prima dell'applicazione.",
+    "common.server.rules-preview-invalid": "Correggi le regole non valide prima di applicare l'anteprima.",
+    "common.server.rules-save-invalid": "Correggi le regole non valide prima di salvare.",
+    "common.repair.rules-preview-no-changes": "Per questa anteprima non sono necessarie modifiche alle assegnazioni.",
+    "common.repair.rules-preview-moves-manual": "Le assegnazioni manuali esistenti verranno spostate nelle cartelle visualizzate in anteprima."
 }

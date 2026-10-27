@@ -737,10 +737,15 @@ const dockerRuntimeLayoutStabilityTracker = dockerRuntimeDiagnosticsModule?.crea
     window,
     document,
     cacheSchemaVersion: DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION,
-    algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION
+    algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION,
+    getViewMode: () => readDockerListViewMode(),
+    onColumnSnapshot: (flush) => {
+        if (flush) getDockerRuntimeDiagnosticsApi()?.flushPageSnapshot?.('layout-pagehide');
+        else queueDockerSupportBundlePageSnapshot('column-observation');
+    }
 }) || null;
 const markDockerRuntimeLayoutPhase = (phase, details = {}) => dockerRuntimeLayoutStabilityTracker?.markPhase?.(phase, details);
-const recordDockerRuntimeWidthTelemetry = (stage, details = {}) => dockerRuntimeLayoutStabilityTracker?.recordWidth?.(stage, details);
+const recordDockerRuntimeWidthTelemetry = (stage, details = {}) => dockerRuntimeLayoutStabilityTracker?.recordWidth?.(stage, { ...details, reason: dockerRuntimeWidthState.lastReason });
 const dockerRuntimeColumnControllerApi = dockerRuntimeColumnControllerModule.createController({
     window,
     document,
@@ -815,6 +820,7 @@ const getDockerRuntimeInfoApi = () => {
             window,
             document,
             $,
+            utils, grouping: dockerFolderGroupingModule,
             getDockerRuntimeInfoMap: () => dockerRuntimeInfoByName,
             setDockerRuntimeInfoMap: (next) => {
                 dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
@@ -993,6 +999,7 @@ const buildDockerIsolatedViewDeps = () => ({
     setRuntimeState: (snapshot = {}) => {
         const folders = snapshot?.folders && typeof snapshot.folders === 'object' ? snapshot.folders : {};
         globalFolders = folders;
+        getDockerRuntimeInfoApi().setMembershipSnapshot(utils.getMembershipSnapshotFromCache(snapshot.matchCache));
         dockerFolderHierarchy = snapshot?.hierarchy && typeof snapshot.hierarchy === 'object'
             ? snapshot.hierarchy
             : buildFolderHierarchy(folders);
@@ -3104,58 +3111,11 @@ const buildDockerStateSignature = (source, fromStateMode = false) => {
     return tokens.join('|');
 };
 
-const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => {
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const infoByName = containersInfo && typeof containersInfo === 'object' ? containersInfo : {};
-    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-    const labelBuckets = new Map();
-    for (const name of names) {
-        const labels = infoByName[name]?.Labels || {};
-        const labelValue = getFolderLabelValue(labels);
-        if (!labelValue) {
-            continue;
-        }
-        if (!labelBuckets.has(labelValue)) {
-            labelBuckets.set(labelValue, []);
-        }
-        labelBuckets.get(labelValue).push(name);
-    }
-
-    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-    const cache = {};
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const explicit = Array.isArray(folder?.containers)
-            ? folder.containers.filter((name) => infoByName[name])
-            : [];
-        let regexMatches = [];
-        const regexRaw = String(folder?.regex || '').trim();
-        if (regexRaw) {
-            try {
-                const regex = new RegExp(regexRaw);
-                regexMatches = names.filter((name) => regex.test(name));
-            } catch (_error) {
-                regexMatches = [];
-            }
-        }
-        const labelMatches = [...(labelBuckets.get(String(folder?.name || '')) || [])];
-        const ruleMatches = utils.getAutoRuleMatches({
-            rules,
-            folderId,
-            names,
-            infoByName,
-            type: 'docker'
-        });
-        cache[folderId] = {
-            explicit,
-            regex: regexMatches,
-            label: labelMatches,
-            rules: ruleMatches
-        };
-    }
-    return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'docker', rules }) || cache;
-};
-
+const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => utils.buildFolderMatchCache({
+    type: 'docker', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: containersInfo || {},
+    names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(containersInfo || {}, name)) : [],
+    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+});
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-docker');
     if (existing && existing.parentNode) {
@@ -3857,6 +3817,9 @@ const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
         : (Array.isArray(changedNames) ? new Set(changedNames.map((name) => String(name || '').trim()).filter(Boolean)) : null);
     const runtimeInfoApi = getDockerRuntimeInfoApi();
     const previewActionsApi = getDockerPreviewActionsApi();
+    if (runtimeInfoApi?.membershipInputsChanged?.(dockerRuntimeInfoByName)) {
+        queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-config-revision' });
+    }
     if (runtimeInfoApi && previewActionsApi && typeof runtimeInfoApi.buildRuntimeContainerEntry === 'function' && typeof previewActionsApi.syncDockerRuntimeRows === 'function') {
         const runtimeRows = {};
         const names = changedSet ? Array.from(changedSet) : Object.keys(dockerRuntimeInfoByName || {});
@@ -4766,6 +4729,7 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
+    getDockerRuntimeInfoApi().setMembershipSnapshot(utils.getMembershipSnapshotFromCache(folderMatchCache));
     dockerRuntimePerformanceTelemetry?.end?.('renderPreparation');
     dockerRuntimePerformanceTelemetry?.begin?.('folderRows');
     // Draw the folders in the order
@@ -5066,7 +5030,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
             folderId: id,
             names: orderSnapshotAtFolderStart,
             infoByName: containersInfo,
-            type: 'docker'
+            type: 'docker', folders: globalFolders
         });
     ruleMatches.forEach(pushCombined);
     if (FOLDER_VIEW_DEBUG_MODE) {
@@ -6028,7 +5992,7 @@ const appendDockerPreviewActionButtons = ($target, settings = {}, containerName 
 const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
-        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames);
+        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames, false);
     }
 };
 
@@ -6471,7 +6435,7 @@ const positionDockerContextElementInsideViewport = (element) => {
     if (!element || typeof element.getBoundingClientRect !== 'function') {
         return false;
     }
-    const rect = element.getBoundingClientRect();
+    let rect = element.getBoundingClientRect();
     if (!rect.width || !rect.height) {
         return false;
     }
@@ -6481,38 +6445,18 @@ const positionDockerContextElementInsideViewport = (element) => {
         return false;
     }
     const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
-    const style = window.getComputedStyle(element);
-    const fixed = style.position === 'fixed';
-    const scrollX = fixed ? 0 : (window.pageXOffset || document.documentElement.scrollLeft || 0);
-    const scrollY = fixed ? 0 : (window.pageYOffset || document.documentElement.scrollTop || 0);
-    let nextTop = rect.top + scrollY;
-    let nextLeft = rect.left + scrollX;
-    let changed = false;
-
     element.classList.add('fvplus-docker-context-menu');
     if (!element.classList.contains('fv-settings-transfer-menu')) element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+    element.classList.toggle('fvplus-context-menu-scroll', element.scrollHeight > element.clientHeight + 1);
+    // Measure after sizing and scrolling styles have taken effect.
+    rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+    const nextTop = Math.max(margin, Math.min(rect.top, viewportHeight - margin - rect.height));
+    const nextLeft = Math.max(margin, Math.min(rect.left, viewportWidth - margin - rect.width));
 
-    if (rect.bottom > viewportHeight - margin) {
-        nextTop -= rect.bottom - (viewportHeight - margin);
-        changed = true;
-    }
-    if (rect.top < margin) {
-        nextTop += margin - rect.top;
-        changed = true;
-    }
-    if (rect.right > viewportWidth - margin) {
-        nextLeft -= rect.right - (viewportWidth - margin);
-        changed = true;
-    }
-    if (rect.left < margin) {
-        nextLeft += margin - rect.left;
-        changed = true;
-    }
-
-    if (changed) {
-        element.style.top = `${Math.max(margin + scrollY, nextTop)}px`;
-        element.style.left = `${Math.max(margin + scrollX, nextLeft)}px`;
-    }
+    // Apply a delta to the CSS coordinates: rect coordinates already include theme margins.
+    if (nextTop !== rect.top) element.style.top = `${(Number.parseFloat(style.top) || 0) + nextTop - rect.top}px`;
+    if (nextLeft !== rect.left) element.style.left = `${(Number.parseFloat(style.left) || 0) + nextLeft - rect.left}px`;
     return true;
 };
 const adjustDockerContextSubmenuViewportPlacement = (listItem) => {
@@ -7015,6 +6959,7 @@ const addDockerFolderContext = (id, options = {}) => {
 };
 // Route Unraid host lifecycle hooks through the shared adapter while retaining legacy aliases.
 getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
+    dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-listview');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
     if (dockerNativeBusyPollInFlight) {
         appendDockerRequestBundleTrace('listview', { nativeBusyActive: true, reloadSource: 'unraid-native-busy-poll' });
@@ -7056,6 +7001,7 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     missingDetails: ['window.listview was not a function when FolderView Plus initialized.']
 });
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
+    dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-loadlist');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
@@ -7517,7 +7463,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             });
             return false;
         }
-        if (rowDiff.hasChanges) {
+        if (rowDiff.hasChanges || getDockerRuntimeInfoApi().membershipInputsChanged(nextRuntimeInfo)) {
             syncDockerVisibleFoldersFromRuntimeCache(rowDiff.changed);
         }
         return true;
@@ -7940,6 +7886,7 @@ addEventListener("keydown", (e) => {
 
 window.addEventListener('pagehide', () => {
     dockerPageTitle.dispose();
+    dockerRuntimeLayoutStabilityTracker?.destroy?.();
     dockerQuickFinderApi?.dispose();
     dockerLiveRefreshController.dispose();
     dockerApiIntegration?.dispose?.();

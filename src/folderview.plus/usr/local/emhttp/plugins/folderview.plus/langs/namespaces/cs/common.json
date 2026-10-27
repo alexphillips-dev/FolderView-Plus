@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Výsledná cesta: $1",
     "common.repair.move-preview-branch": "Složky ve větvi: $1",
     "common.repair.preview-show-more": "Zobrazit více ($1)",
-    "common.repair.wait-for-tree-move": "Počkejte na dokončení přesunu aktuální složky."
+    "common.repair.wait-for-tree-move": "Počkejte na dokončení přesunu aktuální složky.",
+    "common.server.rules-preview-config": "Konfigurace není k dispozici. Před zobrazením náhledu pravidel znovu načtěte nastavení.",
+    "common.server.rules-preview-digest": "Neplatný přehled náhledu.",
+    "common.server.rules-preview-changed": "Náhled se změnil. Před aplikací spusťte znovu náhled.",
+    "common.server.rules-preview-invalid": "Před použitím náhledu opravte neplatná pravidla.",
+    "common.server.rules-save-invalid": "Před uložením opravte neplatná pravidla.",
+    "common.repair.rules-preview-no-changes": "Pro tento náhled nejsou potřeba žádné změny přiřazení.",
+    "common.repair.rules-preview-moves-manual": "Stávající ruční přiřazení budou přesunuta do složek s náhledem."
 }

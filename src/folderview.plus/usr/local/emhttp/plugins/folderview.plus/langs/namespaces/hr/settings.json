@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Teme",
     "settings.theme.manager-help": "Pogledajte aktivnu temu hosta i upravljajte uvezenim GitHub temama za FolderView Plus runtime stranice.",
     "settings.theme.host-default": "Zadana tema Unraid",
+    "settings.theme.host-unidentified": "Neidentificirana tema domaćina",
+    "settings.theme.identity-source": "Izvor identiteta domaćina",
+    "settings.theme.identity-declared": "Naziv koji navodi tema",
+    "settings.theme.identity-recognized": "Prepoznata lista stilova",
+    "settings.theme.identity-native": "Osnovna tema Unraid",
+    "settings.theme.adaptation": "Prilagodba teme",
+    "settings.theme.adaptation-system": "Sustav prisilnih boja",
+    "settings.theme.adaptation-variables": "CSS varijable glavnog sučelja",
+    "settings.theme.adaptation-computed": "Izvorni računalni stilovi",
+    "settings.theme.adaptation-contrast": "Paleta za oporavak: kontrast domaćina",
+    "settings.theme.adaptation-requested": "Paleta za oporavak: odabrani način",
+    "settings.theme.adaptation-fallback": "Paleta dodataka: unosi hosta nisu dostupni",
+    "settings.theme.native-controls": "Veličina kontrola",
+    "settings.theme.controls-host": "Veličina prati kontrole glavnog sučelja",
+    "settings.theme.controls-default": "Zadane postavke dodatka",
     "settings.theme.managed-layer": "Aktivna upravljana tema",
     "settings.theme.host-status": "Tema domaćina: $1. Instaliranim temama hosta upravlja se u Unraidu."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "테마",
     "settings.theme.manager-help": "활성 호스트 테마를 확인하고 FolderView Plus 런타임 페이지에 대해 가져온 GitHub 테마를 관리하세요.",
     "settings.theme.host-default": "Unraid 기본값",
+    "settings.theme.host-unidentified": "식별되지 않은 호스트 테마",
+    "settings.theme.identity-source": "호스트 ID 소스",
+    "settings.theme.identity-declared": "테마에서 제공한 이름",
+    "settings.theme.identity-recognized": "인식된 스타일시트",
+    "settings.theme.identity-native": "언레이드 베이스 테마",
+    "settings.theme.adaptation": "테마 적응",
+    "settings.theme.adaptation-system": "시스템 강제 색상",
+    "settings.theme.adaptation-variables": "호스트 CSS 변수",
+    "settings.theme.adaptation-computed": "네이티브 계산 스타일",
+    "settings.theme.adaptation-contrast": "복구 팔레트: 호스트 대비",
+    "settings.theme.adaptation-requested": "복구 팔레트: 선택 모드",
+    "settings.theme.adaptation-fallback": "플러그인 팔레트: 호스트 입력을 사용할 수 없습니다.",
+    "settings.theme.native-controls": "컨트롤 크기",
+    "settings.theme.controls-host": "크기가 호스트 컨트롤을 따름",
+    "settings.theme.controls-default": "플러그인 기본값",
     "settings.theme.managed-layer": "활성 관리형 테마",
     "settings.theme.host-status": "호스트 테마: $1. 설치된 호스트 테마는 Unraid에서 관리됩니다."
 }

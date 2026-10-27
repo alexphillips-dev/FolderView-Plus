@@ -39,6 +39,24 @@
         const getGlobalFolders = typeof deps.getGlobalFolders === 'function' ? deps.getGlobalFolders : (() => ({}));
         const getFolderDescendants = typeof deps.getFolderDescendants === 'function' ? deps.getFolderDescendants : (() => []);
         const folderHasChildren = typeof deps.folderHasChildren === 'function' ? deps.folderHasChildren : (() => false);
+        let hostIdentityMap = null, hostIdentityIndex = null;
+        const resolveHostIdentity = (token) => {
+            const map = getDockerRuntimeInfoMap();
+            if (map !== hostIdentityMap) {
+                hostIdentityMap = map; hostIdentityIndex = deps.grouping?.buildIdentityIndex(map) || null;
+            }
+            return hostIdentityIndex?.resolve(token) || (Object.prototype.hasOwnProperty.call(map, token) ? token : '');
+        };
+        let membershipSnapshot = null;
+        const setMembershipSnapshot = (snapshot) => { membershipSnapshot = snapshot || null; };
+        const membershipInputsChanged = (infoByName) => Boolean(membershipSnapshot && deps.utils
+            && deps.utils.getMembershipSignature({ ...membershipSnapshot.configuration, names: membershipSnapshot.names, infoByName }) !== membershipSnapshot.signature);
+        const readEffectiveFolderNames = (folder) => {
+            if (!Array.isArray(folder.containers)) return readFolderContainerNames(folder.containers);
+            const id = Object.keys(getGlobalFolders()).find(key => getGlobalFolders()[key] === folder);
+            if (membershipSnapshot?.byFolder[id]) return membershipSnapshot.byFolder[id].liveMembers;
+            return deps.readEffectiveFolderNames ? deps.readEffectiveFolderNames(folder) : readFolderContainerNames(folder.containers);
+        };
         const defer = typeof win?.setTimeout === 'function'
             ? win.setTimeout.bind(win)
             : ((handler, delay) => setTimeout(handler, delay));
@@ -62,10 +80,9 @@
         const buildDockerRuntimeInfoFallbackLabels = (entry = {}, previousEntry = null) => {
             const source = entry && typeof entry === 'object' ? entry : {};
             const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
-            const labels = {
-                ...((previous?.Labels && typeof previous.Labels === 'object') ? previous.Labels : {}),
-                ...((source.Labels && typeof source.Labels === 'object') ? source.Labels : {})
-            };
+            const labels = source.Labels && typeof source.Labels === 'object'
+                ? { ...source.Labels }
+                : { ...((previous?.Labels && typeof previous.Labels === 'object') ? previous.Labels : {}) };
             const folderLabel = String(source.folderLabel || '').trim();
             if (folderLabel && !getFolderLabelValue(labels) && folderLabelKeys.length > 0) {
                 labels[folderLabelKeys[0]] = folderLabel;
@@ -78,7 +95,11 @@
             if (!safeName || !doc) {
                 return null;
             }
-            const row = doc.getElementById(`ct-${safeName}`);
+            const entry = getDockerRuntimeInfoMap()[safeName] || {};
+            const id = String(entry.shortId || entry.id || entry.info?.Id || '').split(':').pop().slice(0, 12);
+            const row = doc.getElementById(`ct-${safeName}`) || (id ? doc.getElementById(`ct-${id}`) : null)
+                || Array.from(doc.querySelectorAll?.('#docker_list tr[id^="ct-"], #docker_view tr[id^="ct-"]') || [])
+                    .find(candidate => getDockerHostRowContainerName(candidate) === safeName);
             if (!(row instanceof HTMLElement)) {
                 return null;
             }
@@ -115,7 +136,8 @@
             }
             if (typeof value === 'string') {
                 const raw = value.trim();
-                return raw.startsWith('ct-') ? raw.slice(3).trim() : raw;
+                const token = raw.startsWith('ct-') ? raw.slice(3).trim() : raw;
+                return resolveHostIdentity(token) || token;
             }
             const node = value instanceof Node ? value : null;
             if (!node) {
@@ -128,8 +150,8 @@
             if (!(row instanceof HTMLElement)) {
                 return '';
             }
-            const rawId = String(row.id || '').trim();
-            return rawId.startsWith('ct-') ? rawId.slice(3).trim() : '';
+            const candidates = deps.grouping?.readRowCandidates(row) || [row.dataset?.name, String(row.id || '').replace(/^ct-/, '')];
+            return candidates.map(token => resolveHostIdentity(String(token || '').trim())).find(Boolean) || '';
         };
 
         const getDockerWindowRuntimeEntry = (name) => {
@@ -141,7 +163,7 @@
         };
 
         const applyDockerRuntimeEntryUpdatedState = (name, updated) => {
-            const safeName = String(name || '').trim();
+            const safeName = resolveHostIdentity(String(name || '').trim()) || String(name || '').trim();
             if (!safeName || typeof updated !== 'boolean') {
                 return false;
             }
@@ -152,6 +174,7 @@
                 ? runtimeInfoMap[safeName]
                 : null
             ) || getDockerWindowRuntimeEntry(safeName);
+            if (!previousEntry) return false;
             const previousState = previousEntry?.info?.State && typeof previousEntry.info.State === 'object'
                 ? previousEntry.info.State
                 : {};
@@ -163,7 +186,7 @@
             if (previousEntry && previousState.Updated === updated && previousManager === nextManager) {
                 return false;
             }
-            setDockerRuntimeInfoMap({
+            const nextRuntimeInfoMap = {
                 ...runtimeInfoMap,
                 [safeName]: {
                     ...(previousEntry && typeof previousEntry === 'object' ? previousEntry : {}),
@@ -182,7 +205,9 @@
                     Labels: (previousEntry?.Labels && typeof previousEntry.Labels === 'object') ? previousEntry.Labels : {},
                     Mounts: Array.isArray(previousEntry?.Mounts) ? previousEntry.Mounts : []
                 }
-            });
+            };
+            setDockerRuntimeInfoMap(nextRuntimeInfoMap);
+            if (hostIdentityMap === runtimeInfoMap && Object.prototype.hasOwnProperty.call(runtimeInfoMap, safeName)) hostIdentityMap = nextRuntimeInfoMap;
             const windowEntry = getDockerWindowRuntimeEntry(safeName);
             if (windowEntry?.info?.State && typeof windowEntry.info.State === 'object') {
                 windowEntry.info.State.manager = String(windowEntry.info.State.manager || nextManager).trim() || nextManager;
@@ -328,7 +353,10 @@
             const source = entry && typeof entry === 'object' ? entry : {};
             const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
             if (isDockerRuntimeInfoEntryFull(source)) {
-                return source;
+                const previousState = previous?.info?.State || {}, state = source.info.State || {};
+                const carry = {};
+                for (const key of ['Updated', 'manager']) if (!Object.prototype.hasOwnProperty.call(state, key) && Object.prototype.hasOwnProperty.call(previousState, key)) carry[key] = previousState[key];
+                return { ...source, info: { ...source.info, Name: safeName || source.info.Name, State: { ...carry, ...state } } };
             }
             const labels = buildDockerRuntimeInfoFallbackLabels(source, previous);
             const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
@@ -374,6 +402,7 @@
             nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
             nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
             nextEntry.Labels = labels;
+            nextEntry.image = nextEntry.Image = String(source.Image ?? previous?.image ?? previous?.Image ?? previousConfig.Image ?? '').trim();
             nextEntry.Mounts = Array.isArray(source.Mounts) ? source.Mounts : (Array.isArray(previous?.Mounts) ? previous.Mounts : []);
             nextEntry.info = {
                 ...previousInfo,
@@ -381,7 +410,7 @@
                 Shell: String(source.Shell || labels['net.unraid.docker.shell'] || previousInfo.Shell || 'sh').trim() || 'sh',
                 Config: {
                     ...previousConfig,
-                    Image: String(source.Image || previousConfig.Image || '').trim(),
+                    Image: nextEntry.Image,
                     Labels: labels
                 },
                 State: {
@@ -475,7 +504,7 @@
                     : (webui ? true : null));
             return {
                 ...source,
-                id: source.id || String(runtime?.shortId || '').trim(),
+                id: source.id || String(runtime?.shortId || runtime?.id || runtime?.Id || runtime?.info?.Id || '').split(':').pop().slice(0, 12),
                 name: String(runtime?.info?.Name || source.name || key).trim() || key,
                 icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
                 webui,
@@ -497,8 +526,8 @@
             }
             const runtime = folder.runtimeContainers;
             const containers = folder.containers;
-            const names = readFolderContainerNames(containers);
-            if (!names.length) {
+            const names = readEffectiveFolderNames(folder);
+            if (!names.length && !membershipSnapshot && typeof deps.readEffectiveFolderNames !== 'function') {
                 return (runtime && typeof runtime === 'object' && !Array.isArray(runtime)) ? runtime : {};
             }
             const sourceMap = (containers && typeof containers === 'object' && !Array.isArray(containers)) ? containers : {};
@@ -522,7 +551,7 @@
                 if (!folder || !folder.containers || typeof folder.containers !== 'object') {
                     continue;
                 }
-                const names = readFolderContainerNames(folder.containers);
+                const names = readEffectiveFolderNames(folder);
                 const sourceMap = !Array.isArray(folder.containers) ? folder.containers : {};
                 for (const name of names) {
                     const key = String(name || '').trim();
@@ -548,6 +577,7 @@
         };
 
         return Object.freeze({
+            setMembershipSnapshot, membershipInputsChanged,
             readDockerHostRowUpdatedState,
             getDockerHostRowContainerName,
             getDockerWindowRuntimeEntry,

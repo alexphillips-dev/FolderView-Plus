@@ -24,7 +24,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
         'cpu.php', 'create.php', 'delete.php', 'diagnostics.php', 'docker_start_order.php',
         'environment_snapshot.php', 'migrate_legacy_regex.php', 'prefs.php', 'read.php', 'read_info.php',
         'read_order.php', 'read_unraid_order.php', 'reconcile_member_identities.php', 'reorder.php',
-        'runtime_snapshot.php', 'security.php', 'sync_order.php', 'templates.php', 'theme_workspace.php',
+        'rule_preview.php', 'runtime_snapshot.php', 'security.php', 'sync_order.php', 'templates.php', 'theme_workspace.php',
         'third_party_icons.php', 'update.php', 'update_check.php', 'update_notes.php', 'upload_custom_icon.php',
         'version.php'
     ].sort();
@@ -35,12 +35,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     assert.deepEqual(Object.keys(JSON.parse(manifestSource).endpoints).sort(), expectedEndpoints);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        'f1d94e849a07d0f5bbceab16dd3b053550f101f77dff2f1953c1e9c6a29049e3'
+        '7c1c4647c629705e4bcb0b75f422bbcaf768086e3b0b545cd87044098b703774'
     );
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 51);
+    assert.equal(architecture.serverModuleContracts.length, 53);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -77,6 +77,8 @@ test('decomposition preserves every historical public PHP function name', () => 
             'fvplusFolderView3PresetProfiles', 'preserveMigratedFolderReferences', 'buildLegacyFolderMembership']) additions.add(name);
         additions.add('fvplusTransactionRestoreFiles');
         additions.add('fvplusTransactionRestoreAfterFailure');
+        for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
+        for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
         additions.add('fvplusWriteConfigPayload');
         additions.add('fvplusWriteJsonLastGood');
         for (const name of ['backupConfigurationFingerprint', 'latestBackupConfiguration', 'backupScheduleStatePath',
@@ -107,7 +109,7 @@ test('requiring the compatibility facade publishes representative functions from
     fs.mkdirSync(configDir, { recursive: true });
     fs.mkdirSync(sourceDir, { recursive: true });
     const functions = [
-        'readInstalledVersion', 'writeDurableFileAtomic', 'getThemeWorkspacePath',
+        'readInstalledVersion', 'writeDurableFileAtomic', 'getThemeWorkspacePath', 'diagnosticsFirstMatchingRule',
         'normalizeEnvironmentSnapshotPayload', 'scanThemeWorkspaceGithub', 'getTypeBackupSchedule',
         'createBackupSnapshot', 'bulkAssignItemsToFolders', 'syncContainerOrder', 'updateFolder',
         'fvplusCustomIconDirPath', 'readInfo', 'diagnosticsHashShort', 'diagnosticsBuildIntegrityChecks',

@@ -205,12 +205,12 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowUpdateColumn = \(\$row,\s*entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*syncDockerStorageRowStatus\(\$row,\s*entry\);[\s\S]*syncDockerStorageRowUpdateColumn\(\$row,\s*entry\);/s);
-    assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) =>/);
+    assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null, syncMembers = true\) =>/);
     assert.match(dockerPreviewActionsScript, /syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedSet\);/);
     assert.match(dockerPreviewActionsScript, /syncDockerPreviewStatus\(\$target,\s*entry\);/);
     assert.match(dockerPreviewActionsScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*jq\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
     assert.match(dockerScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedNames\);/s);
-    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\);/s);
+    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames, false\);/s);
     assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedSet\);/);
     assert.match(dockerScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(dockerScript, /const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';/);
@@ -317,8 +317,8 @@ test('docker context menus clamp main and nested menus inside the viewport', () 
     assert.match(dockerScript, /const positionDockerContextElementInsideViewport = \(element\) =>/);
     assert.match(dockerScript, /rect\.bottom > viewportHeight - margin/);
     assert.match(dockerScript, /rect\.right > viewportWidth - margin/);
-    assert.match(dockerScript, /element\.style\.top = `\$\{Math\.max\(margin \+ scrollY,\s*nextTop\)\}px`;/);
-    assert.match(dockerScript, /element\.style\.left = `\$\{Math\.max\(margin \+ scrollX,\s*nextLeft\)\}px`;/);
+    assert.match(dockerScript, /Number\.parseFloat\(style\.top\)/);
+    assert.match(dockerScript, /Number\.parseFloat\(style\.left\)/);
     assert.match(dockerScript, /const adjustDockerContextSubmenuViewportPlacement = \(listItem\) =>/);
     assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-up'\);/);
     assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-left'\);/);

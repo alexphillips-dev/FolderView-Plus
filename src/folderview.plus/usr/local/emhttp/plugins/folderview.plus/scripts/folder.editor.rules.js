@@ -158,7 +158,7 @@
                 } else {
                     try {
                         // eslint-disable-next-line no-new
-                        new RegExp(pattern);
+                        new RegExp(pattern, 'u');
                     } catch (_error) {
                         issues.push('Invalid regex');
                     }
@@ -657,7 +657,7 @@
             }
             try {
                 // eslint-disable-next-line no-new
-                new RegExp(pattern);
+                new RegExp(pattern, 'u');
             } catch (error) {
                 setFolderEditorRulesMessage(`Invalid regex: ${error?.message || error}`, 'error');
                 if (patternInput instanceof rootWindow.HTMLInputElement) {

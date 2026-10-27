@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Результирующий путь: $1.",
     "common.repair.move-preview-branch": "Папки в ветке: $1",
     "common.repair.preview-show-more": "Показать больше ($1)",
-    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки."
+    "common.repair.wait-for-tree-move": "Дождитесь завершения перемещения текущей папки.",
+    "common.server.rules-preview-config": "Конфигурация недоступна. Обновите настройки перед предварительным просмотром правил.",
+    "common.server.rules-preview-digest": "Неверный дайджест предварительного просмотра.",
+    "common.server.rules-preview-changed": "Предварительный просмотр изменился. Перед применением запустите предварительный просмотр еще раз.",
+    "common.server.rules-preview-invalid": "Исправьте недействительные правила перед применением предварительного просмотра.",
+    "common.server.rules-save-invalid": "Исправьте недействительные правила перед сохранением.",
+    "common.repair.rules-preview-no-changes": "Для этого предварительного просмотра не требуется никаких изменений назначения.",
+    "common.repair.rules-preview-moves-manual": "Существующие ручные задания будут перемещены в папки предварительного просмотра."
 }

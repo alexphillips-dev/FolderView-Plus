@@ -85,6 +85,14 @@ guards and verify candidate evidence. Dev preview artifacts verify the committed
 package and checksum and upload only the current archive, checksum and curated
 notes, rather than rebuilding a package or uploading archive history.
 
+When the owner prohibits workspace performance checks, set
+`FVPLUS_SKIP_WORKSPACE_PERFORMANCE=1` for local release commands. The pre-push
+hook skips only its local performance-budget check; history, package, install,
+include-order, dead-code and exact-candidate evidence checks still run. The
+override is ignored under `GITHUB_ACTIONS=true` and does not alter hosted CI or
+its performance qualification. Apply any workspace timing-test exclusions
+separately when running the local unit suite.
+
 The intended improvement is to remove repeated suites and parallelize work.
 No fixed release duration is guaranteed: runner queues, security scans and
 publication retries can still affect elapsed time.

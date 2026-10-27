@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Enregistrer les modifications",
     "settings.rules.regex-placeholder": "Modèle Regex (par exemple ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Thèmes",
     "settings.theme.manager-help": "Consultez le thème hôte actif et gérez les thèmes GitHub importés pour les pages d'exécution FolderView Plus.",
     "settings.theme.host-default": "Thème Unraid par défaut",
+    "settings.theme.host-unidentified": "Thème hôte non identifié",
+    "settings.theme.identity-source": "Source d'identité de l'hôte",
+    "settings.theme.identity-declared": "Déclaré par le thème",
+    "settings.theme.identity-recognized": "Feuille de style reconnue",
+    "settings.theme.identity-native": "Thème de base sans raid",
+    "settings.theme.adaptation": "Adaptation thématique",
+    "settings.theme.adaptation-system": "Couleurs forcées par le système",
+    "settings.theme.adaptation-variables": "Variables CSS de l’hôte",
+    "settings.theme.adaptation-computed": "Styles calculés natifs",
+    "settings.theme.adaptation-contrast": "Palette de récupération : contraste de l'hôte",
+    "settings.theme.adaptation-requested": "Palette de récupération : mode sélectionné",
+    "settings.theme.adaptation-fallback": "Palette de plugins : entrées d'hôte indisponibles",
+    "settings.theme.native-controls": "Taille des commandes",
+    "settings.theme.controls-host": "La taille suit les commandes de l’hôte",
+    "settings.theme.controls-default": "Valeurs par défaut du plugin",
     "settings.theme.managed-layer": "Thème géré actif",
     "settings.theme.host-status": "Thème hôte : $1. Les thèmes hôtes installés sont gérés dans Unraid."
 }

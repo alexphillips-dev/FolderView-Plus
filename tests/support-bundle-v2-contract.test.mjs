@@ -57,13 +57,9 @@ function getFolderLabelValueFromLabels(array $labels): string {
     return '';
 }
 
-function dockerInfoLabelsForName(array $infoByName, string $name): array {
-    return [];
-}
-
-function autoRuleDecision(array $rules, string $name, array $infoByName, string $type): array {
-    return ['assignedRule' => null];
-}
+const FVPLUS_DOCKER_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.rules-engine.php'))};
+require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.folder-membership.php'))};
 
 require_once ${phpSingleQuote(libDiagnosticsPath)};
 

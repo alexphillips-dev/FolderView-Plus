@@ -23,7 +23,7 @@ const dockerColumnControllerJs = read('src/folderview.plus/usr/local/emhttp/plug
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
-const dockerRuntimeLayoutGeometryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
+const dockerRuntimeLayoutGeometryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js');
 const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -61,7 +61,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
     const refreshDiagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.refresh-diagnostics.js');
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
-    const layoutGeometryIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
+    const layoutGeometryIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js');
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
@@ -130,10 +130,12 @@ test('docker runtime page loads shared runtime module before docker modules/runt
 });
 
 test('docker layout geometry is extracted behind a focused executable module', () => {
-    assert.match(dockerRuntimeLayoutGeometryJs, /FolderViewPlusDockerLayoutGeometry/);
+    assert.match(dockerRuntimeLayoutGeometryJs, /dockerLayoutDiagnostics/);
     assert.match(dockerRuntimeLayoutGeometryJs, /readNodeGeometry/);
     assert.match(dockerRuntimeLayoutGeometryJs, /compareGeometry/);
-    assert.match(dockerRuntimeDiagnosticsJs, /require\('\.\/docker\.runtime\.layout-geometry\.js'\)/);
+    const layoutDiagnostics = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js');
+    assert.match(dockerRuntimeDiagnosticsJs, /require\('\.\/docker\.runtime\.layout-diagnostics\.js'\)/);
+    assert.match(layoutDiagnostics, /const layoutGeometry = Object.freeze/);
 });
 
 test('docker runtime uses the shared host adapter as its Unraid integration boundary', () => {
@@ -265,7 +267,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*runtimeInfoApi\.ensureDockerHostRowUpdateObserver\(\)/);
     assert.match(dockerJs, /const normalizeDockerRuntimeInfoMap = \(source,\s*previousMap = null\) => \{[\s\S]*runtimeInfoApi\.normalizeDockerRuntimeInfoMap\(source,\s*previousMap\)/);
     assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
-    assert.match(dockerJs, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\)/);
+    assert.match(dockerJs, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames, false\)/);
     assert.match(dockerJs, /const applyNestedFolderHierarchy = \(expandedIds = null\) => \{[\s\S]*hierarchyApi\.applyNestedFolderHierarchy\(expandedIds\);/);
     assert.match(dockerJs, /const dropDownButton = \(id,\s*persistState = true\) => \{[\s\S]*hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
     assert.match(dockerJs, /const summarizeFolderActionCounts = \(containersMap\) => \{[\s\S]*actionsApi\.summarizeFolderActionCounts\(containersMap\)/);

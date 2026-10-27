@@ -21,7 +21,7 @@ const requiredMetrics = [
     'bootstrapNetworkRequests'
 ];
 
-test('runtime performance matrix covers the required small, normal, and extreme installations', () => {
+test('runtime performance matrix retains budgets for routine and opt-in extreme installations', () => {
     const config = readJson('scripts/runtime_perf_budgets.json');
     const baseline = readJson('scripts/runtime_perf_baseline.json');
     const expectedScenarios = {

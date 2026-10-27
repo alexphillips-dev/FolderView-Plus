@@ -1,5 +1,13 @@
 {
+  "rules-engine": ["^Rules", "^Lifecycle reconciliation", "^VM lifecycle", "^Dashboard.*(Stop|Started|lifecycle)", "^Quick finder production", "^Docker folder feedback", "^Docker hide-empty", "^Folder badges"],
+  "host-matrix": ["^Host theme matrix"],
+  "browser-storage": ["^Browser storage restrictions"],
+  "host-maintainer": ["^Host theme maintainer"],
+  "host-accessibility": ["^Host theme (surface contrast|OS forced)"],
   "host-theme": ["^Host theme"],
+  "host-native-controls": ["^Host theme (generic Docker toolbar|native metrics)"],
+  "host-css-fallback": ["^Host theme CSS only"],
+  "host-lifecycle": ["^Host theme stylesheet lifecycle"],
   "settings-themes": ["^Themes", "^Appearance", "^Advanced navigation", "^German workspaces"],
   "page-title": ["^Docker page title"],
   "page-title-neighbors": ["^Basic custom groups", "^docker Dashboard folder effects"],

@@ -57,7 +57,7 @@ test('docker runtime preserves hydrated update flags when normalizing partial ru
 
 test('docker runtime still falls back to the host row update cell when cached state omits update flags', () => {
     assert.match(dockerRuntimeInfoJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
-    assert.match(dockerRuntimeInfoJs, /const row = doc\.getElementById\(`ct-\$\{safeName\}`\);/);
+    assert.match(dockerRuntimeInfoJs, /const row = doc\.getElementById\(`ct-\$\{safeName\}`\)/);
     assert.match(dockerRuntimeInfoJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
     assert.match(dockerRuntimeInfoJs, /const normalizedText = String\(updateCell\.textContent \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
     assert.match(dockerRuntimeInfoJs, /const i18nText = \(key, fallback = ''\) => \{/);

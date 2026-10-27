@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "テーマ",
     "settings.theme.manager-help": "アクティブなホスト テーマを確認し、FolderView Plus ランタイム ページにインポートされた GitHub テーマを管理します。",
     "settings.theme.host-default": "Unraid の既定",
+    "settings.theme.host-unidentified": "不明なホストテーマ",
+    "settings.theme.identity-source": "ホスト ID ソース",
+    "settings.theme.identity-declared": "テーマが提供する名前",
+    "settings.theme.identity-recognized": "認識されたスタイルシート",
+    "settings.theme.identity-native": "アンレイドベーステーマ",
+    "settings.theme.adaptation": "テーマの適応",
+    "settings.theme.adaptation-system": "システムの強制色",
+    "settings.theme.adaptation-variables": "ホストのCSS変数",
+    "settings.theme.adaptation-computed": "ネイティブの計算されたスタイル",
+    "settings.theme.adaptation-contrast": "リカバリパレット: ホストコントラスト",
+    "settings.theme.adaptation-requested": "回復パレット: 選択されたモード",
+    "settings.theme.adaptation-fallback": "プラグイン パレット: ホスト入力は使用できません",
+    "settings.theme.native-controls": "操作部品のサイズ",
+    "settings.theme.controls-host": "サイズはホストの操作部品に追従",
+    "settings.theme.controls-default": "プラグインのデフォルト",
     "settings.theme.managed-layer": "アクティブな管理対象テーマ",
     "settings.theme.host-status": "ホスト テーマ: $1。インストールされたホスト テーマは Unraid で管理されます。"
 }

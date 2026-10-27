@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Pēc izvēles",
     "common.badges.recommended": "Ieteicams",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Iegūtais ceļš: $1",
     "common.repair.move-preview-branch": "Mapes filiālē: $1",
     "common.repair.preview-show-more": "Rādīt vairāk ($1)",
-    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana."
+    "common.repair.wait-for-tree-move": "Pagaidiet, līdz tiks pabeigta pašreizējās mapes pārvietošana.",
+    "common.server.rules-preview-config": "Konfigurācija nav pieejama. Pirms kārtulu priekšskatīšanas atkārtoti ielādējiet iestatījumus.",
+    "common.server.rules-preview-digest": "Nederīgs priekšskatījuma īssavilkums.",
+    "common.server.rules-preview-changed": "Priekšskatījums ir mainījies. Pirms izmaiņu piemērošanas vēlreiz palaidiet priekšskatījumu.",
+    "common.server.rules-preview-invalid": "Pirms priekšskatījuma lietošanas izlabojiet nederīgās kārtulas.",
+    "common.server.rules-save-invalid": "Pirms saglabāšanas izlabojiet nederīgos noteikumus.",
+    "common.repair.rules-preview-no-changes": "Šim priekšskatījumam nav nepieciešamas nekādas izmaiņas.",
+    "common.repair.rules-preview-moves-manual": "Esošie manuālie uzdevumi tiks pārvietoti uz priekšskatītajām mapēm."
 }

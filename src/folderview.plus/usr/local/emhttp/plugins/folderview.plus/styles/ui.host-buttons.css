@@ -5,11 +5,11 @@ html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*
 html body :is(button, input[type="button"], input[type="submit"], a[role="button"], a.fv-ui-button):where(
     [class^="fv-"], [class*=" fv-"], [data-fv-onclick], [data-fv-ui-action]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button)) {
     background-color: var(--fv-button-bg, var(--fvplus-ui-control)) !important;
-    border: 1px solid var(--fv-button-border, var(--fvplus-ui-border-subtle)) !important;
-    border-radius: var(--fv-ui-radius-sm) !important;
-    color: var(--fv-button-fg, var(--fvplus-ui-text-primary)) !important;
+    border: var(--fvplus-system-control-border, 1px solid var(--fv-button-border, var(--fvplus-ui-border-subtle))) !important;
+    border-radius: var(--fvplus-host-control-radius, var(--fv-ui-radius-sm)) !important;
+    color: var(--fv-button-fg, var(--fvplus-ui-control-fg, var(--fvplus-ui-text-primary))) !important;
     box-sizing: border-box;
-    font-family: inherit !important;
+    font-family: var(--fvplus-host-control-font-family, inherit) !important;
     white-space: normal !important;
     overflow-wrap: anywhere;
     min-width: 0;
@@ -21,12 +21,13 @@ html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*
     :is(button, input[type="button"], input[type="submit"], a[role="button"]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-quickfinder-field > button)),
 html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):where(:hover:not(:disabled, .folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-quickfinder-field > button)) {
     background-color: var(--fvplus-ui-control-hover) !important;
+    --fv-button-fg: var(--fvplus-ui-control-hover-fg, var(--fvplus-ui-text-primary));
     border-color: var(--fvplus-ui-border-strong) !important;
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
     :is(button, input[type="button"], input[type="submit"], a[role="button"]):focus-visible:where(:not(.fv-quickfinder-field > button)),
 html body button:is([class^="fv-"], [class*=" fv-"], [data-fv-onclick]):focus-visible:where(:not(.fv-quickfinder-field > button)) {
-    outline: 2px solid var(--fv-ui-info) !important;
+    outline: 2px solid var(--fvplus-system-focus-color, currentColor) !important;
     outline-offset: 2px;
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
@@ -37,7 +38,8 @@ html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" 
 html body :where(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):where(:not(body, html))
     button:is(.is-active, .is-selected, .is-primary, [aria-pressed="true"], [aria-selected="true"]):where(:not(.folder-dropdown, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip, .health-breakdown-btn, .fv-diagnostics-toolbar > .fv-ui-button, .fv-section-nav > button)) {
     border-color: var(--fv-button-border, var(--fvplus-theme-accent, var(--fv-ui-info))) !important;
-    background-color: var(--fv-button-bg, color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control))) !important;
+    background-color: var(--fv-button-bg, var(--fvplus-ui-control-active, color-mix(in srgb, var(--fvplus-theme-accent, var(--fv-ui-info)) 18%, var(--fvplus-ui-control)))) !important;
+    --fv-button-fg: var(--fvplus-ui-control-active-fg, var(--fvplus-ui-text-primary));
 }
 html body :is(#fv-settings-root, #fvFolderEditorForm, [class^="fv-"], [class*=" fv-"]):not(body):not(html)
     :is(button, input[type="button"], input[type="submit"], input[type="reset"], a[role="button"], a.fv-ui-button),
@@ -59,4 +61,70 @@ html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-com
 html body :is(.fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) .ui-dialog-titlebar {
     min-height: 36px;
     padding-inline-end: 44px;
+}
+
+/* Host metrics apply to full controls; component icon/toggle geometry remains local. */
+html[data-fv-host-controls="host"] body :is(.fvplus-docker-action-bar, .fvplus-docker-action-menu, .fv-dashboard-view-popover, .fv-ui-modal, .fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal) {
+    font-family: var(--fvplus-host-control-font-family, inherit);
+}
+html[data-fv-host-controls="host"] body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal)
+    :is(button, input[type="button"], input[type="submit"]):not(.fv-ui-modal-close, .ui-dialog-titlebar-close, .folder-pin-switch, .folder-runtime-status, .folder-metric-chip) {
+    font-size: var(--fvplus-host-control-font-size, inherit);
+    font-weight: var(--fvplus-host-control-font-weight, inherit);
+    letter-spacing: var(--fvplus-host-control-letter-spacing, normal);
+    text-transform: var(--fvplus-host-control-text-transform, none);
+    padding: var(--fvplus-host-control-padding);
+}
+html[data-fv-host-controls="host"] body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal)
+    :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), select, textarea) {
+    font-family: var(--fvplus-host-control-font-family, inherit);
+    font-size: var(--fvplus-host-control-font-size, inherit);
+}
+
+html[data-fv-theme-source="host"] body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal)
+    :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="hidden"], [type="button"], [type="submit"]), select, textarea) {
+    --fvplus-settings-text-primary: var(--fvplus-ui-input-fg, var(--fvplus-ui-text-primary));
+    --fv-editor-text-primary: var(--fvplus-ui-input-fg, var(--fvplus-ui-text-primary));
+    color: var(--fvplus-ui-input-fg, var(--fvplus-ui-text-primary));
+    background-color: var(--fvplus-ui-input);
+}
+
+html[data-fv-theme-source="host"] body .fv-ui-button.is-primary {
+    --fv-button-bg: var(--fvplus-ui-control-active);
+    --fv-button-fg: var(--fvplus-ui-control-active-fg);
+}
+
+@media (forced-colors: active) {
+    html:root body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fv-folder-action-dialog, .fv-import-preview-modal, .fv-backup-compare-modal, .fvplus-docker-action-bar)
+        :is(button, input, select, textarea, a[role="button"]),
+    html:root body :is(.fv-dashboard-quick-action, button.folder-dropdown) {
+        border: 1px solid ButtonText;
+        background-color: ButtonFace;
+        background-image: none;
+        color: ButtonText;
+        box-shadow: none;
+    }
+    html:root[data-fv-theme-source] body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fvplus-docker-action-bar)
+        :is(button, input, select, textarea):disabled,
+    html:root[data-fv-theme-source] body .fv-dashboard-quick-action:disabled {
+        --fv-button-fg: GrayText;
+        --fv-editor-button-fg: GrayText;
+        --fvplus-ui-control-fg: GrayText;
+        --fvplus-dashboard-quick-action-fg: GrayText;
+        color: GrayText;
+        border-color: GrayText;
+        opacity: 1;
+    }
+    html:root body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fvplus-docker-action-bar)
+        :is(button, a[role="button"]):is(.is-active, .is-selected, [aria-pressed="true"], [aria-selected="true"]),
+    html:root body .fv-dashboard-quick-action.is-active {
+        background-color: Highlight;
+        color: HighlightText;
+    }
+    html:root body :is(#fv-settings-root, #fvFolderEditorForm, .folder-editor-form, .fv-ui-modal, .fvplus-docker-action-bar)
+        :is(button, input, select, textarea, a[role="button"]):focus-visible,
+    html:root body .fv-dashboard-quick-action:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
 }

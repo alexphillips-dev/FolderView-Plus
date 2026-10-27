@@ -1161,43 +1161,11 @@ const buildVmStateSignature = (source, fromStateMode = false) => {
     return tokens.join('|');
 };
 
-const buildVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const infoByName = vmInfo && typeof vmInfo === 'object' ? vmInfo : {};
-    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-    const cache = {};
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const explicit = Array.isArray(folder?.containers)
-            ? folder.containers.filter((name) => infoByName[name])
-            : [];
-        let regexMatches = [];
-        const regexRaw = String(folder?.regex || '').trim();
-        if (regexRaw) {
-            try {
-                const regex = new RegExp(regexRaw);
-                regexMatches = names.filter((name) => regex.test(name));
-            } catch (_error) {
-                regexMatches = [];
-            }
-        }
-        const ruleMatches = utils.getAutoRuleMatches({
-            rules,
-            folderId,
-            names,
-            infoByName,
-            type: 'vm'
-        });
-        cache[folderId] = {
-            explicit,
-            regex: regexMatches,
-            rules: ruleMatches
-        };
-    }
-    return utils.reconcileLegacyMatchCache?.(cache, { folders: folderMap, names, infoByName, type: 'vm', rules }) || cache;
-};
-
+const buildVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => utils.buildFolderMatchCache({
+    type: 'vm', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: vmInfo || {},
+    names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(vmInfo || {}, name)) : [],
+    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+});
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-vm');
     if (existing && existing.parentNode) {
@@ -1853,7 +1821,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
             folderId: id,
             names: order,
             infoByName: vmInfo,
-            type: 'vm'
+            type: 'vm', folders: globalFolders
         });
     ruleMatches.forEach(pushCombined);
 

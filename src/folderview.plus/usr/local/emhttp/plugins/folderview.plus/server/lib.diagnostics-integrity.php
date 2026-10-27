@@ -113,8 +113,8 @@ function readUnraidVersionString(): ?string {
         return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
     }
 
-    function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type): ?array {
-        $decision = autoRuleDecision($rules, $name, $infoByName, $type);
+    function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type, ?array $folders = null): ?array {
+        $decision = autoRuleDecision($rules, $name, $infoByName, $type, $folders);
         return is_array($decision['assignedRule'] ?? null) ? $decision['assignedRule'] : null;
     }
 
@@ -518,7 +518,6 @@ function readUnraidVersionString(): ?string {
             $members = normalizeFolderMembers($folder['containers'] ?? []);
             foreach ($members as $member) {
                 $explicitAssignments[$member][] = (string)$folderId;
-                $effectiveAssignments[$member][] = (string)$folderId;
                 if (!isset($validSet[$member])) {
                     if (!isset($orphanedMembers[$folderId])) {
                         $orphanedMembers[$folderId] = [];
@@ -535,9 +534,6 @@ function readUnraidVersionString(): ?string {
                     foreach ($validNames as $name) {
                         if (diagnosticsRegexMatches($regex, $name)) {
                             $regexAssignments[$name][] = (string)$folderId;
-                            if (!in_array((string)$folderId, $effectiveAssignments[$name] ?? [], true)) {
-                                $effectiveAssignments[$name][] = (string)$folderId;
-                            }
                         }
                     }
                 }
@@ -553,20 +549,6 @@ function readUnraidVersionString(): ?string {
                 }
             }
 
-            if ($type === 'docker') {
-                $folderName = trim((string)($folder['name'] ?? ''));
-                if ($folderName !== '') {
-                    foreach ($validNames as $name) {
-                        $labelValue = getFolderLabelValueFromLabels(dockerInfoLabelsForName($infoByName, $name));
-                        if ($labelValue === '' || $labelValue !== $folderName) {
-                            continue;
-                        }
-                        if (!in_array((string)$folderId, $effectiveAssignments[$name] ?? [], true)) {
-                            $effectiveAssignments[$name][] = (string)$folderId;
-                        }
-                    }
-                }
-            }
         }
 
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
@@ -593,7 +575,7 @@ function readUnraidVersionString(): ?string {
                 $pattern = (string)($rule['pattern'] ?? '');
                 if ($pattern === '') {
                     $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is empty.'];
-                } elseif (!diagnosticsRegexIsValid($pattern)) {
+                } elseif (@preg_match(serverRuleRegex($pattern), '') === false || !fvplusRulePatternIsPortable($pattern)) {
                     $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is invalid.'];
                 }
             }
@@ -611,17 +593,9 @@ function readUnraidVersionString(): ?string {
             }
         }
 
-        foreach ($validNames as $name) {
-            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
-            if (!$rule) {
-                continue;
-            }
-            $folderId = (string)($rule['folderId'] ?? '');
-            if ($folderId !== '' && array_key_exists($folderId, $folders)) {
-                if (!in_array($folderId, $effectiveAssignments[$name] ?? [], true)) {
-                    $effectiveAssignments[$name][] = $folderId;
-                }
-            }
+        $membership = fvplusBuildMembershipSnapshot($type, $folders, $rules, $infoByName);
+        foreach ($membership['byFolder'] as $id => $resolved) {
+            foreach ($resolved['members'] as $name) $effectiveAssignments[$name][] = (string)$id;
         }
 
         $duplicateNames = [];

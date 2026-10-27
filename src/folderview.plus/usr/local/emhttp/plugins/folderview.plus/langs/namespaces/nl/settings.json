@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Thema's",
     "settings.theme.manager-help": "Bekijk het actieve hostthema en beheer geïmporteerde GitHub-thema's voor FolderView Plus runtime-pagina's.",
     "settings.theme.host-default": "Unraid-standaard",
+    "settings.theme.host-unidentified": "Onbekend hostthema",
+    "settings.theme.identity-source": "Hostidentiteitsbron",
+    "settings.theme.identity-declared": "Opgegeven door het thema",
+    "settings.theme.identity-recognized": "Herkend stijlblad",
+    "settings.theme.identity-native": "Ongeraid basisthema",
+    "settings.theme.adaptation": "Thema-aanpassing",
+    "settings.theme.adaptation-system": "Systeem geforceerde kleuren",
+    "settings.theme.adaptation-variables": "CSS-variabelen van de host",
+    "settings.theme.adaptation-computed": "Native computerstijlen",
+    "settings.theme.adaptation-contrast": "Herstelpalet: gastheercontrast",
+    "settings.theme.adaptation-requested": "Herstelpalet: geselecteerde modus",
+    "settings.theme.adaptation-fallback": "Pluginpalet: hostinvoer niet beschikbaar",
+    "settings.theme.native-controls": "Grootte van bedieningselementen",
+    "settings.theme.controls-host": "Grootte volgt de bedieningselementen van de host",
+    "settings.theme.controls-default": "Standaardinstellingen voor plug-ins",
     "settings.theme.managed-layer": "Actief beheerd thema",
     "settings.theme.host-status": "Hostthema: $1. Geïnstalleerde hostthema's worden beheerd in Unraid."
 }

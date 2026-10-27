@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "結果路徑：$1",
     "common.repair.move-preview-branch": "分支中的資料夾：$1",
     "common.repair.preview-show-more": "顯示更多 ($1)",
-    "common.repair.wait-for-tree-move": "等待目前資料夾移動完成。"
+    "common.repair.wait-for-tree-move": "等待目前資料夾移動完成。",
+    "common.server.rules-preview-config": "配置不可用。在預覽規則之前重新載入設定。",
+    "common.server.rules-preview-digest": "預覽摘要無效。",
+    "common.server.rules-preview-changed": "預覽已變更。套用變更前，請再次執行預覽。",
+    "common.server.rules-preview-invalid": "在套用預覽之前更正無效規則。",
+    "common.server.rules-save-invalid": "儲存前更正無效規則。",
+    "common.repair.rules-preview-no-changes": "此預覽不需要變更作業。",
+    "common.repair.rules-preview-moves-manual": "現有手動分配將移至預覽資料夾。"
 }

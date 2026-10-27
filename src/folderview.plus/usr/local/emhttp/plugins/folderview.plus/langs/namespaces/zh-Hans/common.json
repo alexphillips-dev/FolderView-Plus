@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "结果路径：$1",
     "common.repair.move-preview-branch": "分支中的文件夹：$1",
     "common.repair.preview-show-more": "显示更多 ($1)",
-    "common.repair.wait-for-tree-move": "等待当前文件夹移动完成。"
+    "common.repair.wait-for-tree-move": "等待当前文件夹移动完成。",
+    "common.server.rules-preview-config": "配置不可用。在预览规则之前重新加载设置。",
+    "common.server.rules-preview-digest": "预览摘要无效。",
+    "common.server.rules-preview-changed": "预览变了。应用之前再次运行预览。",
+    "common.server.rules-preview-invalid": "在应用预览之前更正无效规则。",
+    "common.server.rules-save-invalid": "保存前更正无效规则。",
+    "common.repair.rules-preview-no-changes": "此预览不需要更改作业。",
+    "common.repair.rules-preview-moves-manual": "现有手动分配将移至预览文件夹中。"
 }

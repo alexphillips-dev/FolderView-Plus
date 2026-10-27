@@ -5337,7 +5337,7 @@ table.sortable td:nth-child(4) {
     .fv-folder-action-dialog .ui-dialog-buttonpane button,
     .fv-webui-profile-button
 ) {
-    border: 0 !important;
+    border: var(--fvplus-system-control-border, 0) !important;
     border-radius: 8px !important;
     background: var(--fv-editor-button-bg-top) !important;
     color: var(--fv-editor-button-fg) !important;
@@ -5942,7 +5942,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 /* Final folder editor tab-state override. Keep this after shared button rules. */
 .fv-section-nav > button {
     --fv-editor-button-bg-top: var(--fvplus-ui-control);
-    --fv-editor-button-fg: var(--fvplus-ui-text-primary);
+    --fv-editor-button-fg: var(--fvplus-ui-control-fg, var(--fvplus-ui-text-primary));
     position: relative;
     overflow: hidden;
     font-size: 1.3rem !important;
@@ -5958,7 +5958,7 @@ html body #fvFolderEditorForm.folder-editor-form .fv-section-nav > button[data-t
     outline: revert !important;
     outline-offset: 0 !important;
     background: var(--fvplus-ui-control) !important;
-    color: var(--fvplus-ui-text-primary) !important;
+    color: var(--fvplus-ui-control-fg, var(--fvplus-ui-text-primary)) !important;
     box-shadow: none !important;
 }
 
@@ -6002,13 +6002,30 @@ body[data-fv-theme-source="host"] :is(
     --fv-editor-inset-surface: var(--fvplus-editor-inset-surface);
     --fv-editor-button-bg-top: var(--fvplus-ui-control);
     --fv-editor-button-bg-bottom: var(--fvplus-ui-control);
+    --fv-editor-button-fg: var(--fvplus-ui-control-fg, var(--fvplus-ui-text-primary));
+    --fv-editor-button-hover-fg: var(--fvplus-ui-control-hover-fg, var(--fvplus-ui-text-primary));
+    --fv-editor-button-active-fg: var(--fvplus-ui-control-active-fg, var(--fvplus-ui-text-primary));
     --fv-editor-button-hover-top: var(--fvplus-ui-control-hover);
     --fv-editor-button-hover-bottom: var(--fvplus-ui-control-hover);
     --fv-editor-button-active-top: var(--fvplus-ui-control-active);
     --fv-editor-button-active-bottom: var(--fvplus-ui-control-active);
-    --fv-editor-button-accent-fg: var(--fvplus-ui-text-primary);
+    --fv-editor-button-accent-fg: var(--fvplus-ui-control-active-fg, var(--fvplus-ui-text-primary));
     --fv-editor-button-accent-top: var(--fvplus-ui-control-active);
     --fv-editor-button-accent-bottom: var(--fvplus-ui-control-active);
     --fv-editor-button-shadow-active: inset 0 0 0 1px var(--fvplus-ui-accent-soft);
     --fv-editor-button-accent-shadow: inset 0 0 0 1px var(--fvplus-ui-accent-soft);
+}
+
+/* Keep card text local while the surrounding editor page follows its page color. */
+body[data-fv-theme-source="host"] .folder-editor-form button:is(:hover, :focus-visible):not(.fv-section-nav > button) {
+    --fv-editor-button-fg: var(--fvplus-ui-control-hover-fg);
+}
+body[data-fv-theme-source="host"] .folder-editor-form button:active:not(.fv-section-nav > button) {
+    --fv-editor-button-fg: var(--fvplus-ui-control-active-fg);
+}
+body[data-fv-theme-source="host"] :is(#fvEditorChrome, #fvLivePanel, .fv-section-shell, .fv-folder-editor-bootstrap-banner) {
+    --fv-editor-text-primary: var(--fvplus-ui-text-primary);
+    --fv-editor-muted: var(--fvplus-ui-text-muted);
+    --fv-editor-dim: var(--fvplus-ui-text-dim);
+    color: var(--fv-editor-text-primary);
 }

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { exerciseDockerColumnDiagnostics } from '../helpers/docker-column-diagnostics.mjs';
+import { exerciseDockerMembershipRefresh } from '../helpers/docker-membership-refresh.mjs';
 import {
     exerciseChildFolderPreviewContext,
     exerciseDockerPreviewContextDiagnostics,
@@ -6,6 +8,11 @@ import {
 } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
+test('Docker detail hydration preserves idle folders and columns with reordered equivalent facts', exerciseDockerMembershipRefresh, { skipAccessibility: true });
+test('Docker column diagnostics capture idle resizing and retain evidence on page exit', async ({ page }) => {
+    await exerciseDockerColumnDiagnostics({ page, baseUrl });
+}, { skipAccessibility: true });
+
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.fixtureRuntime?.api);
@@ -188,7 +195,7 @@ test('legacy Docker uses API-first reads while host eventControl retains action 
     assert.equal(result.runtime.info.State.Running, true);
     assert.equal(result.runtime.info.State.Paused, true);
     assert.equal(result.runtime.info.State.Updated, true);
-    assert.equal(result.runtime.Labels['fixture.php'], 'preserved');
+    assert.equal(result.runtime.Labels['fixture.php'], undefined);
     assert.equal(result.hostActions.length, 1);
     assert.equal(result.hostActions[0].request.action, 'start');
     assert.equal(result.apiCalls.some((entry) => entry.list), true);

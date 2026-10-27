@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(root);
+        module.exports = factory(root, typeof require === 'function' ? require('./folderviewplus.theme-integration.js') : root?.FolderViewPlusFoundationModules?.themeIntegration);
         return;
     }
-    root.FolderViewPlusSupportBundleTelemetry = factory(root);
+    root.FolderViewPlusSupportBundleTelemetry = factory(root, root.FolderViewPlusFoundationModules?.themeIntegration);
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(root, themeIntegration) {
     const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
     const downloadDiagnosticsModule = root?.FolderViewPlusDownloadDiagnostics || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
@@ -69,6 +69,9 @@
     ]));
 
     const normalizePrivacyMode = (value) => (String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized');
+
+    const sanitizeThemeTelemetry = (value, privacy = 'sanitized') => normalizePrivacyMode(privacy) === 'full'
+        ? value : themeIntegration?.sanitizeDiagnostics?.(value) || null;
 
     const hashValue = (value, saltSeed = '') => {
         const input = `${String(saltSeed || '')}|${String(value || '')}`;
@@ -140,7 +143,8 @@
                 return;
             }
             counters.checkedFieldCount += 1;
-            const isThemeMetadata = path[0] === 'theme';
+            const isThemeMetadata = path[0] === 'theme' && ((key === 'name' && themeIntegration?.isDiagnosticCheckName?.(value))
+                || (key === 'hostThemeName' && ['black','white','gray','azure'].includes(value)));
             if (!isThemeMetadata && (
                 SUPPORT_BUNDLE_UI_ID_KEYS.has(key)
                 || SUPPORT_BUNDLE_UI_NAME_KEYS.has(key)
@@ -177,6 +181,52 @@
             ...counters,
             violationCount
         };
+    };
+
+    // Explicit projection also protects exports from unexpected fields in persisted browser data.
+    const sanitizeColumnMovement = (value) => {
+        const object = input => input && typeof input === 'object' && !Array.isArray(input) ? input : {};
+        const numeric = (input, limit = 100000) => typeof input === 'number' && Number.isFinite(input)
+            ? Math.max(-limit, Math.min(limit, input)) : 0;
+        const numbers = (input, keys, limit) => Object.fromEntries(keys.map(key => [key, numeric(input[key], limit)]));
+        const flags = (input, keys) => Object.fromEntries(keys.map(key => [key, input[key] === true]));
+        const choice = (input, allowed, fallback = 'unknown') => allowed.includes(input) ? input : fallback;
+        const aurora = input => flags(object(input), ['detected', 'colors', 'enhancements', 'sidebar', 'enhancementScript',
+            'enhancementsEnabled', 'sidebarEnabled', 'sidebarCollapsed', 'topbar', 'plusMarker', 'plusView', 'compactDockerTable']);
+        const geometry = input => {
+            if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+            return { ...numbers(input, ['tableLeft', 'tableWidth', 'viewportWidth', 'scrollbarWidth', 'scrollX', 'containerScrollX']),
+                fixedListing: input.fixedListing === true, bodyAvailable: input.bodyAvailable === true,
+                viewMode: choice(input.viewMode, ['basic', 'advanced']),
+                columns: (Array.isArray(input.columns) ? input.columns : []).slice(0,16).map((entry, index) => {
+                    const column = object(entry);
+                    return { index, visible: column.visible === true, ...numbers(column, ['left', 'width']),
+                        bodyLeft: column.bodyLeft === null ? null : numeric(column.bodyLeft),
+                        bodyWidth: column.bodyWidth === null ? null : numeric(column.bodyWidth) };
+                }) };
+        };
+        const trigger = input => {
+            if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+            return { ...numbers(input, ['atMs', 'ageMs'], 604800000),
+                kind: choice(input.kind, ['host-loadlist', 'host-listview', 'plugin-width', 'visibility', 'viewport']),
+                reason: choice(input.reason, ['init', 'bootstrap-stable', 'pre-visible-folder-commit', 'table-bind', 'render-complete',
+                    'font-ready', 'theme:observer', 'theme:viewport', 'theme:theme-event', 'theme:pageshow', 'viewport-change',
+                    'prefs-change', 'folder-toggle', 'listview-mode-change', 'other'], 'other') };
+        };
+        const raw = object(value);
+        return { schemaVersion: 1, available: raw.available === true,
+            ...numbers(raw, ['sampleIntervalMs', 'startupDelayMs', 'snapshotMinimumIntervalMs', 'sampleCount', 'movementCount', 'reversalCount', 'lastSampleMs'], 604800000),
+            ...numbers(raw, ['maximumColumnShiftPx', 'maximumTableShiftPx', 'maximumWidthChangePx', 'maximumHeaderBodyMismatchPx',
+                'maximumBodyColumnShiftPx', 'maximumBodyWidthChangePx']),
+            aurora: aurora(raw.aurora), initial: geometry(raw.initial), latest: geometry(raw.latest),
+            triggers: (Array.isArray(raw.triggers) ? raw.triggers : []).slice(-16).map(trigger).filter(Boolean),
+            events: (Array.isArray(raw.events) ? raw.events : []).slice(-24).map(input => {
+                const event = object(input);
+                return { atMs: numeric(event.atMs, 604800000),
+                    ...numbers(event, ['tableShiftPx', 'columnShiftPx', 'widthChangePx', 'headerBodyMismatchPx', 'bodyColumnShiftPx', 'bodyWidthChangePx']),
+                    ...flags(event, ['reversed', 'shapeChanged', 'viewportChanged', 'scrollChanged']),
+                    nearbyTrigger: trigger(event.nearbyTrigger), geometry: geometry(event.geometry), aurora: aurora(event.aurora) };
+            }) };
     };
 
     const createUiTelemetryRedactor = (bundle, privacy = 'sanitized') => {
@@ -279,6 +329,7 @@
                 return `${operation} ${redactedNames.join('*')}`;
             },
             sanitizeValue(fieldPath, key, value) {
+                if (mode !== 'full' && key === 'columnMovement') return sanitizeColumnMovement(value);
                 if (Array.isArray(value)) {
                     return value.map((entry, index) => this.sanitizeValue(`${fieldPath}.${index}`, key, entry));
                 }
@@ -580,7 +631,7 @@
                 'folderEditorDebug',
                 collectFolderEditorDebugDiagnostics()
             );
-            existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
+            existingUiTelemetry.theme = sanitizeThemeTelemetry(collectThemeTelemetrySnapshot(), privacyMode);
             existingUiTelemetry.localization = uiRedactor.sanitizeValue(
                 'uiTelemetry.localization',
                 'localization',
@@ -623,6 +674,7 @@
         createApi,
         createUiTelemetryRedactor,
         buildUiTelemetryPrivacySelfCheck,
+        sanitizeThemeTelemetry,
         normalizePrivacyMode,
         hashValue,
         SUPPORT_BUNDLE_UI_ID_KEYS,

@@ -75,8 +75,8 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    // Two retired Theme workspace phrases moved to semantic Settings messages in the Themes split.
-    assert.ok(report.extraction.autoBoundMessageCount >= 2995, 'retain audited conditional UI and error messages');
+    // Retired Theme and rule simulator phrases moved to semantic messages.
+    assert.ok(report.extraction.autoBoundMessageCount >= 2993, 'retain audited conditional UI and error messages');
     assert.ok(report.sourceMessageCount >= 4716, 'retain legacy and semantic theme messages together');
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);

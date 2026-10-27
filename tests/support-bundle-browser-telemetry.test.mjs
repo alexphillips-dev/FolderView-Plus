@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const browserModulePath = path.join(
@@ -44,8 +45,9 @@ const loadRuntimePageDiagnostics = (root = {}) => {
     return context.module.exports;
 };
 
-const loadTelemetryModule = (root = {}) => {
+const loadTelemetryModule = (root = {}, integrationAvailable = true) => {
     const context = {
+        require: integrationAvailable ? createRequire(telemetryModulePath) : undefined,
         globalThis: root,
         module: { exports: {} },
         exports: {},
@@ -57,6 +59,56 @@ const loadTelemetryModule = (root = {}) => {
     });
     return context.module.exports;
 };
+
+test('sanitized column movement exports allow only bounded geometry, flags and canonical triggers', () => {
+    const telemetry = loadTelemetryModule(), secret = 'private-container-https://host.invalid/token';
+    const raw = { available: true, sampleCount: 55, aurora: { detected: true, stylesheet: secret },
+        latest: { viewMode: 'basic', tableWidth: 1200, title: secret, columns: Array(30).fill({ left: 40, width: 100, label: secret }) },
+        events: Array(40).fill({ atMs: 1234, columnShiftPx: 12, notes: secret, nearbyTrigger: { kind: 'host-loadlist', reason: secret } }),
+        triggers: Array(30).fill({ kind: secret, reason: secret }), unexpected: secret };
+    const redactor = telemetry.createUiTelemetryRedactor({}, 'sanitized');
+    const safe = redactor.sanitizeValue('uiTelemetry.dockerPage.layoutStability.columnMovement', 'columnMovement', raw);
+    assert.equal(JSON.stringify(safe).includes(secret), false);
+    assert.equal(safe.latest.columns.length, 16); assert.equal(safe.events.length, 24); assert.equal(safe.triggers.length, 16);
+    assert.equal(safe.sampleCount, 55); assert.equal(safe.aurora.detected, true);
+    assert.equal(safe.events[0].columnShiftPx, 12); assert.equal(safe.events[0].nearbyTrigger.kind, 'host-loadlist');
+    assert.equal(safe.events[0].nearbyTrigger.reason, 'other');
+    assert.equal(safe.latest.viewMode, 'basic');
+    const full = telemetry.createUiTelemetryRedactor({}, 'full').sanitizeValue('', 'columnMovement', raw);
+    assert.equal(full.unexpected, secret);
+});
+
+test('sanitized theme exports keep only bounded canonical adaptation evidence and never host content', () => {
+    const telemetry=loadTelemetryModule();
+    const secret='private-theme-10.4.5.6-/mnt/user/private-https://host.invalid/token';
+    const raw={htmlClassList:[secret],pluginAssets:{stylesheets:[secret]},tokens:{html:{color:secret}},warnings:[secret],adjustments:[secret],
+        resolver:{hostThemeName:secret,requestedMode:'auto',appliedMode:'auto',classification:'dark',hostPaletteApplied:true,
+            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret},
+            contrastChecks:[{name:'surface.hostControlText',ratio:7,minRatio:4.5,passed:true},{name:secret,ratio:21}],
+            statusChecks:{started:{ratio:12,minRatio:4.5},private:secret}}};
+    const safe=telemetry.sanitizeThemeTelemetry(raw);
+    assert.equal(JSON.stringify(safe).includes(secret),false);
+    assert.equal(safe.resolver.hostIntegration.paletteSource,'computed');
+    assert.equal(safe.resolver.contrastChecks.length,1);
+    assert.equal(safe.resolver.contrastChecks[0].ratio,7);
+    assert.equal(safe.resolver.statusChecks.started.passed,true);
+    assert.equal(safe.resolver.statusChecks.paused.passed,false);
+    raw.resolver.statusChecks.paused={ratio:2,minRatio:3};
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.statusChecks.paused.passed,false);
+    raw.resolver.statusChecks.paused={ratio:7,minRatio:3,passed:false};
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.statusChecks.paused.passed,false);
+    assert.equal(safe.warnings.length,1);
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw,'full'),raw);
+    assert.equal(telemetry.sanitizeThemeTelemetry(secret),null);
+    assert.equal(loadTelemetryModule({},false).sanitizeThemeTelemetry(raw),null,'missing adapter must omit raw theme data');
+    const bundle=telemetry.createApi({collectThemeTelemetrySnapshot:()=>raw}).collectSupportBundleUiTelemetry({bundleMeta:{privacyMode:'sanitized'}});
+    assert.equal(JSON.stringify(bundle.uiTelemetry.theme).includes(secret),false);
+    assert.equal(bundle.redactionManifest.privacySelfCheck.status,'passed');
+    assert.equal(telemetry.buildUiTelemetryPrivacySelfCheck({theme:{resolver:{hostThemeName:secret}}}).status,'failed');
+    raw.resolver.hostIntegration.paletteSource=secret;raw.resolver.contrastChecks[0].ratio=Infinity;
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.paletteSource,'fallback');
+    assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.contrastChecks[0].ratio,0);
+});
 
 test('support bundle browser telemetry resolves useful asset version tokens when host autov returns v=0', () => {
     const root = {
@@ -533,6 +585,9 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     reason: 'runtime-sync',
                     currentPage: '/Docker',
                     listViewMode: 'basic',
+                    layoutStability: { columnMovement: { available: true, movementCount: 3,
+                        maximumBodyColumnShiftPx: 7.1, aurora: { detected: true, plusView: true, asset: 'private-label' },
+                        events: [{ atMs: 2000, bodyColumnShiftPx: 7.1, unexpected: 'private-label' }] } },
                     correlation: {
                         stateSignature: 'vaultwarden:r:1:dockerman:true:private-label',
                         hookStates: {
@@ -760,6 +815,8 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     };
     const redactor = loadTelemetryModule(root).createUiTelemetryRedactor(bundle, 'sanitized');
     const sanitizedPageSnapshot = collectors.collectDockerPageDiagnostics(redactor);
+    assert.equal(sanitizedPageSnapshot.layoutStability.columnMovement.aurora.plusView, true);
+    assert.equal(sanitizedPageSnapshot.layoutStability.columnMovement.maximumBodyColumnShiftPx, 7.1);
     const sanitizedBulkUpdateTrace = collectors.collectDockerBulkUpdateTrace(redactor);
     const sanitizedRequestBundleTrace = collectors.collectDockerRequestBundleTrace(redactor);
     const sanitizedDashboardLifecycle = collectors.collectDashboardLifecycleDiagnostics(redactor);

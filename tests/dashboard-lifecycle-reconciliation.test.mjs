@@ -38,16 +38,18 @@ test('Dashboard pagehide commits both pending expansion maps before releasing ho
     const end = dashboardSource.indexOf('})(window,', start);
     assert.ok(start >= 0 && end > start);
     vm.runInNewContext(dashboardSource.slice(start, end), {
-        window: { addEventListener: (name, callback, options) => hooks.push({ name, callback, options }) },
-        dashboardStorageWriter: writer, queuedLoadlistTimer: null, dashboardThemeReflowTimer: null, clearTimeout,
+        window: { addEventListener: (name, callback, options) => hooks.push({ name, callback, options }), removeEventListener: (name, callback) => { assert.equal(name,'pagehide'); assert.equal(callback,hooks[0].callback); events.push('removed'); } },
+        dashboardStorageWriter: writer, queuedLoadlistTimer: null, dashboardThemeReflowTimer: null, dashboardThemeReflowUnsubscribe: () => events.push('theme-unsubscribe'), clearTimeout,
         dashboardLiveRefreshController: { dispose() {
             assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
             assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.vm)), { vmParent: true, vmChild: true });
             events.push('dispose');
         } }, dashboardHostAdapterModule: null, runtimeHostAdapters: null, dashboardDockerProviderRegistry: null
     });
-    assert.equal(hooks.length, 1); assert.equal(hooks[0].name, 'pagehide'); assert.equal(hooks[0].options.once, true);
-    hooks[0].callback(); assert.deepEqual(events, ['dispose']);
+    assert.equal(hooks.length, 1); assert.equal(hooks[0].name, 'pagehide');
+    hooks[0].callback({persisted:true}); assert.deepEqual(events, []);
+    assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
+    hooks[0].callback({persisted:false}); assert.deepEqual(events, ['dispose','theme-unsubscribe','removed']);
 });
 
 const flushPromises = async () => {

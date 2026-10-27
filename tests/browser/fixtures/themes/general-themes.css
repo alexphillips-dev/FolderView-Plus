@@ -1,0 +1,38 @@
+/* Synthetic native host styles. These fixtures make no claims about a named theme. */
+:root[data-fixture-theme] {
+    --fixture-page:#0b1220; --fixture-card:#17243b; --fixture-text:#f1f5f9;
+    --fixture-card-text:var(--fixture-text); --fixture-muted:#b5c7df; --fixture-accent:#93c5fd;
+    --fixture-font:Arial,sans-serif; --fixture-size:1.2rem; --fixture-padding:8px 14px;
+    --fixture-radius:6px; font-size:10px;
+}
+:root[data-fixture-input="variables"] {
+    --background-color:var(--fixture-page); --table-background-color:var(--fixture-card);
+    --text-color:var(--fixture-text); --alt-text-color:var(--fixture-muted);
+    --link-text-color:var(--fixture-accent); --input-bg-color:var(--fixture-card);
+    --button-background:var(--fixture-card); --hover-button-background:var(--fixture-card);
+    --border-color:var(--fixture-muted); --button-border-radius:var(--fixture-radius);
+}
+:root[data-fixture-theme="light"], :root[data-fixture-theme="legacy"] {
+    --fixture-page:#f8fafc; --fixture-card:#fff; --fixture-text:#111827;
+    --fixture-muted:#475569; --fixture-accent:#1d4ed8; --fixture-radius:14px;
+}
+:root[data-fixture-theme="direct-css"] { --fixture-accent:#86efac; --fixture-font:Georgia,serif; --fixture-radius:2px; }
+:root[data-fixture-theme="legacy"] { --text:var(--fixture-text); --orange:var(--fixture-accent); }
+:root[data-fixture-theme="modern"] { --fixture-accent:color-mix(in srgb,#93c5fd 60%,#c4b5fd); --fixture-font:monospace; --fixture-radius:999px; }
+:root[data-fixture-theme="transparent"] { --fixture-card:rgba(42,60,87,.85); --fixture-accent:#fcd34d; }
+:root[data-fixture-theme="large-type"] { font-size:20px; --fixture-font:Georgia,serif; --fixture-padding:10px 16px; }
+:root[data-fixture-theme="mixed-recovery"] {
+    --fixture-page:#f8fafc; --fixture-card:#111827; --fixture-text:#111827;
+    --fixture-card-text:#f1f5f9; --fixture-accent:#1d4ed8; --fixture-muted:#475569;
+    /* Stale metadata is intentionally unsuitable for the visible light page. */
+    --text-color:#fff;
+}
+html[data-fixture-theme] body { background:var(--fixture-page) !important; color:var(--fixture-text) !important; }
+#fixture-native-theme-surface { background:var(--fixture-card); color:var(--fixture-card-text); max-width:100%; box-sizing:border-box; }
+#fixture-native-theme-surface :is(button,input,select) {
+    font-family:var(--fixture-font); font-size:var(--fixture-size); line-height:1.4; font-weight:600;
+    letter-spacing:0; text-transform:none; padding:var(--fixture-padding);
+    background:var(--fixture-card); color:var(--fixture-card-text); border:1px solid var(--fixture-muted); border-radius:var(--fixture-radius);
+    max-width:100%; box-sizing:border-box;
+}
+#fixture-native-theme-surface a { color:var(--fixture-accent); }

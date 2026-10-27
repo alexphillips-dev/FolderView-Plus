@@ -1817,7 +1817,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
             folderId: id,
             names: order,
             infoByName: containersInfo,
-            type: 'docker'
+            type: 'docker', folders: globalFolders.docker
         });
     ruleMatches.forEach(pushCombined);
 
@@ -2088,7 +2088,7 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             folderId: id,
             names: order,
             infoByName: vmInfo,
-            type: 'vm'
+            type: 'vm', folders: globalFolders.vms
         });
     ruleMatches.forEach(pushCombined);
 
@@ -2458,7 +2458,7 @@ let dashboardFolderRenderCompleteByType = {
     vm: false
 };
 let dashboardThemeReflowBound = false;
-let dashboardThemeReflowObserver = null;
+let dashboardThemeReflowUnsubscribe = null;
 let dashboardThemeReflowTimer = 0;
 bindDashboardQuickActionSyncHandlers();
 
@@ -2485,40 +2485,9 @@ const bindDashboardThemeReflowHandlers = () => {
         return;
     }
     dashboardThemeReflowBound = true;
-    if (typeof MutationObserver === 'function') {
-        dashboardThemeReflowObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations || []) {
-                if (mutation.type !== 'attributes') {
-                    continue;
-                }
-                const attr = String(mutation.attributeName || '').toLowerCase();
-                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                    queueDashboardThemeReflow('observer');
-                    return;
-                }
-            }
-        });
-        if (document.documentElement) {
-            dashboardThemeReflowObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-        if (document.body) {
-            dashboardThemeReflowObserver.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-    }
-    if (typeof window.matchMedia === 'function') {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        if (media && typeof media.addEventListener === 'function') {
-            media.addEventListener('change', () => queueDashboardThemeReflow('prefers-color-scheme'));
-        } else if (media && typeof media.addListener === 'function') {
-            media.addListener(() => queueDashboardThemeReflow('prefers-color-scheme'));
-        }
-    }
+    dashboardThemeReflowUnsubscribe = window.FolderViewPlusFoundationModules?.themeIntegration?.observeThemeChanges(queueDashboardThemeReflow, {
+        document, window, onSuspend:() => { window.clearTimeout(dashboardThemeReflowTimer); dashboardThemeReflowTimer = 0; }
+    });
 };
 bindDashboardThemeReflowHandlers();
 applyDashboardResolvedThemeTokens('dashboard:bind');
@@ -2615,7 +2584,9 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
             ...prior,
             ...entry,
             shortId: String(entry.id || entry.shortId || prior.shortId || '').replace(/^sha256:/i, '').slice(0, 12),
-            Labels: { ...(prior.Labels || {}), ...(entry.Labels || {}) },
+            Labels: entry.Labels && typeof entry.Labels === 'object' ? { ...entry.Labels } : { ...(prior.Labels || {}) },
+            image: String(entry.Image ?? entry.image ?? prior.image ?? prior.Image ?? ''),
+            Image: String(entry.Image ?? entry.image ?? prior.image ?? prior.Image ?? ''),
             info: {
                 ...priorInfo,
                 ...sourceInfo,
@@ -2756,12 +2727,15 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
         const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
             ? runtimeSnapshotApi.diffRuntimeRows(resolvedType, dashboardRuntimeInfoByType[resolvedType], nextRuntimeInfo)
             : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
+        const matchingInputs = { type: resolvedType, rules: folderTypePrefs[resolvedType]?.autoRules || [] };
+        const membershipChanged = utils.getMembershipSignature({ ...matchingInputs, infoByName: dashboardRuntimeInfoByType[resolvedType] })
+            !== utils.getMembershipSignature({ ...matchingInputs, infoByName: nextRuntimeInfo });
         dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
         lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
             ? buildDockerStateSignature(parsed, true)
             : buildVmStateSignature(parsed, true);
         if (snapshot) rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
-        if (rowDiff.structuralChanged) {
+        if (rowDiff.structuralChanged || membershipChanged) {
             window.FolderViewPlusDashboardRowReconciliation = {
                 ...(window.FolderViewPlusDashboardRowReconciliation || {}),
                 [resolvedType]: {
@@ -3138,13 +3112,16 @@ window.addEventListener("keydown", (e) => {
         loadlist();
     }
 });
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', function releaseDashboardPage(event) {
     dashboardStorageWriter?.flush?.();
+    if (event?.persisted) return;
     dashboardLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dashboardThemeReflowTimer);
+    dashboardThemeReflowUnsubscribe?.();
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
     dashboardDockerProviderRegistry?.dispose?.();
-}, { once: true });
+    window.removeEventListener('pagehide', releaseDashboardPage);
+});
 })(window, window.jQuery || window.$);

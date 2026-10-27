@@ -1438,7 +1438,11 @@ div.folder-preview-4 span.outer {
 
 .fvplus-docker-context-menu {
     --fvplus-docker-menu-danger: var(--fvplus-graphite-danger);
-    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+.fvplus-docker-context-menu.fvplus-context-menu-scroll {
+    overflow: auto !important;
 }
 
 body[data-fv-theme-class="light"] .fvplus-docker-context-menu {
@@ -1567,6 +1571,7 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     min-width: 0;
     margin: 0.9rem 0 0.35rem;
     padding: 0;
+    font-family: var(--fvplus-host-control-font-family, inherit);
     color: var(--fvplus-theme-foreground);
 }
 
@@ -1580,28 +1585,32 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 
 .fvplus-docker-action-secondary {
     margin-left: auto;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding-right: 64px; /* Keep the host's floating page-scroll control clear of Tools. */
 }
 
 .fvplus-docker-action-button {
     box-sizing: border-box;
     min-width: 0 !important;
-    min-height: 30px;
+    min-height: var(--fvplus-host-control-height, 30px);
     margin: 0 !important;
-    padding: var(--fvplus-docker-action-padding, 0.38rem 0.62rem) !important;
+    padding: var(--fvplus-host-control-padding, var(--fvplus-docker-action-padding, 0.38rem 0.62rem)) !important;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
     border: 1px solid var(--fvplus-ui-border-strong, rgba(128, 128, 128, 0.48)) !important;
-    border-radius: var(--fvplus-ui-control-radius, 5px) !important;
+    border-radius: var(--fvplus-host-control-radius, var(--fvplus-ui-control-radius, 5px)) !important;
     background: var(--fvplus-ui-control, rgba(128, 128, 128, 0.08)) !important;
-    color: inherit !important;
+    color: var(--fvplus-ui-control-fg, inherit) !important;
     font: inherit;
-    font-size: var(--fvplus-docker-action-font-size, 1.05rem) !important;
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: 0.035em;
-    text-transform: uppercase;
+    font-family: var(--fvplus-host-control-font-family, inherit);
+    font-size: var(--fvplus-host-control-font-size, var(--fvplus-docker-action-font-size, 1.05rem)) !important;
+    font-weight: var(--fvplus-host-control-font-weight, 700);
+    line-height: var(--fvplus-host-control-line-height, 1.1);
+    letter-spacing: var(--fvplus-host-control-letter-spacing, 0.035em);
+    text-transform: var(--fvplus-host-control-text-transform, uppercase);
     cursor: pointer;
     box-shadow: none !important;
     transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
@@ -1610,15 +1619,15 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 .fvplus-docker-action-button:hover,
 .fvplus-docker-action-button:focus-visible {
     border-color: var(--fvplus-theme-accent, #ff9a3c) !important;
-    background: var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.1)) !important;
-    color: var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c)) !important;
+    background: var(--fvplus-ui-control-active, var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.1))) !important;
+    color: var(--fvplus-ui-control-active-fg, var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c))) !important;
     outline: none;
 }
 
 .fvplus-docker-action-button.is-active {
     border-color: var(--fvplus-theme-accent, #ff9a3c) !important;
-    background: var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.14)) !important;
-    color: var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c)) !important;
+    background: var(--fvplus-ui-control-active, var(--fvplus-theme-accent-soft, rgba(255, 154, 60, 0.14))) !important;
+    color: var(--fvplus-ui-control-active-fg, var(--fvplus-control-accent-text, var(--fvplus-theme-accent, #ff9a3c))) !important;
 }
 
 .fvplus-docker-action-button:disabled,
@@ -1640,21 +1649,7 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     font-variant-numeric: tabular-nums;
 }
 
-/* Match Aurora's native Docker action row when its colour/font stylesheet is loaded. */
-html:has(link[rel="stylesheet"][href*="/Aurora-Theme/styles/theme"]) body .fvplus-docker-action-bar {
-    --fvplus-docker-action-padding: 8px 16px;
-    --fvplus-docker-action-font-size: 1.2rem;
-    font-family: var(--tp-font-heading, inherit);
-}
-
-html:has(link[rel="stylesheet"][href*="/Aurora-Theme/styles/theme"]) body .fvplus-docker-action-button {
-    font-weight: 600;
-    line-height: normal;
-    letter-spacing: 0;
-    text-transform: none;
-}
-
-html:has(link[rel="stylesheet"][href*="/Aurora-Theme/styles/theme"]) body .fvplus-docker-action-count {
+html[data-fv-host-controls="host"] .fvplus-docker-action-count {
     box-sizing: border-box;
     height: 1.2em;
     line-height: 1;
@@ -1663,7 +1658,7 @@ html:has(link[rel="stylesheet"][href*="/Aurora-Theme/styles/theme"]) body .fvplu
 .fvplus-docker-action-separator {
     width: 1px;
     height: 23px;
-    margin: 0 0.15rem;
+    margin: 0 0.75rem;
     background: rgba(128, 128, 128, 0.38);
 }
 
@@ -1689,7 +1684,7 @@ html:has(link[rel="stylesheet"][href*="/Aurora-Theme/styles/theme"]) body .fvplu
     border: 1px solid rgba(128, 128, 128, 0.48);
     border-radius: 7px;
     background: var(--fvplus-runtime-menu-bg, #1d1d1f);
-    color: var(--fvplus-theme-foreground);
+    color: var(--fvplus-runtime-menu-fg, var(--fvplus-theme-foreground));
     box-shadow: 0 9px 24px rgba(0, 0, 0, 0.32);
     overflow-x: hidden;
     overflow-y: auto;
@@ -1868,6 +1863,6 @@ body.fvplus-privacy-docker-runtime-mask-names .fv-docker-feedback-name { filter:
 
 .fv-settings-transfer-toast { position: fixed; inset: auto 1rem 1rem auto; z-index: 10000; max-width: min(420px, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--fvplus-ui-border-subtle); border-radius: 8px; background: var(--fvplus-ui-strong); color: var(--fvplus-ui-text-primary); font-size: 1.2rem; overflow-wrap: anywhere; }
 .fvplus-docker-context-menu a[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
-.fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
+.fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; margin: 0; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
 .fv-settings-transfer-menu > li > a { white-space: normal; overflow-wrap: anywhere; }
 @media (pointer: coarse) { .fv-settings-transfer-menu > li > a { box-sizing: border-box; min-height: 44px; } }

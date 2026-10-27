@@ -460,7 +460,7 @@
                 .replace(/^sha256:/i, '')
                 .trim();
             if (containerId) {
-                const exactTrigger = doc?.getElementById?.(containerId) || null;
+                const exactTrigger = doc?.getElementById?.(`ct-${containerId.slice(0, 12)}`) || doc?.getElementById?.(containerId) || null;
                 const exactRow = exactTrigger ? jq(exactTrigger).closest('tr') : jq();
                 if (exactRow.length) return exactRow.first();
             }
@@ -1103,7 +1103,7 @@
                     .removeClass(dockerRuntimeIconClassList)
                     .addClass(`fa ${statusMeta.icon} ${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`);
             }
-            if ($stateLabel.length) {
+            if ($stateLabel.length && $stateLabel.text() !== ` ${localizedLabel}`) {
                 $stateLabel.text(` ${localizedLabel}`);
             }
         };
@@ -1116,7 +1116,8 @@
             if (!$updateColumn.length) {
                 return;
             }
-            $updateColumn.html(buildDockerMemberUpdateColumnHtml(entry));
+            const html = buildDockerMemberUpdateColumnHtml(entry);
+            if ($updateColumn.html() !== html) $updateColumn.html(html);
         };
 
         const syncDockerFolderMemberRows = (id, runtimeContainers, changedNames = null) => {
@@ -1200,7 +1201,7 @@
                     .removeClass(`${dockerRuntimeIconClassList} ${dockerRuntimeStateClassList}`)
                     .addClass(`fa ${statusMeta.icon} ${$compactStatus.length ? statusMeta.compactClassName : `${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`}`);
             }
-            if ($stateLabel.length) {
+            if ($stateLabel.length && $stateLabel.text() !== ` ${localizedLabel}`) {
                 $stateLabel.text(` ${localizedLabel}`);
             }
         };
@@ -1227,7 +1228,7 @@
             });
         };
 
-        const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
+        const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null, syncMembers = true) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
                 return;
@@ -1243,7 +1244,7 @@
             const changedSet = changedNames instanceof Set
                 ? changedNames
                 : (Array.isArray(changedNames) ? new Set(changedNames) : null);
-            syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
+            if (syncMembers) syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
             actionTargets.forEach(($target, index) => {
                 const entry = entries[index];
                 if (!$target || !$target.length || !entry) {

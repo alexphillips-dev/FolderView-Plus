@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",
@@ -244,6 +244,21 @@
     "settings.navigation.themes": "Темы",
     "settings.theme.manager-help": "Просматривайте активную тему хоста и управляйте импортированными темами GitHub для страниц среды выполнения FolderView Plus.",
     "settings.theme.host-default": "Тема Unraid по умолчанию",
+    "settings.theme.host-unidentified": "Неопознанная тема хоста",
+    "settings.theme.identity-source": "Источник идентификации хоста",
+    "settings.theme.identity-declared": "Название, указанное темой",
+    "settings.theme.identity-recognized": "Распознанная таблица стилей",
+    "settings.theme.identity-native": "Базовая тема Unraid",
+    "settings.theme.adaptation": "Адаптация темы",
+    "settings.theme.adaptation-system": "Системные принудительные цвета",
+    "settings.theme.adaptation-variables": "CSS-переменные хоста",
+    "settings.theme.adaptation-computed": "Собственные вычисляемые стили",
+    "settings.theme.adaptation-contrast": "Палитра восстановления: контраст хоста",
+    "settings.theme.adaptation-requested": "Палитра восстановления: выбранный режим",
+    "settings.theme.adaptation-fallback": "Палитра плагинов: входы хоста недоступны",
+    "settings.theme.native-controls": "Размер элементов управления",
+    "settings.theme.controls-host": "Размер соответствует элементам управления хоста",
+    "settings.theme.controls-default": "Настройки плагина по умолчанию",
     "settings.theme.managed-layer": "Активная управляемая тема",
     "settings.theme.host-status": "Хост-тема: $1. Установленные темы хоста управляются в Unraid."
 }

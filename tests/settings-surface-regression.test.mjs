@@ -225,7 +225,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleTelemetryJs, /requestBundleTrace: collectDockerRequestBundleTrace\(uiRedactor\),/);
     assert.match(supportBundleTelemetryJs, /traceHealth: collectDockerTraceHealth\(uiRedactor\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
-    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = sanitizeThemeTelemetry\(collectThemeTelemetrySnapshot\(\), privacyMode\);/);
     assert.match(supportBundleTelemetryJs, /payload\.uiTelemetry = existingUiTelemetry;/);
     assert.match(diagnosticsJs, /dockerPage: 'fv\.support\.bundle\.docker\.page\.v1',/);
     assert.match(diagnosticsJs, /dockerBulkUpdateTrace: 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1',/);

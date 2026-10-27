@@ -49,7 +49,7 @@ test('template preview separates manual members from newly assigned effects', ()
         rule,
         rules: [],
         items: [{ Name: 'media-one' }, { Name: 'media-two' }, { Name: 'other' }],
-        folders: { existing: { containers: ['media-one'] } },
+        folders: { existing: { containers: ['media-one'] }, media: { containers: [] } },
         type: 'docker',
         utils
     });

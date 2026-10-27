@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Отриманий шлях: $1",
     "common.repair.move-preview-branch": "Папки у гілці: $1",
     "common.repair.preview-show-more": "Показати більше ($1)",
-    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки."
+    "common.repair.wait-for-tree-move": "Зачекайте, доки завершиться переміщення поточної папки.",
+    "common.server.rules-preview-config": "Конфігурація недоступна. Перезавантажте налаштування перед попереднім переглядом правил.",
+    "common.server.rules-preview-digest": "Недійсний дайджест попереднього перегляду.",
+    "common.server.rules-preview-changed": "Попередній перегляд змінено. Запустіть попередній перегляд ще раз перед застосуванням.",
+    "common.server.rules-preview-invalid": "Виправте недійсні правила перед застосуванням попереднього перегляду.",
+    "common.server.rules-save-invalid": "Виправте недійсні правила перед збереженням.",
+    "common.repair.rules-preview-no-changes": "Для цього попереднього перегляду не потрібно змінювати призначення.",
+    "common.repair.rules-preview-moves-manual": "Існуючі призначення вручну буде переміщено до попередньо переглянутих папок."
 }

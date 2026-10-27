@@ -98,6 +98,41 @@
       "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
       "requiredParameters": ["type", "folderId"], "responseType": "json", "auditCategory": "rules.migrate"
     },
+    "rule_preview.php": {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "access": "mixed",
+      "requestToken": "none",
+      "responseType": "json",
+      "auditCategory": "rules.preview",
+      "methodContracts": {
+        "GET": {
+          "methods": [
+            "GET"
+          ],
+          "access": "read-only",
+          "requestToken": "none",
+          "requiredParameters": [
+            "type"
+          ],
+          "auditCategory": "rules.preview"
+        },
+        "POST": {
+          "methods": [
+            "POST"
+          ],
+          "access": "mutation",
+          "requestToken": "mutation",
+          "requiredParameters": [
+            "type",
+            "expectedDigest"
+          ],
+          "auditCategory": "rules.apply"
+        }
+      }
+    },
     "prefs.php": {
       "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "preferences",
       "methodContracts": {

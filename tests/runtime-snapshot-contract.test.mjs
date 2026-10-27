@@ -96,6 +96,18 @@ test('state and full runtime shapes produce the same conditional signature', () 
     assert.match(signatures[0], /^[a-f0-9]{64}$/);
 });
 
+test('conditional runtime signatures notice matching metadata with unchanged state', () => {
+    const php = [
+        "function ensureType(string $type): string { return $type; }", requireRuntimeSnapshotLibPhp,
+        "$base = ['app' => ['id' => 'abc123000000', 'Image' => 'repo/old', 'Labels' => ['stack' => 'media']]];",
+        "$labels = $base; $labels['app']['Labels'] = [];",
+        "$image = $base; $image['app']['Image'] = 'repo/new';",
+        "echo json_encode(array_map(static fn($map) => runtimeSnapshotSignature('docker', $map), [$base, $labels, $image]));"
+    ].join(' ');
+    const signatures = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
+    assert.equal(new Set(signatures).size, 3);
+});
+
 test('snapshot tokens are mode-independent and unchanged checks omit payloads', () => {
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",

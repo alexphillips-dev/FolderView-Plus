@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { performanceScenarios } from './lib/performance-scenarios.mjs';
 import { createProductionPerfFixture } from './lib/production-perf-fixture.mjs';
 import { median, checkMetric, observeProductionStartup, dockerStartupMetrics, checkDockerMembership } from './lib/production-perf-metrics.mjs';
 
@@ -26,11 +27,15 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
     const config = JSON.parse(fs.readFileSync(path.join(root, 'scripts/production_perf_budgets.json')));
     if (scenarioName && !config.scenarios[scenarioName]) throw new Error(`Unknown scenario: ${scenarioName}`);
+    const selection = performanceScenarios(config.scenarios);
+    if (scenarioName && !selection.selected.some(([name]) => name === scenarioName)) throw new Error('The requested scenario exceeds FVPLUS_PERF_MAX_RESOURCES.');
+    for (const item of selection.skipped) console.log(`[production-perf] Skipping ${item.name} (${item.members} resources); configured cap ${selection.limit}.`);
     const baselinePath = path.join(root, 'scripts/production_perf_baseline.json');
     const baseline = readProductionBaseline(baselinePath);
     if (!baseline && !updateBaseline) throw new Error('Production startup baseline is missing');
     const report = { version: 1, generatedAt: new Date().toISOString(), measuredRuns: config.measuredRuns,
         limitations: 'Synthetic Unraid host and APIs; shipped plugin JavaScript, CSS, markup and locale catalogs. Host widget stubs do not model Unraid server execution time.',
+        resourceLimit: selection.limit, skippedScenarios: selection.skipped,
         cases: {}, failures: [], skippedSurfaces: ['settings', 'docker'].filter(surface => !selectedSurfaces.includes(surface)) };
     console.log(`[production-perf] Selected startup surfaces: ${selectedSurfaces.join(', ') || 'none; component benchmarks remain required'}`);
     if (skipDocker) console.log('[production-perf] Docker startup benchmarks skipped: explicit FVPLUS_SKIP_DOCKER_BENCHMARK=1 override.');
@@ -44,7 +49,7 @@ export const runProductionPerformance = async ({ updateBaseline = false, scenari
     const browser = await chromium.launch({ args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'] });
     report.browser = browser.version();
     try {
-        for (const [name, scenario] of Object.entries(config.scenarios)) {
+        for (const [name, scenario] of selection.selected) {
             if (scenarioName && name !== scenarioName) continue;
             const fixture = createProductionPerfFixture(root, scenario, scenario.locale);
             await new Promise(resolve => fixture.server.listen(0, '127.0.0.1', resolve));

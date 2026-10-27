@@ -4,6 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { performanceScenarios } from './lib/performance-scenarios.mjs';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(scriptPath), '..');
@@ -14,6 +15,7 @@ const baselinePath = path.join(rootDir, 'scripts', 'runtime_perf_baseline.json')
 const artifactDir = path.resolve(process.env.FVPLUS_RUNTIME_PERF_ARTIFACT_DIR || path.join(rootDir, 'tmp', 'fixture-browser-artifacts', 'runtime-performance'));
 const updateBaseline = process.argv.includes('--update-baseline');
 const budgetConfig = JSON.parse(fs.readFileSync(budgetPath, 'utf8'));
+const scenarioSelection = performanceScenarios(budgetConfig.scenarios);
 const requestedRuns = Number(process.env.FVPLUS_RUNTIME_PERF_REPETITIONS);
 const measuredRuns = Math.max(3, Number.isFinite(requestedRuns) ? requestedRuns : Number(budgetConfig.runs?.measured || 5));
 const warmupRuns = Math.max(1, Number(budgetConfig.runs?.warmup || 1));
@@ -161,7 +163,9 @@ const browser = await chromium.launch({
     args: ['--enable-precise-memory-info', '--js-flags=--expose-gc']
 });
 
+for (const item of scenarioSelection.skipped) console.log(`[runtime-perf] Skipping ${item.name} (${item.members} resources); configured cap ${scenarioSelection.limit}.`);
 const report = {
+    resourceLimit: scenarioSelection.limit, skippedScenarios: scenarioSelection.skipped,
     version: 1,
     generatedAt: new Date().toISOString(),
     browser: await browser.version(),
@@ -171,7 +175,7 @@ const report = {
     failures: []
 };
 try {
-    for (const [name, scenario] of Object.entries(budgetConfig.scenarios || {})) {
+    for (const [name, scenario] of scenarioSelection.selected) {
         for (let index = 0; index < warmupRuns; index += 1) await collectScenario(browser, baseUrl, scenario);
         const samples = [];
         for (let index = 0; index < measuredRuns; index += 1) samples.push(await collectScenario(browser, baseUrl, scenario));
@@ -236,11 +240,11 @@ if (updateBaseline) {
         generatedAt: report.generatedAt,
         browser: report.browser,
         notes: 'Tracked medians for the deterministic Chromium runtime fixtures. Update only after reviewing an intentional performance change.',
-        scenarios: Object.fromEntries(Object.entries(report.scenarios).map(([name, value]) => [name, {
+        scenarios: { ...baseline?.scenarios, ...Object.fromEntries(Object.entries(report.scenarios).map(([name, value]) => [name, {
             folders: value.folders,
             members: value.members,
             medians: value.medians
-        }]))
+        }])) }
     };
     writeFileAtomic(baselinePath, `${JSON.stringify(nextBaseline, null, 2)}\n`);
     report.failures = [];

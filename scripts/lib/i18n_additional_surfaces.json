@@ -1557,15 +1557,7 @@
       }
     ]
   },
-  {
-    "phrase": "$1: not applied by server response",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": ": not applied by server response"
-      }
-    ]
-  },
+
   {
     "phrase": "$1/$2 active",
     "locations": [

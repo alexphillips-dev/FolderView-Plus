@@ -1,5 +1,19 @@
 # Runtime performance budgets
 
+The October 27 Aurora and Docker column diagnostics add 17,483 JavaScript bytes
+(4,746 gzip at level 9) relative to dev fcb640ea10fb2d0699db029969b1ef96413ae81c.
+Aggregate static-size allowances include exactly those signed feature deltas.
+The support-bundle telemetry asset includes its 4,052 byte (1,183 gzip) projection
+addition; its absolute gzip allowance increases by the same 1,183 bytes. Other
+per-asset and CSS baselines, the 8% growth rule, and all runtime and production
+timing, request, callback and count limits remain unchanged. Layout geometry and
+the existing layout tracker share one diagnostics script, preserving Docker's
+script count.
+
+Routine dev runs cap performance inventories at 500 resources. The retained
+2,000-resource cases require an explicit large-inventory test request and do not
+block dev validation or publication.
+
 FolderView Plus validates browser runtime performance in addition to static asset and package size. The Chromium benchmark uses deterministic fixtures in a separate performance lane. It runs for performance-sensitive changes, scheduled qualification or explicit manual requests, rather than as part of every functional browser pass. No live Unraid host is required.
 
 ## Scenario matrix
@@ -111,8 +125,50 @@ startup samples while the standard performance command still runs component
 benchmarks. Unknown values fail. Reports list skipped surfaces, and partial
 baseline updates preserve unmeasured cases; review every baseline change.
 
-The shared theme foundation publishes both host-palette and live binding APIs
-from one script on Settings, Docker, VMs, Dashboard, and the folder editor.
-This removes a parser-blocking request and its startup DOM checkpoint while
-retaining the existing API aliases and lifecycle cleanup. Startup callback
-budgets remain unchanged.
+The general theme integration uses one shared integration module ahead of the
+existing host-palette facade on Settings, Docker, VMs, Dashboard, and the folder
+editor. Native sampling, contrast checks, diagnostic projection and document
+subscriptions share that implementation; existing API aliases remain available.
+Theme-only Settings reflow skips secondary data-workspace rebuilding, and the
+Themes summary defers rendering until its tab or all-Advanced search is active.
+
+Relative to published dev 2026.10.22.05 (`47385864df6f72f4d5fc59f0092604ad1b14e50f`),
+this feature adds 21,728 JavaScript bytes (5,949 gzip) and 5,896 CSS bytes
+(833 gzip), measured at compression level 9. Only those signed feature deltas
+are recorded in aggregate static-size allowances. Existing per-asset baselines,
+line budgets, the 8% growth policy, and startup timing, count and callback
+limits remain unchanged.
+
+The historical startup timing reference predates the current published source.
+During this change, both the published source and candidate exceeded some
+historical Settings and representative Docker timings on Chromium 156.
+Qualification therefore records historical failures separately and also compares
+the candidate with a local remeasurement of the published Settings and
+representative Docker source using the same fixture, browser, sample count and
+existing budget policy. Larger Docker cases retain their committed references.
+This paired measurement does not replace or reset the committed timing baseline.
+
+
+The October 26 rules and membership extraction adds a measured net 6,353 JavaScript
+bytes (3,294 gzip at level 9) relative to dev 5c8167caceb5d596f9fdd5f418a05ac7ae495107.
+The aggregate JavaScript baselines include exactly that feature delta. Per-asset
+baselines, CSS baselines, absolute ceilings, and the 8% growth policy are retained.
+The new core compiles each predicate once per snapshot; contract tests count
+constructions across multiple folders and resources.
+
+
+The shared rules module also adds one external script to each measured Settings
+and Docker startup. Only request and script-request count baselines increase by
+one for cold and warm cases. Three controlled RTL cold pairs measured 110/110/109 observer callbacks with
+that separate script versus 106/106/106 with identical engine code combined into
+the preceding script. Only that case's callback baseline includes the measured
+median delta of four. Timing, DOM-node, mutation-record, absolute ceilings and
+regression policies are retained.
+
+
+Routine component and production benchmark commands cap inventories at 500
+resources. The retained 2,000-resource scenario is excluded and recorded in JSON
+reports, so it does not block routine dev validation or publication.
+FVPLUS_PERF_MAX_RESOURCES can lower the cap; zero includes all retained scenarios
+only for an explicitly requested large-inventory investigation. Partial baseline
+updates preserve measurements for excluded scenarios.

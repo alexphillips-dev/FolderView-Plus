@@ -54,9 +54,9 @@ export const registerBrowserStorageCases = ({ test }) => {
                         const coordinator = window.FolderViewPlusPrefsStore.getDefaultCoordinator();
                         await coordinator.hydrateFromServer('docker');
                         await coordinator.save('docker', { dashboard: { names: false } }, { immediate: true });
-                        window.dispatchEvent(new Event('pagehide'));
                         return coordinator.getDiagnostics().types.docker.status;
                     });
+                    await page.goto('about:blank');
                     assert.equal(saved, 'saved', surface + '/' + mode);
                     assert.equal(saves.length, before + 1, 'real request client must POST the preference');
                     assert.equal(serverPrefs.dashboard.names, false);

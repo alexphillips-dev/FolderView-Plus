@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Rezultirajući put: $1",
     "common.repair.move-preview-branch": "Mape u grani: $1",
     "common.repair.preview-show-more": "Prikaži više ($1)",
-    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape."
+    "common.repair.wait-for-tree-move": "Pričekajte da završi premještanje trenutne mape.",
+    "common.server.rules-preview-config": "Konfiguracija nije dostupna. Ponovno učitaj postavke prije pregleda pravila.",
+    "common.server.rules-preview-digest": "Nevažeći sažetak pregleda.",
+    "common.server.rules-preview-changed": "Pregled se promijenio. Ponovno pokrenite pregled prije primjene.",
+    "common.server.rules-preview-invalid": "Ispravite nevažeća pravila prije primjene pregleda.",
+    "common.server.rules-save-invalid": "Ispravite nevažeća pravila prije spremanja.",
+    "common.repair.rules-preview-no-changes": "Za ovaj pregled nisu potrebne promjene dodjele.",
+    "common.repair.rules-preview-moves-manual": "Postojeća ručna dodjela premjestit će se u mape s pretpregledom."
 }

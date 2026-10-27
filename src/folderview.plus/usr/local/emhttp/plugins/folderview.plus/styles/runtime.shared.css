@@ -131,6 +131,12 @@ body ul.dropdown-menu i {
     color: inherit !important;
 }
 
+:is(.fvplus-docker-context-menu, .fvplus-vm-context-menu) .dropdown-submenu > a::after {
+    margin-left: auto;
+    margin-right: 0;
+    flex: none;
+}
+
 body ul.context-menu-list .context-menu-disabled,
 body ul.contextMenuPlugin .context-menu-disabled,
 body ul.context-menu .context-menu-disabled,

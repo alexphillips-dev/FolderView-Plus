@@ -8,7 +8,7 @@ function preserveMigratedFolderReferences(array $next, array $existing): array {
 }
 
 // Only migrated folders opt into FV3's explicit > valid label > regex ownership.
-function buildLegacyFolderMembership(array $folders, array $names, array $info, string $type, array $rules): array {
+function buildLegacyFolderMembership(array $folders, array $names, array $info, string $type, array $rules, ?array $decisions = null): array {
     if (!array_filter($folders, static fn($folder): bool => is_array($folder) && ($folder['membershipPolicy'] ?? '') === 'folderview3')) return [];
     $manual = [];
     $labels = [];
@@ -32,7 +32,7 @@ function buildLegacyFolderMembership(array $folders, array $names, array $info, 
         $labelOwner = $type === 'docker' ? ($labels[getFolderLabelValueFromLabels(dockerInfoLabelsForName($info, $name))] ?? '') : '';
         $owner = $labelOwner;
         if ($owner === '') {
-            $decision = autoRuleDecision($rules, $name, $info, $type);
+            $decision = $decisions[$name] ?? autoRuleDecision($rules, $name, $info, $type, $folders);
             $owner = (string)($decision['assignedRule']['folderId'] ?? '');
         }
         if (array_key_exists($owner, $result)) {

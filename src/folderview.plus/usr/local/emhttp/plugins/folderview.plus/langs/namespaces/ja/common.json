@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "結果のパス: $1",
     "common.repair.move-preview-branch": "ブランチ内のフォルダー: $1",
     "common.repair.preview-show-more": "もっと見る ($1)",
-    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。"
+    "common.repair.wait-for-tree-move": "現在のフォルダーの移動が完了するまで待ちます。",
+    "common.server.rules-preview-config": "構成は使用できません。ルールをプレビューする前に設定をリロードします。",
+    "common.server.rules-preview-digest": "無効なプレビュー ダイジェストです。",
+    "common.server.rules-preview-changed": "プレビューが変わりました。適用する前にプレビューを再度実行します。",
+    "common.server.rules-preview-invalid": "プレビューを適用する前に、無効なルールを修正してください。",
+    "common.server.rules-save-invalid": "保存する前に無効なルールを修正してください。",
+    "common.repair.rules-preview-no-changes": "このプレビューでは割り当てを変更する必要はありません。",
+    "common.repair.rules-preview-moves-manual": "既存の手動割り当ては、プレビューされたフォルダーに移動されます。"
 }

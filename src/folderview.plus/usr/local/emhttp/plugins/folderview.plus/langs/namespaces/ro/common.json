@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "107f4cec35333fd2b4278b7fb3f017b403e090de73d4a0b457e6429768cbc387"
+        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -735,5 +735,12 @@
     "common.repair.move-preview-path": "Calea rezultată: $1",
     "common.repair.move-preview-branch": "Dosare în ramură: $1",
     "common.repair.preview-show-more": "Afișați mai multe ($1)",
-    "common.repair.wait-for-tree-move": "Așteptați ca mutarea actuală a folderului să se termine."
+    "common.repair.wait-for-tree-move": "Așteptați ca mutarea actuală a folderului să se termine.",
+    "common.server.rules-preview-config": "Configurația este indisponibilă. Reîncărcați Setările înainte de a previzualiza regulile.",
+    "common.server.rules-preview-digest": "Rezumat de previzualizare nevalid.",
+    "common.server.rules-preview-changed": "Previzualizarea s-a schimbat. Rulați din nou previzualizarea înainte de a aplica.",
+    "common.server.rules-preview-invalid": "Corectați regulile nevalide înainte de a aplica previzualizarea.",
+    "common.server.rules-save-invalid": "Corectați regulile nevalide înainte de a salva.",
+    "common.repair.rules-preview-no-changes": "Nu sunt necesare modificări ale sarcinii pentru această previzualizare.",
+    "common.repair.rules-preview-moves-manual": "Atribuțiile manuale existente vor fi mutate în folderele previzualizate."
 }

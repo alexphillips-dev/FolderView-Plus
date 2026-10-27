@@ -9,9 +9,10 @@ const themeHost = require('../src/folderview.plus/usr/local/emhttp/plugins/folde
 
 const source = fs.readFileSync(new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js', import.meta.url), 'utf8');
 
-test('one theme foundation asset provides palette and live surface binding APIs', () => {
+test('theme foundation assets preserve palette and live surface binding APIs', () => {
     const window = {};
     const foundation = fs.readFileSync(new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-host.js', import.meta.url), 'utf8');
+    vm.runInNewContext(fs.readFileSync(new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-integration.js', import.meta.url), 'utf8'), { window });
     vm.runInNewContext(foundation, { window });
     const modules = window.FolderViewPlusFoundationModules;
     assert.equal(typeof modules.themeHost.readPalette, 'function');
@@ -189,4 +190,32 @@ test('canvas colors that retain modern syntax are read once and rejected colors 
     f.host['--brand-orange'] = '#4f8bff';
     assert.equal(f.api.applyResolvedThemeTokens().tokens.accent, 'rgb(79, 139, 255)');
     assert.equal(samples, 1);
+});
+
+test('mixed surfaces resolve independent readable card input control and hover foregrounds', () => {
+    const f=fixture({...darkHost,'--table-background-color':'#ffffff','--input-bg-color':'#ffffff',
+        '--button-background':'#ffffff','--hover-button-background':'#111827'});
+    const snapshot=f.api.applyResolvedThemeTokens();
+    assert.equal(snapshot.hostPaletteApplied,true);
+    assert.equal(snapshot.tokens.textPrimary,'rgb(231, 234, 240)','page foreground remains the host color');
+    assert.equal(snapshot.tokens.hostPanelText,'rgb(0, 0, 0)');
+    assert.equal(snapshot.tokens.hostCardText,'rgb(0, 0, 0)');
+    assert.equal(snapshot.tokens.hostInputText,'rgb(0, 0, 0)');
+    assert.equal(snapshot.tokens.hostControlText,'rgb(0, 0, 0)');
+    assert.equal(snapshot.tokens.hostControlHoverText,'rgb(231, 234, 240)');
+    assert.equal(snapshot.tokens.statusStarted,'rgb(0, 0, 0)');
+    assert.ok(snapshot.contrastChecks.filter(check=>check.name.startsWith('surface.')).length>=10);
+    assert.ok(snapshot.contrastChecks.filter(check=>check.name.startsWith('surface.')).every(check=>check.passed));
+    assert.equal(f.body.style.getPropertyValue('--fvplus-runtime-menu-fg'),'rgb(0, 0, 0)');
+    assert.equal(f.body.style.getPropertyValue('--fvplus-ui-input-fg'),'rgb(0, 0, 0)');
+});
+
+test('translucent native surfaces are composited for contrast and keep explicit customization inputs', () => {
+    const f=fixture({...darkHost,'--table-background-color':'rgba(255,255,255,0.9)',
+        '--button-background':'rgba(255,255,255,0.9)','--fvplus-custom-status-stopped':'#b91c1c'});
+    const snapshot=f.api.applyResolvedThemeTokens();
+    assert.equal(snapshot.hostPaletteApplied,true);
+    assert.equal(snapshot.tokens.hostControlText,'rgb(0, 0, 0)');
+    assert.equal(snapshot.tokens.statusStopped,'rgb(185, 28, 28)');
+    assert.ok(snapshot.contrastChecks.filter(check=>check.name.startsWith('surface.')).every(check=>check.ratio>=4.5));
 });

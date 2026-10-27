@@ -56,7 +56,11 @@ function runtimeSnapshotStateProjection(string $type, array $runtime): array {
             $state = $running ? ($paused ? 'paused' : 'running') : 'stopped';
         }
         $rawIdentity = preg_replace('/^sha256:/i', '', trim((string)($entry['id'] ?? $entry['shortId'] ?? $entry['Id'] ?? '')));
+        $labels = $entry['Labels'] ?? $entry['info']['Config']['Labels'] ?? [];
+        $labels = is_array($labels) ? $labels : []; ksort($labels, SORT_STRING);
         $projection[$name] = [
+            'labels' => $labels,
+            'image' => (string)($entry['image'] ?? $entry['Image'] ?? $entry['info']['Config']['Image'] ?? ''),
             // State reads already expose Docker's 12-character ID while full reads
             // carry the complete digest. Canonicalize both so switching snapshot
             // detail modes cannot manufacture a false runtime change.

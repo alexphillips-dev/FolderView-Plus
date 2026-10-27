@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { exerciseDockerColumnDiagnostics } from '../helpers/docker-column-diagnostics.mjs';
 import {
     exerciseChildFolderPreviewContext,
     exerciseDockerPreviewContextDiagnostics,
@@ -6,6 +7,10 @@ import {
 } from '../helpers/docker-preview-context.mjs';
 
 export const registerDockerFixtureCases = ({ test, baseUrl }) => {
+test('Docker column diagnostics capture idle resizing and retain evidence on page exit', async ({ page }) => {
+    await exerciseDockerColumnDiagnostics({ page, baseUrl });
+}, { skipAccessibility: true });
+
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.fixtureRuntime?.api);

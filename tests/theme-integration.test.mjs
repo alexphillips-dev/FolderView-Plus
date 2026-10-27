@@ -62,6 +62,21 @@ test('adaptation status separates unknown identity from working palette and reco
     assert.equal(integration.describeIntegration({...input,window:{matchMedia:()=>({matches:true})}}).paletteSource,'system');
 });
 
+test('Aurora environment reports independent active assets and Plus ownership without exporting URLs', () => {
+    const classes = new Set(['tp-enhance', 'tp-sidebar', 'tp-fvplus']);
+    const links = ['theme-123.css', 'enhance.css', 'layout-sidebar.css'].map(file => ({
+        href: `https://theme.test/plugins/Aurora-Theme/styles/${file}?private=value`, disabled: false }));
+    const doc = { baseURI: 'https://theme.test/Docker', documentElement: { classList: { contains: token => classes.has(token) } },
+        querySelectorAll: selector => selector === 'script[src]' ? [{ src: 'https://theme.test/plugins/Aurora-Theme/scripts/enhance.js' }] : links };
+    const state = integration.readAuroraEnvironment(doc, { auroraDockerView: { plus: true } });
+    assert.equal(state.detected, true); assert.equal(state.colors, true);
+    assert.equal(state.enhancements, true); assert.equal(state.sidebar, true); assert.equal(state.enhancementScript, true);
+    assert.equal(state.plusMarker, true); assert.equal(state.plusView, true); assert.equal(state.sidebarCollapsed, false);
+    assert.equal(JSON.stringify(state).includes('theme.test'), false);
+    links[1].disabled = true;
+    assert.equal(integration.readAuroraEnvironment(doc, {}).enhancements, false);
+});
+
 const fixture = () => {
     const style = { fontFamily:'Example, sans-serif', fontSize:'14px', fontWeight:'600', lineHeight:'20px',
         letterSpacing:'1px', textTransform:'none', padding:'8px 16px', borderRadius:'12px', display:'inline-block', visibility:'visible' };

@@ -174,7 +174,7 @@
         "scripts/docker.runtime.hierarchy.js",
         "scripts/docker.runtime.actions.js",
         "scripts/docker.runtime.host-guards.js",
-        "scripts/docker.runtime.layout-geometry.js",
+        "scripts/docker.runtime.layout-diagnostics.js",
         "scripts/docker.runtime.diagnostics.js",
         "scripts/docker.runtime.reconcile.js",
         "scripts/docker.runtime.command-view.js",

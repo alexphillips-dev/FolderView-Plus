@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.26.01">
-<!ENTITY md5 "38e0fa4dff4f9d74ed2dea0590711452">
-<!ENTITY sha256 "6807d5e75be9fd310dd0bbfbaa0e03a2f5a8b7c7bdc4b71cc84ad4cdf0a15112">
+<!ENTITY version "2026.10.27.01">
+<!ENTITY md5 "069539123d02d7a325fa76fa1b95a6e9">
+<!ENTITY sha256 "74ef527a4a689c56cd6ca4fabf85719567bab14d3750b323a1021373e6a748ba">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.27.01
+- Diagnostics: Record Aurora's enabled styles, enhancements, navigation layout, and FolderView Plus ownership markers in Docker support captures without including asset URLs or page content.
+- Diagnostics: Keep a bounded history of Docker column widths, relative positions, direction reversals, header alignment, and nearby host refresh or plugin width events while the page is visible. Captures distinguish whole-table movement from column resizing and retain the latest evidence when leaving Docker for Settings.
+- Privacy: Sanitized support bundles export only approved geometry values, flags, and fixed event labels from the new movement diagnostics.
+- Compatibility: This update adds troubleshooting evidence without changing Docker column sizing. Hard-refresh after updating, leave Docker open while the shifting occurs, then export a sanitized support bundle from Settings.
+
 
 ###2026.10.26.01
 - Reliability: Use a shared rules and membership contract across Docker, VMs, Dashboard, Settings, diagnostics, runtime actions, and Docker startup ordering. Manual, automatic, and primary display membership retain their distinct behavior, including FolderView3 ownership rules.

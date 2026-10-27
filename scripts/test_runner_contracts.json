@@ -31,6 +31,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/docker-column-diagnostics.mjs", "limit": 45, "owner": "bounded column movement capture and page-exit persistence" },
     {"file": "tests/browser/helpers/docker-expansion-cleanup.mjs", "limit": 35, "owner": "await expansion persistence before fixture navigation and teardown"},
     {"file": "tests/browser/cases/settings-rules-preview.mjs", "limit": 70, "owner": "authoritative rules preview and digest-bound apply browser contract"},
     { "file": "tests/browser/cases/host-theme-maintainer.mjs", "limit": 100, "owner": "maintainer theme load order and native lifecycle compatibility contract" },
@@ -194,6 +195,7 @@
         "tests/browser/cases/settings-themes.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/docker-column-diagnostics.mjs",
         "tests/browser/helpers/folder-badges-host.mjs",
         "tests/browser/helpers/icon-card-layout.mjs",
         "tests/browser/helpers/folder-editor-headings.mjs",
@@ -227,10 +229,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 137,
-      "assertionCount": 1814,
-      "pageEvaluateCount": 551,
-      "orderedTitleSha256": "2aea85f8ac5ec21ada8a70a69dbfe7482dc93383883d90b1e21d6b99ed024db1"
+      "testCount": 138,
+      "assertionCount": 1818,
+      "pageEvaluateCount": 554,
+      "orderedTitleSha256": "31c55211da9817f61af0a26dc224f1424d9a67176ce2c9e19e56e001614db2cd"
     }
   }
 }

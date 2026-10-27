@@ -154,7 +154,7 @@
       "scripts/docker.runtime.capabilities.js": { "limit": 77, "target": 70, "history": [77] },
       "scripts/docker.runtime.api-coordinator.js": { "limit": 433, "target": 420, "history": [453, 433] },
       "scripts/docker.runtime.refresh-diagnostics.js": { "limit": 263, "target": 250, "history": [263] },
-      "scripts/docker.runtime.layout-geometry.js": { "limit": 65, "target": 65, "history": [65] },
+      "scripts/docker.runtime.layout-diagnostics.js": { "limit": 500, "target": 500, "history": [500] },
       "scripts/docker.runtime.provider-health.js": { "limit": 123, "target": 123, "history": [123] },
       "styles/folderviewplus.css": { "limit": 14477, "target": 14477, "history": [14489, 14477] },
       "styles/folderviewplus.tree-move.css": { "limit": 45, "target": 45, "history": [45] },
@@ -1700,16 +1700,20 @@
       ]
     },
     {
-      "file": "scripts/docker.runtime.layout-geometry.js",
-      "owner": "docker-runtime-layout",
+      "file": "scripts/docker.runtime.layout-diagnostics.js",
+      "owner": "docker-runtime-diagnostics",
       "consumers": ["docker"],
-      "stateModel": "pure",
-      "dependsOn": [],
-      "compatibilityGlobals": ["FolderViewPlusDockerLayoutGeometry"],
-      "global": "FolderViewPlusDockerLayoutGeometry",
+      "stateModel": "singleton",
+      "dependsOn": ["scripts/folderviewplus.theme-integration.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerLayoutDiagnostics",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["readNodeGeometry", "compareGeometry"]
+      "exports": ["readNodeGeometry", "compareGeometry", "createLayoutStabilityTracker", "createColumnMovementTracker"],
+      "lifecycleFactories": [
+        { "name": "createLayoutStabilityTracker", "exports": ["getSnapshot", "recordColumnTrigger", "destroy"] }
+      ]
     },
     {
       "file": "scripts/docker.runtime.refresh-diagnostics.js",

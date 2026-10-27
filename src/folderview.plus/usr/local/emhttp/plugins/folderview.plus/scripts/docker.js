@@ -737,10 +737,15 @@ const dockerRuntimeLayoutStabilityTracker = dockerRuntimeDiagnosticsModule?.crea
     window,
     document,
     cacheSchemaVersion: DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION,
-    algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION
+    algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION,
+    getViewMode: () => readDockerListViewMode(),
+    onColumnSnapshot: (flush) => {
+        if (flush) getDockerRuntimeDiagnosticsApi()?.flushPageSnapshot?.('layout-pagehide');
+        else queueDockerSupportBundlePageSnapshot('column-observation');
+    }
 }) || null;
 const markDockerRuntimeLayoutPhase = (phase, details = {}) => dockerRuntimeLayoutStabilityTracker?.markPhase?.(phase, details);
-const recordDockerRuntimeWidthTelemetry = (stage, details = {}) => dockerRuntimeLayoutStabilityTracker?.recordWidth?.(stage, details);
+const recordDockerRuntimeWidthTelemetry = (stage, details = {}) => dockerRuntimeLayoutStabilityTracker?.recordWidth?.(stage, { ...details, reason: dockerRuntimeWidthState.lastReason });
 const dockerRuntimeColumnControllerApi = dockerRuntimeColumnControllerModule.createController({
     window,
     document,
@@ -6954,6 +6959,7 @@ const addDockerFolderContext = (id, options = {}) => {
 };
 // Route Unraid host lifecycle hooks through the shared adapter while retaining legacy aliases.
 getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
+    dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-listview');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
     if (dockerNativeBusyPollInFlight) {
         appendDockerRequestBundleTrace('listview', { nativeBusyActive: true, reloadSource: 'unraid-native-busy-poll' });
@@ -6995,6 +7001,7 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     missingDetails: ['window.listview was not a function when FolderView Plus initialized.']
 });
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
+    dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-loadlist');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
@@ -7879,6 +7886,7 @@ addEventListener("keydown", (e) => {
 
 window.addEventListener('pagehide', () => {
     dockerPageTitle.dispose();
+    dockerRuntimeLayoutStabilityTracker?.destroy?.();
     dockerQuickFinderApi?.dispose();
     dockerLiveRefreshController.dispose();
     dockerApiIntegration?.dispose?.();

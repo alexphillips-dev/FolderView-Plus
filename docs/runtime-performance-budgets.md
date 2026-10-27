@@ -1,5 +1,15 @@
 # Runtime performance budgets
 
+The October 27 Aurora and Docker column diagnostics add 17,291 JavaScript bytes
+(4,716 gzip at level 9) relative to dev fcb640ea10fb2d0699db029969b1ef96413ae81c.
+Aggregate static-size allowances include exactly those signed feature deltas.
+The support-bundle telemetry asset includes its 4,052 byte (1,183 gzip) projection
+addition; its absolute gzip allowance increases by the same 1,183 bytes. Other
+per-asset and CSS baselines, the 8% growth rule, and all runtime and production
+timing, request, callback and count limits remain unchanged. Layout geometry and
+the existing layout tracker share one diagnostics script, preserving Docker's
+script count.
+
 Routine dev runs cap performance inventories at 500 resources. The retained
 2,000-resource cases require an explicit large-inventory test request and do not
 block dev validation or publication.

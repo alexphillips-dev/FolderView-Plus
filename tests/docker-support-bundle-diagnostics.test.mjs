@@ -88,6 +88,25 @@ const containerRow = (name, folderId = '') => ({
     updateCell: updateElement('up-to-date')
 });
 
+test('leaving Docker flushes the latest column evidence and cancels an older queued snapshot', () => {
+    const records = new Map(), timers = new Map();
+    let count = 1;
+    const window = { location: { pathname: '/Docker' },
+        setTimeout: callback => { timers.set(1, callback); return 1; }, clearTimeout: id => timers.delete(id) };
+    const localStorage = { getItem: key => records.get(key) || null, setItem: (key, value) => records.set(key, value) };
+    const api = diagnosticsModule.createApi({ window, localStorage, $: createJQuery([containerRow('fixture')]),
+        document: { querySelectorAll: () => [] },
+        getLayoutStabilityDiagnostics: () => ({ columnMovement: { sampleCount: count, movementCount: 2 } }) });
+    api.queuePageSnapshot();
+    count = 17;
+    api.flushPageSnapshot();
+    assert.equal(timers.size, 0);
+    const saved = JSON.parse(records.get(diagnosticsModule.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY));
+    assert.equal(saved.layoutStability.columnMovement.sampleCount, 17);
+    assert.equal(saved.layoutStability.columnMovement.movementCount, 2);
+    assert.equal(saved.reason, 'layout-pagehide');
+});
+
 test('Docker trace health advances its top-level timestamp after an existing record', () => {
     const records = new Map();
     records.set(diagnosticsModule.DOCKER_TRACE_HEALTH_STORAGE_KEY, JSON.stringify({

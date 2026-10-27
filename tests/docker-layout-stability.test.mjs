@@ -11,6 +11,7 @@ const dockerJs = read(`${pluginRoot}/scripts/docker.js`);
 const previewActionsJs = read(`${pluginRoot}/scripts/docker.runtime.preview-actions.js`);
 const runtimeInfoJs = read(`${pluginRoot}/scripts/docker.runtime.info.js`);
 const diagnosticsJs = read(`${pluginRoot}/scripts/docker.runtime.diagnostics.js`);
+const layoutDiagnosticsJs = read(`${pluginRoot}/scripts/docker.runtime.layout-diagnostics.js`);
 const columnLayoutJs = read(`${pluginRoot}/scripts/runtime.column-layout.js`);
 const dockerColumnControllerJs = read(`${pluginRoot}/scripts/docker.runtime.column-controller.js`);
 const dockerPage = read(`${pluginRoot}/folderview.plus.Docker.page`);
@@ -125,14 +126,14 @@ test('content-aware width bootstrap rejects narrow-cache authority before first 
 });
 
 test('Docker support snapshots include sanitized temporal layout telemetry', () => {
-    assert.match(diagnosticsJs, /const createLayoutStabilityTracker =/);
-    assert.match(diagnosticsJs, /const captureActionGeometry =/);
-    assert.match(diagnosticsJs, /const compareActionGeometry =/);
-    assert.match(diagnosticsJs, /relativeShiftedTargetCount/);
-    assert.match(diagnosticsJs, /maximumRelativeShiftPx/);
-    assert.match(diagnosticsJs, /maximumRowShiftPx/);
-    assert.match(diagnosticsJs, /unavailableWebuiSlotCount/);
-    assert.match(diagnosticsJs, /new win\.PerformanceObserver/);
+    assert.match(layoutDiagnosticsJs, /const createLayoutStabilityTracker =/);
+    assert.match(layoutDiagnosticsJs, /const captureActionGeometry =/);
+    assert.match(layoutDiagnosticsJs, /const compareActionGeometry =/);
+    assert.match(layoutDiagnosticsJs, /relativeShiftedTargetCount/);
+    assert.match(layoutDiagnosticsJs, /maximumRelativeShiftPx/);
+    assert.match(layoutDiagnosticsJs, /maximumRowShiftPx/);
+    assert.match(layoutDiagnosticsJs, /unavailableWebuiSlotCount/);
+    assert.match(layoutDiagnosticsJs, /new win\.PerformanceObserver/);
     assert.match(dockerJs, /markDockerRuntimeLayoutPhase\('full-info-requested'/);
     assert.match(dockerJs, /markDockerRuntimeLayoutPhase\('full-info-ready'/);
     assert.doesNotMatch(dockerJs, /window\.getDockerRuntimeLayoutStabilitySnapshot/);

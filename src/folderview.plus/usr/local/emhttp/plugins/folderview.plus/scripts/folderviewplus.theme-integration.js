@@ -100,18 +100,35 @@
         }
     };
 
+    const readAuroraEnvironment = (doc, win = defaultWindow) => {
+        const assets = { colors: false, enhancements: false, sidebar: false, enhancementScript: false };
+        const knownAsset = (href, pattern) => {
+            try {
+                const url = new URL(href, doc.baseURI);
+                return url.origin === new URL(doc.baseURI).origin && pattern.test(url.pathname);
+            } catch (_error) { return false; }
+        };
+        for (const link of Array.from(doc?.querySelectorAll?.('link[rel~="stylesheet"][href]') || [])) {
+            if (link.disabled || (link.media && !win.matchMedia?.(link.media)?.matches)) continue;
+            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i)) assets.colors = true;
+            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/enhance(?:-\d+)?\.css$/i)) assets.enhancements = true;
+            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/layout-sidebar(?:-\d+)?\.css$/i)) assets.sidebar = true;
+        }
+        assets.enhancementScript = Array.from(doc?.querySelectorAll?.('script[src]') || []).some(script =>
+            knownAsset(script.src, /^\/plugins\/Aurora-Theme\/scripts\/enhance(?:-\d+)?\.js$/i));
+        const has = token => doc?.documentElement?.classList?.contains(token) === true;
+        return { detected: Object.values(assets).some(Boolean), ...assets,
+            enhancementsEnabled: has('tp-enhance'), sidebarEnabled: has('tp-sidebar'),
+            sidebarCollapsed: has('tp-sidebar-collapsed'), topbar: has('tp-topbar'),
+            plusMarker: has('tp-fvplus'), plusView: win.auroraDockerView?.plus === true,
+            compactDockerTable: doc?.querySelector?.('#docker_containers')?.classList?.contains('tp-compact') === true };
+    };
+
     const readHostIdentity = (doc, win = defaultWindow) => {
         const declared = String(doc?.documentElement?.getAttribute?.('data-fvplus-theme-name')
             || doc?.body?.getAttribute?.('data-fvplus-theme-name') || '').trim().slice(0, 96);
         if (declared) return { name:declared, source:'declared' };
-        const aurora = Array.from(doc?.querySelectorAll?.('link[rel~="stylesheet"][href]') || []).some(link => {
-            if (link.disabled || (link.media && !win.matchMedia?.(link.media)?.matches)) return false;
-            try {
-                const url = new URL(link.href, doc.baseURI);
-                return url.origin === new URL(doc.baseURI).origin && /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i.test(url.pathname);
-            } catch (_error) { return false; }
-        });
-        if (aurora) return { name:'Aurora Theme', source:'recognized' };
+        if (readAuroraEnvironment(doc, win).colors) return { name:'Aurora Theme', source:'recognized' };
         const base = String(doc?.documentElement?.getAttribute?.('data-fvplus-host-theme')
             || doc?.body?.getAttribute?.('data-fvplus-host-theme') || win.FolderViewPlusHostThemeName || '').trim().toLowerCase();
         const name = { black:'Unraid Black', white:'Unraid White', gray:'Unraid Gray', azure:'Unraid Azure' }[base];
@@ -361,5 +378,5 @@
         return Object.freeze({ bind, runApply, queueApply, disconnect });
     };
 
-    return Object.freeze({ diagnosticMessages, sanitizeDiagnostics, isDiagnosticCheckName:name => THEME_CHECK_NAMES.has(name), readNativeControls, controlTokens, applyControlState, applySystemColors, readHostIdentity, describeIntegration, readComputedPalette, resolveSurfaceContrast, observeThemeChanges, createBinding });
+    return Object.freeze({ diagnosticMessages, sanitizeDiagnostics, isDiagnosticCheckName:name => THEME_CHECK_NAMES.has(name), readNativeControls, controlTokens, applyControlState, applySystemColors, readAuroraEnvironment, readHostIdentity, describeIntegration, readComputedPalette, resolveSurfaceContrast, observeThemeChanges, createBinding });
 }));

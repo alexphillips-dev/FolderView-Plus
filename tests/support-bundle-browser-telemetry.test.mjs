@@ -60,6 +60,24 @@ const loadTelemetryModule = (root = {}, integrationAvailable = true) => {
     return context.module.exports;
 };
 
+test('sanitized column movement exports allow only bounded geometry, flags and canonical triggers', () => {
+    const telemetry = loadTelemetryModule(), secret = 'private-container-https://host.invalid/token';
+    const raw = { available: true, sampleCount: 55, aurora: { detected: true, stylesheet: secret },
+        latest: { viewMode: 'basic', tableWidth: 1200, title: secret, columns: Array(30).fill({ left: 40, width: 100, label: secret }) },
+        events: Array(40).fill({ atMs: 1234, columnShiftPx: 12, notes: secret, nearbyTrigger: { kind: 'host-loadlist', reason: secret } }),
+        triggers: Array(30).fill({ kind: secret, reason: secret }), unexpected: secret };
+    const redactor = telemetry.createUiTelemetryRedactor({}, 'sanitized');
+    const safe = redactor.sanitizeValue('uiTelemetry.dockerPage.layoutStability.columnMovement', 'columnMovement', raw);
+    assert.equal(JSON.stringify(safe).includes(secret), false);
+    assert.equal(safe.latest.columns.length, 16); assert.equal(safe.events.length, 24); assert.equal(safe.triggers.length, 16);
+    assert.equal(safe.sampleCount, 55); assert.equal(safe.aurora.detected, true);
+    assert.equal(safe.events[0].columnShiftPx, 12); assert.equal(safe.events[0].nearbyTrigger.kind, 'host-loadlist');
+    assert.equal(safe.events[0].nearbyTrigger.reason, 'other');
+    assert.equal(safe.latest.viewMode, 'basic');
+    const full = telemetry.createUiTelemetryRedactor({}, 'full').sanitizeValue('', 'columnMovement', raw);
+    assert.equal(full.unexpected, secret);
+});
+
 test('sanitized theme exports keep only bounded canonical adaptation evidence and never host content', () => {
     const telemetry=loadTelemetryModule();
     const secret='private-theme-10.4.5.6-/mnt/user/private-https://host.invalid/token';
@@ -567,6 +585,9 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     reason: 'runtime-sync',
                     currentPage: '/Docker',
                     listViewMode: 'basic',
+                    layoutStability: { columnMovement: { available: true, movementCount: 3,
+                        maximumBodyColumnShiftPx: 7.1, aurora: { detected: true, plusView: true, asset: 'private-label' },
+                        events: [{ atMs: 2000, bodyColumnShiftPx: 7.1, unexpected: 'private-label' }] } },
                     correlation: {
                         stateSignature: 'vaultwarden:r:1:dockerman:true:private-label',
                         hookStates: {
@@ -794,6 +815,8 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     };
     const redactor = loadTelemetryModule(root).createUiTelemetryRedactor(bundle, 'sanitized');
     const sanitizedPageSnapshot = collectors.collectDockerPageDiagnostics(redactor);
+    assert.equal(sanitizedPageSnapshot.layoutStability.columnMovement.aurora.plusView, true);
+    assert.equal(sanitizedPageSnapshot.layoutStability.columnMovement.maximumBodyColumnShiftPx, 7.1);
     const sanitizedBulkUpdateTrace = collectors.collectDockerBulkUpdateTrace(redactor);
     const sanitizedRequestBundleTrace = collectors.collectDockerRequestBundleTrace(redactor);
     const sanitizedDashboardLifecycle = collectors.collectDashboardLifecycleDiagnostics(redactor);

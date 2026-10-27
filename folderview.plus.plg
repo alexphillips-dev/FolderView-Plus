@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.27.01">
-<!ENTITY md5 "069539123d02d7a325fa76fa1b95a6e9">
-<!ENTITY sha256 "74ef527a4a689c56cd6ca4fabf85719567bab14d3750b323a1021373e6a748ba">
+<!ENTITY version "2026.10.27.02">
+<!ENTITY md5 "ffa90e50ffe95f3f6bef4f6b8a59ff85">
+<!ENTITY sha256 "15ef76fef0923f5bed527ab49da111dfcbae37b42c1ff119cab8ec2858e4bd8c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.27.02
+- Compatibility: Retain the existing browser geometry-helper API alongside the new Aurora and Docker column-movement diagnostics. Existing consumers continue to receive the same geometry measurements after the diagnostics module extraction.
+- Compatibility: Hard-refresh the Unraid webGUI after updating, then reproduce the idle Docker shifting and export a sanitized support bundle from Settings.
+
 
 ###2026.10.27.01
 - Diagnostics: Record Aurora's enabled styles, enhancements, navigation layout, and FolderView Plus ownership markers in Docker support captures without including asset URLs or page content.

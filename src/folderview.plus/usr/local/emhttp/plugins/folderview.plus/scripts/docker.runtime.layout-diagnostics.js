@@ -4,6 +4,8 @@
     if (typeof module === 'object' && module.exports) { module.exports = factory(fallbackWindow); return; }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
     modules.dockerLayoutDiagnostics = factory(fallbackWindow);
+    const api = modules.dockerLayoutDiagnostics;
+    root.FolderViewPlusDockerLayoutGeometry = Object.freeze({ readNodeGeometry: api.readNodeGeometry, compareGeometry: api.compareGeometry });
 }(typeof window !== 'undefined' ? window : {}, function dockerRuntimeLayoutDiagnosticsFactory(fallbackWindow) {
     'use strict';
     const readNodeGeometry = (node) => {

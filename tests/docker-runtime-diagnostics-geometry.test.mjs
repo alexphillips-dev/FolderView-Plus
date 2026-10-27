@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import fs from 'node:fs';
+import vm from 'node:vm';
 
 const require = createRequire(import.meta.url);
 const diagnostics = require(path.resolve(
@@ -13,6 +15,20 @@ const layoutGeometry = require(path.resolve(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js'
 ));
 const layoutDiagnostics = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js');
+
+test('the browser module preserves the existing geometry helper API after extraction', () => {
+    const window = {};
+    const source = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-diagnostics.js', 'utf8');
+    vm.runInNewContext(source, { window, globalThis: window });
+    const legacy = window.FolderViewPlusDockerLayoutGeometry;
+    const current = window.FolderViewPlusFoundationModules.dockerLayoutDiagnostics;
+    assert.equal(legacy.readNodeGeometry, current.readNodeGeometry);
+    assert.equal(legacy.compareGeometry, current.compareGeometry);
+    const node = { getBoundingClientRect: () => ({ left: 10, top: 20 }) };
+    const before = legacy.readNodeGeometry(node);
+    node.getBoundingClientRect = () => ({ left: 14, top: 20 });
+    assert.equal(legacy.compareGeometry(before, legacy.readNodeGeometry(node)).shift, 4);
+});
 
 const createClassList = (...tokens) => {
     const values = new Set(tokens);

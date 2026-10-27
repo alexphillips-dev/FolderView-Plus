@@ -1705,7 +1705,7 @@
       "consumers": ["docker"],
       "stateModel": "singleton",
       "dependsOn": ["scripts/folderviewplus.theme-integration.js"],
-      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules", "FolderViewPlusDockerLayoutGeometry"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "dockerLayoutDiagnostics",
       "loader": "commonjs",

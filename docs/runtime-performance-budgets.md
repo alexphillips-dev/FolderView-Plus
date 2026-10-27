@@ -1,7 +1,7 @@
 # Runtime performance budgets
 
-The October 27 Aurora and Docker column diagnostics add 17,291 JavaScript bytes
-(4,716 gzip at level 9) relative to dev fcb640ea10fb2d0699db029969b1ef96413ae81c.
+The October 27 Aurora and Docker column diagnostics add 17,483 JavaScript bytes
+(4,746 gzip at level 9) relative to dev fcb640ea10fb2d0699db029969b1ef96413ae81c.
 Aggregate static-size allowances include exactly those signed feature deltas.
 The support-bundle telemetry asset includes its 4,052 byte (1,183 gzip) projection
 addition; its absolute gzip allowance increases by the same 1,183 bytes. Other

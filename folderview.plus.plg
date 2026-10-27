@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.27.03">
-<!ENTITY md5 "c445036369b332474c47744bfdbd2536">
-<!ENTITY sha256 "631b26c3b2f937c453dfe873b4b3090d918e573363ef22311cdb19f39008c5c2">
+<!ENTITY version "2026.10.27.04">
+<!ENTITY md5 "f8b2404c54c4ac48d37dc81cf19625a5">
+<!ENTITY sha256 "2caf317c23654f3737d8cc2e2a2ee5c85a6ba581c4ec4185fa9d63ea0d8becaa">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.27.04
+- Fix: Automatically remove the retired Docker geometry script during plugin installation and updates, clearing the leftover-file integrity warning without manual cleanup.
+- Reliability: Keep cleanup limited to named retired plugin files. Preserve the current Docker diagnostics, saved configuration, backups, custom icons, and user overrides, and continue reporting unrelated unexpected runtime files.
+
 
 ###2026.10.27.03
 - Fix: Prevent repeated idle Docker-list rebuilds when lightweight state and detailed container responses contain equivalent information in different orders. Keep grouped folders and column positions stable through detail loading.
@@ -9960,7 +9965,8 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             mkdir -p /boot/config/plugins/&name;/scripts
             find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
             install_stage="obsolete runtime cleanup"
-            rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js"
+            rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js" \
+                "&plugdir;/scripts/docker.runtime.layout-geometry.js"
             install_stage="icon pack activation"
             FVPLUS_ICON_PACK_STATUS_FILE="${icon_status}" /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             install_stage="scheduled backup registration"

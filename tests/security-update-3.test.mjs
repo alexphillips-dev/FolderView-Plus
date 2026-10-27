@@ -197,3 +197,72 @@ test('packaged runtime manifest excludes unrelated assets and detects modified e
         fs.rmSync(temp, { recursive: true, force: true });
     }
 });
+
+test('update cleanup removes retired geometry once and preserves current runtime, saved data and unknown-file detection', () => {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fv-runtime-upgrade-'));
+    try {
+        const runtime = path.join(temp, 'runtime');
+        fs.mkdirSync(path.join(runtime, 'scripts'), { recursive: true });
+        const currentFiles = ['docker.runtime.layout-diagnostics.js', 'docker.runtime.diagnostics.js'];
+        for (const file of currentFiles) {
+            const target = path.join(runtime, 'scripts', file);
+            fs.copyFileSync(path.join(pluginRoot, 'scripts', file), target);
+            fs.chmodSync(target, 0o755);
+        }
+        const preserved = new Map([
+            ['persistent/docker.json', '{"fixture":true}'],
+            ['persistent/vm.prefs.json', '{"fixture":true}'],
+            ['persistent/backups/fixture.json', '{"fixture":true}'],
+            ['persistent/images/custom/fixture.svg', '<svg/>'],
+            ['persistent/scripts/docker.runtime.layout-geometry.js', '// user override'],
+            ['other-plugin/scripts/docker.runtime.layout-geometry.js', '// other plugin']
+        ]);
+        for (const [file, contents] of preserved) {
+            fs.mkdirSync(path.dirname(path.join(temp, file)), { recursive: true });
+            fs.writeFileSync(path.join(temp, file), contents);
+        }
+        const manifestPath = path.join(runtime, 'runtime-integrity.json');
+        const generated = spawnSync(process.execPath, [generatorPath, '--root', runtime, '--output', manifestPath], { encoding: 'utf8' });
+        assert.equal(generated.status, 0, generated.stderr || generated.stdout);
+        const env = { FVPLUS_TEST_SOURCE_DIR: runtime, FVPLUS_TEST_CONFIG_DIR: path.join(temp, 'persistent'),
+            FVPLUS_TEST_SECURITY_STATE_PATH: path.join(temp, 'state.json') };
+        // Windows cannot apply the packaged POSIX modes to this isolated fixture.
+        runPhp(`
+            if (PHP_OS_FAMILY === 'Windows') {
+                $manifest=json_decode(file_get_contents(${phpString(manifestPath)}),true);
+                foreach ($manifest['files'] as &$entry) {
+                    $entry['mode']=sprintf('%04o',fileperms(${phpString(runtime)} . '/' . $entry['path']) & 0777);
+                }
+                file_put_contents(${phpString(manifestPath)},json_encode($manifest));
+            }
+            echo json_encode(true);
+        `, env);
+        const snapshot = () => runPhp(`require_once(${phpString(libPath)}); echo json_encode(fvplus_get_runtime_integrity_snapshot('full'));`, env);
+        const manifest = fs.readFileSync(path.join(root, 'folderview.plus.plg'), 'utf8');
+        const cleanup = manifest.match(/install_stage="obsolete runtime cleanup"([\s\S]*?)install_stage="icon pack activation"/)?.[1];
+        assert.ok(cleanup, 'execute the actual post-extraction installer cleanup');
+        const runCleanup = () => {
+            const result = spawnSync('bash', ['-s'], { cwd: temp, input: `set -e\n${cleanup.replaceAll('&plugdir;', './runtime')}`, encoding: 'utf8' });
+            assert.equal(result.status, 0, result.stderr || result.stdout);
+        };
+        runCleanup(); // Fresh installation has no retired files.
+        assert.equal(snapshot().status, 'healthy');
+        const retired = ['folderviewplus.native-organizer.js', 'docker.member-menu.js', 'docker.runtime.layout-geometry.js'];
+        for (const file of retired) fs.writeFileSync(path.join(runtime, 'scripts', file), '// retired installed module');
+        assert.equal(snapshot().unexpectedCount, 3);
+        runCleanup();
+        assert.equal(snapshot().status, 'healthy');
+        runCleanup(); // Subsequent updates must remain harmless.
+        assert.equal(snapshot().status, 'healthy');
+        for (const file of retired) assert.equal(fs.existsSync(path.join(runtime, 'scripts', file)), false);
+        for (const file of currentFiles) assert.deepEqual(fs.readFileSync(path.join(runtime, 'scripts', file)), fs.readFileSync(path.join(pluginRoot, 'scripts', file)));
+        for (const [file, contents] of preserved) assert.equal(fs.readFileSync(path.join(temp, file), 'utf8'), contents);
+        fs.writeFileSync(path.join(runtime, 'scripts', 'unknown.js'), '// unexpected runtime content');
+        runCleanup();
+        const unknown = snapshot();
+        assert.equal(unknown.status, 'critical');
+        assert.deepEqual(unknown.findings, [{ kind: 'unexpected', path: 'scripts/unknown.js' }]);
+    } finally {
+        fs.rmSync(temp, { recursive: true, force: true });
+    }
+});

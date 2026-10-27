@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "October 26 shared rules module adds one script request to each cold and warm startup surface. Requests and script-request baselines increased by one. Three controlled paired RTL cold runs measured 110/110/109 observer callbacks with the separate module versus 106/106/106 with identical engine code concatenated into the preceding script; only rtl/docker/cold mutationCallbacks increased by that median feature delta of four. Timing, DOM-node, mutation-record, absolute ceiling and regression policies remain unchanged.",
+  "notes": "October 26 shared rules module adds one script request to each cold and warm startup surface. Requests and script-request baselines increased by one. Three controlled paired RTL cold runs measured 110/110/109 observer callbacks with the separate module versus 106/106/106 with identical engine code concatenated into the preceding script; only rtl/docker/cold mutationCallbacks increased by that median feature delta of four. Timing, DOM-node, mutation-record, absolute ceiling and regression policies remain unchanged. October 27 hosted controlled comparison (CI run 40601474457, source f17e8eedd58f7138ebe6e826137ba95fd294f1ba, Chromium 156.0.8078.4) served identical rules-engine bytes either separately or concatenated into their consumer. Three cold samples per variant measured median separate-asset callback costs of representative +2, small +1 and normal +1. Only those three cold mutationCallbacks references include these measured feature costs; timing references, mutation-record/DOM references, absolute ceilings and regression policies are unchanged.",
   "browser": "153.0.8010.12",
   "generatedAt": "2026-09-22T14:04:16.493Z",
   "cases": {
@@ -59,7 +59,7 @@
         "longTaskTotalMs": 203,
         "longestTaskMs": 203,
         "longestFrameGapMs": 216.7,
-        "mutationCallbacks": 95,
+        "mutationCallbacks": 96,
         "mutationRecords": 2082,
         "domNodes": 2493,
         "requests": 107,
@@ -143,7 +143,7 @@
         "longTaskTotalMs": 4636,
         "longestTaskMs": 3380,
         "longestFrameGapMs": 3416.6,
-        "mutationCallbacks": 97,
+        "mutationCallbacks": 98,
         "mutationRecords": 17232,
         "domNodes": 17943,
         "requests": 112,
@@ -357,7 +357,7 @@
         "longTaskTotalMs": 180,
         "longestTaskMs": 180,
         "longestFrameGapMs": 183.3,
-        "mutationCallbacks": 96,
+        "mutationCallbacks": 98,
         "mutationRecords": 2421,
         "domNodes": 2617,
         "requests": 108,
@@ -408,6 +408,211 @@
         "folderGroupingMs": 150.8,
         "postRenderPolishMs": 0.5,
         "detailHydrationMs": 39.5
+      }
+    }
+  },
+  "callbackAssetEvidence": {
+    "runUrl": "https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/40601474457",
+    "commit": "f17e8eedd58f7138ebe6e826137ba95fd294f1ba",
+    "engineSha256": "83725e5e7df53faebc207fc895d13da87d4469addbaa6333c19215be26d60e50",
+    "consumerSha256": "c1a7f37fb119a42e8f3f2547c599f2c8e4c32cd597f60af01296fd255b903577",
+    "browser": "156.0.8078.4",
+    "cases": {
+      "representative": {
+        "scenario": {
+          "folders": 23,
+          "nestedFolders": 7,
+          "members": 51,
+          "locale": "en",
+          "surfaces": [
+            "docker"
+          ]
+        },
+        "samples": {
+          "separate": [
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2590,
+              "domNodes": 2709,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2590,
+              "domNodes": 2709,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2590,
+              "domNodes": 2709,
+              "scriptRequests": 98
+            }
+          ],
+          "combined": [
+            {
+              "mutationCallbacks": 107,
+              "mutationRecords": 2588,
+              "domNodes": 2708,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 107,
+              "mutationRecords": 2588,
+              "domNodes": 2708,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 107,
+              "mutationRecords": 2588,
+              "domNodes": 2708,
+              "scriptRequests": 97
+            }
+          ]
+        },
+        "medians": {
+          "separate": {
+            "mutationCallbacks": 109,
+            "mutationRecords": 2590,
+            "domNodes": 2709,
+            "scriptRequests": 98
+          },
+          "combined": {
+            "mutationCallbacks": 107,
+            "mutationRecords": 2588,
+            "domNodes": 2708,
+            "scriptRequests": 97
+          }
+        },
+        "callbackDelta": 2
+      },
+      "small": {
+        "scenario": {
+          "folders": 25,
+          "members": 50,
+          "locale": "en"
+        },
+        "samples": {
+          "separate": [
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2227,
+              "domNodes": 2589,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2227,
+              "domNodes": 2589,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 2227,
+              "domNodes": 2589,
+              "scriptRequests": 98
+            }
+          ],
+          "combined": [
+            {
+              "mutationCallbacks": 108,
+              "mutationRecords": 2225,
+              "domNodes": 2588,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 108,
+              "mutationRecords": 2225,
+              "domNodes": 2588,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 107,
+              "mutationRecords": 2225,
+              "domNodes": 2588,
+              "scriptRequests": 97
+            }
+          ]
+        },
+        "medians": {
+          "separate": {
+            "mutationCallbacks": 109,
+            "mutationRecords": 2227,
+            "domNodes": 2589,
+            "scriptRequests": 98
+          },
+          "combined": {
+            "mutationCallbacks": 108,
+            "mutationRecords": 2225,
+            "domNodes": 2588,
+            "scriptRequests": 97
+          }
+        },
+        "callbackDelta": 1
+      },
+      "normal": {
+        "scenario": {
+          "folders": 100,
+          "members": 500,
+          "locale": "de"
+        },
+        "samples": {
+          "separate": [
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 18652,
+              "domNodes": 18189,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 111,
+              "mutationRecords": 18652,
+              "domNodes": 18189,
+              "scriptRequests": 98
+            },
+            {
+              "mutationCallbacks": 109,
+              "mutationRecords": 18652,
+              "domNodes": 18189,
+              "scriptRequests": 98
+            }
+          ],
+          "combined": [
+            {
+              "mutationCallbacks": 108,
+              "mutationRecords": 18650,
+              "domNodes": 18188,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 108,
+              "mutationRecords": 18650,
+              "domNodes": 18188,
+              "scriptRequests": 97
+            },
+            {
+              "mutationCallbacks": 108,
+              "mutationRecords": 18650,
+              "domNodes": 18188,
+              "scriptRequests": 97
+            }
+          ]
+        },
+        "medians": {
+          "separate": {
+            "mutationCallbacks": 109,
+            "mutationRecords": 18652,
+            "domNodes": 18189,
+            "scriptRequests": 98
+          },
+          "combined": {
+            "mutationCallbacks": 108,
+            "mutationRecords": 18650,
+            "domNodes": 18188,
+            "scriptRequests": 97
+          }
+        },
+        "callbackDelta": 1
       }
     }
   }

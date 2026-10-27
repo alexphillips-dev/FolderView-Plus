@@ -31,7 +31,7 @@ env:
   FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED: '1'
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
       no_changes: ${{ steps.classify.outputs.no_changes }}
@@ -83,7 +83,7 @@ jobs:
   lint-and-syntax:
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && (needs.detect-changes.outputs.no_changes != 'true' || needs.detect-changes.outputs.release_profile == 'true') && (needs.detect-changes.outputs.docs_only != 'true' || needs.detect-changes.outputs.release_profile == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -97,7 +97,7 @@ jobs:
   node-tests:
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && (needs.detect-changes.outputs.no_changes != 'true' || needs.detect-changes.outputs.release_profile == 'true') && (needs.detect-changes.outputs.docs_only != 'true' || needs.detect-changes.outputs.release_profile == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -117,7 +117,7 @@ jobs:
     name: CI tests and guards
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && (needs.detect-changes.outputs.no_changes != 'true' || needs.detect-changes.outputs.release_profile == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -142,7 +142,7 @@ jobs:
     name: ${{ (startsWith(github.ref_name, 'fvplus-release-candidate-') || startsWith(github.ref_name, 'fvplus-sync-candidate-')) && 'Dependency Review' || 'Release dependency policy' }}
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && needs.detect-changes.outputs.release_profile == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -172,7 +172,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -197,7 +197,7 @@ jobs:
   layout-checks:
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && (needs.detect-changes.outputs.needs_theme == 'true' || needs.detect-changes.outputs.release_profile == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -216,7 +216,7 @@ jobs:
   performance:
     needs: detect-changes
     if: needs.detect-changes.outputs.reused != 'true' && (needs.detect-changes.outputs.needs_performance == 'true' || inputs.benchmarks == true)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       FVPLUS_SKIP_DOCKER_BENCHMARK: ${{ vars.FVPLUS_SKIP_DOCKER_BENCHMARK || '0' }}
@@ -240,7 +240,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -265,7 +265,7 @@ jobs:
   release-preview:
     needs: [detect-changes, lint-and-syntax, node-tests, guard-suite]
     if: github.event_name == 'push' && github.ref_name == 'dev' && needs.detect-changes.outputs.preview_changed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -283,7 +283,7 @@ jobs:
   quality:
     if: always()
     needs: [detect-changes, lint-and-syntax, node-tests, guard-suite, dependency-review, fixture-browser, layout-checks, performance, theme-matrix, release-preview]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

@@ -37,10 +37,9 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.browsers }}-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-${{ env.ImageOS }}-${{ runner.arch }}-fvplus-playwright-${{ inputs.browsers }}-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-
-          ${{ runner.os }}-fvplus-playwright-
+          ${{ runner.os }}-${{ env.ImageOS }}-${{ runner.arch }}-fvplus-playwright-${{ inputs.browsers }}-
 
     - name: Select required Playwright engines
       if: inputs.browsers != 'none'

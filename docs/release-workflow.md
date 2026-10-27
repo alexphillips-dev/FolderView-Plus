@@ -82,15 +82,6 @@ Docker only. Scheduled runs and explicit `benchmarks=true` requests keep full
 startup coverage. Review `production_surfaces` and the report's skipped surfaces
 when diagnosing a benchmark. No timing baseline is relaxed automatically.
 
-For a hosted-only investigation of Docker startup callback counts, dispatch CI
-with `profile=callback-investigation`. This compares the same rules-engine code
-as a separate asset and combined with its consumer, using only the representative,
-small and normal Docker fixtures (at most 500 resources). It records paired cold
-samples and verifies membership, localization and browser errors. This diagnostic
-profile runs no release qualification jobs, writes no release receipt and cannot
-substitute for successful candidate CI. It requires GitHub Actions and refuses
-local execution; ordinary CI jobs and benchmark thresholds remain unchanged.
-
 Qualification-tag-only pushes skip repeated local package/install hooks because
 candidate CI owns qualification. Mixed pushes and main promotion still run the
 guards and verify candidate evidence. Dev preview artifacts verify the committed

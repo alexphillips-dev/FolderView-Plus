@@ -7,7 +7,7 @@ on:
     inputs:
       profile:
         type: choice
-        options: [auto, release, exhaustive, callback-investigation]
+        options: [auto, release, exhaustive]
         default: auto
       benchmarks:
         type: boolean
@@ -30,26 +30,7 @@ env:
   FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
   FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED: '1'
 jobs:
-  callback-investigation:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile == 'callback-investigation'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: ./.github/actions/setup-ci-env
-        with:
-          browsers: chromium
-      - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
-      - run: node scripts/diagnose_startup_callbacks.mjs
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        if: always()
-        with:
-          name: startup-callback-investigation-${{ github.run_id }}
-          path: tmp/fixture-browser-artifacts/callback-investigation.json
-          if-no-files-found: error
   detect-changes:
-    if: inputs.profile != 'callback-investigation'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
@@ -300,7 +281,7 @@ jobs:
           path: tmp/dev-release-preview/
           if-no-files-found: error
   quality:
-    if: always() && inputs.profile != 'callback-investigation'
+    if: always()
     needs: [detect-changes, lint-and-syntax, node-tests, guard-suite, dependency-review, fixture-browser, layout-checks, performance, theme-matrix, release-preview]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

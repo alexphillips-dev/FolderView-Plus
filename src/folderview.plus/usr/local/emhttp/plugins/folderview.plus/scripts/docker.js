@@ -4484,13 +4484,15 @@ const startDockerListViewModeObserver = () => {
     dockerListViewModeObserverBound = true;
 };
 
-const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoSource = null) => {
+const queueDockerDeferredRuntimeInfoHydration = (generation, fullInfoSource = null) => {
     const hydrationStartedAt = (
         typeof performance !== 'undefined' && typeof performance.now === 'function'
             ? performance.now()
             : Date.now()
     );
     const actionGeometryBeforeHydration = captureDockerPreviewActionGeometry();
+    const requestedInfo = Object.fromEntries(Object.entries(dockerRuntimeInfoByName).map(([name, entry]) => [name,
+        { info: { State: { ...entry.info?.State } } }]));
     markDockerRuntimeLayoutPhase('full-info-requested', {
         generation,
         trackedActionCount: actionGeometryBeforeHydration.size
@@ -4516,15 +4518,12 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
                 return;
             }
             const parsed = parseJsonPayloadSafe(payload);
-            if (!parsed || Object.keys(parsed).length <= 0) {
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
                 return;
             }
             dockerRuntimePerformanceTelemetry?.begin?.('detailHydration');
-            dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
-            if (stateSignature) {
-                lastLiveRefreshStateSignature = stateSignature;
-                lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
-            }
+            const hydration = getDockerRuntimeInfoApi().mergeDockerRuntimeDetailInfoMap(parsed, dockerRuntimeInfoByName, requestedInfo);
+            dockerRuntimeInfoByName = hydration.runtimeMap;
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
             const hydrationFinishedAt = (
@@ -4535,7 +4534,8 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             markDockerRuntimeLayoutPhase('full-info-ready', {
                 generation: hydrationGeneration,
                 durationMs: Math.max(0, hydrationFinishedAt - hydrationStartedAt),
-                entityCount: Object.keys(parsed).length
+                entityCount: Object.keys(dockerRuntimeInfoByName).length,
+                ...hydration.diagnostics
             });
             syncDockerVisibleFoldersFromRuntimeCache();
             dockerRuntimePerformanceTelemetry?.end?.('detailHydration');
@@ -4871,7 +4871,7 @@ const createFolders = async () => {
     });
     markDockerRuntimeLayoutPhase('folder-preview-actions-ready', initialActionSummary);
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
-    queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
+    queueDockerDeferredRuntimeInfoHydration(renderGeneration, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
 
     folderDebugMode = false; // Existing flag

@@ -31,6 +31,8 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/docker-detail-hydration.mjs", "limit": 100, "owner": "production detail hydration with native switch lifetime" },
+    { "file": "tests/browser/helpers/docker-native-switch.mjs", "limit": 45, "owner": "pinned Unraid switch widget adapter for functional regressions" },
     { "file": "tests/browser/helpers/docker-membership-refresh.mjs", "limit": 80, "owner": "production detail hydration ordering and idle layout stability" },
     { "file": "tests/browser/helpers/docker-column-diagnostics.mjs", "limit": 45, "owner": "bounded column movement capture and page-exit persistence" },
     {"file": "tests/browser/helpers/docker-expansion-cleanup.mjs", "limit": 35, "owner": "await expansion persistence before fixture navigation and teardown"},
@@ -196,6 +198,8 @@
         "tests/browser/cases/settings-themes.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/docker-detail-hydration.mjs",
+        "tests/browser/helpers/docker-native-switch.mjs",
         "tests/browser/helpers/docker-membership-refresh.mjs",
         "tests/browser/helpers/docker-column-diagnostics.mjs",
         "tests/browser/helpers/folder-badges-host.mjs",
@@ -231,10 +235,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 139,
-      "assertionCount": 1824,
-      "pageEvaluateCount": 557,
-      "orderedTitleSha256": "e66a2e5b1ef9943660f2552ebdad0bc1f87fe6e899e9ad3f0b0342be0a119e1e"
+      "testCount": 140,
+      "assertionCount": 1832,
+      "pageEvaluateCount": 559,
+      "orderedTitleSha256": "5cc028e863c7afde6505b77ec096ef3277000fbcd4a93c840c216c3e21f908c1"
     }
   }
 }

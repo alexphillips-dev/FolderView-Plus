@@ -204,10 +204,10 @@ test('runtime refresh uses API-first reads and lightweight PHP fallback snapshot
     assert.match(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}/s);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
-    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) =>/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) =>/);
     assert.match(dockerJs, /let dockerHostLoadOwnsLoadingUi = false;/);
     assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => dockerHostLoadOwnsLoadingUi \|\| nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
-    assert.match(dockerJs, /dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);/);
+    assert.match(dockerJs, /dockerRuntimeInfoByName = hydration\.runtimeMap;[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);/);
     assert.doesNotMatch(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
@@ -489,7 +489,7 @@ test('docker post-render polish retries only when rows are still settling', () =
     assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-48ms'[\s\S]*signatureRef/s);
     assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-80ms'[\s\S]*signatureRef/s);
     assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-260ms'[\s\S]*signatureRef/s);
-    assert.match(dockerJs, /queueDockerDeferredRuntimeInfoHydration\(renderGeneration,\s*lastLiveRefreshStateSignature,\s*requestBundle\.fullInfo\);/);
+    assert.match(dockerJs, /queueDockerDeferredRuntimeInfoHydration\(renderGeneration,\s*requestBundle\.fullInfo\);/);
     assert.match(dockerModulesJs, /const readFolderRowCenterSignature = \(\) =>/);
     assert.match(dockerModulesJs, /const hasUnsettledFolderRowAssets = \(\) =>/);
     assert.match(dockerModulesJs, /const queueConditionalFolderRowCenterRetry = \(delayMs,\s*signatureRef = null\) =>/);

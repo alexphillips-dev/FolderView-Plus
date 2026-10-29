@@ -446,6 +446,63 @@
             return normalized;
         };
 
+        // Details enrich an accepted inventory; only state/provider reads may replace it.
+        const mergeDockerRuntimeDetailInfoMap = (source, previousMap = null, requestedMap = null) => {
+            const accepted = previousMap || getDockerRuntimeInfoMap();
+            const details = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+            const runtimeMap = { ...accepted };
+            const diagnostics = { acceptedCount: Object.keys(accepted).length, receivedCount: Object.keys(details).length,
+                enrichedCount: 0, missingCount: 0, unexpectedCount: 0, identityMismatchCount: 0,
+                invalidDetailCount: 0, imageConflictCount: 0, labelConflictCount: 0, preservedStateCount: 0 };
+            const identity = (entry) => {
+                const values = [entry?.shortId, entry?.id, entry?.Id, entry?.info?.Id]
+                    .map(value => String(value || '').trim().replace(/^sha256:/i, '').toLowerCase());
+                const primary = values.find(value => /^[a-f0-9]{12,64}$/.test(value)) || '';
+                if (!primary) return '';
+                // Retained full IDs must agree with the current state read's short ID.
+                return values.find(value => value.length === 64 && value.startsWith(primary)) || primary;
+            };
+            const labels = entry => entry?.Labels || entry?.info?.Config?.Labels || {};
+            const image = entry => String(entry?.image ?? entry?.Image ?? entry?.info?.Config?.Image ?? '');
+            const labelSignature = entry => JSON.stringify(Object.entries(labels(entry)).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+            for (const name of Object.keys(accepted)) {
+                if (!Object.prototype.hasOwnProperty.call(details, name)) diagnostics.missingCount++;
+            }
+            for (const [name, raw] of Object.entries(details)) {
+                if (!Object.prototype.hasOwnProperty.call(accepted, name)) { diagnostics.unexpectedCount++; continue; }
+                const current = accepted[name];
+                // Do not let normalization inherit an ID for an unidentifiable response.
+                const currentId = identity(current), detailId = identity(raw);
+                if (!currentId || !detailId || !(currentId === detailId
+                    || (Math.min(currentId.length, detailId.length) === 12
+                        && (currentId.startsWith(detailId) || detailId.startsWith(currentId))))) {
+                    diagnostics.identityMismatchCount++; continue;
+                }
+                if (!isDockerRuntimeInfoEntryFull(raw) || Array.isArray(raw.info.State)) { diagnostics.invalidDetailCount++; continue; }
+                const detail = buildDockerRuntimeInfoRenderEntry(name, raw, current);
+                if (image(current) !== image(detail)) diagnostics.imageConflictCount++;
+                if (labelSignature(current) !== labelSignature(detail)) diagnostics.labelConflictCount++;
+                const currentState = current.info?.State || {}, state = { ...detail.info.State };
+                const requestedState = requestedMap?.[name]?.info?.State;
+                let preservedState = false;
+                for (const [field, value] of Object.entries(currentState)) {
+                    if (!Object.prototype.hasOwnProperty.call(state, field)
+                        || ['Running', 'Paused', 'Status', 'Autostart', 'manager', 'Updated'].includes(field)
+                        || (requestedState && value !== requestedState[field])) {
+                        preservedState ||= state[field] !== value;
+                        state[field] = value;
+                    }
+                }
+                if (preservedState) diagnostics.preservedStateCount++;
+                runtimeMap[name] = { ...detail, ...current, Labels: labels(current), image: image(current), Image: image(current),
+                    info: { ...current.info, ...detail.info, Name: current.info?.Name || name,
+                        Config: { ...current.info?.Config, ...detail.info.Config, Labels: labels(current), Image: image(current) },
+                        State: state } };
+                diagnostics.enrichedCount++;
+            }
+            return { runtimeMap, diagnostics };
+        };
+
         const readFolderContainerNames = (containers) => {
             if (Array.isArray(containers)) {
                 return Array.from(new Set(containers.map((item) => String(item || '').trim()).filter((item) => item !== '')));
@@ -587,6 +644,7 @@
             ensureDockerHostRowUpdateObserver,
             buildDockerRuntimeInfoRenderEntry,
             normalizeDockerRuntimeInfoMap,
+            mergeDockerRuntimeDetailInfoMap,
             readFolderContainerNames,
             buildRuntimeContainerEntry,
             getFolderRuntimeContainers,

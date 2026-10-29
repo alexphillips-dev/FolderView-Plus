@@ -55,7 +55,8 @@ test('host identity uses explicit declaration or enabled known stylesheets witho
 test('adaptation status separates unknown identity from working palette and recovery reasons', () => {
     const document={querySelectorAll:()=>[]}, window={matchMedia:()=>({matches:false})};
     const input={document,window,hostColors:{source:'computed'},applied:true,requestedMode:'auto',appliedMode:'auto'};
-    assert.deepEqual(integration.describeIntegration(input),{identitySource:'unknown',paletteSource:'computed',reason:'none'});
+    assert.deepEqual(integration.describeIntegration(input),{identitySource:'unknown',paletteSource:'computed',reason:'none',
+        neoraid:{active:false,mode:'unknown',density:'unknown',radius:'unknown',font:'unknown'}});
     assert.equal(integration.describeIntegration({...input,applied:false,appliedMode:'highcontrast'}).reason,'contrast-recovery');
     assert.equal(integration.describeIntegration({...input,applied:false,requestedMode:'safe',appliedMode:'safe'}).reason,'requested-recovery');
     assert.equal(integration.describeIntegration({...input,applied:false}).reason,'missing-host-inputs');

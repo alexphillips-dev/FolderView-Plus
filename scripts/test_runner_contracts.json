@@ -6,6 +6,7 @@
       "limit": 59,
       "history": [1846, 59],
       "requiredImports": [
+        "../tests/browser/cases/neoraid.mjs",
         "./lib/fixture-browser-server.mjs",
         "./lib/fixture-browser-runner.mjs",
         "./lib/fixture-browser-config.mjs",
@@ -31,6 +32,8 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/neoraid.mjs", "limit": 80, "owner": "pinned NeoRaid Settings, palette and native switch regressions" },
+    { "file": "tests/browser/helpers/neoraid.mjs", "limit": 80, "owner": "isolated pinned NeoRaid stylesheet and script fixture" },
     { "file": "tests/browser/helpers/docker-detail-hydration.mjs", "limit": 100, "owner": "production detail hydration with native switch lifetime" },
     { "file": "tests/browser/helpers/docker-native-switch.mjs", "limit": 45, "owner": "pinned Unraid switch widget adapter for functional regressions" },
     { "file": "tests/browser/helpers/docker-membership-refresh.mjs", "limit": 80, "owner": "production detail hydration ordering and idle layout stability" },
@@ -133,6 +136,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/neoraid.mjs",
         "tests/browser/cases/backup-schedule.mjs",
         "tests/browser/cases/folder-editor-help.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
@@ -198,6 +202,7 @@
         "tests/browser/cases/settings-themes.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/neoraid.mjs",
         "tests/browser/helpers/docker-detail-hydration.mjs",
         "tests/browser/helpers/docker-native-switch.mjs",
         "tests/browser/helpers/docker-membership-refresh.mjs",
@@ -235,10 +240,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 140,
-      "assertionCount": 1832,
-      "pageEvaluateCount": 559,
-      "orderedTitleSha256": "5cc028e863c7afde6505b77ec096ef3277000fbcd4a93c840c216c3e21f908c1"
+      "testCount": 143,
+      "assertionCount": 1840,
+      "pageEvaluateCount": 571,
+      "orderedTitleSha256": "87ce5fd7530ec58b24ffc9dc9e1a26f523a72a494f2fc9bfa7c6e53e18390f71"
     }
   }
 }

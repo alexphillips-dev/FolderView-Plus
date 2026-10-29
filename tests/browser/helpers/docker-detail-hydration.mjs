@@ -3,7 +3,7 @@ import { createProductionPerfFixture } from '../../../scripts/lib/production-per
 import { nativeSwitchHost, nativeSwitchCss } from './docker-native-switch.mjs';
 import { installHost } from './host-theme.mjs';
 
-export const exerciseDockerDetailHydration = async ({ page }) => {
+export const exerciseDockerDetailHydration = async ({ page, themeInstaller = installHost }) => {
     for (const themed of [false, true]) {
         const host = createProductionPerfFixture(process.cwd(), { folders: 2, members: 6 });
         await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
@@ -37,10 +37,10 @@ export const exerciseDockerDetailHydration = async ({ page }) => {
             await page.goto(`${origin}/docker`, { waitUntil: 'load' });
             await page.addStyleTag({ content: nativeSwitchCss });
             await page.waitForFunction(() => document.querySelectorAll('#docker_list tr.folder').length === 2);
-            if (themed) await installHost(page, origin);
+            if (themed) await themeInstaller(page, origin);
             await page.waitForFunction(() => [...document.querySelectorAll('.folder-autostart .switch-button-button')]
                 .length === 2 && [...document.querySelectorAll('.folder-autostart .switch-button-button')]
-                .every(node => parseFloat(node.style.left) === 13));
+                .every(node => !jQuery(node).is(':animated') && node.parentElement.classList.contains('checked')));
             const creates = await page.evaluate(() => {
                 window.fixtureOriginalSwitch = document.querySelector('.folder-autostart .switch-button-button');
                 return window.fixtureSwitchCreates;

@@ -119,7 +119,11 @@ See [Maintainer integration fixture](THEME_GUIDE.md#maintainer-integration-fixtu
 
 An active theme may declare `data-fvplus-theme-name` on `html` (or `body`). Remove the attribute when disabling its colors. This escaped display label is separate from palette detection and never grants layout ownership. Aurora retains its enabled same-origin stylesheet recognition. Without a declared or recognized identity, Unraid's reported name describes the base theme; otherwise the UI says "Unidentified host theme". Unknown identity does not prevent palette adaptation. Do not derive a theme name from arbitrary stylesheet URLs or infer it from colors.
 
+NeoRaid recognition requires the `nr` class on `html` and an enabled, matching-media, same-origin `/plugins/neoraid/sheets/Neoraid.css` stylesheet. Script presence or a similarly named foreign stylesheet alone does not establish active colors.
+
 Themes displays identity source, palette adaptation and control sizing separately from imported managed themes. The resolver snapshot's additive `hostIntegration` contains `identitySource` (`declared`, `recognized`, `native-base`, `unknown`), `paletteSource` (`variables`, `computed`, `fallback`, `system`), `reason` (`none`, `forced-colors`, `requested-recovery`, `contrast-recovery`, `missing-host-inputs`) and, after application, `nativeControls` (boolean).
+
+Its additive `neoraid` object contains `active` (boolean), resolved `mode` (`native`, `light`, `dark`), `density` (`comfortable`, `compact`), `radius` (`standard`, `sharp`, `round`) and `font` (`inter`, `system`). Option fields become `unknown` for inactive or unrecognized values. Sanitized bundles retain only these enumerated values; they never include raw theme attributes, asset URLs or query parameters.
 
 ## Diagnostics Contract
 Theme diagnostics are exposed through the Settings diagnostics action `runThemeDiagnostics()` and the Theme summary card's technical details.

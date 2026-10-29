@@ -66,7 +66,7 @@ FolderView Plus isolates its Docker runtime and supports Compose-related matchin
 
 FolderView Plus uses shared theme tokens and tests normal dark/light behavior. Themes that replace native table markup, force global styles, or override focus and dialog behavior can still expose incompatibilities. Use the theme diagnostics and test once without custom overrides before reporting a core rendering issue.
 
-Auto and Host theme compatibility modes inherit modern host text, accent, surface and button variables, including those supplied by Aurora Theme. Safe and High Contrast modes remain available, and explicit folder status colors are preserved. See [Host Palette Inputs](THEME_API_CONTRACT.md#host-palette-inputs).
+Auto and Host theme compatibility modes inherit modern host text, accent, surface and button variables, including those supplied by Aurora Theme and NeoRaid. Safe and High Contrast modes remain available, and explicit folder status colors are preserved. See [Host Palette Inputs](THEME_API_CONTRACT.md#host-palette-inputs).
 
 General adaptation also samples usable native computed styles when no page/card variable contract exists, follows native control metrics, and responds to stylesheet/font changes. Themes reports identity separately from adaptation. Synthetic fixtures cover multiple color, sizing and recovery contracts across all five plugin surfaces; they do not certify every third-party theme. Theme authors can use the [maintainer integration fixture](THEME_GUIDE.md#maintainer-integration-fixture) to check load order and renderer ownership.
 
@@ -75,6 +75,8 @@ General adaptation also samples usable native computed styles when no page/card 
 Older Aurora builds that do not recognize Plus can move stored container rows or apply compact layouts to folder rows. For those builds, disabling **Settings → User Utilities → Aurora Theme → Page enhancements**, applying, and hard-refreshing remains a temporary comparison or workaround; colours, fonts, and navigation can remain enabled. Current Aurora builds do not require that blanket workaround solely because Plus is installed.
 
 Stable FolderView Plus **2026.10.27.05** also corrects an independent idle Docker refresh loop caused by equivalent runtime responses arriving in different entry orders. Update Plus before attributing repeated column movement to the theme. If movement continues, reproduce it with the same view and theme settings, leave Docker visible long enough to record column movement, then export a sanitized support bundle from Settings. Theme maintainers should follow [Layout Ownership for Theme Integrations](THEME_API_CONTRACT.md#layout-ownership-for-theme-integrations).
+
+**NeoRaid:** Compatibility fixtures use the actual stylesheet and theme-switching script from [NeoRaid 2026.10.27c](https://github.com/veaceslavmafteiaevoluta/neoraid/tree/0b9dded5ce781e20170b912938a0bb4b7ab48eb0). FolderView Plus recognizes its active same-origin color stylesheet and theme marker, follows live palette changes, and preserves Settings warning colors, toolbar alignment and native Sort hit areas. Sanitized theme diagnostics include only bounded active-mode, density, corner and font options. This fixture coverage does not certify every Unraid installation or theme-option combination; hard-refresh after updating and check Docker, VM, Dashboard and Settings with your chosen options.
 
 ### Custom CSS and JavaScript
 

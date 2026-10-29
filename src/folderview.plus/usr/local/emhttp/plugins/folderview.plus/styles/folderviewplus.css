@@ -9951,7 +9951,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     min-width: 0;
 }
 
-.fv-plugin-update-link {
+#fv-settings-root .fv-plugin-update-link {
     display: inline-flex;
     align-items: center;
     gap: 0.32rem;
@@ -9967,8 +9967,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     white-space: nowrap;
 }
 
-.fv-plugin-update-link:hover,
-.fv-plugin-update-link:focus-visible {
+#fv-settings-root .fv-plugin-update-link:hover,
+#fv-settings-root .fv-plugin-update-link:focus-visible {
     color: var(--fvplus-settings-text-primary);
     border-color: var(--fvplus-settings-accent);
     box-shadow: 0 0 0 3px var(--fvplus-settings-focus-ring);
@@ -10027,10 +10027,13 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     border-right: 1px solid rgba(255, 255, 255, 0.16);
 }
 
+#fv-settings-root .fv-mode-toggle button { height: var(--fv-settings-toolbar-control-height); }
+
 #fv-run-wizard {
     align-self: flex-start;
     flex: 0 0 auto;
     margin: 0.18rem 0 0;
+    height: var(--fv-settings-toolbar-control-height);
 }
 
 .fv-mode-toggle button:last-child {

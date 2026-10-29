@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.29.01">
-<!ENTITY md5 "781ed69e90f23e2bdc1ebb207a80ec0c">
-<!ENTITY sha256 "3966344b5f1fe04df84f65f673627932c7954de2797cc35c7f9ea06f59aad53e">
+<!ENTITY version "2026.10.29.02">
+<!ENTITY md5 "2d1a21db96061c66002302027ad8189f">
+<!ENTITY sha256 "cb0990ebc30ebcffdfa6f893dc7ca23274854550b294ba73f078eff76fb494d2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.29.02
+- Compatibility: Recognize an active NeoRaid host theme separately from the native Unraid base theme and imported managed themes, with checks for disabled, inactive and foreign stylesheets.
+- Fix: Preserve readable Update Available badges in light mode and keep Settings toolbar controls aligned when a host theme changes native button sizes. Retain larger controls on mobile and touch screens.
+- Fix: Keep the entire Basic Docker and VM Sort control clickable while preserving native selection and keyboard interaction.
+- Diagnostics: Include bounded NeoRaid mode, density, corner and font options in sanitized support bundles without exposing raw theme attributes or asset URLs.
+- Compatibility: Hard-refresh the webGUI after updating. Recheck Settings, native Sort controls, live theme switching, and idle Docker behavior with your chosen NeoRaid options.
+
 
 ###2026.10.29.01
 - Fix: Prevent repeated Docker list rebuilds and autostart-switch animations when detailed container information is incomplete or disagrees with the accepted container state.

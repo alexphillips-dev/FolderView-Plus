@@ -1,4 +1,5 @@
 {
+  "neoraid": ["^NeoRaid"],
   "docker-hydration": ["^Docker detail hydration"],
   "rules-engine": ["^Rules", "^Lifecycle reconciliation", "^VM lifecycle", "^Dashboard.*(Stop|Started|lifecycle)", "^Quick finder production", "^Docker folder feedback", "^Docker hide-empty", "^Folder badges"],
   "host-matrix": ["^Host theme matrix"],

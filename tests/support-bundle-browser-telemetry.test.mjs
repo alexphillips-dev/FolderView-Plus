@@ -83,12 +83,14 @@ test('sanitized theme exports keep only bounded canonical adaptation evidence an
     const secret='private-theme-10.4.5.6-/mnt/user/private-https://host.invalid/token';
     const raw={htmlClassList:[secret],pluginAssets:{stylesheets:[secret]},tokens:{html:{color:secret}},warnings:[secret],adjustments:[secret],
         resolver:{hostThemeName:secret,requestedMode:'auto',appliedMode:'auto',classification:'dark',hostPaletteApplied:true,
-            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret},
+            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret,
+                neoraid:{active:true,mode:'dark',density:'compact',radius:'round',font:'inter',asset:secret}},
             contrastChecks:[{name:'surface.hostControlText',ratio:7,minRatio:4.5,passed:true},{name:secret,ratio:21}],
             statusChecks:{started:{ratio:12,minRatio:4.5},private:secret}}};
     const safe=telemetry.sanitizeThemeTelemetry(raw);
     assert.equal(JSON.stringify(safe).includes(secret),false);
     assert.equal(safe.resolver.hostIntegration.paletteSource,'computed');
+    assert.deepEqual(safe.resolver.hostIntegration.neoraid,{active:true,mode:'dark',density:'compact',radius:'round',font:'inter'});
     assert.equal(safe.resolver.contrastChecks.length,1);
     assert.equal(safe.resolver.contrastChecks[0].ratio,7);
     assert.equal(safe.resolver.statusChecks.started.passed,true);
@@ -104,6 +106,10 @@ test('sanitized theme exports keep only bounded canonical adaptation evidence an
     const bundle=telemetry.createApi({collectThemeTelemetrySnapshot:()=>raw}).collectSupportBundleUiTelemetry({bundleMeta:{privacyMode:'sanitized'}});
     assert.equal(JSON.stringify(bundle.uiTelemetry.theme).includes(secret),false);
     assert.equal(bundle.redactionManifest.privacySelfCheck.status,'passed');
+    assert.equal(bundle.uiTelemetry.theme.resolver.hostIntegration.neoraid.active,true);
+    raw.resolver.hostIntegration.neoraid={active:true,mode:secret,density:secret,radius:secret,font:secret};
+    assert.deepEqual(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.neoraid,
+        {active:true,mode:'unknown',density:'unknown',radius:'unknown',font:'unknown'});
     assert.equal(telemetry.buildUiTelemetryPrivacySelfCheck({theme:{resolver:{hostThemeName:secret}}}).status,'failed');
     raw.resolver.hostIntegration.paletteSource=secret;raw.resolver.contrastChecks[0].ratio=Infinity;
     assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.paletteSource,'fallback');

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mountNeoraid, bindNeoraidSurface, installNeoraid } from '../helpers/neoraid.mjs';
 import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
 import { exerciseDockerDetailHydration } from '../helpers/docker-detail-hydration.mjs';
+import { installSettingsIconFont, verifySettingsIconAlignment } from '../helpers/settings-icons.mjs';
 
 export const registerNeoraidFixtureCases = ({test,baseUrl}) => {
 test('NeoRaid Settings preserves warning contrast and native toolbar controls', async ({page}) => {
@@ -10,8 +11,10 @@ test('NeoRaid Settings preserves warning contrast and native toolbar controls', 
     const cleanup=await mountNeoraid(page,`${baseUrl}/settings`);
     try {
         await bindNeoraidSurface(page,baseUrl,'#fv-settings-root');
+        await installSettingsIconFont(page);
         await page.locator('#fv-plugin-update-link').evaluate(node=>{node.hidden=false;});
         await verifySettingsSearchAlignment(page); await verifyBasicToolbarLayout(page);
+        await verifySettingsIconAlignment(page);
         const select=page.locator('[data-toolbar-type="docker"] select').first();
         await select.focus(); await select.press('End'); await select.press('Enter');
         assert.equal(await select.evaluate(node=>node===document.activeElement),true);

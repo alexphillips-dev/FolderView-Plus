@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { installHost, switchHost } from '../helpers/host-theme.mjs';
 import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
+import { installSettingsIconFont, verifySettingsIconAlignment } from '../helpers/settings-icons.mjs';
 
 const controlsCss=fs.readFileSync(new URL('../fixtures/vendor/aurora-controls.css',import.meta.url),'utf8');
 export const registerAuroraControlCases = ({test,baseUrl}) => {
 test('Host theme Aurora header icons cannot resize Settings actions', async ({page}) => {
     await page.setViewportSize({width:1180,height:720});
     await page.goto(`${baseUrl}/settings`,{waitUntil:'load'});
+    await installSettingsIconFont(page);
     await page.addStyleTag({content:controlsCss+'\nhtml{font-size:10px;--tp-font-heading:Arial,sans-serif}body{font-size:13px}'});
     await page.evaluate(()=>{
         document.documentElement.classList.add('Theme--black');
@@ -24,6 +26,7 @@ test('Host theme Aurora header icons cannot resize Settings actions', async ({pa
     }));
     assert.deepEqual(ignored,{metrics:null,icon:{font:'16px',padding:'0px'}});
     await verifySettingsSearchAlignment(page);await verifyBasicToolbarLayout(page);
+    await verifySettingsIconAlignment(page);
     const measure=()=>page.evaluate(()=>{
         const reference=getComputedStyle(document.querySelector('.fv-defaults-editor-link'));
         return [...document.querySelectorAll('.fv-mode-toggle button,#fv-run-wizard,[data-toolbar-type] .folder-toolbar button')].map(node=>{
@@ -48,6 +51,7 @@ test('Host theme Aurora header icons cannot resize Settings actions', async ({pa
     assert.equal(await page.evaluate(()=>window.FolderViewPlusFoundationModules.themeIntegration.readNativeControls(document,window).fontSize),'12px');
     await verify();
     await page.setViewportSize({width:1180,height:720});
+    await verifySettingsIconAlignment(page);
     const before=await page.evaluate(()=>window.fixtureHostApplyCount);
     await page.evaluate(()=>{
         const profile=document.getElementById('UserProfile');profile.replaceWith(profile.cloneNode(true));

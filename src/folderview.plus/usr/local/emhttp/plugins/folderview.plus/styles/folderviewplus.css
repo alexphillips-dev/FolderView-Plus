@@ -10043,6 +10043,31 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     height: var(--fv-settings-toolbar-control-height);
 }
 
+#fv-settings-root #fv-run-wizard {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+/* Use the caption's line box for icons, with Font Awesome confined to its glyph. */
+#fv-settings-root :is(.folder-toolbar button, .folder-toolbar .fv-basic-sort, #fv-run-wizard) > i.fa {
+    font: inherit;
+}
+
+#fv-settings-root :is(.folder-toolbar button, .folder-toolbar .fv-basic-sort, #fv-run-wizard) > i.fa::before {
+    display: inline-block;
+    font-family: FontAwesome;
+    font-weight: 400;
+    line-height: 1;
+    vertical-align: baseline;
+}
+
+#fv-settings-root .folder-toolbar button > i.fa::before {
+    position: relative;
+    top: 0.1em;
+}
+
 .fv-mode-toggle button:last-child {
     border-right: 0;
 }

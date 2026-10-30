@@ -1,0 +1,16 @@
+/* Test-only Font Awesome 4.7.0 native controls.
+ * https://github.com/FortAwesome/Font-Awesome/tree/v4.7.0
+ * Font blob: 400014a4b06eee3d0c0d54402a47ab2601b2862b (matches Unraid).
+ * Font: SIL OFL 1.1; CSS excerpts: MIT. See font-awesome.LICENSE.txt.
+ */
+@font-face{font-family:FontAwesome;font-weight:normal;font-style:normal;src:url(/fixture/font-awesome.woff) format("woff")}
+.fa{display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fa-search:before{content:"\f002"}
+.fa-times:before{content:"\f00d"}
+.fa-plus:before{content:"\f067"}
+.fa-sort-amount-asc:before{content:"\f160"}
+.fa-download:before{content:"\f019"}
+.fa-upload:before{content:"\f093"}
+.fa-history:before{content:"\f1da"}
+.fa-magic:before{content:"\f0d0"}
+.fa-moon-o:before{content:"\f186"}

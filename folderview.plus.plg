@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.29.04">
-<!ENTITY md5 "46a0d5610206d7eb43650f7b1af2537c">
-<!ENTITY sha256 "da6d125c134aee5eb95fc77c17ada7f0d92500b89a83a9de076e4d09583ad189">
+<!ENTITY version "2026.10.29.05">
+<!ENTITY md5 "c3d16d481ae74562a3eb3afbe71ff41f">
+<!ENTITY sha256 "c78cdf86eed1c43b6fa22ba111dcc97f8bc70273a8f5cd9ddfad4058133b1afe">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.29.05
+- Fix: Center Font Awesome icons beside their captions in the Docker and VM Settings toolbars, native Sort controls and Wizard button after the Aurora button-spacing update.
+- UX: Keep icon alignment consistent with different host fonts and wrapped mobile captions, while preserving centered SVG icons and existing touch control heights.
+- Fix: Reserve enough space for the Sort icon and label so they do not crowd the selected value. Native dropdown clicks and keyboard selection remain available.
+- Compatibility: Hard-refresh the webGUI after updating so the corrected Settings styles are loaded.
+
 
 ###2026.10.29.04
 - Fix: Prevent Aurora's sun/moon header button from making FolderView Plus Settings actions cramped or oversized. Icon-only controls no longer supply ordinary action-button sizing.

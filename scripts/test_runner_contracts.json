@@ -33,6 +33,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/settings-icons.mjs", "limit": 60, "owner": "native Font Awesome glyph and SVG optical alignment checks" },
     { "file": "tests/browser/cases/aurora-controls.mjs", "limit": 80, "owner": "Aurora header icon sampling and compact Settings control regressions" },
     { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
     { "file": "tests/browser/helpers/docker-config-fixture-state.mjs", "limit": 50, "owner": "shared Docker fixture configuration snapshots and atomic revision guards" },
@@ -211,6 +212,7 @@
         "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/settings-icons.mjs",
         "tests/browser/helpers/docker-config-fixture-state.mjs",
         "tests/browser/helpers/docker-hierarchy-move-interactions.mjs",
         "tests/browser/helpers/neoraid.mjs",
@@ -252,8 +254,8 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 145,
-      "assertionCount": 1870,
-      "pageEvaluateCount": 585,
+      "assertionCount": 1874,
+      "pageEvaluateCount": 587,
       "orderedTitleSha256": "442a1729bd6d98970e3613240c08e0a965cb3290bcc16dee78d2877e1e46f4db"
     }
   }

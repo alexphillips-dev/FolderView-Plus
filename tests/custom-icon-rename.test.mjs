@@ -103,7 +103,7 @@ test('concurrent folder save, rename and delete retain the saved reference and s
         const remove = launch('delete', { skipSeed: true, action: 'delete', waitStart: 'start-delete', ready: 'delete-ready' });
         await Promise.all(['save-ready', 'rename-ready', 'delete-ready'].map(waitFor));
         fs.writeFileSync(root + '/start-save', 'ready'); await waitFor('save-locked');
-        fs.writeFileSync(root + '/start-rename', 'ready'); await waitFor('rename-locked');
+        fs.writeFileSync(root + '/start-rename', 'ready');
         fs.writeFileSync(root + '/start-delete', 'ready');
         fs.writeFileSync(root + '/release-save', 'ready');
         const [saved, renamed, deleted] = await Promise.all([save, rename, remove]);

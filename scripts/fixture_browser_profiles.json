@@ -1,4 +1,11 @@
 {
+  "settings-icons": ["^Host theme Aurora header icons", "^NeoRaid Settings", "^Settings chrome"],
+  "aurora-controls": ["^Host theme Aurora header icons"],
+  "engine-stage1": ["^Docker incremental preview buttons", "^Rules", "^Shared UI primitives", "^Docker child-folder preview", "^Filters and view settings"],
+  "engine-stage3": ["^Docker Move to root", "Snapshot comparison", "^Import", "import", "^FolderView3", "^Recovery mockup", "^Scheduled backup"],
+  "engine-final": ["^Host theme maintainer contract", "^Docker lifecycle reconciliation", "^Docker folder menu opens directly", "^Docker incremental preview", "^Docker Command overview", "^Browser storage restrictions", "^Docker Privacy toggle"],
+  "neoraid": ["^NeoRaid"],
+  "docker-hydration": ["^Docker detail hydration"],
   "rules-engine": ["^Rules", "^Lifecycle reconciliation", "^VM lifecycle", "^Dashboard.*(Stop|Started|lifecycle)", "^Quick finder production", "^Docker folder feedback", "^Docker hide-empty", "^Folder badges"],
   "host-matrix": ["^Host theme matrix"],
   "browser-storage": ["^Browser storage restrictions"],
@@ -25,6 +32,7 @@
     "Settings overflow", "Settings visibility", "Basic.*(creation|group)", "Operations matches", "Filters and view settings",
     "Diagnostics workspace", "Inside drop", "Folder WebUI", "editor tabs", "Mobile reorder", "Quick finder", "Docker folder menu", "Settings Docker actions", "Basic nested", "^Folder badges"
   ],
+  "engine-stage4": ["canonical host update availability", "Health", "health", "Icon browser", "Custom icon", "Deleting an uploaded", "Settings.*table", "Settings.*column"],
   "quick-finder": ["Quick finder"],
   "icon-browser": ["Icon browser", "Custom icon", "Deleting an uploaded"],
   "icon-cancel": ["Icon browser Cancel"],

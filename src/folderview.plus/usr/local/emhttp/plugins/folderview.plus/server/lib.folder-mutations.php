@@ -196,45 +196,23 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             if ($manualOrder !== null) {
                 $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
             }
-            $folderWriteCommitted = false;
-            $prefsWriteCommitted = false;
+            $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
             try {
                 writeRawFolderMap($type, $nextFolders);
-                $folderWriteCommitted = true;
-                if ($nextPrefs !== $originalPrefs) {
-                    writeTypePrefs($type, $nextPrefs);
-                    $prefsWriteCommitted = true;
-                }
-                if ($type === 'docker') {
-                    syncContainerOrder($type);
+                if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);
+                if ($type === 'docker') syncContainerOrder($type);
+                if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))
+                    || jsonObjectsDiffer($nextPrefs, readTypePrefs($type))) {
+                    throw new RuntimeException('Folder batch transaction verification failed.');
                 }
             } catch (Throwable $error) {
-                $rollbackErrors = [];
-                if ($folderWriteCommitted) {
-                    try {
-                        writeRawFolderMap($type, $originalFolders);
-                    } catch (Throwable $rollbackError) {
-                        $rollbackErrors[] = 'folders: ' . $rollbackError->getMessage();
-                    }
-                    if ($prefsWriteCommitted) {
-                        try {
-                            writeTypePrefs($type, $originalPrefs);
-                        } catch (Throwable $rollbackError) {
-                            $rollbackErrors[] = 'preferences: ' . $rollbackError->getMessage();
-                        }
-                    }
-                    if ($type === 'docker') {
-                        try {
-                            syncContainerOrder($type);
-                        } catch (Throwable $rollbackError) {
-                            $rollbackErrors[] = 'Docker order: ' . $rollbackError->getMessage();
-                        }
-                    }
+                try {
+                    fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');
+                } catch (Throwable $rollbackError) {
+                    throw new RuntimeException('Folder batch transaction failed: ' . $rollbackError->getMessage(), 0, $error);
                 }
-                $rollbackDetail = count($rollbackErrors) > 0
-                    ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
-                    : ($error instanceof FVPlusConfigWriteRollbackException ? '' : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.'));
-                throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
+                throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage()
+                    . ' Automatic rollback restored the original configuration.', 0, $error);
             }
 
             $durationMs = (int)round((microtime(true) - $startedAt) * 1000);

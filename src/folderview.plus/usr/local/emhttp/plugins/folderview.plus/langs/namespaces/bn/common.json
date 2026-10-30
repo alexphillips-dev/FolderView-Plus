@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "প্রিভিউ প্রয়োগ করার আগে ভুল নিয়ম সংশোধন করুন।",
     "common.server.rules-save-invalid": "সংরক্ষণ করার আগে ভুল নিয়ম সংশোধন করুন।",
     "common.repair.rules-preview-no-changes": "এই পূর্বরূপের জন্য কোনো অ্যাসাইনমেন্ট পরিবর্তনের প্রয়োজন নেই।",
-    "common.repair.rules-preview-moves-manual": "বিদ্যমান ম্যানুয়াল অ্যাসাইনমেন্টগুলি প্রিভিউ করা ফোল্ডারে সরানো হবে।"
+    "common.repair.rules-preview-moves-manual": "বিদ্যমান ম্যানুয়াল অ্যাসাইনমেন্টগুলি প্রিভিউ করা ফোল্ডারে সরানো হবে।",
+    "common.server.legacy-regex-managed-unsupported": "লিগ্যাসি রেজেক্স পরিচালিত নিয়ম দ্বারা সমর্থিত নয় এবং রূপান্তর করা যাবে না।",
+    "common.server.environment-format-unsupported": "এনভায়রনমেন্ট স্ন্যাপশট ফর্ম্যাট বা স্কিমা সংস্করণ অসমর্থিত।",
+    "common.server.environment-sections-missing": "এনভায়রনমেন্ট স্ন্যাপশট প্রয়োজনীয় বিভাগ অনুপস্থিত.",
+    "common.server.environment-folder-data-invalid": "এনভায়রনমেন্ট স্ন্যাপশটে অবৈধ ফোল্ডার ডেটা রয়েছে৷",
+    "common.server.rollback-format-unsupported": "রোলব্যাক স্ন্যাপশট ফর্ম্যাট বা স্কিমা সংস্করণ অসমর্থিত৷",
+    "common.server.rollback-type-data-missing": "রোলব্যাক স্ন্যাপশট প্রয়োজনীয় টাইপ ডেটা অনুপস্থিত৷",
+    "common.server.rollback-theme-workspace-invalid": "রোলব্যাক স্ন্যাপশটে অবৈধ থিম ওয়ার্কস্পেস ডেটা রয়েছে৷",
+    "common.server.folder-batch-verification": "ফোল্ডার ব্যাচ লেনদেন যাচাইকরণ ব্যর্থ হয়েছে.",
+    "common.server.bulk-assignment-verification": "বাল্ক অ্যাসাইনমেন্ট লেনদেন যাচাইকরণ ব্যর্থ হয়েছে৷"
 }

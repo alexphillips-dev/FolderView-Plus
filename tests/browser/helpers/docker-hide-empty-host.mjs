@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import { createDockerConfigFixtureState } from './docker-config-fixture-state.mjs';
 import { createProductionPerfFixture } from '../../../scripts/lib/production-perf-fixture.mjs';
 export const openDockerToolsAfterRefresh = async page => {
     await page.waitForFunction(() => document.querySelector('#fvplus-docker-action-bar')?.getAttribute('aria-busy') === 'false'
@@ -49,21 +50,17 @@ window.loadlist = () => {
         icon: '/plugins/folderview.plus/images/folder-icon.png',
         info: { Name: '/' + name, State: { Running: true }, Config: { Labels: {} }, HostConfig: {} }
     }]));
-    let prefs = { hideEmptyFolders: true, sortMode: 'alpha', setupWizardCompleted: true,
-        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], _metadata: { prefsRevision: 1 } };
-    const snapshot = () => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type: 'docker',
-        folders, runtime, runtimeIncluded: true, order: Object.keys(folders).map(id => 'folder-' + id).concat(host.names),
-        prefs, metadata: {}, revision: 'a'.repeat(64) });
-    await page.route('**/server/runtime_snapshot.php?**', route => route.fulfill({ json: snapshot() }));
+    const config = createDockerConfigFixtureState({ folders, runtime, names: host.names });
+    await page.route('**/server/runtime_snapshot.php?**', route => route.fulfill({ json: config.snapshot() }));
     await page.route('**/server/read.php?**', route => route.fulfill({ json: folders }));
     await page.route('**/server/read_info.php?**', route => route.fulfill({ json: runtime }));
     await page.route('**/server/prefs.php**', async route => {
-        const request = route.request();
-        const payload = request.method() === 'POST' ? Object.fromEntries(new URLSearchParams(request.postData())) : {};
-        if (request.method() === 'POST' && payload.type === 'docker') {
-            prefs = { ...prefs, ...JSON.parse(payload.prefs), _metadata: { prefsRevision: prefs._metadata.prefsRevision + 1 } };
-        }
-        await route.fulfill({ json: { ok: true, prefs, metadata: prefs._metadata, clientMutationId: payload.clientMutationId } });
+        const request = route.request(), payload = Object.fromEntries(new URLSearchParams(request.postData() || ''));
+        try {
+            const response = request.method() === 'POST' ? config.savePrefs(payload)
+                : { ok: true, prefs: config.prefs(), metadata: config.metadata() };
+            await route.fulfill({ json: response });
+        } catch (error) { await route.fulfill({ status: error.status || 500, json: { ok: false, error: error.message } }); }
     });
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
         if (!window.display) return;
@@ -75,6 +72,6 @@ window.loadlist = () => {
     await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
     return { url: `http://127.0.0.1:${host.server.address().port}/docker`, memberCount: host.names.length,
         populated: deep ? ['parent', 'branch', 'leaf', 'direct'] : ['parent', 'childA', 'childB', 'childC'],
-        all: Object.keys(folders), folders, runtime, prefs: () => prefs,
+        all: Object.keys(folders), folders, runtime, prefs: config.prefs, revisions: config.revisions, applyBatch: config.applyBatch,
         close: async () => { host.server.closeAllConnections(); await new Promise(resolve => host.server.close(resolve)); } };
 };

@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'; import { registerFilterViewSettingsFixes } from './filter-view-settings-fixes.mjs'; import { registerSettingsAlertsHealthCase } from './settings-alerts-health.mjs'; import { registerSettingsFolderGroupCases } from './settings-folder-groups.mjs'; import { registerSettingsRulesCases } from './settings-rules.mjs'; import { registerSettingsRuntimeActionCase } from './settings-runtime-actions.mjs';
-import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs'; import { registerBulkAssignmentCases } from './settings-bulk-assignment.mjs'; import { registerSettingsThemeCases } from './settings-themes.mjs';
+import { registerLocalizationWorkspaceFixtureCases } from './localization-workspaces.mjs'; import { registerBulkAssignmentCases } from './settings-bulk-assignment.mjs'; import { registerSettingsThemeCases } from './settings-themes.mjs'; import { installSettingsIconFont, verifySettingsIconAlignment } from '../helpers/settings-icons.mjs';
 import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs'; import { registerSettingsAdvancedNavigationCase } from './settings-advanced-navigation.mjs'; import { registerSettingsOperationsCase } from './settings-operations.mjs'; import { registerSettingsOverflowGuardCase } from './settings-overflow-guard.mjs';
 export const registerSettingsFixtureCases = ({ test, baseUrl }) => { registerFilterViewSettingsFixes({ test, baseUrl }); registerSettingsAlertsHealthCase({ test, baseUrl }); registerBulkAssignmentCases({ test, baseUrl }); registerSettingsFolderGroupCases({ test, baseUrl });
 registerLocalizationWorkspaceFixtureCases({ test, baseUrl }); registerSettingsThemeCases({ test, baseUrl }); registerSettingsAdvancedNavigationCase({ test, baseUrl }); registerSettingsOperationsCase({ test, baseUrl }); registerSettingsOverflowGuardCase({ test, baseUrl }); registerSettingsRulesCases({ test, baseUrl }); registerSettingsRuntimeActionCase({ test, baseUrl });
 test('Settings chrome keeps search and mode controls aligned without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1180, height: 720 });
-    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' }); await installSettingsIconFont(page);
     const metrics = await page.evaluate(() => {
         const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
         const search = rect('.fv-settings-search-wrap');
@@ -30,7 +30,7 @@ test('Settings chrome keeps search and mode controls aligned without clipping', 
     const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
     assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
     await verifySettingsSearchAlignment(page);
-    await verifyBasicToolbarLayout(page);
+    await verifyBasicToolbarLayout(page); await verifySettingsIconAlignment(page);
 });
 test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
     const readLayout = async () => page.evaluate(async () => {

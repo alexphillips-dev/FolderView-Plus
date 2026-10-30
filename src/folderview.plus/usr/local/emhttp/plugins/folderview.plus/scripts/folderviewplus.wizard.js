@@ -891,9 +891,7 @@ const summarizeSetupAssistantImportPlan = (type) => {
     }
     const folders = getFolderMap(resolvedType);
     const mode = getSetupAssistantEffectiveImportMode(resolvedType);
-    const summary = utils.summarizeImport(folders, plan.parsed, mode);
-    const operations = utils.buildImportOperations(folders, plan.parsed, mode);
-    const diffRows = utils.buildImportDiffRows(folders, plan.parsed, mode);
+    const { summary, operations, diffRows } = utils.buildImportPlan(folders, plan.parsed, mode);
     plan.summary = summary;
     plan.operations = operations;
     plan.diffRows = diffRows;
@@ -1037,26 +1035,20 @@ const previewSetupAssistantRuleMatches = (type, pattern) => {
             text: 'Pattern is empty.'
         };
     }
-    let regex = null;
-    try {
-        regex = new RegExp(trimmed, 'i');
-    } catch (error) {
+    const compiled = utils.compileRuleSet({
+        type: normalizeManagedType(type),
+        rules: [{ id: 'setup-rule-preview', enabled: true, folderId: 'setup-rule-preview',
+            effect: 'include', kind: 'name_regex', pattern: trimmed }]
+    });
+    if (compiled.issues.length) {
         return {
             valid: false,
             count: 0,
             samples: [],
-            text: `Invalid regex: ${error?.message || 'parse failed'}`
+            text: `Invalid regex: ${compiled.issues[0]?.code || 'parse failed'}`
         };
     }
-
-    const names = getSetupAssistantRulePreviewPool(type);
-    const matches = [];
-    for (const name of names) {
-        regex.lastIndex = 0;
-        if (regex.test(name)) {
-            matches.push(name);
-        }
-    }
+    const matches = getSetupAssistantRulePreviewPool(type).filter((name) => compiled.decide(name).assignedRule);
     const samples = matches.slice(0, 4);
     const extra = matches.length > samples.length ? ` (+${matches.length - samples.length} more)` : '';
     const text = matches.length > 0
@@ -1113,7 +1105,10 @@ const previewSetupAssistantRuleOutcomesForType = (type) => {
             continue;
         }
         const normalizedPattern = String(suggestion.pattern || '').trim();
-        if (!normalizedPattern) {
+        if (!normalizedPattern || utils.compileRuleSet({
+            type: resolvedType,
+            rules: [{ kind: 'name_regex', effect: 'include', pattern: normalizedPattern }]
+        }).issues.length) {
             invalidPattern += 1;
             continue;
         }
@@ -1496,7 +1491,10 @@ const applySetupAssistantRulesForType = async (type) => {
         }
 
         const normalizedPattern = String(suggestion.pattern || '').trim();
-        if (!normalizedPattern) {
+        if (!normalizedPattern || utils.compileRuleSet({
+            type: resolvedType,
+            rules: [{ kind: 'name_regex', effect: 'include', pattern: normalizedPattern }]
+        }).issues.length) {
             skipped += 1;
             continue;
         }

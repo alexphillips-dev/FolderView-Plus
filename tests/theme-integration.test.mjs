@@ -55,7 +55,8 @@ test('host identity uses explicit declaration or enabled known stylesheets witho
 test('adaptation status separates unknown identity from working palette and recovery reasons', () => {
     const document={querySelectorAll:()=>[]}, window={matchMedia:()=>({matches:false})};
     const input={document,window,hostColors:{source:'computed'},applied:true,requestedMode:'auto',appliedMode:'auto'};
-    assert.deepEqual(integration.describeIntegration(input),{identitySource:'unknown',paletteSource:'computed',reason:'none'});
+    assert.deepEqual(integration.describeIntegration(input),{identitySource:'unknown',paletteSource:'computed',reason:'none',
+        neoraid:{active:false,mode:'unknown',density:'unknown',radius:'unknown',font:'unknown'}});
     assert.equal(integration.describeIntegration({...input,applied:false,appliedMode:'highcontrast'}).reason,'contrast-recovery');
     assert.equal(integration.describeIntegration({...input,applied:false,requestedMode:'safe',appliedMode:'safe'}).reason,'requested-recovery');
     assert.equal(integration.describeIntegration({...input,applied:false}).reason,'missing-host-inputs');
@@ -80,7 +81,7 @@ test('Aurora environment reports independent active assets and Plus ownership wi
 const fixture = () => {
     const style = { fontFamily:'Example, sans-serif', fontSize:'14px', fontWeight:'600', lineHeight:'20px',
         letterSpacing:'1px', textTransform:'none', padding:'8px 16px', borderRadius:'12px', display:'inline-block', visibility:'visible' };
-    const node = { closest:()=>false, getClientRects:()=>[{}], getBoundingClientRect:()=>({height:38}) };
+    const node = { tagName:'BUTTON', innerText:'Native action', closest:()=>false, getClientRects:()=>[{}], getBoundingClientRect:()=>({height:38}) };
     const doc = { querySelectorAll:()=>[node] };
     const win = { getComputedStyle:()=>style };
     return { style,node,doc,win };
@@ -121,6 +122,31 @@ test('missing controls, recovery modes and pathological metrics clear every prev
     assert.equal(integration.readNativeControls(doc,win),null);
     style.fontSize='14px'; node.getBoundingClientRect=()=>({height:200});
     assert.equal(integration.readNativeControls(doc,win),null);
+});
+
+test('native metrics reject icon-only controls and retain visible international action labels', () => {
+    const {doc,win,node}=fixture();
+    for(const label of ['', '  ', '\u263e', '\uf186']) {
+        node.innerText=label; node.textContent='Hidden accessible caption'; node.ariaLabel='Switch theme';
+        assert.equal(integration.readNativeControls(doc,win),null);
+    }
+    for(const label of ['Save', 'Speichern', '\u4fdd\u5b58', '\u062d\u0641\u0638', '123']) {
+        node.innerText=label; assert.equal(integration.readNativeControls(doc,win).fontSize,'14px');
+    }
+    node.tagName='INPUT';node.value='Apply';node.innerText='';
+    assert.equal(integration.readNativeControls(doc,win).padding,'8px 16px');
+});
+
+test('native metric selection continues past unsuitable candidates before choosing an action', () => {
+    const {doc,win,node,style}=fixture();
+    const icon={...node,innerText:'',ariaLabel:'Switch theme'};
+    const oversized={...node,getBoundingClientRect:()=>({height:200})};
+    const invalid={...node,getBoundingClientRect:()=>({height:NaN})};
+    doc.querySelectorAll=()=>[icon,oversized,invalid,node];
+    win.getComputedStyle=target=>target===icon?{...style,fontSize:'16px',padding:'0px'}:style;
+    assert.equal(integration.readNativeControls(doc,win).padding,'8px 16px');
+    doc.querySelectorAll=()=>[icon,oversized,invalid];
+    assert.ok(Object.values(integration.controlTokens(true,{document:doc,window:win})).every(value=>value===''));
 });
 
 test('computed host sampling uses native surfaces and rejects invalid variable contracts', () => {

@@ -243,6 +243,7 @@
         const doc = deps.document || win?.document || null;
         const jq = deps.$ || win?.jQuery || win?.$;
         const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
+        const grouping = deps.grouping || win?.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : ((value) => String(value ?? '')
@@ -1240,17 +1241,20 @@
                 return;
             }
             const actionTargets = collectDockerPreviewActionTargets($preview, settings);
-            const entries = Object.values(runtimeContainers || {});
+            const identityIndex = grouping?.buildIdentityIndex(runtimeContainers || {});
             const changedSet = changedNames instanceof Set
                 ? changedNames
                 : (Array.isArray(changedNames) ? new Set(changedNames) : null);
             if (syncMembers) syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
-            actionTargets.forEach(($target, index) => {
-                const entry = entries[index];
-                if (!$target || !$target.length || !entry) {
-                    return;
-                }
-                const containerName = String(entry?.name || '').trim();
+            actionTargets.forEach(($target) => {
+                if (!$target || !$target.length) return;
+                const $owner = $target.closest('[data-fv-container-name], [data-fv-container-id]');
+                const candidates = [$owner.attr('data-fv-container-name'), $owner.attr('data-fv-container-id')];
+                const names = [...new Set(candidates.map(value => identityIndex?.resolve(value) || '').filter(Boolean))];
+                if (names.length !== 1) return;
+                const containerName = names[0];
+                const entry = runtimeContainers[containerName];
+                if (!entry) return;
                 if (changedSet && !changedSet.has(containerName)) {
                     return;
                 }

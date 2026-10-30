@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "قم بتصحيح القواعد غير الصالحة قبل تطبيق المعاينة.",
     "common.server.rules-save-invalid": "قم بتصحيح القواعد غير الصالحة قبل الحفظ.",
     "common.repair.rules-preview-no-changes": "ليست هناك حاجة إلى تغييرات المهمة لهذه المعاينة.",
-    "common.repair.rules-preview-moves-manual": "سيتم نقل المهام اليدوية الموجودة إلى المجلدات التي تمت معاينتها."
+    "common.repair.rules-preview-moves-manual": "سيتم نقل المهام اليدوية الموجودة إلى المجلدات التي تمت معاينتها.",
+    "common.server.legacy-regex-managed-unsupported": "التعبير العادي القديم غير مدعوم من قبل القواعد المُدارة ولا يمكن تحويله.",
+    "common.server.environment-format-unsupported": "تنسيق لقطة البيئة أو إصدار المخطط غير مدعوم.",
+    "common.server.environment-sections-missing": "لقطة البيئة تفتقد الأقسام المطلوبة.",
+    "common.server.environment-folder-data-invalid": "تحتوي لقطة البيئة على بيانات مجلد غير صالحة.",
+    "common.server.rollback-format-unsupported": "تنسيق لقطة التراجع أو إصدار المخطط غير مدعوم.",
+    "common.server.rollback-type-data-missing": "لقطة التراجع تفتقد بيانات النوع المطلوبة.",
+    "common.server.rollback-theme-workspace-invalid": "تحتوي لقطة التراجع على بيانات غير صالحة لمساحة عمل السمة.",
+    "common.server.folder-batch-verification": "فشل التحقق من المعاملات المجمعة للمجلد.",
+    "common.server.bulk-assignment-verification": "فشل التحقق من معاملة التعيين المجمع."
 }

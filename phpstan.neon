@@ -6,6 +6,8 @@ parameters:
         - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.api-contract.php
     scanFiles:
         - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/registry.php
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.environment-snapshot.php
     fileExtensions:
         - php
     tmpDir: tmp/phpstan

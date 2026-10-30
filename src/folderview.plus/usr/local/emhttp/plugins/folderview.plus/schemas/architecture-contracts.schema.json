@@ -76,6 +76,9 @@
       "server/lib.backup-content.php": { "limit": 40, "target": 40, "history": [40] },
       "server/lib.backup-schedule-state.php": { "limit": 120, "target": 100, "history": [120] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
+      "server/lib.global-rollback.php": { "limit": 235, "target": 230, "history": [235] },
+      "server/lib.custom-icon-references.php": { "limit": 115, "target": 110, "history": [115] },
+      "server/lib.custom-icon-repair.php": { "limit": 65, "target": 60, "history": [65] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
       "server/lib.backup-restore.php": { "limit": 87, "target": 87, "history": [87] },
       "server/lib.custom-icon-actions.php": { "limit": 448, "target": 380, "history": [448] },
@@ -84,6 +87,7 @@
       "server/lib.custom-icon-storage.php": { "limit": 499, "target": 420, "history": [499] },
       "server/lib.custom-icon-validation.php": { "limit": 492, "target": 420, "history": [492] },
       "server/lib.diagnostics-integrity.php": { "limit": 741, "target": 400, "history": [741] },
+      "server/lib.diagnostics-projections.php": { "limit": 160, "target": 140, "history": [160] },
       "server/lib.diagnostics-redaction.php": { "limit": 495, "target": 400, "history": [495] },
       "server/lib.diagnostics-summary.php": { "limit": 785, "target": 400, "history": [785] },
       "server/lib.diagnostics-health-cards.php": { "limit": 120, "target": 90, "history": [120] },
@@ -97,6 +101,7 @@
       "server/lib.folderview3-apply.php": { "limit": 76, "target": 75, "history": [76] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
       "server/lib.folder-batch-order.php": { "limit": 37, "target": 37, "history": [37] },
+      "server/lib.legacy-regex-conversion.php": { "limit": 160, "target": 150, "history": [160] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
       "server/lib.release-notes.php": { "limit": 464, "target": 400, "history": [464] },
       "server/lib.update-channel.php": { "limit": 22, "target": 22, "history": [22] },
@@ -152,6 +157,7 @@
       "scripts/folderviewplus.wizard-review.js": { "limit": 322, "target": 280, "history": [322] },
       "scripts/docker.runtime.container-model.js": { "limit": 203, "target": 203, "history": [203] },
       "scripts/docker.runtime.capabilities.js": { "limit": 77, "target": 70, "history": [77] },
+      "scripts/docker.runtime.api-integration.js": { "limit": 95, "target": 95, "history": [95] },
       "scripts/docker.runtime.api-coordinator.js": { "limit": 433, "target": 420, "history": [453, 433] },
       "scripts/docker.runtime.refresh-diagnostics.js": { "limit": 263, "target": 250, "history": [263] },
       "scripts/docker.runtime.layout-diagnostics.js": { "limit": 500, "target": 500, "history": [500] },
@@ -317,7 +323,7 @@
       "kind": "server-facade",
       "stateModel": "request-scoped",
       "consumers": ["plugin-pages", "server-endpoints"],
-      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-health-cards.php", "server/lib.diagnostics-support-bundle.php"],
+      "dependsOn": ["langs/registry.php", "server/lib.diagnostics-redaction.php", "server/lib.diagnostics-projections.php", "server/lib.diagnostics-integrity.php", "server/lib.diagnostics-summary.php", "server/lib.diagnostics-health-cards.php", "server/lib.diagnostics-support-bundle.php"],
       "lifecycle": { "startup": "require-once", "teardown": "request-end" },
       "compatibilityGlobals": []
     },
@@ -350,6 +356,9 @@
     }
   ],
   "serverModuleContracts": [
+    {"file": "server/lib.custom-icon-references.php", "owner": "custom-icon-reference-policy", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.preflight.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 6, "sha256": "9b987781f993b548bdaae59e3892adc12f79cdd26f136a7f9356ecf8c9ad1a55" }},
+    {"file": "server/lib.custom-icon-repair.php", "owner": "compensated-custom-icon-repair", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.custom-icon-references.php", "server/lib.custom-icon-storage.php", "server/lib.environment-transaction.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 1, "sha256": "d25a815833ec720bba74fbc5b51751e152b22a3a1f19e05ad7fb542bd05414d8" }},
+    {"file": "server/lib.global-rollback.php", "owner": "global-rollback-checkpoints", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.backup-schedule.php", "functionInventory": { "count": 8, "sha256": "22da026ff8933f084ef2dde7aef385d2f9464336cc9a25b209d7739a31d42d40" }},
     {
       "file": "server/lib.folder-settings-transfer.php",
       "owner": "selective-folder-settings-transfer",
@@ -366,15 +375,12 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": {
-        "count": 5,
-        "sha256": "4209fb311f950ab02ed1808a29b4c1cb8c56a0d9d7b6e06c19c8cfae0aa0a0dc"
-      }
+      "functionInventory": { "count": 5, "sha256": "4209fb311f950ab02ed1808a29b4c1cb8c56a0d9d7b6e06c19c8cfae0aa0a0dc" }
     },
-    {"file": "server/lib.folderview3-validation.php", "owner": "lib.folderview3-validation.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": {"count": 7, "sha256": "1341c064027882742e95bb4bda093ff7bd87c5cca818e23151e34f3d2f06d1b8"}},
-    {"file": "server/lib.folderview3-settings.php", "owner": "lib.folderview3-settings.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": {"count": 7, "sha256": "fd61eb37545f6e03f8901cd417151d1a227b726c264b445aaa113f1d35e1014b"}},
-    {"file": "server/lib.folderview3-presets.php", "owner": "lib.folderview3-presets.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.theme-profiles.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-appearance.php", "functionInventory": {"count": 3, "sha256": "48a486836bb34fc2f00ba2fe1dbc2360b1f691259161526cd19a523493bc09e4"}},
-    {"file": "server/lib.folder-membership.php", "owner": "lib.folder-membership.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.folder-rules.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.docker-order.php", "functionInventory": {"count": 2, "sha256": "4d30ecfd3856f20d1bdcaa94a55da20f50b175901f42be8e2021d7a2bf0981b5"}},
+    {"file": "server/lib.folderview3-validation.php", "owner": "lib.folderview3-validation.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": { "count": 7, "sha256": "1341c064027882742e95bb4bda093ff7bd87c5cca818e23151e34f3d2f06d1b8" }},
+    {"file": "server/lib.folderview3-settings.php", "owner": "lib.folderview3-settings.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": { "count": 7, "sha256": "fd61eb37545f6e03f8901cd417151d1a227b726c264b445aaa113f1d35e1014b" }},
+    {"file": "server/lib.folderview3-presets.php", "owner": "lib.folderview3-presets.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.theme-profiles.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-appearance.php", "functionInventory": { "count": 3, "sha256": "48a486836bb34fc2f00ba2fe1dbc2360b1f691259161526cd19a523493bc09e4" }},
+    {"file": "server/lib.folder-membership.php", "owner": "lib.folder-membership.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.folder-rules.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.docker-order.php", "functionInventory": { "count": 2, "sha256": "4d30ecfd3856f20d1bdcaa94a55da20f50b175901f42be8e2021d7a2bf0981b5" }},
     {
       "file": "server/lib.runtime-inventory.php",
       "owner": "server-runtime-inventory-authority",
@@ -415,10 +421,7 @@
       "dependsOn": [],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.folderview3-migration.php",
-      "functionInventory": {
-        "count": 1,
-        "sha256": "b49ec1b6c924fb5a6f9dae2efcbe48a0d0eca3dd19d2663a5c19756bf6a9c507"
-      }
+      "functionInventory": { "count": 1, "sha256": "b49ec1b6c924fb5a6f9dae2efcbe48a0d0eca3dd19d2663a5c19756bf6a9c507" }
     },
     {
       "file": "server/lib.folderview3-appearance.php",
@@ -433,10 +436,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.folderview3-migration.php",
-      "functionInventory": {
-        "count": 3,
-        "sha256": "e5f44f633cd0fc74344bb7b1554dd99d0ad4fbc368150c91fd403de16cc4379f"
-      }
+      "functionInventory": { "count": 3, "sha256": "e5f44f633cd0fc74344bb7b1554dd99d0ad4fbc368150c91fd403de16cc4379f" }
     },
     {
       "file": "server/lib.theme-profile-create.php",
@@ -451,10 +451,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.theme-profile-actions.php",
-      "functionInventory": {
-        "count": 1,
-        "sha256": "b255376579e50774bde572da8501bfb9e780b2d6e29478ccd3cd8158a0ac1d66"
-      }
+      "functionInventory": { "count": 1, "sha256": "b255376579e50774bde572da8501bfb9e780b2d6e29478ccd3cd8158a0ac1d66" }
     },
     {
       "file": "server/lib.request-authority.php",
@@ -561,7 +558,7 @@
       "owner": "server-environment-transfer",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.storage.php"],
+      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.storage.php", "server/lib.validation.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 6, "sha256": "0b0957a2d4232598fab90e3cad6c5ba8a73e9da16f92c9725726dbff65d4e560" }
@@ -584,7 +581,7 @@
       "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 8, "sha256": "bc3468f590c2bbb3b212290162aa27cf9639ea168f2b7063efcaa60361176713" }
+      "functionInventory": { "count": 9, "sha256": "7efd0ccda0e15fb0d1602b275a82892337325fbc9097338e6ca8de399d913b98" }
     },
     {
       "file": "server/lib.folderview3-apply.php",
@@ -599,7 +596,7 @@
     {
       "file": "server/lib.folderview3-diagnostics.php", "owner": "folderview3-outcome-diagnostics", "consumers": ["server-endpoints"],
       "stateModel": "request-scoped", "dependsOn": ["server/lib.diagnostics.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-apply.php",
-      "functionInventory": {"count": 2, "sha256": "cf2db8562b1996a3ae5e7b4dfceb3041cb361fca9691b02f16b008a0167f2243"}
+      "functionInventory": { "count": 2, "sha256": "cf2db8562b1996a3ae5e7b4dfceb3041cb361fca9691b02f16b008a0167f2243" }
     },
     {
       "file": "server/lib.theme-github.php",
@@ -645,10 +642,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.backup-schedule.php",
-      "functionInventory": {
-        "count": 2,
-        "sha256": "781de8a62044433e3b2a882f4b418d3a83bb8572515612c324257ddf6606a16d"
-      }
+      "functionInventory": { "count": 2, "sha256": "781de8a62044433e3b2a882f4b418d3a83bb8572515612c324257ddf6606a16d" }
     },
     {
       "file": "server/lib.backup-schedule-state.php",
@@ -664,10 +658,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.backup-schedule.php",
-      "functionInventory": {
-        "count": 7,
-        "sha256": "deaaeccbced2d90d5937038c9adcc71e553a0e524e7877a306b77f032adcf878"
-      }
+      "functionInventory": { "count": 7, "sha256": "deaaeccbced2d90d5937038c9adcc71e553a0e524e7877a306b77f032adcf878" }
     },
     {
       "file": "server/lib.backup-schedule.php",
@@ -677,7 +668,7 @@
       "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.backup-content.php", "server/lib.backup-schedule-state.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 13, "sha256": "eebe22640ddc1153460daf463acfc10226c4251acd1e2aad1ebf553f7dbdfea5" }
+      "functionInventory": { "count": 5, "sha256": "50d1967b9e85ddf9e87955bd4ab333c91f8904853bacedfdfbbefb94197e23c3" }
     },
     {
       "file": "server/lib.backup-snapshots.php",
@@ -700,14 +691,24 @@
       "functionInventory": { "count": 4, "sha256": "a57424ba21dcd1537f13e00a2bb886d8a64f3ff07dfa776627470b28b92cb13c" }
     },
     {
+      "file": "server/lib.legacy-regex-conversion.php",
+      "owner": "server-legacy-rule-conversion",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.rules-engine.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.folder-rules.php",
+      "functionInventory": { "count": 2, "sha256": "bc3378fb1a04c3c13097597b66021c086fabbf6916e961b3a76526ff9bca68e3" }
+    },
+    {
       "file": "server/lib.folder-rules.php",
       "owner": "server-folder-rules-and-assignment",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php"],
+      "dependsOn": ["server/lib.legacy-regex-conversion.php", "server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 4, "sha256": "42c2b7241bbda40524eb9ff57b77606a221c0c8927d699207c80d9fbe7ea19c0" }
+      "functionInventory": { "count": 2, "sha256": "a0187b17c6bf313ad3e415f0699710089922b349a0d40e318d2f64d5aecf227c" }
     },
     {
       "file": "server/lib.docker-start-order-sequence.php",
@@ -744,7 +745,7 @@
       "owner": "server-folder-mutations",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.folder-batch-order.php", "server/lib.folder-settings-transfer.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.folder-batch-order.php", "server/lib.folder-settings-transfer.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 7, "sha256": "ed85e1dd77855f1a445e2029e0c581c3fbf55df7477571e4538614bcac35824f" }
@@ -754,10 +755,10 @@
       "owner": "server-custom-icon-storage",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.runtime-info.php", "server/lib.runtime-inventory.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.runtime-info.php", "server/lib.runtime-inventory.php", "server/lib.custom-icon-references.php", "server/lib.custom-icon-repair.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 15, "sha256": "945e52be4418023afdbc8e56798754735af8b374487a93c179d6b97ab9fe7770" }
+      "functionInventory": { "count": 15, "sha256": "df332f0464aaa8c58365da964c35660c5443b822c331505e5b01c755091cbadd" }
     },
     {
       "file": "server/lib.runtime-info.php",
@@ -777,14 +778,24 @@
       "dependsOn": [],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
-      "functionInventory": { "count": 19, "sha256": "4a0db771be07b53e4e9d246463b8ca4b39ca50539b6f074e3a8fe1a296da6c72" }
+      "functionInventory": { "count": 18, "sha256": "45bca3ea25804bd8e9b3205deb3a40fea9769c2cf272d9e4c3da9ab00d1c5120" }
+    },
+    {
+      "file": "server/lib.diagnostics-projections.php",
+      "owner": "server-diagnostics-structured-redaction",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.diagnostics-redaction.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.diagnostics.php",
+      "functionInventory": { "count": 3, "sha256": "a48232970092a00f7716b2a0aaf27811aa79e248508a9dd90800ebd4bba53d5e" }
     },
     {
       "file": "server/lib.diagnostics-integrity.php",
       "owner": "server-diagnostics-integrity",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.custom-icon-storage.php", "server/lib.storage.php"],
+      "dependsOn": ["server/lib.custom-icon-storage.php", "server/lib.custom-icon-references.php", "server/lib.storage.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
       "functionInventory": { "count": 19, "sha256": "807998f2491f603df056e269a32bb539bcaa3220fceb37dab0c59e335527ccc2" }
@@ -814,7 +825,7 @@
       "owner": "server-diagnostics-support-bundle",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.diagnostics-redaction.php", "server/lib.diagnostics-integrity.php"],
+      "dependsOn": ["server/lib.diagnostics-redaction.php", "server/lib.diagnostics-projections.php", "server/lib.diagnostics-integrity.php", "server/lib.update-channel.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
       "functionInventory": { "count": 15, "sha256": "e5d1242cfea19247ef57a3023693b252369e5a41400f534e9dac32686ae60da8" }
@@ -824,7 +835,7 @@
       "owner": "custom-icon-endpoint-foundation",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.custom-icon-storage.php", "server/lib.storage.php"],
+      "dependsOn": ["server/lib.custom-icon-storage.php", "server/lib.custom-icon-references.php", "server/lib.storage.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/upload_custom_icon.php",
       "functionInventory": { "count": 25, "sha256": "7c9292967966daf9c99bd9ae89c59051da7856f985c258a49f609c44e2f473c5" }
@@ -885,10 +896,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": {
-        "count": 13,
-        "sha256": "044b35f6b78d76a1d658bf01c03d6f8bee88054a2acc142d221c6d5bbff13104"
-      }
+      "functionInventory": { "count": 13, "sha256": "044b35f6b78d76a1d658bf01c03d6f8bee88054a2acc142d221c6d5bbff13104" }
     },
     {
       "file": "server/lib.rules-apply.php",
@@ -904,10 +912,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": {
-        "count": 4,
-        "sha256": "541f36254a646ec11eff922731d558357b5aca6aadb36297bef75cfecd033075"
-      }
+      "functionInventory": { "count": 4, "sha256": "541f36254a646ec11eff922731d558357b5aca6aadb36297bef75cfecd033075" }
     }
   ],
   "moduleContracts": [
@@ -1189,7 +1194,7 @@
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityTransfer",
       "loader": "commonjs",
-      "exports": ["buildFullExportPayload", "buildSingleExportPayload", "parseImportPayload", "summarizeImport", "buildImportOperations", "buildImportDiffRows", "diffFolderFields"]
+      "exports": ["buildFullExportPayload", "buildSingleExportPayload", "parseImportPayload", "buildImportPlan", "summarizeImport", "buildImportOperations", "buildImportDiffRows", "diffFolderFields"]
     },
     {
       "file": "scripts/folderviewplus.utils-rules.js",
@@ -1299,6 +1304,7 @@
         "buildFullExportPayload",
         "buildSingleExportPayload",
         "parseImportPayload",
+        "buildImportPlan",
         "summarizeImport",
         "buildImportOperations",
         "buildImportDiffRows",
@@ -1448,21 +1454,21 @@
       "global": "FolderViewPlusSettingsTable",
       "moduleLoaded": "FolderViewPlusSettingsTableModuleLoaded",
       "loader": "commonjs",
-      "exports": ["normalizeSettingsTableColumnWidthPreset", "normalizeSettingsTablePreset", "buildPresetColumnVisibilityForType", "normalizeColumnVisibilityForType", "normalizeSingleColumnWidth", "buildEffectiveSettingsTableWidths"]
+      "exports": ["SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE", "DEFAULT_COLUMN_VISIBILITY_BY_TYPE", "SETTINGS_TABLE_WIDTH_PRESET_VALUES", "TABLE_COLUMN_SELECTOR_MAP", "TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE", "TABLE_COLUMN_RESIZE_KEYS_BY_TYPE", "normalizeSettingsTableColumnWidthPreset", "normalizeSettingsTablePreset", "buildPresetColumnVisibilityForType", "normalizeColumnVisibilityForType", "normalizeSingleColumnWidth", "buildDefaultColumnWidthsForType", "buildEffectiveSettingsTableWidths"]
     },
     {
       "file": "scripts/folderviewplus.settings-health.js",
       "owner": "settings-health",
       "consumers": ["settings"],
       "stateModel": "factory-owned",
-      "dependsOn": [],
+      "dependsOn": ["scripts/folderviewplus.utils.js"],
       "compatibilityGlobals": ["FolderViewPlusSettingsHealth", "FolderViewPlusSettingsHealthModuleLoaded"],
       "global": "FolderViewPlusSettingsHealth",
       "moduleLoaded": "FolderViewPlusSettingsHealthModuleLoaded",
       "loader": "commonjs",
-      "exports": ["createApi", "applyHealthProfilePreset", "syncHealthSummaryVisibility", "classifyDockerFolderHealth"],
+      "exports": ["createApi", "HEALTH_PROFILE_PRESETS", "applyHealthProfilePreset", "syncHealthSummaryVisibility", "classifyDockerFolderHealth"],
       "apiFactory": "createApi",
-      "apiExports": ["buildStatusSnapshot", "collectVmFolderResources", "evaluateVmResourceBadge", "buildTypeHealthMetrics"]
+      "apiExports": ["normalizeHealthPrefs", "resolveFolderHealthPolicy", "evaluateDockerFolderHealth", "buildStatusSnapshot", "isDockerUpdateAvailable", "formatGiBFromKiB", "formatVmMemoryLabel", "collectVmFolderResources", "evaluateVmResourceBadge", "hasInvalidFolderRegex", "buildTypeHealthMetrics"]
     },
     {
       "file": "scripts/folderviewplus.settings-search.js",
@@ -1648,7 +1654,7 @@
       "globalMember": "dockerFolderGrouping",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["normalizeToken", "buildIdentityIndex", "readRowCandidates", "createSession"],
+      "exports": ["normalizeToken", "buildIdentityIndex", "readRowCandidates", "resolveRowName", "createNativeRowIndex", "createSession"],
       "lifecycleFactories": [
         { "name": "createSession", "exports": ["readOrder", "beginFolder", "insertFolderRow", "claim", "finishFolder", "snapshot"] }
       ]
@@ -1667,11 +1673,27 @@
       "exports": ["emptySnapshot", "supportsCapabilityPath", "createAccessors", "buildCompatibilityEvidence"]
     },
     {
+      "file": "scripts/docker.runtime.api-integration.js",
+      "owner": "docker-runtime-api-integration-lifecycle",
+      "consumers": ["docker", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "dockerApiIntegration",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createIntegration"],
+      "lifecycleFactories": [
+        { "name": "createIntegration", "exports": ["prepare", "refresh", "tick", "status", "dispose"] }
+      ]
+    },
+    {
       "file": "scripts/docker.runtime.api-coordinator.js",
       "owner": "docker-runtime-api-reconciliation",
       "consumers": ["docker", "dashboard"],
       "stateModel": "factory-owned",
-      "dependsOn": ["scripts/docker.runtime.container-model.js"],
+      "dependsOn": ["scripts/docker.runtime.container-model.js", "scripts/docker.runtime.api-integration.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "dockerApiCoordinator",

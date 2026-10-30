@@ -11,10 +11,11 @@ function expectConfigWrite(bool $condition, string $message): void {
 function linuxConfigWrite(array $request): array {
     global $server;
     $root = sys_get_temp_dir() . '/fvplus-config-write-linux-' . bin2hex(random_bytes(6));
-    foreach ([$root, "$root/config", "$root/source", "$root/host"] as $dir) mkdir($dir, 0700);
+    foreach ([$root, "$root/config", "$root/source", "$root/host", "$root/temp"] as $dir) mkdir($dir, 0700);
     file_put_contents("$root/request.json", json_encode($request));
     $env = array_merge(getenv(), ['FVPLUS_TEST_CONFIG_DIR' => "$root/config", 'FVPLUS_TEST_SOURCE_DIR' => "$root/source",
-        'FVPLUS_TEST_DOCUMENT_ROOT' => "$root/host", 'FVPLUS_TEST_STORAGE_DIR' => "$root/config"]);
+        'FVPLUS_TEST_DOCUMENT_ROOT' => "$root/host", 'FVPLUS_TEST_STORAGE_DIR' => "$root/config",
+        'TMPDIR' => "$root/temp", 'TMP' => "$root/temp", 'TEMP' => "$root/temp"]);
     try {
         $process = proc_open([PHP_BINARY, __DIR__ . '/config-write.php', $server, $root],
             [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);

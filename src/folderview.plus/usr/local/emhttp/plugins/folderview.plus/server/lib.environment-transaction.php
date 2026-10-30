@@ -1,12 +1,15 @@
 <?php
-function fvplusEnvironmentTransactionPaths(array $extraPaths = []): array {
-    $paths = [];
-    foreach (FVPLUS_ALLOWED_TYPES as $type) {
-        foreach ([getFolderFilePath($type), getTypePrefsPath($type), getConfigMetadataPath($type)] as $path) {
-            $paths[] = $path;
-            $paths[] = getLastGoodJsonPath($path);
-        }
+function fvplusTypeTransactionPaths(string $type, bool $includeNative = true): array {
+    $type = ensureType($type); $paths = [];
+    foreach ([getFolderFilePath($type), getTypePrefsPath($type), getConfigMetadataPath($type)] as $path) {
+        $paths[] = $path; $paths[] = getLastGoodJsonPath($path);
     }
+    if ($includeNative && $type === 'docker') $paths[] = fvplusEnvironmentDockerAutostartPath();
+    return $paths;
+}
+
+function fvplusEnvironmentTransactionPaths(array $extraPaths = []): array {
+    $paths = array_merge(...array_map(static fn(string $type): array => fvplusTypeTransactionPaths($type, false), FVPLUS_ALLOWED_TYPES));
     $workspacePath = getThemeWorkspacePath();
     $paths[] = $workspacePath;
     $paths[] = getLastGoodJsonPath($workspacePath);
@@ -111,7 +114,7 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
         $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($extraPaths));
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
-            $rollback = createGlobalRollbackSnapshot('before-' . $reason);
+            $rollback = createGlobalRollbackSnapshot('before-' . $reason, (array)($options['preserveRollbackNames'] ?? []));
             $checkpointAvailable = true;
             $typeResults = [];
             foreach (FVPLUS_ALLOWED_TYPES as $type) {

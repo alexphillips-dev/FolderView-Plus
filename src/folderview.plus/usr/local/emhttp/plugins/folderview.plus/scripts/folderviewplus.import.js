@@ -659,9 +659,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
 
     const renderPreview = () => {
         const mode = modeSelect.val();
-        const summary = utils.summarizeImport(folders, parsed, mode);
-        const operations = utils.buildImportOperations(folders, parsed, mode);
-        const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
+        const { summary, operations, diffRows } = utils.buildImportPlan(folders, parsed, mode);
         const trust = resolveImportTrustInfo(parsed);
         const dryRunOnly = isImportDryRunOnly();
         currentOperations = operations;
@@ -853,7 +851,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         buttons: {
             'Apply Import': function() {
                 const mode = modeSelect.val();
-                const operations = filterOperationsBySelection(utils.buildImportOperations(folders, parsed, mode));
+                const operations = filterOperationsBySelection(currentOperations);
                 const dryRunOnly = isImportDryRunOnly();
                 const riskInfo = getImportRiskInfo(operations);
                 const requireAck = dryRunOnly !== true && (isPreviewFirstEnabled() === true || riskInfo.requiresReview === true);
@@ -1202,6 +1200,27 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
         { key: 'importPresets', label: 'Import preset settings' },
         { key: 'folderGroups', label: importT('settings.groups.saved', 'Saved groups') }
     ];
+    const additionalLabels = {
+        hiddenFolderIds: importT('legacy.surface.88ee90bc2e344724', 'Show hidden'),
+        expandedFolderState: importT('legacy.surface.0447fe78ffb9f4b1', 'Expansion'),
+        setupWizardCompleted: importT('wizard.title', 'Setup Assistant'),
+        settingsMode: importT('settings.mode.title', 'Settings mode'),
+        runtimePrefsSchema: importT('legacy.surface.6a07b9ed9e18e637', 'Legacy compatibility'),
+        pageViewMode: importT('legacy.surface.400a5dbb2cc39b2e', 'Docker page view'),
+        pageTitle: importT('settings.page-title.label', 'Docker page title'),
+        themeCompatibilityMode: importT('legacy.surface.44d40c93c0197c7a', 'Theme fallback mode'),
+        dashboard: importT('legacy.surface.67b696468610b879', 'Dashboard'),
+        settingsTable: importT('legacy.surface.53aade77cd69a77b', 'Columns'),
+        dockerStartOrder: importT('settings.navigation.docker-start-order', 'Docker start order'),
+        folderDefaults: importT('legacy.surface.49d13b9d958f69d0', 'Folder defaults'),
+    };
+    const describedKeys = new Set(descriptors.map(descriptor => descriptor.key));
+    // Restore applies the normalized preference contract; only revision bookkeeping is excluded.
+    for (const key of new Set([...Object.keys(left), ...Object.keys(right)])) {
+        if (key !== '_metadata' && !describedKeys.has(key)) {
+            descriptors.push({ key, label: additionalLabels[key] || importT('legacy.surface.66962f72a0888373', 'Preferences') });
+        }
+    }
     const rows = [];
     for (const descriptor of descriptors) {
         const before = left[descriptor.key];

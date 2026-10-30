@@ -1,7 +1,60 @@
 <?php
-function fvplusAllowedCustomIconExtensions(): array {
-        return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
+function fvplusCustomIconStorageLockPath(): string {
+    $tmpRoot = function_exists('sys_get_temp_dir') ? trim((string)sys_get_temp_dir()) : '/tmp';
+    if ($tmpRoot === '') {
+        $tmpRoot = '/tmp';
     }
+    $normalized = rtrim(str_replace('\\', '/', $tmpRoot), '/');
+    if ($normalized === '') {
+        $normalized = '/tmp';
+    }
+    return $normalized . '/folderview.plus-custom-icons.lock';
+}
+
+function fvplusWithCustomIconStorageLock(bool $exclusive, callable $callback) {
+    // Request guards already own the config lock; every icon caller follows the same order.
+    return withConfigMutationLock(static function () use ($exclusive, $callback) {
+        $lockPath = fvplusCustomIconStorageLockPath();
+        $handle = @fopen($lockPath, 'c+');
+        if (!is_resource($handle)) {
+            throw new RuntimeException('Unable to open custom icon lock file. Run: ' . fvplusCustomIconRepairHintCommand());
+        }
+        $mode = LOCK_EX; // Bootstrap may migrate or mirror files before a read callback.
+        $start = microtime(true);
+        $locked = false;
+        $timeout = defined('FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS') ? FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS : 10;
+        while ((microtime(true) - $start) <= $timeout) {
+            if (@flock($handle, $mode | LOCK_NB)) {
+                $locked = true;
+                break;
+            }
+            usleep(25000);
+        }
+        if (!$locked) {
+            @fclose($handle);
+            throw new RuntimeException('Custom icon store is busy. Please try again.');
+        }
+        try {
+            $health = fvplusEnsureCustomIconStorageReady(false);
+            $directory = (string)($health['storageDir'] ?? fvplusCustomIconDirPath());
+            if ($exclusive && !is_writable($directory)) {
+                @chmod($directory, 0770);
+            }
+            if ($exclusive && !is_writable($directory)) {
+                throw new RuntimeException('Custom icon directory is not writable. Run: ' . fvplusCustomIconRepairHintCommand());
+            }
+            if (!$exclusive && !@flock($handle, LOCK_SH)) throw new RuntimeException('Custom icon store is busy. Please try again.');
+            return $callback();
+        } finally {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
+    });
+}
+
+require_once __DIR__ . '/lib.custom-icon-references.php';
+require_once __DIR__ . '/lib.custom-icon-repair.php';
+
 
     function fvplusCustomIconDirPath(): string {
         global $configDir;
@@ -295,87 +348,13 @@ function fvplusAllowedCustomIconExtensions(): array {
         }
         $bootstrapped = true;
         try {
-            fvplusEnsureCustomIconStorageReady(false);
+            fvplusWithCustomIconStorageLock(true, static fn(): array => fvplusEnsureCustomIconStorageReady(false));
         } catch (Throwable $_error) {
             // Keep runtime bootstrap non-fatal; diagnostics will surface path issues.
         }
     }
 
-    function fvplusRepairMissingCustomIconReferences(): array {
-        $customIconDir = fvplusCustomIconDirPath();
-        $existingIcons = [];
-        if (is_dir($customIconDir)) {
-            foreach ((array)@scandir($customIconDir) as $name) {
-                if ($name === '.' || $name === '..' || $name !== basename($name)) {
-                    continue;
-                }
-                $path = "$customIconDir/$name";
-                if (!is_file($path)) {
-                    continue;
-                }
-                $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
-                if ($extension === '' || !in_array($extension, diagnosticsCustomIconExtensions(), true)) {
-                    continue;
-                }
-                $existingIcons[$name] = true;
-            }
-        }
 
-        $repairedFolders = [];
-        $missingIcons = [];
-        $typeCounts = ['docker' => 0, 'vm' => 0];
-
-        foreach (FVPLUS_ALLOWED_TYPES as $type) {
-            $folders = readRawFolderMap($type);
-            $updated = false;
-            foreach ($folders as $folderId => &$folder) {
-                if (!is_array($folder)) {
-                    continue;
-                }
-                $iconName = diagnosticsCustomIconNameFromIconValue((string)($folder['icon'] ?? ''));
-                if ($iconName === '' || isset($existingIcons[$iconName])) {
-                    continue;
-                }
-                $missingIcons[$iconName] = true;
-                $folder['icon'] = '';
-                $repairedFolders[] = [
-                    'type' => $type,
-                    'folderId' => (string)$folderId,
-                    'folderName' => trim((string)($folder['name'] ?? (string)$folderId)),
-                    'missingIcon' => $iconName
-                ];
-                $typeCounts[$type] = (int)($typeCounts[$type] ?? 0) + 1;
-                $updated = true;
-            }
-            unset($folder);
-
-            if (!$updated) {
-                continue;
-            }
-
-            createBackupSnapshot($type, 'before-repair-missing-custom-icons');
-            writeRawFolderMap($type, $folders);
-            appendDiagnosticsHistoryEvent(
-                'repair_missing_custom_icons',
-                $type,
-                [
-                    'repairedFolderCount' => (int)($typeCounts[$type] ?? 0),
-                    'missingIconCount' => count($missingIcons)
-                ],
-                'ok',
-                'server'
-            );
-        }
-
-        return [
-            'customIconDir' => $customIconDir,
-            'repairedFolderCount' => count($repairedFolders),
-            'missingIconCount' => count($missingIcons),
-            'missingIcons' => array_values(array_keys($missingIcons)),
-            'repairedFolders' => $repairedFolders,
-            'typeCounts' => $typeCounts
-        ];
-    }
 
     function fvplusRepairOrphanedMemberReferences(string $type): array {
         $type = ensureType($type);
@@ -472,7 +451,7 @@ function fvplusAllowedCustomIconExtensions(): array {
                 $created[] = $path;
             }
         }
-        $customIconHealth = fvplusEnsureCustomIconStorageReady(false);
+        $customIconHealth = fvplusWithCustomIconStorageLock(true, static fn(): array => fvplusEnsureCustomIconStorageReady(false));
         $customIconDir = (string)($customIconHealth['storageDir'] ?? fvplusCustomIconDirPath());
         $customIconRuntimeDir = (string)($customIconHealth['runtimeDir'] ?? fvplusCustomIconRuntimeDirPath());
         foreach ([$customIconDir, dirname($customIconDir)] as $path) {

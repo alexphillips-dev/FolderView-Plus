@@ -83,12 +83,14 @@ test('sanitized theme exports keep only bounded canonical adaptation evidence an
     const secret='private-theme-10.4.5.6-/mnt/user/private-https://host.invalid/token';
     const raw={htmlClassList:[secret],pluginAssets:{stylesheets:[secret]},tokens:{html:{color:secret}},warnings:[secret],adjustments:[secret],
         resolver:{hostThemeName:secret,requestedMode:'auto',appliedMode:'auto',classification:'dark',hostPaletteApplied:true,
-            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret},
+            hostIntegration:{identitySource:'declared',paletteSource:'computed',reason:'none',nativeControls:true,name:secret,
+                neoraid:{active:true,mode:'dark',density:'compact',radius:'round',font:'inter',asset:secret}},
             contrastChecks:[{name:'surface.hostControlText',ratio:7,minRatio:4.5,passed:true},{name:secret,ratio:21}],
             statusChecks:{started:{ratio:12,minRatio:4.5},private:secret}}};
     const safe=telemetry.sanitizeThemeTelemetry(raw);
     assert.equal(JSON.stringify(safe).includes(secret),false);
     assert.equal(safe.resolver.hostIntegration.paletteSource,'computed');
+    assert.deepEqual(safe.resolver.hostIntegration.neoraid,{active:true,mode:'dark',density:'compact',radius:'round',font:'inter'});
     assert.equal(safe.resolver.contrastChecks.length,1);
     assert.equal(safe.resolver.contrastChecks[0].ratio,7);
     assert.equal(safe.resolver.statusChecks.started.passed,true);
@@ -104,6 +106,10 @@ test('sanitized theme exports keep only bounded canonical adaptation evidence an
     const bundle=telemetry.createApi({collectThemeTelemetrySnapshot:()=>raw}).collectSupportBundleUiTelemetry({bundleMeta:{privacyMode:'sanitized'}});
     assert.equal(JSON.stringify(bundle.uiTelemetry.theme).includes(secret),false);
     assert.equal(bundle.redactionManifest.privacySelfCheck.status,'passed');
+    assert.equal(bundle.uiTelemetry.theme.resolver.hostIntegration.neoraid.active,true);
+    raw.resolver.hostIntegration.neoraid={active:true,mode:secret,density:secret,radius:secret,font:secret};
+    assert.deepEqual(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.neoraid,
+        {active:true,mode:'unknown',density:'unknown',radius:'unknown',font:'unknown'});
     assert.equal(telemetry.buildUiTelemetryPrivacySelfCheck({theme:{resolver:{hostThemeName:secret}}}).status,'failed');
     raw.resolver.hostIntegration.paletteSource=secret;raw.resolver.contrastChecks[0].ratio=Infinity;
     assert.equal(telemetry.sanitizeThemeTelemetry(raw).resolver.hostIntegration.paletteSource,'fallback');
@@ -557,6 +563,70 @@ test('support bundle privacy self-check reports aggregate violations without lea
     }, 'sanitized');
     assert.equal(safeThemeMetadata.status, 'passed');
     assert.equal(safeThemeMetadata.violationCount, 0);
+});
+
+test('support bundle privacy self-check ignores versions, public addresses and malformed IPv4 tokens', () => {
+    const telemetry = loadTelemetryModule();
+    const values = [
+        '2026.10.27.05', '2026.10.22.06', '2026.10.29.05',
+        '/plugins/folderview.plus/scripts/docker.js?v=2026.10.27.05',
+        '10.27.05', '172.16.1', '192.168.1',
+        '10.256.1.2', '10.1.2.999', '172.16.256.1', '192.168.1.256',
+        '110.1.2.3', '172.15.1.2', '172.32.1.2', '192.169.1.2',
+        '1.10.1.2.3', '10.1.2.3.4', '192.168.1.2.3',
+        'build10.1.2.3', '10.1.2.3suffix'
+    ];
+    for (const value of values) {
+        const check = telemetry.buildUiTelemetryPrivacySelfCheck({ observedVersion: value });
+        assert.equal(check.rawPrivateNetworkAddressViolations, 0, value);
+        assert.equal(check.status, 'passed', value);
+    }
+});
+
+test('support bundle privacy self-check detects complete private IPv4 addresses with punctuation and ports', () => {
+    const telemetry = loadTelemetryModule();
+    const values = [
+        '10.0.0.0', '10.255.255.255', '172.16.0.0', '172.31.255.255',
+        '192.168.0.0', '192.168.255.255',
+        'connect (10.1.2.3:8080)', 'address=172.20.4.5, retry',
+        'peer 192.168.1.2.', '10.1.2.3 and 192.168.1.2'
+    ];
+    for (const value of values) {
+        for (let repeat = 0; repeat < 2; repeat++) {
+            const check = telemetry.buildUiTelemetryPrivacySelfCheck({ observation: value });
+            assert.equal(check.status, 'failed', value);
+            assert.equal(check.rawPrivateNetworkAddressViolations, 1, value);
+            assert.equal(check.violationCount, 1, 'count affected fields, not individual matches');
+            assert.equal(JSON.stringify(check).includes(value), false);
+        }
+    }
+});
+
+test('support bundle export preserves version evidence while masking complete private IPv4 addresses', () => {
+    const telemetry = loadTelemetryModule();
+    const message = 'version 2026.10.27.05; previous 2026.10.22.06; peers (10.1.2.3:8080), 172.20.4.5 and 192.168.1.2.';
+    const expected = 'version 2026.10.27.05; previous 2026.10.22.06; peers (10.1.x.x:8080), 172.20.x.x and 192.168.x.x.';
+    const api = telemetry.createApi({
+        getRequestErrorDiagnosticsSnapshot: () => ({ samples: [{ message }] })
+    });
+    const bundle = api.collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized' },
+        uiTelemetry: { buildIdentity: { pluginVersion: '2026.10.27.05' } }
+    });
+    assert.equal(bundle.uiTelemetry.buildIdentity.pluginVersion, '2026.10.27.05');
+    assert.equal(bundle.uiTelemetry.requestErrors.samples[0].message, expected);
+    assert.equal(bundle.redactionManifest.privacySelfCheck.status, 'passed');
+    assert.ok(bundle.redactionManifest.maskedFields.includes('uiTelemetry.requestErrors.samples.0.message.ip'));
+
+    const redactor = telemetry.createUiTelemetryRedactor({}, 'sanitized');
+    for (let repeat = 0; repeat < 2; repeat++) {
+        assert.equal(redactor.redactDebugText('message', message), expected);
+        assert.equal(telemetry.buildUiTelemetryPrivacySelfCheck({ observation: '10.1.2.3' }).status, 'failed');
+        assert.equal(redactor.redactDebugText('message', '2026.10.27.05'), '2026.10.27.05');
+    }
+    const full = api.collectSupportBundleUiTelemetry({ bundleMeta: { privacyMode: 'full' } });
+    assert.equal(full.uiTelemetry.requestErrors.samples[0].message, message);
+    assert.equal(full.redactionManifest.privacySelfCheck.status, 'not-applicable');
 });
 
 test('support bundle browser telemetry includes persisted docker page snapshot and bulk-update trace records', () => {

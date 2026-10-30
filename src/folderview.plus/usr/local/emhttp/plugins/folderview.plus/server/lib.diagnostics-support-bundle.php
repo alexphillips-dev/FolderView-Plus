@@ -1,18 +1,7 @@
 <?php
+require_once __DIR__ . '/lib.update-channel.php';
 function diagnosticsResolveSupportBundleChannel(): string {
-        foreach (readInstalledManifestPathCandidates() as $manifestPath) {
-            $contents = (string)@file_get_contents($manifestPath);
-            if ($contents === '') {
-                continue;
-            }
-            if (preg_match('/<PLUGINURL>[^<]*\\/(dev|main)\\/folderview\\.plus\\.plg<\\/PLUGINURL>/i', $contents, $match)) {
-                return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
-            }
-            if (preg_match('/<!ENTITY\\s+pluginURL\\s+"[^"]*\\/(dev|main)\\/folderview\\.plus\\.plg"\\s*>/i', $contents, $match)) {
-                return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
-            }
-        }
-        return 'main';
+        return resolveInstalledPluginChannel();
     }
 
     function diagnosticsReadSupportBundleBuildMetadata(): array {
@@ -473,6 +462,8 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'referenceCount' => (int)($reference['referenceCount'] ?? 0)
             ];
         }
+        $customIcons['missingReferencedIcons'] = diagnosticsSupportBundleRedactMissingIcons($customIcons, $redactor);
+
         $customIcons['path'] = diagnosticsSupportBundleRedactPathDescriptor($customIconsPath, 'system.pathHealth.customIcons.path', $redactor);
         $customIcons['topReferences'] = $topReferences;
         $customIconsRepairHint = (string)($customIcons['repairHint'] ?? '');
@@ -525,9 +516,9 @@ function diagnosticsResolveSupportBundleChannel(): string {
             }
             $timelineRows[] = [
                 'timestamp' => (string)($row['timestamp'] ?? ''),
-                'action' => (string)($row['action'] ?? ''),
-                'type' => $row['type'] ?? null,
-                'status' => (string)($row['status'] ?? 'ok'),
+                'action' => diagnosticsSupportBundleEventLabel((string)($row['action'] ?? ''), 'action', 'healthAndHistory.recentTimeline.*.action', $redactor),
+                'type' => isset($row['type']) ? diagnosticsSupportBundleEventLabel((string)$row['type'], 'type', 'healthAndHistory.recentTimeline.*.type', $redactor) : null,
+                'status' => diagnosticsSupportBundleEventLabel((string)($row['status'] ?? 'ok'), 'status', 'healthAndHistory.recentTimeline.*.status', $redactor),
                 'summary' => diagnosticsSupportBundleRedactRecentTimelineSummary((string)($row['summary'] ?? ''), $redactor)
             ];
         }
@@ -543,10 +534,10 @@ function diagnosticsResolveSupportBundleChannel(): string {
             $historyEvents[] = [
                 'id' => (string)($event['id'] ?? ''),
                 'timestamp' => (string)($event['timestamp'] ?? ''),
-                'action' => (string)($event['action'] ?? ''),
-                'type' => $event['type'] ?? null,
-                'status' => (string)($event['status'] ?? 'ok'),
-                'source' => (string)($event['source'] ?? 'server'),
+                'action' => diagnosticsSupportBundleEventLabel((string)($event['action'] ?? ''), 'action', 'healthAndHistory.recentMutations.events.*.action', $redactor),
+                'type' => isset($event['type']) ? diagnosticsSupportBundleEventLabel((string)$event['type'], 'type', 'healthAndHistory.recentMutations.events.*.type', $redactor) : null,
+                'status' => diagnosticsSupportBundleEventLabel((string)($event['status'] ?? 'ok'), 'status', 'healthAndHistory.recentMutations.events.*.status', $redactor),
+                'source' => diagnosticsSupportBundleEventLabel((string)($event['source'] ?? 'server'), 'source', 'healthAndHistory.recentMutations.events.*.source', $redactor),
                 'traceId' => (string)($event['traceId'] ?? ''),
                 'transactionId' => (string)($event['transactionId'] ?? ''),
                 'details' => diagnosticsSupportBundleRedactEventDetails(

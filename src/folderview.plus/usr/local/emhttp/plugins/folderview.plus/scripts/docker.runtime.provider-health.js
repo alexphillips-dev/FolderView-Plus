@@ -21,9 +21,10 @@
             || win?.FolderViewPlusDockerProviders?.getDefaultRegistry?.()
             || null;
         const refreshMs = Math.max(10000, Number(deps.refreshMs) || 60000);
+        const now = typeof deps.now === 'function' ? deps.now : Date.now;
         let summary = null;
         let refreshPromise = null;
-        let lastAttemptAt = 0;
+        let lastAttemptAt = null;
         let disposed = false;
         let abortController = null;
 
@@ -38,8 +39,8 @@
         const refresh = (options = {}) => {
             if (disposed) return Promise.resolve(null);
             const current = readProviderSnapshot();
-            const now = Date.now();
-            if (options.force !== true && now - lastAttemptAt < refreshMs) {
+            const attemptedAt = now();
+            if (options.force !== true && lastAttemptAt !== null && attemptedAt - lastAttemptAt < refreshMs) {
                 return Promise.resolve(current);
             }
             if (refreshPromise) return refreshPromise;
@@ -48,7 +49,7 @@
             const Controller = win?.AbortController
                 || (typeof AbortController !== 'undefined' ? AbortController : null);
             abortController = Controller ? new Controller() : null;
-            lastAttemptAt = now;
+            lastAttemptAt = attemptedAt;
             refreshPromise = Promise.resolve()
                 .then(() => health.getSummary({
                     timeoutMs: Math.max(1000, Number(options.timeoutMs) || 8000),
@@ -70,8 +71,8 @@
             return refreshPromise;
         };
         const getModel = (options = {}) => {
-            const current = readProviderSnapshot();
-            if (!current && !refreshPromise) {
+            const current = disposed ? null : readProviderSnapshot();
+            if (!disposed && !refreshPromise && (!current || lastAttemptAt === null || now() - lastAttemptAt >= refreshMs)) {
                 void refresh().then((nextSummary) => {
                     if (!disposed && nextSummary) options.onUpdate?.();
                 });

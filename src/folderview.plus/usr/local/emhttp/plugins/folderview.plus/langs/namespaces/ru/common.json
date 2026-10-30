@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Исправьте недействительные правила перед применением предварительного просмотра.",
     "common.server.rules-save-invalid": "Исправьте недействительные правила перед сохранением.",
     "common.repair.rules-preview-no-changes": "Для этого предварительного просмотра не требуется никаких изменений назначения.",
-    "common.repair.rules-preview-moves-manual": "Существующие ручные задания будут перемещены в папки предварительного просмотра."
+    "common.repair.rules-preview-moves-manual": "Существующие ручные задания будут перемещены в папки предварительного просмотра.",
+    "common.server.legacy-regex-managed-unsupported": "Устаревшее регулярное выражение не поддерживается управляемыми правилами и не может быть преобразовано.",
+    "common.server.environment-format-unsupported": "Формат снимка среды или версия схемы не поддерживаются.",
+    "common.server.environment-sections-missing": "В снимке среды отсутствуют необходимые разделы.",
+    "common.server.environment-folder-data-invalid": "Снимок среды содержит недопустимые данные папки.",
+    "common.server.rollback-format-unsupported": "Формат снимка отката или версия схемы не поддерживаются.",
+    "common.server.rollback-type-data-missing": "В снимке отката отсутствуют необходимые данные типа.",
+    "common.server.rollback-theme-workspace-invalid": "Снимок отката содержит недопустимые данные рабочей области темы.",
+    "common.server.folder-batch-verification": "Проверка пакетной транзакции папки не удалась.",
+    "common.server.bulk-assignment-verification": "Не удалось проверить транзакцию массового назначения."
 }

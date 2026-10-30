@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
 const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
-const libPhp = ['lib.php', 'lib.environment-snapshot.php', 'lib.environment-transaction.php', 'lib.backup-schedule.php']
+const libPhp = ['lib.php', 'lib.environment-snapshot.php', 'lib.environment-transaction.php', 'lib.backup-schedule.php', 'lib.global-rollback.php']
     .map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8'))
     .join('\n');
 const endpointPhp = fs.readFileSync(
@@ -24,7 +24,7 @@ test('environment snapshot helpers export folders, prefs, and theme workspace to
 test('environment snapshot import routes through the atomic rollback and verification transaction', () => {
     assert.match(libPhp, /function importEnvironmentSnapshotPayload\(array \$snapshot, string \$sourceName = ''\): array/);
     assert.match(libPhp, /applyEnvironmentSnapshotTransaction\(\$normalized, \$sourceName/);
-    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason\)/);
+    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \(array\)\(\$options\['preserveRollbackNames'\]/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason\)/);
     assert.match(libPhp, /writeRawFolderMap\(\$type, \$folders\);/);
     assert.match(libPhp, /writeTypePrefs\(\$type, \$prefs\);/);
@@ -34,7 +34,9 @@ test('environment snapshot import routes through the atomic rollback and verific
 
 test('global rollback snapshots now include theme workspace state', () => {
     assert.match(libPhp, /'themeWorkspace'\s*=>\s*readThemeWorkspace\(\)/);
-    assert.match(libPhp, /if \(is_array\(\$decoded\['themeWorkspace'\] \?\? null\)\) \{\s*writeThemeWorkspace\(\$decoded\['themeWorkspace'\]\);\s*\}/);
+    assert.match(libPhp, /\$workspace = \$decoded\['themeWorkspace'\] \?\? readThemeWorkspace\(\);/);
+    assert.match(libPhp, /\$target = \['types' => \$types, 'themeWorkspace' => \$workspace\];/);
+    assert.match(libPhp, /applyEnvironmentSnapshotTransaction\(\$target, \$safeName/);
 });
 
 test('environment snapshot endpoint wraps export, preview, and apply in JSON helper responses', () => {

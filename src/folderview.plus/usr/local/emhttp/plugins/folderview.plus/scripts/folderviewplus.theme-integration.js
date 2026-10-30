@@ -7,12 +7,13 @@
     'use strict';
     // Only native controls can supply host metrics. Never sample a resolved plugin control.
     const OWNED = '#fv-settings-root, #fvFolderEditorForm, #fvEditorChrome, .folder-editor-form, .folder, .folder-storage, .folder-showcase-outer, [class^="fv-"]:not(body,html), [class*=" fv-"]:not(body,html), [class^="fvplus-"]:not(body,html), [class*=" fvplus-"]:not(body,html)';
-    const findNative = (doc, win, selectors) => {
+    const findNative = (doc, win, selectors, accept = null) => {
         for (const selector of selectors) {
             for (const node of Array.from(doc?.querySelectorAll?.(selector) || []).slice(0, 64)) {
                 if (node.closest?.(OWNED) || node.disabled || node.hidden) continue;
                 const style = win.getComputedStyle(node);
                 if (style.display === 'none' || style.visibility === 'hidden' || !node.getClientRects().length) continue;
+                if (accept && !accept(node, style)) continue;
                 return { node, style };
             }
         }
@@ -20,12 +21,15 @@
     };
     const readNativeControls = (doc, win = defaultWindow) => {
         if (!doc || typeof win?.getComputedStyle !== 'function') return null;
-        const button = findNative(doc, win, ['[data-fvplus-theme-native="button"]', 'input[type="button"], input[type="submit"]', 'button']);
+        const button = findNative(doc, win, ['[data-fvplus-theme-native="button"]', 'input[type="button"], input[type="submit"]', 'button'], (node, style) => {
+            // Header icons and accessible names without visible text are not action-button metrics.
+            const label = node.tagName === 'INPUT' ? node.value : node.innerText;
+            const size = parseFloat(style.fontSize), height = node.getBoundingClientRect().height;
+            return /[\p{L}\p{N}]/u.test(String(label || '')) && Number.isFinite(size) && size >= 8 && size <= 32
+                && Number.isFinite(height) && height >= 16 && height <= 80;
+        });
         if (!button) return null;
-        const size = parseFloat(button.style.fontSize);
-        if (!Number.isFinite(size) || size < 8 || size > 32) return null;
         const height = button.node.getBoundingClientRect().height;
-        if (height < 16 || height > 80) return null;
         return { fontFamily: button.style.fontFamily, fontSize: button.style.fontSize,
             fontWeight: button.style.fontWeight, lineHeight: button.style.lineHeight,
             letterSpacing: button.style.letterSpacing, textTransform: button.style.textTransform,
@@ -100,22 +104,37 @@
         }
     };
 
+    const isHostAsset = (doc, href, pattern) => {
+        try {
+            const url = new URL(href, doc.baseURI);
+            return url.origin === new URL(doc.baseURI).origin && pattern.test(url.pathname);
+        } catch (_error) { return false; }
+    };
+    const isActiveStylesheet = (link, win) => !link.disabled && (!link.media || win.matchMedia?.(link.media)?.matches);
+    const NEORAID_OPTIONS = { mode:['native','light','dark'], density:['comfortable','compact'], radius:['standard','sharp','round'], font:['inter','system'] };
+    const normalizeNeoraidEnvironment = (value = {}) => Object.fromEntries([
+        ['active', value?.active === true],
+        ...Object.entries(NEORAID_OPTIONS).map(([key, allowed]) => [key,
+            value?.active === true && allowed.includes(value?.[key]) ? value[key] : 'unknown'])
+    ]);
+    const readNeoraidEnvironment = (doc, win) => {
+        const html = doc?.documentElement;
+        const has = name => html?.classList?.contains(name) === true;
+        const active = has('nr') && Array.from(doc?.querySelectorAll?.('link[rel~="stylesheet"][href]') || []).some(link =>
+            isActiveStylesheet(link, win) && isHostAsset(doc, link.href, /^\/plugins\/neoraid\/sheets\/Neoraid\.css$/i));
+        return normalizeNeoraidEnvironment({ active, mode:has('nr-light') ? 'light' : has('nr-dark') ? 'dark' : 'native',
+            ...Object.fromEntries(['density','radius','font'].map(key => [key, html?.getAttribute?.('data-nr-' + key)])) });
+    };
     const readAuroraEnvironment = (doc, win = defaultWindow) => {
         const assets = { colors: false, enhancements: false, sidebar: false, enhancementScript: false };
-        const knownAsset = (href, pattern) => {
-            try {
-                const url = new URL(href, doc.baseURI);
-                return url.origin === new URL(doc.baseURI).origin && pattern.test(url.pathname);
-            } catch (_error) { return false; }
-        };
         for (const link of Array.from(doc?.querySelectorAll?.('link[rel~="stylesheet"][href]') || [])) {
-            if (link.disabled || (link.media && !win.matchMedia?.(link.media)?.matches)) continue;
-            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i)) assets.colors = true;
-            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/enhance(?:-\d+)?\.css$/i)) assets.enhancements = true;
-            if (knownAsset(link.href, /^\/plugins\/Aurora-Theme\/styles\/layout-sidebar(?:-\d+)?\.css$/i)) assets.sidebar = true;
+            if (!isActiveStylesheet(link, win)) continue;
+            if (isHostAsset(doc, link.href, /^\/plugins\/Aurora-Theme\/styles\/theme(?:-\d+)?\.css$/i)) assets.colors = true;
+            if (isHostAsset(doc, link.href, /^\/plugins\/Aurora-Theme\/styles\/enhance(?:-\d+)?\.css$/i)) assets.enhancements = true;
+            if (isHostAsset(doc, link.href, /^\/plugins\/Aurora-Theme\/styles\/layout-sidebar(?:-\d+)?\.css$/i)) assets.sidebar = true;
         }
         assets.enhancementScript = Array.from(doc?.querySelectorAll?.('script[src]') || []).some(script =>
-            knownAsset(script.src, /^\/plugins\/Aurora-Theme\/scripts\/enhance(?:-\d+)?\.js$/i));
+            isHostAsset(doc, script.src, /^\/plugins\/Aurora-Theme\/scripts\/enhance(?:-\d+)?\.js$/i));
         const has = token => doc?.documentElement?.classList?.contains(token) === true;
         return { detected: Object.values(assets).some(Boolean), ...assets,
             enhancementsEnabled: has('tp-enhance'), sidebarEnabled: has('tp-sidebar'),
@@ -129,6 +148,7 @@
             || doc?.body?.getAttribute?.('data-fvplus-theme-name') || '').trim().slice(0, 96);
         if (declared) return { name:declared, source:'declared' };
         if (readAuroraEnvironment(doc, win).colors) return { name:'Aurora Theme', source:'recognized' };
+        if (readNeoraidEnvironment(doc, win).active) return { name:'NeoRaid', source:'recognized' };
         const base = String(doc?.documentElement?.getAttribute?.('data-fvplus-host-theme')
             || doc?.body?.getAttribute?.('data-fvplus-host-theme') || win.FolderViewPlusHostThemeName || '').trim().toLowerCase();
         const name = { black:'Unraid Black', white:'Unraid White', gray:'Unraid Gray', azure:'Unraid Azure' }[base];
@@ -138,6 +158,7 @@
     const describeIntegration = ({ document:doc, window:win = defaultWindow, hostColors, applied, requestedMode, appliedMode }) => {
         const forced = !!win.matchMedia?.('(forced-colors: active)')?.matches;
         return { identitySource:readHostIdentity(doc, win).source,
+            neoraid:readNeoraidEnvironment(doc, win),
             paletteSource:forced ? 'system' : applied ? (hostColors?.source === 'computed' ? 'computed' : 'variables') : 'fallback',
             reason:forced ? 'forced-colors' : ['safe','highcontrast'].includes(requestedMode) ? 'requested-recovery'
                 : applied ? 'none' : appliedMode !== requestedMode ? 'contrast-recovery' : 'missing-host-inputs' };
@@ -218,7 +239,8 @@
                 identitySource:choice(state.identitySource,['declared','recognized','native-base','unknown'],'unknown'),
                 paletteSource:choice(state.paletteSource,['variables','computed','fallback','system'],'fallback'),
                 reason:choice(state.reason,['none','forced-colors','requested-recovery','contrast-recovery','missing-host-inputs'],'missing-host-inputs'),
-                nativeControls:state.nativeControls === true
+                nativeControls:state.nativeControls === true,
+                neoraid:normalizeNeoraidEnvironment(state.neoraid)
             },
             contrastChecks:(Array.isArray(snapshot.contrastChecks) ? snapshot.contrastChecks : []).slice(0,32)
                 .filter(entry => THEME_CHECK_NAMES.has(entry?.name)).map(entry => ({ name:entry.name, ...check(entry) })),
@@ -234,7 +256,7 @@
     const createDocumentWatcher = (doc, win) => {
         const subscribers = new Set(), removals = [];
         let active = false, timer = null, generation = 0;
-        const attributes = ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme', 'data-fv-host-theme', 'data-fvplus-host-theme', 'data-fvplus-theme-name'];
+        const attributes = ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme', 'data-fv-host-theme', 'data-fvplus-host-theme', 'data-fvplus-theme-name', 'data-nr-density', 'data-nr-radius', 'data-nr-font'];
         const clearPending = () => { if (timer !== null) win.clearTimeout(timer); timer = null; };
         const queue = reason => {
             if (!active) return;

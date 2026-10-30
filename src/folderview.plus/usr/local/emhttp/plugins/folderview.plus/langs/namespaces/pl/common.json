@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Popraw nieprawidłowe reguły przed zastosowaniem podglądu.",
     "common.server.rules-save-invalid": "Przed zapisaniem popraw nieprawidłowe reguły.",
     "common.repair.rules-preview-no-changes": "W przypadku tej wersji zapoznawczej nie są potrzebne żadne zmiany przypisań.",
-    "common.repair.rules-preview-moves-manual": "Istniejące przypisania ręczne zostaną przeniesione do przeglądanych folderów."
+    "common.repair.rules-preview-moves-manual": "Istniejące przypisania ręczne zostaną przeniesione do przeglądanych folderów.",
+    "common.server.legacy-regex-managed-unsupported": "Starsze wyrażenie regularne nie jest obsługiwane przez reguły zarządzane i nie można go skonwertować.",
+    "common.server.environment-format-unsupported": "Format migawki środowiska lub wersja schematu nie są obsługiwane.",
+    "common.server.environment-sections-missing": "W migawce środowiska brakuje wymaganych sekcji.",
+    "common.server.environment-folder-data-invalid": "Migawka środowiska zawiera nieprawidłowe dane folderu.",
+    "common.server.rollback-format-unsupported": "Format migawki lub wersja schematu przywracania zmian nie jest obsługiwana.",
+    "common.server.rollback-type-data-missing": "W migawce przywracania brakuje wymaganych danych typu.",
+    "common.server.rollback-theme-workspace-invalid": "Przywracana migawka zawiera nieprawidłowe dane obszaru roboczego motywu.",
+    "common.server.folder-batch-verification": "Weryfikacja transakcji wsadowej folderu nie powiodła się.",
+    "common.server.bulk-assignment-verification": "Weryfikacja transakcji przypisania zbiorczego nie powiodła się."
 }

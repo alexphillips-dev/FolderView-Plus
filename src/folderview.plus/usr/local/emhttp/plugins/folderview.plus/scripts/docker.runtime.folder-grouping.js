@@ -36,7 +36,7 @@
         const register = (token, canonicalName) => {
             identityVariants(token).forEach((variant) => {
                 const existing = index.get(variant);
-                index.set(variant, existing && existing !== canonicalName ? null : canonicalName);
+                index.set(variant, index.has(variant) && existing !== canonicalName ? null : canonicalName);
             });
         };
         Object.entries(asObject(containersInfo)).forEach(([rawName, rawEntry]) => {
@@ -55,8 +55,7 @@
             if (!normalized) return '';
             if (canonicalNames.has(normalized)) return normalized;
             for (const variant of identityVariants(normalized)) {
-                const resolved = index.get(variant);
-                if (resolved) return resolved;
+                if (index.has(variant)) return index.get(variant) || '';
             }
             if (/^[a-f0-9]{8,}$/i.test(normalized)) {
                 const matches = [...canonicalNames].filter((name) => {
@@ -87,6 +86,42 @@
         const rawId = String(row?.id || '').trim();
         addUnique(candidates, rawId.startsWith('ct-') ? rawId.slice(3) : rawId);
         return candidates;
+    };
+    // Action targets must have one unambiguous identity in the accepted inventory.
+    // Grouping retains its existing first-row/first-folder ownership policy below.
+    const resolveRowName = (row, identityIndex) => {
+        const names = [...new Set(readRowCandidates(row).map(identityIndex.resolve).filter(Boolean))];
+        return names.length === 1 ? names[0] : '';
+    };
+    const createNativeRowIndex = (options = {}) => {
+        const doc = options.document || null;
+        const identityIndex = buildIdentityIndex(options.containersInfo);
+        const byName = new Map();
+        const selector = String(options.rowSelector || '#docker_list > tr.sortable:not(.folder), #docker_view > tr.sortable:not(.folder), tr.folder-element, div.folder-storage > tr');
+        const readRows = () => {
+            byName.clear();
+            Array.from(doc?.querySelectorAll?.(selector) || []).forEach((row) => {
+                if (row?.isConnected === false || row?.classList?.contains?.('folder')) return;
+                const name = resolveRowName(row, identityIndex);
+                if (!name) return;
+                // Do not choose an arbitrary duplicate host row for a native action.
+                byName.set(name, byName.has(name) ? null : row);
+            });
+        };
+        readRows();
+        return Object.freeze({
+            resolveRowName: (row) => resolveRowName(row, identityIndex),
+            find: (value) => {
+                const name = identityIndex.resolve(value);
+                let row = byName.get(name);
+                // Host refresh can replace native nodes without changing the accepted inventory.
+                if (row && (row.isConnected === false || resolveRowName(row, identityIndex) !== name)) {
+                    readRows();
+                    row = byName.get(name);
+                }
+                return row && row.isConnected !== false ? row : null;
+            }
+        });
     };
     const candidateCount = (matchCacheEntry, key) => asArray(matchCacheEntry?.[key]).length;
     const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -278,5 +313,5 @@
         });
     };
 
-    return Object.freeze({ normalizeToken, buildIdentityIndex, readRowCandidates, createSession });
+    return Object.freeze({ normalizeToken, buildIdentityIndex, readRowCandidates, resolveRowName, createNativeRowIndex, createSession });
 }));

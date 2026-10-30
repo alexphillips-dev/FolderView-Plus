@@ -2310,7 +2310,7 @@ const rmFolder = (id) => {
     // Ask for a confirmation
     swal({
         title: $.i18n('are-you-sure'),
-        text: `${$.i18n('remove-folder')}: ${globalFolders[id].name}`,
+        text: `${escapeHtml($.i18n('remove-folder'))}: ${escapeHtml(globalFolders[id].name)}`,
         type: 'warning',
         html: true,
         showCancelButton: true,

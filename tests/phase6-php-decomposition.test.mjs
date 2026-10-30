@@ -40,7 +40,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 53);
+    assert.equal(architecture.serverModuleContracts.length, 58);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -79,6 +79,10 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('fvplusTransactionRestoreAfterFailure');
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
+        for (const name of ['fvplusTypeTransactionPaths', 'diagnosticsSupportBundleEventLabel',
+            'diagnosticsSupportBundleRedactMissingIcons', 'fvplusCustomIconNameFromReference',
+            'fvplusCustomIconReferenceInputs', 'fvplusCustomIconUsageMap', 'fvplusNormalizeCustomIconReferencePath',
+            'fvplusVisitCustomIconReferences', 'fvplusCustomIconStorageLockPath', 'fvplusWithCustomIconStorageLock']) additions.add(name);
         additions.add('fvplusWriteConfigPayload');
         additions.add('fvplusWriteJsonLastGood');
         for (const name of ['backupConfigurationFingerprint', 'latestBackupConfiguration', 'backupScheduleStatePath',

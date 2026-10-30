@@ -11,14 +11,14 @@ test('batch and bulk writers compensate metadata failures without false rollback
         const result = runConfigWriteFixture({ type, operation });
         assert.ok(result.observed);
         assert.deepEqual(result.after, result.before);
-        assert.match(result.error, /No configuration write was committed/);
+        assert.match(result.error, /Automatic rollback restored the original configuration/);
         const uncertain = runConfigWriteFixture({ type, operation, rollback: true });
         assert.match(uncertain.error, /rollback was incomplete/);
         assert.doesNotMatch(uncertain.error, /No configuration write was committed|restored the original configuration/);
     }
 });
 
-test('preference metadata failure after a batch folder commit restores payloads with monotonic folder revisions', () => {
+test('preference metadata failure after a batch folder commit restores exact payloads and revisions', () => {
     for (const type of ['docker', 'vm']) {
         const result = runConfigWriteFixture({ type, operation: 'batch', kind: 'prefs' });
         assert.ok(result.observed);
@@ -26,10 +26,11 @@ test('preference metadata failure after a batch folder commit restores payloads 
         for (const suffix of ['.json', '.json.lastgood', '.prefs.json', '.prefs.json.lastgood']) {
             assert.deepEqual(result.after[suffix], result.before[suffix]);
         }
-        assert.equal(result.metadata.folderRevision, 3, 'forward write and compensating write each advance the revision');
+        assert.equal(result.metadata.folderRevision, 1, 'exact rollback must restore the original revision');
+        assert.deepEqual(result.after, result.before);
         assert.equal(result.metadata.prefsRevision, 1, 'failed preference write must not advance its revision');
         const uncertain = runConfigWriteFixture({ type, operation: 'batch', kind: 'prefs', rollback: true });
-        assert.match(uncertain.error, /rollback was incomplete.*Automatic rollback had errors.*folders/s);
+        assert.match(uncertain.error, /rollback was incomplete/s);
         assert.doesNotMatch(uncertain.error, /No configuration write was committed|restored the original configuration/);
     }
 });

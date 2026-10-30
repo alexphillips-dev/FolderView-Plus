@@ -6,20 +6,7 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         const host = await createDockerHierarchyMoveHost(page);
         const row = id => page.locator(`tr.folder-id-${id}`);
-        const settle = async () => {
-            await page.waitForFunction(() => document.querySelector('#fvplus-docker-action-bar')?.getAttribute('aria-busy') === 'false');
-            await page.waitForLoadState('networkidle');
-        };
-        const expand = async id => {
-            await page.locator(`.dropDown-${id}`).click();
-            await settle();
-        };
-        const move = async (waitForSave = true) => {
-            const saved = waitForSave ? page.waitForResponse(response => response.url().includes('/server/prefs.php') && response.request().method() === 'POST') : null;
-            await page.locator('#branch').click();
-            await page.locator('#synthetic-folder-menu button').filter({ hasText: /^Move to root$/ }).click();
-            if (saved) await saved;
-        };
+        const { settle, expand, move } = host;
         try {
             await page.goto(host.url, { waitUntil: 'load' });
             await settle();
@@ -27,6 +14,8 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             await row('branch').waitFor({ state: 'visible' });
             await expand('branch');
             await row('leaf').waitFor({ state: 'visible' });
+            const beforeFailure = structuredClone({ parent: host.folders.branch.parentId,
+                sortMode: host.prefs().sortMode, manualOrder: host.prefs().manualOrder || [] });
             host.failUpdates(true);
             await move(false);
             await page.waitForFunction(() => document.querySelector('tr.folder-id-branch')?.getAttribute('data-folder-parent') === '');
@@ -36,7 +25,10 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             host.releaseFailure();
             await settle();
             await page.waitForFunction(() => document.querySelector('tr.folder-id-branch')?.getAttribute('data-folder-parent') === 'parent');
-            assert.equal(host.folders.branch.parentId, 'parent', 'a rejected mutation never changes server state');
+            assert.deepEqual({ parent: host.folders.branch.parentId, sortMode: host.prefs().sortMode,
+                manualOrder: host.prefs().manualOrder || [] }, beforeFailure, 'a rejected batch changes neither parent nor order');
+            await page.reload({ waitUntil: 'load' }); await settle();
+            assert.equal(await row('branch').getAttribute('data-folder-parent'), 'parent', 'reloading reads the original parent');
             assert.equal(await row('branch').getAttribute('data-folder-depth'), '1');
             assert.equal(await row('leaf').isVisible(), true, 'rollback restores the expanded subtree');
             await expand('parent');
@@ -47,6 +39,9 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             await page.waitForFunction(() => document.querySelector('tr.folder-id-branch')?.getAttribute('data-folder-parent') === '');
             await settle();
             assert.equal(host.folders.branch.parentId, '');
+            assert.equal(host.prefs().sortMode, 'manual');
+            assert.equal(host.prefs().manualOrder.length, host.all.length);
+            assert.deepEqual(host.folders.branch.containers, [], 'automatic descendants are not materialized into manual membership');
             assert.equal(await row('branch').getAttribute('data-folder-depth'), '0');
             assert.equal(await row('branch').isVisible(), true);
             assert.equal(await row('parent').locator('.folder-preview .outer').count(), 0, 'the old parent no longer previews moved descendants');
@@ -82,6 +77,6 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
         }
     }, { skipAccessibility: true, allowedConsoleErrors: [ // Synthetic menu and an explicitly injected revision conflict.
         /^console: Failed to load resource:.*409 \(Conflict\)$/,
-        /^console: folderview\.plus: safe ui action failed \(docker-folder-menu-hierarchy:branch:root\).*\/server\/update\.php.*Synthetic revision conflict/s
+        /^console: folderview\.plus: safe ui action failed \(docker-folder-menu-hierarchy:branch:root\).*\/server\/batch\.php.*Synthetic revision conflict/s
     ] });
 };

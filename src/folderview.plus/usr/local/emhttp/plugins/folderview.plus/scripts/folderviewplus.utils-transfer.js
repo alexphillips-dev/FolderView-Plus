@@ -313,7 +313,8 @@
         const currentIds = new Set(Object.keys(current.folders));
         const incomingIds = Object.keys(incoming.folders);
         const resolvedIdByIncomingId = {};
-        const usedTargetIds = new Set();
+        // An inferred path match must never consume another explicit incoming identity.
+        const usedTargetIds = new Set(incomingIds);
         const mappings = [];
         const conflicts = [];
 
@@ -324,11 +325,7 @@
                 targetId = incomingId;
             } else if (incomingPath && Array.isArray(current.indexByPath[incomingPath]) && current.indexByPath[incomingPath].length === 1) {
                 targetId = current.indexByPath[incomingPath][0];
-                mappings.push({
-                    sourceId: incomingId,
-                    targetId,
-                    path: incomingPath
-                });
+
             } else if (incomingPath && Array.isArray(current.indexByPath[incomingPath]) && current.indexByPath[incomingPath].length > 1) {
                 conflicts.push({
                     sourceId: incomingId,
@@ -337,13 +334,17 @@
                 });
             }
 
-            if (targetId !== incomingId && usedTargetIds.has(targetId)) {
+            if (targetId !== incomingId && (usedTargetIds.has(targetId)
+                || (incoming.indexByPath[incomingPath] || []).length > 1)) {
                 conflicts.push({
                     sourceId: incomingId,
                     path: incomingPath,
                     reason: `Multiple incoming folders resolved to target "${targetId}"`
                 });
                 targetId = incomingId;
+            }
+            if (targetId !== incomingId) {
+                mappings.push({ sourceId: incomingId, targetId, path: incomingPath });
             }
             resolvedIdByIncomingId[incomingId] = targetId;
             usedTargetIds.add(targetId);
@@ -371,9 +372,26 @@
         return source;
     };
 
-    const summarizeImport = (existingFolders, parsed, importMode) => {
+    const resolveImportPlan = (existingFolders, parsed, importMode) => {
         const current = normalizeFolderMap(existingFolders);
         const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
+        const incoming = parsed.mode === 'single' ? null : normalizeFolderMap(parsed.folders);
+        const pathResolution = incoming ? resolveImportPathCollisions(current, incoming) : null;
+        const entries = [], targetIds = new Set();
+        for (const [sourceId, folder] of Object.entries(incoming || {})) {
+            const id = String(pathResolution.resolvedIdByIncomingId[sourceId] || sourceId).trim();
+            if (!id || targetIds.has(id)) continue;
+            targetIds.add(id);
+            const resolvedFolder = remapImportedFolderParent(folder, incoming, pathResolution.resolvedIdByIncomingId);
+            const existing = current[id];
+            entries.push({ id, sourceId, folder: resolvedFolder, pathMapped: id !== sourceId, existing,
+                same: Boolean(existing) && JSON.stringify(existing) === JSON.stringify(resolvedFolder) });
+        }
+        return { current, mode, entries, targetIds, pathResolution };
+    };
+
+    const summarizeImport = (existingFolders, parsed, importMode, resolvedPlan = null) => {
+        const { current, mode, entries, targetIds, pathResolution } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
         const existingIds = Object.keys(current);
         const result = {
             mode,
@@ -422,42 +440,15 @@
             return result;
         }
 
-        const incoming = normalizeFolderMap(parsed.folders);
-        const incomingIds = Object.keys(incoming);
-        const pathResolution = resolveImportPathCollisions(current, incoming);
-        const resolvedTargets = new Set();
-        for (const incomingId of incomingIds) {
-            const targetId = String(pathResolution.resolvedIdByIncomingId[incomingId] || incomingId).trim();
-            if (!targetId || resolvedTargets.has(targetId)) {
-                continue;
-            }
-            resolvedTargets.add(targetId);
-            const importedFolder = remapImportedFolderParent(
-                incoming[incomingId],
-                incoming,
-                pathResolution.resolvedIdByIncomingId
-            );
-            const existing = current[targetId];
-            if (!existing) {
-                result.creates.push({ id: targetId, name: importedFolder?.name || targetId });
-                continue;
-            }
-            const same = JSON.stringify(existing) === JSON.stringify(importedFolder);
-            if (mode === 'skip') {
-                result.skipped.push({ id: targetId, name: importedFolder?.name || targetId });
-            } else if (same) {
-                result.unchanged.push({ id: targetId, name: importedFolder?.name || targetId });
-            } else {
-                result.updates.push({ id: targetId, name: importedFolder?.name || targetId });
-            }
+        for (const entry of entries) {
+            const action = !entry.existing ? 'creates'
+                : mode === 'skip' ? 'skipped' : entry.same ? 'unchanged' : 'updates';
+            result[action].push({ id: entry.id, name: entry.folder?.name || entry.id });
         }
 
         if (mode === 'replace') {
-            for (const id of existingIds) {
-                if (!resolvedTargets.has(id)) {
-                    result.deletes.push({ id, name: current[id]?.name || id });
-                }
-            }
+            result.deletes = existingIds.filter((id) => !targetIds.has(id))
+                .map((id) => ({ id, name: current[id]?.name || id }));
         }
 
         if (pathResolution.mappings.length > 0) {
@@ -470,9 +461,8 @@
         return result;
     };
 
-    const buildImportOperations = (existingFolders, parsed, importMode) => {
-        const current = normalizeFolderMap(existingFolders);
-        const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
+    const buildImportOperations = (existingFolders, parsed, importMode, resolvedPlan = null) => {
+        const { current, mode, entries, targetIds, pathResolution } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
         const operations = {
             mode,
             upserts: [],
@@ -500,29 +490,11 @@
             return operations;
         }
 
-        const incoming = normalizeFolderMap(parsed.folders);
-        const pathResolution = resolveImportPathCollisions(current, incoming);
-        const queuedTargets = new Set();
-        for (const [incomingId, folder] of Object.entries(incoming)) {
-            const targetId = String(pathResolution.resolvedIdByIncomingId[incomingId] || incomingId).trim();
-            if (!targetId || queuedTargets.has(targetId)) {
-                continue;
-            }
-            queuedTargets.add(targetId);
-            if (mode === 'skip' && Object.prototype.hasOwnProperty.call(current, targetId)) {
-                continue;
-            }
-            const remappedFolder = remapImportedFolderParent(folder, incoming, pathResolution.resolvedIdByIncomingId);
-            operations.upserts.push({
-                id: targetId,
-                sourceId: incomingId,
-                pathMapped: targetId !== incomingId,
-                folder: remappedFolder
-            });
-        }
-
+        operations.upserts = entries
+            .filter((entry) => mode !== 'skip' || !entry.existing)
+            .map(({ existing, same, ...operation }) => operation);
         if (mode === 'replace') {
-            operations.deletes = Object.keys(current).filter((id) => !queuedTargets.has(id));
+            operations.deletes = Object.keys(current).filter((id) => !targetIds.has(id));
         }
 
         operations.pathMappings = pathResolution.mappings.slice();
@@ -574,10 +546,10 @@
         return fields;
     };
 
-    const buildImportDiffRows = (existingFolders, parsed, importMode) => {
-        const current = normalizeFolderMap(existingFolders);
-        const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
-        const operations = buildImportOperations(current, parsed, mode);
+    const buildImportDiffRows = (existingFolders, parsed, importMode, resolvedPlan = null) => {
+        const plan = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
+        const { current, mode } = plan;
+        const operations = plan.operations || buildImportOperations(current, parsed, mode, plan);
         const rows = [];
 
         for (const id of operations.deletes) {
@@ -626,7 +598,18 @@
     };
 
 
+    const buildImportPlan = (existingFolders, parsed, importMode) => {
+        const plan = resolveImportPlan(existingFolders, parsed, importMode);
+        const operations = buildImportOperations(existingFolders, parsed, importMode, plan);
+        return {
+            summary: summarizeImport(existingFolders, parsed, importMode, plan),
+            operations,
+            diffRows: buildImportDiffRows(existingFolders, parsed, importMode, { ...plan, operations })
+        };
+    };
+
     return Object.freeze({
+        buildImportPlan,
         buildFullExportPayload,
         buildSingleExportPayload,
         buildImportTrustMeta,

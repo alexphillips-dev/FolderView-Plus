@@ -12,37 +12,8 @@ function renameCustomIconUnlocked(): array {
     }
     $toPath = "$customDir/$to";
     if (file_exists($toPath) || is_link($toPath)) throw new RuntimeException('An icon with that name already exists.');
-    // Never mistake unreadable/corrupt current configuration for an unused icon.
-    foreach (['docker', 'vm'] as $type) {
-        foreach ([getFolderFilePath($type), getTypePrefsPath($type)] as $path) {
-            if ((file_exists($path) || is_link($path))
-                && (is_link($path) || !is_file($path) || !is_readable($path) || !is_array(readJsonObjectFile($path)))) {
-                throw new RuntimeException('Icon references could not be verified. Reload Settings and try again.');
-            }
-        }
-    }
-    $usageMap = customIconUsageMap();
+    $usageMap = customIconUsageMap(true);
     $referenced = !empty($usageMap[$from]) || customIconNameFromReference((string)($_POST['selectedIcon'] ?? '')) === $from;
-    foreach (['docker', 'vm'] as $type) {
-        $prefs = readJsonObjectFile(getTypePrefsPath($type)) ?? [];
-        $sources = [$prefs];
-        if (!hasLegacyMigrationMarker($type, 'prefs') && normalizeTypePrefs($prefs) === defaultTypePrefs()) {
-            foreach (getLegacyConfigDirCandidates() as $directory) {
-                $legacy = readJsonObjectFile("$directory/$type.prefs.json");
-                if (is_array($legacy) && normalizeTypePrefs($legacy) !== defaultTypePrefs()) {
-                    $sources[] = $legacy;
-                    break;
-                }
-            }
-        }
-        foreach ($sources as $source) {
-            $icons = [(string)($source['folderDefaults']['profile']['icon'] ?? '')];
-            foreach (is_array($source['folderGroups'] ?? null) ? $source['folderGroups'] : [] as $group) {
-                foreach (is_array($group['folders'] ?? null) ? $group['folders'] : [] as $folder) $icons[] = (string)($folder['icon'] ?? '');
-            }
-            foreach ($icons as $icon) $referenced = $referenced || customIconNameFromReference($icon) === $from;
-        }
-    }
     if ($referenced) throw new RuntimeException('Remove or replace saved icon references and choose a different editor icon before renaming.');
 
     $runtimeDir = fvplusCustomIconRuntimeDirPath();

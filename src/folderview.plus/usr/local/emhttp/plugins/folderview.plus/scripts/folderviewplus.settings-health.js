@@ -105,17 +105,341 @@
         };
     };
 
+    const HEALTH_REASON_META = Object.freeze({
+        EMPTY_FOLDER: Object.freeze({ label: 'Empty folder' }),
+        HEALTHY: Object.freeze({ label: 'Healthy runtime' }),
+        ALL_STOPPED: Object.freeze({ label: 'All members stopped' }),
+        STOPPED_PERCENT_WARN: Object.freeze({ label: 'Stopped ratio over warn threshold' }),
+        STOPPED_PERCENT_CRITICAL: Object.freeze({ label: 'Stopped ratio over critical threshold' }),
+        PAUSED_MEMBERS: Object.freeze({ label: 'Paused members detected' }),
+        UPDATES_PENDING: Object.freeze({ label: 'Updates pending' }),
+        UPDATE_SURGE: Object.freeze({ label: 'Large update backlog' })
+    });
+
+    const normalizeHealthProfile = (value, fallback = 'balanced') => {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (normalized === 'strict' || normalized === 'balanced' || normalized === 'lenient') {
+            return normalized;
+        }
+        return fallback;
+    };
+
+    const normalizeHealthUpdatesMode = (value, fallback = 'maintenance') => {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (normalized === 'maintenance' || normalized === 'warn' || normalized === 'ignore') {
+            return normalized;
+        }
+        return fallback;
+    };
+
+    const normalizeHealthAllStoppedMode = (value, fallback = 'critical') => {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (normalized === 'critical' || normalized === 'warn') {
+            return normalized;
+        }
+        return fallback;
+    };
+
+    const makeHealthReason = (code, message, severity = 'info') => ({
+        code,
+        label: String(HEALTH_REASON_META?.[code]?.label || code),
+        message,
+        severity
+    });
+
     const createApi = (deps = {}) => {
         const utils = deps.utils || {};
         const formatBytesShort = typeof deps.formatBytesShort === 'function' ? deps.formatBytesShort : ((value) => String(value ?? '0 B'));
         const getPrefsByType = typeof deps.getPrefsByType === 'function' ? deps.getPrefsByType : (() => ({}));
         const getInfoByType = typeof deps.getInfoByType === 'function' ? deps.getInfoByType : (() => ({}));
-        const normalizeHealthPrefs = typeof deps.normalizeHealthPrefs === 'function' ? deps.normalizeHealthPrefs : (() => ({}));
+        const normalizeHealthPrefs = typeof deps.normalizeHealthPrefs === 'function' ? deps.normalizeHealthPrefs : (type, prefsOverride = null) => {
+            const incomingPrefs = prefsOverride || getPrefsByType(type);
+            const source = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(incomingPrefs) : (incomingPrefs || {});
+            const incoming = source?.health && typeof source.health === 'object' ? source.health : {};
+            const warnRaw = Number(incoming.warnStoppedPercent);
+            const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
+            const criticalRaw = Number(incoming.criticalStoppedPercent);
+            const criticalStoppedPercent = Number.isFinite(criticalRaw) ? Math.min(100, Math.max(0, Math.round(criticalRaw))) : 90;
+            const profileRaw = String(incoming.profile || '').trim().toLowerCase();
+            const profile = ['strict', 'balanced', 'lenient'].includes(profileRaw) ? profileRaw : 'balanced';
+            const updatesModeRaw = String(incoming.updatesMode || '').trim().toLowerCase();
+            const updatesMode = ['maintenance', 'warn', 'ignore'].includes(updatesModeRaw) ? updatesModeRaw : 'maintenance';
+            const allStoppedModeRaw = String(incoming.allStoppedMode || '').trim().toLowerCase();
+            const allStoppedMode = ['critical', 'warn'].includes(allStoppedModeRaw) ? allStoppedModeRaw : 'critical';
+            const warnVcpusRaw = Number(incoming.vmResourceWarnVcpus);
+            let warnVcpus = Number.isFinite(warnVcpusRaw) ? Math.min(512, Math.max(1, Math.round(warnVcpusRaw))) : 16;
+            const criticalVcpusRaw = Number(incoming.vmResourceCriticalVcpus);
+            let criticalVcpus = Number.isFinite(criticalVcpusRaw) ? Math.min(512, Math.max(1, Math.round(criticalVcpusRaw))) : 32;
+            if (criticalVcpus <= warnVcpus) {
+                warnVcpus = Math.min(511, warnVcpus);
+                criticalVcpus = Math.min(512, warnVcpus + 1);
+            }
+            const warnGiBRaw = Number(incoming.vmResourceWarnGiB);
+            let warnGiB = Number.isFinite(warnGiBRaw) ? Math.min(1024, Math.max(1, Math.round(warnGiBRaw))) : 32;
+            const criticalGiBRaw = Number(incoming.vmResourceCriticalGiB);
+            let criticalGiB = Number.isFinite(criticalGiBRaw) ? Math.min(1024, Math.max(1, Math.round(criticalGiBRaw))) : 64;
+            if (criticalGiB <= warnGiB) {
+                warnGiB = Math.min(1023, warnGiB);
+                criticalGiB = Math.min(1024, warnGiB + 1);
+            }
+            return {
+                cardsEnabled: incoming.cardsEnabled !== false,
+                runtimeBadgeEnabled: incoming.runtimeBadgeEnabled === true,
+                warnStoppedPercent,
+                criticalStoppedPercent,
+                profile,
+                updatesMode,
+                allStoppedMode,
+                vmResourceWarnVcpus: warnVcpus,
+                vmResourceCriticalVcpus: criticalVcpus,
+                vmResourceWarnGiB: warnGiB,
+                vmResourceCriticalGiB: criticalGiB
+            };
+        };
         const getItemRuntimeStateKind = typeof deps.getItemRuntimeStateKind === 'function' ? deps.getItemRuntimeStateKind : (() => 'stopped');
         const deriveFolderStatusKey = typeof deps.deriveFolderStatusKey === 'function' ? deps.deriveFolderStatusKey : (() => 'empty');
-        const evaluateDockerFolderHealth = typeof deps.evaluateDockerFolderHealth === 'function'
-            ? deps.evaluateDockerFolderHealth
-            : (() => ({ severity: 'good', score: 100, filterSeverity: 'good', isMaintenance: false }));
+        const surfaceT = typeof deps.surfaceT === 'function' ? deps.surfaceT
+            : ((_key, fallback, ...params) => String(fallback).replace(/\$(\d+)/g, (_match, index) => String(params[Number(index) - 1] ?? '')));
+
+        const resolveFolderHealthPolicy = (folder, fallbackThreshold) => {
+            const globalHealthPrefs = normalizeHealthPrefs('docker');
+            const globalProfile = normalizeHealthProfile(globalHealthPrefs.profile, 'balanced');
+            const globalDefaults = HEALTH_PROFILE_PRESETS[globalProfile] || HEALTH_PROFILE_PRESETS.balanced;
+            const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
+                ? folder.settings
+                : {};
+
+            const folderProfileRaw = String(settings.health_profile || '').trim();
+            const hasFolderProfile = folderProfileRaw !== '';
+            const folderProfile = hasFolderProfile
+                ? normalizeHealthProfile(folderProfileRaw, globalProfile)
+                : globalProfile;
+            const profileDefaults = hasFolderProfile
+                ? (HEALTH_PROFILE_PRESETS[folderProfile] || globalDefaults)
+                : globalDefaults;
+
+            const fallbackWarn = Number.isFinite(Number(fallbackThreshold))
+                ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
+                : Number(globalHealthPrefs.warnStoppedPercent ?? profileDefaults.warnStoppedPercent ?? 60);
+            let warnThreshold = fallbackWarn;
+            let warnSource = Number.isFinite(Number(fallbackThreshold)) ? 'global-warn' : 'profile';
+
+            const warnRaw = settings.health_warn_stopped_percent;
+            if (!(warnRaw === '' || warnRaw === null || warnRaw === undefined)) {
+                const parsedWarn = Number(warnRaw);
+                if (Number.isFinite(parsedWarn)) {
+                    warnThreshold = Math.min(100, Math.max(0, Math.round(parsedWarn)));
+                    warnSource = 'folder-warn';
+                }
+            }
+
+            let criticalThreshold = Number(globalHealthPrefs.criticalStoppedPercent ?? profileDefaults.criticalStoppedPercent ?? 90);
+            let criticalSource = Number.isFinite(Number(globalHealthPrefs.criticalStoppedPercent)) ? 'global-critical' : 'profile';
+            const criticalRaw = settings.health_critical_stopped_percent;
+            if (!(criticalRaw === '' || criticalRaw === null || criticalRaw === undefined)) {
+                const parsedCritical = Number(criticalRaw);
+                if (Number.isFinite(parsedCritical)) {
+                    criticalThreshold = Math.min(100, Math.max(0, Math.round(parsedCritical)));
+                    criticalSource = 'folder-critical';
+                }
+            } else {
+                criticalThreshold = Math.min(100, Math.max(0, Math.round(criticalThreshold)));
+            }
+
+            let updatesMode = normalizeHealthUpdatesMode(globalHealthPrefs.updatesMode, profileDefaults.updatesMode);
+            let updatesModeSource = (globalHealthPrefs.updatesMode && String(globalHealthPrefs.updatesMode).trim() !== '')
+                ? 'global-updates'
+                : 'profile';
+            const updatesModeRaw = String(settings.health_updates_mode || '').trim();
+            if (updatesModeRaw !== '') {
+                updatesMode = normalizeHealthUpdatesMode(updatesModeRaw, updatesMode);
+                updatesModeSource = 'folder-updates';
+            }
+
+            let allStoppedMode = normalizeHealthAllStoppedMode(globalHealthPrefs.allStoppedMode, profileDefaults.allStoppedMode);
+            let allStoppedModeSource = (globalHealthPrefs.allStoppedMode && String(globalHealthPrefs.allStoppedMode).trim() !== '')
+                ? 'global-all-stopped'
+                : 'profile';
+            const allStoppedModeRaw = String(settings.health_all_stopped_mode || '').trim();
+            if (allStoppedModeRaw !== '') {
+                allStoppedMode = normalizeHealthAllStoppedMode(allStoppedModeRaw, allStoppedMode);
+                allStoppedModeSource = 'folder-all-stopped';
+            }
+
+            criticalThreshold = Math.min(100, Math.max(0, Math.round(criticalThreshold)));
+            if (criticalThreshold < warnThreshold + 5) {
+                criticalThreshold = Math.min(100, warnThreshold + 5);
+                criticalSource = 'auto-adjust';
+            }
+
+            return {
+                profile: folderProfile,
+                warnThreshold,
+                warnSource,
+                criticalThreshold,
+                criticalSource,
+                updatesMode,
+                updatesModeSource,
+                allStoppedMode,
+                allStoppedModeSource
+            };
+        };
+
+        const evaluateDockerFolderHealth = typeof deps.evaluateDockerFolderHealth === 'function' ? deps.evaluateDockerFolderHealth : (folder, members, countsByState, updateCount, fallbackWarnThreshold) => {
+            const totalMembers = Number(members) || 0;
+            const started = Number(countsByState?.started || 0);
+            const paused = Number(countsByState?.paused || 0);
+            const stopped = Number(countsByState?.stopped || 0);
+            const policy = resolveFolderHealthPolicy(folder, fallbackWarnThreshold);
+            const warnThreshold = policy.warnThreshold;
+            const criticalThreshold = policy.criticalThreshold;
+            if (totalMembers === 0) {
+                return {
+                    severity: 'empty',
+                    filterSeverity: 'empty',
+                    text: 'Empty',
+                    className: 'is-empty',
+                    isAlert: false,
+                    score: 100,
+                    isMaintenance: false,
+                    reasons: [
+                        makeHealthReason('EMPTY_FOLDER', 'No members in this folder.', 'info')
+                    ],
+                    policy,
+                    details: [
+                        'Score: 100/100.',
+                        'No members in this folder.',
+                        `Policy: ${policy.profile} profile (${warnThreshold}% warn, ${criticalThreshold}% critical).`
+                    ]
+                };
+            }
+
+            const {
+                stoppedPercent,
+                allStopped,
+                hasUpdates,
+                allStoppedCritical,
+                stoppedCritical,
+                stoppedWarn,
+                updateMaintenance,
+                updateCritical,
+                severity,
+                maintenanceOnly,
+                filterSeverity
+            } = classifyDockerFolderHealth({
+                members: totalMembers,
+                started,
+                paused,
+                stopped,
+                updateCount,
+                policy
+            });
+
+            const reasons = [];
+            if (allStopped) {
+                reasons.push(makeHealthReason(
+                    'ALL_STOPPED',
+                    `All ${stopped}/${totalMembers} members are stopped.`,
+                    allStoppedCritical ? 'critical' : 'warning'
+                ));
+            }
+            if (stoppedCritical) {
+                reasons.push(makeHealthReason(
+                    'STOPPED_PERCENT_CRITICAL',
+                    `Stopped percentage ${stoppedPercent}% is above critical threshold ${criticalThreshold}%.`,
+                    'critical'
+                ));
+            } else if (stoppedWarn) {
+                reasons.push(makeHealthReason(
+                    'STOPPED_PERCENT_WARN',
+                    `Stopped percentage ${stoppedPercent}% is above warn threshold ${warnThreshold}%.`,
+                    'warning'
+                ));
+            }
+            if (paused > 0) {
+                reasons.push(makeHealthReason(
+                    'PAUSED_MEMBERS',
+                    surfaceT("common.repair.paused-members-1-9c89f8", "Paused members: $1.", paused),
+                    'warning'
+                ));
+            }
+            if (hasUpdates && policy.updatesMode !== 'ignore') {
+                reasons.push(makeHealthReason(
+                    updateCount >= 10 ? 'UPDATE_SURGE' : 'UPDATES_PENDING',
+                    surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount),
+                    updateMaintenance ? 'maintenance' : (updateCritical ? 'critical' : 'warning')
+                ));
+            }
+            if (!reasons.length) {
+                reasons.push(makeHealthReason(
+                    'HEALTHY',
+                    'No health issues detected.',
+                    'success'
+                ));
+            }
+
+            let scorePenalty = 0;
+            if (stoppedPercent > 0) {
+                if (stoppedPercent >= warnThreshold) {
+                    const range = Math.max(1, 100 - warnThreshold);
+                    scorePenalty += 18 + Math.round(((stoppedPercent - warnThreshold) / range) * 42);
+                } else {
+                    scorePenalty += Math.round((stoppedPercent / Math.max(1, warnThreshold)) * 18);
+                }
+            }
+            if (paused > 0) {
+                scorePenalty += Math.min(20, 2 + Math.round((paused / totalMembers) * 30));
+            }
+            if (hasUpdates && policy.updatesMode !== 'ignore') {
+                const updatePenaltyBase = policy.updatesMode === 'warn' ? 4 : 2;
+                const updatePenaltyCap = policy.updatesMode === 'warn' ? 34 : 18;
+                scorePenalty += Math.min(updatePenaltyCap, updateCount * updatePenaltyBase);
+            }
+            if (allStopped) {
+                scorePenalty += policy.allStoppedMode === 'critical' ? 40 : 24;
+            }
+            if (stoppedCritical) {
+                scorePenalty += 18;
+            }
+            if (updateCritical) {
+                scorePenalty += 16;
+            }
+            const score = Math.max(0, Math.min(100, 100 - scorePenalty));
+
+            const details = [
+                `Score: ${score}/100.`,
+                `${started} started, ${paused} paused, ${stopped} stopped (${stoppedPercent}% stopped).`,
+                hasUpdates ? surfaceT("common.repair.available-updates-1-1251a9", "Available updates: $1.", updateCount) : 'No updates available.',
+                `Policy: ${policy.profile} | updates ${policy.updatesMode} | all-stopped ${policy.allStoppedMode}.`,
+                `Thresholds: warn ${warnThreshold}% (${policy.warnSource}), critical ${criticalThreshold}% (${policy.criticalSource}).`,
+                ...reasons.map((reason) => `${reason.label}: ${reason.message}`)
+            ];
+
+            let text = 'Healthy';
+            let className = 'is-ok';
+            if (severity === 'critical') {
+                text = 'Critical';
+                className = 'is-danger';
+            } else if (maintenanceOnly) {
+                text = 'Maintenance';
+                className = 'is-maintenance';
+            } else if (severity === 'warn') {
+                text = 'Degraded';
+                className = 'is-warning';
+            }
+            return {
+                severity,
+                filterSeverity,
+                text,
+                className,
+                isAlert: severity === 'critical' || (severity === 'warn' && !maintenanceOnly),
+                score,
+                isMaintenance: maintenanceOnly,
+                reasons,
+                policy,
+                details
+            };
+        };
         const valueIsTruthy = typeof deps.valueIsTruthy === 'function' ? deps.valueIsTruthy : ((value) => Boolean(value));
 
         const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
@@ -404,6 +728,9 @@
         };
 
         return Object.freeze({
+            normalizeHealthPrefs,
+            resolveFolderHealthPolicy,
+            evaluateDockerFolderHealth,
             buildStatusSnapshot,
             isDockerUpdateAvailable,
             formatGiBFromKiB,

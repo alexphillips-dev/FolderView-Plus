@@ -4,13 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { chromium, firefox, webkit } from 'playwright';
 import { readFixtureBrowserConfig } from './lib/fixture-browser-config.mjs';
 import { createFixtureBrowserServer } from './lib/fixture-browser-server.mjs';
-import { runFixtureBrowserSuite } from './lib/fixture-browser-runner.mjs';
+import { runFixtureBrowserSuite } from './lib/fixture-browser-runner.mjs'; import { registerNeoraidFixtureCases } from '../tests/browser/cases/neoraid.mjs'; import { registerAuroraControlCases } from '../tests/browser/cases/aurora-controls.mjs';
 import { registerFoundationFixtureCases } from '../tests/browser/cases/foundation.mjs'; import { registerHostThemeFixtureCases } from '../tests/browser/cases/host-theme.mjs';
 import { registerDockerFixtureCases } from '../tests/browser/cases/docker.mjs'; import { registerDockerNativeLifecycleCases } from '../tests/browser/cases/docker-native-lifecycle.mjs';
 import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs'; import { registerStatusTextThemeFixtureCase } from '../tests/browser/cases/status-text-theme.mjs'; import { registerDashboardAccordionFixtureCases } from '../tests/browser/cases/dashboard-accordion.mjs'; import { registerDashboardDensityFixtureCases } from '../tests/browser/cases/dashboard-density.mjs';
 import { registerRuntimeInteractionsFixtureCases } from '../tests/browser/cases/runtime-interactions.mjs'; import { registerRuntimeQuickFinderCases } from '../tests/browser/cases/runtime-quick-finder.mjs'; import { registerQuickFinderControlCases } from '../tests/browser/cases/runtime-quick-finder-controls.mjs';
 import { registerDockerHiddenFolderFixtureCases } from '../tests/browser/cases/docker-hidden-folders.mjs';
-import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs'; import { registerPageTitleCases } from '../tests/browser/cases/page-title.mjs';
+import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs'; import { registerPageTitleCases } from '../tests/browser/cases/page-title.mjs'; import { registerEngineIdentityCases } from '../tests/browser/cases/engine-identity.mjs'; import { registerEngineRuntimeFactCases } from '../tests/browser/cases/engine-runtime-facts.mjs';
 import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs'; import { registerFolderEditorTabCases } from '../tests/browser/cases/folder-editor-tabs.mjs'; import { registerFolderEditorSettingsCases } from '../tests/browser/cases/folder-editor-settings.mjs'; import { registerFolderEditorHelpCases } from '../tests/browser/cases/folder-editor-help.mjs';
 import { registerFolderWebuiProfileFixtureCases } from '../tests/browser/cases/folder-webui-profiles.mjs'; import { registerFolderWebuiProfileThemeFixtureCase } from '../tests/browser/cases/folder-webui-profile-theme.mjs';
@@ -42,15 +42,15 @@ const tests = [];
 const test = (name, handler, options = {}) => tests.push({ name, handler, ...options });
 
 const caseContext = { test, baseUrl, surfaceKeyFor, germanSurfaceCatalog };
-registerFoundationFixtureCases(caseContext); registerHostThemeFixtureCases(caseContext);
+registerAuroraControlCases(caseContext); registerNeoraidFixtureCases(caseContext); registerFoundationFixtureCases(caseContext); registerHostThemeFixtureCases(caseContext);
 registerDockerFixtureCases(caseContext); registerDockerNativeLifecycleCases(caseContext);
 registerDashboardLifecycleFixtureCases(caseContext); registerStatusTextThemeFixtureCase(caseContext); registerDashboardAccordionFixtureCases(caseContext); registerDashboardDensityFixtureCases(caseContext);
 registerRuntimeInteractionsFixtureCases(caseContext); registerRuntimeQuickFinderCases(caseContext); registerQuickFinderControlCases(caseContext);
 registerDockerHiddenFolderFixtureCases(caseContext);
-registerSettingsFixtureCases(caseContext); registerPageTitleCases(caseContext);
+registerSettingsFixtureCases(caseContext); registerPageTitleCases(caseContext); registerEngineRuntimeFactCases(caseContext);
 registerSettingsStartOrderFixtureCases(caseContext);
 registerFolderEditorFixtureCases(caseContext); registerFolderEditorTabCases(caseContext); registerFolderWebuiProfileFixtureCases(caseContext); registerFolderWebuiProfileThemeFixtureCase(caseContext); registerFolderEditorSettingsCases(caseContext); registerFolderEditorHelpCases(caseContext);
-registerImportFixtureCases(caseContext); registerFolderRenderRecoveryFixtureCases(caseContext); registerForumReportFixtureCases(caseContext); registerDownloadNoticeFixtureCases(caseContext);
+registerImportFixtureCases(caseContext); registerFolderRenderRecoveryFixtureCases(caseContext); registerForumReportFixtureCases(caseContext); registerDownloadNoticeFixtureCases(caseContext); registerEngineIdentityCases(caseContext);
 
 await runFixtureBrowserSuite({
     fixtureServer, tests, requestedBrowsers, browserTypes, colorSchemes, viewports,

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.custom-icon-references.php';
 function readUnraidVersionString(): ?string {
         $candidates = [
             '/etc/unraid-version',
@@ -138,84 +139,11 @@ function readUnraidVersionString(): ?string {
         ];
     }
 
-    function diagnosticsCustomIconExtensions(): array {
-        return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
-    }
+    function diagnosticsCustomIconExtensions(): array { return fvplusAllowedCustomIconExtensions(); }
 
-    function diagnosticsCustomIconNameFromIconValue(string $value): string {
-        $path = trim($value);
-        if ($path === '') {
-            return '';
-        }
-        $hashPos = strpos($path, '#');
-        if ($hashPos !== false) {
-            $path = substr($path, 0, $hashPos);
-        }
-        $queryPos = strpos($path, '?');
-        if ($queryPos !== false) {
-            $path = substr($path, 0, $queryPos);
-        }
-        $decoded = @rawurldecode($path);
-        if (is_string($decoded) && $decoded !== '') {
-            $path = $decoded;
-        }
-        $path = preg_replace('#^https?://[^/]+#i', '', $path);
-        $path = str_replace('\\', '/', trim((string)$path));
-        if ($path === '') {
-            return '';
-        }
+    function diagnosticsCustomIconNameFromIconValue(string $value): string { return fvplusCustomIconNameFromReference($value); }
 
-        $prefixes = [
-            '/plugins/folderview.plus/images/custom/',
-            '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
-            'plugins/folderview.plus/images/custom/',
-            'usr/local/emhttp/plugins/folderview.plus/images/custom/'
-        ];
-        $candidate = '';
-        foreach ($prefixes as $prefix) {
-            if (strpos($path, $prefix) === 0) {
-                $candidate = basename(substr($path, strlen($prefix)));
-                break;
-            }
-        }
-        if ($candidate === '') {
-            return '';
-        }
-        $safe = basename(trim($candidate));
-        if ($safe === '' || $safe !== $candidate) {
-            return '';
-        }
-        $extension = strtolower((string)pathinfo($safe, PATHINFO_EXTENSION));
-        if ($extension === '' || !in_array($extension, diagnosticsCustomIconExtensions(), true)) {
-            return '';
-        }
-        return $safe;
-    }
-
-    function diagnosticsBuildCustomIconUsageMap(): array {
-        $usage = [];
-        foreach (['docker', 'vm'] as $type) {
-            $folders = readRawFolderMap($type);
-            foreach ($folders as $folderId => $folder) {
-                if (!is_array($folder)) {
-                    continue;
-                }
-                $name = diagnosticsCustomIconNameFromIconValue((string)($folder['icon'] ?? ''));
-                if ($name === '') {
-                    continue;
-                }
-                if (!isset($usage[$name]) || !is_array($usage[$name])) {
-                    $usage[$name] = [];
-                }
-                $usage[$name][] = [
-                    'type' => $type,
-                    'folderId' => (string)$folderId,
-                    'folderName' => trim((string)($folder['name'] ?? (string)$folderId))
-                ];
-            }
-        }
-        return $usage;
-    }
+    function diagnosticsBuildCustomIconUsageMap(): array { return fvplusCustomIconUsageMap(); }
 
     function diagnosticsBuildCustomIconStorage(string $privacyMode): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);

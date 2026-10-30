@@ -1,0 +1,57 @@
+/* Test-only Aurora 2026.10.28.1932 control excerpts.
+ * https://github.com/Tunefish92/Aurora-Theme/tree/1d994b539923731b1b103c38f50c9c0de692d661
+ * Native button and header-switch rules copied verbatim from unraid-tapeory.css
+ * and plugin/src/styles/enhance.css. Palette variables come from the host fixture.
+ * MIT: aurora.LICENSE.txt. No fonts or upstream JavaScript are included.
+ */
+:root:is(.Theme--black, .Theme--white) {
+    input[type="button"]:where(:not(.unapi *)),
+    input[type="reset"]:where(:not(.unapi *)),
+    input[type="submit"]:where(:not(.unapi *)),
+    button:where(:not(.unapi *, [role="tab"], .ui-button, .swal-button)),
+    a.button:where(:not(.unapi *)) {
+        padding: 8px 16px;
+        /* Colours set here as well, not only through Unraid's variables: some pages bring their
+           own button styles (the Docker install output's log.htm), which would otherwise win. */
+        border: var(--button-border);
+        border-radius: var(--tp-r-full);
+        color: var(--button-text-color);
+        background: var(--button-background);
+        background-size: auto;
+        font-family: var(--tp-font-heading);
+        font-size: 1.2rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        transition: transform 0.35s var(--tp-ease), box-shadow 0.35s var(--tp-ease),
+            border-color 0.35s var(--tp-ease), color 0.35s var(--tp-ease);
+    }
+
+}
+
+@media (max-width: 767px) {
+    #UserProfile > .tp-theme-switch {
+        display: none !important;
+    }
+}
+
+#UserProfile > .tp-theme-switch {
+    display: grid;
+    flex: none;
+    place-items: center;
+    align-self: center;
+    width: 3.6rem;
+    min-width: 0;
+    height: 3.6rem;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--tp-border, var(--border-color));
+    border-radius: 50%;
+    color: var(--tp-muted, var(--alt-text-color));
+    font-size: 1.6rem;
+    background-color: var(--tp-elevated, transparent);
+    box-shadow: none;
+    cursor: pointer;
+    transition: border-color 0.35s, color 0.35s;
+}

@@ -200,7 +200,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /const dockerApiCoordinatorModule = window\.FolderViewPlusFoundationModules\?\.dockerApiCoordinator \|\| null;/);
     assert.match(dockerJs, /const getDockerApiIntegration = \(\) => \{[\s\S]*dockerApiCoordinatorModule\.createIntegration\(\{/);
-    assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = async \(options = \{\}\) => \{[\s\S]*getDockerApiIntegration\(\)\?\.refresh\?\.\(options\)[\s\S]*refreshDockerRuntimeStateFromPhp\(\{ \.\.\.options, apiFirst: false \}\)/);
+    assert.match(dockerJs, /const method = options\.apiMethod === 'tick' \? 'tick' : 'refresh';/);
+    assert.match(dockerJs, /const applied = await integration\?\.\[method\]\?\.\(guardedOptions\);/);
+    assert.match(dockerJs, /return refreshDockerRuntimeStateFromPhp\(\{ \.\.\.guardedOptions, apiFirst: false \}\);/);
     assert.match(dockerJs, /const bindDockerPostUpdateRenderReconcile = \(\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindPostUpdateRenderReconcile\?\.\(\);/);
     assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindHostOpenDockerPatch\?\.\(\);/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.armPostUpdateRuntimeReconcileWindow\?\.\(durationMs,\s*options\) \|\| 0;/);
@@ -315,9 +317,9 @@ test('docker runtime can stay in host-list mode without rendering FolderView row
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
-    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
-    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
-    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const nextWebuiSignature/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) => \{[\s\S]*?dockerRuntimeInfoByName = hydration\.runtimeMap;[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{[\s\S]*?markDockerRuntimeLayoutPhase\('full-info-failed'/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) => \{[\s\S]*?const nextWebuiSignature/);
 });
 
 test('docker bootstrap render preserves prior runtime update flags when partial state payloads omit Updated', () => {

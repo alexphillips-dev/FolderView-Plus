@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Corrigez les règles non valides avant d'appliquer l'aperçu.",
     "common.server.rules-save-invalid": "Corrigez les règles invalides avant de sauvegarder.",
     "common.repair.rules-preview-no-changes": "Aucune modification d’affectation n’est nécessaire pour cet aperçu.",
-    "common.repair.rules-preview-moves-manual": "Les affectations manuelles existantes seront déplacées vers les dossiers prévisualisés."
+    "common.repair.rules-preview-moves-manual": "Les affectations manuelles existantes seront déplacées vers les dossiers prévisualisés.",
+    "common.server.legacy-regex-managed-unsupported": "L'expression régulière héritée n'est pas prise en charge par les règles gérées et ne peut pas être convertie.",
+    "common.server.environment-format-unsupported": "Le format d'instantané d'environnement ou la version du schéma n'est pas pris en charge.",
+    "common.server.environment-sections-missing": "L'instantané de l'environnement ne contient pas les sections requises.",
+    "common.server.environment-folder-data-invalid": "L'instantané d'environnement contient des données de dossier non valides.",
+    "common.server.rollback-format-unsupported": "Le format d'instantané de restauration ou la version du schéma n'est pas pris en charge.",
+    "common.server.rollback-type-data-missing": "L'instantané de restauration ne contient pas les données de type requises.",
+    "common.server.rollback-theme-workspace-invalid": "L'instantané de restauration contient des données d'espace de travail de thème non valides.",
+    "common.server.folder-batch-verification": "La vérification des transactions par lots de dossiers a échoué.",
+    "common.server.bulk-assignment-verification": "La vérification de la transaction d'affectation groupée a échoué."
 }

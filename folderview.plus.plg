@@ -5,29 +5,64 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.10.27.05">
-<!ENTITY md5 "92dd7fa6a958bdcc1ba9da65afb3c204">
-<!ENTITY sha256 "0448b6a92aaf2d343fef79a279d7a0c3835bd21674446fd4863242707b635469">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.10.30.01">
+<!ENTITY md5 "8a91cd2b27bbe43ac7d7f1c15caf4468">
+<!ENTITY sha256 "013745199e5421c1c4eb841cf5de7cf5db178315fc8f94981ed836edc9a4d11f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.10.27.05
-- Compatibility: Follow host-theme colors and native control styling more reliably across Settings, Docker, VMs, Dashboard, and the folder editor. Refresh after stylesheet, font, theme, or accessibility changes while retaining readable mixed surfaces, keyboard focus, and touch sizing.
-- UI/UX: Separate Docker folder actions from filters, keep the floating scroll control clear of toolbar buttons, and keep folder menus and nested submenus usable near screen edges and in short windows, including Aurora menu spacing and arrows.
-- Reliability: Use consistent rules and folder membership across previews, templates, Docker, VMs, Dashboard, diagnostics, folder actions, and Docker startup order. Refresh membership when relevant labels, images, or Compose metadata change, and handle missing rule destinations and FolderView3 ownership consistently.
-- Fix: Bind rule-preview application to the reviewed configuration and resources, require a new preview when inputs change, and apply valid assignments through one guarded transaction with a recovery backup. Automatic rules use consistent Unicode matching and reject unsupported patterns; legacy folder regex behavior is retained.
-- Fix: Prevent repeated idle Docker-list rebuilds when lightweight and detailed responses return equivalent container information in different orders. Preserve explicit member order, folder order, rule priority, and detection of real membership changes.
-- Diagnostics: Include bounded, privacy-safe Aurora compatibility and Docker column-movement evidence in support bundles, retain evidence when leaving Docker for Settings, and honor the five-second sampling startup delay. Keep complete rule changes visible in recovery comparisons and localize rule-preview and validation messages.
-- Fix: Automatically remove the retired Docker geometry script during installation and updates so its leftover-file integrity warning clears without manual cleanup. Preserve current runtime files, saved configuration, backups, icons, overrides, and reporting of unrelated unexpected files.
-- Compatibility: Hard-refresh the Unraid webGUI after updating. Recheck rule previews, folder actions, Docker startup order, idle Docker layout, and neighboring VM and Dashboard views. Themes that independently move or regroup native container rows still need to respect FolderView Plus's renderer ownership.
-- Performance: Routine startup benchmark inventories remain capped at 500 resources. The 2,000-resource extreme workload remains outside default qualification and has unresolved timing qualification.
+###2026.10.30.01
+- Fix: Prevent support-bundle privacy checks from mistaking plugin version numbers for private IP addresses.
+- Fix: Preserve version numbers in sanitized diagnostic messages while correctly masking complete private IPv4 addresses.
+- Compatibility: Hard-refresh the webGUI after updating, then export a new sanitized support bundle to use the corrected privacy check.
+
+
+###2026.10.29.05
+- Fix: Center Font Awesome icons beside their captions in the Docker and VM Settings toolbars, native Sort controls and Wizard button after the Aurora button-spacing update.
+- UX: Keep icon alignment consistent with different host fonts and wrapped mobile captions, while preserving centered SVG icons and existing touch control heights.
+- Fix: Reserve enough space for the Sort icon and label so they do not crowd the selected value. Native dropdown clicks and keyboard selection remain available.
+- Compatibility: Hard-refresh the webGUI after updating so the corrected Settings styles are loaded.
+
+
+###2026.10.29.04
+- Fix: Prevent Aurora's sun/moon header button from making FolderView Plus Settings actions cramped or oversized. Icon-only controls no longer supply ordinary action-button sizing.
+- UX: Keep Basic, Advanced, Wizard and Docker/VM folder toolbar actions aligned with Edit folder defaults, with consistent text size and spacing across desktop and touch layouts.
+- Compatibility: Continue looking for a usable labelled native action when another control has unsuitable dimensions, and clear previous sizing when no suitable action remains. Host palettes and theme recovery modes remain supported.
+- Compatibility: Hard-refresh the webGUI after updating, then check Settings controls and native Sort selection with Aurora enabled.
+
+
+###2026.10.29.03
+- Fix: Keep Docker preview actions attached to the correct container when hidden members, shortened IDs, renamed rows, or ambiguous identities are present. Preserve manual folder membership during hierarchy moves.
+- Fix: Use the saved-rule compiler for rule previews and legacy conversion, rejecting unsupported expressions before changing stored rules. Escape folder names in destructive confirmation dialogs.
+- Privacy: Redact nested missing-icon references and unrecognized diagnostic history fields in sanitized support bundles while retaining useful counts and same-bundle correlations.
+- Fix: Prevent delayed preference responses and superseded runtime refreshes from replacing newer state. Retain PHP fallback refreshes when API reads cannot apply a result.
+- Reliability: Restore folders, preferences, revisions, recovery mirrors, generated themes, and native Docker order together after failed transactions. Keep same-second rollback checkpoints distinct and protect the selected checkpoint during restore.
+- Fix: Validate complete environment snapshots before public preview or import. Resolve import identities once for review and apply, and include all restored preferences in snapshot comparisons.
+- Fix: Make custom icon usage, rename, delete, diagnostics, and repair agree on references in folders, folder defaults, and saved groups. Serialize icon and configuration operations and preserve state after repair failures.
+- Maintenance: Consolidate health scoring, hierarchy construction, import planning, runtime update facts, and recovery policy in their existing owners. Refresh cached provider health and prevent older capability discovery from replacing newer results.
+- Compatibility: Hard-refresh the webGUI after updating. Check Docker preview actions and folder moves, VM confirmations, Settings rules and imports, icon management, and Dashboard refreshes. Live Unraid acceptance remains a manual check.
+
+
+###2026.10.29.02
+- Compatibility: Recognize an active NeoRaid host theme separately from the native Unraid base theme and imported managed themes, with checks for disabled, inactive and foreign stylesheets.
+- Fix: Preserve readable Update Available badges in light mode and keep Settings toolbar controls aligned when a host theme changes native button sizes. Retain larger controls on mobile and touch screens.
+- Fix: Keep the entire Basic Docker and VM Sort control clickable while preserving native selection and keyboard interaction.
+- Diagnostics: Include bounded NeoRaid mode, density, corner and font options in sanitized support bundles without exposing raw theme attributes or asset URLs.
+- Compatibility: Hard-refresh the webGUI after updating. Recheck Settings, native Sort controls, live theme switching, and idle Docker behavior with your chosen NeoRaid options.
+
+
+###2026.10.29.01
+- Fix: Prevent repeated Docker list rebuilds and autostart-switch animations when detailed container information is incomplete or disagrees with the accepted container state.
+- Reliability: Preserve current folder membership and newer container state while loading Docker details. Ignore details for removed or replaced containers, while continuing to detect real inventory and rule changes.
+- Diagnostics: Record privacy-safe counts for missing, conflicting, and skipped Docker details to help investigate remaining refresh problems.
+- Compatibility: Hard-refresh the Unraid webGUI after updating. Recheck idle Docker behavior, autostart switches, Start/Stop actions, WebUI shortcuts, and rule-driven folder membership with your existing theme.
 
 
 ###2026.10.27.04
@@ -9952,7 +9987,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

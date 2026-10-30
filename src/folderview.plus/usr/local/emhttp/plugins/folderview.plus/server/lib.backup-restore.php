@@ -5,13 +5,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         // Resolve and validate the target before creating or pruning any backup.
         $snapshot = readBackupSnapshot($type, $name);
         $folders = normalizeFolderMapPayload($snapshot['folders']);
-        $paths = [];
-        foreach ([getFolderFilePath($type), getTypePrefsPath($type), getConfigMetadataPath($type)] as $path) {
-            $paths[] = $path;
-            $paths[] = getLastGoodJsonPath($path);
-        }
-        if ($type === 'docker') $paths[] = fvplusEnvironmentDockerAutostartPath();
-        $before = fvplusEnvironmentCaptureFiles($paths);
+        $before = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
         try {
             $prefs = reconcileManualOrderPrefs($snapshot['prefs'] ?? readTypePrefs($type), $folders);
             $backup = ($options['createSafetyBackup'] ?? false) === true

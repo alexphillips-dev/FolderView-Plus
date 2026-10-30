@@ -187,7 +187,9 @@
             "Declared by theme": "主题提供的名称",
             "Host CSS variables": "宿主 CSS 变量",
             "Control sizing": "控件尺寸",
-            "Following host controls": "尺寸随宿主控件调整"
+            "Following host controls": "尺寸随宿主控件调整",
+            "Folder batch transaction verification failed.": "文件夹批量事务验证失败。",
+            "Bulk assignment transaction verification failed.": "批量分配事务验证失败。"
         },
         "zh-Hant": {
             "The preview changed. Run the preview again before applying.": "預覽已變更。套用變更前，請再次執行預覽。",
@@ -273,7 +275,8 @@
             "Declared by theme": "Vom Theme angegeben",
             "Host CSS variables": "CSS-Variablen des Hosts",
             "Control sizing": "Größe der Bedienelemente",
-            "Following host controls": "Größe folgt den Bedienelementen des Hosts"
+            "Following host controls": "Größe folgt den Bedienelementen des Hosts",
+            "Folder configuration changed. Refresh before moving the folder again.": "Die Ordnerkonfiguration hat sich geändert. Aktualisieren Sie die Ansicht, bevor Sie den Ordner erneut verschieben."
         },
         "es": {
             "Skipped": "Omitido",
@@ -305,7 +308,9 @@
             "Declared by theme": "테마에서 제공한 이름",
             "Host CSS variables": "호스트 CSS 변수",
             "Control sizing": "컨트롤 크기",
-            "Following host controls": "크기가 호스트 컨트롤을 따름"
+            "Following host controls": "크기가 호스트 컨트롤을 따름",
+            "Folder batch transaction verification failed.": "폴더 일괄 트랜잭션 검증에 실패했습니다.",
+            "Bulk assignment transaction verification failed.": "대량 할당 트랜잭션 검증에 실패했습니다."
         },
         "nb": {
             "The preview changed. Run the preview again before applying.": "Forhåndsvisningen er endret. Kjør forhåndsvisningen på nytt før du bruker endringene.",

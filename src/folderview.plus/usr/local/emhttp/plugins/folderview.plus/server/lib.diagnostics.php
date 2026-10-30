@@ -127,6 +127,7 @@
     }
 
     require_once(__DIR__ . '/lib.diagnostics-redaction.php');
+    require_once(__DIR__ . '/lib.diagnostics-projections.php');
     require_once(__DIR__ . '/lib.diagnostics-integrity.php');
     require_once(__DIR__ . '/lib.diagnostics-summary.php');
     require_once(__DIR__ . '/lib.diagnostics-health-cards.php');

@@ -52,10 +52,17 @@ export const registerEditorDiagnosticsCases = ({ test, baseUrl }) => {
             await page.evaluate(() => { window.FolderViewPlusFatalRuntimeContext = { pluginVersion: '2026.10.15.01' }; });
             for (const name of ['folderviewplus.editor-diagnostics-model', 'folderviewplus.ui-state-diagnostics', 'folderviewplus.support-bundle-telemetry']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
             const bundles = await page.evaluate(() => {
-                const exporter = window.FolderViewPlusSupportBundleTelemetry.createApi({ normalizeSupportBundleV2Payload: value => ({ ...value }) });
+                const exporter = window.FolderViewPlusSupportBundleTelemetry.createApi({
+                    normalizeSupportBundleV2Payload: value => ({ ...value }),
+                    getRequestErrorDiagnosticsSnapshot: () => ({ message: 'version 2026.10.27.05; peer 10.1.2.3:8080' })
+                });
                 return ['sanitized', 'full'].map(privacyMode => exporter.collectSupportBundleUiTelemetry({ bundleMeta: { privacyMode }, uiTelemetry: {}, healthAndHistory: {}, redactionManifest: {} }));
             });
             for (const bundle of bundles) {
+                const sanitized = bundle.bundleMeta.privacyMode === 'sanitized';
+                assert.equal(bundle.uiTelemetry.requestErrors.message, sanitized
+                    ? 'version 2026.10.27.05; peer 10.1.x.x:8080' : 'version 2026.10.27.05; peer 10.1.2.3:8080');
+                assert.equal(bundle.redactionManifest.privacySelfCheck.status, sanitized ? 'passed' : 'not-applicable');
                 const channel = bundle.uiTelemetry.uiState.channels.editor[type], data = channel.latest.data;
                 assert.equal(channel.available, true); assert.equal(channel.versionMismatch, false);
                 assert.equal(data.cancelRestored, true); assert.equal(data.captureReason, 'leave');

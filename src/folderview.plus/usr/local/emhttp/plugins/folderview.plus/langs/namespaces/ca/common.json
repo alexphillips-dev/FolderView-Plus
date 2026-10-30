@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Corregiu les regles no vàlides abans d'aplicar la vista prèvia.",
     "common.server.rules-save-invalid": "Corregiu les regles no vàlides abans de desar-les.",
     "common.repair.rules-preview-no-changes": "No calen canvis de tasques per a aquesta previsualització.",
-    "common.repair.rules-preview-moves-manual": "Les assignacions manuals existents es mouran a les carpetes vistes prèviament."
+    "common.repair.rules-preview-moves-manual": "Les assignacions manuals existents es mouran a les carpetes vistes prèviament.",
+    "common.server.legacy-regex-managed-unsupported": "L'expressió regular heretada no és compatible amb les regles gestionades i no es pot convertir.",
+    "common.server.environment-format-unsupported": "El format de la instantània de l'entorn o la versió d'esquema no és compatible.",
+    "common.server.environment-sections-missing": "Falten seccions obligatòries a la instantània de l'entorn.",
+    "common.server.environment-folder-data-invalid": "La instantània de l'entorn conté dades de carpeta no vàlides.",
+    "common.server.rollback-format-unsupported": "No s'admet el format de la instantània o la versió d'esquema de retrocés.",
+    "common.server.rollback-type-data-missing": "Falten dades de tipus obligatori a la instantània de retrocés.",
+    "common.server.rollback-theme-workspace-invalid": "La instantània de retrocés conté dades de l'espai de treball del tema no vàlides.",
+    "common.server.folder-batch-verification": "La verificació de la transacció per lots de carpetes ha fallat.",
+    "common.server.bulk-assignment-verification": "La verificació de la transacció d'assignació massiva ha fallat."
 }

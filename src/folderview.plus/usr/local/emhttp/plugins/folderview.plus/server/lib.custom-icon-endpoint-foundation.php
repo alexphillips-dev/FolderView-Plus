@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.custom-icon-references.php';
 const FVPLUS_CUSTOM_ICON_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
 const FVPLUS_CUSTOM_ICON_MAX_BYTES = 16777216;
 const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;
@@ -110,52 +111,9 @@ function customIconDirectoryHealth(): array {
     ];
 }
 
-function customIconLockPath(): string {
-    $tmpRoot = function_exists('sys_get_temp_dir') ? trim((string)sys_get_temp_dir()) : '/tmp';
-    if ($tmpRoot === '') {
-        $tmpRoot = '/tmp';
-    }
-    $normalized = rtrim(str_replace('\\', '/', $tmpRoot), '/');
-    if ($normalized === '') {
-        $normalized = '/tmp';
-    }
-    return $normalized . '/folderview.plus-custom-icons.lock';
-}
+function customIconLockPath(): string { return fvplusCustomIconStorageLockPath(); }
 
-function withCustomIconLock(bool $exclusive, callable $callback) {
-    $directory = ensureCustomIconDirExists(false);
-    if ($exclusive && !is_writable($directory)) {
-        @chmod($directory, 0770);
-    }
-    if ($exclusive && !is_writable($directory)) {
-        throw new RuntimeException('Custom icon directory is not writable. Run: ' . customIconRepairHintCommand());
-    }
-    $lockPath = customIconLockPath();
-    $handle = @fopen($lockPath, 'c+');
-    if (!is_resource($handle)) {
-        throw new RuntimeException('Unable to open custom icon lock file. Run: ' . customIconRepairHintCommand());
-    }
-    $mode = $exclusive ? LOCK_EX : LOCK_SH;
-    $start = microtime(true);
-    $locked = false;
-    while ((microtime(true) - $start) <= FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS) {
-        if (@flock($handle, $mode | LOCK_NB)) {
-            $locked = true;
-            break;
-        }
-        usleep(25000);
-    }
-    if (!$locked) {
-        @fclose($handle);
-        throw new RuntimeException('Custom icon store is busy. Please try again.');
-    }
-    try {
-        return $callback();
-    } finally {
-        @flock($handle, LOCK_UN);
-        @fclose($handle);
-    }
-}
+function withCustomIconLock(bool $exclusive, callable $callback) { return fvplusWithCustomIconStorageLock($exclusive, $callback); }
 
 function customIconMetadataPath(): string {
     return customIconDirPath() . '/.metadata.json';
@@ -182,97 +140,11 @@ function syncCustomIconPublicRuntime(): array {
     }
 }
 
-function normalizeCustomIconReferencePath(string $value): string {
-    $path = trim($value);
-    if ($path === '') {
-        return '';
-    }
-    $hashPos = strpos($path, '#');
-    if ($hashPos !== false) {
-        $path = substr($path, 0, $hashPos);
-    }
-    $queryPos = strpos($path, '?');
-    if ($queryPos !== false) {
-        $path = substr($path, 0, $queryPos);
-    }
-    $decoded = @rawurldecode($path);
-    if (is_string($decoded) && $decoded !== '') {
-        $path = $decoded;
-    }
-    $hostTrimmed = preg_replace('#^https?://[^/]+#i', '', $path);
-    if (is_string($hostTrimmed) && $hostTrimmed !== '') {
-        $path = $hostTrimmed;
-    }
-    return str_replace('\\', '/', trim($path));
-}
+function normalizeCustomIconReferencePath(string $value): string { return fvplusNormalizeCustomIconReferencePath($value); }
 
-function customIconNameFromReference(string $value): string {
-    $normalized = normalizeCustomIconReferencePath($value);
-    if ($normalized === '') {
-        return '';
-    }
+function customIconNameFromReference(string $value): string { return fvplusCustomIconNameFromReference($value); }
 
-    $prefixes = [
-        '/plugins/folderview.plus/images/custom/',
-        '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
-        'plugins/folderview.plus/images/custom/',
-        'usr/local/emhttp/plugins/folderview.plus/images/custom/'
-    ];
-    $candidate = '';
-    foreach ($prefixes as $prefix) {
-        if (strpos($normalized, $prefix) === 0) {
-            $candidate = basename(substr($normalized, strlen($prefix)));
-            break;
-        }
-    }
-    if ($candidate === '') {
-        return '';
-    }
-    $safe = basename(trim($candidate));
-    if ($safe === '' || $safe !== $candidate) {
-        return '';
-    }
-    $extension = strtolower((string)pathinfo($safe, PATHINFO_EXTENSION));
-    if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
-        return '';
-    }
-    return $safe;
-}
-
-function customIconUsageMap(): array {
-    $usage = [];
-    foreach (['docker', 'vm'] as $type) {
-        $folders = readRawFolderMap($type);
-        foreach ($folders as $folderId => $folder) {
-            if (!is_array($folder)) {
-                continue;
-            }
-            $iconName = customIconNameFromReference((string)($folder['icon'] ?? ''));
-            if ($iconName === '') {
-                continue;
-            }
-            if (!isset($usage[$iconName]) || !is_array($usage[$iconName])) {
-                $usage[$iconName] = [];
-            }
-            $usage[$iconName][] = [
-                'type' => $type,
-                'folderId' => (string)$folderId,
-                'folderName' => trim((string)($folder['name'] ?? (string)$folderId))
-            ];
-        }
-    }
-    foreach ($usage as $name => $refs) {
-        usort($refs, static function (array $a, array $b): int {
-            $typeCmp = strcmp((string)($a['type'] ?? ''), (string)($b['type'] ?? ''));
-            if ($typeCmp !== 0) {
-                return $typeCmp;
-            }
-            return strcasecmp((string)($a['folderName'] ?? ''), (string)($b['folderName'] ?? ''));
-        });
-        $usage[$name] = array_values($refs);
-    }
-    return $usage;
-}
+function customIconUsageMap(bool $strict = false): array { return fvplusCustomIconUsageMap($strict); }
 
 function customIconUsageSummary(array $usageMap): array {
     $inUseIconCount = 0;

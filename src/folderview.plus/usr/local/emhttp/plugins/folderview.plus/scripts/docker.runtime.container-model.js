@@ -135,9 +135,9 @@
             webUiUrl: normalizeOptionalString(entry.webUiUrl || runtimeState.WebUi || runtimeState.TSWebUi),
             shell: normalizeOptionalString(entry.shell || info.Shell),
             isOrphaned: normalizeBoolean(entry.isOrphaned, false),
-            isUpdateAvailable: typeof entry.isUpdateAvailable === 'boolean'
-                ? entry.isUpdateAvailable
-                : (runtimeState.Updated === false),
+            isUpdateAvailable: typeof entry.update === 'boolean' ? entry.update : (
+                typeof entry.isUpdateAvailable === 'boolean' ? entry.isUpdateAvailable
+                    : ((runtimeState.Updated ?? entry.State?.Updated ?? entry.Updated) === false)),
             isRebuildReady: typeof entry.isRebuildReady === 'boolean'
                 ? entry.isRebuildReady
                 : null,
@@ -166,7 +166,7 @@
         const needle = normalizeName(value);
         if (!needle) return null;
         const exact = containers.filter((entry) => identityTokens(entry).has(needle));
-        if (exact.length === 1) return exact[0];
+        if (exact.length) return exact.length === 1 ? exact[0] : null;
         const suffix = containers.filter((entry) => {
             const id = String(entry?.id || '').split(':').pop() || '';
             return needle.length >= 8 && id.startsWith(needle);

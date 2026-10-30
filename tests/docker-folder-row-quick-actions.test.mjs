@@ -163,15 +163,18 @@ test('docker folder menu can move folders within the current level', () => {
 });
 
 test('docker folder menu can move folders under another folder or back to root', () => {
-    assert.match(dockerScript, /const persistDockerFolderRecord = async \(folderId,\s*folderPayload\) =>/);
-    assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/update\.php/);
+    assert.match(dockerScript, /const persistDockerFolderHierarchyMove = async \(folderId,\s*parentId,\s*manualOrder\) =>/);
+    assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/batch\.php/);
     assert.match(dockerScript, /const buildDockerFolderMoveTargetOptions = \(sourceId,\s*state\) =>/);
     assert.match(dockerScript, /const blocked = new Set\(\[safeSourceId,\s*\.\.\.descendants\]\);/);
     assert.match(dockerScript, /const applyDockerFolderHierarchyMoveFromMenu = async \(folderId,\s*nextParentId\) =>/);
     assert.match(dockerScript, /descendants\.includes\(parentId\)/);
     assert.match(dockerScript, /const nextFolder = \{[\s\S]*\.\.\.sourceFolder,[\s\S]*parentId[\s\S]*\};/);
     assert.match(dockerScript, /const nextOrder = normalizeDockerManualFolderOrder\(requestedOrder,\s*nextFolders,\s*folderTypePrefs\);/);
-    assert.match(dockerScript, /await persistDockerFolderRecord\(id,\s*nextFolder\);[\s\S]*await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerFolderHierarchyMoveBlock, /await dockerPrefsCoordinator\?\.flush\('docker'\);/);
+    assert.match(dockerFolderHierarchyMoveBlock, /await persistDockerFolderHierarchyMove\(id,\s*parentId,\s*nextOrder\)/);
+    assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /persistDockerFolderRecord|persistDockerFolderManualOrder/);
+    assert.match(dockerFolderHierarchyMoveBlock, /dockerPrefsCoordinator\?\.getOptimisticPrefs\('docker'\) \|\| previousPrefs/);
     assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /queueCreateFoldersRender\(\);/);
     assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /folderReq = buildDockerFolderReq/);
     assert.match(dockerScript, /globalFolders = previousFolders;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);/);
@@ -218,8 +221,8 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerScript, /const \$existingIconStatus = \$previewElementTarget\.children\('\.fv-preview-icon-status'\);/);
     assert.match(dockerScript, /previewStatusMode !== 'symbol' && \$existingIconStatus\.length/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-icon-status\s*\{/);
-    assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\.catch\(\(\) => \{\}\);/);
-    assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
+    assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\.catch\(\(\) => \{[\s\S]*?markDockerRuntimeLayoutPhase\('full-info-failed'/);
+    assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
 });
 
 test('docker incremental lifecycle sync removes pending spinner classes from every settled status icon', () => {

@@ -65,6 +65,8 @@ const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerFolderGroupingModule = window.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
 const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.dockerApiCoordinator || null;
 let dockerApiIntegration = null;
+let dockerRuntimePageDisposed = false;
+let dockerRuntimeRefreshGeneration = 0;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerChildFolderPreviewMenuModule = window.FolderViewPlusFoundationModules?.dockerChildFolderPreviewMenu || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
@@ -844,6 +846,7 @@ const getDockerPreviewActionsApi = () => {
             window,
             $,
             utils,
+            grouping: dockerFolderGroupingModule,
             escapeHtml: (value) => escapeHtml(value),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),
@@ -969,6 +972,7 @@ const buildDockerIsolatedViewDeps = () => ({
     document,
     $,
     utils,
+    grouping: dockerFolderGroupingModule,
     escapeHtml: (value) => escapeHtml(value),
     parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
     normalizeDockerRuntimeInfoMap: (source, previousMap = null) => normalizeDockerRuntimeInfoMap(source, previousMap),
@@ -2589,20 +2593,9 @@ const buildDockerFolderRuntimeOrderState = () => {
             fullOrder.push(id);
         }
     }
-    const validIds = new Set(Object.keys(folders));
-    const parentById = {};
-    const childrenById = {};
-    for (const id of Object.keys(folders)) {
-        childrenById[id] = [];
-    }
-    for (const id of Object.keys(folders)) {
-        const rawParentId = normalizeFolderParentId(folders[id]?.parentId || folders[id]?.parent_id || '');
-        const parentId = rawParentId && rawParentId !== id && validIds.has(rawParentId) ? rawParentId : '';
-        parentById[id] = parentId;
-        if (parentId) {
-            childrenById[parentId].push(id);
-        }
-    }
+    const { parentById, childrenById } = utils.buildFolderHierarchyModel(folders, {
+        breakCycles: false, includeDescendants: false
+    });
     const indexById = new Map(fullOrder.map((id, index) => [id, index]));
     for (const children of Object.values(childrenById)) {
         children.sort((left, right) => (indexById.get(left) ?? 0) - (indexById.get(right) ?? 0));
@@ -2671,29 +2664,30 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
     }
     return pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
 };
-const persistDockerFolderRecord = async (folderId, folderPayload) => {
-    const id = String(folderId || '').trim();
-    if (!id) {
-        throw new Error('Missing folder ID.');
+const persistDockerFolderHierarchyMove = async (folderId, parentId, manualOrder) => {
+    const knownPrefsRevision = Number(dockerPrefsCoordinator?.getSnapshot('docker')?.revision || folderTypePrefs?._metadata?.prefsRevision || 0);
+    const snapshot = runtimeSnapshotApi.parsePayload(await pluginRequestClient.getJson(
+        runtimeSnapshotApi.buildUrl('docker', 'config'), { cache: false }));
+    const folder = snapshot.folders?.[folderId];
+    const revisions = snapshot.revisions || {};
+    if (!folder || !Number.isInteger(revisions.folder) || !Number.isInteger(revisions.prefs)
+        || (lastDockerRuntimeSnapshotRevisions.folder > 0 && revisions.folder !== lastDockerRuntimeSnapshotRevisions.folder)
+        || (knownPrefsRevision > 0 && revisions.prefs !== knownPrefsRevision)) {
+        throw Object.assign(new Error(dockerT('docker.folder.move-reload',
+            'Folder configuration changed. Refresh before moving the folder again.')), { status: 409 });
     }
-    const payload = {
-        type: 'docker',
-        id,
-        content: JSON.stringify(folderPayload && typeof folderPayload === 'object' ? folderPayload : {})
-    };
-    const request = window.FolderViewPlusRequest;
-    if (request && typeof request.postJson === 'function') {
-        try {
-            return await request.postJson('/plugins/folderview.plus/server/update.php', payload, {
-                retries: 0,
-                retryDelayMs: 260
-            });
-        } catch (_error) {
-            // Fall through to the legacy POST path so hierarchy moves still work
-            // if the runtime request wrapper is temporarily unavailable.
-        }
-    }
-    return pluginRequestClient.postJson('/plugins/folderview.plus/server/update.php', payload);
+    // Persist the saved definition, keeping automatic/live membership out of manual assignments.
+    const response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/batch.php', {
+        type: 'docker', expectedRevision: revisions.folder,
+        operations: JSON.stringify({ deletes: [], creates: [], upserts: [{ id: folderId, folder: { ...folder, parentId } }],
+            manualOrder, expectedPrefsRevision: revisions.prefs })
+    }, { retries: 0 });
+    if (!response?.ok || !response.result) throw new Error(response?.error || 'Folder batch transaction failed.');
+    const metadata = response.result.metadata || {};
+    const committed = utils.normalizePrefs({ ...snapshot.prefs, sortMode: 'manual', manualOrder, _metadata: metadata });
+    const prefs = dockerPrefsCoordinator?.reconcile('docker', committed, { restoreOutbox: false }) || committed;
+    rememberDockerRuntimeSnapshot({ ...snapshot, revisions: { folder: metadata.folderRevision, prefs: metadata.prefsRevision } });
+    return { ok: true, prefs };
 };
 const applyDockerFolderMenuOrderToDom = (orderedIds) => {
     if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
@@ -2777,6 +2771,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         return;
     }
     return dockerSafeUiActionRunner.run(`docker-folder-menu-hierarchy:${id}:${parentId || 'root'}`, async () => {
+        await dockerPrefsCoordinator?.flush('docker');
         const state = buildDockerFolderRuntimeOrderState();
         const { folders, fullOrder, parentById, collectDescendants } = state;
         const sourceFolder = folders[id];
@@ -2842,16 +2837,16 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         applyDockerFolderMenuOrderToDom(nextOrder);
         applyNestedFolderHierarchy(expandedIds);
         try {
-            await persistDockerFolderRecord(id, nextFolder);
-            const response = await persistDockerFolderManualOrder(nextOrder);
+            const response = await persistDockerFolderHierarchyMove(id, parentId, nextOrder);
             folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
             applyRuntimePrefs(folderTypePrefs);
         } catch (error) {
             globalFolders = previousFolders;
-            folderTypePrefs = previousPrefs;
+            folderTypePrefs = utils.normalizePrefs(dockerPrefsCoordinator?.getOptimisticPrefs('docker') || previousPrefs);
             applyRuntimePrefs(folderTypePrefs);
             applyDockerFolderMenuOrderToDom(previousOrder);
             applyNestedFolderHierarchy(expandedIds);
+            if (Number(error?.status) === 409) queueLoadlistRefresh({ suppressLoadingUi: true });
             throw error;
         }
     });
@@ -4484,13 +4479,15 @@ const startDockerListViewModeObserver = () => {
     dockerListViewModeObserverBound = true;
 };
 
-const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoSource = null) => {
+const queueDockerDeferredRuntimeInfoHydration = (generation, fullInfoSource = null) => {
     const hydrationStartedAt = (
         typeof performance !== 'undefined' && typeof performance.now === 'function'
             ? performance.now()
             : Date.now()
     );
     const actionGeometryBeforeHydration = captureDockerPreviewActionGeometry();
+    const requestedInfo = Object.fromEntries(Object.entries(dockerRuntimeInfoByName).map(([name, entry]) => [name,
+        { info: { State: { ...entry.info?.State } } }]));
     markDockerRuntimeLayoutPhase('full-info-requested', {
         generation,
         trackedActionCount: actionGeometryBeforeHydration.size
@@ -4516,15 +4513,12 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
                 return;
             }
             const parsed = parseJsonPayloadSafe(payload);
-            if (!parsed || Object.keys(parsed).length <= 0) {
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
                 return;
             }
             dockerRuntimePerformanceTelemetry?.begin?.('detailHydration');
-            dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
-            if (stateSignature) {
-                lastLiveRefreshStateSignature = stateSignature;
-                lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
-            }
+            const hydration = getDockerRuntimeInfoApi().mergeDockerRuntimeDetailInfoMap(parsed, dockerRuntimeInfoByName, requestedInfo);
+            dockerRuntimeInfoByName = hydration.runtimeMap;
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
             const hydrationFinishedAt = (
@@ -4535,7 +4529,8 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             markDockerRuntimeLayoutPhase('full-info-ready', {
                 generation: hydrationGeneration,
                 durationMs: Math.max(0, hydrationFinishedAt - hydrationStartedAt),
-                entityCount: Object.keys(parsed).length
+                entityCount: Object.keys(dockerRuntimeInfoByName).length,
+                ...hydration.diagnostics
             });
             syncDockerVisibleFoldersFromRuntimeCache();
             dockerRuntimePerformanceTelemetry?.end?.('detailHydration');
@@ -4871,7 +4866,7 @@ const createFolders = async () => {
     });
     markDockerRuntimeLayoutPhase('folder-preview-actions-ready', initialActionSummary);
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
-    queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
+    queueDockerDeferredRuntimeInfoHydration(renderGeneration, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
 
     folderDebugMode = false; // Existing flag
@@ -5931,14 +5926,11 @@ const getDirectMemberRowsForFolder = (folderId) => {
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     const $storage = $folderRow.find('.folder-storage').first();
-    const getRowContainerName = (row) => {
-        if (!row) return '';
-        const idAttr = String(row.id || '').trim();
-        if (idAttr.startsWith('ct-') && idAttr.length > 3) {
-            return idAttr.slice(3).trim();
-        }
-        return String($(row).find('td.ct-name .appname').first().text() || '').trim();
-    };
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    const rowIndex = runtimeInfoApi?.getDockerNativeRowIndex?.();
+    const getRowContainerName = (row) => rowIndex
+        ? rowIndex.resolveRowName(row)
+        : runtimeInfoApi?.getDockerHostRowContainerName(row) || '';
 
     // Recover missing class tags from this folder's storage using direct membership.
     if ($storage.length) {
@@ -5952,7 +5944,7 @@ const getDirectMemberRowsForFolder = (folderId) => {
 
     // Keep canonical rows recoverable by ID even if class tags drift.
     for (const name of directContainerNames) {
-        const row = document.getElementById(`ct-${name}`);
+        const row = rowIndex ? rowIndex.find(name) : document.getElementById(`ct-${name}`);
         if (row && row.tagName === 'TR' && !row.classList.contains(className)) {
             const hasOtherFolderClass = String(row.className || '')
                 .split(/\s+/)
@@ -7306,6 +7298,7 @@ const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) =
 
 const shouldSuppressDockerRuntimeLoadingUi = () => dockerHostLoadOwnsLoadingUi || nextDockerRenderSuppressLoadingUi || activeDockerRenderSuppressLoadingUi;
 const queueLoadlistRefresh = (options = {}) => {
+    if (dockerRuntimePageDisposed) return;
     getDockerRuntimeDiagnosticsApi()?.markReloadSource?.(options?.reloadSource || 'plugin-action-followup');
     const normalizedOptions = {
         suppressLoadingUi: options?.suppressLoadingUi === true
@@ -7361,9 +7354,11 @@ const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
         && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastDockerRuntimeSnapshotRevisions.prefs;
 };
 const getDockerApiIntegration = () => {
+    if (dockerRuntimePageDisposed) return null;
     if (!dockerApiIntegration && typeof dockerApiCoordinatorModule?.createIntegration === 'function') {
         dockerApiIntegration = dockerApiCoordinatorModule.createIntegration({
             providerRegistry: dockerProviderRegistry,
+            getRuntimeGeneration: () => `${dockerBootstrapGeneration}:${dockerRuntimeRefreshGeneration}`,
             getRuntimeMap: () => dockerRuntimeInfoByName,
             applyRuntimeMap: (nextMap, result = {}) => {
                 dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(nextMap, dockerRuntimeInfoByName);
@@ -7384,12 +7379,17 @@ const getDockerApiIntegration = () => {
     return dockerApiIntegration;
 };
 const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
+    const renderGeneration = dockerBootstrapGeneration;
+    const isCurrent = () => !dockerRuntimePageDisposed && renderGeneration === dockerBootstrapGeneration
+        && options.isCurrent?.() !== false;
+    if (!isCurrent()) return false;
     dockerRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
     const liveUpdateStatus = options?.liveUpdateStatus === true;
     const preserveGroupedDom = options?.preserveGroupedDom === true;
     let fallbackReason = 'request-error';
     const fallbackToLoadlist = () => {
+        if (!isCurrent()) return;
         if (preserveGroupedDom) {
             dockerRuntimeStateStore.set({
                 rowReconciliation: {
@@ -7404,6 +7404,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
         queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-action-followup' });
     };
     const applyStatePayload = async () => {
+        if (!isCurrent()) return false;
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
         const payload = await pluginRequestClient.getJson(useSnapshot
             ? runtimeSnapshotApi.buildUrl('docker', 'state', {
@@ -7411,6 +7412,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
                 forceRefresh: true
             })
             : buildDockerRuntimeInfoUrl('state', Date.now(), { liveUpdateStatus }), { cache: false });
+        if (!isCurrent()) return false;
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
@@ -7476,6 +7478,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
         }
         if (followupDelayMs > 0) {
             window.setTimeout(() => {
+                if (!isCurrent()) return;
                 Promise.resolve(applyStatePayload())
                     .then((followupApplied) => {
                         if (followupApplied !== true) {
@@ -7497,14 +7500,25 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
     }
 };
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
+    const refreshGeneration = ++dockerRuntimeRefreshGeneration;
+    const renderGeneration = dockerBootstrapGeneration;
+    const isCurrent = () => !dockerRuntimePageDisposed && refreshGeneration === dockerRuntimeRefreshGeneration
+        && renderGeneration === dockerBootstrapGeneration && options.isCurrent?.() !== false;
+    if (!isCurrent()) return false;
+    const guardedOptions = { ...options, isCurrent };
     if (options?.apiFirst !== false) {
         try {
-            if (await getDockerApiIntegration()?.refresh?.(options)) return true;
+            const integration = getDockerApiIntegration();
+            const method = options.apiMethod === 'tick' ? 'tick' : 'refresh';
+            const applied = await integration?.[method]?.(guardedOptions);
+            if (!isCurrent()) return false;
+            if (applied === true) return true;
         } catch (_error) {
             // The established PHP runtime snapshot remains the non-fatal fallback.
         }
     }
-    return refreshDockerRuntimeStateFromPhp({ ...options, apiFirst: false });
+    if (!isCurrent()) return false;
+    return refreshDockerRuntimeStateFromPhp({ ...guardedOptions, apiFirst: false });
 };
 const readDockerHostOrderFromDom = () => {
     const order = [];
@@ -7542,11 +7556,11 @@ const dockerLiveRefreshController = runtimeLiveRefreshModule.createController({
     document,
     keys: ['docker'],
     isEnabled: () => folderTypePrefs?.liveRefreshEnabled === true && $('#docker_list').length > 0,
-    tick: () => getDockerApiIntegration()?.tick?.({
-            liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
-            preserveGroupedDom: true,
-            staleKey: 'docker-api-live-refresh'
-        }) || refreshDockerRuntimeStateInPlace({ apiFirst: false })
+    tick: () => refreshDockerRuntimeStateInPlace({
+        apiMethod: 'tick',
+        liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
+        staleKey: 'docker-api-live-refresh'
+    })
 });
 const scheduleLiveRefresh = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
@@ -7885,6 +7899,9 @@ addEventListener("keydown", (e) => {
 });
 
 window.addEventListener('pagehide', () => {
+    dockerRuntimePageDisposed = true;
+    dockerBootstrapGeneration += 1;
+    dockerRuntimeRefreshGeneration += 1;
     dockerPageTitle.dispose();
     dockerRuntimeLayoutStabilityTracker?.destroy?.();
     dockerQuickFinderApi?.dispose();

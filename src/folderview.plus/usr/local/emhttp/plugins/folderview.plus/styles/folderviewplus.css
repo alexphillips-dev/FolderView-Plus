@@ -9951,7 +9951,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     min-width: 0;
 }
 
-.fv-plugin-update-link {
+#fv-settings-root .fv-plugin-update-link {
     display: inline-flex;
     align-items: center;
     gap: 0.32rem;
@@ -9967,8 +9967,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     white-space: nowrap;
 }
 
-.fv-plugin-update-link:hover,
-.fv-plugin-update-link:focus-visible {
+#fv-settings-root .fv-plugin-update-link:hover,
+#fv-settings-root .fv-plugin-update-link:focus-visible {
     color: var(--fvplus-settings-text-primary);
     border-color: var(--fvplus-settings-accent);
     box-shadow: 0 0 0 3px var(--fvplus-settings-focus-ring);
@@ -10027,10 +10027,45 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     border-right: 1px solid rgba(255, 255, 255, 0.16);
 }
 
+#fv-settings-root .fv-mode-toggle button { height: var(--fv-settings-toolbar-control-height); }
+
+/* Compact Settings controls keep their own text and spacing alongside the defaults link. */
+#fv-settings-root :is(.fv-mode-toggle button, #fv-run-wizard, .folder-toolbar button) {
+    font-size: inherit;
+    font-weight: 700;
+    padding: 0 0.85rem;
+}
+
 #fv-run-wizard {
     align-self: flex-start;
     flex: 0 0 auto;
     margin: 0.18rem 0 0;
+    height: var(--fv-settings-toolbar-control-height);
+}
+
+#fv-settings-root #fv-run-wizard {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+/* Use the caption's line box for icons, with Font Awesome confined to its glyph. */
+#fv-settings-root :is(.folder-toolbar button, .folder-toolbar .fv-basic-sort, #fv-run-wizard) > i.fa {
+    font: inherit;
+}
+
+#fv-settings-root :is(.folder-toolbar button, .folder-toolbar .fv-basic-sort, #fv-run-wizard) > i.fa::before {
+    display: inline-block;
+    font-family: FontAwesome;
+    font-weight: 400;
+    line-height: 1;
+    vertical-align: baseline;
+}
+
+#fv-settings-root .folder-toolbar button > i.fa::before {
+    position: relative;
+    top: 0.1em;
 }
 
 .fv-mode-toggle button:last-child {

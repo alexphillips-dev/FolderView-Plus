@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Korrigera ogiltiga regler innan du använder förhandsgranskningen.",
     "common.server.rules-save-invalid": "Korrigera ogiltiga regler innan du sparar.",
     "common.repair.rules-preview-no-changes": "Inga tilldelningsändringar behövs för den här förhandsgranskningen.",
-    "common.repair.rules-preview-moves-manual": "Befintliga manuella tilldelningar kommer att flyttas till de förhandsgranskade mapparna."
+    "common.repair.rules-preview-moves-manual": "Befintliga manuella tilldelningar kommer att flyttas till de förhandsgranskade mapparna.",
+    "common.server.legacy-regex-managed-unsupported": "Det äldre regex stöds inte av hanterade regler och kan inte konverteras.",
+    "common.server.environment-format-unsupported": "Miljöögonblicksbildformat eller schemaversion stöds inte.",
+    "common.server.environment-sections-missing": "En ögonblicksbild av miljön saknar obligatoriska avsnitt.",
+    "common.server.environment-folder-data-invalid": "Ögonblicksbild av miljön innehåller ogiltiga mappdata.",
+    "common.server.rollback-format-unsupported": "Återställ ögonblicksbildformat eller schemaversion stöds inte.",
+    "common.server.rollback-type-data-missing": "Återställningsbild saknar obligatorisk typdata.",
+    "common.server.rollback-theme-workspace-invalid": "Återställ ögonblicksbild innehåller ogiltiga data för Theme Workspace.",
+    "common.server.folder-batch-verification": "Mappbatchtransaktionsverifiering misslyckades.",
+    "common.server.bulk-assignment-verification": "Verifiering av masstilldelningstransaktioner misslyckades."
 }

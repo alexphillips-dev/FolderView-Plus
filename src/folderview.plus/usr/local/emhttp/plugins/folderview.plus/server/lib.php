@@ -1643,26 +1643,28 @@
 
     function readRawFolderMap(string $type): array {
         $type = ensureType($type);
-        migrateLegacyTypeDataIfNeeded($type, 'folders');
-        $path = getFolderFilePath($type);
-        if (!file_exists($path)) {
-            createFile($type);
-        }
-        $decoded = readJsonObjectFile($path);
-        $recoveredFromLastGood = false;
-        if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
-            $recoveredFromLastGood = is_array($decoded);
-        }
-        if (!is_array($decoded)) {
-            $decoded = [];
-        }
+        return withConfigMutationLock(static function () use ($type): array {
+            migrateLegacyTypeDataIfNeeded($type, 'folders');
+            $path = getFolderFilePath($type);
+            if (!file_exists($path)) {
+                createFile($type);
+            }
+            $decoded = readJsonObjectFile($path);
+            $recoveredFromLastGood = false;
+            if (!is_array($decoded)) {
+                $decoded = recoverJsonObjectFromLastGood($path);
+                $recoveredFromLastGood = is_array($decoded);
+            }
+            if (!is_array($decoded)) {
+                $decoded = [];
+            }
 
-        $normalized = normalizeFolderMapPayload($decoded);
-        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
-            writeRawFolderMap($type, $normalized);
-        }
-        return $normalized;
+            $normalized = normalizeFolderMapPayload($decoded);
+            if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+                writeRawFolderMap($type, $normalized);
+            }
+            return $normalized;
+        });
     }
 
     function writeRawFolderMap(string $type, array $folders): void {

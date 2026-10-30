@@ -681,29 +681,31 @@
 
     function readTypePrefs(string $type): array {
         $type = ensureType($type);
-        migrateLegacyTypeDataIfNeeded($type, 'prefs');
-        $path = getTypePrefsPath($type);
-        $parent = dirname($path);
-        if (!is_dir($parent)) {
-            @mkdir($parent, 0770, true);
-        }
-        if (!file_exists($path)) {
-            return writeTypePrefs($type, defaultTypePrefs());
-        }
-        $decoded = readJsonObjectFile($path);
-        $recoveredFromLastGood = false;
-        if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
-            $recoveredFromLastGood = is_array($decoded);
-        }
-        if (!is_array($decoded)) {
-            $decoded = [];
-        }
-        $normalized = normalizeTypePrefs($decoded);
-        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
-            writeTypePrefs($type, $normalized);
-        }
-        return $normalized;
+        return withConfigMutationLock(static function () use ($type): array {
+            migrateLegacyTypeDataIfNeeded($type, 'prefs');
+            $path = getTypePrefsPath($type);
+            $parent = dirname($path);
+            if (!is_dir($parent)) {
+                @mkdir($parent, 0770, true);
+            }
+            if (!file_exists($path)) {
+                return writeTypePrefs($type, defaultTypePrefs());
+            }
+            $decoded = readJsonObjectFile($path);
+            $recoveredFromLastGood = false;
+            if (!is_array($decoded)) {
+                $decoded = recoverJsonObjectFromLastGood($path);
+                $recoveredFromLastGood = is_array($decoded);
+            }
+            if (!is_array($decoded)) {
+                $decoded = [];
+            }
+            $normalized = normalizeTypePrefs($decoded);
+            if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+                writeTypePrefs($type, $normalized);
+            }
+            return $normalized;
+        });
     }
 
     function writeTypePrefs(string $type, array $prefs): array {

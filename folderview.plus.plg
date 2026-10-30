@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.30.02">
-<!ENTITY md5 "3f6fcbbb4e543767d21ffebbb61ea8fd">
-<!ENTITY sha256 "56ab8abf5f43e7c5537121bff3b7111559aca26cf5c0940b6d550e00ef8c42a2">
+<!ENTITY version "2026.10.30.04">
+<!ENTITY md5 "509ac6a14e5f2da91ef6d39563eb6d45">
+<!ENTITY sha256 "d46bbfa8d80287c44b3dd1a908144c4adb58073bdf72611db2386f25d2385746">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.30.04
+- Fix: Center Settings toolbar icons beside their captions consistently across Windows and Linux browsers, including Aurora, NeoRaid, and native themes. Preserve desktop, mobile, and touch control sizing.
+- Compatibility: Hard-refresh Settings after updating to load the corrected toolbar styling. Check the Docker and VM toolbars and the Basic tree-move controls with your chosen theme.
+
 
 ###2026.10.30.02
 - Fix: Keep the Basic Settings tree-move icons centered beside the drag handles when Aurora or another host theme supplies ordinary button padding. Preserve native, nested, and mobile reorder controls for Docker and VMs.

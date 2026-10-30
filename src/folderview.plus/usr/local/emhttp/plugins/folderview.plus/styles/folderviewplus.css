@@ -10080,7 +10080,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 #fv-settings-root .folder-toolbar button > i.fa::before {
     position: relative;
-    top: 0.1em;
+    /* Font Awesome's painted glyph sits above the caption's optical center. */
+    top: 0.15em;
 }
 
 .fv-mode-toggle button:last-child {

@@ -29,6 +29,9 @@ test('Host theme Aurora header icons cannot resize Settings actions', async ({pa
     assert.deepEqual(ignored,{metrics:null,icon:{font:'16px',padding:'0px'}});
     await verifySettingsSearchAlignment(page);await verifyBasicToolbarLayout(page);
     await verifySettingsIconAlignment(page);
+    const displaced=await page.addStyleTag({content:'#fv-settings-root [data-toolbar-type="docker"] .fv-basic-export-btn > i.fa::before{top:-4px!important}'});
+    await assert.rejects(()=>verifySettingsIconAlignment(page),/painted icon must align with Export all/);
+    await displaced.evaluate(node=>node.remove());await verifySettingsIconAlignment(page);
     const measure=()=>page.evaluate(()=>{
         const reference=getComputedStyle(document.querySelector('.fv-defaults-editor-link'));
         return [...document.querySelectorAll('.fv-mode-toggle button,#fv-run-wizard,[data-toolbar-type] .folder-toolbar button')].map(node=>{

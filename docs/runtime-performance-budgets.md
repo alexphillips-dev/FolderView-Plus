@@ -1,5 +1,35 @@
 # Runtime performance budgets
 
+The October 30 hosted investigation (CI run
+[`41111531450`](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/41111531450),
+diagnostic commit `2fc51ca8c74e2d9b1ddab11307056badcbd231eb`) compared immutable
+Git blobs at gzip level 9. NeoRaid compatibility (`9236e128` to `827d2e39`)
+adds 1,484 JavaScript bytes (405 gzip) and 275 CSS bytes (26 gzip). The reviewed
+engine remediation (`827d2e39` to `dd03e0a3`) adds a net 5,395 JavaScript bytes
+(2,199 gzip), including the savings from owner consolidation. Later Settings
+and theme UI corrections (`dd03e0a3` to `38f548e2`) add 1,746 CSS bytes (420 gzip).
+Only these signed additions enter the corresponding aggregate allowances.
+Docker hydration and later JavaScript fixes retain existing growth headroom.
+
+The same report measures the Settings health owner's increase of 16,128 bytes
+(2,719 gzip) and the main Settings asset's decrease of 21,168 bytes (3,982 gzip).
+Their per-file baselines follow these signed ownership changes; the main asset
+also removes other duplicate Settings policies, so this is broader than a pure
+health transfer. Unrelated file and combined Settings baselines, the 8% rule,
+package limits, and absolute runtime ceilings remain unchanged.
+
+The hosted investigation also served identical Docker providers and API
+integration bytes either separately or combined in their original execution
+order. Three alternating cold/warm pairs measured separate-asset callback costs
+of normal cold +1, normal warm +1, RTL cold +1, and RTL warm +2. Only those four
+callback references include the measured feature costs. Timing, request,
+script-request, DOM-node and mutation-record references, unmeasured cases, and
+regression policies are retained. Membership, hierarchy, localization, cache,
+and error checks passed in every pair. These diagnostic artifacts establish
+attribution; final release qualification still runs against the corrected
+candidate. No workspace performance measurement or full baseline refresh was
+used for this correction.
+
 The October 27 Aurora and Docker column diagnostics add 17,483 JavaScript bytes
 (4,746 gzip at level 9) relative to dev fcb640ea10fb2d0699db029969b1ef96413ae81c.
 Aggregate static-size allowances include exactly those signed feature deltas.

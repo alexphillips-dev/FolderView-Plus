@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.29.05">
-<!ENTITY md5 "c3d16d481ae74562a3eb3afbe71ff41f">
-<!ENTITY sha256 "c78cdf86eed1c43b6fa22ba111dcc97f8bc70273a8f5cd9ddfad4058133b1afe">
+<!ENTITY version "2026.10.30.01">
+<!ENTITY md5 "8a91cd2b27bbe43ac7d7f1c15caf4468">
+<!ENTITY sha256 "013745199e5421c1c4eb841cf5de7cf5db178315fc8f94981ed836edc9a4d11f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.30.01
+- Fix: Prevent support-bundle privacy checks from mistaking plugin version numbers for private IP addresses.
+- Fix: Preserve version numbers in sanitized diagnostic messages while correctly masking complete private IPv4 addresses.
+- Compatibility: Hard-refresh the webGUI after updating, then export a new sanitized support bundle to use the corrected privacy check.
+
 
 ###2026.10.29.05
 - Fix: Center Font Awesome icons beside their captions in the Docker and VM Settings toolbars, native Sort controls and Wizard button after the Aurora button-spacing update.

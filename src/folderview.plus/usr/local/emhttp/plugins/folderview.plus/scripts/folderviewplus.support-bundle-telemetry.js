@@ -68,6 +68,13 @@
         'responseSnippet'
     ]));
 
+    const IPV4_OCTET = '(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)';
+    // Match complete private IPv4 tokens, never fragments of date-based versions.
+    const PRIVATE_IPV4_PATTERN = new RegExp(
+        `(^|[^\\w.])((?:10\\.${IPV4_OCTET}|172\\.(?:1[6-9]|2\\d|3[01])|192\\.168)(?:\\.${IPV4_OCTET}){2})(?!\\w|\\.\\d)`,
+        'g'
+    );
+
     const normalizePrivacyMode = (value) => (String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized');
 
     const sanitizeThemeTelemetry = (value, privacy = 'sanitized') => normalizePrivacyMode(privacy) === 'full'
@@ -162,7 +169,7 @@
             if (SUPPORT_BUNDLE_UI_URL_KEYS.has(key) && /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(value)) {
                 counters.rawUrlViolations += 1;
             }
-            if (/\b(?:10|172\.(?:1[6-9]|2\d|3[0-1])|192\.168)\.\d{1,3}\.\d{1,3}\b/.test(value)) {
+            if (value.match(PRIVATE_IPV4_PATTERN)) {
                 counters.rawPrivateNetworkAddressViolations += 1;
             }
             if (/(?:^|[\s"'(])(?:[A-Za-z]:[\\/]|\/(?:boot|mnt|home|root|Users)\/)/.test(value)) {
@@ -295,9 +302,9 @@
                         const basename = String(pathValue || '').split(/[\\/]/).filter(Boolean).pop() || '';
                         return basename ? `${basename}[path-hash:${hashValue(pathValue, saltSeed)}]` : '[path-redacted]';
                     })
-                    .replace(/\b(?:10|172\.(?:1[6-9]|2\d|3[0-1])|192\.168)\.\d{1,3}\.\d{1,3}\b/g, (ipValue) => {
+                    .replace(PRIVATE_IPV4_PATTERN, (_match, prefix, ipValue) => {
                         appendRedactionManifestField(manifest, 'maskedFields', `${fieldPath}.ip`);
-                        return `${String(ipValue || '').split('.').slice(0, 2).join('.')}.x.x`;
+                        return `${prefix}${String(ipValue || '').split('.').slice(0, 2).join('.')}.x.x`;
                     });
             },
             redactHookNote(fieldPath, value) {

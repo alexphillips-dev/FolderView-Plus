@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Correggi le regole non valide prima di applicare l'anteprima.",
     "common.server.rules-save-invalid": "Correggi le regole non valide prima di salvare.",
     "common.repair.rules-preview-no-changes": "Per questa anteprima non sono necessarie modifiche alle assegnazioni.",
-    "common.repair.rules-preview-moves-manual": "Le assegnazioni manuali esistenti verranno spostate nelle cartelle visualizzate in anteprima."
+    "common.repair.rules-preview-moves-manual": "Le assegnazioni manuali esistenti verranno spostate nelle cartelle visualizzate in anteprima.",
+    "common.server.legacy-regex-managed-unsupported": "L'espressione regolare legacy non è supportata dalle regole gestite e non può essere convertita.",
+    "common.server.environment-format-unsupported": "Il formato dello snapshot dell'ambiente o la versione dello schema non è supportato.",
+    "common.server.environment-sections-missing": "Nello snapshot dell'ambiente mancano le sezioni richieste.",
+    "common.server.environment-folder-data-invalid": "Lo snapshot dell'ambiente contiene dati della cartella non validi.",
+    "common.server.rollback-format-unsupported": "Il formato dello snapshot di rollback o la versione dello schema non è supportato.",
+    "common.server.rollback-type-data-missing": "Nello snapshot di rollback mancano i dati del tipo richiesto.",
+    "common.server.rollback-theme-workspace-invalid": "Lo snapshot di rollback contiene dati dell'area di lavoro del tema non validi.",
+    "common.server.folder-batch-verification": "La verifica della transazione batch della cartella non è riuscita.",
+    "common.server.bulk-assignment-verification": "La verifica della transazione di assegnazione in blocco non è riuscita."
 }

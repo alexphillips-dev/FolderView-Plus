@@ -1287,7 +1287,7 @@
     "phrase": "$1 started, $2 paused, $3 stopped ($4% stopped).",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "% stopped)."
       }
     ]
@@ -1998,7 +1998,7 @@
     "phrase": "All $1/$2 members are stopped.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "members are stopped."
       }
     ]
@@ -7077,10 +7077,6 @@
     "phrase": "Missing folder ID.",
     "locations": [
       {
-        "file": "scripts/docker.js",
-        "anchor": "'Missing folder ID.'"
-      },
-      {
         "file": "scripts/folderviewplus.folder-editor.js",
         "anchor": "'Missing folder ID.'"
       }
@@ -7575,7 +7571,7 @@
     "phrase": "No health issues detected.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "'No health issues detected.'"
       }
     ]
@@ -7593,7 +7589,7 @@
     "phrase": "No members in this folder.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "'No members in this folder.'"
       }
     ]
@@ -8149,7 +8145,7 @@
     "phrase": "Policy: $1 | updates $2 | all-stopped $3.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "| all-stopped"
       }
     ]
@@ -8158,7 +8154,7 @@
     "phrase": "Policy: $1 profile ($2% warn, $3% critical).",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "% critical)."
       }
     ]
@@ -10563,7 +10559,7 @@
     "phrase": "Stopped percentage $1% is above critical threshold $2%.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "% is above critical threshold"
       }
     ]
@@ -10572,7 +10568,7 @@
     "phrase": "Stopped percentage $1% is above warn threshold $2%.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "% is above warn threshold"
       }
     ]
@@ -11389,7 +11385,7 @@
     "phrase": "Thresholds: warn $1% ($2), critical $3% ($4).",
     "locations": [
       {
-        "file": "scripts/folderviewplus.js",
+        "file": "scripts/folderviewplus.settings-health.js",
         "anchor": "Thresholds: warn"
       }
     ]

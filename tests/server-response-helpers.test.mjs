@@ -25,6 +25,8 @@ const libPhp = readServerGraph([
     'lib.folder-mutations.php',
     'lib.folder-settings-transfer.php',
     'lib.custom-icon-storage.php',
+    'lib.custom-icon-references.php',
+    'lib.custom-icon-repair.php',
     'lib.docker-order.php',
     'lib.runtime-info.php'
 ]);
@@ -36,6 +38,7 @@ const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const libDiagnosticsPhp = readServerGraph([
     'lib.diagnostics.php',
     'lib.diagnostics-redaction.php',
+    'lib.diagnostics-projections.php',
     'lib.diagnostics-integrity.php',
     'lib.diagnostics-summary.php',
     'lib.diagnostics-support-bundle.php'
@@ -116,8 +119,8 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
     assert.match(libPhp, /function fvplusBootstrapCustomIconStorage\(\): void/);
     assert.match(libPhp, /fvplusBootstrapCustomIconStorage\(\);/);
     assert.match(libPhp, /function fvplusRepairMissingCustomIconReferences\(\): array/);
-    assert.match(libPhp, /diagnosticsCustomIconNameFromIconValue\(\(string\)\(\$folder\['icon'\] \?\? ''\)\)/);
-    assert.match(libPhp, /\$folder\['icon'\] = '';/);
+    assert.match(libPhp, /fvplusVisitCustomIconReferences\(\$type, \&?\$folders, \&?\$prefs,/);
+    assert.match(libPhp, /\$record\['icon'\] = '';/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons'\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_missing_custom_icons'/);
     assert.match(libPhp, /\$customIconDir = fvplusCustomIconDirPath\(\);/);

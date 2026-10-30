@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "在套用預覽之前更正無效規則。",
     "common.server.rules-save-invalid": "儲存前更正無效規則。",
     "common.repair.rules-preview-no-changes": "此預覽不需要變更作業。",
-    "common.repair.rules-preview-moves-manual": "現有手動分配將移至預覽資料夾。"
+    "common.repair.rules-preview-moves-manual": "現有手動分配將移至預覽資料夾。",
+    "common.server.legacy-regex-managed-unsupported": "託管規則不支援舊正規表示式，且無法轉換。",
+    "common.server.environment-format-unsupported": "不支援環境快照格式或架構版本。",
+    "common.server.environment-sections-missing": "環境快照缺少必需的部分。",
+    "common.server.environment-folder-data-invalid": "環境快照包含無效的資料夾資料。",
+    "common.server.rollback-format-unsupported": "不支援回滾快照格式或架構版本。",
+    "common.server.rollback-type-data-missing": "回滾快照缺少所需的型別資料。",
+    "common.server.rollback-theme-workspace-invalid": "回滾快照包含無效的主題工作區資料。",
+    "common.server.folder-batch-verification": "資料夾批次交易驗證失敗。",
+    "common.server.bulk-assignment-verification": "批次分配交易驗證失敗。"
 }

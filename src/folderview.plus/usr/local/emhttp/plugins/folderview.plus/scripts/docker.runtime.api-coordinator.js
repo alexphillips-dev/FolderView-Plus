@@ -1,12 +1,12 @@
 // @ts-check
 (function dockerRuntimeApiCoordinatorModule(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./docker.runtime.container-model.js'));
+        module.exports = factory(require('./docker.runtime.container-model.js'), require('./docker.runtime.api-integration.js'));
         return;
     }
     root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    root.FolderViewPlusFoundationModules.dockerApiCoordinator = factory(root.FolderViewPlusDockerContainerModel);
-}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeApiCoordinatorFactory(containerModel) {
+    root.FolderViewPlusFoundationModules.dockerApiCoordinator = factory(root.FolderViewPlusDockerContainerModel, root.FolderViewPlusFoundationModules.dockerApiIntegration);
+}(typeof window !== 'undefined' ? window : {}, function dockerRuntimeApiCoordinatorFactory(containerModel, integrationModule) {
     'use strict';
 
     const PERMANENT_FAILURES = new Set([
@@ -155,6 +155,7 @@
         const requestLegacyFallback = typeof deps.requestLegacyFallback === 'function'
             ? deps.requestLegacyFallback
             : async () => false;
+        const getRuntimeGeneration = typeof deps.getRuntimeGeneration === 'function' ? deps.getRuntimeGeneration : () => null;
         const onStatus = typeof deps.onStatus === 'function' ? deps.onStatus : () => {};
         const onIdentityMismatch = typeof deps.onIdentityMismatch === 'function' ? deps.onIdentityMismatch : () => {};
         let disposed = false;
@@ -230,14 +231,18 @@
             cooldownUntil = now() + TRANSIENT_COOLDOWNS_MS[index];
             publishStatus();
         };
+        const isCurrent = (activeGeneration, runtimeGeneration, options = {}) => !disposed
+            && activeGeneration === generation && runtimeGeneration === getRuntimeGeneration()
+            && options.isCurrent?.() !== false;
         const run = (work) => {
             if (inFlight) return inFlight;
             const currentGeneration = ++generation;
+            const runtimeGeneration = getRuntimeGeneration();
             const Controller = deps.AbortController
                 || (typeof AbortController !== 'undefined' ? AbortController : null);
             abortController = Controller ? new Controller() : null;
             inFlight = Promise.resolve()
-                .then(() => work({ generation: currentGeneration, signal: abortController?.signal }))
+                .then(() => work({ generation: currentGeneration, runtimeGeneration, signal: abortController?.signal }))
                 .finally(() => {
                     if (currentGeneration === generation) abortController = null;
                     inFlight = null;
@@ -245,7 +250,7 @@
             return inFlight;
         };
         const applyContainers = (containers, options = {}) => {
-            if (disposed || options.generation !== generation) return { applied: false, stale: true };
+            if (!isCurrent(options.generation, options.runtimeGeneration, options)) return { applied: false, stale: true };
             const merged = mergeProviderContainers(getRuntimeMap(), containers, capabilitySnapshot());
             if (merged.structuralChanged) {
                 onIdentityMismatch({ providerOnlyCount: merged.providerOnlyCount, runtimeOnlyCount: merged.runtimeOnlyCount, hostReloadRequested: false });
@@ -258,7 +263,8 @@
             publishStatus();
             return { applied: true, structuralChanged: false, ...merged };
         };
-        const refreshAll = (options = {}) => run(async ({ generation: activeGeneration, signal }) => {
+        const refreshAll = (options = {}) => run(async ({ generation: activeGeneration, runtimeGeneration, signal }) => {
+            if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
             if (!available()) {
                 if (options.fallback !== false) await requestLegacyFallback({ reason: 'api-unavailable' });
                 return { applied: false, fallback: options.fallback !== false, unavailable: true };
@@ -269,8 +275,9 @@
                     timeoutMs: Math.max(1000, Number(options.timeoutMs) || 6000),
                     staleKey: String(options.staleKey || 'docker-api-coordinator-list')
                 });
-                return applyContainers(containers, { generation: activeGeneration });
+                return applyContainers(containers, { ...options, generation: activeGeneration, runtimeGeneration });
             } catch (error) {
+                if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
                 recordFailure(error);
                 if (options.fallback !== false && !NON_FAILURES.has(normalizeCategory(error))) {
                     await requestLegacyFallback({ reason: normalizeCategory(error) });
@@ -278,7 +285,8 @@
                 return { applied: false, fallback: options.fallback !== false, errorCategory: normalizeCategory(error) };
             }
         });
-        const reconcileContainer = (identity, options = {}) => run(async ({ generation: activeGeneration, signal }) => {
+        const reconcileContainer = (identity, options = {}) => run(async ({ generation: activeGeneration, runtimeGeneration, signal }) => {
+            if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
             if (!available()) {
                 if (options.fallback !== false) await requestLegacyFallback({ reason: 'api-unavailable', identity });
                 return { applied: false, fallback: options.fallback !== false, unavailable: true };
@@ -295,6 +303,7 @@
                 if (!entry) throw Object.assign(new Error('Targeted container reconciliation returned no data.'), {
                     category: 'empty-response'
                 });
+                if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
                 const currentMap = getRuntimeMap();
                 const key = findRuntimeKey(entry, currentMap);
                 if (!key) {
@@ -303,7 +312,7 @@
                 }
                 const mergedEntry = mergeContainerIntoRuntimeEntry(currentMap[key], entry, capabilitySnapshot());
                 const changed = runtimeStateSignature(mergedEntry) !== runtimeStateSignature(currentMap[key]);
-                if (activeGeneration !== generation || disposed) return { applied: false, stale: true };
+                if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
                 if (changed) applyRuntimeMap({ ...currentMap, [key]: mergedEntry }, {
                     changed: [key], structuralChanged: false, matchedCount: 1
                 });
@@ -313,6 +322,7 @@
                 publishStatus();
                 return { applied: true, changed: changed ? [key] : [], structuralChanged: false };
             } catch (error) {
+                if (!isCurrent(activeGeneration, runtimeGeneration, options)) return { applied: false, stale: true };
                 recordFailure(error);
                 if (options.fallback !== false && !NON_FAILURES.has(normalizeCategory(error))) {
                     await requestLegacyFallback({ reason: normalizeCategory(error), identity });
@@ -323,18 +333,22 @@
         const prepare = async (options = {}) => {
             if (disposed) return null;
             const selected = await providerRegistry?.prepare?.(options);
+            if (disposed) return null;
             if (selected && typeof selected.ready === 'function') {
                 await selected.ready({
                     ...options,
                     timeoutMs: Math.max(1000, Number(options.timeoutMs) || 4000)
                 });
             }
+            if (disposed) return null;
             if (options.refresh !== false) await refreshAll({ fallback: false, staleKey: 'docker-api-coordinator-prepare' });
             return selected || provider();
         };
         const recheck = async (options = {}) => {
+            if (disposed) return { applied: false, stale: true };
             resetFailure();
             await provider()?.ready?.({ ...options, force: true });
+            if (disposed) return { applied: false, stale: true };
             return refreshAll({ ...options, fallback: false });
         };
         const dispose = () => {
@@ -356,69 +370,10 @@
         });
     };
 
-    const createIntegration = (deps = {}) => {
-        let coordinator = null;
-        let preparePromise = null;
-        const getCoordinator = () => {
-            if (!coordinator) coordinator = createCoordinator(deps);
-            return coordinator;
-        };
-        const prepare = (options = {}) => {
-            if (!preparePromise) {
-                preparePromise = Promise.resolve(getCoordinator().prepare({
-                    ...(deps.prepareOptions || {}),
-                    refresh: false
-                })).catch((error) => {
-                    preparePromise = null;
-                    throw error;
-                });
-            }
-            return preparePromise.then(async () => {
-                if (options.refresh === true) {
-                    await getCoordinator().refreshAll({
-                        fallback: false,
-                        staleKey: String(options.staleKey || 'docker-api-initial-enrichment')
-                    });
-                }
-                return getCoordinator();
-            });
-        };
-        const refresh = async (options = {}) => {
-            const active = await prepare();
-            const identity = String(options.containerId || options.container || '').trim();
-            const run = () => identity
-                ? active.reconcileContainer(identity, { fallback: false })
-                : active.refreshAll({
-                    fallback: false,
-                    staleKey: String(options.staleKey || 'docker-api-runtime-refresh')
-                });
-            const result = await run();
-            const followupDelayMs = Math.max(0, Number(options.followupDelayMs) || 0);
-            if (result?.applied === true && followupDelayMs > 0) {
-                deps.setTimeout?.(() => Promise.resolve(run()).catch(() => {}), followupDelayMs);
-            }
-            return result?.applied === true;
-        };
-        const tick = async (options = {}) => {
-            let configSnapshot = null;
-            try {
-                configSnapshot = await deps.readConfigSnapshot?.();
-            } catch (_error) {
-                configSnapshot = null;
-            }
-            if (configSnapshot && deps.isConfigCurrent?.(configSnapshot) === false) {
-                deps.requestStructuralRefresh?.({ reason: 'config-revision-changed' });
-                return true;
-            }
-            return refresh(options);
-        };
-        const dispose = () => {
-            coordinator?.dispose();
-            coordinator = null;
-            preparePromise = null;
-        };
-        return Object.freeze({ prepare, refresh, tick, status: () => coordinator?.status() || null, dispose });
-    };
+    // Preserve the public facade while one module owns integration lifecycle state.
+    const createIntegration = (deps = {}) => integrationModule.createIntegration({
+        ...deps, createCoordinator: () => createCoordinator(deps)
+    });
 
     return Object.freeze({
         PERMANENT_FAILURES,

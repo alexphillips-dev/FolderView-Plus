@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Corrija regras inválidas antes de aplicar a visualização.",
     "common.server.rules-save-invalid": "Corrija regras inválidas antes de salvar.",
     "common.repair.rules-preview-no-changes": "Nenhuma alteração de atribuição é necessária para esta visualização.",
-    "common.repair.rules-preview-moves-manual": "As atribuições manuais existentes serão movidas para as pastas visualizadas."
+    "common.repair.rules-preview-moves-manual": "As atribuições manuais existentes serão movidas para as pastas visualizadas.",
+    "common.server.legacy-regex-managed-unsupported": "A regex herdada não é suportada por regras gerenciadas e não pode ser convertida.",
+    "common.server.environment-format-unsupported": "O formato do instantâneo do ambiente ou a versão do esquema não são suportados.",
+    "common.server.environment-sections-missing": "Faltam seções obrigatórias no instantâneo do ambiente.",
+    "common.server.environment-folder-data-invalid": "O instantâneo do ambiente contém dados de pasta inválidos.",
+    "common.server.rollback-format-unsupported": "O formato do instantâneo de reversão ou a versão do esquema não são suportados.",
+    "common.server.rollback-type-data-missing": "O instantâneo de reversão não possui dados de tipo obrigatórios.",
+    "common.server.rollback-theme-workspace-invalid": "O instantâneo de reversão contém dados inválidos do espaço de trabalho do tema.",
+    "common.server.folder-batch-verification": "Falha na verificação da transação em lote da pasta.",
+    "common.server.bulk-assignment-verification": "Falha na verificação da transação de atribuição em massa."
 }

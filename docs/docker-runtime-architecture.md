@@ -21,9 +21,16 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Owns dynamic capability-path checks, unavailable/legacy snapshots, provider accessors, and privacy-safe compatibility evidence mapping.
 - `scripts/docker.runtime.api-coordinator.js`
   - Owns API-first list and targeted reconciliation for the legacy Docker renderer.
-  - Merges only schema-confirmed runtime fields into the PHP-authoritative identity/metadata map, serializes requests, rejects stale work, schedules structural host refreshes only for verified configuration revisions, and applies permanent/transient failure policy.
+  - Merges only schema-confirmed runtime fields into the PHP-authoritative identity/metadata map, serializes requests, rejects stale work, records identity mismatches without native reloads, and applies permanent/transient failure policy.
+  - Retains the public `createIntegration` facade and injects coordinator construction into the integration owner.
+- `scripts/docker.runtime.api-integration.js`
+  - Owns Docker provider preparation, configuration checks, API refresh dispatch, follow-up scheduling, request-generation checks, and disposal. Both runtime pages load this dependency before the coordinator facade.
+  - Queues structural host refresh only for verified configuration revisions. The Docker entrypoint owns awaited PHP fallback and native reconciliation.
 - `scripts/docker.runtime.container-model.js`
   - Normalizes GraphQL, PHP runtime, and DOM fallback records into one immutable container contract.
+  - Resolves exact identity aliases before unique ID prefixes and rejects ambiguous aliases. Command summaries and cards share its update-availability meaning.
+- `scripts/docker.runtime.folder-grouping.js`
+  - Owns canonical native-row identity and reusable row indexes for grouping, preview actions, and Command hydration. Ambiguous aliases and disconnected or conflicting rows cannot select an action target.
 - `scripts/docker.runtime.provider-health.js`
   - Owns bounded provider-health refresh, aggregate severity derivation, caching, and disposal outside the legacy runtime monolith.
 - `scripts/docker.runtime.layout-geometry.js`
@@ -77,6 +84,10 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `lockedFolderIds`
   - `pinnedFolderIds`
   - `performanceProfile`
+
+Preference publication uses monotonic server revisions and separate read and mutation generations. A delayed read cannot replace a newer commit, and a read arriving during a legacy write cannot invalidate its acknowledgement. Initial hydration rechecks the write queue before dispatching.
+
+Docker hierarchy moves flush pending preferences, read the saved folder definition, and submit parent and manual order changes through one revision-checked batch. The saved definition preserves manual membership while the runtime continues to derive automatic membership. The menu reuses the shared hierarchy graph with its existing cycle and descendant traversal policy.
 
 ## Performance Profiles
 

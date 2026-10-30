@@ -1152,7 +1152,7 @@
     ]
   },
   {
-    "file": "scripts/folderviewplus.js",
+    "file": "scripts/folderviewplus.settings-health.js",
     "key": "common.repair.paused-members-1-9c89f8",
     "english": "Paused members: $1.",
     "params": [
@@ -1160,7 +1160,7 @@
     ]
   },
   {
-    "file": "scripts/folderviewplus.js",
+    "file": "scripts/folderviewplus.settings-health.js",
     "key": "common.repair.available-updates-1-1251a9",
     "english": "Available updates: $1.",
     "params": [
@@ -1168,7 +1168,7 @@
     ]
   },
   {
-    "file": "scripts/folderviewplus.js",
+    "file": "scripts/folderviewplus.settings-health.js",
     "key": "common.repair.available-updates-1-1251a9",
     "english": "Available updates: $1.",
     "params": [
@@ -1176,7 +1176,7 @@
     ]
   },
   {
-    "file": "scripts/folderviewplus.js",
+    "file": "scripts/folderviewplus.settings-health.js",
     "key": "common.repair.available-updates-1-1251a9",
     "english": "Available updates: $1.",
     "params": [
@@ -1184,7 +1184,7 @@
     ]
   },
   {
-    "file": "scripts/folderviewplus.js",
+    "file": "scripts/folderviewplus.settings-health.js",
     "key": "common.repair.available-updates-1-1251a9",
     "english": "Available updates: $1.",
     "params": [

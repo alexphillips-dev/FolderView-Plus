@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Corrija las reglas no válidas antes de aplicar la vista previa.",
     "common.server.rules-save-invalid": "Corrija las reglas no válidas antes de guardar.",
     "common.repair.rules-preview-no-changes": "No se necesitan cambios de asignación para esta vista previa.",
-    "common.repair.rules-preview-moves-manual": "Las asignaciones manuales existentes se moverán a las carpetas de vista previa."
+    "common.repair.rules-preview-moves-manual": "Las asignaciones manuales existentes se moverán a las carpetas de vista previa.",
+    "common.server.legacy-regex-managed-unsupported": "La expresión regular heredada no es compatible con reglas administradas y no se puede convertir.",
+    "common.server.environment-format-unsupported": "El formato de instantánea del entorno o la versión del esquema no son compatibles.",
+    "common.server.environment-sections-missing": "A la instantánea del entorno le faltan las secciones requeridas.",
+    "common.server.environment-folder-data-invalid": "La instantánea del entorno contiene datos de carpeta no válidos.",
+    "common.server.rollback-format-unsupported": "El formato de instantánea de reversión o la versión del esquema no son compatibles.",
+    "common.server.rollback-type-data-missing": "A la instantánea de reversión le faltan datos de tipo requerido.",
+    "common.server.rollback-theme-workspace-invalid": "La instantánea de reversión contiene datos no válidos del espacio de trabajo del tema.",
+    "common.server.folder-batch-verification": "Error en la verificación de transacciones por lotes de carpetas.",
+    "common.server.bulk-assignment-verification": "Error en la verificación de la transacción de asignación masiva."
 }

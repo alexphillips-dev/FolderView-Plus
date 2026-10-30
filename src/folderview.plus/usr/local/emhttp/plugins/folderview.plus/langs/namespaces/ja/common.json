@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "プレビューを適用する前に、無効なルールを修正してください。",
     "common.server.rules-save-invalid": "保存する前に無効なルールを修正してください。",
     "common.repair.rules-preview-no-changes": "このプレビューでは割り当てを変更する必要はありません。",
-    "common.repair.rules-preview-moves-manual": "既存の手動割り当ては、プレビューされたフォルダーに移動されます。"
+    "common.repair.rules-preview-moves-manual": "既存の手動割り当ては、プレビューされたフォルダーに移動されます。",
+    "common.server.legacy-regex-managed-unsupported": "従来の正規表現は管理ルールではサポートされていないため、変換できません。",
+    "common.server.environment-format-unsupported": "環境スナップショット形式またはスキーマ バージョンはサポートされていません。",
+    "common.server.environment-sections-missing": "環境スナップショットに必要なセクションがありません。",
+    "common.server.environment-folder-data-invalid": "環境スナップショットに無効なフォルダー データが含まれています。",
+    "common.server.rollback-format-unsupported": "ロールバック スナップショット形式またはスキーマ バージョンはサポートされていません。",
+    "common.server.rollback-type-data-missing": "ロールバック スナップショットに必要なタイプのデータがありません。",
+    "common.server.rollback-theme-workspace-invalid": "ロールバック スナップショットには無効なテーマ ワークスペース データが含まれています。",
+    "common.server.folder-batch-verification": "フォルダーのバッチ トランザクションの検証に失敗しました。",
+    "common.server.bulk-assignment-verification": "一括割り当てトランザクションの検証に失敗しました。"
 }

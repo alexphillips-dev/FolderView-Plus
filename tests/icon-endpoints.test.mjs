@@ -23,6 +23,7 @@ const thirdPartyPhp = fs.readFileSync(thirdPartyEndpointPath, 'utf8');
 const uploadPhp = [
     'upload_custom_icon.php',
     'lib.custom-icon-endpoint-foundation.php',
+    'lib.custom-icon-storage.php',
     'lib.custom-icon-validation.php',
     'lib.custom-icon-chunks.php',
     'lib.custom-icon-actions.php',

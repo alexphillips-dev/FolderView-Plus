@@ -85,6 +85,7 @@ namespace {
     $GLOBALS['config_write_fault'] = ['root' => $root, 'type' => $type, 'payload' => "$type" . ($kind === 'prefs' ? '.prefs' : '') . '.json',
         'metadata' => "$type.metadata.json", 'stage' => $request['stage'] ?? 'metadata-rename', 'enabled' => false];
     function fixtureEval(string $source): void {
+        $source = str_replace('__DIR__', var_export($GLOBALS['server'], true), $source);
         eval('namespace ConfigWriteFault; use \\RuntimeException; use \\Throwable; use \\FVPlusConfigConflictException;' . $source);
     }
     // Extract complete definitions with PHP's tokenizer, including nested closures.

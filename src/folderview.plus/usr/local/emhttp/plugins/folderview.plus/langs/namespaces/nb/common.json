@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Rett ugyldige regler før du bruker forhåndsvisningen.",
     "common.server.rules-save-invalid": "Rett ugyldige regler før du lagrer.",
     "common.repair.rules-preview-no-changes": "Ingen tildelingsendringer er nødvendig for denne forhåndsvisningen.",
-    "common.repair.rules-preview-moves-manual": "Eksisterende manuelle oppgaver vil bli flyttet til de forhåndsviste mappene."
+    "common.repair.rules-preview-moves-manual": "Eksisterende manuelle oppgaver vil bli flyttet til de forhåndsviste mappene.",
+    "common.server.legacy-regex-managed-unsupported": "Det eldre regulære uttrykket støttes ikke av administrerte regler og kan ikke konverteres.",
+    "common.server.environment-format-unsupported": "Miljøøyeblikksbildeformat eller skjemaversjon støttes ikke.",
+    "common.server.environment-sections-missing": "Øyeblikksbilde av miljøet mangler nødvendige deler.",
+    "common.server.environment-folder-data-invalid": "Øyeblikksbilde av miljøet inneholder ugyldige mappedata.",
+    "common.server.rollback-format-unsupported": "Tilbakestill øyeblikksbildeformat eller skjemaversjon støttes ikke.",
+    "common.server.rollback-type-data-missing": "Tilbakestill øyeblikksbilde mangler nødvendige typedata.",
+    "common.server.rollback-theme-workspace-invalid": "Tilbakestill øyeblikksbilde inneholder ugyldige temaarbeidsområdedata.",
+    "common.server.folder-batch-verification": "Bekreftelse av batchtransaksjoner for mappe mislyktes.",
+    "common.server.bulk-assignment-verification": "Verifisering av massetildelingstransaksjoner mislyktes."
 }

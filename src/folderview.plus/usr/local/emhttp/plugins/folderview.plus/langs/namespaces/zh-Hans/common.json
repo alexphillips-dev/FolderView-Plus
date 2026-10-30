@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "在应用预览之前更正无效规则。",
     "common.server.rules-save-invalid": "保存前更正无效规则。",
     "common.repair.rules-preview-no-changes": "此预览不需要更改作业。",
-    "common.repair.rules-preview-moves-manual": "现有手动分配将移至预览文件夹中。"
+    "common.repair.rules-preview-moves-manual": "现有手动分配将移至预览文件夹中。",
+    "common.server.legacy-regex-managed-unsupported": "托管规则不支持旧正则表达式，并且无法转换。",
+    "common.server.environment-format-unsupported": "不支持环境快照格式或架构版本。",
+    "common.server.environment-sections-missing": "环境快照缺少必需的部分。",
+    "common.server.environment-folder-data-invalid": "环境快照包含无效的文件夹数据。",
+    "common.server.rollback-format-unsupported": "不支持回滚快照格式或架构版本。",
+    "common.server.rollback-type-data-missing": "回滚快照缺少所需的类型数据。",
+    "common.server.rollback-theme-workspace-invalid": "回滚快照包含无效的主题工作区数据。",
+    "common.server.folder-batch-verification": "文件夹批量事务验证失败。",
+    "common.server.bulk-assignment-verification": "批量分配事务验证失败。"
 }

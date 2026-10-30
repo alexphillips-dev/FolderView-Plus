@@ -409,3 +409,96 @@ test('preference retry policy retries transient failures but not permanent valid
     assert.equal(api.isRetryableSyncError(Object.assign(new Error('invalid'), { status: 400 })), false);
     assert.equal(api.isRetryableSyncError(Object.assign(new Error('conflict'), { status: 409 })), false);
 });
+
+test('forced storage hydration cannot publish an older revision after a save commits', async () => {
+    const api = loadModule();
+    const handlers = {};
+    let finishRead;
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(), debounceMs: 0,
+        window: { addEventListener: (kind, handler) => { handlers[kind] = handler; } },
+        fetchPrefs: () => new Promise(resolve => { finishRead = resolve; }),
+        writePrefs: async () => ({ prefs: { dashboard: { names: false } }, metadata: { prefsRevision: 3 } }) });
+    coordinator.reconcile('docker', { dashboard: { names: true }, _metadata: { prefsRevision: 1 } });
+    handlers.storage({ key: coordinator.storageKeyForType('docker'), newValue: null });
+    await coordinator.save('docker', { dashboard: { names: false } }, { immediate: true });
+    finishRead({ prefs: { dashboard: { names: true } }, metadata: { prefsRevision: 2 } });
+    await wait(5);
+    assert.equal(coordinator.getSnapshot('docker').revision, 3);
+    assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false);
+    coordinator.reconcile('docker', { dashboard: { names: true }, _metadata: { prefsRevision: 1 } }, { force: true });
+    assert.equal(coordinator.getSnapshot('docker').revision, 3);
+    assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false);
+});
+
+test('public save state and diagnostics share synchronization fields while preserving privacy and empty-value contracts', () => {
+    const api = loadModule();
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(),
+        setTimeout: () => 1, clearTimeout: () => {} });
+    coordinator.reconcile('docker', normalizePrefs({ _metadata: { prefsRevision: 7 } }));
+    const before = coordinator.getSnapshot('docker');
+    const diagnosticsBefore = coordinator.getDiagnostics().types.docker;
+    assert.equal(before.lastError, ''); assert.equal(before.lastSavedAt, '');
+    assert.equal(diagnosticsBefore.lastError, null); assert.equal(diagnosticsBefore.lastSavedAt, null);
+    coordinator.save('docker', { dashboard: { names: false }, sortMode: 'manual' });
+    coordinator.save('docker', { dashboard: { ports: false } });
+    const state = coordinator.getSnapshot('docker'), diagnostic = coordinator.getDiagnostics().types.docker;
+    for (const field of ['status', 'hydrated', 'pending', 'pendingFieldCount', 'revision', 'lastLatencyMs']) {
+        assert.equal(state[field], diagnostic[field], field);
+    }
+    assert.equal(state.pendingFieldCount, 2, 'top-level fields count once across coalesced patches');
+    for (const field of ['prefs', 'stats', 'lastBackup', 'lastMutationId', 'publicationGeneration']) {
+        assert.equal(Object.hasOwn(diagnostic, field), false, field + ' must not be added to diagnostics');
+    }
+});
+
+test('late write responses cannot replace newer confirmed cross-page preferences', async () => {
+    const api = loadModule();
+    let finishWrite;
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(), debounceMs: 0,
+        writePrefs: () => new Promise(resolve => { finishWrite = resolve; }) });
+    coordinator.reconcile('docker', { dashboard: { names: true }, _metadata: { prefsRevision: 1 } });
+    const saved = coordinator.save('docker', { dashboard: { names: false } }, { immediate: true });
+    await wait(5);
+    coordinator.reconcile('docker', { dashboard: { names: false, ports: false }, _metadata: { prefsRevision: 3 } });
+    finishWrite({ prefs: { dashboard: { names: false, ports: true } }, metadata: { prefsRevision: 2 } });
+    const result = await saved;
+    assert.equal(coordinator.getSnapshot('docker').revision, 3);
+    assert.equal(result.dashboard.ports, false);
+    assert.equal(coordinator.getSnapshot('docker').pending, false);
+});
+
+test('legacy equal-revision hydration cannot undo preferences published while its request was pending', async () => {
+    const api = loadModule();
+    let finishRead;
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(), debounceMs: 0,
+        fetchPrefs: () => new Promise(resolve => { finishRead = resolve; }),
+        writePrefs: async () => ({ prefs: { dashboard: { names: false } }, metadata: { prefsRevision: 0 } }) });
+    coordinator.reconcile('docker', { dashboard: { names: true }, _metadata: { prefsRevision: 0 } });
+    const read = coordinator.hydrateFromServer('docker', { force: true });
+    await coordinator.save('docker', { dashboard: { names: false } }, { immediate: true });
+    finishRead({ prefs: { dashboard: { names: true } }, metadata: { prefsRevision: 0 } });
+    await read;
+    assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false);
+});
+
+test('newer hydration revisions remain authoritative and pending local patches survive stale reads', async () => {
+    const api = loadModule();
+    const reads = [];
+    const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(), debounceMs: 1000,
+        fetchPrefs: () => new Promise(resolve => { reads.push(resolve); }),
+        writePrefs: async (_type, patch) => ({ prefs: api.mergePatch({ dashboard: { ports: false } }, patch), metadata: { prefsRevision: 5 } }) });
+    coordinator.reconcile('docker', { dashboard: { names: true }, _metadata: { prefsRevision: 1 } });
+    const olderRead = coordinator.hydrateFromServer('docker', { force: true });
+    const newerRead = coordinator.hydrateFromServer('docker', { force: true });
+    reads[1]({ prefs: { dashboard: { names: true, ports: false } }, metadata: { prefsRevision: 3 } });
+    await newerRead;
+    const save = coordinator.save('docker', { dashboard: { names: false } });
+    reads[0]({ prefs: { dashboard: { names: true, ports: true } }, metadata: { prefsRevision: 4 } });
+    await olderRead;
+    assert.equal(coordinator.getSnapshot('docker').revision, 4, 'higher server revision wins even if its read started earlier');
+    assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false, 'pending local intent remains visible');
+    await coordinator.flush('docker');
+    await save;
+    assert.equal(coordinator.getSnapshot('docker').revision, 5);
+    assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false);
+});

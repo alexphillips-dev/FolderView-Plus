@@ -118,7 +118,8 @@ namespace {
     $_SERVER['DOCUMENT_ROOT'] = "$root/host";
     putenv("FVPLUS_TEST_SECURITY_STATE_PATH=$root/config/fixture-security.json");
     require "$server/lib.php"; require "$server/lib.i18n.php";
-    eval('namespace InventoryRepairFixture; use \\RuntimeException; use \\Throwable;' . substr(file_get_contents("$server/lib.custom-icon-storage.php"), 5));
+    $storageSource = str_replace('__DIR__', var_export($server, true), file_get_contents("$server/lib.custom-icon-storage.php"));
+    eval('namespace InventoryRepairFixture; use \\RuntimeException; use \\Throwable;' . substr($storageSource, 5));
     $dockerManPaths = ['autostart-file' => "$root/config/native-autostart", 'webui-info' => "$root/config/docker-ui.json"];
     $GLOBALS['inventory_native_path'] = "$root/config/native-autostart";
     putenv("FVPLUS_TEST_DOCKER_AUTOSTART_FILE=$root/config/native-autostart");

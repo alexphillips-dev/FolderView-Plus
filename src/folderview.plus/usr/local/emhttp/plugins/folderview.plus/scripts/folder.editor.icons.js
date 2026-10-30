@@ -511,7 +511,7 @@
                         }
                         const rowsHtml = refs
                             .slice(0, 80)
-                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || surfaceT("common.runtime.unknown", "Unknown")))}</li>`)
+                            .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || (entry?.scope === 'defaults' ? surfaceT("legacy.surface.49d13b9d958f69d0", "Folder defaults") : surfaceT("common.runtime.unknown", "Unknown"))))}</li>`)
                             .join('');
                         const html = `<div class="fv-custom-icon-ref-list"><ul>${rowsHtml}</ul></div>`;
                         swal({ title: surfaceT("common.counts.icon-references", "Folders using this icon: $1.", refs.length), text: html, html: true, confirmButtonText: 'Close' });

@@ -13,7 +13,7 @@ const chromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plu
 
 const rulesSource = fs.readFileSync(rulesPath, 'utf8');
 const engineSource = fs.readFileSync(path.join(path.dirname(libPath), 'lib.rules-engine.php'), 'utf8');
-const libSource = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}`;
+const libSource = `${fs.readFileSync(libPath, 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.folder-rules.php'), 'utf8')}\n${fs.readFileSync(path.join(path.dirname(libPath), 'lib.legacy-regex-conversion.php'), 'utf8')}`;
 const endpointSource = fs.readFileSync(endpointPath, 'utf8');
 const chromeSource = fs.readFileSync(chromePath, 'utf8');
 const sandboxWindow = {};

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.29.02">
-<!ENTITY md5 "2d1a21db96061c66002302027ad8189f">
-<!ENTITY sha256 "cb0990ebc30ebcffdfa6f893dc7ca23274854550b294ba73f078eff76fb494d2">
+<!ENTITY version "2026.10.29.03">
+<!ENTITY md5 "1405939cffb83a09627a169d28a3832d">
+<!ENTITY sha256 "4f46b64a6faa3b73e258a8775ef3b0cd4b7eec38182fdec28c084e0df49bcb6f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.29.03
+- Fix: Keep Docker preview actions attached to the correct container when hidden members, shortened IDs, renamed rows, or ambiguous identities are present. Preserve manual folder membership during hierarchy moves.
+- Fix: Use the saved-rule compiler for rule previews and legacy conversion, rejecting unsupported expressions before changing stored rules. Escape folder names in destructive confirmation dialogs.
+- Privacy: Redact nested missing-icon references and unrecognized diagnostic history fields in sanitized support bundles while retaining useful counts and same-bundle correlations.
+- Fix: Prevent delayed preference responses and superseded runtime refreshes from replacing newer state. Retain PHP fallback refreshes when API reads cannot apply a result.
+- Reliability: Restore folders, preferences, revisions, recovery mirrors, generated themes, and native Docker order together after failed transactions. Keep same-second rollback checkpoints distinct and protect the selected checkpoint during restore.
+- Fix: Validate complete environment snapshots before public preview or import. Resolve import identities once for review and apply, and include all restored preferences in snapshot comparisons.
+- Fix: Make custom icon usage, rename, delete, diagnostics, and repair agree on references in folders, folder defaults, and saved groups. Serialize icon and configuration operations and preserve state after repair failures.
+- Maintenance: Consolidate health scoring, hierarchy construction, import planning, runtime update facts, and recovery policy in their existing owners. Refresh cached provider health and prevent older capability discovery from replacing newer results.
+- Compatibility: Hard-refresh the webGUI after updating. Check Docker preview actions and folder moves, VM confirmations, Settings rules and imports, icon management, and Dashboard refreshes. Live Unraid acceptance remains a manual check.
+
 
 ###2026.10.29.02
 - Compatibility: Recognize an active NeoRaid host theme separately from the native Unraid base theme and imported managed themes, with checks for disabled, inactive and foreign stylesheets.

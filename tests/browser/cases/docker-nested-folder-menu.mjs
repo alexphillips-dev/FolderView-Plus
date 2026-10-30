@@ -49,19 +49,33 @@ export const registerNestedFolderMenuCases = ({ test, checkMenuAccessibility }) 
             assert.equal(await page.locator('.dropDown-parent').getAttribute('active'), 'true');
             await page.locator('.dropDown-parent').click();
             await open(() => chip.click());
+            const expectedFolderRevision = host.revisions().folder;
             const saved = page.waitForResponse(response => {
-                if (!response.url().includes('/server/update.php')) return false;
+                if (!response.url().includes('/server/batch.php') || response.request().method() !== 'POST') return false;
                 const payload = new URLSearchParams(response.request().postData());
-                return payload.get('id') === 'branch' && JSON.parse(payload.get('content') || '{}').parentId === '';
+                const operations = JSON.parse(payload.get('operations') || '{}');
+                return operations.upserts?.some(entry => entry.id === 'branch' && entry.folder.parentId === '');
             });
             await menu.getByText('Move to root', { exact: true }).click();
-            await saved;
+            const response = await saved, result = await response.json();
+            assert.equal(response.status(), 200);
+            assert.equal(result.ok, true);
+            const request = new URLSearchParams(response.request().postData());
+            const operations = JSON.parse(request.get('operations'));
+            assert.equal(Number(request.get('expectedRevision')), expectedFolderRevision);
+            assert.equal(operations.expectedPrefsRevision + 1, result.result.metadata.prefsRevision);
+            assert.deepEqual(host.prefs().manualOrder, operations.manualOrder);
+            assert.deepEqual(operations.upserts[0].folder.containers, [], 'moving a branch preserves saved manual membership');
             await page.waitForFunction(() => document.querySelector('tr.folder-id-branch')?.getAttribute('data-folder-parent') === '');
             await page.waitForLoadState('networkidle');
             assert.equal(host.folders.branch.parentId, '');
             assert.equal(await chip.count(), 0);
             assert.equal(await page.locator('tr.folder-id-branch').isVisible(), true);
             assert.equal(await page.locator('#fvplus-child-folder-menu-trigger').count(), 0);
+            await page.reload({ waitUntil: 'load' }); await page.waitForLoadState('networkidle');
+            assert.equal(await page.locator('tr.folder-id-branch').getAttribute('data-folder-parent'), '');
+            assert.equal(await page.locator('tr.folder-id-branch').isVisible(), true);
+            assert.equal(await chip.count(), 0);
         } finally { await host.close(); }
     }, { skipAccessibility: true }); // The real menu is audited above; the synthetic Unraid shell is intentionally minimal.
 };

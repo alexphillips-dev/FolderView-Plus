@@ -47,6 +47,15 @@
             }
             return hostIdentityIndex?.resolve(token) || (Object.prototype.hasOwnProperty.call(map, token) ? token : '');
         };
+        let nativeRowsMap = null, nativeRowsIndex = null;
+        const getDockerNativeRowIndex = () => {
+            const map = getDockerRuntimeInfoMap();
+            if (map !== nativeRowsMap || !nativeRowsIndex) {
+                nativeRowsMap = map;
+                nativeRowsIndex = deps.grouping?.createNativeRowIndex?.({ document: doc, containersInfo: map }) || null;
+            }
+            return nativeRowsIndex;
+        };
         let membershipSnapshot = null;
         const setMembershipSnapshot = (snapshot) => { membershipSnapshot = snapshot || null; };
         const membershipInputsChanged = (infoByName) => Boolean(membershipSnapshot && deps.utils
@@ -151,7 +160,8 @@
                 return '';
             }
             const candidates = deps.grouping?.readRowCandidates(row) || [row.dataset?.name, String(row.id || '').replace(/^ct-/, '')];
-            return candidates.map(token => resolveHostIdentity(String(token || '').trim())).find(Boolean) || '';
+            const names = [...new Set(candidates.map(token => resolveHostIdentity(String(token || '').trim())).filter(Boolean))];
+            return names.length === 1 ? names[0] : '';
         };
 
         const getDockerWindowRuntimeEntry = (name) => {
@@ -208,6 +218,7 @@
             };
             setDockerRuntimeInfoMap(nextRuntimeInfoMap);
             if (hostIdentityMap === runtimeInfoMap && Object.prototype.hasOwnProperty.call(runtimeInfoMap, safeName)) hostIdentityMap = nextRuntimeInfoMap;
+            if (nativeRowsMap === runtimeInfoMap) nativeRowsMap = nextRuntimeInfoMap;
             const windowEntry = getDockerWindowRuntimeEntry(safeName);
             if (windowEntry?.info?.State && typeof windowEntry.info.State === 'object') {
                 windowEntry.info.State.manager = String(windowEntry.info.State.manager || nextManager).trim() || nextManager;
@@ -637,6 +648,7 @@
             setMembershipSnapshot, membershipInputsChanged,
             readDockerHostRowUpdatedState,
             getDockerHostRowContainerName,
+            getDockerNativeRowIndex,
             getDockerWindowRuntimeEntry,
             applyDockerRuntimeEntryUpdatedState,
             syncDockerHostRowUpdateStatesFromDom,

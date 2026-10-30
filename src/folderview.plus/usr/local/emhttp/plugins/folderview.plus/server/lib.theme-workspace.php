@@ -272,30 +272,30 @@ function getThemeWorkspacePath(): string {
     }
 
     function ensureThemeWorkspaceManagedAssets(): array {
-        $workspace = normalizeThemeWorkspacePayload(readJsonObjectFile(getThemeWorkspacePath()) ?? defaultThemeWorkspace());
-        fvplusThemeWorkspaceApplyAtomic($workspace, false);
-        return $workspace;
+        return readThemeWorkspace();
     }
 
     function readThemeWorkspace(): array {
-        $path = getThemeWorkspacePath();
-        fvplusTransactionCaptureFile($path);
-        if (!file_exists($path)) {
-            return writeThemeWorkspace(defaultThemeWorkspace());
-        }
-        $decoded = readJsonObjectFile($path);
-        $recoveredFromLastGood = false;
-        if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
-            $recoveredFromLastGood = is_array($decoded);
-        }
-        if (!is_array($decoded)) {
-            $decoded = defaultThemeWorkspace();
-        }
-        $normalized = normalizeThemeWorkspacePayload($decoded);
-        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
-            return writeThemeWorkspace($normalized);
-        }
-        fvplusThemeWorkspaceApplyAtomic($normalized, false);
-        return $normalized;
+        return withConfigMutationLock(static function () : array {
+            $path = getThemeWorkspacePath();
+            fvplusTransactionCaptureFile($path);
+            if (!file_exists($path)) {
+                return writeThemeWorkspace(defaultThemeWorkspace());
+            }
+            $decoded = readJsonObjectFile($path);
+            $recoveredFromLastGood = false;
+            if (!is_array($decoded)) {
+                $decoded = recoverJsonObjectFromLastGood($path);
+                $recoveredFromLastGood = is_array($decoded);
+            }
+            if (!is_array($decoded)) {
+                $decoded = defaultThemeWorkspace();
+            }
+            $normalized = normalizeThemeWorkspacePayload($decoded);
+            if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+                return writeThemeWorkspace($normalized);
+            }
+            fvplusThemeWorkspaceApplyAtomic($normalized, false);
+            return $normalized;
+        });
     }

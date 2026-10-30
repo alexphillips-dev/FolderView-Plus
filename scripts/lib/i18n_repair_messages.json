@@ -487,5 +487,14 @@
   "common.server.rules-preview-invalid": "Correct invalid rules before applying the preview.",
   "common.server.rules-save-invalid": "Correct invalid rules before saving.",
   "common.repair.rules-preview-no-changes": "No assignment changes are needed for this preview.",
-  "common.repair.rules-preview-moves-manual": "Existing manual assignments will be moved to the previewed folders."
+  "common.repair.rules-preview-moves-manual": "Existing manual assignments will be moved to the previewed folders.",
+  "common.server.legacy-regex-managed-unsupported": "The legacy regex is not supported by managed rules and cannot be converted.",
+  "common.server.environment-format-unsupported": "Environment snapshot format or schema version is unsupported.",
+  "common.server.environment-sections-missing": "Environment snapshot is missing required sections.",
+  "common.server.environment-folder-data-invalid": "Environment snapshot contains invalid folder data.",
+  "common.server.rollback-format-unsupported": "Rollback snapshot format or schema version is unsupported.",
+  "common.server.rollback-type-data-missing": "Rollback snapshot is missing required type data.",
+  "common.server.rollback-theme-workspace-invalid": "Rollback snapshot contains invalid Theme Workspace data.",
+  "common.server.folder-batch-verification": "Folder batch transaction verification failed.",
+  "common.server.bulk-assignment-verification": "Bulk assignment transaction verification failed."
 }

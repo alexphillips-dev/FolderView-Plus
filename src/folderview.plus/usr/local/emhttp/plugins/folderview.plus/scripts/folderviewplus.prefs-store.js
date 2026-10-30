@@ -289,6 +289,8 @@
             inFlightPatch: {},
             externalPatch: {},
             generation: 0,
+            publicationGeneration: 0,
+            mutationPublicationGeneration: 0,
             flushTimer: null,
             retryTimer: null,
             flushing: false,
@@ -322,29 +324,27 @@
             return states.get(resolvedType);
         };
 
-        const buildOptimisticPrefs = (state) => {
-            let next = state.confirmedPrefs || normalizePrefs({});
-            next = mergePatch(next, state.externalPatch);
-            next = mergePatch(next, state.inFlightPatch);
-            next = mergePatch(next, state.pendingPatch);
-            return normalizePrefs(next);
-        };
+        const buildOptimisticPrefs = (state) => normalizePrefs(
+            [state.externalPatch, state.inFlightPatch, state.pendingPatch]
+                .reduce(mergePatch, state.confirmedPrefs || normalizePrefs({}))
+        );
 
-        const publicSnapshot = (state, includePrefs = true) => ({
-            type: state.type,
+        const synchronizationSnapshot = (state, emptyValue = '') => ({
             status: state.status,
             hydrated: state.hydrated,
             pending: !patchIsEmpty(state.pendingPatch) || !patchIsEmpty(state.inFlightPatch),
-            pendingFieldCount: new Set([
-                ...Object.keys(state.inFlightPatch || {}),
-                ...Object.keys(state.pendingPatch || {})
-            ]).size,
+            pendingFieldCount: Object.keys({ ...state.inFlightPatch, ...state.pendingPatch }).length,
             revision: readRevision(state.confirmedPrefs),
-            lastError: state.lastError,
+            lastSavedAt: state.lastSavedAt || emptyValue,
+            lastLatencyMs: state.lastLatencyMs,
+            lastError: state.lastError || emptyValue
+        });
+
+        const publicSnapshot = (state, includePrefs = true) => ({
+            type: state.type,
+            ...synchronizationSnapshot(state),
             lastMutationId: state.lastMutationId,
             lastBackup: state.lastBackup,
-            lastSavedAt: state.lastSavedAt,
-            lastLatencyMs: state.lastLatencyMs,
             stats: { ...state.stats },
             ...(includePrefs ? { prefs: state.optimisticPrefs || state.confirmedPrefs || normalizePrefs({}) } : {})
         });
@@ -430,16 +430,24 @@
             }
         };
 
-        const reconcile = (type, prefs, settings = {}) => {
-            const state = getState(type);
+        const publishConfirmedPrefs = (state, prefs, generation, fromHydration = false) => {
             const normalized = normalizePrefs(prefs || {});
             const incomingRevision = readRevision(normalized);
             const currentRevision = readRevision(state.confirmedPrefs);
+            const currentGeneration = fromHydration ? state.publicationGeneration : state.mutationPublicationGeneration;
+            if (state.hydrated && (incomingRevision < currentRevision
+                || (incomingRevision === currentRevision && generation !== undefined && generation !== currentGeneration))) return false;
+            state.confirmedPrefs = normalized;
+            state.hydrated = true;
+            state.publicationGeneration += 1;
+            if (!fromHydration) state.mutationPublicationGeneration += 1;
+            return true;
+        };
+
+        const reconcile = (type, prefs, settings = {}) => {
+            const state = getState(type);
             let restoredPendingChanges = false;
-            if (!state.hydrated || incomingRevision >= currentRevision || settings.force === true) {
-                state.confirmedPrefs = normalized;
-                state.hydrated = true;
-            }
+            publishConfirmedPrefs(state, prefs, settings.publicationGeneration, settings.fromHydration === true);
             if (settings.restoreOutbox !== false && patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
                 restoredPendingChanges = restoreOutbox(state);
             }
@@ -458,11 +466,12 @@
             if (!fetchPrefs) {
                 return getState(type).optimisticPrefs || normalizePrefs({});
             }
+            const publicationGeneration = getState(type).publicationGeneration;
             const response = await fetchPrefs(normalizeType(type));
             const prefs = response?.prefs && isPlainObject(response.prefs)
                 ? { ...response.prefs, _metadata: response.metadata || response.prefs._metadata || {} }
                 : response;
-            const optimistic = reconcile(type, prefs || {}, settings);
+            const optimistic = reconcile(type, prefs || {}, { ...settings, publicationGeneration, fromHydration: true });
             const state = getState(type);
             if (!patchIsEmpty(state.pendingPatch) && settings.replay !== false) {
                 scheduleFlush(state, 0);
@@ -518,7 +527,8 @@
                     // The write can still proceed without a revision for legacy servers.
                 }
             }
-
+            // Hydration can yield while another flush takes the queued work.
+            if (state.flushing || patchIsEmpty(state.pendingPatch)) return;
             const batchPatch = state.pendingPatch;
             const batchGeneration = state.generation;
             const mutationId = createMutationId(sourceId, batchGeneration);
@@ -530,7 +540,7 @@
             persistOutbox(state);
             emit(state);
             const startedAt = now();
-
+            const mutationPublicationGeneration = state.mutationPublicationGeneration;
             try {
                 state.stats.requests += 1;
                 const response = await writePrefs(state.type, batchPatch, {
@@ -543,7 +553,7 @@
                 const savedPrefs = response?.prefs && isPlainObject(response.prefs)
                     ? { ...response.prefs, _metadata: response.metadata || response.prefs._metadata || {} }
                     : response;
-                state.confirmedPrefs = normalizePrefs(savedPrefs || mergePatch(state.confirmedPrefs, batchPatch));
+                publishConfirmedPrefs(state, savedPrefs || mergePatch(state.confirmedPrefs, batchPatch), mutationPublicationGeneration);
                 state.lastBackup = response?.backup || null;
                 state.inFlightPatch = {};
                 state.flushing = false;
@@ -663,16 +673,7 @@
                 const state = getState(type);
                 const stats = { ...state.stats };
                 types[type] = {
-                    status: state.status,
-                    hydrated: state.hydrated,
-                    pending: !patchIsEmpty(state.pendingPatch) || !patchIsEmpty(state.inFlightPatch),
-                    pendingFieldCount: new Set([
-                        ...Object.keys(state.inFlightPatch || {}),
-                        ...Object.keys(state.pendingPatch || {})
-                    ]).size,
-                    revision: readRevision(state.confirmedPrefs),
-                    lastSavedAt: state.lastSavedAt || null,
-                    lastLatencyMs: state.lastLatencyMs,
+                    ...synchronizationSnapshot(state, null),
                     averageLatencyMs: stats.commits > 0 ? Math.round(stats.totalLatencyMs / stats.commits) : 0,
                     maxLatencyMs: stats.maxLatencyMs,
                     requests: stats.requests,
@@ -683,8 +684,7 @@
                     failureStreak: state.failureStreak,
                     nextRetryDelayMs: state.lastRetryDelayMs,
                     queuedMutations: stats.queuedMutations,
-                    coalescedMutations: stats.coalescedMutations,
-                    lastError: state.lastError || null
+                    coalescedMutations: stats.coalescedMutations
                 };
             }
             return {

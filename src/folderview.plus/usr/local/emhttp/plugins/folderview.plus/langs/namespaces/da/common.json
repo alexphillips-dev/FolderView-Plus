@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Ret ugyldige regler, før du anvender forhåndsvisningen.",
     "common.server.rules-save-invalid": "Ret ugyldige regler, før du gemmer.",
     "common.repair.rules-preview-no-changes": "Ingen tildelingsændringer er nødvendige for denne forhåndsvisning.",
-    "common.repair.rules-preview-moves-manual": "Eksisterende manuelle opgaver vil blive flyttet til de forhåndsviste mapper."
+    "common.repair.rules-preview-moves-manual": "Eksisterende manuelle opgaver vil blive flyttet til de forhåndsviste mapper.",
+    "common.server.legacy-regex-managed-unsupported": "Det ældre regulære udtryk understøttes ikke af administrerede regler og kan ikke konverteres.",
+    "common.server.environment-format-unsupported": "Miljøsnapshotformat eller skemaversion understøttes ikke.",
+    "common.server.environment-sections-missing": "Miljøøjebliksbillede mangler påkrævede sektioner.",
+    "common.server.environment-folder-data-invalid": "Miljøsnapshot indeholder ugyldige mappedata.",
+    "common.server.rollback-format-unsupported": "Snapshotformat for tilbagerulning eller skemaversion understøttes ikke.",
+    "common.server.rollback-type-data-missing": "Rollback snapshot mangler påkrævede typedata.",
+    "common.server.rollback-theme-workspace-invalid": "Rollback snapshot indeholder ugyldige temaarbejdsområdedata.",
+    "common.server.folder-batch-verification": "Bekræftelse af batchtransaktion af mappe mislykkedes.",
+    "common.server.bulk-assignment-verification": "Bekræftelse af massetildelingstransaktion mislykkedes."
 }

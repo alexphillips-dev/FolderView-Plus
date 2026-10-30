@@ -191,7 +191,7 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerRuntimeReconcileJs, /root\.FolderViewPlusDockerRuntimeReconcileModuleLoaded = true;/);
     assert.match(dockerRuntimeReconcileJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(dockerCommandViewJs, /^\/\/ @ts-check/m);
-    assert.match(dockerCommandViewJs, /root\.FolderViewPlusDockerCommandView = factory\(\);/);
+    assert.match(dockerCommandViewJs, /root\.FolderViewPlusDockerCommandView = factory\(root\.FolderViewPlusDockerContainerModel\);/);
     assert.match(dockerCommandViewJs, /root\.FolderViewPlusDockerCommandViewModuleLoaded = true;/);
     assert.match(dockerCommandViewJs, /const createApi = \(deps = \{\}\) =>/);
 });
@@ -335,7 +335,8 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /const getSafeWebuiUrl = typeof deps\.getSafeWebuiUrl === 'function'/);
     assert.match(dockerCommandViewJs, /const getNativeMemberTrigger = \(containerName\) =>/);
     assert.match(dockerCommandViewJs, /const getNativeMemberRow = \(containerName\) =>/);
-    assert.match(dockerCommandViewJs, /row\.querySelector\('td\.ct-name \.appname'\)\?\.textContent/);
+    assert.match(dockerCommandViewJs, /nativeRowIndex = grouping\?\.createNativeRowIndex\(/);
+    assert.match(dockerCommandViewJs, /nativeRowIndex\?\.find\(safeName\)/);
     assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click',\s*sourceEvent = null\) =>/);
     assert.match(dockerCommandViewJs, /const hydrateNativeMemberSurface = \(surface,\s*containerName\) =>/);
     assert.match(dockerCommandViewJs, /const appendDockerPreviewActionButtons = typeof deps\.appendDockerPreviewActionButtons === 'function'/);

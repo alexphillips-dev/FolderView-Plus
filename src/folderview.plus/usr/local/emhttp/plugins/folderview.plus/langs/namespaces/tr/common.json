@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Önizlemeyi uygulamadan önce geçersiz kuralları düzeltin.",
     "common.server.rules-save-invalid": "Kaydetmeden önce geçersiz kuralları düzeltin.",
     "common.repair.rules-preview-no-changes": "Bu önizleme için herhangi bir atama değişikliğine gerek yoktur.",
-    "common.repair.rules-preview-moves-manual": "Mevcut manuel atamalar önizlenen klasörlere taşınacaktır."
+    "common.repair.rules-preview-moves-manual": "Mevcut manuel atamalar önizlenen klasörlere taşınacaktır.",
+    "common.server.legacy-regex-managed-unsupported": "Eski normal ifade, yönetilen kurallar tarafından desteklenmiyor ve dönüştürülemiyor.",
+    "common.server.environment-format-unsupported": "Ortam anlık görüntüsü biçimi veya şema sürümü desteklenmiyor.",
+    "common.server.environment-sections-missing": "Ortam anlık görüntüsünde gerekli bölümler eksik.",
+    "common.server.environment-folder-data-invalid": "Ortam anlık görüntüsü geçersiz klasör verileri içeriyor.",
+    "common.server.rollback-format-unsupported": "Geri alma anlık görüntüsü biçimi veya şema sürümü desteklenmiyor.",
+    "common.server.rollback-type-data-missing": "Geri alma anlık görüntüsünde gerekli tür verileri eksik.",
+    "common.server.rollback-theme-workspace-invalid": "Geri alma anlık görüntüsü geçersiz Tema Çalışma Alanı verileri içeriyor.",
+    "common.server.folder-batch-verification": "Klasör toplu işlem doğrulaması başarısız oldu.",
+    "common.server.bulk-assignment-verification": "Toplu atama işlemi doğrulaması başarısız oldu."
 }

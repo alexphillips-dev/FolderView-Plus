@@ -102,7 +102,8 @@
     const GRAPHQL_CURRENT_SHAPE_PROBE = 'query FVPlusDockerShape { docker { containers { __typename } } }';
     const GRAPHQL_LEGACY_SHAPE_PROBE = 'query FVPlusLegacyDockerShape { dockerContainers { __typename } }';
     let capabilityProbePromise = null;
-    let capabilitySnapshot = Object.freeze({
+    let capabilityProbeGeneration = 0;
+    const capabilityDefaults = Object.freeze({
         schemaVersion: 3,
         checkedAt: null,
         state: 'not-checked',
@@ -153,6 +154,8 @@
         }),
         lastErrorCategory: null
     });
+
+    let capabilitySnapshot = capabilityDefaults;
 
     const typeRefToString = (typeRef) => {
         if (!typeRef || typeof typeRef !== 'object') return 'unknown';
@@ -256,51 +259,16 @@
         if (capabilityProbePromise && options.force !== true) return capabilityProbePromise;
         if (capabilitySnapshot.checkedAt && options.force !== true) return capabilitySnapshot;
         const win = options.window || fallbackWindow;
+        const generation = ++capabilityProbeGeneration;
+        const isCurrent = () => generation === capabilityProbeGeneration;
         capabilityProbePromise = (async () => {
             const base = {
-                schemaVersion: 3,
-                checkedAt: new Date().toISOString(),
-                state: 'checking',
-                endpointAvailable: false,
-                apiVersion: 'unknown',
+                ...clone(capabilityDefaults), checkedAt: new Date().toISOString(), state: 'checking',
                 unraidVersion: String(options.unraidVersion || 'unknown').trim() || 'unknown',
-                query: {
-                    docker: false,
-                    containers: false,
-                    container: false,
-                    networks: false,
-                    portConflicts: false,
-                    logs: false,
-                    containerUpdateStatuses: false,
-                    dockerContainers: false,
-                    shape: 'unknown'
-                },
-                mutation: {
-                    docker: false,
-                    start: false,
-                    stop: false,
-                    restart: false,
-                    pause: false,
-                    unpause: false,
-                    removeContainer: false,
-                    updateContainer: false,
-                    updateContainers: false,
-                    updateAllContainers: false,
-                    updateAutostartConfiguration: false
-                },
-                rootMutation: {
-                    refreshDockerDigests: false
-                },
-                subscription: { dockerContainerStats: false },
-                containerFields: {},
-                operations: {},
-                organizer: { query: false, mutation: false, policy: 'detect-only' },
                 transport: {
-                    fetch: typeof win?.fetch === 'function',
-                    websocket: typeof win?.WebSocket === 'function',
+                    fetch: typeof win?.fetch === 'function', websocket: typeof win?.WebSocket === 'function',
                     sse: typeof win?.EventSource === 'function'
-                },
-                lastErrorCategory: null
+                }
             };
             if (!base.transport.fetch) {
                 capabilitySnapshot = freezeCapabilitySnapshot({
@@ -318,6 +286,7 @@
                     timeoutMs: Number(options.timeoutMs) || 6000,
                     staleKey: 'graphql-capability-probe'
                 });
+                if (!isCurrent()) return capabilitySnapshot;
                 const queryFieldRecords = fieldRecords(data.queryType);
                 const mutationFieldRecords = fieldRecords(data.mutationType);
                 const subscriptionFieldRecords = fieldRecords(data.subscriptionType);
@@ -366,6 +335,7 @@
                 });
                 base.state = 'ready';
             } catch (error) {
+                if (!isCurrent()) return capabilitySnapshot;
                 base.lastErrorCategory = String(error?.category || 'capability-probe-failed');
                 try {
                     await query(GRAPHQL_CURRENT_SHAPE_PROBE, {}, {
@@ -374,6 +344,7 @@
                         operation: 'current-shape-probe',
                         timeoutMs: Number(options.timeoutMs) || 6000
                     });
+                    if (!isCurrent()) return capabilitySnapshot;
                     base.endpointAvailable = true;
                     base.query.docker = true;
                     base.query.containers = true;
@@ -389,6 +360,7 @@
                     });
                     base.state = 'limited';
                 } catch (_currentError) {
+                    if (!isCurrent()) return capabilitySnapshot;
                     try {
                         await query(GRAPHQL_LEGACY_SHAPE_PROBE, {}, {
                             ...options,
@@ -396,6 +368,7 @@
                             operation: 'legacy-shape-probe',
                             timeoutMs: Number(options.timeoutMs) || 6000
                         });
+                        if (!isCurrent()) return capabilitySnapshot;
                         base.endpointAvailable = true;
                         base.query.dockerContainers = true;
                         base.query.shape = 'dockerContainers';
@@ -410,6 +383,7 @@
                         });
                         base.state = 'limited';
                     } catch (shapeError) {
+                        if (!isCurrent()) return capabilitySnapshot;
                         base.state = 'unavailable';
                         base.lastErrorCategory = String(shapeError?.category || base.lastErrorCategory);
                     }
@@ -429,6 +403,7 @@
                     // Version telemetry is optional and does not invalidate Docker capabilities.
                 }
             }
+            if (!isCurrent()) return capabilitySnapshot;
             capabilitySnapshot = freezeCapabilitySnapshot(base);
             record('capability-probe', {
                 ok: capabilitySnapshot.endpointAvailable,
@@ -453,7 +428,7 @@
             });
             return capabilitySnapshot;
         })().finally(() => {
-            capabilityProbePromise = null;
+            if (isCurrent()) capabilityProbePromise = null;
         });
         return capabilityProbePromise;
     };

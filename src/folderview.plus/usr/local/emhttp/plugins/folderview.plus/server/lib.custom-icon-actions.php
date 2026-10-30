@@ -347,14 +347,14 @@ function handleCustomIconStatsAction(): array {
 }
 
 function handleCustomIconDeleteAction(): array {
-    return withCustomIconLock(true, static function (): array {
+    return withCustomIconLock(true, static fn(): array => withConfigMutationLock(static function (): array {
         $customDir = ensureCustomIconDirExists();
         $name = normalizeCustomIconFileNameInput((string)($_POST['name'] ?? ''));
         $path = "$customDir/$name";
         if (!is_file($path) || is_link($path)) {
             throw new RuntimeException('Icon not found.');
         }
-        $usageMap = customIconUsageMap();
+        $usageMap = customIconUsageMap(true);
         $refs = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];
         if (count($refs) > 0) {
             $previewNames = array_map(
@@ -379,7 +379,7 @@ function handleCustomIconDeleteAction(): array {
             'stats' => customIconStorageStats($customDir),
             'health' => customIconDirectoryHealth()
         ];
-    });
+    }));
 }
 
 function handleCustomIconRenameAction(): array {

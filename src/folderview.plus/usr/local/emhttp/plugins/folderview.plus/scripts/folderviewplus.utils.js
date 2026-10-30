@@ -69,7 +69,7 @@
         buildFullExportPayload: api.buildFullExportPayload,
         buildSingleExportPayload: api.buildSingleExportPayload,
         parseImportPayload: api.parseImportPayload,
-        summarizeImport: api.summarizeImport,
+        buildImportPlan: api.buildImportPlan, summarizeImport: api.summarizeImport,
         buildImportOperations: api.buildImportOperations,
         buildImportDiffRows: api.buildImportDiffRows,
         diffFolderFields: api.diffFolderFields,

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "import",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "import.subtitle": "Vyberte, jak zacházet se stávajícími složkami. Nic se nezmění, dokud nevyberete možnost Použít import.",
     "import.behavior.question": "Jak by se mělo zacházet se stávajícími složkami?",

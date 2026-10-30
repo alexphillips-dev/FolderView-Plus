@@ -1,12 +1,12 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./docker.runtime.container-model.js'));
         return;
     }
-    root.FolderViewPlusDockerCommandView = factory();
+    root.FolderViewPlusDockerCommandView = factory(root.FolderViewPlusDockerContainerModel);
     root.FolderViewPlusDockerCommandViewModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(containerModel) {
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
@@ -20,6 +20,7 @@
         const doc = deps.document || win?.document || (typeof document !== 'undefined' ? document : null);
         const jq = deps.$ || win?.jQuery || win?.$;
         const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
+        const grouping = deps.grouping || win?.FolderViewPlusFoundationModules?.dockerFolderGrouping || null;
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : ((value) => String(value ?? '')
@@ -140,6 +141,7 @@
         let rootNode = null;
         let clickHandler = null;
         let renderToken = 0;
+        let nativeRowIndex = null;
 
         const getHostTable = () => doc?.querySelector('table#docker_containers') || null;
         const isFolderToken = (value) => String(value || '').trim().startsWith('folder-');
@@ -214,11 +216,9 @@
             return 'stopped';
         };
 
-        const containerHasUpdate = (entry = {}) => (
-            entry?.update === true
-            || entry?.Updated === true
-            || entry?.info?.State?.Updated === true
-        );
+        const containerHasUpdate = (entry = {}) => typeof entry.update === 'boolean'
+            ? entry.update
+            : containerModel.normalizeContainer(entry).isUpdateAvailable;
 
         const getContainerStateMeta = (entry = {}) => {
             const state = resolveContainerState(entry);
@@ -256,24 +256,7 @@
 
         const getNativeMemberRow = (containerName) => {
             const safeName = String(containerName || '').trim();
-            if (!safeName || !doc) {
-                return null;
-            }
-            const sourceRow = doc.getElementById(`ct-${safeName}`);
-            if (sourceRow instanceof HTMLElement && sourceRow.classList.contains('sortable')) {
-                return sourceRow;
-            }
-            const rows = doc.querySelectorAll('#docker_list > tr.sortable');
-            for (const row of rows) {
-                if (!(row instanceof HTMLElement) || row.classList.contains('folder')) {
-                    continue;
-                }
-                const textName = String(row.querySelector('td.ct-name .appname')?.textContent || '').trim();
-                if (textName === safeName) {
-                    return row;
-                }
-            }
-            return null;
+            return safeName ? nativeRowIndex?.find(safeName) || null : null;
         };
 
         const getNativeMemberTrigger = (containerName) => {
@@ -490,6 +473,10 @@
             if (!(root instanceof HTMLElement)) {
                 return false;
             }
+            nativeRowIndex = grouping?.createNativeRowIndex({
+                document: doc, containersInfo: snapshot.runtimeInfoByName,
+                rowSelector: '#docker_list > tr.sortable:not(.folder)'
+            }) || null;
             const cards = buildFolderCards(snapshot);
             const runtimeEntries = Object.values(snapshot.runtimeInfoByName || {});
             const activeFolders = cards.filter((card) => card.running > 0).length;
@@ -774,6 +761,7 @@
 
         const unmount = () => {
             renderToken += 1;
+            nativeRowIndex = null;
             clearRoot();
             setHostTableHidden(false);
             setMounted(false);

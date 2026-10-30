@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Виправте недійсні правила перед застосуванням попереднього перегляду.",
     "common.server.rules-save-invalid": "Виправте недійсні правила перед збереженням.",
     "common.repair.rules-preview-no-changes": "Для цього попереднього перегляду не потрібно змінювати призначення.",
-    "common.repair.rules-preview-moves-manual": "Існуючі призначення вручну буде переміщено до попередньо переглянутих папок."
+    "common.repair.rules-preview-moves-manual": "Існуючі призначення вручну буде переміщено до попередньо переглянутих папок.",
+    "common.server.legacy-regex-managed-unsupported": "Застарілий регулярний вираз не підтримується керованими правилами та не може бути перетворений.",
+    "common.server.environment-format-unsupported": "Формат знімка середовища або версія схеми не підтримується.",
+    "common.server.environment-sections-missing": "У знімку середовища відсутні необхідні розділи.",
+    "common.server.environment-folder-data-invalid": "Знімок середовища містить недійсні дані папки.",
+    "common.server.rollback-format-unsupported": "Формат знімка відкату або версія схеми не підтримується.",
+    "common.server.rollback-type-data-missing": "У знімку відкоту відсутні необхідні дані типу.",
+    "common.server.rollback-theme-workspace-invalid": "Знімок відкату містить недійсні дані робочої області теми.",
+    "common.server.folder-batch-verification": "Не вдалося перевірити пакетну транзакцію папки.",
+    "common.server.bulk-assignment-verification": "Не вдалося перевірити трансакцію масового призначення."
 }

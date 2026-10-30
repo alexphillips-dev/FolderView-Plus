@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib.validation.php';
 function normalizeEnvironmentSnapshotPayload($payload): array {
         if (!is_array($payload)) {
             throw new RuntimeException('Environment snapshot must be a JSON object.');
@@ -112,18 +113,18 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
         if (!is_array($decoded)) {
             throw new RuntimeException('Environment snapshot is not valid JSON.');
         }
-        return normalizeEnvironmentSnapshotPayload($decoded);
+        return validatePublicEnvironmentSnapshotPayload($decoded);
     }
 
     function previewEnvironmentSnapshotPayload(array $snapshot, string $sourceName = ''): array {
-        $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+        $normalized = validatePublicEnvironmentSnapshotPayload($snapshot);
         return [
             'summary' => buildEnvironmentSnapshotSummary($normalized, $sourceName)
         ];
     }
 
     function importEnvironmentSnapshotPayload(array $snapshot, string $sourceName = ''): array {
-        $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+        $normalized = validatePublicEnvironmentSnapshotPayload($snapshot);
         $result = applyEnvironmentSnapshotTransaction($normalized, $sourceName, ['reason' => 'environment-import']);
         $summary = (array)$result['summary'];
 

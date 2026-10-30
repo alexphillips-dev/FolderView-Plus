@@ -13,6 +13,24 @@
             "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.backup-snapshots.php",
             "symbol": "createCoalescedPrefsBackupSnapshot",
             "line": 166
+        },
+        {
+            "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.custom-icon-endpoint-foundation.php",
+            "symbol": "normalizeCustomIconReferencePath",
+            "line": 186,
+            "reason": "Historical public PHP compatibility shim; internal custom icon references use the shared reference policy."
+        },
+        {
+            "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics-integrity.php",
+            "symbol": "diagnosticsCustomIconNameFromIconValue",
+            "line": 144,
+            "reason": "Historical public PHP compatibility shim; internal custom icon references use the shared reference policy."
+        },
+        {
+            "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.custom-icon-endpoint-foundation.php",
+            "symbol": "customIconLockPath",
+            "line": 114,
+            "reason": "Historical public PHP compatibility shim; icon locking now belongs to the shared custom icon storage owner."
         }
     ]
 }

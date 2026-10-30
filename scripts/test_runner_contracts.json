@@ -32,6 +32,10 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
+    { "file": "tests/browser/helpers/docker-config-fixture-state.mjs", "limit": 50, "owner": "shared Docker fixture configuration snapshots and atomic revision guards" },
+    { "file": "tests/browser/helpers/docker-hierarchy-move-interactions.mjs", "limit": 50, "owner": "native hierarchy menu and interaction fixture adapters" },
+    { "file": "tests/browser/cases/engine-identity.mjs", "limit": 65, "owner": "production preview identity and native action regression" },
     { "file": "tests/browser/cases/neoraid.mjs", "limit": 80, "owner": "pinned NeoRaid Settings, palette and native switch regressions" },
     { "file": "tests/browser/helpers/neoraid.mjs", "limit": 80, "owner": "isolated pinned NeoRaid stylesheet and script fixture" },
     { "file": "tests/browser/helpers/docker-detail-hydration.mjs", "limit": 100, "owner": "production detail hydration with native switch lifetime" },
@@ -199,9 +203,13 @@
         "tests/browser/cases/host-theme-matrix.mjs",
         "tests/browser/cases/host-theme-accessibility.mjs",
         "tests/browser/cases/host-theme-maintainer.mjs",
-        "tests/browser/cases/settings-themes.mjs"
+        "tests/browser/cases/settings-themes.mjs",
+        "tests/browser/cases/engine-identity.mjs",
+        "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/docker-config-fixture-state.mjs",
+        "tests/browser/helpers/docker-hierarchy-move-interactions.mjs",
         "tests/browser/helpers/neoraid.mjs",
         "tests/browser/helpers/docker-detail-hydration.mjs",
         "tests/browser/helpers/docker-native-switch.mjs",
@@ -240,10 +248,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 143,
-      "assertionCount": 1840,
-      "pageEvaluateCount": 571,
-      "orderedTitleSha256": "87ce5fd7530ec58b24ffc9dc9e1a26f523a72a494f2fc9bfa7c6e53e18390f71"
+      "testCount": 144,
+      "assertionCount": 1862,
+      "pageEvaluateCount": 573,
+      "orderedTitleSha256": "c8801d00c5800796cfe0ce6739e7435aa71143e23459abe8508d8af34bab1710"
     }
   }
 }

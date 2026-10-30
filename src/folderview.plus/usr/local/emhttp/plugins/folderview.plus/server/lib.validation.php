@@ -24,6 +24,29 @@ if (!function_exists('fvplus_validation_assert_list_of_scalarish')) {
     }
 }
 
+    function validatePublicEnvironmentSnapshotPayload(array $payload): array {
+        if (($payload['kind'] ?? null) !== FVPLUS_ENVIRONMENT_SNAPSHOT_KIND
+            || ($payload['schemaVersion'] ?? null) !== FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION) {
+            throw new RuntimeException('Environment snapshot format or schema version is unsupported.');
+        }
+        if (!is_array($payload['types'] ?? null) || !is_array($payload['themeWorkspace'] ?? null)) {
+            throw new RuntimeException('Environment snapshot is missing required sections.');
+        }
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $entry = $payload['types'][$type] ?? null;
+            if (!is_array($entry) || !is_array($entry['folders'] ?? null) || !is_array($entry['prefs'] ?? null)) {
+                throw new RuntimeException('Environment snapshot is missing required type data.');
+            }
+            foreach ($entry['folders'] as $id => $folder) {
+                if (trim((string)$id) === '' || !is_array($folder)) {
+                    throw new RuntimeException('Environment snapshot contains invalid folder data.');
+                }
+            }
+        }
+        return normalizeEnvironmentSnapshotPayload($payload);
+    }
+
+
 if (!function_exists('fvplus_validation_assert_assoc_map')) {
     function fvplus_validation_assert_assoc_map($value, string $path, int $maxItems = 5000): void {
         if (!is_array($value)) {

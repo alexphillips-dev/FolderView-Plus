@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Korrigieren Sie ungültige Regeln, bevor Sie die Vorschau anwenden.",
     "common.server.rules-save-invalid": "Korrigieren Sie ungültige Regeln vor dem Speichern.",
     "common.repair.rules-preview-no-changes": "Für diese Vorschau sind keine Zuweisungsänderungen erforderlich.",
-    "common.repair.rules-preview-moves-manual": "Vorhandene manuelle Zuweisungen werden in die Vorschauordner verschoben."
+    "common.repair.rules-preview-moves-manual": "Vorhandene manuelle Zuweisungen werden in die Vorschauordner verschoben.",
+    "common.server.legacy-regex-managed-unsupported": "Der alte reguläre Ausdruck wird von verwalteten Regeln nicht unterstützt und kann nicht konvertiert werden.",
+    "common.server.environment-format-unsupported": "Das Format oder die Schemaversion des Umgebungs-Snapshots wird nicht unterstützt.",
+    "common.server.environment-sections-missing": "Im Umgebungs-Snapshot fehlen erforderliche Abschnitte.",
+    "common.server.environment-folder-data-invalid": "Der Umgebungs-Snapshot enthält ungültige Ordnerdaten.",
+    "common.server.rollback-format-unsupported": "Das Rollback-Snapshot-Format oder die Schemaversion wird nicht unterstützt.",
+    "common.server.rollback-type-data-missing": "Beim Rollback-Snapshot fehlen die erforderlichen Typdaten.",
+    "common.server.rollback-theme-workspace-invalid": "Der Rollback-Snapshot enthält ungültige Theme-Workspace-Daten.",
+    "common.server.folder-batch-verification": "Die Überprüfung der Ordner-Batch-Transaktion ist fehlgeschlagen.",
+    "common.server.bulk-assignment-verification": "Die Überprüfung der Massenzuweisungstransaktion ist fehlgeschlagen."
 }

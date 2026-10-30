@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "docker",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
+    "docker.folder.move-reload": "資料夾配置已更改。再次移動資料夾之前重新整理。",
     "docker.actions.label": "資料夾檢視操作",
     "docker.actions.add-folder": "新增資料夾",
     "docker.actions.expand-all": "全部展開",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "미리보기를 적용하기 전에 잘못된 규칙을 수정하세요.",
     "common.server.rules-save-invalid": "저장하기 전에 잘못된 규칙을 수정하세요.",
     "common.repair.rules-preview-no-changes": "이 미리보기에는 할당 변경이 필요하지 않습니다.",
-    "common.repair.rules-preview-moves-manual": "기존 수동 할당은 미리보기 폴더로 이동됩니다."
+    "common.repair.rules-preview-moves-manual": "기존 수동 할당은 미리보기 폴더로 이동됩니다.",
+    "common.server.legacy-regex-managed-unsupported": "레거시 정규식은 관리형 규칙에서 지원되지 않으며 변환할 수 없습니다.",
+    "common.server.environment-format-unsupported": "환경 스냅샷 형식 또는 스키마 버전이 지원되지 않습니다.",
+    "common.server.environment-sections-missing": "환경 스냅샷에 필수 섹션이 누락되었습니다.",
+    "common.server.environment-folder-data-invalid": "환경 스냅샷에 잘못된 폴더 데이터가 포함되어 있습니다.",
+    "common.server.rollback-format-unsupported": "롤백 스냅샷 형식 또는 스키마 버전은 지원되지 않습니다.",
+    "common.server.rollback-type-data-missing": "롤백 스냅샷에 필수 유형 데이터가 누락되었습니다.",
+    "common.server.rollback-theme-workspace-invalid": "롤백 스냅샷에 잘못된 테마 작업 공간 데이터가 포함되어 있습니다.",
+    "common.server.folder-batch-verification": "폴더 일괄 트랜잭션 검증에 실패했습니다.",
+    "common.server.bulk-assignment-verification": "대량 할당 트랜잭션 검증에 실패했습니다."
 }

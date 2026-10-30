@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "1f0d338d9d882eade0b60eb6d0531cf577e99a6aba7bea3ea79de30317b7cc2f"
+        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -742,5 +742,14 @@
     "common.server.rules-preview-invalid": "Corectați regulile nevalide înainte de a aplica previzualizarea.",
     "common.server.rules-save-invalid": "Corectați regulile nevalide înainte de a salva.",
     "common.repair.rules-preview-no-changes": "Nu sunt necesare modificări ale sarcinii pentru această previzualizare.",
-    "common.repair.rules-preview-moves-manual": "Atribuțiile manuale existente vor fi mutate în folderele previzualizate."
+    "common.repair.rules-preview-moves-manual": "Atribuțiile manuale existente vor fi mutate în folderele previzualizate.",
+    "common.server.legacy-regex-managed-unsupported": "Expresia regex moștenită nu este acceptată de regulile gestionate și nu poate fi convertită.",
+    "common.server.environment-format-unsupported": "Formatul instantaneu al mediului sau versiunea schemei nu este acceptată.",
+    "common.server.environment-sections-missing": "În instantaneu de mediu lipsesc secțiuni obligatorii.",
+    "common.server.environment-folder-data-invalid": "Instantaneul de mediu conține date nevalide ale folderului.",
+    "common.server.rollback-format-unsupported": "Formatul instantaneu de rollback sau versiunea schemei nu este acceptată.",
+    "common.server.rollback-type-data-missing": "Din instantaneul de rollback lipsesc datele de tip obligatoriu.",
+    "common.server.rollback-theme-workspace-invalid": "Instantaneul rollback conține date nevalide ale spațiului de lucru temă.",
+    "common.server.folder-batch-verification": "Verificarea tranzacției în lot a dosarului a eșuat.",
+    "common.server.bulk-assignment-verification": "Verificarea tranzacției de atribuire în bloc a eșuat."
 }

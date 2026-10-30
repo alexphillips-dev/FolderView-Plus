@@ -137,26 +137,26 @@ function diagnosticsHashShort(string $value): string {
     }
 
     function diagnosticsSupportBundleRedactRecentTimelineSummary(string $summary, array &$redactor): string {
-        if (($redactor['mode'] ?? 'sanitized') === 'full' || trim($summary) === '') {
-            return $summary;
+        if (($redactor['mode'] ?? 'sanitized') === 'full' || trim($summary) === '') return $summary;
+        // Parse only the summary's authored fields. Values may themselves contain commas.
+        preg_match_all('/(?:^|,\s*)([A-Za-z]+)=(.*?)(?=,\s*[A-Za-z]+=|$)/s', $summary, $parts, PREG_SET_ORDER);
+        $safe = [];
+        foreach ($parts as $part) {
+            $key = $part[1]; $value = trim($part[2]);
+            if (in_array($key, ['folderCount', 'itemCount'], true) && ctype_digit($value)) {
+                $safe[] = $key . '=' . $value;
+            } elseif (in_array($key, ['name', 'folderId', 'reason'], true) && $value !== '') {
+                $safe[] = $key . 'Hash=' . diagnosticsSupportBundleHashValue($redactor,
+                    'healthAndHistory.recentTimeline.*.summary.' . $key . 'Hash', $value);
+            } elseif (in_array($key, ['skipReason', 'failureReason', 'historyStorage'], true)
+                && in_array($value, ['unchanged-config', 'empty-folder-map', 'backup-check-failed', 'memory'], true)) {
+                $safe[] = $key . '=' . $value;
+            }
         }
-        return (string)preg_replace_callback(
-            '/\\b(name|folderId)=([^,]+)/',
-            static function (array $matches) use (&$redactor): string {
-                $label = (string)($matches[1] ?? 'value');
-                $value = trim((string)($matches[2] ?? ''));
-                if ($value === '') {
-                    return $label . '=';
-                }
-                return $label . 'Hash=' . (diagnosticsSupportBundleHashValue(
-                    $redactor,
-                    'healthAndHistory.recentTimeline.*.summary.' . $label . 'Hash',
-                    $value
-                ) ?? '');
-            },
-            $summary
-        );
+        diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', 'healthAndHistory.recentTimeline.*.summary');
+        return implode(', ', $safe);
     }
+
 
     function diagnosticsSupportBundleActionTargetValue(array $details): string {
         foreach (['folderId', 'id', 'name', 'folderName', 'item', 'reason'] as $key) {
@@ -179,10 +179,10 @@ function diagnosticsHashShort(string $value): string {
             $targetValue = diagnosticsSupportBundleActionTargetValue($details);
             $row = [
                 'timestamp' => (string)($event['timestamp'] ?? ''),
-                'action' => (string)($event['action'] ?? ''),
-                'type' => $event['type'] ?? null,
-                'status' => (string)($event['status'] ?? 'ok'),
-                'source' => (string)($event['source'] ?? 'server'),
+                'action' => diagnosticsSupportBundleEventLabel((string)($event['action'] ?? ''), 'action', 'healthAndHistory.recentActions.*.action', $redactor),
+                'type' => isset($event['type']) ? diagnosticsSupportBundleEventLabel((string)$event['type'], 'type', 'healthAndHistory.recentActions.*.type', $redactor) : null,
+                'status' => diagnosticsSupportBundleEventLabel((string)($event['status'] ?? 'ok'), 'status', 'healthAndHistory.recentActions.*.status', $redactor),
+                'source' => diagnosticsSupportBundleEventLabel((string)($event['source'] ?? 'server'), 'source', 'healthAndHistory.recentActions.*.source', $redactor),
                 'target' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
                     ? ($targetValue !== '' ? $targetValue : null)
                     : null,
@@ -193,7 +193,7 @@ function diagnosticsHashShort(string $value): string {
                         $targetValue
                     )
                     : null,
-                'detailKeys' => array_slice(array_values(array_map('strval', array_keys($details))), 0, 24)
+                'detailKeys' => array_slice(array_values(array_map('strval', array_keys(diagnosticsSupportBundleRedactEventDetails($details, 'healthAndHistory.recentActions.*.details', $redactor)))), 0, 24)
             ];
             if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full' && $targetValue !== '') {
                 diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', 'healthAndHistory.recentActions.*.target');
@@ -282,56 +282,6 @@ function diagnosticsHashShort(string $value): string {
         return $redacted;
     }
 
-    function diagnosticsSupportBundleRedactEventDetails($value, string $fieldPath, array &$redactor, int $depth = 0) {
-        if (($redactor['mode'] ?? 'sanitized') === 'full') {
-            return $value;
-        }
-        if ($depth > 6) {
-            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', $fieldPath);
-            return null;
-        }
-        if (!is_array($value)) {
-            return $value;
-        }
-
-        $sanitized = [];
-        foreach ($value as $key => $entry) {
-            $key = (string)$key;
-            $entryPath = $fieldPath . '.' . $key;
-            $lowerKey = strtolower($key);
-
-            if (is_array($entry)) {
-                $sanitized[$key] = diagnosticsSupportBundleRedactEventDetails($entry, $entryPath, $redactor, $depth + 1);
-                continue;
-            }
-
-            if (!is_string($entry)) {
-                $sanitized[$key] = $entry;
-                continue;
-            }
-
-            if (in_array($lowerKey, ['name', 'foldername', 'item', 'hostname', 'host', 'url', 'uri', 'useragent'], true)) {
-                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
-                $sanitized[$key] = diagnosticsSupportBundleRedactScalar($redactor, $entryPath, $entry);
-                continue;
-            }
-
-            if (in_array($lowerKey, ['path', 'folderpath', 'prefspath'], true)) {
-                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
-                $sanitized[$key] = diagnosticsSupportBundleRedactScalar($redactor, $entryPath, $entry, true);
-                continue;
-            }
-
-            if (in_array($lowerKey, ['ip', 'clientip', 'address'], true)) {
-                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
-                $sanitized[$key] = diagnosticsSupportBundleMaskIpValue($redactor, $entryPath, $entry);
-                continue;
-            }
-
-            $sanitized[$key] = $entry;
-        }
-        return $sanitized;
-    }
 
     function diagnosticsSupportBundleRedactPathHealth(array $pathHealth, string $fieldPath, array &$redactor): array {
         $sanitized = $pathHealth;

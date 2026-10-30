@@ -184,7 +184,11 @@ test('runtime refresh uses API-first reads and lightweight PHP fallback snapshot
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
-    assert.match(dockerJs, /getDockerApiIntegration\(\)\?\.refresh\?\.\(options\)/);
+    assert.match(dockerJs, /const integration = getDockerApiIntegration\(\);/);
+    assert.match(dockerJs, /const method = options\.apiMethod === 'tick' \? 'tick' : 'refresh';/);
+    assert.match(dockerJs, /const applied = await integration\?\.\[method\]\?\.\(guardedOptions\);/);
+    assert.match(dockerJs, /if \(applied === true\) return true;/);
+    assert.match(dockerJs, /return refreshDockerRuntimeStateFromPhp\(\{ \.\.\.guardedOptions, apiFirst: false \}\);/);
     assert.doesNotMatch(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'check'/);
     assert.match(vmJs, /runtimeSnapshotApi\.buildUrl\('vm', 'check'/);
     assert.match(dashboardJs, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'check'/);

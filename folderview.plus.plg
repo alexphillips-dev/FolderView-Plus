@@ -5,18 +5,33 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.30.04">
-<!ENTITY md5 "509ac6a14e5f2da91ef6d39563eb6d45">
-<!ENTITY sha256 "d46bbfa8d80287c44b3dd1a908144c4adb58073bdf72611db2386f25d2385746">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.10.30.05">
+<!ENTITY md5 "2ec11381c8cceec367a36ad411fbf42b">
+<!ENTITY sha256 "48c1e603b8f07bf49f19f3d5c1fffaad41631d1805b60c571b77f927c91c4e63">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.30.05
+- Fix: Stop repeated idle Docker list rebuilds and autostart-switch animations when deferred container details are incomplete or conflict with current state. This correction applies with or without Aurora.
+- Reliability: Preserve accepted Docker identities, folder membership, images, labels, and newer state while loading details. Ignore stale details for removed or replaced containers and retain PHP fallback when API reads cannot be applied.
+- Fix: Keep Docker preview actions attached to the correct container when hidden members, renamed rows, shortened IDs, or ambiguous identities are present. Preserve manual assignments during hierarchy moves and prevent delayed preference responses from replacing newer state.
+- Fix: Use the saved-rule evaluator for previews and legacy conversion, rejecting unsupported expressions before changing stored rules. Escape folder names in destructive confirmations.
+- Reliability: Validate complete environment imports before preview or apply, resolve identities consistently, and compare all restored preferences. Restore folders, preferences, revisions, recovery mirrors, generated themes, and native Docker order together after failed transactions; keep rapid rollback checkpoints distinct and protect the selected checkpoint during restore.
+- Fix: Make custom-icon usage, rename, delete, diagnostics, and repair agree on references in folders, folder defaults, and saved groups. Serialize icon/configuration changes and preserve state after repair failures.
+- Compatibility: Add active NeoRaid host-theme recognition and bounded theme diagnostics, preserve readable light-mode update badges, and keep native Docker/VM Sort controls fully clickable with keyboard support.
+- Fix: Prevent Aurora header icons from supplying unsuitable Settings button sizes. Restore consistent button spacing and center icons beside captions across Windows and Linux browsers while preserving mobile and touch sizing.
+- Fix: Keep Basic Settings tree-move icons centered beside drag handles despite host button padding, and remove duplicate host page headings above the FolderView Plus title while preserving native actions and navigation.
+- Privacy: Redact nested missing-icon references and unexpected diagnostic history fields in sanitized bundles. Stop mistaking version numbers for private IP addresses and preserve versions in diagnostic messages while correctly masking complete private IPv4 addresses.
+- Diagnostics: Include privacy-safe counts for missing, conflicting, and skipped Docker details to help distinguish remaining refresh problems.
+- Compatibility: Hard-refresh the webGUI after updating. Recheck idle Docker behavior, autostart switches, Start/Stop actions, WebUI shortcuts, rule membership, and neighboring Settings, VM, and Dashboard pages. Export a new sanitized support bundle if a problem remains.
+
 
 ###2026.10.30.04
 - Fix: Center Settings toolbar icons beside their captions consistently across Windows and Linux browsers, including Aurora, NeoRaid, and native themes. Preserve desktop, mobile, and touch control sizing.
@@ -9998,7 +10013,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

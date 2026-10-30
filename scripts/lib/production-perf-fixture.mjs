@@ -5,7 +5,7 @@ import http from 'node:http';
 const prefix = '/plugins/folderview.plus/';
 const meta = (name, value) => `<meta name="${name}" content='${JSON.stringify(value).replaceAll("'", '&#39;')}'>`;
 const script = file => `<script src="${file}?v=benchmark"></script>`;
-export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') => {
+export const createProductionPerfFixture = (rootDir, scenario, locale = 'en', { transformResponse = (_pathname, body) => body } = {}) => {
     const plugin = path.join(rootDir, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
     const read = file => fs.readFileSync(path.join(plugin, file), 'utf8');
     const folders = {}, runtime = {}, names = [];
@@ -66,7 +66,7 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
         const send = (body, type = 'application/json', cache = false) => {
             res.writeHead(200, { 'Content-Type': type, 'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',
                 'Content-Security-Policy': "connect-src 'self'; img-src 'self' data:; frame-src 'none'; form-action 'none'" });
-            res.end(type === 'application/json' ? JSON.stringify(body) : body);
+            res.end(transformResponse(url.pathname, type === 'application/json' ? JSON.stringify(body) : body));
         };
         if (url.pathname === '/settings' || url.pathname === '/docker') return send(page(url.pathname.slice(1)), 'text/html');
         if (url.pathname === '/graphql') return send({ errors: [{ message: 'Synthetic legacy host has no GraphQL service.' }] });

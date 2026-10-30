@@ -73,6 +73,8 @@
     { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
     { "file": "tests/browser/helpers/icon-pack-filters.mjs", "limit": 65, "owner": "Icon Packs filter dropdown layout, checkbox filtering and lifecycle" },
     { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
+    { "file": "tests/browser/helpers/settings-order-controls.mjs", "limit": 85, "owner": "Native, Aurora and NeoRaid Basic tree-control geometry and interaction", "requiredImports": ["./host-theme.mjs", "./neoraid.mjs"] },
+    { "file": "tests/browser/helpers/settings-host-heading.mjs", "limit": 85, "owner": "Scoped native and Aurora Settings headings with action and navigation preservation" },
     {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
     {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
@@ -243,6 +245,8 @@
         "tests/browser/helpers/advanced-title-badges.mjs",
         "tests/browser/helpers/settings-alerts-health-layout.mjs",
         "tests/browser/helpers/settings-hide-empty-host.mjs",
+        "tests/browser/helpers/settings-order-controls.mjs",
+        "tests/browser/helpers/settings-host-heading.mjs",
         "tests/browser/helpers/docker-hide-empty-host.mjs",
         "tests/browser/helpers/docker-expansion-cleanup.mjs",
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
@@ -254,8 +258,8 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 145,
-      "assertionCount": 1876,
-      "pageEvaluateCount": 587,
+      "assertionCount": 1899,
+      "pageEvaluateCount": 601,
       "orderedTitleSha256": "442a1729bd6d98970e3613240c08e0a965cb3290bcc16dee78d2877e1e46f4db"
     }
   }

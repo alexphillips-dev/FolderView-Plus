@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHideEmptySettingsHost } from '../helpers/settings-hide-empty-host.mjs';
+import { verifySettingsOrderControls } from '../helpers/settings-order-controls.mjs';
 
 export const registerSettingsNestedDisplayCases = ({ test }) => {
     for (const type of ['docker', 'vm']) {
@@ -73,6 +74,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 });
                 assert.equal(layout.overflow, false);
                 assert.ok(layout.iconRight <= layout.cellRight, 'nested artwork must fit inside the Name column');
+                await verifySettingsOrderControls(page, host.url, type);
             } finally { await host.close(); }
         }, { skipAccessibility: true });
     }

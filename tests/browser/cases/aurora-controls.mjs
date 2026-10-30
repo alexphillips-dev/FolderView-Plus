@@ -3,12 +3,14 @@ import fs from 'node:fs';
 import { installHost, switchHost } from '../helpers/host-theme.mjs';
 import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
 import { installSettingsIconFont, verifySettingsIconAlignment } from '../helpers/settings-icons.mjs';
+import { verifySettingsHostHeading } from '../helpers/settings-host-heading.mjs';
 
 const controlsCss=fs.readFileSync(new URL('../fixtures/vendor/aurora-controls.css',import.meta.url),'utf8');
 export const registerAuroraControlCases = ({test,baseUrl}) => {
 test('Host theme Aurora header icons cannot resize Settings actions', async ({page}) => {
     await page.setViewportSize({width:1180,height:720});
     await page.goto(`${baseUrl}/settings`,{waitUntil:'load'});
+    await verifySettingsHostHeading(page);
     await installSettingsIconFont(page);
     await page.addStyleTag({content:controlsCss+'\nhtml{font-size:10px;--tp-font-heading:Arial,sans-serif}body{font-size:13px}'});
     await page.evaluate(()=>{

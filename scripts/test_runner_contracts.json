@@ -6,6 +6,7 @@
       "limit": 59,
       "history": [1846, 59],
       "requiredImports": [
+        "../tests/browser/cases/aurora-controls.mjs",
         "../tests/browser/cases/neoraid.mjs",
         "./lib/fixture-browser-server.mjs",
         "./lib/fixture-browser-runner.mjs",
@@ -32,6 +33,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/aurora-controls.mjs", "limit": 80, "owner": "Aurora header icon sampling and compact Settings control regressions" },
     { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
     { "file": "tests/browser/helpers/docker-config-fixture-state.mjs", "limit": 50, "owner": "shared Docker fixture configuration snapshots and atomic revision guards" },
     { "file": "tests/browser/helpers/docker-hierarchy-move-interactions.mjs", "limit": 50, "owner": "native hierarchy menu and interaction fixture adapters" },
@@ -140,6 +142,7 @@
   "intent": {
     "fixture": {
       "files": [
+        "tests/browser/cases/aurora-controls.mjs",
         "tests/browser/cases/neoraid.mjs",
         "tests/browser/cases/backup-schedule.mjs",
         "tests/browser/cases/folder-editor-help.mjs",
@@ -248,10 +251,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 144,
-      "assertionCount": 1862,
-      "pageEvaluateCount": 573,
-      "orderedTitleSha256": "c8801d00c5800796cfe0ce6739e7435aa71143e23459abe8508d8af34bab1710"
+      "testCount": 145,
+      "assertionCount": 1870,
+      "pageEvaluateCount": 585,
+      "orderedTitleSha256": "442a1729bd6d98970e3613240c08e0a965cb3290bcc16dee78d2877e1e46f4db"
     }
   }
 }

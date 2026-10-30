@@ -7,12 +7,13 @@
     'use strict';
     // Only native controls can supply host metrics. Never sample a resolved plugin control.
     const OWNED = '#fv-settings-root, #fvFolderEditorForm, #fvEditorChrome, .folder-editor-form, .folder, .folder-storage, .folder-showcase-outer, [class^="fv-"]:not(body,html), [class*=" fv-"]:not(body,html), [class^="fvplus-"]:not(body,html), [class*=" fvplus-"]:not(body,html)';
-    const findNative = (doc, win, selectors) => {
+    const findNative = (doc, win, selectors, accept = null) => {
         for (const selector of selectors) {
             for (const node of Array.from(doc?.querySelectorAll?.(selector) || []).slice(0, 64)) {
                 if (node.closest?.(OWNED) || node.disabled || node.hidden) continue;
                 const style = win.getComputedStyle(node);
                 if (style.display === 'none' || style.visibility === 'hidden' || !node.getClientRects().length) continue;
+                if (accept && !accept(node, style)) continue;
                 return { node, style };
             }
         }
@@ -20,12 +21,15 @@
     };
     const readNativeControls = (doc, win = defaultWindow) => {
         if (!doc || typeof win?.getComputedStyle !== 'function') return null;
-        const button = findNative(doc, win, ['[data-fvplus-theme-native="button"]', 'input[type="button"], input[type="submit"]', 'button']);
+        const button = findNative(doc, win, ['[data-fvplus-theme-native="button"]', 'input[type="button"], input[type="submit"]', 'button'], (node, style) => {
+            // Header icons and accessible names without visible text are not action-button metrics.
+            const label = node.tagName === 'INPUT' ? node.value : node.innerText;
+            const size = parseFloat(style.fontSize), height = node.getBoundingClientRect().height;
+            return /[\p{L}\p{N}]/u.test(String(label || '')) && Number.isFinite(size) && size >= 8 && size <= 32
+                && Number.isFinite(height) && height >= 16 && height <= 80;
+        });
         if (!button) return null;
-        const size = parseFloat(button.style.fontSize);
-        if (!Number.isFinite(size) || size < 8 || size > 32) return null;
         const height = button.node.getBoundingClientRect().height;
-        if (height < 16 || height > 80) return null;
         return { fontFamily: button.style.fontFamily, fontSize: button.style.fontSize,
             fontWeight: button.style.fontWeight, lineHeight: button.style.lineHeight,
             letterSpacing: button.style.letterSpacing, textTransform: button.style.textTransform,

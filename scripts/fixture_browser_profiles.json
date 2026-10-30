@@ -1,4 +1,5 @@
 {
+  "aurora-controls": ["^Host theme Aurora header icons"],
   "engine-stage1": ["^Docker incremental preview buttons", "^Rules", "^Shared UI primitives", "^Docker child-folder preview", "^Filters and view settings"],
   "engine-stage3": ["^Docker Move to root", "Snapshot comparison", "^Import", "import", "^FolderView3", "^Recovery mockup", "^Scheduled backup"],
   "engine-final": ["^Host theme maintainer contract", "^Docker lifecycle reconciliation", "^Docker folder menu opens directly", "^Docker incremental preview", "^Docker Command overview", "^Browser storage restrictions", "^Docker Privacy toggle"],

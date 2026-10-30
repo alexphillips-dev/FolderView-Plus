@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.29.03">
-<!ENTITY md5 "1405939cffb83a09627a169d28a3832d">
-<!ENTITY sha256 "4f46b64a6faa3b73e258a8775ef3b0cd4b7eec38182fdec28c084e0df49bcb6f">
+<!ENTITY version "2026.10.29.04">
+<!ENTITY md5 "46a0d5610206d7eb43650f7b1af2537c">
+<!ENTITY sha256 "da6d125c134aee5eb95fc77c17ada7f0d92500b89a83a9de076e4d09583ad189">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.10.29.04
+- Fix: Prevent Aurora's sun/moon header button from making FolderView Plus Settings actions cramped or oversized. Icon-only controls no longer supply ordinary action-button sizing.
+- UX: Keep Basic, Advanced, Wizard and Docker/VM folder toolbar actions aligned with Edit folder defaults, with consistent text size and spacing across desktop and touch layouts.
+- Compatibility: Continue looking for a usable labelled native action when another control has unsuitable dimensions, and clear previous sizing when no suitable action remains. Host palettes and theme recovery modes remain supported.
+- Compatibility: Hard-refresh the webGUI after updating, then check Settings controls and native Sort selection with Aurora enabled.
+
 
 ###2026.10.29.03
 - Fix: Keep Docker preview actions attached to the correct container when hidden members, shortened IDs, renamed rows, or ambiguous identities are present. Preserve manual folder membership during hierarchy moves.

@@ -10029,6 +10029,13 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 #fv-settings-root .fv-mode-toggle button { height: var(--fv-settings-toolbar-control-height); }
 
+/* Compact Settings controls keep their own text and spacing alongside the defaults link. */
+#fv-settings-root :is(.fv-mode-toggle button, #fv-run-wizard, .folder-toolbar button) {
+    font-size: inherit;
+    font-weight: 700;
+    padding: 0 0.85rem;
+}
+
 #fv-run-wizard {
     align-self: flex-start;
     flex: 0 0 auto;

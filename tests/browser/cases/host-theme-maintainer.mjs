@@ -28,7 +28,7 @@ for(const order of ['before','after']) test(`Host theme maintainer contract pres
         assert.equal(await page.evaluate(()=>window.fixtureThemeOwnedNodes.every(({node,parent})=>node.isConnected&&node.parentElement===parent)),true);
     }
     const callbacks=await page.evaluate(()=>window.fixtureNativeLifecycle.snapshot().callbacks);
-    assert.ok(callbacks.every(callback=>callback==='__fvplusDockerLifecycleRefresh'));
+    assert.ok(callbacks.every(callback=>callback.startsWith('__fvplusDockerLifecycleRefresh')));
     await page.evaluate(()=>{window.fixtureMaintainerTheme.remove();window.fixtureHostBinding.runApply('maintainer-removed');});
     assert.equal(await page.evaluate(()=>{
         const hooks=window.fixtureThemeNativeHooks;

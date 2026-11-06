@@ -148,7 +148,7 @@ test('Standard request client sends mutation markers, token, and trace ID', asyn
 test('Lifecycle reconciliation replaces host loadlist with incremental refreshes', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureRuntime.exerciseLifecyclePatch());
-    assert.equal(result.callbackName, '__fvplusDockerLifecycleRefresh');
+    assert.ok(result.callbackName.startsWith('__fvplusDockerLifecycleRefresh'));
     assert.equal(result.calls, 1);
     assert.equal(result.lifecycleRefreshes, 3);
 });

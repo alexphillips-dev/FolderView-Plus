@@ -241,7 +241,6 @@
         let dockerPostUpdateRuntimePollPending = false;
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
         let dockerPostUpdateRuntimePollRemaining = 0;
-        // Containers refresh independently: a new action only replaces an older refresh of the same container.
         const dockerLifecycleRefreshes = new Map();
         let dockerLifecycleCallbackCount = 0;
         let pendingDockerLifecycleRequest = {};
@@ -579,14 +578,13 @@
         const runDockerLifecycleRefresh = (request = {}) => {
             const action = String(request?.action || '').trim().toLowerCase();
             const refreshKey = String(request?.container || '').trim();
-            const refresh = { settled: false, finalized: false };
+            const refresh = {};
             dockerLifecycleRefreshes.set(refreshKey, refresh);
             const isCurrentRefresh = () => dockerLifecycleRefreshes.get(refreshKey) === refresh;
             const finalizeGeneration = (outcome = {}) => {
-                if (!isCurrentRefresh() || refresh.finalized) {
+                if (!isCurrentRefresh()) {
                     return;
                 }
-                refresh.finalized = true;
                 dockerLifecycleRefreshes.delete(refreshKey);
                 try {
                     finalizeDockerLifecycleSurface(request, outcome);
@@ -605,7 +603,7 @@
                     ? win.setTimeout.bind(win)
                     : setTimeout;
                 schedule(() => {
-                    if (!isCurrentRefresh() || refresh.settled) {
+                    if (!isCurrentRefresh()) {
                         return;
                     }
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
@@ -622,9 +620,6 @@
                                 && restartWarmupPending !== true
                                 && isDockerLifecycleStateSettled
                                 && isDockerLifecycleStateSettled(request) === true;
-                            if (settled) {
-                                refresh.settled = true;
-                            }
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
                                 containerId: String(request?.container || '').trim(),
@@ -702,8 +697,7 @@
                         action: String(request.action || '').trim().toLowerCase(),
                         container: String(request.container || '').trim()
                     };
-                    // The host calls back by name once this action has finished, and a later action can finish first,
-                    // so every action gets a callback of its own that knows its container.
+                    // A later action can finish first, so each action gets a callback that knows its container.
                     const requestCallbackName = `${dockerLifecycleRefreshCallbackName}_${++dockerLifecycleCallbackCount}`;
                     win[requestCallbackName] = () => {
                         delete win[requestCallbackName];

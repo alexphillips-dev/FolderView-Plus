@@ -22,7 +22,7 @@ export const registerDockerNativeLifecycleCases = ({ test, baseUrl }) => {
                 assert.equal(result.menuOpens, index + 1);
             }
             const result = await page.evaluate(() => window.fixtureNativeLifecycle.snapshot());
-            assert.ok(result.callbacks.every((callback) => callback === '__fvplusDockerLifecycleRefresh'));
+            assert.ok(result.callbacks.every((callback) => callback.startsWith('__fvplusDockerLifecycleRefresh')));
             await page.reload({ waitUntil: 'load' });
             await page.locator('[data-fixture-trigger="true"]').click();
             assert.equal(await page.getByRole('button', { name: 'stop', exact: true }).count(), 1);

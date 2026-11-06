@@ -101,7 +101,7 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
     api.bindLifecycleEventControlPatch();
     window.eventControl({ action: 'start', container: 'abc123' }, 'loadlist');
 
-    assert.equal(hostCalls[0][1], '__fvplusDashboardDockerLifecycleRefresh');
+    assert.ok(hostCalls[0][1].startsWith('__fvplusDashboardDockerLifecycleRefresh'));
     assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123' }]);
     assert.deepEqual(scheduled.map(({ delayMs }) => delayMs), [0, 300, 750, 1500, 2500]);
 

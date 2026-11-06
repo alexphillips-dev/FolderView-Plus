@@ -91,14 +91,14 @@ test('Docker lifecycle actions replace the destructive host loadlist callback', 
     const result = harness.window.eventControl({ action: 'stop', container: 'abc123' }, 'loadlist');
     assert.equal(result, 'host-result');
     assert.equal(harness.hostCalls.length, 1);
-    assert.equal(
-        harness.hostCalls[0][1],
-        reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME
-    );
-    assert.notEqual(harness.hostCalls[0][1], 'loadlist');
+    const refreshCallback = harness.hostCalls[0][1];
+    assert.ok(refreshCallback.startsWith(reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME));
+    assert.match(refreshCallback, /^[A-Za-z_$][A-Za-z0-9_$]*$/);
+    assert.notEqual(refreshCallback, 'loadlist');
     assert.equal(typeof harness.window[reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME], 'function');
 
-    harness.window[reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME]();
+    harness.window[refreshCallback]();
+    assert.equal(harness.window[refreshCallback], undefined);
     assert.deepEqual(
         harness.scheduled.map((entry) => entry.delayMs),
         [...reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS]
@@ -116,6 +116,50 @@ test('Docker lifecycle actions replace the destructive host loadlist callback', 
         });
     });
     assert.ok(harness.trace.some((entry) => entry.eventType === 'lifecycleLoadlistIntercepted'));
+});
+
+test('Docker lifecycle refreshes every container when a second action starts during the first', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    harness.window.eventControl({ action: 'start', container: 'second' }, 'loadlist');
+    const [firstCallback, secondCallback] = harness.hostCalls.map((call) => call[1]);
+    assert.notEqual(firstCallback, secondCallback);
+
+    // The second action finishes first, then the first one: the host calls back in that order.
+    harness.window[secondCallback]();
+    harness.window[firstCallback]();
+    for (const scheduled of harness.scheduled) {
+        scheduled.handler();
+        await flushPromises();
+    }
+
+    const refreshed = new Set(harness.refreshCalls.map((options) => options.containerId));
+    assert.deepEqual([...refreshed].sort(), ['first', 'second']);
+    const lastAttempts = harness.trace.filter((entry) => (
+        entry.eventType === 'lifecycleRefreshResult'
+        && entry.details.attempt === reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length
+    ));
+    assert.deepEqual(lastAttempts.map((entry) => entry.details.containerId).sort(), ['first', 'second']);
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 2);
+});
+
+test('Docker lifecycle lets a new action replace an older refresh of the same container only', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+
+    harness.window.eventControl({ action: 'stop', container: 'first' }, 'loadlist');
+    harness.window[harness.hostCalls[0][1]]();
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    harness.window[harness.hostCalls[1][1]]();
+    const attempts = reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length;
+    assert.equal(harness.scheduled.length, attempts * 2);
+    for (const scheduled of harness.scheduled) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.equal(harness.refreshCalls.length, attempts);
 });
 
 test('Docker lifecycle patch leaves structural and unrelated host callbacks unchanged', () => {

@@ -241,9 +241,9 @@
         let dockerPostUpdateRuntimePollPending = false;
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
         let dockerPostUpdateRuntimePollRemaining = 0;
-        let dockerLifecycleRefreshGeneration = 0;
-        let dockerLifecycleSettledGeneration = 0;
-        let dockerLifecycleFinalizedGeneration = 0;
+        // Containers refresh independently: a new action only replaces an older refresh of the same container.
+        const dockerLifecycleRefreshes = new Map();
+        let dockerLifecycleCallbackCount = 0;
         let pendingDockerLifecycleRequest = {};
 
         const bindDockerContainerContextStatePatch = () => {
@@ -578,19 +578,18 @@
 
         const runDockerLifecycleRefresh = (request = {}) => {
             const action = String(request?.action || '').trim().toLowerCase();
-            const generation = ++dockerLifecycleRefreshGeneration;
-            dockerLifecycleSettledGeneration = 0;
-            dockerLifecycleFinalizedGeneration = 0;
+            const refreshKey = String(request?.container || '').trim();
+            const refresh = { settled: false, finalized: false };
+            dockerLifecycleRefreshes.set(refreshKey, refresh);
+            const isCurrentRefresh = () => dockerLifecycleRefreshes.get(refreshKey) === refresh;
             const finalizeGeneration = (outcome = {}) => {
-                if (generation !== dockerLifecycleRefreshGeneration || generation === dockerLifecycleFinalizedGeneration) {
+                if (!isCurrentRefresh() || refresh.finalized) {
                     return;
                 }
-                dockerLifecycleFinalizedGeneration = generation;
+                refresh.finalized = true;
+                dockerLifecycleRefreshes.delete(refreshKey);
                 try {
-                    finalizeDockerLifecycleSurface(request, {
-                        generation,
-                        ...outcome
-                    });
+                    finalizeDockerLifecycleSurface(request, outcome);
                 } catch (_error) {
                     // Diagnostics and visual cleanup must never break host lifecycle actions.
                 }
@@ -606,10 +605,7 @@
                     ? win.setTimeout.bind(win)
                     : setTimeout;
                 schedule(() => {
-                    if (
-                        generation !== dockerLifecycleRefreshGeneration
-                        || generation === dockerLifecycleSettledGeneration
-                    ) {
+                    if (!isCurrentRefresh() || refresh.settled) {
                         return;
                     }
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
@@ -627,7 +623,7 @@
                                 && isDockerLifecycleStateSettled
                                 && isDockerLifecycleStateSettled(request) === true;
                             if (settled) {
-                                dockerLifecycleSettledGeneration = generation;
+                                refresh.settled = true;
                             }
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
@@ -702,11 +698,18 @@
                     && (refreshTarget === 'loadlist' || refreshTarget === dockerLifecycleRefreshCallbackName)
                 ) {
                     const interceptedHostLoadlist = refreshTarget === 'loadlist';
-                    args[1] = dockerLifecycleRefreshCallbackName;
                     const callbackRequest = {
                         action: String(request.action || '').trim().toLowerCase(),
                         container: String(request.container || '').trim()
                     };
+                    // The host calls back by name once this action has finished, and a later action can finish first,
+                    // so every action gets a callback of its own that knows its container.
+                    const requestCallbackName = `${dockerLifecycleRefreshCallbackName}_${++dockerLifecycleCallbackCount}`;
+                    win[requestCallbackName] = () => {
+                        delete win[requestCallbackName];
+                        runDockerLifecycleRefresh(callbackRequest);
+                    };
+                    args[1] = requestCallbackName;
                     pendingDockerLifecycleRequest = callbackRequest;
                     prepareDockerLifecycleSurface(callbackRequest);
                     if (interceptedHostLoadlist) {

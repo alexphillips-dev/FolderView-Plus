@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { createPageTitleHost } from './page-title-host.mjs';
+import { verifyAuroraHeaderBeforeRuntime } from './aurora-docker-header-bootstrap.mjs';
 
 export const verifyAuroraDockerHeading = async (page, baseUrl) => {
     const host = await createPageTitleHost(page);
     await page.route('**/plugins/Aurora-Theme/styles/theme.css', route => route.fulfill({ contentType: 'text/css', body: '.tp-heading{margin:1.4rem 0 2.4rem}button.tp-fv-beta{display:inline-flex}' }));
     await page.route('**/plugins/neoraid/sheets/Neoraid.css', route => route.fulfill({ contentType: 'text/css', body: 'body{--fixture-neoraid:1}' }));
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+        if (new URL(location.href).searchParams.has('fixtureHeaderBoot')) return;
         const canvas = document.getElementById('docker_containers')?.closest('.canvas');
         if (!canvas) return;
         const box = document.createElement('div'); box.id = 'displaybox'; canvas.before(box); box.append(canvas);
@@ -30,6 +32,7 @@ export const verifyAuroraDockerHeading = async (page, baseUrl) => {
     try {
         for (const [colorScheme, viewport] of [['dark', { width: 1180, height: 720 }], ['light', { width: 390, height: 844 }]]) {
             await page.emulateMedia({ colorScheme }); await page.setViewportSize(viewport);
+            await verifyAuroraHeaderBeforeRuntime(page, host.baseUrl);
             await page.goto(`${host.baseUrl}/docker`);
             await page.waitForFunction(() => document.body.hasAttribute('data-fvplus-docker-page-view'));
             const heading = page.locator('#displaybox > .tp-heading'), beta = page.locator('#header .tp-crumb > .tp-fv-beta:not(.tp-fv-conflict)');
@@ -38,7 +41,7 @@ export const verifyAuroraDockerHeading = async (page, baseUrl) => {
             await page.evaluate(() => {
                 const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/plugins/Aurora-Theme/styles/theme.css'; link.id = 'fixture-aurora-theme'; document.head.append(link);
             });
-            await page.waitForFunction(() => document.body.classList.contains('fvplus-docker-hide-aurora-heading'));
+            await page.waitForFunction(() => document.documentElement.classList.contains('fvplus-docker-hide-aurora-heading'));
             assert.equal(await heading.isHidden(), true, 'Aurora heading including its support chip is hidden');
             assert.equal(await beta.isHidden(), true, 'duplicate topbar beta chip is hidden');
             assert.equal(await page.locator('#header .tp-fv-conflict').isVisible(), true, 'conflict warning is retained');
@@ -46,7 +49,7 @@ export const verifyAuroraDockerHeading = async (page, baseUrl) => {
             await page.evaluate(() => { document.querySelector('#displaybox > .tp-heading').replaceWith(window.fixtureAuroraHeading()); });
             assert.equal(await heading.isHidden(), true, 'late Aurora replacement is hidden without a DOM observer');
             await page.evaluate(() => document.getElementById('fixture-aurora-theme').remove());
-            await page.waitForFunction(() => !document.body.classList.contains('fvplus-docker-hide-aurora-heading'));
+            await page.waitForFunction(() => !document.documentElement.classList.contains('fvplus-docker-hide-aurora-heading'));
             assert.equal(await heading.isVisible(), true, 'heading restores when Aurora is removed');
             assert.equal(await beta.isVisible(), true, 'beta chip restores with theme removal');
             await page.evaluate(() => {

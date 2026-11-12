@@ -1,0 +1,4 @@
+html.fvplus-docker-hide-aurora-heading #displaybox > .tp-heading,
+html.fvplus-docker-hide-aurora-heading #header .tp-crumb > .tp-fv-beta:not(.tp-fv-conflict) {
+    display: none;
+}

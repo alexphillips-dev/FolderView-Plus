@@ -42,6 +42,10 @@
     const runtimeContext = readJsonMeta('fvplus-runtime-context', null);
     if (runtimeContext && typeof runtimeContext === 'object' && !Array.isArray(runtimeContext)) {
         win.FolderViewPlusFatalRuntimeContext = runtimeContext;
+        if (runtimeContext.page === 'Docker') {
+            doc.documentElement?.classList.toggle('fvplus-docker-hide-aurora-heading',
+                win.FolderViewPlusFoundationModules?.themeIntegration?.readAuroraEnvironment?.(doc, win)?.detected === true);
+        }
     }
 
     const pageData = readJsonMeta('fvplus-page-data', {});

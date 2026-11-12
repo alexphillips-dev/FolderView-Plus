@@ -42,6 +42,7 @@
     { "file": "tests/browser/helpers/settings-icons.mjs", "limit": 70, "owner": "native Font Awesome glyph and SVG optical alignment checks" },
     { "file": "tests/browser/cases/aurora-controls.mjs", "limit": 80, "owner": "Aurora header icon sampling and compact Settings control regressions" },
     { "file": "tests/browser/helpers/aurora-docker-heading.mjs", "limit": 75, "owner": "Aurora-only Docker heading and beta chip visibility with native and NeoRaid controls" },
+    { "file": "tests/browser/helpers/aurora-docker-header-bootstrap.mjs", "limit": 65, "owner": "Aurora header visibility before the main Docker runtime and sampled paint callbacks" },
     { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
     { "file": "tests/browser/helpers/docker-config-fixture-state.mjs", "limit": 50, "owner": "shared Docker fixture configuration snapshots and atomic revision guards" },
     { "file": "tests/browser/helpers/docker-hierarchy-move-interactions.mjs", "limit": 50, "owner": "native hierarchy menu and interaction fixture adapters" },
@@ -229,6 +230,7 @@
         "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/aurora-docker-header-bootstrap.mjs",
         "tests/browser/helpers/aurora-docker-heading.mjs",
         "tests/browser/helpers/docker-folder-grouping.mjs",
         "tests/browser/helpers/settings-icons.mjs",
@@ -275,8 +277,8 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 151,
-      "assertionCount": 1940,
-      "pageEvaluateCount": 614,
+      "assertionCount": 1943,
+      "pageEvaluateCount": 616,
       "orderedTitleSha256": "0e56a8613154f3444ce7ab7a06309f974358ec3f0225b668dc07136bb8974c1b"
     }
   }

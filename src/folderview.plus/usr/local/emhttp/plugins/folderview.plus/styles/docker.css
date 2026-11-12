@@ -1,8 +1,3 @@
-body.fvplus-docker-hide-aurora-heading #displaybox > .tp-heading,
-body.fvplus-docker-hide-aurora-heading #header .tp-crumb > .tp-fv-beta:not(.tp-fv-conflict) {
-    display: none;
-}
-
 :root {
     --fvplus-theme-foreground: var(--fvplus-runtime-theme-foreground, var(--text, currentColor));
     --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));

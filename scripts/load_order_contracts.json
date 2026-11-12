@@ -102,6 +102,7 @@
       "id": "docker-page",
       "source": "folderview.plus.Docker.page",
       "references": [
+        "scripts/folderviewplus.theme-integration.js",
         "scripts/folderviewplus.page-bootstrap.js",
         "scripts/folderviewplus.fatal-banner.js",
         "scripts/include/customEvents.js",
@@ -133,7 +134,6 @@
         "scripts/runtime.transport.docker-actions.js",
         "scripts/runtime.transport.js",
         "scripts/folderviewplus.prefs-store.js",
-        "scripts/folderviewplus.theme-integration.js",
         "scripts/folderviewplus.theme-host.js",
         "scripts/folderviewplus.theme-resolver.js",
         "scripts/folderviewplus.ui.js",

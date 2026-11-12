@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.04">
-<!ENTITY md5 "d59da5b93b39a85f0b8a57b359461c27">
-<!ENTITY sha256 "bdf73ab5f3c17abe970c47dc68a145a487d35a6479eaae4e28164e2b96b63eef">
+<!ENTITY version "2026.11.12.05">
+<!ENTITY md5 "1ac09ffacbfbddd1ef22a9af87516ee8">
+<!ENTITY sha256 "da3f1363ace2fea67c2d93545b92c55673d44ffbea10b67f95ac336d47cedeaa">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.05
+- Fix: Suppress Aurora's Docker heading and FolderView support beta button during the initial page bootstrap, preventing the brief header flash while the main Docker runtime loads.
+- Compatibility: Hard-refresh the Docker page after updating. Aurora detection remains scoped to Docker, with other themes retaining their headers.
+
 
 ###2026.11.12.04
 - Fix: Hide Aurora's added Docker page heading, description, and FolderView support beta button only when Aurora is detected. Apply the same behavior when Aurora inserts its heading after the page loads.

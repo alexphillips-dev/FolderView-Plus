@@ -18,6 +18,20 @@ const isolatedViewSources = [
     'docker.runtime.command-view.js'
 ].map((file) => fs.readFileSync(path.join(scriptsRoot, file), 'utf8'));
 
+test('Aurora header suppression is active before the Docker dependency stack and runtime', () => {
+    const page = fs.readFileSync(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page'), 'utf8');
+    const bootstrap = fs.readFileSync(path.join(scriptsRoot, 'folderviewplus.page-bootstrap.js'), 'utf8');
+    const style = page.match(/<link[^>]*docker\.header\.css[^>]*>/)?.[0] || '';
+    assert.ok(style, 'early header stylesheet is present');
+    assert.doesNotMatch(style, /media="not all"|data-fvplus-docker-legacy-style/);
+    const detector = page.indexOf('/scripts/folderviewplus.theme-integration.js');
+    const bootstrapIndex = page.indexOf('/scripts/folderviewplus.page-bootstrap.js');
+    assert.ok(page.indexOf('/styles/docker.header.css') < detector && detector < bootstrapIndex);
+    assert.ok(bootstrapIndex < page.indexOf('/scripts/include/chart.min.js'));
+    assert.equal(page.split('/scripts/folderviewplus.theme-integration.js').length - 1, 1, 'shared detector loads once');
+    assert.match(bootstrap, /runtimeContext\.page === 'Docker'[\s\S]*doc\.documentElement\?\.classList\.toggle\('fvplus-docker-hide-aurora-heading'/);
+});
+
 test('Docker bootstrap reuses its coherent request bundle instead of issuing a second startup snapshot', () => {
     assert.match(dockerJs, /const ensureDockerFolderReqForHostRender = \(options = \{\}\) =>/);
     assert.match(dockerJs, /const hasReusableBundle = folderReq[\s\S]*folderReq\.render\.length >= 4/);

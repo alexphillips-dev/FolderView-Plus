@@ -114,7 +114,8 @@
     { "file": "scripts/lib/fixture-icon-upload.mjs", "limit": 60, "owner": "fixture form uploads and bounded part assembly" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
-    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases" },
+    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs"] },
+    { "file": "tests/browser/helpers/docker-folder-grouping.mjs", "limit": 35, "owner": "canonical Docker grouping, standalone bottom placement and native node preservation" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
@@ -227,6 +228,7 @@
         "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/docker-folder-grouping.mjs",
         "tests/browser/helpers/settings-icons.mjs",
         "tests/browser/helpers/docker-config-fixture-state.mjs",
         "tests/browser/helpers/docker-hierarchy-move-interactions.mjs",
@@ -271,7 +273,7 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 151,
-      "assertionCount": 1924,
+      "assertionCount": 1929,
       "pageEvaluateCount": 610,
       "orderedTitleSha256": "0e56a8613154f3444ce7ab7a06309f974358ec3f0225b668dc07136bb8974c1b"
     }

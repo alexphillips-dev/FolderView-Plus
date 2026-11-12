@@ -261,6 +261,12 @@
                 if (removedByHideEmpty) removeFolderRow(id);
             }
         };
+        const placeStandaloneRowsLast = () => {
+            for (const { row, canonicalName } of rowRecords) {
+                if (claimedNames.has(canonicalName) || !isDirectListRow(row)) continue;
+                listRoot.appendChild(row);
+            }
+        };
         const snapshot = () => {
             const entries = [...folderEntries.values()];
             const totals = entries.reduce((result, entry) => ({
@@ -309,6 +315,7 @@
             finishFolder,
             filterEmptyFolders,
             rollbackFolder,
+            placeStandaloneRowsLast,
             snapshot
         });
     };

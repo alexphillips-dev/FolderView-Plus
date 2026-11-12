@@ -81,6 +81,7 @@
                     });
                     if (hideEmptyFolders && claimed === 0) folderRow.remove();
                 }
+                session.placeStandaloneRowsLast();
                 return {
                     order: session.readOrder(),
                     folderBoxes: document.querySelectorAll('#docker_list > tr.folder').length,
@@ -90,10 +91,60 @@
                     snapshot: session.snapshot()
                 };
             };
+            const runNewContainer = (savedMiddle) => {
+                const list = document.getElementById('docker_list');
+                list.replaceChildren();
+                const names = fixture.names.slice(0, 4);
+                const rows = names.map(name => {
+                    const row = document.createElement('tr');
+                    row.id = `ct-${fixture.containersInfo[name].shortId}`;
+                    row.className = 'sortable';
+                    const cell = document.createElement('td');
+                    cell.className = 'ct-name';
+                    const label = document.createElement('span');
+                    label.className = 'appname';
+                    label.textContent = name;
+                    cell.append(label);
+                    row.append(cell);
+                    list.append(row);
+                    return row;
+                });
+                const session = window.FolderViewPlusFoundationModules.dockerFolderGrouping.createSession({ document, containersInfo: fixture.containersInfo });
+                const order = savedMiddle
+                    ? ['folder-a', names[1], 'folder-b', names[0], names[2], names[3]]
+                    : ['folder-a', 'folder-b', names[0], names[2], names[3], names[1]];
+                const grouped = [];
+                for (const [id, name] of [['a', names[0]], ['b', names[2]]]) {
+                    session.beginFolder(id, { explicit: [name] }, 1);
+                    const shell = document.createElement('tr');
+                    shell.className = 'folder sortable';
+                    shell.dataset.fvFolderId = id;
+                    const cell = document.createElement('td');
+                    const storage = document.createElement('div');
+                    storage.className = 'folder-storage';
+                    cell.append(storage);
+                    shell.append(cell);
+                    session.insertFolderRow(id, shell, order.indexOf(`folder-${id}`), order);
+                    const row = session.claim(id, name);
+                    storage.append(row);
+                    grouped.push(row);
+                    order.splice(order.indexOf(name), 1);
+                }
+                const readOrder = () => Array.from(list.children).map(row => row.dataset.fvFolderId ? `folder-${row.dataset.fvFolderId}` : row.querySelector('.appname').textContent);
+                const before = readOrder();
+                session.placeStandaloneRowsLast();
+                const after = readOrder();
+                session.placeStandaloneRowsLast();
+                return { before, after, repeated: readOrder(), expected: ['folder-a', 'folder-b', names[1], names[3]],
+                    preserved: grouped[0] === rows[0] && grouped[1] === rows[2] && rows.every(row => row.isConnected),
+                    groupedMembers: list.querySelectorAll('.folder-storage > tr').length };
+            };
             fixture.result = {
                 hidden: run(true),
                 shown: run(false),
-                repeatedHidden: run(true)
+                repeatedHidden: run(true),
+                newContainer: runNewContainer(false),
+                nativeSavedMiddle: runNewContainer(true)
             };
         })();
     </script>

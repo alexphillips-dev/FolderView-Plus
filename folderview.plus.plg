@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.02">
-<!ENTITY md5 "f0dfad04506cacfedf6e2cbf8449bcc0">
-<!ENTITY sha256 "cceb52833bb4476d58736c05fdaee6080ae1a4a88c0df3fe68478de48130c795">
+<!ENTITY version "2026.11.12.03">
+<!ENTITY md5 "a43f2d00f1e4e1e9e1c0e9a01d6e2ff0">
+<!ENTITY sha256 "0b0a344a70d36d80c42049258b41a691b0ad96d4de86962e6244a4a345edc66a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.03
+- Fix: Place newly installed and other standalone Docker containers below all folder rows, including when Unraid has already saved their position between folders. Preserve folder membership, standalone container order, and native controls.
+- Compatibility: Hard-refresh the Docker page after installing this dev update, then install a container and confirm it appears below the complete folder tree.
+
 
 ###2026.11.12.02
 - Fix: Keep Docker container rows and pending indicators in sync when start or stop actions overlap, including actions that finish out of order.

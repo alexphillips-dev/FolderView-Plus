@@ -199,6 +199,40 @@ test('Docker grouping preserves first-folder-wins ownership', () => {
     assert.equal(snapshot.folders.removedByHideEmptyCount, 1);
 });
 
+for (const savedMiddle of [false, true]) {
+    test(`standalone Docker rows finish below folders when a new row is ${savedMiddle ? 'already saved between folders' : 'missing from saved order'}`, () => {
+        const containersInfo = createRuntime(4);
+        const [first, newcomer, second, standalone] = Object.keys(containersInfo);
+        const rows = [first, newcomer, second, standalone].map(name => createRow({ name, id: `ct-${containersInfo[name].shortId}` }));
+        const listRoot = createParent(rows);
+        const session = grouping.createSession({
+            document: { querySelectorAll: () => rows, getElementById: () => listRoot }, containersInfo
+        });
+        const order = savedMiddle
+            ? ['folder-a', newcomer, 'folder-b', first, second, standalone]
+            : ['folder-a', 'folder-b', first, second, standalone, newcomer];
+        const storages = [];
+        const folderRows = [];
+        for (const [id, member] of [['a', first], ['b', second]]) {
+            session.beginFolder(id, { explicit: [member] }, 1);
+            const shell = createRow({ folderId: id });
+            folderRows.push(shell);
+            session.insertFolderRow(id, shell, order.indexOf(`folder-${id}`), order);
+            const storage = createParent();
+            storages.push(storage);
+            storage.appendChild(session.claim(id, member));
+            order.splice(order.indexOf(member), 1);
+        }
+        assert.equal(listRoot.children.indexOf(rows[1]) < listRoot.children.indexOf(folderRows[1]), true,
+            'native insertion reproduces the stray row between folder shells');
+        session.placeStandaloneRowsLast();
+        assert.deepEqual(listRoot.children, [...folderRows, rows[1], rows[3]]);
+        assert.deepEqual(storages.map(storage => storage.children[0]), [rows[0], rows[2]], 'grouped native nodes stay in storage');
+        session.placeStandaloneRowsLast();
+        assert.deepEqual(listRoot.children, [...folderRows, rows[1], rows[3]], 'repeated finalization preserves order and node identity');
+    });
+}
+
 test('failed grouping releases only its own native row claims', () => {
     const containersInfo = createRuntime(2);
     const names = Object.keys(containersInfo);

@@ -4807,6 +4807,7 @@ const createFolders = async () => {
     if (folderTypePrefs?.hideEmptyFolders === true) {
         dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr.folder-id-${id}, tr#name-${id}`).remove());
     }
+    dockerFolderGroupingSession.placeStandaloneRowsLast();
     syncDockerPinnedFolderUi();
     queueDockerPinnedFolderServerReconcile('post-render', 160);
 

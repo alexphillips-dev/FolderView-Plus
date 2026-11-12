@@ -83,8 +83,11 @@
     }
 
     fvplus_safe_require_once('helpers', "$documentRoot/webGui/include/Helpers.php");
-    fvplus_safe_require_once('docker', "$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
-    fvplus_safe_require_once('libvirt', "$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
+    // Configuration-only endpoints do not need host SDK bootstrap side effects.
+    if (!defined('FVPLUS_CONFIG_ONLY_BOOTSTRAP') || FVPLUS_CONFIG_ONLY_BOOTSTRAP !== true) {
+        fvplus_safe_require_once('docker', "$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
+        fvplus_safe_require_once('libvirt', "$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
+    }
     fvplus_safe_require_once('validation', '/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
 
     if (!function_exists('autov')) {

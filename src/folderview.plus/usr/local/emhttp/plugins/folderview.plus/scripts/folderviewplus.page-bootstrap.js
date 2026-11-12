@@ -46,6 +46,10 @@
             doc.documentElement?.classList.toggle('fvplus-docker-hide-aurora-heading',
                 win.FolderViewPlusFoundationModules?.themeIntegration?.readAuroraEnvironment?.(doc, win)?.detected === true);
         }
+        if (runtimeContext.page === 'Folder Editor') {
+            doc.documentElement?.classList.toggle('fvplus-editor-hide-aurora-heading',
+                win.FolderViewPlusFoundationModules?.themeIntegration?.readAuroraEnvironment?.(doc, win)?.detected === true);
+        }
     }
 
     const pageData = readJsonMeta('fvplus-page-data', {});

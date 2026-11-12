@@ -316,6 +316,7 @@
       "references": [
         "scripts/runtime.image-fallbacks.js",
         "scripts/folderviewplus.csp-events.js",
+        "scripts/folderviewplus.theme-integration.js",
         "scripts/folderviewplus.page-bootstrap.js",
         "scripts/folder.editor.page-bootstrap.js",
         "scripts/folderviewplus.fatal-banner.js",
@@ -341,7 +342,6 @@
         "scripts/folder.webui-profiles.js",
         "scripts/folder.member-identity.js",
         "scripts/folderviewplus.prefs-store.js",
-        "scripts/folderviewplus.theme-integration.js",
         "scripts/folderviewplus.theme-host.js",
         "scripts/folderviewplus.theme-resolver.js",
         "scripts/folderviewplus.folder-contract.js",

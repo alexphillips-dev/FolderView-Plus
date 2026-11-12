@@ -235,7 +235,9 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
         sampleRoot: 'body',
         extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorNavDock', '#fvEditorActionBar'],
         modeInput: 'auto',
-        reasonPrefix: 'folder-editor'
+        reasonPrefix: 'folder-editor',
+        onApply: () => document.documentElement?.classList.toggle('fvplus-editor-hide-aurora-heading',
+            window.FolderViewPlusFoundationModules?.themeIntegration?.readAuroraEnvironment?.(document, window)?.detected === true)
     })
     : null;
 const utils = window.FolderViewPlusUtils || null;

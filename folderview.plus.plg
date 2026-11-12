@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.06">
-<!ENTITY md5 "7b7174186db474f2aed9a2dabc214680">
-<!ENTITY sha256 "a9dda88a91e9318abec47222efd4d83f640de692512587d3af5b22653aa121df">
+<!ENTITY version "2026.11.12.07">
+<!ENTITY md5 "ca403afa4c19871c6002d9bdd772ec84">
+<!ENTITY sha256 "fed750d7f85c84a2fd7ad0c203fe965ffcb4fd0400bcf3c0f8b28091b484d271">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.07
+- Fix: Remove unnecessary Docker and VM service initialization from folder-save and security-token requests, including appearance-only edits. Keep save security, revision checks, and durable storage protection in place.
+- Fix: Hide Aurora's added heading at the top of the folder editor only when Aurora is detected, including during initial loading and theme changes. Keep the editor's own title visible.
+- Compatibility: Hard-refresh after installing this dev update, then edit and save a folder to confirm the editor returns to the Docker page promptly.
+
 
 ###2026.11.12.06
 - Fix: Prevent Aurora's status-width restriction from unnecessarily truncating Docker folder running, paused, and stopped labels when space is available in the Application column.

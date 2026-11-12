@@ -824,6 +824,20 @@
     },
     {
       "type": "library",
+      "name": "@isaacs/nonrecursive-glob-match",
+      "version": "1.1.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/nonrecursive-glob-match@1.1.0"
+    },
+    {
+      "type": "library",
       "name": "@istanbuljs/schema",
       "version": "0.1.6",
       "scope": "optional",
@@ -1326,7 +1340,7 @@
     {
       "type": "library",
       "name": "glob",
-      "version": "13.0.6",
+      "version": "14.0.6",
       "scope": "optional",
       "licenses": [
         {
@@ -1335,7 +1349,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/glob@13.0.6"
+      "purl": "pkg:npm/glob@14.0.6"
     },
     {
       "type": "library",
@@ -1562,7 +1576,7 @@
     {
       "type": "library",
       "name": "lru-cache",
-      "version": "11.5.2",
+      "version": "11.5.3",
       "scope": "optional",
       "licenses": [
         {
@@ -1571,7 +1585,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/lru-cache@11.5.2"
+      "purl": "pkg:npm/lru-cache@11.5.3"
     },
     {
       "type": "library",
@@ -1590,7 +1604,7 @@
     {
       "type": "library",
       "name": "minimatch",
-      "version": "10.2.5",
+      "version": "11.0.8",
       "scope": "optional",
       "licenses": [
         {
@@ -1599,7 +1613,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/minimatch@10.2.5"
+      "purl": "pkg:npm/minimatch@11.0.8"
     },
     {
       "type": "library",
@@ -1726,7 +1740,7 @@
     {
       "type": "library",
       "name": "path-scurry",
-      "version": "2.0.2",
+      "version": "3.0.0",
       "scope": "optional",
       "licenses": [
         {
@@ -1735,7 +1749,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/path-scurry@2.0.2"
+      "purl": "pkg:npm/path-scurry@3.0.0"
     },
     {
       "type": "library",

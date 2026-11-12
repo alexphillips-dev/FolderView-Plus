@@ -78,6 +78,7 @@
         const translate = deps.translate || ((key, fallback, ...params) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match)));
 
         let workspace = normalizeWorkspace({});
+        let workspaceRevision = 0;
         let pendingScan = null;
         let activeScope = 'global';
         let presetBeforeLayer = null;
@@ -91,6 +92,7 @@
             return layer;
         };
         const updateEditingLayer = (patch = {}) => {
+            workspaceRevision += 1;
             const profileId = workspace.activeProfileId;
             workspace = {
                 ...workspace,
@@ -417,6 +419,7 @@
         };
 
         const setWorkspace = (nextWorkspace) => {
+            workspaceRevision += 1;
             workspace = normalizeWorkspace(nextWorkspace);
             presetBeforeLayer = null;
             selectedPreset = '';
@@ -425,10 +428,11 @@
         };
 
         const readWorkspace = async () => {
+            const revision = ++workspaceRevision;
             const response = await apiGetJson('/plugins/folderview.plus/server/theme_workspace.php', {
                 data: { action: 'read' }
             });
-            return setWorkspace(response.workspace || {});
+            return revision === workspaceRevision ? setWorkspace(response.workspace || {}) : workspace;
         };
 
         const importGithub = async (source) => {

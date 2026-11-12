@@ -1089,7 +1089,7 @@
   {
     "file": "scripts/folderviewplus.bulk-assignment.js",
     "key": "common.repair.applying-items-in-one-atomic-request-items-1-a8179d",
-    "english": "Applying items in one atomic request. Items: $1�",
+    "english": "Applying items in one atomic request. Items: $1...",
     "params": [
       "plan.actionableNames.length"
     ]
@@ -1097,7 +1097,7 @@
   {
     "file": "scripts/folderviewplus.bulk-assignment.js",
     "key": "common.repair.applying-one-atomic-request-items-1-31551b",
-    "english": "Applying one atomic request. Items: $1�",
+    "english": "Applying one atomic request. Items: $1...",
     "params": [
       "currentBatchSize"
     ]
@@ -1130,7 +1130,7 @@
   {
     "file": "scripts/folderviewplus.import.js",
     "key": "common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c",
-    "english": "Applying folder changes in one transaction. Changes: $1�",
+    "english": "Applying folder changes in one transaction. Changes: $1...",
     "params": [
       "totalSteps"
     ]
@@ -1194,7 +1194,7 @@
   {
     "file": "scripts/folderviewplus.js",
     "key": "common.repair.1-items-2-818040",
-    "english": "$1 � items: $2",
+    "english": "$1 - items: $2",
     "params": [
       "entry.label",
       "entry.count"
@@ -1235,7 +1235,7 @@
   {
     "file": "scripts/folderviewplus.js",
     "key": "common.repair.1-smart-rule-scan-suggestions-found-2-f5de01",
-    "english": "$1 smart rule scan � suggestions found: $2.",
+    "english": "$1 smart rule scan - suggestions found: $2.",
     "params": [
       "resolvedType === \"docker\" ? \"Docker\" : \"VM\"",
       "suggestions.length"

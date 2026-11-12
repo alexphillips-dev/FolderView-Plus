@@ -411,3 +411,23 @@ test('smart starter selection expands VM coverage for management, network, and g
     assert.ok(names.includes('Network VMs'));
     assert.ok(names.includes('Gaming VMs') || names.includes('Cloud Gaming VMs'));
 });
+
+test('cloud and sync heuristics use the normalized built-in name in wizard and starter selection', () => {
+    const info = { docker: { collabora: {} }, vm: {} };
+    const runtime = loadSmartDetectHelpers(info);
+    const profile = runtime.collectSetupAssistantItemMatchProfile('docker', 'collabora', {});
+    const blueprint = { name: 'Cloud & Sync', detect: ['unrelated'] };
+    assert.equal(runtime.scoreSetupAssistantTemplateMatch(profile, blueprint, 'docker'), 10);
+    const neutral = runtime.collectSetupAssistantItemMatchProfile('docker', 'unclassified', {});
+    assert.equal(runtime.scoreSetupAssistantTemplateMatch(neutral, blueprint, 'docker'), 0);
+    const vmProfile = runtime.collectSetupAssistantItemMatchProfile('vm', 'windows', {});
+    assert.equal(runtime.scoreSetupAssistantTemplateMatch(vmProfile, blueprint, 'vm'), 0);
+});
+
+test('starter cloud heuristic participates before the Utilities fallback', () => {
+    const starter = loadStarterSelectionHelpers({ docker: { collabora: {} } });
+    const selected = starter.resolveStarterTemplateSmartIndexes('docker', [
+        { name: 'Utilities', detect: ['unrelated'] }, { name: 'Cloud & Sync', detect: ['unrelated'] }
+    ]);
+    assert.deepEqual(Array.from(selected), [1]);
+});

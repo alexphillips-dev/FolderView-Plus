@@ -105,17 +105,19 @@ test('aliased clone prompts preserve the suggested name and cancel before creati
     assert.equal(functions.length, 2);
     for (const locale of locales) for (const code of functions) {
         const messages = catalog(locale), prompts = [];
-        let mutations = 0;
+        let mutations = 0, reads = 0;
         const context = vm.createContext({
             surfaceT: (key, fallback, ...args) => interpolate(messages[key] || fallback, args),
             runDockerGuardedAction: async (_action, run) => run(), ensureDockerFolderUnlocked: () => true, ensureDockerBranchUnlocked: () => true,
             cloneName: source => source.name + ' (Copy)', getFolderById: () => ({ name: 'Order <custom>' }), getFolderMap: () => ({ root: { name: 'Order <custom>' } }),
+            readDockerCloneDefinitions: async () => { reads++; return { root: { name: 'Order <custom>' }, child: { name: 'Child', parentId: 'root' } }; },
             getFolderDescendants: () => ['child'], promptFn: (message, suggested) => { prompts.push({ message, suggested }); return null; },
             getDockerFolderBranchCloneOrder: () => ['root', 'child'],
             getDockerMenuLabel: (_key, fallback) => fallback, persistDockerFolderClonePayload: () => { mutations++; },
             buildDockerFolderClonePayload: () => { mutations++; return {}; }
         });
         await vm.runInContext(`(${code})`, context)('root');
+        assert.equal(reads, 1, 'the prompt uses one persisted-definition snapshot');
         assert.equal(prompts.length, 1);
         assert.ok(prompts[0].suggested.includes('Order <custom>'));
         assert.ok(Object.values(messages).includes(prompts[0].message));

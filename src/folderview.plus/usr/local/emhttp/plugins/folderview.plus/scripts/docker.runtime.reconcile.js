@@ -575,7 +575,6 @@
             const container = String(request?.container || '').trim();
             return DOCKER_LIFECYCLE_ACTIONS.has(action) && container.length > 0;
         };
-
         const runDockerLifecycleRefresh = (request = {}) => {
             const action = String(request?.action || '').trim().toLowerCase();
             const generation = ++dockerLifecycleRefreshGeneration;
@@ -618,6 +617,7 @@
                         containerId: String(request?.container || '').trim()
                     }))
                         .then((success) => {
+                            if (generation !== dockerLifecycleRefreshGeneration) return;
                             const observedState = getDockerLifecycleStateSnapshot(request);
                             const restartWarmupPending = action === 'restart'
                                 && attemptIndex === 0
@@ -657,6 +657,7 @@
                             }
                         })
                         .catch(() => {
+                            if (generation !== dockerLifecycleRefreshGeneration) return;
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
                                 containerId: String(request?.container || '').trim(),
@@ -677,7 +678,6 @@
                 }, delayMs);
             });
         };
-
         const bindLifecycleEventControlPatch = () => {
             if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
                 return false;

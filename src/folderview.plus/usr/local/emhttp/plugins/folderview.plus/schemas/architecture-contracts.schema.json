@@ -110,6 +110,7 @@
       "server/lib.transaction-files.php": { "limit": 61, "target": 61, "history": [61] },
       "server/lib.config-write.php": { "limit": 54, "target": 54, "history": [54] },
       "server/lib.runtime-inventory.php": { "limit": 104, "target": 104, "history": [104] },
+      "server/lib.theme-css.php": { "limit": 31, "target": 31, "history": [31] },
       "server/lib.theme-github.php": { "limit": 425, "target": 380, "history": [425] },
       "server/lib.theme-workspace.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.theme-profiles.php": { "limit": 109, "target": 109, "history": [109] },
@@ -599,14 +600,24 @@
       "functionInventory": { "count": 2, "sha256": "cf2db8562b1996a3ae5e7b4dfceb3041cb361fca9691b02f16b008a0167f2243" }
     },
     {
+      "file": "server/lib.theme-css.php",
+      "owner": "server-theme-css-safety",
+      "consumers": ["server-endpoints"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.theme-github.php",
+      "functionInventory": { "count": 1, "sha256": "8c0b247ca4aa5f41dd747f510a3aad13ad53d98b3400e52a92152835021a0f22" }
+    },
+    {
       "file": "server/lib.theme-github.php",
       "owner": "server-theme-github-import",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.remote.php"],
+      "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.remote.php", "server/lib.theme-css.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 16, "sha256": "b758e769455216bc41802ba9ae46cf3212159bb2811a3fd123c88c841c1e91e7" }
+      "functionInventory": { "count": 15, "sha256": "8394dbcb2e412c6c1b668aaaa40557f73b5624ecf38f6a4d34fae7f25005c912" }
     },
     {
       "file": "server/lib.theme-profile-actions.php",

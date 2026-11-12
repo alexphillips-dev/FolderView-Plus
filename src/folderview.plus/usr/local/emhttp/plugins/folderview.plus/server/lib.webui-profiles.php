@@ -1,13 +1,13 @@
 <?php
+require_once __DIR__ . '/lib.input-security.php';
 const FVPLUS_WEBUI_PROFILE_MAX_PROFILES = 100;
 const FVPLUS_WEBUI_PROFILE_MAX_MEMBERS = 250;
 const FVPLUS_WEBUI_PROFILE_MAX_NAME_BYTES = 80;
 const FVPLUS_WEBUI_PROFILE_MAX_MEMBER_BYTES = 160;
-
 function fvplusWebuiProfileCleanString($value, int $maxBytes): string {
     $clean = preg_replace('/[\x00-\x1F\x7F]/u', '', (string)$value);
     $trimmed = trim(is_string($clean) ? $clean : '');
-    return strlen($trimmed) <= $maxBytes ? $trimmed : substr($trimmed, 0, $maxBytes);
+    return truncateUtf8String($trimmed, $maxBytes);
 }
 
 function fvplusNormalizeWebuiProfiles($value): array {
@@ -40,7 +40,7 @@ function fvplusNormalizeWebuiProfiles($value): array {
         $suffix = 2;
         while (isset($usedNames[$nameKey])) {
             $suffixText = ' ' . $suffix;
-            $name = substr($baseName, 0, max(1, FVPLUS_WEBUI_PROFILE_MAX_NAME_BYTES - strlen($suffixText))) . $suffixText;
+            $name = truncateUtf8String($baseName, max(1, FVPLUS_WEBUI_PROFILE_MAX_NAME_BYTES - strlen($suffixText))) . $suffixText;
             $nameKey = strtolower($name);
             $suffix++;
         }

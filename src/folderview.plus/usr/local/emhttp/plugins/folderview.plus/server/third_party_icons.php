@@ -17,6 +17,16 @@ function ensureThirdPartyIconsDirExists(): string {
     return $baseDir;
 }
 
+function resolveThirdPartyPathWithin(string $path, string $root): ?string {
+    $resolvedPath = @realpath($path);
+    $resolvedRoot = @realpath($root);
+    if (!is_string($resolvedPath) || !is_string($resolvedRoot)
+        || strpos($resolvedPath, rtrim($resolvedRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) !== 0) {
+        return null;
+    }
+    return $resolvedPath;
+}
+
 function thirdPartyIconAssetPackStatus(): array {
     global $sourceDir;
     $baseDir = thirdPartyIconsBaseDir();
@@ -55,7 +65,7 @@ function thirdPartyIconCachePath(string $key): string {
     if (!is_string($safe) || $safe === '') {
         $safe = 'cache';
     }
-    return thirdPartyIconCacheDir() . '/' . $safe . '.json';
+    return thirdPartyIconCacheDir() . '/v2-' . $safe . '.json';
 }
 
 function readThirdPartyIconCache(string $key, string $signature, int $ttlSeconds): ?array {
@@ -128,7 +138,7 @@ function thirdPartyFolderListSignature(string $baseDir): string {
             continue;
         }
         $path = "$baseDir/$name";
-        if (!is_dir($path)) {
+        if (!is_dir($path) || resolveThirdPartyPathWithin($path, $baseDir) === null) {
             continue;
         }
         $parts[] = $name . ':' . (int)@filemtime($path);
@@ -138,7 +148,7 @@ function thirdPartyFolderListSignature(string $baseDir): string {
 }
 
 function thirdPartyFolderIconsSignature(string $folderPath): string {
-    if (!is_dir($folderPath)) {
+    if (!is_dir($folderPath) || resolveThirdPartyPathWithin($folderPath, thirdPartyIconsBaseDir()) === null) {
         return 'missing';
     }
     $parts = ['folder:' . (int)@filemtime($folderPath)];
@@ -151,7 +161,7 @@ function thirdPartyFolderIconsSignature(string $folderPath): string {
             continue;
         }
         $path = "$folderPath/$name";
-        if (!is_file($path)) {
+        if (!is_file($path) || resolveThirdPartyPathWithin($path, $folderPath) === null) {
             continue;
         }
         $parts[] = $name . ':' . (int)@filemtime($path) . ':' . (int)@filesize($path);
@@ -217,7 +227,7 @@ function thirdPartyIconMimeType(string $filename): string {
 }
 
 function countSupportedIconsInDirectory(string $directory): int {
-    if (!is_dir($directory)) {
+    if (!is_dir($directory) || resolveThirdPartyPathWithin($directory, thirdPartyIconsBaseDir()) === null) {
         return 0;
     }
     $count = 0;
@@ -230,7 +240,7 @@ function countSupportedIconsInDirectory(string $directory): int {
             continue;
         }
         $path = "$directory/$name";
-        if (is_file($path) && isAllowedThirdPartyIconFile($name)) {
+        if (is_file($path) && isAllowedThirdPartyIconFile($name) && resolveThirdPartyPathWithin($path, $directory) !== null) {
             $count += 1;
         }
     }
@@ -313,7 +323,7 @@ function listThirdPartyFolders(): array {
             continue;
         }
         $folderPath = "$baseDir/$safeName";
-        if (!is_dir($folderPath)) {
+        if (!is_dir($folderPath) || resolveThirdPartyPathWithin($folderPath, $baseDir) === null) {
             continue;
         }
         $iconCount = countSupportedIconsInDirectory($folderPath);
@@ -337,7 +347,7 @@ function listThirdPartyFolders(): array {
                 continue;
             }
             $subPath = "$folderPath/$safeSubName";
-            if (!is_dir($subPath)) {
+            if (!is_dir($subPath) || resolveThirdPartyPathWithin($subPath, $baseDir) === null) {
                 continue;
             }
             $subIconCount = countSupportedIconsInDirectory($subPath);
@@ -360,6 +370,10 @@ function listThirdPartyIconsInFolder(string $folder): array {
     $folderPath = "$baseDir/$safeFolder";
     if (!is_dir($folderPath)) {
         throw new RuntimeException('Folder does not exist.');
+    }
+    $folderPath = resolveThirdPartyPathWithin($folderPath, $baseDir);
+    if ($folderPath === null) {
+        throw new RuntimeException('Invalid folder path.');
     }
     $signature = thirdPartyFolderIconsSignature($folderPath);
     $cacheKey = 'icons-' . md5($safeFolder);
@@ -384,7 +398,8 @@ function listThirdPartyIconsInFolder(string $folder): array {
             continue;
         }
         $filePath = "$folderPath/$file";
-        if (!is_file($filePath)) {
+        $filePath = resolveThirdPartyPathWithin($filePath, $folderPath);
+        if ($filePath === null || !is_file($filePath)) {
             continue;
         }
         $icons[] = buildThirdPartyIconRecord($safeFolder, $file, $filePath);
@@ -453,17 +468,16 @@ function resolveThirdPartyIconFilePath(string $folder, string $file): string {
     if (!is_dir($folderPath)) {
         throw new RuntimeException('Folder does not exist.');
     }
-    $resolvedFolder = @realpath($folderPath);
-    $resolvedBase = @realpath($baseDir);
-    if (!is_string($resolvedFolder) || !is_string($resolvedBase) || strpos($resolvedFolder, $resolvedBase) !== 0) {
+    $resolvedFolder = resolveThirdPartyPathWithin($folderPath, $baseDir);
+    if ($resolvedFolder === null) {
         throw new RuntimeException('Invalid folder path.');
     }
     $filePath = "$resolvedFolder/$safeFile";
     if (!is_file($filePath) || !is_readable($filePath)) {
         throw new RuntimeException('Icon file not found.');
     }
-    $resolvedFile = @realpath($filePath);
-    if (!is_string($resolvedFile) || strpos($resolvedFile, $resolvedFolder) !== 0) {
+    $resolvedFile = resolveThirdPartyPathWithin($filePath, $resolvedFolder);
+    if ($resolvedFile === null) {
         throw new RuntimeException('Invalid icon file path.');
     }
     return $resolvedFile;

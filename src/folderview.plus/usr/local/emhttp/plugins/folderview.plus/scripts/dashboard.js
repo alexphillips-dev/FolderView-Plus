@@ -725,7 +725,7 @@ const writeDashboardHealthEmphasisStateForType = (type, enabled) => {
             return;
         }
         if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
-            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 70, idle: true });
+            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 0, idle: false });
         } else {
             window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
         }
@@ -757,7 +757,7 @@ const writeDashboardCompactDensityStateForType = (type, enabled) => {
             return;
         }
         if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
-            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 70, idle: true });
+            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 0, idle: false });
         } else {
             window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
         }

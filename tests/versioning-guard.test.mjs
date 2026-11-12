@@ -318,11 +318,10 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /--fast-dev-push is now the default and can be omitted/);
     assert.match(devFinalize, /--message is required unless --skip-build is used/);
     assert.match(devFinalize, /must run from branch 'dev'/);
-    assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR/);
-    assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR/);
+    assert.match(devFinalize, /git diff --cached --name-only \|\| true/);
+    assert.match(devFinalize, /git diff --name-only \|\| true/);
     assert.match(devFinalize, /git ls-files --others --exclude-standard/);
-    assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR \|\| true/);
-    assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR \|\| true/);
+    assert.doesNotMatch(devFinalize, /--diff-filter=ACMR/);
     assert.match(devFinalize, /git ls-files --others --exclude-standard \|\| true/);
     assert.match(devFinalize, /Stage the intended source changes before running dev_finalize\.sh/);
     assert.match(devFinalize, /bash pkg_build\.sh/);

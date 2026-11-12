@@ -1,25 +1,5 @@
 <?php
-function fvplusThemeWorkspaceScanCss(string $css): array {
-        $severe = [];
-        $rules = [
-            ['pattern' => '/expression\s*\(/i', 'message' => 'CSS contains expression().'],
-            ['pattern' => '/javascript\s*:/i', 'message' => 'CSS contains javascript: URLs.'],
-            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.'],
-            ['pattern' => '/-moz-binding\s*:/i', 'message' => 'CSS contains legacy executable binding rules.'],
-            ['pattern' => '/@import\b/i', 'message' => 'CSS contains @import, which is not permitted in managed themes.'],
-            ['pattern' => '/url\s*\(\s*["\']?(?:https?:)?\/\//i', 'message' => 'CSS contains an external network URL.'],
-            ['pattern' => '/url\s*\(\s*["\']?data:text\/html/i', 'message' => 'CSS contains a data:text/html URL.']
-        ];
-        foreach ($rules as $rule) {
-            if (preg_match($rule['pattern'], $css)) {
-                $severe[] = $rule['message'];
-            }
-        }
-        return [
-            'warnings' => [],
-            'severe' => array_values(array_unique($severe))
-        ];
-    }
+require_once __DIR__ . '/lib.theme-css.php';
 
     function fvplusThemeWorkspaceFetchText(string $url, int $timeoutSeconds = 10): array {
         $requestUrl = trim($url);
@@ -175,7 +155,7 @@ function fvplusThemeWorkspaceScanCss(string $css): array {
                 if ($entryPath === '' || !preg_match('/\.css$/i', $entryPath)) {
                     continue;
                 }
-                if ($pathPrefix !== '' && strpos(strtolower($entryPath), strtolower($pathPrefix)) !== 0) {
+                if ($pathPrefix !== '' && strpos($entryPath, rtrim($pathPrefix, '/') . '/') !== 0) {
                     continue;
                 }
                 if (preg_match('#(^|/)(node_modules|vendor|dist|build|coverage|\.git)/#i', $entryPath)) {

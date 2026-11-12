@@ -64,7 +64,7 @@ test('production environment import previews, confirms, locks, applies and refre
     let confirm;
     const api = productionFactory({
         selectJsonFile: async () => ({ name: 'fixture.json', text: JSON.stringify(snapshot) }),
-        apiPostJson: async (_url, data) => { calls.push(data.action); return data.action === 'preview' ? { summary } : { import: { summary } }; },
+        apiPostJson: async (_url, data) => { calls.push(data.action); return data.action === 'preview' ? { summary } : { import: { summary, verified: true } }; },
         swal: (_options, callback) => { if (callback) confirm = callback; },
         claimAdvancedOperationLock: (type, scope) => { calls.push(`lock:${type}:${scope}`); return true; },
         releaseAdvancedOperationLock: (type, scope) => calls.push(`unlock:${type}:${scope}`),

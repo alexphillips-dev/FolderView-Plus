@@ -121,7 +121,7 @@
         };
 
         const markRenderFailed = (generation, error) => {
-            if (generation !== state.generation) return false;
+            if (state.disposed || generation !== state.generation) return false;
             state.foldersGrouped = false;
             state.renderGeneration = 0;
             state.renderFailureCount += 1;
@@ -129,13 +129,13 @@
             emit('folderRenderFailed', { message: state.lastError });
             return true;
         };
-
         const handleNativeRowsResponse = (generation, requestUrl) => {
-            if (!markNativeRowsLoaded(generation, { requestUrl })) return Promise.resolve(false);
+            if (state.disposed || !markNativeRowsLoaded(generation, { requestUrl })) return Promise.resolve(false);
             if (state.foldersGrouped || state.renderGeneration === generation) return Promise.resolve(false);
             state.renderGeneration = generation;
             return Promise.resolve(renderFolders({ generation, requestUrl }))
                 .then((rendered) => {
+                    if (state.disposed || generation !== state.generation) return false;
                     if (rendered === false) {
                         state.renderGeneration = 0;
                         return false;
@@ -147,7 +147,7 @@
                     throw error;
                 })
                 .finally(() => {
-                    hideSpinner();
+                    if (!state.disposed && generation === state.generation) hideSpinner();
                 });
         };
 

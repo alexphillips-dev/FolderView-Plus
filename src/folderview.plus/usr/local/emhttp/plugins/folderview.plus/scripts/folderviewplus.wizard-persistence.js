@@ -154,12 +154,14 @@
         const writePresetStore = (rows) => {
             const safeRows = Array.isArray(rows) ? rows.slice(0, maxPresets) : [];
             try {
-                getStorage()?.setItem?.(constants.presetsStorageKey, JSON.stringify(safeRows));
+                const storage = getStorage();
+                if (typeof storage?.setItem !== 'function') return false;
+                storage.setItem(constants.presetsStorageKey, JSON.stringify(safeRows));
+                return true;
             } catch (_error) {
-                // Local storage is optional.
+                return false;
             }
         };
-
         const buildPresetPayload = () => {
             const state = getState();
             return {
@@ -254,10 +256,9 @@
                 String(entry.name || '').trim().toLowerCase() !== nextEntry.name.toLowerCase()
             ));
             deduped.unshift(nextEntry);
-            writePresetStore(deduped);
+            if (!writePresetStore(deduped)) return { ok: false };
             return { ok: true, id: nextEntry.id, name: nextEntry.name };
         };
-
         const loadPreset = (presetId) => {
             const key = String(presetId || '').trim();
             const selected = key ? readPresetStore().find((entry) => String(entry.id || '') === key) : null;
@@ -274,8 +275,7 @@
             if (next.length === existing.length) {
                 return false;
             }
-            writePresetStore(next);
-            return true;
+            return writePresetStore(next);
         };
 
         const restoreDraft = () => {

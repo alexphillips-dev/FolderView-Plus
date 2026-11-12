@@ -13,6 +13,37 @@ const basicToolbarMarkup = (type) => {
     return settingsPageSource.slice(start, end);
 };
 
+export const verifyMultilingualSettingsSearch = async (page) => {
+    await page.addScriptTag({ path: path.join(process.cwd(), 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-search.js') });
+    const result = await page.evaluate(() => {
+        const host = document.createElement('section');
+        host.innerHTML = '<h2>Search fixture</h2><label>Настройки 设置 الإعدادات 設定 설정 Réglages<input value="private-input-value"></label>'
+            + '<div data-fv-search-private><label>секрет机密<input aria-label="секрет机密"></label></div>';
+        document.body.append(host);
+        const state = { mode: 'advanced', advancedTab: 'appearance', query: '', sections: [{
+            key: 'fixture', title: 'Search fixture', heading: host.querySelector('h2'), nodes: [host], advancedGroup: 'appearance'
+        }] };
+        const api = window.FolderViewPlusFoundationModules.settingsSearch.createApi({ window, document, getUiState: () => state });
+        const evaluate = query => { state.query = query; return api.evaluate().total; };
+        try {
+            const counts = ['Настройки', '设置', 'الإعدادات', '設定', '설정', 'reglages'].map(evaluate);
+            const privateCounts = ['секрет', '机密', 'private-input-value', 'unrelated'].map(evaluate);
+            state.query = '设置';
+            api.syncPresentation();
+            const highlighted = host.querySelector('label').classList.contains('fv-setting-search-match');
+            const clearVisible = !document.getElementById('fv-settings-clear-search').hidden;
+            state.query = '';
+            api.syncPresentation();
+            return { counts, privateCounts, highlighted, clearVisible, cleared: !host.querySelector('.fv-setting-search-match') };
+        } finally { api.dispose(); host.remove(); }
+    });
+    assert.deepEqual(result.counts, [1, 1, 1, 1, 1, 1], 'localized labels must match with accent folding');
+    assert.deepEqual(result.privateCounts, [0, 0, 0, 0], 'private content and input values must stay outside the index');
+    assert.equal(result.highlighted, true);
+    assert.equal(result.clearVisible, true);
+    assert.equal(result.cleared, true);
+};
+
 export const verifySettingsSearchAlignment = async (page) => {
     const desktop = await page.evaluate(() => {
         const rect = (selector) => document.querySelector(selector).getBoundingClientRect();

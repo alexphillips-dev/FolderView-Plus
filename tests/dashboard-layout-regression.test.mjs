@@ -362,8 +362,8 @@ test('shared fatal banner runtime is exposed on settings and runtime pages and e
     assert.match(fatalBannerScript, /Copy support code/);
     assert.match(fatalBannerScript, /Download startup report/);
     assert.match(fatalBannerScript, /diagnostics\.cards\.technical-details/);
-    assert.match(fatalBannerScript, /`severity: \$\{trimString\(activeIssue\.severity/);
-    assert.match(fatalBannerScript, /`category: \$\{trimString\(activeIssue\.category/);
+    assert.match(fatalBannerScript, /`severity: \$\{protect\(activeIssue\.severity/);
+    assert.match(fatalBannerScript, /`category: \$\{protect\(activeIssue\.category/);
     assert.match(fatalBannerScript, /`lastAction: \$\{protect\(trimString\(state\.lastAction/);
     assert.match(fatalBannerScript, /\[affected-areas\]/);
     assert.match(fatalBannerScript, /const DIAGNOSTIC_REQUEST_LIMIT = 16/);

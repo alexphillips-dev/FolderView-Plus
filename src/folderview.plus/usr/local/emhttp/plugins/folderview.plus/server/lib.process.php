@@ -150,25 +150,25 @@ if (!function_exists('fvplusRunProcessProfile')) {
         $startedAt = microtime(true);
         $timeoutSeconds = max(1, (int)$config['timeoutSeconds']);
         $maxOutputBytes = max(1024, (int)$config['maxOutputBytes']);
+        $readOutput = static function (int $index) use ($pipes, &$stdout, &$stderr, &$truncated, $maxOutputBytes): void {
+            while (!$truncated) {
+                $remaining = $maxOutputBytes - strlen($stdout) - strlen($stderr);
+                $chunk = @stream_get_contents($pipes[$index], min(8192, $remaining + 1));
+                if (!is_string($chunk) || $chunk === '') break;
+                $truncated = strlen($chunk) > $remaining;
+                $chunk = substr($chunk, 0, $remaining);
+                if ($index === 1) $stdout .= $chunk;
+                else $stderr .= $chunk;
+            }
+        };
 
         while (true) {
             $status = @proc_get_status($process);
             $running = is_array($status) && ($status['running'] ?? false) === true;
             foreach ([1, 2] as $index) {
-                $chunk = @stream_get_contents($pipes[$index]);
-                if (!is_string($chunk) || $chunk === '') {
-                    continue;
-                }
-                if ($index === 1) {
-                    $stdout .= $chunk;
-                } else {
-                    $stderr .= $chunk;
-                }
+                $readOutput($index);
             }
-            if ((strlen($stdout) + strlen($stderr)) > $maxOutputBytes) {
-                $remaining = max(0, $maxOutputBytes - strlen($stdout));
-                $stderr = substr($stderr, 0, $remaining);
-                $truncated = true;
+            if ($truncated) {
                 @proc_terminate($process, 9);
                 break;
             }
@@ -193,14 +193,7 @@ if (!function_exists('fvplusRunProcessProfile')) {
         }
 
         foreach ([1, 2] as $index) {
-            $chunk = @stream_get_contents($pipes[$index]);
-            if (is_string($chunk) && $chunk !== '') {
-                if ($index === 1) {
-                    $stdout .= $chunk;
-                } else {
-                    $stderr .= $chunk;
-                }
-            }
+            $readOutput($index);
             @fclose($pipes[$index]);
         }
         $exitCode = @proc_close($process);
@@ -213,7 +206,7 @@ if (!function_exists('fvplusRunProcessProfile')) {
             $exitCode = 125;
         }
         $elapsedMs = max(0, (int)round((microtime(true) - $startedAt) * 1000));
-        $combined = trim($stdout . ($stderr !== '' ? "\n" . $stderr : ''));
+        $combined = trim(substr($stdout . ($stderr !== '' ? "\n" . $stderr : ''), 0, $maxOutputBytes));
         $lines = $combined === '' ? [] : preg_split('/\r?\n/', $combined);
         if (!is_array($lines)) {
             $lines = [];

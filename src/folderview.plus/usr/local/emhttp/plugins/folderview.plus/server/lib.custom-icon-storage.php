@@ -161,7 +161,7 @@ require_once __DIR__ . '/lib.custom-icon-repair.php';
                 continue;
             }
             if (!fvplusCopyCustomIconStorageFile($sourcePath, $targetPath)) {
-                continue;
+                throw new RuntimeException('Custom icon directory is not writable. Run: ' . fvplusCustomIconRepairHintCommand());
             }
             if ($name === '.metadata.json') {
                 $migratedMetadata = true;

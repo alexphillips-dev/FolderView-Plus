@@ -930,12 +930,10 @@
         const transport = deps.transport || win?.FolderViewPlusRuntimeTransport || null;
         const instances = new Map();
         let preparedProvider = null;
+        let prepareGeneration = 0;
         let prepareAbortController = null;
         const getPrepareSignal = () => {
-            if (
-                !prepareAbortController
-                || prepareAbortController.signal?.aborted === true
-            ) {
+            if (!prepareAbortController || prepareAbortController.signal?.aborted === true) {
                 const Controller = win?.AbortController
                     || (typeof AbortController !== 'undefined' ? AbortController : null);
                 prepareAbortController = Controller ? new Controller() : null;
@@ -976,14 +974,12 @@
         };
         const prepare = async (options = {}) => {
             preparedProvider = select(options);
-            const preparingProvider = preparedProvider;
+            const generation = ++prepareGeneration, preparingProvider = preparedProvider;
             const prepareOptions = {
                 ...options,
                 signal: options.signal || getPrepareSignal()
             };
-            let capabilityEvidence = options.__capabilityEvidence
-                || transport?.getCapabilitySnapshot?.()
-                || null;
+            let capabilityEvidence = options.__capabilityEvidence || transport?.getCapabilitySnapshot?.() || null;
             if (preparedProvider.id === PROVIDER_IDS.UNRAID_GRAPHQL) {
                 try {
                     capabilityEvidence = await preparedProvider.ready(prepareOptions);
@@ -998,7 +994,7 @@
                     ...prepareOptions,
                     timeoutMs: Math.max(1000, Number(options.timeoutMs) || 4000)
                 })).then((resolved) => {
-                    if (preparedProvider !== preparingProvider) return;
+                    if (generation !== prepareGeneration) return;
                     return prepare({
                         ...options,
                         __backgroundResolution: true,
@@ -1008,7 +1004,8 @@
                     // Legacy UI activation is independent of optional GraphQL discovery.
                 });
             }
-            const providerDiagnostics = preparedProvider.getDiagnostics();
+            if (generation !== prepareGeneration) return null;
+            const providerDiagnostics = preparingProvider.getDiagnostics();
             compatibilityController?.updateProviderEvidence?.({
                 provider: {
                     selected: providerDiagnostics.provider,
@@ -1023,12 +1020,13 @@
                 && typeof preparedProvider.health?.getSummary === 'function'
             ) {
                 Promise.resolve()
-                    .then(() => preparedProvider.health.getSummary({
+                    .then(() => generation !== prepareGeneration ? null : preparingProvider.health.getSummary({
                         timeoutMs: 8000,
                         signal: prepareOptions.signal,
                         staleKey: 'docker-provider-prepare-health'
                     }))
                     .then((health) => {
+                        if (generation !== prepareGeneration) return;
                         compatibilityController?.updateProviderEvidence?.({
                             provider: {
                                 health: {
@@ -1057,6 +1055,7 @@
         };
         const getDefault = () => preparedProvider || select();
         const dispose = () => {
+            prepareGeneration += 1;
             prepareAbortController?.abort?.();
             prepareAbortController = null;
             instances.forEach((provider) => provider.dispose?.());

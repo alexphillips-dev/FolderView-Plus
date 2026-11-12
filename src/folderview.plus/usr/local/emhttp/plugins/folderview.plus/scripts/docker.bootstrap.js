@@ -71,6 +71,13 @@
         } finally {
             timing?.end?.('customScripts');
         }
+        if (pageExited) {
+            return {
+                loaded: false,
+                hostGeneration: decision.hostGeneration,
+                reason: 'page-exited'
+            };
+        }
 
         const runtimeUrl = String(window.FolderViewPlusDockerRuntimeAssetUrl || '').trim();
         if (!runtimeUrl) {

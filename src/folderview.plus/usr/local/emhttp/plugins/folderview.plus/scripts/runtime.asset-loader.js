@@ -6,7 +6,8 @@
         if (!source) return Promise.reject(new Error('Asset URL is required'));
         if (pending.has(source)) return pending.get(source);
         const promise = new Promise((resolve, reject) => {
-            const existing = Array.from(document.scripts || []).find((script) => script.src === new URL(source, window.location.href).href);
+            const existing = Array.from(document.scripts || []).find((script) => script.src === new URL(source, window.location.href).href
+                && script.dataset?.fvplusLoadFailed !== 'true');
             if (existing && (existing.dataset?.fvplusLoaded === 'true'
                 || existing.readyState === 'complete'
                 || existing.readyState === 'loaded'
@@ -18,7 +19,12 @@
             const script = existing || document.createElement('script');
             script.async = false;
             script.addEventListener('load', () => { script.dataset.fvplusLoaded = 'true'; resolve(script); }, { once: true });
-            script.addEventListener('error', () => { pending.delete(source); reject(new Error(`Failed to load ${source}`)); }, { once: true });
+            script.addEventListener('error', () => {
+                script.dataset.fvplusLoadFailed = 'true';
+                if (script.dataset.fvplusLazyAsset === 'true') script.remove();
+                pending.delete(source);
+                reject(new Error(`Failed to load ${source}`));
+            }, { once: true });
             if (!existing) {
                 script.src = source;
                 script.dataset.fvplusLazyAsset = 'true';
@@ -33,7 +39,6 @@
         Promise.resolve()
     );
     const ensureChartStack = () => {
-        if (typeof window.Chart === 'function') return Promise.resolve(window.Chart);
         const urls = window.FolderViewPlusAssetUrls?.chartStack || [];
         return loadSequential(urls).then(() => {
             if (typeof window.Chart !== 'function') throw new Error('Chart runtime did not initialize');

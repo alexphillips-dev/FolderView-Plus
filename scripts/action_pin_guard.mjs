@@ -17,7 +17,7 @@ let externalUses = 0;
 for (const file of files) {
     const source = fs.readFileSync(file, 'utf8');
     const relative = path.relative(repoRoot, file).replaceAll('\\', '/');
-    for (const match of source.matchAll(/^\s*uses:\s*([^\s#]+)(?:\s*#\s*(.+))?$/gm)) {
+    for (const match of source.matchAll(/^\s*(?:-\s+)?uses:\s*([^\s#]+)(?:\s*#\s*(.+))?$/gm)) {
         const reference = match[1];
         if (reference.startsWith('./') || reference.startsWith('docker://')) continue;
         externalUses += 1;

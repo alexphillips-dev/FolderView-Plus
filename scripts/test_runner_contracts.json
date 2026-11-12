@@ -28,11 +28,17 @@
         "../tests/browser/cases/import.mjs",
         "../tests/browser/cases/folder-render-recovery.mjs",
         "../tests/browser/cases/forum-reports.mjs",
-        "../tests/browser/cases/download-notice.mjs"
+        "../tests/browser/cases/download-notice.mjs",
+        "../tests/browser/cases/editor-member-roundtrip.mjs",
+        "../tests/browser/cases/editor-action-roundtrip.mjs",
+        "../tests/browser/cases/runtime-preview-color-security.mjs"
       ]
     }
   ],
   "modules": [
+    {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed"},
+    {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
+    {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
     { "file": "tests/browser/helpers/settings-icons.mjs", "limit": 70, "owner": "native Font Awesome glyph and SVG optical alignment checks" },
     { "file": "tests/browser/cases/aurora-controls.mjs", "limit": 80, "owner": "Aurora header icon sampling and compact Settings control regressions" },
     { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
@@ -72,6 +78,8 @@
     { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
     { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
     { "file": "tests/browser/helpers/icon-pack-filters.mjs", "limit": 65, "owner": "Icon Packs filter dropdown layout, checkbox filtering and lifecycle" },
+    { "file": "tests/browser/cases/settings-tree-persistence.mjs", "limit": 45, "owner": "Settings tree latest intent persistence before navigation", "requiredImports": ["../helpers/settings-hide-empty-host.mjs"] },
+    { "file": "tests/browser/cases/settings-search-unicode.mjs", "limit": 15, "owner": "Localized Settings search and private indexing boundary", "requiredImports": ["./settings-search-layout.mjs"] },
     { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
     { "file": "tests/browser/helpers/settings-order-controls.mjs", "limit": 85, "owner": "Native, Aurora and NeoRaid Basic tree-control geometry and interaction", "requiredImports": ["./host-theme.mjs", "./neoraid.mjs"] },
     { "file": "tests/browser/helpers/settings-host-heading.mjs", "limit": 85, "owner": "Scoped native and Aurora Settings headings with action and navigation preservation" },
@@ -121,7 +129,7 @@
     { "file": "tests/browser/helpers/quick-finder-native-sizing.mjs", "limit": 25, "owner": "Quick finder scale comparison against rendered Docker folder previews" },
     { "file": "tests/browser/cases/docker-hidden-folders.mjs", "limit": 27, "owner": "fixture hidden-folder recovery cases" },
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
-    { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases" },
+    { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases", "requiredImports": ["./settings-tree-persistence.mjs", "./settings-search-unicode.mjs"] },
     { "file": "tests/browser/cases/settings-rules.mjs", "limit": 230, "owner": "production Settings rule saves, matching and responsive workspace" },
     { "file": "tests/browser/helpers/settings-workspace-controls.mjs", "limit": 50, "owner": "shared source tab parity, icon centering and Rules page expansion" },
     { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
@@ -162,8 +170,12 @@
         "tests/browser/cases/runtime-quick-finder-results.mjs",
         "tests/browser/cases/runtime-quick-finder-safety.mjs",
         "tests/browser/cases/docker-hidden-folders.mjs",
+        "tests/browser/cases/runtime-preview-color-security.mjs",
+        "tests/browser/cases/editor-action-roundtrip.mjs",
+        "tests/browser/cases/editor-member-roundtrip.mjs",
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
+        "tests/browser/cases/settings-search-unicode.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-rules.mjs",
         "tests/browser/cases/settings-rules-preview.mjs",
@@ -195,6 +207,7 @@
         "tests/browser/cases/folder-hover-effects.mjs",
         "tests/browser/cases/settings-hide-empty.mjs",
         "tests/browser/cases/settings-nested-display.mjs",
+        "tests/browser/cases/settings-tree-persistence.mjs",
         "tests/browser/cases/docker-hide-empty.mjs",
         "tests/browser/cases/docker-hierarchy-move.mjs",
         "tests/browser/cases/folder-badges.mjs",
@@ -257,10 +270,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 145,
-      "assertionCount": 1901,
-      "pageEvaluateCount": 601,
-      "orderedTitleSha256": "442a1729bd6d98970e3613240c08e0a965cb3290bcc16dee78d2877e1e46f4db"
+      "testCount": 151,
+      "assertionCount": 1924,
+      "pageEvaluateCount": 610,
+      "orderedTitleSha256": "0e56a8613154f3444ce7ab7a06309f974358ec3f0225b668dc07136bb8974c1b"
     }
   }
 }

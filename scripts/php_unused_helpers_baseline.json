@@ -4,6 +4,12 @@
     "generatedAt": "2026-09-29T20:14:31+00:00",
     "findings": [
         {
+            "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.custom-icon-endpoint-foundation.php",
+            "symbol": "syncCustomIconPublicRuntime",
+            "line": 135,
+            "reason": "Historical public PHP compatibility shim protected by phase6-php-decomposition.test.mjs; transactional icon mutations now synchronize and verify storage directly."
+        },
+        {
             "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics-integrity.php",
             "symbol": "diagnosticsFirstMatchingRule",
             "line": 116,

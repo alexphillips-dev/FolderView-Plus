@@ -81,7 +81,9 @@
                     scheduleReconnect();
                     return;
                 }
+                const activeSocket = socket;
                 socket.addEventListener('open', () => {
+                    if (disposed || socket !== activeSocket) return;
                     const params = { ...(options.connectionParams || {}) };
                     const token = String(options.csrfToken || csrfToken(win)).trim();
                     if (token) params['x-csrf-token'] = token;
@@ -95,6 +97,7 @@
                     }, Math.max(1000, Number(options.connectionAckTimeoutMs) || 6000));
                 });
                 socket.addEventListener('message', (event) => {
+                    if (disposed || socket !== activeSocket) return;
                     try {
                         const message = JSON.parse(event.data);
                         if (message.type === 'connection_ack') {
@@ -130,20 +133,19 @@
                     }
                 });
                 socket.addEventListener('error', () => {
+                    if (disposed || socket !== activeSocket) return;
                     onError(new RuntimeTransportError('The GraphQL subscription connection failed.', {
                         category: 'subscription-offline',
                         retryable: true
                     }));
                 });
                 socket.addEventListener('close', (event) => {
+                    if (disposed || socket !== activeSocket) return;
                     if (socketAckTimer !== null) win.clearTimeout(socketAckTimer);
                     socketAckTimer = null;
                     socket = null;
-                    if (disposed || event?.code === 1000) {
-                        setStatus('closed');
-                        return;
-                    }
-                    scheduleReconnect();
+                    if (event?.code === 1000) setStatus('closed');
+                    else scheduleReconnect();
                 });
                 record('subscription-open', { transport });
             };
@@ -151,8 +153,9 @@
                 transport = 'sse';
                 setStatus('connecting');
                 eventSource = new win.EventSource(String(options.sseUrl), { withCredentials: true });
-                eventSource.onopen = () => setStatus('active');
+                eventSource.onopen = () => { if (!disposed) setStatus('active'); };
                 eventSource.onmessage = (event) => {
+                    if (disposed) return;
                     try {
                         onData(JSON.parse(event.data));
                     } catch (_error) {
@@ -160,6 +163,7 @@
                     }
                 };
                 eventSource.onerror = () => {
+                    if (disposed) return;
                     onError(new RuntimeTransportError('The event stream connection failed.', {
                         category: 'subscription-offline',
                         retryable: true
@@ -196,16 +200,10 @@
                 record('subscription-open', { transport });
             };
 
-            if (webSocketUrl && typeof win?.WebSocket === 'function') openWebSocket();
-            else if (options.sseUrl && typeof win?.EventSource === 'function') startEventSource();
-            else if (typeof options.poll === 'function') startPoll();
-            else {
-                setStatus('unavailable');
-                record('subscription-skipped', { reason: 'no-compatible-adapter' });
-            }
             const dispose = () => {
                 if (disposed) return;
                 disposed = true;
+                options.signal?.removeEventListener?.('abort', dispose);
                 if (reconnectTimer !== null) win.clearTimeout(reconnectTimer);
                 if (pollTimer !== null) win.clearInterval(pollTimer);
                 if (socketAckTimer !== null) win.clearTimeout(socketAckTimer);
@@ -224,15 +222,17 @@
                 record('subscription-close', { transport });
             };
             options.signal?.addEventListener?.('abort', dispose, { once: true });
-            dispose.snapshot = () => ({
-                transport,
-                status,
-                reconnectCount,
-                disposed
-            });
+            dispose.snapshot = () => ({ transport, status, reconnectCount, disposed });
+            if (options.signal?.aborted) dispose();
+            else if (webSocketUrl && typeof win?.WebSocket === 'function') openWebSocket();
+            else if (options.sseUrl && typeof win?.EventSource === 'function') startEventSource();
+            else if (typeof options.poll === 'function') startPoll();
+            else {
+                setStatus('unavailable');
+                record('subscription-skipped', { reason: 'no-compatible-adapter' });
+            }
             return dispose;
         };
-
         return Object.freeze({ resolveWebSocketUrl, subscribe });
     };
 

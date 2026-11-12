@@ -10,6 +10,7 @@ import { registerDockerFixtureCases } from '../tests/browser/cases/docker.mjs'; 
 import { registerDashboardLifecycleFixtureCases } from '../tests/browser/cases/dashboard-lifecycle.mjs'; import { registerStatusTextThemeFixtureCase } from '../tests/browser/cases/status-text-theme.mjs'; import { registerDashboardAccordionFixtureCases } from '../tests/browser/cases/dashboard-accordion.mjs'; import { registerDashboardDensityFixtureCases } from '../tests/browser/cases/dashboard-density.mjs';
 import { registerRuntimeInteractionsFixtureCases } from '../tests/browser/cases/runtime-interactions.mjs'; import { registerRuntimeQuickFinderCases } from '../tests/browser/cases/runtime-quick-finder.mjs'; import { registerQuickFinderControlCases } from '../tests/browser/cases/runtime-quick-finder-controls.mjs';
 import { registerDockerHiddenFolderFixtureCases } from '../tests/browser/cases/docker-hidden-folders.mjs';
+import { registerRuntimePreviewColorSecurityCases } from '../tests/browser/cases/runtime-preview-color-security.mjs'; import { registerEditorActionRoundtripCases } from '../tests/browser/cases/editor-action-roundtrip.mjs'; import { registerEditorMemberRoundtripCases } from '../tests/browser/cases/editor-member-roundtrip.mjs';
 import { registerSettingsFixtureCases } from '../tests/browser/cases/settings.mjs'; import { registerPageTitleCases } from '../tests/browser/cases/page-title.mjs'; import { registerEngineIdentityCases } from '../tests/browser/cases/engine-identity.mjs'; import { registerEngineRuntimeFactCases } from '../tests/browser/cases/engine-runtime-facts.mjs';
 import { registerSettingsStartOrderFixtureCases } from '../tests/browser/cases/settings-start-order.mjs';
 import { registerFolderEditorFixtureCases } from '../tests/browser/cases/folder-editor.mjs'; import { registerFolderEditorTabCases } from '../tests/browser/cases/folder-editor-tabs.mjs'; import { registerFolderEditorSettingsCases } from '../tests/browser/cases/folder-editor-settings.mjs'; import { registerFolderEditorHelpCases } from '../tests/browser/cases/folder-editor-help.mjs';
@@ -27,9 +28,7 @@ const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const englishSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'en', 'legacy-surface.json'));
 const germanSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'de', 'legacy-surface.json'));
 const surfaceKeyFor = (phrase) => Object.keys(englishSurfaceCatalog).find((key) => englishSurfaceCatalog[key] === phrase);
-
 fs.mkdirSync(artifactDir, { recursive: true });
-
 const fixtureServer = createFixtureBrowserServer({ rootDir, pluginDir, fixtureDir });
 await new Promise((resolve, reject) => {
     fixtureServer.once('error', reject);
@@ -47,6 +46,7 @@ registerDockerFixtureCases(caseContext); registerDockerNativeLifecycleCases(case
 registerDashboardLifecycleFixtureCases(caseContext); registerStatusTextThemeFixtureCase(caseContext); registerDashboardAccordionFixtureCases(caseContext); registerDashboardDensityFixtureCases(caseContext);
 registerRuntimeInteractionsFixtureCases(caseContext); registerRuntimeQuickFinderCases(caseContext); registerQuickFinderControlCases(caseContext);
 registerDockerHiddenFolderFixtureCases(caseContext);
+registerRuntimePreviewColorSecurityCases(caseContext); registerEditorActionRoundtripCases(caseContext); registerEditorMemberRoundtripCases(caseContext);
 registerSettingsFixtureCases(caseContext); registerPageTitleCases(caseContext); registerEngineRuntimeFactCases(caseContext);
 registerSettingsStartOrderFixtureCases(caseContext);
 registerFolderEditorFixtureCases(caseContext); registerFolderEditorTabCases(caseContext); registerFolderWebuiProfileFixtureCases(caseContext); registerFolderWebuiProfileThemeFixtureCase(caseContext); registerFolderEditorSettingsCases(caseContext); registerFolderEditorHelpCases(caseContext);

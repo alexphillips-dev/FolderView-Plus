@@ -79,8 +79,12 @@ if ! printf '%s' "${ICON_PACK_SHA256}" | grep -Eq '^[a-f0-9]{64}$'; then
     fail "FolderView Plus icon asset-pack checksum is invalid."
 fi
 
+[ ! -L "${CACHE_BASE}" ] || fail "FolderView Plus asset-pack cache root must not be a symbolic link."
 ICON_PACK_READY=0
-if [ -f "${ICON_PACK_MARKER}" ] && [ -f "${ICON_PACK_CACHE_ROOT}/asset-pack.json" ] && [ -d "${ICON_PACK_CACHE_ROOT}/third-party-icons" ]; then
+if [ ! -L "${ICON_PACK_CACHE_ROOT}" ] \
+    && [ ! -L "${ICON_PACK_MARKER}" ] && [ -f "${ICON_PACK_MARKER}" ] \
+    && [ ! -L "${ICON_PACK_CACHE_ROOT}/asset-pack.json" ] && [ -f "${ICON_PACK_CACHE_ROOT}/asset-pack.json" ] \
+    && [ ! -L "${ICON_PACK_CACHE_ROOT}/third-party-icons" ] && [ -d "${ICON_PACK_CACHE_ROOT}/third-party-icons" ]; then
     ICON_PACK_CURRENT_MARKER="$(cat "${ICON_PACK_MARKER}" 2>/dev/null || true)"
     if [ "${ICON_PACK_CURRENT_MARKER}" = "${ICON_PACK_EXPECTED_MARKER}" ]; then
         ICON_PACK_READY=1
@@ -98,7 +102,6 @@ if [ "${ICON_PACK_READY}" -ne 1 ]; then
         || fail "FolderView Plus icon asset-pack archive failed security preflight."
 
     mkdir -p "${CACHE_BASE}"
-    [ ! -L "${CACHE_BASE}" ] || fail "FolderView Plus asset-pack cache root must not be a symbolic link."
     chmod 0755 "${CACHE_BASE}"
     ICON_PACK_STAGE="$(mktemp -d "${CACHE_BASE}/.icons-${ICON_PACK_VERSION}.stage.XXXXXX")"
     ICON_PACK_PREVIOUS="$(mktemp -d "${CACHE_BASE}/.icons-${ICON_PACK_VERSION}.previous.XXXXXX")"

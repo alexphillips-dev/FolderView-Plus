@@ -636,7 +636,7 @@ fi
 
 cd "$tmpdir"
 tar_status=0
-if ! tar --sort=name \
+if tar --sort=name \
     --mtime='UTC 1970-01-01' \
     --owner=0 \
     --group=0 \
@@ -644,6 +644,8 @@ if ! tar --sort=name \
     --mode=0755 \
     --use-compress-program='xz --threads=1' \
     -cf "$filename" ./*; then
+    tar_status=0
+else
     tar_status=$?
 fi
 
@@ -711,7 +713,7 @@ if [ "$validate_after_build" = true ]; then
     FVPLUS_ICON_ASSET_PACK_GUARDED=1 FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
 fi
 if [ "$run_install_smoke" = true ]; then
-    bash "$install_smoke_script"
+    FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$install_smoke_script"
 fi
 
 echo "Package created: $filename"

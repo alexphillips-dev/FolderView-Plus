@@ -71,6 +71,15 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             $removedFrom = [];
             $changedFolderIds = [];
             if (count($targetByItem) > 0) {
+                foreach ($targetByItem as $member => $targetId) {
+                    if (isset($nextFolders[$targetId]['memberIdentities'][$member])) continue;
+                    foreach ($originalFolders as $sourceFolder) {
+                        if (isset($sourceFolder['memberIdentities'][$member])) {
+                            $nextFolders[$targetId]['memberIdentities'][$member] = $sourceFolder['memberIdentities'][$member];
+                            break;
+                        }
+                    }
+                }
                 foreach ($nextFolders as $id => &$folder) {
                     $members = normalizeFolderMembers($folder['containers'] ?? []);
                     $nextMembers = [];
@@ -98,6 +107,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                     $nextFolders[$folderId]['containers'] = $targetMembers;
                 }
 
+                $nextFolders = normalizeFolderMapPayload($nextFolders);
                 foreach ($nextFolders as $folderId => $folder) {
                     $beforeMembers = normalizeFolderMembers($originalFolders[$folderId]['containers'] ?? []);
                     $afterMembers = normalizeFolderMembers($folder['containers'] ?? []);

@@ -199,8 +199,8 @@
             }
             const resolvedType = normalizeManagedType(type);
             const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
-            const byName = {};
-            const conflicts = {};
+            const byName = Object.create(null);
+            const conflicts = Object.create(null);
             for (const [folderId, folder] of Object.entries(folders || {})) {
                 const members = (utils && typeof utils.normalizeFolderMembers === 'function')
                     ? utils.normalizeFolderMembers(folder?.containers || [])
@@ -914,7 +914,7 @@
             updateBulkResultActions(resolvedType);
             renderBulkResultPanel(resolvedType, {
                 level: 'progress',
-                summary: surfaceT("common.repair.applying-items-in-one-atomic-request-items-1-a8179d", "Applying items in one atomic request. Items: $1�", plan.actionableNames.length),
+                summary: surfaceT("common.repair.applying-items-in-one-atomic-request-items-1-a8179d", "Applying items in one atomic request. Items: $1...", plan.actionableNames.length),
                 lines: []
             });
             try {
@@ -925,7 +925,7 @@
                         onProgress: ({ chunkSize: currentBatchSize, resultLines: nextLines }) => {
                             renderBulkResultPanel(resolvedType, {
                                 level: 'progress',
-                                summary: surfaceT("common.repair.applying-one-atomic-request-items-1-31551b", "Applying one atomic request. Items: $1�", currentBatchSize),
+                                summary: surfaceT("common.repair.applying-one-atomic-request-items-1-31551b", "Applying one atomic request. Items: $1...", currentBatchSize),
                                 lines: nextLines
                             });
                         }

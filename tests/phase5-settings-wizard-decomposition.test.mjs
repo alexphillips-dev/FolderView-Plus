@@ -66,6 +66,7 @@ const createWizardState = () => ({
 });
 
 const createPersistenceApi = (state, storage) => wizardPersistence.createApi({
+    window: {},
     storage,
     getState: () => state,
     constants: {
@@ -142,6 +143,34 @@ test('wizard persistence remains usable when browser storage access is blocked',
     assert.doesNotThrow(() => api.persistDraft());
     assert.equal(api.isCompleted(), false);
     assert.doesNotThrow(() => api.markCompleted());
+});
+
+test('explicit preset writes report unavailable or throwing storage without false success', () => {
+    for (const storage of [null, {}, { setItem() { throw new Error('Quota exceeded'); } }]) {
+        const api = createPersistenceApi(createWizardState(), storage);
+        assert.equal(api.savePreset('Fixture').ok, false);
+        assert.deepEqual(api.readPresetStore(), []);
+    }
+    const storage = new MemoryStorage();
+    const api = createPersistenceApi(createWizardState(), storage);
+    const saved = api.savePreset('Existing');
+    assert.equal(saved.ok, true);
+    const before = storage.getItem('presets');
+    storage.setItem = () => { throw new Error('Storage blocked'); };
+    assert.equal(api.savePreset('Replacement').ok, false);
+    assert.equal(api.deletePreset(saved.id), false);
+    assert.equal(storage.getItem('presets'), before);
+    assert.equal(createPersistenceApi(createWizardState(), storage).readPresetStore()[0].id, saved.id);
+});
+
+test('explicit preset save and delete remain durable through reload', () => {
+    const storage = new MemoryStorage();
+    const saved = createPersistenceApi(createWizardState(), storage).savePreset('Fixture');
+    assert.equal(saved.ok, true);
+    const reloaded = createPersistenceApi(createWizardState(), storage);
+    assert.equal(reloaded.readPresetStore()[0].id, saved.id);
+    assert.equal(reloaded.deletePreset(saved.id), true);
+    assert.deepEqual(createPersistenceApi(createWizardState(), storage).readPresetStore(), []);
 });
 
 test('wizard review owns impact deltas and actionable validation hints', () => {

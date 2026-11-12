@@ -212,7 +212,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /supportBundleTelemetryModule && typeof supportBundleTelemetryModule\.createApi === 'function'/);
     assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
-    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = uiRedactor\.sanitizeValue\(\s*'uiTelemetry\.clientStorage', 'clientStorage', collectClientStorageDiagnostics\(\)\s*\);/);
     assert.doesNotMatch(supportBundleBrowserJs, /nativeOrganizer|NATIVE_ORGANIZER/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);

@@ -56,8 +56,10 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
     loadlist: deps.loadlist || (() => {}),
     queueLoadlistRefresh: deps.queueLoadlistRefresh || (() => {}),
-    requestClient: deps.requestClient || {
-        postJson: async () => ({ ok: true })
+    requestClient: {
+        getJson: async () => cloneJson(deps.getGlobalFolders?.() || {}),
+        postJson: async () => ({ ok: true }),
+        ...(deps.requestClient || {})
     },
     refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
     suspendDockerHostUpdateSync: deps.suspendDockerHostUpdateSync || (() => 0),

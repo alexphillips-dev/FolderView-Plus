@@ -153,11 +153,11 @@
                 return;
             }
             if (hidden) {
-                table.dataset.fvplusCommandPrevDisplay = table.style.display || '';
+                if (table.dataset.fvplusCommandPrevDisplay === undefined) table.dataset.fvplusCommandPrevDisplay = table.style.display || '';
                 table.style.display = 'none';
                 return;
             }
-            table.style.display = String(table.dataset.fvplusCommandPrevDisplay || '');
+            if (table.dataset.fvplusCommandPrevDisplay !== undefined) table.style.display = table.dataset.fvplusCommandPrevDisplay;
             delete table.dataset.fvplusCommandPrevDisplay;
         };
 

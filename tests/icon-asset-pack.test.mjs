@@ -254,6 +254,42 @@ test('installer rejects a bad checksum before creating an active cache', () => {
     }
 });
 
+for (const linkedNode of ['cache', 'version', 'marker', 'manifest', 'icons']) {
+    test(`installer does not reuse a cached pack with a symbolic ${linkedNode} node`, () => {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-icon-cache-link-'));
+        const pluginDir = path.join(tempDir, 'plugin');
+        const configDir = path.join(tempDir, 'config');
+        const cacheDir = path.join(tempDir, 'cache');
+        const versionDir = path.join(cacheDir, `icons-${version}`);
+        const markerPath = path.join(versionDir, '.folderview-plus-asset-pack');
+        const manifestPath = path.join(versionDir, 'asset-pack.json');
+        const iconsDir = path.join(versionDir, 'third-party-icons');
+        const checksum = '0'.repeat(64);
+        fs.mkdirSync(iconsDir, { recursive: true });
+        fs.mkdirSync(configDir);
+        fs.writeFileSync(markerPath, `${version}:${checksum}\n`);
+        fs.writeFileSync(manifestPath, JSON.stringify({ version, fileCount: 1 }));
+        fs.writeFileSync(path.join(iconsDir, 'fixture.svg'), '<svg/>');
+        const linkedPath = { cache: cacheDir, version: versionDir, marker: markerPath, manifest: manifestPath, icons: iconsDir }[linkedNode];
+        const targetPath = path.join(tempDir, 'linked-target');
+        try {
+            fs.renameSync(linkedPath, targetPath);
+            if (process.platform === 'win32') {
+                execFileSync('wsl.exe', ['--exec', 'ln', '-s', toBashPath(targetPath), toBashPath(linkedPath)]);
+            } else {
+                fs.symlinkSync(targetPath, linkedPath);
+            }
+            const result = runInstaller(pluginDir, configDir, cacheDir, checksum, true);
+            assert.notEqual(result.status, 0, result.stdout + result.stderr);
+            assert.match(result.stderr, linkedNode === 'cache' ? /cache root must not be a symbolic link/ : /checksum verification failed/);
+            assert.equal(fs.existsSync(path.join(pluginDir, 'icon-asset-pack.json')), false);
+            assert.equal(fs.existsSync(targetPath), true, 'a rejected cache must preserve the linked target');
+        } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+    });
+}
+
 test('archive preflight rejects links and bounded-size violations before extraction', () => {
     const linked = runMaliciousArchivePreflight('link');
     assert.notEqual(linked.status, 0);

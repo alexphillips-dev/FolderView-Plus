@@ -6069,7 +6069,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusBreakdownHtml = !runtimeReady || statusDisplayMode === 'simple'
             ? ''
             : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
-                const title = surfaceT("common.repair.1-items-2-818040", "$1 � items: $2", entry.label, entry.count);
+                const title = surfaceT("common.repair.1-items-2-818040", "$1 - items: $2", entry.label, entry.count);
                 return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span></span>`;
             }).join('')}</span>`;
         const statusDisplayClass = `is-${statusDisplayMode}`;
@@ -6559,6 +6559,7 @@ const setViewNumberValue = (id, value) => viewSettingsRangeLifecycle?.setNumberV
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
 window.addEventListener('pagehide', () => {
+    settingsStorageWriter?.flush?.();
     disposeSettingsSearch();
     dockerPageTitleSettings.dispose();
     viewSettingsRangeLifecycle?.destroy?.();
@@ -7204,7 +7205,7 @@ const scanSmartRuleSuggestions = (type) => {
     const suggestions = generateSmartRuleSuggestions(resolvedType);
     smartRuleSuggestionCacheByType[resolvedType] = suggestions;
     renderSmartRuleSuggestions(resolvedType, suggestions);
-    addActivityEntry(surfaceT("common.repair.1-smart-rule-scan-suggestions-found-2-f5de01", "$1 smart rule scan � suggestions found: $2.", resolvedType === "docker" ? "Docker" : "VM", suggestions.length), suggestions.length ? 'info' : 'warning');
+    addActivityEntry(surfaceT("common.repair.1-smart-rule-scan-suggestions-found-2-f5de01", "$1 smart rule scan - suggestions found: $2.", resolvedType === "docker" ? "Docker" : "VM", suggestions.length), suggestions.length ? 'info' : 'warning');
 };
 
 const saveSelectedSmartRuleSuggestions = async (type) => {
@@ -8700,17 +8701,9 @@ const importType = async (type) => {
         if (progressOpen) {
             closeImportApplyProgressDialog();
         }
-        let rollbackMessage = 'No rollback backup available.';
-        if (transactionBackup && transactionBackup.name) {
-            try {
-                await restoreBackupByName(resolvedType, transactionBackup.name);
-                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-                rollbackMessage = `Automatic rollback restored backup: ${transactionBackup.name}`;
-            } catch (rollbackError) {
-                rollbackMessage = `Rollback failed: ${rollbackError?.message || rollbackError}`;
-            }
-        }
-        showError('Import failed', new Error(`${error?.message || error}\n${rollbackMessage}`));
+        // The batch owns rollback under its mutation lock. Restoring an older
+        // backup here could overwrite concurrent changes or a committed import.
+        showError('Import failed', error);
     }
 };
 

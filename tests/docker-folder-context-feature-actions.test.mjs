@@ -121,11 +121,11 @@ test('open-all WebUI popup detection reports only a missing browser handle as bl
 test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) => \{/);
     assert.match(dockerScript, /const cloneDockerFolderBranchFromMenu = async \(id\) => \{/);
-    assert.match(dockerRuntimeActionsScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const cloneDockerFolderFromMenu = async \(id, definitions = null\) =>/);
     assert.match(dockerRuntimeActionsScript, /const cloneDockerFolderBranchFromMenu = async \(id\) =>/);
     assert.match(dockerRuntimeActionsScript, /const copyDockerFolderSettingsFromMenu = async \(id, category = 'all'\) =>/);
     assert.match(dockerRuntimeActionsScript, /const pasteDockerFolderSettingsFromMenu = async \(id, category = 'all'\) =>/);
-    assert.match(dockerRuntimeActionsScript, /const getDockerFolderBranchCloneOrder = \(rootId\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const getDockerFolderBranchCloneOrder = \(rootId, folders = getFolderMap\(\)\) =>/);
     assert.match(dockerRuntimeActionsScript, /const buildDockerFolderCloneIdFallback = \(reservedIds = new Set\(\)\) =>/);
     assert.match(dockerRuntimeActionsScript, /const generateDockerFolderCloneId = typeof deps\.generateDockerFolderCloneId === 'function'/);
     assert.match(dockerRuntimeActionsScript, /const rollbackClonedDockerFoldersFallback = async \(createdIds = \[\]\) =>/);
@@ -148,8 +148,8 @@ test('docker branch actions support deleting whole folder branches without repar
     assert.doesNotMatch(dockerScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action'\) => \{/);
     assert.doesNotMatch(dockerScript, /const deleteDockerFolderBranch = async \(id\) => \{/);
     assert.match(dockerScript, /const rmFolderBranch = \(id\) => \{/);
-    assert.match(dockerRuntimeActionsScript, /const getLockedDockerBranchFolderIds = \(id\) =>/);
-    assert.match(dockerRuntimeActionsScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action'\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const getLockedDockerBranchFolderIds = \(id, branchIds = \[id, \.\.\.getFolderDescendants\(id\)\]\) =>/);
+    assert.match(dockerRuntimeActionsScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action', branchIds\) =>/);
     assert.match(dockerRuntimeActionsScript, /const deleteDockerFolderBranch = async \(id\) =>/);
     assert.match(dockerRuntimeActionsScript, /const rmFolderBranch = \(id\) =>/);
     assert.match(dockerRuntimeActionsScript, /common\.actions\.delete-children/);

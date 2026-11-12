@@ -242,8 +242,8 @@
                 return `
                     <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                         <td class="order-col">${orderControls}</td>
-                        <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"></span>${name}</td>
-                        <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" data-fvplus-style="fv-u-569beu"></td>
+                        <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" alt="" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"></span>${name}</td>
+                        <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" aria-label="${name}" data-fvplus-style="fv-u-569beu"></td>
                         <td><label class="fv-member-preview-toggle" title="${escapeHtml(translate('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(translate('editor.members.visible', 'Visible'))}</span></label></td>
                     </tr>
                 `;

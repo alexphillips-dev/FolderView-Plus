@@ -42,18 +42,16 @@
                 if (releaseTimers[resolvedKey] !== null) {
                     win.clearTimeout(releaseTimers[resolvedKey]);
                     releaseTimers[resolvedKey] = null;
+                    inFlightByKey[resolvedKey] = false;
                 }
                 intervalMsByKey[resolvedKey] = 0;
-                inFlightByKey[resolvedKey] = false;
+                // Changing cadence must not release a tick that is still awaiting its request.
+                if (disposed) inFlightByKey[resolvedKey] = false;
             });
         };
         const release = (key) => {
+            if (disposed) return;
             if (releaseTimers[key] !== null) win.clearTimeout(releaseTimers[key]);
-            if (disposed) {
-                releaseTimers[key] = null;
-                inFlightByKey[key] = false;
-                return;
-            }
             releaseTimers[key] = win.setTimeout(() => {
                 releaseTimers[key] = null;
                 inFlightByKey[key] = false;
@@ -72,7 +70,7 @@
             }
             inFlightByKey[resolvedKey] = true;
             return Promise.resolve()
-                .then(() => tick(resolvedKey))
+                .then(() => disposed ? false : tick(resolvedKey))
                 .then((result) => result !== false)
                 .catch((error) => {
                     onError(error, resolvedKey);

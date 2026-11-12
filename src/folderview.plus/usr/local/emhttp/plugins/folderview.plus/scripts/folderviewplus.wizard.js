@@ -514,13 +514,10 @@ const refreshSetupAssistantTemplateSelection = (type, options = {}) => {
 
     let selectedNames = serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames);
     selectedNames = selectedNames.filter((name) => allNames.has(name));
-    if (forceAllSelected || resetSelection || !selectedNames.length) {
+    if (forceAllSelected || resetSelection) {
         selectedNames = visibleNames.slice();
     } else {
         selectedNames = selectedNames.filter((name) => visibleNames.includes(name));
-        if (!selectedNames.length) {
-            selectedNames = visibleNames.slice();
-        }
     }
     bootstrap.selectedTemplateNames = selectedNames;
 
@@ -536,9 +533,9 @@ const refreshSetupAssistantTemplateSelection = (type, options = {}) => {
     };
 };
 
-const refreshSetupAssistantTemplateSelections = () => {
+const refreshSetupAssistantTemplateSelections = (options = {}) => {
     for (const type of ['docker', 'vm']) {
-        refreshSetupAssistantTemplateSelection(type);
+        refreshSetupAssistantTemplateSelection(type, options);
     }
 };
 const getWizardSmartDetectApi = (() => {
@@ -834,7 +831,7 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.restoredDraftSavedAt = '';
     setupAssistantState.mobileSidebarSummaryOpen = false;
     setupAssistantState.collapsedChipRows = {};
-    refreshSetupAssistantTemplateSelections();
+    refreshSetupAssistantTemplateSelections({ forceAllSelected: true });
 };
 
 const clampSetupAssistantStep = () => {
@@ -1299,9 +1296,10 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             return;
         }
         const targetFolderId = resolveSetupAssistantFolderId(resolvedType, templateName, '', { allowPlanned: false });
-        if (targetFolderId) {
-            targetFolderIdsByName[templateName] = targetFolderId;
+        if (!targetFolderId || !Object.prototype.hasOwnProperty.call(folders, targetFolderId)) {
+            throw new Error(setupAssistantT('common.server.target-folder-not-found-b0f5ad', 'Target folder not found.'));
         }
+        targetFolderIdsByName[templateName] = targetFolderId;
     });
 
     const assignedAll = new Set();
@@ -2399,7 +2397,7 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                         </label>
                         <label class="fv-setup-field">
                             <span>Status warn (%)</span>
-                            <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number(behavior.statusWarnStoppedPercent) || 60}">
+                            <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number.isFinite(Number(behavior.statusWarnStoppedPercent)) ? Number(behavior.statusWarnStoppedPercent) : 60}">
                         </label>
                     </div>
                 ` : ''}
@@ -2419,7 +2417,7 @@ const renderSetupAssistantBehaviorSummaryCard = (type) => {
             <span>${behavior.hideEmptyFolders ? 'Hide empty folders' : 'Show empty folders'}</span>
             <span>${behavior.healthCardsEnabled ? 'Health cards on' : 'Health cards off'}</span>
             <span>${behavior.runtimeBadgeEnabled ? 'Runtime badge on' : 'Runtime badge off'}</span>
-            <span>${escapeHtml(getSetupAssistantBehaviorStatusLabel(behavior.statusMode))}, warning at ${Number(behavior.statusWarnStoppedPercent) || 60}%</span>
+            <span>${escapeHtml(getSetupAssistantBehaviorStatusLabel(behavior.statusMode))}, warning at ${Number.isFinite(Number(behavior.statusWarnStoppedPercent)) ? Number(behavior.statusWarnStoppedPercent) : 60}%</span>
         </div>
     `;
 };

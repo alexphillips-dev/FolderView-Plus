@@ -27,7 +27,7 @@
         };
 
         const parseOptionalThresholdInput = (value) => {
-            const raw = String(value || '').trim();
+            const raw = String(value ?? '').trim();
             if (!raw) {
                 return '';
             }

@@ -238,7 +238,7 @@
                 if (normalizedName === 'monitoring') {
                     return hasTokenContainingAny(['myspeed', 'speedtest', 'latency', 'uptime', 'metrics']) ? 10 : 0;
                 }
-                if (normalizedName === 'cloud-&-sync') {
+                if (normalizedName === 'cloud-sync') {
                     return hasTokenContainingAny(['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice']) ? 10 : 0;
                 }
                 if (normalizedName === 'notifications') {

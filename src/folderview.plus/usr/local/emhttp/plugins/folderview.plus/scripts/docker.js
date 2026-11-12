@@ -183,7 +183,7 @@ const restoreLinearPreviewLayout = typeof dockerRuntimeShared.restoreLinearPrevi
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
         wrappers.forEach((wrapper, index) => {
             if (index < wrappers.length - 1) {
-                $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                $(wrapper).after($('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
             }
         });
         return wrappers;
@@ -202,7 +202,7 @@ const finalizePreviewRows = typeof dockerRuntimeShared.finalizePreviewRows === '
             slice.forEach((wrapper, index) => {
                 $row.append(wrapper);
                 if (addDividers && index < slice.length - 1) {
-                    $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                    $row.append($('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
                 }
             });
             $preview.append($row);
@@ -1590,7 +1590,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
             const $clone = $(wrapper).clone();
             $measurement.append($clone);
             if (addDividers && index < wrappers.length - 1) {
-                $measurement.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                $measurement.append($('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
             }
             return $clone.get(0);
         });
@@ -4575,6 +4575,9 @@ const dockerFolderRenderRecovery = window.FolderViewPlusFoundationModules.folder
 });
 
 const createFolders = async () => {
+    const renderGeneration = Number(folderReq?.generation || dockerBootstrapGeneration || 0);
+    const isCurrent = () => !dockerRuntimePageDisposed && renderGeneration === dockerBootstrapGeneration;
+    if (!isCurrent()) return false;
     dockerDeferredPreviewController.flush();
     dockerAdvancedPreviewContextBindersByName.clear();
     const dockerRuntimeRoot = document.querySelector('#docker_list, #docker_view');
@@ -4603,10 +4606,10 @@ const createFolders = async () => {
     const requestBundle = (folderReq && typeof folderReq === 'object') ? folderReq : { render: [], fullInfo: null, generation: dockerBootstrapGeneration };
     requestBundle.consumed = true;
     const renderRequests = Array.isArray(requestBundle.render) ? requestBundle.render : [];
-    const renderGeneration = Number(requestBundle.generation || dockerBootstrapGeneration || 0);
     dockerRuntimeLastRenderGeneration = renderGeneration;
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(renderRequests);
+    if (!isCurrent()) return false;
     dockerRuntimePerformanceTelemetry?.begin?.('renderPreparation');
     dockerPerf.end('createFolders.requests', { requestCount: renderRequests.length });
     markDockerFatalBannerStep('Docker runtime request bundle resolved');
@@ -4691,6 +4694,7 @@ const createFolders = async () => {
             order,
             containersInfo
         });
+        if (!isCurrent()) return false;
         const blob = new Blob([debugData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const element = document.createElement('a');
@@ -4885,12 +4889,14 @@ const createFolders = async () => {
     dockerRuntimePerformanceTelemetry?.sampleDom?.('folders-grouped');
     void getDockerApiIntegration()?.prepare?.({ refresh: true }).catch(() => {});
     } catch (error) {
+    if (!isCurrent()) return false;
     reportDockerFatalRuntimeError(error, {
         phase: error?.fvplusPhase || 'bootstrap-data',
         category: error?.fvplusCategory || inferDockerFatalBannerCategory(error, 'runtime-failed')
     });
     throw error;
     } finally {
+    if (isCurrent()) {
     dockerLastRenderMs = Math.max(0, (typeof performance !== 'undefined' && typeof performance.now === 'function'
         ? performance.now()
         : Date.now()) - performanceRenderStartedAt);
@@ -4906,9 +4912,11 @@ const createFolders = async () => {
         perfMode: FOLDER_VIEW_PERF_MODE
     });
     }
+    }
 };
 
 const queueCreateFoldersRender = () => {
+    if (dockerRuntimePageDisposed) return;
     if (createFoldersInFlight) {
         createFoldersQueued = true;
         return;

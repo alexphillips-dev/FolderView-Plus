@@ -113,6 +113,7 @@ const main = async () => {
     for (let attempt = 1; attempt <= options.attempts; attempt += 1) {
         const analyses = await fetchAnalyses({ repository, token, ref });
         if (!analysisAvailableForCommit(analyses, commitSha, ref)) {
+            stableZeroReads = 0;
             if (attempt === options.attempts) {
                 console.error(`CodeQL analysis for ${commitSha} on ${ref || 'the requested ref'} was not visible before the guard timed out.`);
                 process.exitCode = 1;
@@ -140,6 +141,8 @@ const main = async () => {
         }
         await delay(options.intervalMs);
     }
+    console.error(`CodeQL alert guard did not reach ${options.stableReads} stable reads for ${commitSha} before it timed out.`);
+    process.exitCode = 1;
 };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

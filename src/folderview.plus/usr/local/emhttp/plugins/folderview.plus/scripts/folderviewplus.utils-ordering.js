@@ -153,11 +153,10 @@
             for (const id of normalizedPrefs.manualOrder) {
                 if (Object.prototype.hasOwnProperty.call(normalizedFolders, id)) {
                     ordered[id] = normalizedFolders[id];
-                    delete normalizedFolders[id];
                 }
             }
             for (const [id, folder] of Object.entries(normalizedFolders)) {
-                ordered[id] = folder;
+                if (!Object.prototype.hasOwnProperty.call(ordered, id)) ordered[id] = folder;
             }
             const pinnedApplied = applyPinnedOrder(ordered);
             const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);

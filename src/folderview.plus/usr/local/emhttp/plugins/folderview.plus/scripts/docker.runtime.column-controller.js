@@ -20,6 +20,7 @@
         const dockerRuntimeColumnLayoutEngine = deps.columnLayoutEngine || null;
         const dockerRuntimeWidthState = deps.widthState || {};
         const controllerState = deps.controllerState || {};
+        let disposed = false, fontReadyHandler = null;
         const dockerHostAdapter = deps.hostAdapter || null;
         const runtimeStateObserverModule = deps.stateObserverModule || null;
         const getLastAppliedRuntimePrefs = typeof deps.getLastAppliedRuntimePrefs === 'function'
@@ -550,6 +551,7 @@
         );
 
         const runDockerRuntimeWidthReflow = (reason = 'direct', options = {}) => {
+            if (disposed) return null;
             if (isDockerRuntimeWidthBootstrapActive() && options?.force !== true) {
                 dockerRuntimeWidthState.deferredReason = String(reason || 'direct');
                 return null;
@@ -567,6 +569,7 @@
         };
 
         const scheduleDockerRuntimeWidthReflow = (reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS) => {
+            if (disposed) return;
             if (isDockerRuntimeWidthBootstrapActive()) {
                 dockerRuntimeWidthState.deferredReason = String(reason || 'event');
                 return;
@@ -586,6 +589,7 @@
         };
 
         const beginDockerRuntimeWidthBootstrap = () => {
+            if (disposed) return dockerRuntimeWidthState.stabilizationGeneration;
             dockerRuntimeWidthState.stabilizationGeneration += 1;
             dockerRuntimeWidthState.bootstrapLocked = true;
             dockerRuntimeWidthState.stabilizationPending = false;
@@ -608,7 +612,7 @@
         };
 
         const completeDockerRuntimeWidthBootstrap = (generation, options = {}) => {
-            if (generation !== dockerRuntimeWidthState.stabilizationGeneration) {
+            if (disposed || generation !== dockerRuntimeWidthState.stabilizationGeneration) {
                 return;
             }
             dockerRuntimeWidthState.bootstrapLocked = false;
@@ -660,13 +664,11 @@
             if (!document.fonts) {
                 return;
             }
-            const onFontReady = () => scheduleDockerRuntimeWidthReflow('font-ready', 20);
+            fontReadyHandler = () => scheduleDockerRuntimeWidthReflow('font-ready', 20);
             if (document.fonts.ready && typeof document.fonts.ready.then === 'function') {
-                document.fonts.ready.then(onFontReady).catch(() => {});
+                document.fonts.ready.then(fontReadyHandler).catch(() => {});
             }
-            if (typeof document.fonts.addEventListener === 'function') {
-                document.fonts.addEventListener('loadingdone', onFontReady);
-            }
+            document.fonts.addEventListener?.('loadingdone', fontReadyHandler);
         };
 
         const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
@@ -731,6 +733,7 @@
         };
 
         const queueDockerRuntimeResizerBind = () => {
+            if (disposed) return;
             if (isDockerRuntimeWidthBootstrapActive()) {
                 dockerRuntimeWidthState.resizerBindPending = true;
                 return;
@@ -745,6 +748,7 @@
         };
 
         const bindDockerRuntimeColumnResizers = (options = {}) => {
+            if (disposed) return;
             if (isDockerRuntimeWidthBootstrapActive() && options?.force !== true) {
                 dockerRuntimeWidthState.resizerBindPending = true;
                 return;
@@ -788,21 +792,17 @@
             return controllerState.autoAppWidthFloor;
         };
         const dispose = () => {
-            if (dockerRuntimeWidthState.debounceTimer !== null) {
-                window.clearTimeout(dockerRuntimeWidthState.debounceTimer);
-                dockerRuntimeWidthState.debounceTimer = null;
-            }
-            if (dockerRuntimeWidthState.stabilizationTimer !== null) {
-                window.clearTimeout(dockerRuntimeWidthState.stabilizationTimer);
-                dockerRuntimeWidthState.stabilizationTimer = null;
-            }
-            if (controllerState.resizerBindTimer !== null) {
-                window.clearTimeout(controllerState.resizerBindTimer);
-                controllerState.resizerBindTimer = null;
-            }
-            if (controllerState.resizerRetryTimer !== null) {
-                window.clearTimeout(controllerState.resizerRetryTimer);
-                controllerState.resizerRetryTimer = null;
+            disposed = true;
+            dockerRuntimeWidthState.stabilizationGeneration += 1;
+            if (fontReadyHandler) document.fonts?.removeEventListener?.('loadingdone', fontReadyHandler);
+            for (const [state, keys] of [
+                [dockerRuntimeWidthState, ['debounceTimer', 'stabilizationTimer']],
+                [controllerState, ['resizerBindTimer', 'resizerRetryTimer']]
+            ]) {
+                for (const key of keys) {
+                    if (state[key] !== null) window.clearTimeout(state[key]);
+                    state[key] = null;
+                }
             }
             controllerState.resizerObserver?.disconnect?.();
             controllerState.resizerObserver = null;

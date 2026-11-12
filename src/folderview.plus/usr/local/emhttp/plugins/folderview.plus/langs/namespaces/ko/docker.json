@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "docker",
-        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
+        "translation-context-revision": "08bc843f999289733eae89b2ab189dc155b02379f25c0a41efbc7b54abc663a4"
     },
     "docker.folder.move-reload": "폴더 구성이 변경되었습니다. 폴더를 다시 이동하기 전에 새로 고침하세요.",
     "docker.actions.label": "폴더 보기 작업",

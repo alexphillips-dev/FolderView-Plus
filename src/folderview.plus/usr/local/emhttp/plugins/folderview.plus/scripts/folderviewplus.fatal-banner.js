@@ -468,7 +468,6 @@
             state.requests = state.requests.slice(-DIAGNOSTIC_REQUEST_LIMIT);
         }
     };
-
     const setPrefsStatus = (patch = {}) => {
         if (!patch || typeof patch !== 'object') {
             return;
@@ -504,38 +503,42 @@
         state.issueHistory[signature] = created;
         return created;
     };
-
     const buildSupportReport = (issue = null, options = {}) => {
         const privacyMode = normalizePrivacyMode(options.privacy || 'sanitized');
-        const protect = (value) => privacyMode === 'full' ? String(value ?? '') : sanitizeDiagnosticText(value);
+        // Bootstrap reports must stay private even when the normal telemetry module cannot load.
+        const protect = (value, allowed = /^(?:unknown|none)$/) => privacyMode === 'full' || allowed.test(String(value ?? '')) ? String(value ?? '') : '[redacted]';
+        const statusPattern = /^(?:unknown|ok|loaded|loading|failed|missing|error|fallback|started|succeeded|requested|completed|skipped)$/;
+        const versionPattern = /^(?:unknown|\d{1,4}(?:\.\d{1,4}){0,3}(?:-rc\d{1,2})?)$/;
+        const categoryPattern = /^(?:missing-asset|missing-module|asset-timeout|version-mismatch|auth-failed|request-guard|missing-endpoint|server-error|invalid-response|prefs-corrupt|csp-violation|render-failed|blank-page|promise-rejection|runtime-failed|request-failed|degraded-mode|ok)$/;
+        const datePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
         const activeIssue = issue || state.activeIssue || {};
         const environmentLines = [
-            `page: ${trimString(state.environment.page || 'Settings') || 'Settings'}`,
-            `pluginVersion: ${trimString(state.environment.pluginVersion || 'unknown') || 'unknown'}`,
-            `channel: ${trimString(state.environment.channel || 'unknown') || 'unknown'}`,
-            `unraidVersion: ${trimString(state.environment.unraidVersion || 'unknown') || 'unknown'}`,
-            `url: ${privacyMode === 'full' ? (trimString(state.environment.url || 'unknown') || 'unknown') : sanitizeUrl(state.environment.url || 'unknown')}`,
+            `page: ${protect(state.environment.page || 'Settings', /^(?:Settings|Docker|VM|VMs|Dashboard|Folder Editor|Plugin)$/)}`,
+            `pluginVersion: ${protect(state.environment.pluginVersion || 'unknown', versionPattern)}`,
+            `channel: ${protect(state.environment.channel || 'unknown', /^(?:dev|main|stable|unknown)$/)}`,
+            `unraidVersion: ${protect(state.environment.unraidVersion || 'unknown', versionPattern)}`,
+            `url: ${protect(state.environment.url || 'unknown')}`,
             `userAgent: ${protect(trimString(state.environment.userAgent || 'unknown') || 'unknown')}`
         ];
         const moduleLines = Object.entries(state.modules)
             .sort(([left], [right]) => left.localeCompare(right))
-            .map(([name, info]) => `${name}: ${trimString(info?.status || 'unknown')}${trimString(info?.detail) ? ` (${protect(trimString(info.detail))})` : ''}`);
+            .map(([name, info]) => `${protect(name)}: ${protect(info?.status || 'unknown', statusPattern)}${trimString(info?.detail) ? ` (${protect(trimString(info.detail))})` : ''}`);
         const requestLines = state.requests.map((entry) => {
             const parts = [
-                `${entry.method} ${privacyMode === 'full' ? entry.url : sanitizeUrl(entry.url)}`,
-                `outcome=${entry.outcome}`
+                `${protect(entry.method, /^(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$/)} ${protect(entry.url)}`,
+                `outcome=${protect(entry.outcome, statusPattern)}`
             ];
             if (entry.status) {
-                parts.push(`status=${entry.status}`);
+                parts.push(`status=${protect(entry.status, /^[1-5]\d{2}$/)}`);
             }
             if (entry.traceId) {
-                parts.push(`trace=${entry.traceId}`);
+                parts.push(`trace=${protect(entry.traceId)}`);
             }
             if (entry.source) {
-                parts.push(`source=${entry.source}`);
+                parts.push(`source=${protect(entry.source)}`);
             }
             if (entry.category) {
-                parts.push(`category=${entry.category}`);
+                parts.push(`category=${protect(entry.category, categoryPattern)}`);
             }
             if (entry.detail) {
                 parts.push(`detail=${protect(entry.detail)}`);
@@ -547,17 +550,17 @@
         });
         const moduleEventLines = state.moduleEvents.length > 0
             ? state.moduleEvents.map((entry) => [
-                `${entry.name}: ${entry.outcome}`,
-                `stage=${entry.stage}`,
+                `${protect(entry.name)}: ${protect(entry.outcome, statusPattern)}`,
+                `stage=${protect(entry.stage)}`,
                 `durationMs=${entry.durationMs}`,
-                entry.version ? `version=${entry.version}` : '',
+                entry.version ? `version=${protect(entry.version, versionPattern)}` : '',
                 entry.retry ? 'retry=yes' : '',
                 entry.detail ? `detail=${protect(entry.detail)}` : ''
             ].filter(Boolean).join(' | '))
             : ['none'];
         const recoveryLines = state.recoveryAttempts.length > 0
             ? state.recoveryAttempts.map((entry) => [
-                `${entry.startedAt} | ${entry.action} | ${entry.status}`,
+                `${protect(entry.startedAt, datePattern)} | ${protect(entry.action, /^(?:retry|reload)$/)} | ${protect(entry.status, statusPattern)}`,
                 entry.durationMs ? `durationMs=${entry.durationMs}` : '',
                 entry.detail ? `detail=${protect(entry.detail)}` : ''
             ].filter(Boolean).join(' | '))
@@ -569,26 +572,26 @@
         const prefsLines = [
             `fetched: ${state.prefs.fetched === true ? 'yes' : 'no'}`,
             `normalized: ${state.prefs.normalized === true ? 'yes' : 'no'}`,
-            `sourceType: ${trimString(state.prefs.sourceType || 'unknown') || 'unknown'}`,
-            `rawSchemaVersion: ${trimString(state.prefs.rawSchemaVersion || 'unknown') || 'unknown'}`,
-            `normalizedSchemaVersion: ${trimString(state.prefs.normalizedSchemaVersion || 'unknown') || 'unknown'}`,
+            `sourceType: ${protect(state.prefs.sourceType || 'unknown', /^(?:docker|vm|unknown)$/)}`,
+            `rawSchemaVersion: ${protect(state.prefs.rawSchemaVersion || 'unknown', versionPattern)}`,
+            `normalizedSchemaVersion: ${protect(state.prefs.normalizedSchemaVersion || 'unknown', versionPattern)}`,
             `fallbackUsed: ${state.prefs.fallbackUsed === true ? 'yes' : 'no'}`,
             `migrationApplied: ${state.prefs.migrationApplied === true ? 'yes' : 'no'}`,
-            `normalizeError: ${trimString(state.prefs.normalizeError || 'none') || 'none'}`
+            `normalizeError: ${protect(state.prefs.normalizeError || 'none')}`
         ];
-        const affectedAreaLines = toDetailList(activeIssue.details).map(protect);
+        const affectedAreaLines = toDetailList(activeIssue.details).map((entry) => protect(entry));
         return [
-            `FolderView Plus ${trimString(state.environment.page || 'Plugin') || 'Plugin'} Diagnostics`,
+            `FolderView Plus ${protect(state.environment.page || 'Plugin', /^(?:Settings|Docker|VM|VMs|Dashboard|Folder Editor|Plugin)$/)} Diagnostics`,
             `schemaVersion: ${INCIDENT_SCHEMA_VERSION}`,
-            `incidentId: ${trimString(activeIssue.incidentId || 'unknown') || 'unknown'}`,
+            `incidentId: ${protect(activeIssue.incidentId || 'unknown')}`,
             `privacyMode: ${privacyMode}`,
-            `errorCode: ${trimString(activeIssue.code || 'FVPLUS-SET-RUNTIME-001') || 'FVPLUS-SET-RUNTIME-001'}`,
-            `phase: ${trimString(activeIssue.phase || state.currentPhase || 'unknown') || 'unknown'}`,
-            `severity: ${trimString(activeIssue.severity || 'fatal') || 'fatal'}`,
-            `category: ${trimString(activeIssue.category || 'runtime-failed') || 'runtime-failed'}`,
+            `errorCode: ${protect(activeIssue.code || 'FVPLUS-SET-RUNTIME-001', /^FVPLUS-(?:SET|DKR|VM|DSH|EDT|RUN)-(?:BOOT|RUNTIME|LOADER|BLANK|LOAD|ENV|DOM|REFRESH|PRIVACY|WIZARD)-\d{3}$/)}`,
+            `phase: ${protect(activeIssue.phase || state.currentPhase || 'unknown')}`,
+            `severity: ${protect(activeIssue.severity || 'fatal', /^(?:fatal|degraded)$/)}`,
+            `category: ${protect(activeIssue.category || 'runtime-failed', categoryPattern)}`,
             `occurrences: ${Number(activeIssue.occurrences || 1) || 1}`,
-            `firstSeenAt: ${trimString(activeIssue.firstSeenAt || 'unknown') || 'unknown'}`,
-            `lastSeenAt: ${trimString(activeIssue.lastSeenAt || 'unknown') || 'unknown'}`,
+            `firstSeenAt: ${protect(activeIssue.firstSeenAt || 'unknown', datePattern)}`,
+            `lastSeenAt: ${protect(activeIssue.lastSeenAt || 'unknown', datePattern)}`,
             `lastStep: ${protect(trimString(state.lastStep || 'unknown') || 'unknown')}`,
             `lastAction: ${protect(trimString(state.lastAction || 'unknown') || 'unknown')}`,
             `summary: ${protect(trimString(activeIssue.message || activeIssue.summary || 'unknown') || 'unknown')}`,
@@ -612,16 +615,15 @@
             ...prefsLines,
             '',
             '[steps]',
-            ...stepLines.map(protect),
+            ...stepLines.map((entry) => protect(entry)),
             '',
             '[recent-actions]',
-            ...actionLines.map(protect),
+            ...actionLines.map((entry) => protect(entry)),
             '',
             '[recovery-attempts]',
             ...recoveryLines
         ].join('\n');
     };
-
     const copyDiagnostics = async () => {
         const text = buildSupportReport(null, { privacy: 'sanitized' });
         if (!text) {
@@ -652,7 +654,6 @@
         }
         return copied;
     };
-
     const downloadDiagnostics = () => {
         const text = buildSupportReport(null, { privacy: 'sanitized' });
         if (!text || typeof win.Blob !== 'function' || typeof win.URL?.createObjectURL !== 'function') {
@@ -680,7 +681,6 @@
             }
         }
     };
-
     const setBootstrapPresentationState = (mode = 'failed') => {
         const root = doc.getElementById('fv-settings-root');
         const shell = doc.getElementById('fv-settings-bootstrap-shell');

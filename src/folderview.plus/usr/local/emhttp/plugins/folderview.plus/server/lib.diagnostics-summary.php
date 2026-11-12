@@ -561,9 +561,6 @@ function diagnosticsStateKindForDockerItem(array $item): string {
                 || ((int)($integrity['missingPinnedFolderIds']['count'] ?? 0)) > 0
                 || ((int)($integrity['missingHiddenFolderIds']['count'] ?? 0)) > 0
                 || ((int)($integrity['missingManualOrderIds']['count'] ?? 0)) > 0;
-            if ($prefsNeedCleanup) {
-                break;
-            }
         }
         if ($prefsNeedCleanup) {
             $addAction(

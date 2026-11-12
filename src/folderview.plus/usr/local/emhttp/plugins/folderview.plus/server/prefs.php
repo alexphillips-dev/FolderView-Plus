@@ -4,10 +4,12 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 fvplus_json_try(function (): array {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-        return [
-            'prefs' => readTypePrefs($type),
-            'metadata' => readConfigMetadata($type, true)
-        ];
+        return withConfigMutationLock(static function () use ($type): array {
+            return [
+                'prefs' => readTypePrefs($type),
+                'metadata' => readConfigMetadata($type, true)
+            ];
+        });
     }
 
     requireMutationRequestGuard();

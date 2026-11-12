@@ -709,6 +709,7 @@ const collectSupportBundleUiTelemetry = (bundle) => {
         return telemetryApi.collectSupportBundleUiTelemetry(bundle);
     }
     const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
+    if (payload.bundleMeta.privacyMode !== 'full') return { ...payload, uiTelemetry: {} };
     const loadedAssetEntries = Array.from(document.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]'))
         .map((node) => ({
             tag: String(node?.tagName || '').toLowerCase() || 'asset',
@@ -740,7 +741,6 @@ const collectSupportBundleUiTelemetry = (bundle) => {
     };
     return payload;
 };
-
 const getSupportBundlePreviewApi = () => {
     if (!supportBundlePreviewApi && supportBundlePreviewModule && typeof supportBundlePreviewModule.createApi === 'function') {
         supportBundlePreviewApi = supportBundlePreviewModule.createApi({

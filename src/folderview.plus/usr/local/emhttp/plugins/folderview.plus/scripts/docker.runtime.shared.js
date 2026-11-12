@@ -330,7 +330,7 @@
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
         wrappers.forEach((wrapper, index) => {
             if (index < wrappers.length - 1) {
-                runtimeJquery(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                runtimeJquery(wrapper).after(runtimeJquery('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
             }
         });
         return wrappers;
@@ -353,7 +353,7 @@
             slice.forEach((wrapper, index) => {
                 $row.append(wrapper);
                 if (addDividers && index < slice.length - 1) {
-                    $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                    $row.append(runtimeJquery('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
                 }
             });
             $preview.append($row);

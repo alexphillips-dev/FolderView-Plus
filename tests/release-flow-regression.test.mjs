@@ -161,11 +161,54 @@ test('pkg_build tolerates non-zero tar exit when the archive remains readable', 
     assert.match(pkgBuild, /ERROR: tar failed to create a readable archive \(status: \$tar_status\)\./);
 });
 
+for (const scenario of [
+    { name: 'successful archive', createStatus: 0, readable: true, expectedStatus: 0 },
+    { name: 'readable archive after a tar warning', createStatus: 1, readable: true, expectedStatus: 0 },
+    { name: 'unreadable partial archive', createStatus: 2, readable: false, expectedStatus: 2 },
+    { name: 'missing archive', createStatus: 2, readable: false, missing: true, expectedStatus: 2 }
+]) {
+    test(`pkg_build handles ${scenario.name} before updating release metadata`, (t) => {
+        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-tar-status-'));
+        t.after(() => cleanupTempDir(tempRoot));
+        const pkgBuild = fs.readFileSync(path.join(repoRoot, 'pkg_build.sh'), 'utf8');
+        const archiveStep = pkgBuild.match(/tar_status=0[\s\S]*?(?=\ncd "\$CWD")/)?.[0];
+        assert.ok(archiveStep, 'exercise the actual archive creation and failure handling');
+        writeFile(path.join(tempRoot, 'archive-step.sh'), `#!/usr/bin/env bash
+set -euo pipefail
+exec 2>&1
+filename=fixture.txz
+tar() {
+    if [[ "$1" == --sort=name ]]; then
+        ${scenario.missing ? ':' : 'printf partial > "$filename"'}
+        return ${scenario.createStatus}
+    fi
+    [[ "$1" == -tf ]] || exit 99
+    return ${scenario.readable ? 0 : 2}
+}
+${archiveStep}
+printf reached-metadata > metadata-marker
+`);
+        let status = 0;
+        let output = '';
+        try {
+            output = runBash(['archive-step.sh'], tempRoot);
+        } catch (error) {
+            status = error.status;
+            output = `${error.stdout || ''}${error.stderr || ''}`;
+        }
+        assert.equal(status, scenario.expectedStatus);
+        assert.equal(fs.existsSync(path.join(tempRoot, 'metadata-marker')), scenario.expectedStatus === 0);
+        if (scenario.createStatus !== 0) {
+            assert.match(output, scenario.readable ? /WARN: tar exited with status 1/ : /ERROR: tar failed.*status: 2/);
+        }
+    });
+}
+
 test('package compression is identical with single and multi-threaded XZ defaults', (t) => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-compression-'));
     t.after(() => cleanupTempDir(tempRoot));
     const pkgBuild = fs.readFileSync(path.join(repoRoot, 'pkg_build.sh'), 'utf8');
-    const command = pkgBuild.match(/if ! (tar --sort=name[\s\S]*?); then/)?.[1];
+    const command = pkgBuild.match(/if (tar --sort=name[\s\S]*?); then/)?.[1];
     assert.ok(command, 'exercise the actual package archive command');
     writeFile(path.join(tempRoot, 'input', 'payload.txt'), 'FolderView Plus reproducibility fixture\n'.repeat(4096));
     const archives = [];
@@ -180,3 +223,46 @@ test('package compression is identical with single and multi-threaded XZ default
     }
     assert.deepEqual(archives[0], archives[1], 'archive bytes must not depend on XZ threading defaults');
 });
+
+for (const stagedDeletion of [false, true]) {
+    test(`dev finalize ${stagedDeletion ? 'accepts staged deletion-only work' : 'rejects unstaged deletions before packaging'}`, (t) => {
+        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-finalize-gates-'));
+        t.after(() => cleanupTempDir(tempRoot));
+        const fixtureRepo = path.join(tempRoot, 'repo');
+        fs.mkdirSync(fixtureRepo);
+        const git = (...args) => execFileSync('git', args, { cwd: fixtureRepo, encoding: 'utf8', stdio: 'pipe' });
+        git('init', '-q');
+        writeFile(path.join(fixtureRepo, 'keep.txt'), 'before\n');
+        writeFile(path.join(fixtureRepo, 'removed.txt'), 'before\n');
+        git('add', '.');
+        git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '--no-verify', '-qm', 'fixture');
+        fs.unlinkSync(path.join(fixtureRepo, 'removed.txt'));
+        if (stagedDeletion) {
+            git('add', 'removed.txt');
+        } else {
+            writeFile(path.join(fixtureRepo, 'keep.txt'), 'after\n');
+            git('add', 'keep.txt');
+        }
+        const devFinalize = fs.readFileSync(path.join(repoRoot, 'scripts/dev_finalize.sh'), 'utf8');
+        const gates = devFinalize.match(/mapfile -t STAGED_FILES[\s\S]*?(?=\nbash pkg_build\.sh)/)?.[0];
+        assert.ok(gates, 'exercise the actual worktree gates before the package build');
+        writeFile(path.join(tempRoot, 'gates.sh'), `#!/usr/bin/env bash
+set -euo pipefail
+fvplus::fail() { echo "$*" >&2; exit 1; }
+print_path_list() { printf '%s\\n' "$@" >&2; }
+${gates}
+printf reached-package > package-marker
+`);
+        let status = 0;
+        let output = '';
+        try {
+            runBash(['../gates.sh'], fixtureRepo);
+        } catch (error) {
+            status = error.status;
+            output = `${error.stdout || ''}${error.stderr || ''}`;
+        }
+        assert.equal(status, stagedDeletion ? 0 : 1);
+        assert.equal(fs.existsSync(path.join(fixtureRepo, 'package-marker')), stagedDeletion);
+        if (!stagedDeletion) assert.match(output, /clean unstaged worktree/);
+    });
+}

@@ -72,8 +72,7 @@ const directWriteAllowlist = new Map([
     ['lib.php', new Map([
         ['fv3_debug_log', 1],
         ['(debug-startup)', 1],
-        ['fv3_write_json_cache_payload', 2],
-        ['writeReadInfoCache', 2],
+        ['fv3_write_json_cache_payload', 1],
         ['fvplus_log_api_exception', 1]
     ])],
     ['lib.docker-order.php', new Map([

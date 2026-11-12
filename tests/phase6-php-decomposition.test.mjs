@@ -40,7 +40,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 58);
+    assert.equal(architecture.serverModuleContracts.length, 59);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -94,7 +94,18 @@ test('decomposition preserves every historical public PHP function name', () => 
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);
-        }).filter(name => !additions.has(name)).sort();
+        }).filter(name => !additions.has(name));
+        if (facade === 'server/lib.php') {
+            // This historical helper moved into an existing required module outside the extraction graph.
+            const profiles = fs.readFileSync(path.join(serverRoot, 'lib.webui-profiles.php'), 'utf8');
+            assert.ok(graphFiles.includes('server/lib.webui-profiles.php'));
+            assert.match(profiles, /require_once __DIR__ \. '\/lib\.input-security\.php';/);
+            const inputSecurity = fs.readFileSync(path.join(serverRoot, 'lib.input-security.php'), 'utf8');
+            const relocated = [...inputSecurity.matchAll(/^\s*function\s+(truncateUtf8String)\s*\(/gm)].map(match => match[1]);
+            assert.deepEqual(relocated, ['truncateUtf8String']);
+            functions.push(...relocated);
+        }
+        functions.sort();
         assert.equal(functions.length, baseline.count, `${facade} public function count changed`);
         assert.equal(
             crypto.createHash('sha256').update(functions.join('\n')).digest('hex'),
@@ -117,7 +128,7 @@ test('requiring the compatibility facade publishes representative functions from
         'normalizeEnvironmentSnapshotPayload', 'scanThemeWorkspaceGithub', 'getTypeBackupSchedule',
         'createBackupSnapshot', 'bulkAssignItemsToFolders', 'syncContainerOrder', 'updateFolder',
         'fvplusCustomIconDirPath', 'readInfo', 'diagnosticsHashShort', 'diagnosticsBuildIntegrityChecks',
-        'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot'
+        'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot', 'truncateUtf8String'
     ];
     const body = `require_once ${phpString(path.join(serverRoot, 'lib.php'))}; echo json_encode(array_map('function_exists', ${JSON.stringify(functions)}));`;
     try {
@@ -135,6 +146,25 @@ test('requiring the compatibility facade publishes representative functions from
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
+});
+
+test('the historical icon sync shim returns readiness and preserves its error fallback', () => {
+    const body = `
+        $calls = [];
+        $fail = false;
+        function fvplusEnsureCustomIconStorageReady(bool $requireWritable): array {
+            global $calls, $fail;
+            $calls[] = $requireWritable;
+            if ($fail) throw new RuntimeException('synthetic readiness failure');
+            return ['publicReady' => true];
+        }
+        require_once ${phpString(path.join(serverRoot, 'lib.custom-icon-endpoint-foundation.php'))};
+        $ready = syncCustomIconPublicRuntime();
+        $fail = true;
+        echo json_encode([$ready, syncCustomIconPublicRuntime(), $calls]);
+    `;
+    const output = execFileSync('php', ['-r', body], { cwd: repoRoot, encoding: 'utf8' });
+    assert.deepEqual(JSON.parse(output), [{ publicReady: true }, [], [false, false]]);
 });
 
 test('the custom icon public endpoint remains a thin compatibility dispatcher', () => {

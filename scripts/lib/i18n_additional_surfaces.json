@@ -2296,15 +2296,6 @@
     ]
   },
   {
-    "phrase": "Automatic rollback restored backup: $1",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Automatic rollback restored backup:"
-      }
-    ]
-  },
-  {
     "phrase": "Automatic rollback restored the previous checkpoint.",
     "locations": [
       {
@@ -7622,15 +7613,6 @@
     ]
   },
   {
-    "phrase": "No rollback backup available.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'No rollback backup available.'"
-      }
-    ]
-  },
-  {
     "phrase": "No rules for this folder",
     "locations": [
       {
@@ -9362,15 +9344,6 @@
       {
         "file": "scripts/folderviewplus.wizard.js",
         "anchor": "Rollback checkpoint:"
-      }
-    ]
-  },
-  {
-    "phrase": "Rollback failed: $1",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Rollback failed:"
       }
     ]
   },
@@ -11258,15 +11231,6 @@
       {
         "file": "scripts/folderviewplus.theme-workspace.js",
         "anchor": "'Theme update check complete.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Theme Workspace changed. Reload the Appearance tab if needed.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.settings-workspaces.js",
-        "anchor": "'Theme Workspace changed. Reload the Appearance tab if needed.'"
       }
     ]
   },

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "diagnostics",
-        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
+        "translation-context-revision": "08bc843f999289733eae89b2ab189dc155b02379f25c0a41efbc7b54abc663a4"
     },
     "diagnostics.cards.theme-integration": "Source de la palette : $1. Raison de la récupération : $2. Dimensionnement natif : $3.",
     "diagnostics.title": "Diagnostic",

@@ -262,36 +262,53 @@ function handleCustomIconUploadAction(): array {
             if (!is_string($iconContents)) {
                 throw new RuntimeException('Unable to store uploaded icon.');
             }
-            writeDurableFileAtomic($targetPath, $iconContents, ['mode' => 0644]);
-            if ($cleanupPath !== '' && is_file($cleanupPath)) {
-                @unlink($cleanupPath);
-                $cleanupPath = '';
-            }
+            $runtimeDir = fvplusCustomIconRuntimeDirPath();
+            $paths = [$targetPath, customIconMetadataPath(), getLastGoodJsonPath(customIconMetadataPath())];
+            if (!is_link($runtimeDir)) $paths = array_merge($paths, ["$runtimeDir/$targetName", "$runtimeDir/.metadata.json"]);
+            $snapshots = array_map('fvplusTransactionCaptureFile', $paths);
+            try {
+                writeDurableFileAtomic($targetPath, $iconContents, ['mode' => 0644]);
+                if ($cleanupPath !== '' && is_file($cleanupPath)) {
+                    @unlink($cleanupPath);
+                    $cleanupPath = '';
+                }
 
-            @chmod($targetPath, 0644);
-            $dimensions = readImageDimensions($targetPath);
-            $now = gmdate('c');
-            $existingMeta = is_array($meta[$targetName] ?? null) ? $meta[$targetName] : [];
-            $uploadedAt = $existingMeta['uploadedAt'] ?? $now;
-            if (!$replaced || !isset($meta[$targetName])) {
-                $uploadedAt = $now;
+                @chmod($targetPath, 0644);
+                $dimensions = readImageDimensions($targetPath);
+                $now = gmdate('c');
+                $existingMeta = is_array($meta[$targetName] ?? null) ? $meta[$targetName] : [];
+                $uploadedAt = $existingMeta['uploadedAt'] ?? $now;
+                if (!$replaced || !isset($meta[$targetName])) {
+                    $uploadedAt = $now;
+                }
+                $meta[$targetName] = [
+                    'originalName' => basename($originalName) ?: $targetName,
+                    'uploadedAt' => $uploadedAt,
+                    'updatedAt' => $now,
+                    'size' => max(0, (int)@filesize($targetPath)),
+                    'hash' => $hash,
+                    'mime' => detectUploadedMimeType($targetPath),
+                    'width' => max(0, (int)$dimensions['width']),
+                    'height' => max(0, (int)$dimensions['height']),
+                    'optimized' => ($optimization['optimized'] ?? false) === true
+                ];
+                writeCustomIconMetadataIndex($meta);
+                if (!is_link($runtimeDir)) {
+                    if (!fvplusCopyCustomIconStorageFile($targetPath, "$runtimeDir/$targetName")
+                        || (is_file("$runtimeDir/.metadata.json") && !@unlink("$runtimeDir/.metadata.json"))) {
+                        throw new RuntimeException('Unable to store uploaded icon.');
+                    }
+                }
+                if (computeCustomIconHash($targetPath) !== $hash || computeCustomIconHash("$runtimeDir/$targetName") !== $hash) {
+                    throw new RuntimeException('Unable to store uploaded icon.');
+                }
+                $message = $replaced ? 'Existing icon replaced.' : 'Icon uploaded successfully.';
+                $usageMap = customIconUsageMap();
+                return buildCustomIconUploadResponse($targetName, $meta, false, $replaced, $message, $uploadMode, $usageMap);
+            } catch (Throwable $error) {
+                fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusTransactionRestoreFiles');
+                throw $error;
             }
-            $meta[$targetName] = [
-                'originalName' => basename($originalName) ?: $targetName,
-                'uploadedAt' => $uploadedAt,
-                'updatedAt' => $now,
-                'size' => max(0, (int)@filesize($targetPath)),
-                'hash' => $hash,
-                'mime' => detectUploadedMimeType($targetPath),
-                'width' => max(0, (int)$dimensions['width']),
-                'height' => max(0, (int)$dimensions['height']),
-                'optimized' => ($optimization['optimized'] ?? false) === true
-            ];
-            writeCustomIconMetadataIndex($meta);
-            syncCustomIconPublicRuntime();
-            $message = $replaced ? 'Existing icon replaced.' : 'Icon uploaded successfully.';
-            $usageMap = customIconUsageMap();
-            return buildCustomIconUploadResponse($targetName, $meta, false, $replaced, $message, $uploadMode, $usageMap);
         });
         $result = $response['duplicate'] === true
             ? 'deduplicated'
@@ -366,19 +383,31 @@ function handleCustomIconDeleteAction(): array {
             $preview = count($previewNames) > 0 ? (' (' . implode(', ', $previewNames) . $suffix . ')') : '';
             throw new RuntimeException('Icon is in use by folder references and cannot be deleted.' . $preview);
         }
-        if (!@unlink($path)) {
-            throw new RuntimeException('Failed to delete icon.');
+        $runtimeDir = fvplusCustomIconRuntimeDirPath();
+        $paths = [$path, customIconMetadataPath(), getLastGoodJsonPath(customIconMetadataPath())];
+        if (!is_link($runtimeDir)) $paths = array_merge($paths, ["$runtimeDir/$name", "$runtimeDir/.metadata.json"]);
+        $snapshots = array_map('fvplusTransactionCaptureFile', $paths);
+        try {
+            if (!@unlink($path)) throw new RuntimeException('Failed to delete icon.');
+            $meta = readCustomIconMetadataIndex();
+            unset($meta[$name]);
+            writeCustomIconMetadataIndex($meta);
+            if (!is_link($runtimeDir)) {
+                // Bootstrap already migrated legacy metadata; retire it before another health read.
+                if (is_file("$runtimeDir/.metadata.json") && !@unlink("$runtimeDir/.metadata.json")) {
+                    throw new RuntimeException('Failed to delete icon.');
+                }
+                fvplusMirrorPersistentCustomIconsToRuntime();
+            }
+            clearstatcache();
+            if (file_exists($path) || file_exists("$runtimeDir/$name")) throw new RuntimeException('Failed to delete icon.');
+            $response = ['deleted' => $name, 'stats' => customIconStorageStats($customDir), 'health' => customIconDirectoryHealth()];
+        } catch (Throwable $error) {
+            fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusTransactionRestoreFiles');
+            throw $error;
         }
-        $meta = readCustomIconMetadataIndex();
-        unset($meta[$name]);
-        writeCustomIconMetadataIndex($meta);
-        syncCustomIconPublicRuntime();
         appendCustomIconAuditEvent('icon_delete', 'ok', ['name' => $name]);
-        return [
-            'deleted' => $name,
-            'stats' => customIconStorageStats($customDir),
-            'health' => customIconDirectoryHealth()
-        ];
+        return $response;
     }));
 }
 

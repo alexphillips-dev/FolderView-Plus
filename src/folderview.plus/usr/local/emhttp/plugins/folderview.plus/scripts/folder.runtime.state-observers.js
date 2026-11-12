@@ -45,6 +45,8 @@
         let syncQueued = false;
         let lastSyncedPayload = '';
         let lifecycleHooksBound = false;
+        let stateGeneration = 0;
+        let latestStateMap = {};
 
         const readLocalMap = () => {
             try {
@@ -77,7 +79,9 @@
         const readServerExpandedStateMap = () => normalizeExpandedStateMap(readServerMap() || {});
 
         const writeServerExpandedStateMap = (map) => {
-            writeServerMap(normalizeExpandedStateMap(map));
+            latestStateMap = normalizeExpandedStateMap(map);
+            stateGeneration += 1;
+            writeServerMap(latestStateMap);
         };
 
         const syncExpandedStateToServer = async () => {
@@ -93,6 +97,7 @@
 
             const payloadMap = readServerExpandedStateMap();
             const payloadString = JSON.stringify(payloadMap);
+            const submittedGeneration = stateGeneration;
             if (payloadString === lastSyncedPayload) {
                 return;
             }
@@ -115,8 +120,16 @@
                         retries: 0,
                         retryDelayMs: 260
                     }))?.prefs || {});
-                writeServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
-                lastSyncedPayload = JSON.stringify(readServerExpandedStateMap());
+                const committedMap = normalizeExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
+                lastSyncedPayload = JSON.stringify(committedMap);
+                if (stateGeneration === submittedGeneration) {
+                    writeServerExpandedStateMap(committedMap);
+                } else {
+                    // A coordinator can publish the older response before resolving.
+                    // Restore local intent and let the next save use its current revision.
+                    writeServerMap(latestStateMap);
+                    syncQueued = true;
+                }
             } catch (_error) {
                 // Best effort only; local persistence still retains behavior.
             } finally {

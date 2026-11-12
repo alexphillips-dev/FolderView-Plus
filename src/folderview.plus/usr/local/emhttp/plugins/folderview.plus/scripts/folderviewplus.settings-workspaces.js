@@ -220,6 +220,8 @@
         const applyEnvironmentSnapshotSelection = async (selectedFile, previewSummary = null) => withRecoveryEnvironmentImportLock('Environment import', async () => {
             const progressTotal = 7;
             let progressOpen = false;
+            let appliedSummary = null;
+            const refreshWarning = () => translate('settings.groups.refresh-needed', 'The folders were saved. Refresh the page to show the latest configuration.');
             const setProgress = (completed, label) => {
                 updateImportApplyProgressDialog({
                     completed: Math.max(0, Math.min(progressTotal, Number(completed) || 0)),
@@ -237,29 +239,26 @@
                     payload: String(selectedFile?.text || ''),
                     fileName: String(selectedFile?.name || '')
                 });
-                const importResult = response.import || {};
+                const importResult = response?.import;
+                if (importResult?.verified !== true) throw new Error(translate('diagnostics.migration.verification-failed', 'Configuration verification failed'));
+                appliedSummary = importResult.summary || previewSummary || {};
                 const importedSummary = setRecoveryEnvironmentSummary(importResult.summary || previewSummary || {}, 'import');
                 setProgress(1, translate("common.audit.environment-applied", "Environment snapshot applied."));
 
-                await refreshType('docker');
+                if ((await refreshType('docker'))?.hasErrors === true) throw new Error(refreshWarning());
                 setProgress(2, translate("common.audit.folders-refreshed", "Refreshed Docker folders and preferences."));
 
-                await refreshType('vm');
+                if ((await refreshType('vm'))?.hasErrors === true) throw new Error(refreshWarning());
                 setProgress(3, repairT710d5dec("common.repair.refreshed-vm-folders-and-preferences-6f71bb", "Refreshed VM folders and preferences."));
 
-                await refreshBackups('docker', { quiet: true });
+                if (await refreshBackups('docker', { quiet: true }) === false) throw new Error(refreshWarning());
                 setProgress(4, repairT710d5dec("common.repair.refreshed-docker-safety-backups-18b9f0", "Refreshed Docker safety backups."));
 
-                await refreshBackups('vm', { quiet: true });
+                if (await refreshBackups('vm', { quiet: true }) === false) throw new Error(refreshWarning());
                 setProgress(5, repairT710d5dec("common.repair.refreshed-vm-safety-backups-a21bd9", "Refreshed VM safety backups."));
 
-                let themeRefreshMessage = 'Refreshed Theme Workspace.';
-                try {
-                    await refreshThemeWorkspace();
-                } catch (themeError) {
-                    themeRefreshMessage = 'Theme Workspace changed. Reload the Appearance tab if needed.';
-                }
-                setProgress(6, themeRefreshMessage);
+                await refreshThemeWorkspace();
+                setProgress(6, 'Refreshed Theme Workspace.');
 
                 setProgress(progressTotal, translate("common.audit.environment-complete", "Environment import complete."));
                 await new Promise((resolve) => {
@@ -289,6 +288,13 @@
             } catch (error) {
                 if (progressOpen) {
                     closeImportApplyProgressDialog();
+                }
+                if (appliedSummary) {
+                    const title = translate('common.audit.environment-applied', 'Environment snapshot applied.');
+                    const message = refreshWarning();
+                    if (swal) swal({ title, text: message, type: 'warning' });
+                    showToastMessage({ title, message, level: 'warning', durationMs: 6000 });
+                    return appliedSummary;
                 }
                 showError(repairT710d5dec("common.repair.environment-import-failed-9e80d3", "Environment import failed"), error);
                 throw error;

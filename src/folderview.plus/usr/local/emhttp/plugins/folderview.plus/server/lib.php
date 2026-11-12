@@ -237,14 +237,12 @@
         if (!is_string($encoded) || $encoded === '') {
             return;
         }
-        $tmpPath = $path . '.tmp';
-        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
-            @rename($tmpPath, $path);
+        $tmpPath = createAtomicWriteTempPath($path);
+        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) === strlen($encoded) && @rename($tmpPath, $path)) {
             @chmod($path, 0644);
-            return;
+        } else {
+            @unlink($tmpPath);
         }
-        @file_put_contents($path, $encoded, LOCK_EX);
-        @chmod($path, 0644);
     }
 
     function fv3_get_tailscale_cache_path(string $containerName, string $kind): string {
@@ -629,28 +627,12 @@
 
     function writeReadInfoCache(string $type, string $mode, array $data): void {
         $cachePath = getReadInfoCachePath($type, $mode);
-        $directory = dirname($cachePath);
-        if (!is_dir($directory)) {
-            @mkdir($directory, 0770, true);
-        }
-        $payload = [
+        fv3_write_json_cache_payload($cachePath, [
             'type' => ensureType($type),
             'mode' => normalizeReadInfoMode($mode),
             'generatedAt' => gmdate('c'),
             'data' => $data
-        ];
-        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
-        if (!is_string($encoded) || $encoded === '') {
-            return;
-        }
-        $tmpPath = $cachePath . '.tmp';
-        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
-            @rename($tmpPath, $cachePath);
-            @chmod($cachePath, 0644);
-            return;
-        }
-        @file_put_contents($cachePath, $encoded, LOCK_EX);
-        @chmod($cachePath, 0644);
+        ]);
     }
 
     function readInfoCached(string $type, string $mode = 'full', ?int $ttlSeconds = null, bool $forceRefresh = false): array {
@@ -1089,24 +1071,6 @@
             $out[$id] = normalizeBool($expanded, false);
         }
         return $out;
-    }
-
-    function truncateUtf8String(string $value, int $maxBytes): string {
-        if ($maxBytes <= 0) {
-            return '';
-        }
-        if (strlen($value) <= $maxBytes) {
-            return $value;
-        }
-        // Preserve existing handling of malformed input; JSON writers reject it.
-        if (preg_match('//u', $value) !== 1) {
-            return substr($value, 0, $maxBytes);
-        }
-        // The first excluded byte must not be a UTF-8 continuation byte.
-        while ((ord($value[$maxBytes]) & 0xC0) === 0x80) {
-            $maxBytes--;
-        }
-        return substr($value, 0, $maxBytes);
     }
 
     function folderNormalizationCollectionLimit(string $path): int {
@@ -2270,10 +2234,12 @@
 
     function readFolder(string $type) : string {
         $type = ensureType($type);
-        $folders = readRawFolderMap($type);
-        syncManualOrderWithFolders($type, $folders);
-        $ordered = reorderFolderMapByPrefs($type, $folders);
-        return json_encode($ordered);
+        return withConfigMutationLock(static function () use ($type): string {
+            $folders = readRawFolderMap($type);
+            syncManualOrderWithFolders($type, $folders);
+            $ordered = reorderFolderMapByPrefs($type, $folders);
+            return json_encode($ordered);
+        });
     }
 
     function readUserPrefs(string $type) : string {

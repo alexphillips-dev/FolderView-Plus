@@ -1933,7 +1933,7 @@ const normalizeOptionalHealthSelect = (value, allowedValues) => {
 };
 
 const parseOptionalThresholdInput = (value) => {
-    const raw = String(value || '').trim();
+    const raw = String(value ?? '').trim();
     if (!raw) {
         return '';
     }
@@ -3216,7 +3216,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         customActionWrapper.empty();
         normalizedFolder.actions?.forEach((entry, index) => {
             const safeActionName = escapeHtml(entry?.name || '');
-            customActionWrapper.append(`<div class="custom-action-n-${index}">${safeActionName} <button data-fv-onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button data-fv-onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
+            customActionWrapper.append(`<div class="custom-action-n-${index}"><span>${safeActionName} </span><button aria-label="${escapeHtml($.i18n('edit'))}" data-fv-onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button aria-label="${escapeHtml($.i18n('remove'))}" data-fv-onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${encodeCustomAction(entry)}"></div>`);
         });
     }
 
@@ -3455,6 +3455,8 @@ const startFolderEditorRuntime = async () => {
             const index = choose.findIndex((e) => e.Name === ct);
             if (index > -1) {
                 selected.push(choose.splice(index, 1)[0]);
+            } else {
+                selected.push({ Name: ct, Icon: ICON_FALLBACK_PATH, Identity: currentEditFolder.memberIdentities?.[ct] });
             }
         }
 
@@ -3475,8 +3477,14 @@ const startFolderEditorRuntime = async () => {
     for (const value of Object.values(folders)) {
         // match the element to the regex
         if (value.regex) {
-            const regex = new RegExp(value.regex);
+            let regex = null;
+            try {
+                regex = new RegExp(value.regex);
+            } catch (_error) {
+                // Keep invalid legacy patterns available for repair without blocking the editor.
+            }
             for (const container of choose) {
+                if (!regex) break;
                 regex.lastIndex = 0;
                 if (regex.test(container.Name)) {
                     value.containers.push(container.Name);
@@ -4460,6 +4468,8 @@ const setIconAsContainer = (e) => {
  * Add a custom action to the folder
  * @param {number | undefined} action 
  */
+const encodeCustomAction = (value) => btoa(JSON.stringify(value).replace(/[^\x00-\x7f]/g,
+    character => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`));
 const customAction = (action = undefined) => {
     let config = {
         name: '',
@@ -4470,10 +4480,11 @@ const customAction = (action = undefined) => {
         script_icon: ''
     };
     if(action !== undefined) {
-        config = JSON.parse(atob($('input[name*="custom_action"]').map((i, e) => $(e).val()).get()[action]));
+        config = JSON.parse(atob($(`.custom-action-n-${action} > input[type="hidden"]`).val()));
     }
     const dialog = $('.dialogCustomAction');
-    const customNumber = $('input[name*="custom_action"]').length;
+    let customNumber = 0;
+    while ($(`.custom-action-n-${customNumber}`).length) customNumber += 1;
     dialog.html($('.templateDialogCustomAction').html());
     const targetSelect = dialog.find('[name="action_elements"]');
     const eligibleTargets = Array.from(new Set([
@@ -4503,6 +4514,8 @@ const customAction = (action = undefined) => {
     let validationTouched = false;
 
     dialog.find('[data-fv-action-target-label]').text(`${targetSubject}:`);
+    targetSelect.attr('aria-label', targetSubject);
+    dialog.find('[name="action_script_sync"]').attr('aria-label', $.i18n('custom-actions-script-sync'));
     dialog.find('[data-action-help="targets"]').text(surfaceT("legacy.surface.2360b3431f8550a4", 'Only members currently available to this folder are listed.'));
     targetSelect.multiselect({
         header: false,
@@ -4637,11 +4650,11 @@ const customAction = (action = undefined) => {
             cfg.script_sync = dialog.find('[name="action_script_sync"]').prop("checked");
         }
         if(action !== undefined) {
-            $(`.custom-action-n-${action} > input[type="hidden"]`).val(btoa(JSON.stringify(cfg)));
+            $(`.custom-action-n-${action} > input[type="hidden"]`).val(encodeCustomAction(cfg));
             $(`.custom-action-n-${action} > span`).text(cfg.name + ' ');
         } else {
             const safeCfgName = escapeHtml(cfg.name || '');
-            $('.custom-action-wrapper').append(`<div class="custom-action-n-${(action !== undefined) ? action : customNumber}"><span>${safeCfgName} </span><button data-fv-onclick="return customAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button data-fv-onclick="return rCcustomAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(cfg))}"></div>`);
+            $('.custom-action-wrapper').append(`<div class="custom-action-n-${(action !== undefined) ? action : customNumber}"><span>${safeCfgName} </span><button aria-label="${escapeHtml($.i18n('edit'))}" data-fv-onclick="return customAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button aria-label="${escapeHtml($.i18n('remove'))}" data-fv-onclick="return rCcustomAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${encodeCustomAction(cfg)}"></div>`);
         }
         if (isFormInitialized) {
             validateForm();

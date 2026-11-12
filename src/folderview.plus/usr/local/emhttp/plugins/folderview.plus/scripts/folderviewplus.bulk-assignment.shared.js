@@ -108,8 +108,8 @@
             const folders = (utils && typeof utils.normalizeFolderMap === 'function')
                 ? utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType))
                 : (foldersInput || getFolderMap(resolvedType) || {});
-            const byName = {};
-            const conflicts = {};
+            const byName = Object.create(null);
+            const conflicts = Object.create(null);
             for (const [folderId, folder] of Object.entries(folders || {})) {
                 const members = (utils && typeof utils.normalizeFolderMembers === 'function')
                     ? utils.normalizeFolderMembers(folder?.containers || [])

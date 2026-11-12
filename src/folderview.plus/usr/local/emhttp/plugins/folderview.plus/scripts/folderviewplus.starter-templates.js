@@ -300,7 +300,7 @@ const buildStarterTemplateHeuristicMap = (type, blueprintName) => {
             media: { contains: ['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'], pathContains: ['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'] },
             downloads: { contains: ['download', 'torrent', 'nzb', 'slsk', 'seed'] },
             monitoring: { contains: ['myspeed', 'speedtest', 'latency', 'uptime', 'metrics', 'telemetry'] },
-            'cloud-&-sync': { contains: ['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice'] },
+            'cloud-sync': { contains: ['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice'] },
             notifications: { contains: ['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook'] },
             utilities: { contains: ['qdirstat', 'diskspeed', 'ncdu', 'baobab', 'icons', 'icon', 'tool', 'utility', 'manager'], pathContains: ['appdata', 'storage', 'tools'] },
             automation: { contains: ['homeassistant', 'node-red', 'n8n', 'mqtt', 'esphome', 'zigbee', 'zwave'] },

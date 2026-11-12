@@ -96,10 +96,12 @@
 
         const run = (deadline = null) => {
             scheduled = false;
+            let mustRunTask = deadline?.didTimeout === true;
             while (tasks.length > 0) {
-                if (deadline && typeof deadline.timeRemaining === 'function' && deadline.timeRemaining() <= 1) {
+                if (!mustRunTask && deadline && typeof deadline.timeRemaining === 'function' && deadline.timeRemaining() <= 1) {
                     break;
                 }
+                mustRunTask = false;
                 const task = tasks.shift();
                 if (typeof task !== 'function') {
                     continue;

@@ -26,7 +26,6 @@ command_uses_windows_path_translation() {
   local command_path="${1:-}"
   [[ -n "${command_path}" ]] || return 1
   [[ "${command_path}" == *.exe ]] && return 0
-  [[ "${command_path}" == /mnt/c/* ]] && return 0
   [[ "${command_path}" == *fvplus-bash-shims/* ]] && return 0
   return 1
 }

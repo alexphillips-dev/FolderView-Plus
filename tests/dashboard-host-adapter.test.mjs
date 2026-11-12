@@ -148,6 +148,69 @@ test('Dashboard host adapter publishes runtime action completion telemetry', () 
     assert.ok(harness.emittedEvents.some((event) => event.type === 'fvplus:dashboard:runtimeActionCompleted'));
 });
 
+test('Dashboard ignores a pending native response after disposal', async () => {
+    let resolveResponse;
+    let renderCount = 0;
+    const response = new Promise(resolve => { resolveResponse = resolve; });
+    const harness = createHarness({ renderFolders: async () => { renderCount += 1; return true; } });
+    harness.adapter.bind();
+    harness.window.loadlist();
+    harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => response });
+    harness.adapter.dispose({ restoreLoadlist: true });
+    const before = harness.adapter.getSnapshot();
+    resolveResponse();
+    await nextTurn();
+    assert.equal(renderCount, 0);
+    assert.equal(harness.getSpinnerHideCount(), 0);
+    assert.deepEqual(harness.adapter.getSnapshot(), before);
+});
+
+for (const outcome of ['success', 'failure']) {
+    test(`Dashboard ignores pending render ${outcome} after disposal`, async () => {
+        let resolveRender;
+        let rejectRender;
+        const render = new Promise((resolve, reject) => { resolveRender = resolve; rejectRender = reject; });
+        const harness = createHarness({ renderFolders: () => render });
+        harness.adapter.bind();
+        harness.window.loadlist();
+        harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
+        await nextTurn();
+        harness.adapter.dispose({ restoreLoadlist: true });
+        const before = harness.adapter.getSnapshot();
+        if (outcome === 'success') resolveRender(true);
+        else rejectRender(new Error('fixture render failure'));
+        await nextTurn();
+        assert.equal(harness.getSpinnerHideCount(), 0);
+        assert.deepEqual(harness.adapter.getSnapshot(), before);
+    });
+}
+
+for (const outcome of ['false', 'true', 'failure']) {
+    test(`Dashboard stale render ${outcome} preserves the newer pending render and spinner`, async () => {
+        const pending = [];
+        const harness = createHarness({ renderFolders: () => new Promise((resolve, reject) => pending.push({ resolve, reject })) });
+        harness.adapter.bind();
+        for (const generation of [1, 2]) {
+            harness.window.loadlist(generation);
+            harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
+            await nextTurn();
+        }
+        assert.equal(pending.length, 2);
+        if (outcome === 'failure') pending[0].reject(new Error('old render failure'));
+        else pending[0].resolve(outcome === 'true');
+        await nextTurn();
+        assert.equal(harness.adapter.getSnapshot().renderGeneration, 2);
+        assert.equal(harness.getSpinnerHideCount(), 0);
+        harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
+        await nextTurn();
+        assert.equal(pending.length, 2, 'a stale completion must not allow duplicate current-generation rendering');
+        pending[1].resolve(true);
+        await nextTurn();
+        assert.equal(harness.adapter.getSnapshot().foldersGroupedCount, 1);
+        assert.equal(harness.getSpinnerHideCount(), 1);
+    });
+}
+
 test('Dashboard expanded-state store normalizes, batches, patches, and survives corrupt state', () => {
     const values = new Map();
     const writes = [];

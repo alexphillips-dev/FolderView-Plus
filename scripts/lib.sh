@@ -27,7 +27,7 @@ fvplus::path_for_command() {
   local translate_for_windows_runtime=1
   [[ -n "${target_path}" ]] || return 1
   translate_for_windows_runtime=0
-  if [[ "${command_path}" == *.exe ]] || [[ "${command_path}" == /mnt/c/* ]] || [[ "${command_path}" == *fvplus-bash-shims/* ]]; then
+  if [[ "${command_path}" == *.exe ]] || [[ "${command_path}" == *fvplus-bash-shims/* ]]; then
     translate_for_windows_runtime=1
   fi
   if [[ "${translate_for_windows_runtime}" -eq 1 ]] && command -v wslpath >/dev/null 2>&1; then

@@ -55,24 +55,25 @@
             const snapshot = buildDiagnosticsSnapshot();
             return [
                 'FolderView Plus Folder Editor Bootstrap Diagnostics',
-                `summary: ${snapshot.summary}`,
-                `details: ${snapshot.details}`,
+                'privacyMode: sanitized',
+                'summary: [redacted]',
+                'details: [redacted]',
                 `severity: ${snapshot.tone}`,
                 '',
                 '[environment]',
-                `pageMode: ${snapshot.environment.pageMode}`,
-                `pageType: ${snapshot.environment.pageType}`,
-                `requestedId: ${snapshot.environment.requestedId}`,
-                `resolvedId: ${snapshot.environment.resolvedId}`,
-                `pluginVersion: ${snapshot.environment.pluginVersion}`,
+                `pageMode: ${snapshot.environment.pageMode === 'modern' ? 'modern' : 'unknown'}`,
+                `pageType: ${['docker', 'vm'].includes(snapshot.environment.pageType) ? snapshot.environment.pageType : 'unknown'}`,
+                'requestedId: [redacted]',
+                'resolvedId: [redacted]',
+                'pluginVersion: [redacted]',
                 `runtimeLoaded: ${snapshot.environment.runtimeLoaded}`,
-                `runtimeStage: ${snapshot.environment.runtimeStage}`,
-                `runtimeState: ${snapshot.environment.runtimeState}`,
-                `runtimeSrc: ${snapshot.environment.runtimeSrc}`,
-                `url: ${snapshot.environment.url}`,
+                'runtimeStage: [redacted]',
+                'runtimeState: [redacted]',
+                'runtimeSrc: [redacted]',
+                'url: [redacted]',
                 '',
                 '[debug]',
-                snapshot.debug
+                '[redacted]'
             ].join('\n');
         };
         const persistDiagnosticsSnapshot = () => {
@@ -125,30 +126,36 @@
             }
         };
         win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics() {
-            if (win.FolderViewPlusFatalBanner?.getStartupIncidentSnapshot?.()?.available === true) {
-                const copied = await win.FolderViewPlusFatalBanner.copyDiagnostics();
-                if (copied) {
-                    flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copied', 1400);
-                    return;
+            try {
+                if (win.FolderViewPlusFatalBanner?.getStartupIncidentSnapshot?.()?.available === true) {
+                    const copied = await win.FolderViewPlusFatalBanner.copyDiagnostics?.();
+                    if (copied) {
+                        flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copied', 1400);
+                        return;
+                    }
                 }
+            } catch (_error) {
+                // The minimal sanitized report remains available during bootstrap failures.
             }
             const text = buildDiagnosticsText();
+            let textarea = null;
             try {
                 if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
                     await navigator.clipboard.writeText(text);
                 } else {
-                    const textarea = doc.createElement('textarea');
+                    textarea = doc.createElement('textarea');
                     textarea.value = text;
                     textarea.style.position = 'fixed';
                     textarea.style.opacity = '0';
                     doc.body.appendChild(textarea);
                     textarea.select();
-                    doc.execCommand('copy');
-                    doc.body.removeChild(textarea);
+                    if (!doc.execCommand('copy')) throw new Error('Copy failed');
                 }
                 flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copied', 1400);
             } catch (_error) {
                 flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copy failed', 1800);
+            } finally {
+                textarea?.remove();
             }
         };
         win.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap({

@@ -387,12 +387,12 @@
 
         const combinedOwnPatch = (state) => mergePatch(state.inFlightPatch, state.pendingPatch);
         const persistOutbox = (state) => {
-            if (!storage) {
-                return;
-            }
+            if (!storage) return;
             let patch = combinedOwnPatch(state);
             const existing = readStoredOutbox(state.type);
             if (existing && existing.sourceId !== sourceId && isPlainObject(existing.patch)) {
+                // Preserve another tab's ownership until it clears its committed work.
+                if (patchIsEmpty(patch)) return;
                 patch = mergePatch(existing.patch, patch);
             }
             try {

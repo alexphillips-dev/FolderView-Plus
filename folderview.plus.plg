@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.10.30.04">
-<!ENTITY md5 "509ac6a14e5f2da91ef6d39563eb6d45">
-<!ENTITY sha256 "d46bbfa8d80287c44b3dd1a908144c4adb58073bdf72611db2386f25d2385746">
+<!ENTITY version "2026.11.12.01">
+<!ENTITY md5 "3ea003f309268d5d7845c5a6c539e6c7">
+<!ENTITY sha256 "b8b18587a6f3e9a09991c2ead1d9d5876f62b55a99e7471d960e78336b9589be">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,22 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.01
+- Fix: Preserve Docker and VM member identities during bulk moves and FolderView3 migration. Keep saved members, including unavailable resources, and nested folder order when cloning Docker folders.
+- Fix: Prevent stale refreshes and callbacks from changing a page after navigation or replacing newer folder expansion choices. Preserve pending Settings tree changes when reloading and improve Docker column, command-view, and provider cleanup.
+- Fix: Preserve rapid Dashboard toggle changes and Appearance drafts when delayed reads complete, and correct pinned nested-folder ordering.
+- Fix: Preserve editor member selections, custom actions, and a zero-percent warning threshold through save and reload. Keep deselected setup templates deselected and report missing assignment targets or failed preset saves.
+- Fix: Give folder member and custom-action controls accessible names while avoiding duplicate screen-reader announcements for decorative member icons.
+- Fix: Prevent failed imports from restoring stale state over concurrent changes. Report a completed environment import with a refresh warning when its follow-up refresh fails.
+- Fix: Keep custom-icon replacement and deletion consistent across persistent and public copies, restore prior state after failures, and prevent deleted mirrored icons from reappearing.
+- Fix: Keep backups created within the same second distinct and correctly ordered. Read folder data and its revision together, publish shared caches safely, and enforce subprocess output limits.
+- Fix: Support non-Latin Settings searches, preserve multilingual profile names at byte limits, repair damaged notice punctuation, and handle VM detail rows during folder autostart changes.
+- Security: Harden managed-theme CSS checks and theme/icon directory boundaries, reject unsafe symlinked icon-pack caches, and escape preview colors before rendering.
+- Security: Remove private error details from sanitized preference diagnostics, startup reports, copied recovery information, and support-bundle fallback paths.
+- Maintenance: Detect archive creation failures reliably, validate custom package output locations, and strengthen release and browser-test checks.
+- Compatibility: Hard-refresh the webGUI after installing this dev update. Check Settings, Docker, VMs, and Dashboard after navigation and reload; live Unraid acceptance remains required.
+
 
 ###2026.10.30.04
 - Fix: Center Settings toolbar icons beside their captions consistently across Windows and Linux browsers, including Aurora, NeoRaid, and native themes. Preserve desktop, mobile, and touch control sizing.

@@ -295,6 +295,74 @@ test('preference coordinator broadcasts committed revisions to another tab', asy
     assert.equal(secondTab.getDiagnostics().types.docker.requests, 0);
 });
 
+for (const type of ['docker', 'vm']) {
+    for (const responseOrder of ['first-tab-first', 'second-tab-first']) {
+        test(`concurrent ${type} preference saves clear committed outboxes (${responseOrder})`, async () => {
+            const api = loadModule();
+            const storage = createStorage();
+            let serverPrefs = normalizePrefs({ _metadata: { prefsRevision: 1 } });
+            const responses = [];
+            const requests = [];
+            const started = [0, 1].map(() => {
+                let resolve;
+                const promise = new Promise(done => { resolve = done; });
+                return { promise, resolve };
+            });
+            const common = {
+                window: {}, storage, normalizePrefs, debounceMs: 0,
+                fetchPrefs: async () => structuredClone(serverPrefs),
+                writePrefs: async (_type, patch, context) => {
+                    assert.equal(context.expectedRevision, serverPrefs._metadata.prefsRevision);
+                    serverPrefs = normalizePrefs(api.mergePatch(serverPrefs, patch));
+                    serverPrefs._metadata.prefsRevision += 1;
+                    const committed = structuredClone(serverPrefs);
+                    const index = requests.push(patch) - 1;
+                    return new Promise(resolve => {
+                        responses.push(() => resolve({ prefs: committed }));
+                        started[index]?.resolve();
+                    });
+                }
+            };
+            const firstTab = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'first-tab' });
+            const secondTab = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'second-tab' });
+            firstTab.reconcile(type, serverPrefs);
+            secondTab.reconcile(type, serverPrefs);
+            const firstSave = firstTab.save(type, { dashboard: { names: false } });
+            await started[0].promise;
+            // The first request committed, but its response has not reached its tab.
+            await secondTab.hydrateFromServer(type, { restoreOutbox: false, replay: false });
+            const secondSave = secondTab.save(type, { dashboard: { ports: false } });
+            await started[1].promise;
+            const key = firstTab.storageKeyForType(type);
+            const secondOutbox = storage.getItem(key);
+            if (responseOrder === 'first-tab-first') {
+                responses[0]();
+                await firstSave;
+                assert.equal(storage.getItem(key), secondOutbox, 'a completed tab preserves the pending foreign outbox and its owner');
+                responses[1]();
+                await secondSave;
+            } else {
+                responses[1]();
+                await secondSave;
+                responses[0]();
+                await firstSave;
+            }
+            assert.equal(storage.getItem(key), null, 'both committed patches must leave no work to replay');
+            assert.equal(firstTab.getSnapshot(type).status, 'saved');
+            assert.equal(secondTab.getSnapshot(type).status, 'saved');
+
+            // A later change on the server must survive reopening a browser tab.
+            serverPrefs.dashboard.ports = true;
+            serverPrefs._metadata.prefsRevision += 1;
+            const reopened = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'reopened-tab' });
+            const hydrated = await reopened.hydrateFromServer(type);
+            await reopened.flush(type);
+            assert.equal(hydrated.dashboard.ports, true);
+            assert.equal(requests.length, 2, 'reload must not replay already committed changes');
+        });
+    }
+}
+
 test('settings and dashboard layout commits reconcile without unrelated or stale writes restoring classic', async () => {
     const api = loadModule();
     const channels = [];

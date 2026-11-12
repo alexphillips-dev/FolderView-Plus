@@ -38,6 +38,7 @@
         'folderName',
         'containerName',
         'containerNames',
+        'lastError',
         'title',
         'name'
     ]));
@@ -586,7 +587,9 @@
             ) ? { ...payload.uiTelemetry } : {};
             existingUiTelemetry.browserCapabilities = collectBrowserCapabilities();
             existingUiTelemetry.uiState = root.FolderViewPlusUiStateDiagnostics?.collect?.() || { available: false };
-            existingUiTelemetry.clientStorage = collectClientStorageDiagnostics();
+            existingUiTelemetry.clientStorage = uiRedactor.sanitizeValue(
+                'uiTelemetry.clientStorage', 'clientStorage', collectClientStorageDiagnostics()
+            );
             existingUiTelemetry.clientStorage.requestFailures = root?.FolderViewPlusRequest?.failureDiagnostics?.() || [];
             existingUiTelemetry.currentPage = collectCurrentPageTelemetry(uiRedactor);
             existingUiTelemetry.loadedAssets = collectLoadedAssetTelemetry(uiRedactor, {

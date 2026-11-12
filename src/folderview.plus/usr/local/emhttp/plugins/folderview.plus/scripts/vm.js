@@ -124,7 +124,7 @@ const restoreLinearPreviewLayout = typeof runtimeShared.restoreLinearPreviewLayo
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
         wrappers.forEach((wrapper, index) => {
             if (index < wrappers.length - 1) {
-                $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                $(wrapper).after($('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
             }
         });
         return wrappers;
@@ -143,7 +143,7 @@ const finalizePreviewRows = typeof runtimeShared.finalizePreviewRows === 'functi
             slice.forEach((wrapper, index) => {
                 $row.append(wrapper);
                 if (addDividers && index < slice.length - 1) {
-                    $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                    $row.append($('<div class="folder-preview-divider"></div>').css('border-color', barsColor));
                 }
             });
             $preview.append($row);
@@ -2149,15 +2149,15 @@ const folderAutostart = (el) => {
     for (const container of containers) {
         // Select the td with the switch inside
         const el = $(container).children().last();
-
         // Get the status of the container
-        const cstatus = el.children('.autostart')[0].checked;
+        const input = el.children('.autostart')[0];
+        if (!input) continue;
+        const cstatus = input.checked;
         if ((status && !cstatus) || (!status && cstatus)) {
             el.children('.switch-button-background').click();
         }
     }
 };
-
 /**
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder

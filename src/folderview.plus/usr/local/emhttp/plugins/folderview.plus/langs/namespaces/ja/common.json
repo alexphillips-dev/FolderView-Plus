@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "20fc1dedaaa1d52882778708e6144fb1d72021bc9676c9cf64e0a50515f03540"
+        "translation-context-revision": "08bc843f999289733eae89b2ab189dc155b02379f25c0a41efbc7b54abc663a4"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -447,7 +447,7 @@
     "common.repair.script-actions-1-379e3d": "スクリプトアクション: $1",
     "common.repair.paused-members-1-9c89f8": "一時停止されたメンバー: $1。",
     "common.repair.available-updates-1-1251a9": "利用可能なアップデート: $1。",
-    "common.repair.1-items-2-818040": "$1 � アイテム: $2",
+    "common.repair.1-items-2-818040": "$1 - アイテム: $2",
     "common.repair.1-smart-rule-scan-suggestions-found-2-f5de01": "$1 スマート ルール スキャン - 提案が見つかりました: $2。",
     "common.repair.2-smart-rule-suggestions-saved-1-24da17": "$2 スマート ルールの提案が保存されました: $1。",
     "common.repair.creates-1-353b67": "作成: $1",

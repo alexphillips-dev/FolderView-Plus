@@ -353,12 +353,13 @@ function fvplusFolderView3BuildType(array $sourceFolders, array $settings, strin
         $candidate['settings'] = fvplusFolderView3FolderSettings((array)($folder['settings'] ?? []), $defaults, $warnings);
         $containers = is_array($candidate['containers'] ?? null) ? array_values($candidate['containers']) : [];
         $candidate['containers'] = [];
-        foreach ($containers as $name) {
+        foreach ($containers as $index => $name) {
             if (isset($claimed[$name])) { $warnings[] = 'Duplicate explicit assignments were resolved using the original first-folder ownership.'; continue; }
-            $candidate['containers'][] = $name;
+            $candidate['containers'][$index] = $name;
             $claimed[$name] = true;
         }
         $containers = $candidate['containers'];
+        $candidate['containers'] = array_values($containers);
         $ids = is_array($candidate['containerIds'] ?? null) ? $candidate['containerIds'] : [];
         $images = is_array($candidate['containerImages'] ?? null) ? $candidate['containerImages'] : [];
         $identities = [];

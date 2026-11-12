@@ -35,7 +35,12 @@
             "Declared by theme": "Déclaré par le thème",
             "Host CSS variables": "Variables CSS de l’hôte",
             "Control sizing": "Taille des commandes",
-            "Following host controls": "La taille suit les commandes de l’hôte"
+            "Following host controls": "La taille suit les commandes de l’hôte",
+            "Applying items in one atomic request. Items: $1...": "Application d’éléments dans une seule requête atomique. Articles : $1...",
+            "Applying one atomic request. Items: $1...": "Application d’une requête atomique. Articles : $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Application des modifications de dossier en une seule transaction. Modifications : $1...",
+            "$1 - items: $2": "$1 - éléments : $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 analyse de règles intelligente – suggestions trouvées : $2."
         },
         "it": {
             "Open console": "Apri console",
@@ -44,7 +49,12 @@
             "Declared by theme": "Dichiarato dal tema",
             "Host CSS variables": "Variabili CSS dell’host",
             "Control sizing": "Dimensioni dei controlli",
-            "Following host controls": "Le dimensioni seguono i controlli dell’host"
+            "Following host controls": "Le dimensioni seguono i controlli dell’host",
+            "Applying items in one atomic request. Items: $1...": "Applicazione di elementi in una richiesta atomica. Elementi: $1...",
+            "Applying one atomic request. Items: $1...": "Applicazione di una richiesta atomica. Elementi: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Applicazione delle modifiche alla cartella in un'unica transazione. Modifiche: $1...",
+            "$1 - items: $2": "$1 - elementi: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 scansione regole intelligenti - suggerimenti trovati: $2."
         },
         "cs": {
             "Close search": "Zavřít hledání",
@@ -59,7 +69,12 @@
             "Declared by theme": "Název uvedený motivem",
             "Host CSS variables": "Proměnné CSS hostitele",
             "Control sizing": "Velikost ovládacích prvků",
-            "Following host controls": "Velikost podle ovládacích prvků hostitele"
+            "Following host controls": "Velikost podle ovládacích prvků hostitele",
+            "Applying items in one atomic request. Items: $1...": "Použití položek v jednom atomickém požadavku. Položky: $1...",
+            "Applying one atomic request. Items: $1...": "Použití jednoho atomického požadavku. Položky: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Použití změn složek v jedné transakci. Změny: $1...",
+            "$1 - items: $2": "$1 - položek: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 skenování chytrých pravidel - nalezené návrhy: $2."
         },
         "hu": {
             "Preferences": "Beállítások",
@@ -71,7 +86,12 @@
             "Declared by theme": "A téma által megadva",
             "Host CSS variables": "A gazdagép CSS-változói",
             "Control sizing": "Vezérlőelemek mérete",
-            "Following host controls": "A méret a gazdagép vezérlőelemeit követi"
+            "Following host controls": "A méret a gazdagép vezérlőelemeit követi",
+            "Applying items in one atomic request. Items: $1...": "Elemek alkalmazása egy atomkérdésben. Elemek: $1...",
+            "Applying one atomic request. Items: $1...": "Egy atomi kérés alkalmazása. Elemek: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Mappamódosítások alkalmazása egy tranzakcióban. Változások: $1...",
+            "$1 - items: $2": "$1 - elemek: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 intelligens szabályellenőrzés - javaslatok találhatók: $2."
         },
         "lv": {
             "The preview changed. Run the preview again before applying.": "Priekšskatījums ir mainījies. Pirms izmaiņu piemērošanas vēlreiz palaidiet priekšskatījumu.",
@@ -81,7 +101,12 @@
             "Declared by theme": "Tēmas norādīts nosaukums",
             "Host CSS variables": "Resursdatora CSS mainīgie",
             "Control sizing": "Vadīklu izmērs",
-            "Following host controls": "Izmērs atbilst resursdatora vadīklām"
+            "Following host controls": "Izmērs atbilst resursdatora vadīklām",
+            "Applying items in one atomic request. Items: $1...": "Vienumu pielietošana vienā atomu pieprasījumā. Vienumi: $1...",
+            "Applying one atomic request. Items: $1...": "Viena atomu pieprasījuma piemērošana. Vienumi: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Mapes izmaiņu piemērošana vienā darījumā. Izmaiņas: $1...",
+            "$1 - items: $2": "$1 - vienumi: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 viedā kārtula skenēšana - atrasti ieteikumi: $2."
         },
         "ro": {
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Dosare inițiale: $1 (selectate: $2; existente omise: $3; potriviri atribuite automat: $4; necesită verificare: $5; fără potrivire: $6)",
@@ -96,7 +121,12 @@
             "Declared by theme": "Declarat de temă",
             "Host CSS variables": "Variabilele CSS ale gazdei",
             "Control sizing": "Dimensiunea comenzilor",
-            "Following host controls": "Dimensiunea urmează comenzile gazdei"
+            "Following host controls": "Dimensiunea urmează comenzile gazdei",
+            "Applying items in one atomic request. Items: $1...": "Aplicarea articolelor într-o singură cerere atomică. Articole: $1...",
+            "Applying one atomic request. Items: $1...": "Aplicarea unei cereri atomice. Articole: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Aplicarea modificărilor folderului într-o singură tranzacție. Modificări: $1...",
+            "$1 - items: $2": "$1 - articole: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 scanare inteligentă a regulilor - sugestii găsite: $2."
         },
         "ja": {
             "Starting containers": "コンテナを起動中",
@@ -114,7 +144,12 @@
             "Declared by theme": "テーマが提供する名前",
             "Host CSS variables": "ホストのCSS変数",
             "Control sizing": "操作部品のサイズ",
-            "Following host controls": "サイズはホストの操作部品に追従"
+            "Following host controls": "サイズはホストの操作部品に追従",
+            "Applying items in one atomic request. Items: $1...": "1 つのアトミック リクエストで項目を適用します。アイテム: $1",
+            "Applying one atomic request. Items: $1...": "1 つのアトミック リクエストを適用します。アイテム: $1",
+            "Applying folder changes in one transaction. Changes: $1...": "1 つのトランザクションでフォルダーの変更を適用します。変更点: $1",
+            "$1 - items: $2": "$1 - アイテム: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 スマート ルール スキャン - 提案が見つかりました: $2。"
         },
         "bn": {
             "The preview changed. Run the preview again before applying.": "প্রিভিউ পরিবর্তিত হয়েছে। পরিবর্তনগুলি প্রয়োগ করার আগে আবার প্রিভিউ চালান।",
@@ -128,7 +163,12 @@
             "Declared by theme": "থিমের দেওয়া পরিচয়",
             "Host CSS variables": "হোস্টের CSS ভেরিয়েবল",
             "Control sizing": "নিয়ন্ত্রণগুলির আকার",
-            "Following host controls": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে"
+            "Following host controls": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে",
+            "Applying items in one atomic request. Items: $1...": "একটি পারমাণবিক অনুরোধে আইটেম প্রয়োগ করা হচ্ছে। আইটেম: $1...",
+            "Applying one atomic request. Items: $1...": "একটি পারমাণবিক অনুরোধ প্রয়োগ করা হচ্ছে। আইটেম: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "একটি লেনদেনে ফোল্ডার পরিবর্তন প্রয়োগ করা হচ্ছে। পরিবর্তনগুলি: $1...",
+            "$1 - items: $2": "$1 - আইটেম: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 স্মার্ট নিয়ম স্ক্যান - পরামর্শ পাওয়া গেছে: $2।"
         },
         "ca": {
             "Configuration is unavailable. Reload Settings before previewing rules.": "La configuració no està disponible. Torneu a carregar la configuració abans de previsualitzar les regles.",
@@ -147,7 +187,12 @@
             "Declared by theme": "Declarat pel tema",
             "Host CSS variables": "Variables CSS de l’amfitrió",
             "Control sizing": "Mida dels controls",
-            "Following host controls": "La mida segueix els controls de l’amfitrió"
+            "Following host controls": "La mida segueix els controls de l’amfitrió",
+            "Applying items in one atomic request. Items: $1...": "Aplicació d'elements en una sol·licitud atòmica. Elements: $1...",
+            "Applying one atomic request. Items: $1...": "Aplicant una sol·licitud atòmica. Elements: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Aplicació de canvis de carpeta en una transacció. Canvis: $1...",
+            "$1 - items: $2": "$1 - elements: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 exploració de regles intel·ligents - S'han trobat suggeriments: $2."
         },
         "sv": {
             "The preview changed. Run the preview again before applying.": "Förhandsvisningen har ändrats. Kör förhandsvisningen igen innan du tillämpar ändringarna.",
@@ -171,7 +216,12 @@
             "Declared by theme": "Angivet av temat",
             "Host CSS variables": "Värdens CSS-variabler",
             "Control sizing": "Storlek på kontroller",
-            "Following host controls": "Storleken följer värdens kontroller"
+            "Following host controls": "Storleken följer värdens kontroller",
+            "Applying items in one atomic request. Items: $1...": "Applicera föremål i en atomär begäran. Objekt: $1...",
+            "Applying one atomic request. Items: $1...": "Tillämpa en atomär begäran. Objekt: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Tillämpa mappändringar i en transaktion. Ändringar: $1...",
+            "$1 - items: $2": "$1 - föremål: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 smart regelskanning - förslag hittades: $2."
         },
         "zh-Hans": {
             "Previous configuration restored": "已恢复先前的配置",
@@ -189,7 +239,12 @@
             "Control sizing": "控件尺寸",
             "Following host controls": "尺寸随宿主控件调整",
             "Folder batch transaction verification failed.": "文件夹批量事务验证失败。",
-            "Bulk assignment transaction verification failed.": "批量分配事务验证失败。"
+            "Bulk assignment transaction verification failed.": "批量分配事务验证失败。",
+            "Applying items in one atomic request. Items: $1...": "在一个原子请求中应用项目。项目：$1...",
+            "Applying one atomic request. Items: $1...": "应用一个原子请求。项目：$1...",
+            "Applying folder changes in one transaction. Changes: $1...": "在一项事务中应用文件夹更改。更改：$1...",
+            "$1 - items: $2": "$1 - 项目：$2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 智能规则扫描 - 发现建议：$2。"
         },
         "zh-Hant": {
             "The preview changed. Run the preview again before applying.": "預覽已變更。套用變更前，請再次執行預覽。",
@@ -205,7 +260,12 @@
             "Declared by theme": "主題提供的名稱",
             "Host CSS variables": "宿主 CSS 變數",
             "Control sizing": "控制項尺寸",
-            "Following host controls": "尺寸隨宿主控制項調整"
+            "Following host controls": "尺寸隨宿主控制項調整",
+            "Applying items in one atomic request. Items: $1...": "在一個原子請求中應用專案。專案：$1...",
+            "Applying one atomic request. Items: $1...": "應用一個原子請求。專案：$1...",
+            "Applying folder changes in one transaction. Changes: $1...": "在一項事務中應用資料夾變更。變更：$1...",
+            "$1 - items: $2": "$1 - 專案：$2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 智慧規則掃描 - 發現建議：$2。"
         },
         "da": {
             "Browser Quick Guide": "Hurtig vejledning til browseren",
@@ -229,7 +289,12 @@
             "Declared by theme": "Angivet af temaet",
             "Host CSS variables": "Værtens CSS-variabler",
             "Control sizing": "Kontrolelementernes størrelse",
-            "Following host controls": "Størrelsen følger værtens kontrolelementer"
+            "Following host controls": "Størrelsen følger værtens kontrolelementer",
+            "Applying items in one atomic request. Items: $1...": "Anvendelse af varer i én atomanmodning. Genstande: $1...",
+            "Applying one atomic request. Items: $1...": "Anvender én atomanmodning. Genstande: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Anvendelse af mappeændringer i én transaktion. Ændringer: $1...",
+            "$1 - items: $2": "$1 - elementer: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 smart regelscanning - forslag fundet: $2."
         },
         "pl": {
             "Disabled": "Wyłączone",
@@ -239,7 +304,12 @@
             "Declared by theme": "Nazwa podana przez motyw",
             "Host CSS variables": "Zmienne CSS hosta",
             "Control sizing": "Rozmiar elementów sterujących",
-            "Following host controls": "Rozmiar zgodny z elementami sterującymi hosta"
+            "Following host controls": "Rozmiar zgodny z elementami sterującymi hosta",
+            "Applying items in one atomic request. Items: $1...": "Stosowanie elementów w jednym niepodzielnym żądaniu. Pozycje: $1...",
+            "Applying one atomic request. Items: $1...": "Stosowanie jednego żądania atomowego. Pozycje: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Stosowanie zmian w folderze w jednej transakcji. Zmiany: $1...",
+            "$1 - items: $2": "$1 - elementy: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 inteligentne skanowanie reguł - znalezione sugestie: $2."
         },
         "de": {
             "Starting containers": "Container werden gestartet",
@@ -276,7 +346,12 @@
             "Host CSS variables": "CSS-Variablen des Hosts",
             "Control sizing": "Größe der Bedienelemente",
             "Following host controls": "Größe folgt den Bedienelementen des Hosts",
-            "Folder configuration changed. Refresh before moving the folder again.": "Die Ordnerkonfiguration hat sich geändert. Aktualisieren Sie die Ansicht, bevor Sie den Ordner erneut verschieben."
+            "Folder configuration changed. Refresh before moving the folder again.": "Die Ordnerkonfiguration hat sich geändert. Aktualisieren Sie die Ansicht, bevor Sie den Ordner erneut verschieben.",
+            "Applying items in one atomic request. Items: $1...": "Anwenden von Elementen in einer atomaren Anfrage. Elemente: $1...",
+            "Applying one atomic request. Items: $1...": "Anwenden einer atomaren Anfrage. Elemente: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Anwenden von Ordneränderungen in einer Transaktion. Änderungen: $1...",
+            "$1 - items: $2": "$1 - Elemente: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 Smart Rule Scan – Vorschläge gefunden: $2."
         },
         "es": {
             "Skipped": "Omitido",
@@ -289,7 +364,12 @@
             "Declared by theme": "Declarado por el tema",
             "Host CSS variables": "Variables CSS del host",
             "Control sizing": "Tamaño de los controles",
-            "Following host controls": "El tamaño sigue los controles del host"
+            "Following host controls": "El tamaño sigue los controles del host",
+            "Applying items in one atomic request. Items: $1...": "Aplicar elementos en una solicitud atómica. Artículos: $1...",
+            "Applying one atomic request. Items: $1...": "Aplicando una solicitud atómica. Artículos: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Aplicar cambios de carpeta en una sola transacción. Cambios: $1...",
+            "$1 - items: $2": "$1 - elementos: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 escaneo de reglas inteligentes: sugerencias encontradas: $2."
         },
         "hr": {
             "Disabled": "Onemogućeno",
@@ -299,7 +379,12 @@
             "Declared by theme": "Naziv koji navodi tema",
             "Host CSS variables": "CSS varijable glavnog sučelja",
             "Control sizing": "Veličina kontrola",
-            "Following host controls": "Veličina prati kontrole glavnog sučelja"
+            "Following host controls": "Veličina prati kontrole glavnog sučelja",
+            "Applying items in one atomic request. Items: $1...": "Primjena stavki u jednom atomskom zahtjevu. Stavke: $1...",
+            "Applying one atomic request. Items: $1...": "Primjena jednog atomskog zahtjeva. Stavke: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Primjena promjena mape u jednoj transakciji. Promjene: $1...",
+            "$1 - items: $2": "$1 - stavke: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 pametno skeniranje pravila - pronađeni prijedlozi: $2."
         },
         "ko": {
             "Disabled": "비활성화됨",
@@ -310,7 +395,12 @@
             "Control sizing": "컨트롤 크기",
             "Following host controls": "크기가 호스트 컨트롤을 따름",
             "Folder batch transaction verification failed.": "폴더 일괄 트랜잭션 검증에 실패했습니다.",
-            "Bulk assignment transaction verification failed.": "대량 할당 트랜잭션 검증에 실패했습니다."
+            "Bulk assignment transaction verification failed.": "대량 할당 트랜잭션 검증에 실패했습니다.",
+            "Applying items in one atomic request. Items: $1...": "하나의 원자성 요청에 항목을 적용합니다. 항목: $1...",
+            "Applying one atomic request. Items: $1...": "하나의 원자적 요청을 적용합니다. 항목: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "하나의 트랜잭션으로 폴더 변경 사항을 적용합니다. 변경 사항: $1...",
+            "$1 - items: $2": "$1 - 항목: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 스마트 규칙 스캔 - 발견된 제안: $2."
         },
         "nb": {
             "The preview changed. Run the preview again before applying.": "Forhåndsvisningen er endret. Kjør forhåndsvisningen på nytt før du bruker endringene.",
@@ -328,7 +418,12 @@
             "Declared by theme": "Oppgitt av temaet",
             "Host CSS variables": "Vertens CSS-variabler",
             "Control sizing": "Størrelse på kontroller",
-            "Following host controls": "Størrelsen følger vertens kontroller"
+            "Following host controls": "Størrelsen følger vertens kontroller",
+            "Applying items in one atomic request. Items: $1...": "Bruke elementer i én atomforespørsel. Artikler: $1...",
+            "Applying one atomic request. Items: $1...": "Bruker én atomforespørsel. Artikler: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Bruker mappeendringer i én transaksjon. Endringer: $1...",
+            "$1 - items: $2": "$1 - elementer: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 smart regelskanning - forslag funnet: $2."
         },
         "nl": {
             "The preview changed. Run the preview again before applying.": "Het voorbeeld is gewijzigd. Voer het voorbeeld opnieuw uit voordat u de wijzigingen toepast.",
@@ -340,7 +435,12 @@
             "Declared by theme": "Opgegeven door het thema",
             "Host CSS variables": "CSS-variabelen van de host",
             "Control sizing": "Grootte van bedieningselementen",
-            "Following host controls": "Grootte volgt de bedieningselementen van de host"
+            "Following host controls": "Grootte volgt de bedieningselementen van de host",
+            "Applying items in one atomic request. Items: $1...": "Artikelen toepassen in één atomair verzoek. Artikelen: $1...",
+            "Applying one atomic request. Items: $1...": "Eén atoomverzoek toepassen. Artikelen: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Mapwijzigingen in één transactie toepassen. Wijzigingen: $1...",
+            "$1 - items: $2": "$1 - artikelen: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 slimme regelscan - suggesties gevonden: $2."
         },
         "pt-BR": {
             "Containers": "Contêineres",
@@ -351,7 +451,12 @@
             "Declared by theme": "Declarado pelo tema",
             "Host CSS variables": "Variáveis CSS do host",
             "Control sizing": "Tamanho dos controles",
-            "Following host controls": "O tamanho segue os controles do host"
+            "Following host controls": "O tamanho segue os controles do host",
+            "Applying items in one atomic request. Items: $1...": "Aplicando itens em uma solicitação atômica. Itens: $1...",
+            "Applying one atomic request. Items: $1...": "Aplicando uma solicitação atômica. Itens: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Aplicando alterações de pasta em uma transação. Alterações: $1...",
+            "$1 - items: $2": "$1 - itens: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 verificação de regra inteligente – sugestões encontradas: $2."
         },
         "pt-PT": {
             "Containers": "Contentores",
@@ -363,7 +468,12 @@
             "Declared by theme": "Declarado pelo tema",
             "Host CSS variables": "Variáveis CSS do anfitrião",
             "Control sizing": "Tamanho dos controlos",
-            "Following host controls": "O tamanho segue os controlos do anfitrião"
+            "Following host controls": "O tamanho segue os controlos do anfitrião",
+            "Applying items in one atomic request. Items: $1...": "Aplicando itens em uma solicitação atômica. Itens: $1...",
+            "Applying one atomic request. Items: $1...": "Aplicando uma solicitação atômica. Itens: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Aplicando alterações de pasta em uma transação. Alterações: $1...",
+            "$1 - items: $2": "$1 - itens: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 verificação de regra inteligente – sugestões encontradas: $2."
         },
         "uk": {
             "Choose a snapshot and a comparison target. No changes will be saved.": "Виберіть знімок і джерело для порівняння. Жодні зміни не буде збережено.",
@@ -375,25 +485,45 @@
             "Declared by theme": "Назва, надана темою",
             "Host CSS variables": "CSS-змінні хоста",
             "Control sizing": "Розмір елементів керування",
-            "Following host controls": "Розмір відповідає елементам керування хоста"
+            "Following host controls": "Розмір відповідає елементам керування хоста",
+            "Applying items in one atomic request. Items: $1...": "Застосування елементів в одному атомарному запиті. Елементи: $1...",
+            "Applying one atomic request. Items: $1...": "Застосування одного атомарного запиту. Елементи: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Застосування змін папки в одній транзакції. Зміни: $1...",
+            "$1 - items: $2": "$1 - елементи: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 розумне сканування правил - знайдено пропозиції: $2."
         },
         "ar": {
             "Declared by theme": "مُعلن بواسطة السمة",
             "Host CSS variables": "متغيرات CSS للمضيف",
             "Control sizing": "حجم عناصر التحكم",
-            "Following host controls": "الحجم يتبع عناصر تحكم المضيف"
+            "Following host controls": "الحجم يتبع عناصر تحكم المضيف",
+            "Applying items in one atomic request. Items: $1...": "تطبيق العناصر في طلب ذري واحد. العناصر: $1 ...",
+            "Applying one atomic request. Items: $1...": "تطبيق طلب ذري واحد. العناصر: $1 ...",
+            "Applying folder changes in one transaction. Changes: $1...": "تطبيق تغييرات المجلد في معاملة واحدة. التغييرات: $1 ...",
+            "$1 - items: $2": "$1 - العناصر: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 فحص القواعد الذكية - تم العثور على اقتراحات: $2."
         },
         "ru": {
             "Declared by theme": "Название, указанное темой",
             "Host CSS variables": "CSS-переменные хоста",
             "Control sizing": "Размер элементов управления",
-            "Following host controls": "Размер соответствует элементам управления хоста"
+            "Following host controls": "Размер соответствует элементам управления хоста",
+            "Applying items in one atomic request. Items: $1...": "Применение элементов в одном атомарном запросе. Элементы: $1...",
+            "Applying one atomic request. Items: $1...": "Применение одного атомарного запроса. Элементы: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Применение изменений папки за одну транзакцию. Изменения: $1...",
+            "$1 - items: $2": "$1 - элементов: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 интеллектуальное сканирование правил - найдены предложения: $2."
         },
         "tr": {
             "Declared by theme": "Tema tarafından belirtilen ad",
             "Host CSS variables": "Ana bilgisayarın CSS değişkenleri",
             "Control sizing": "Denetim boyutu",
-            "Following host controls": "Boyut ana bilgisayarın denetimlerini izler"
+            "Following host controls": "Boyut ana bilgisayarın denetimlerini izler",
+            "Applying items in one atomic request. Items: $1...": "Öğeleri tek bir atomik istekte uygulama. Öğeler: $1...",
+            "Applying one atomic request. Items: $1...": "Tek bir atomik istek uygulanıyor. Öğeler: $1...",
+            "Applying folder changes in one transaction. Changes: $1...": "Klasör değişikliklerini tek bir işlemde uygulama. Değişiklikler: $1...",
+            "$1 - items: $2": "$1 - öğeler: $2",
+            "$1 smart rule scan - suggestions found: $2.": "$1 akıllı kural taraması - öneriler bulundu: $2."
         }
     }
 }

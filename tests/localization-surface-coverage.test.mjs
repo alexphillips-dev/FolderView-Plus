@@ -19,9 +19,13 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    // Theme and rule-preview messages retain semantic keys after retiring obsolete source surfaces.
-    assert.ok(surface.byPhrase.size >= 2993, 'retain the audited conditional UI surfaces');
+    // Client rollback was retired; committed imports use the existing refresh warning.
+    const retiredImportNotices = ['Automatic rollback restored backup: $1', 'No rollback backup available.',
+        'Rollback failed: $1', 'Theme Workspace changed. Reload the Appearance tab if needed.'];
+    assert.ok(surface.byPhrase.size >= 2993 - retiredImportNotices.length, 'retain all other audited conditional UI surfaces');
+    for (const phrase of retiredImportNotices) assert.equal(surface.byPhrase.has(phrase), false, phrase);
     const settings = readJson(path.join(namespacesRoot, 'en/settings.json'));
+    assert.equal(settings['settings.groups.refresh-needed'], 'The folders were saved. Refresh the page to show the latest configuration.');
     for (const key of ['settings.navigation.themes', 'settings.theme.manager-help', 'settings.theme.host-default', 'settings.theme.managed-layer', 'settings.theme.host-status']) {
         assert.ok(settings[key], `replacement semantic message must exist: ${key}`);
     }

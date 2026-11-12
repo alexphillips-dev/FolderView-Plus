@@ -59,74 +59,81 @@ function getBackupSnapshotPath(string $type, string $name): string {
     }
 
     function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true): array {
-        $type = ensureType($type);
-        $folders = readRawFolderMap($type);
-        $folderCount = count($folders);
-        if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
-            try {
-                appendDiagnosticsHistoryEvent('backup_skipped', $type, [
-                    'reason' => $reason,
-                    'folderCount' => 0,
+        return withConfigMutationLock(static function () use ($type, $reason, $prune): array {
+            $type = ensureType($type);
+            $folders = readRawFolderMap($type);
+            $folderCount = count($folders);
+            if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
+                try {
+                    appendDiagnosticsHistoryEvent('backup_skipped', $type, [
+                        'reason' => $reason,
+                        'folderCount' => 0,
+                        'skipReason' => 'empty-folder-map'
+                    ], 'skipped', 'server');
+                } catch (Throwable $err) {
+                    // Keep backup skip reporting non-fatal.
+                }
+                return [
+                    'name' => '',
+                    'createdAt' => gmdate('c'),
+                    'count' => 0,
+                    'traceId' => getRequestTraceId(),
+                    'transactionId' => getRequestTransactionId(),
+                    'pruned' => [],
+                    'skipped' => true,
                     'skipReason' => 'empty-folder-map'
-                ], 'skipped', 'server');
-            } catch (Throwable $err) {
-                // Keep backup skip reporting non-fatal.
+                ];
             }
-            return [
-                'name' => '',
-                'createdAt' => gmdate('c'),
-                'count' => 0,
+            $prefs = readTypePrefs($type);
+            $backupDir = getBackupsDirPath();
+            if (!is_dir($backupDir)) {
+                @mkdir($backupDir, 0770, true);
+            }
+            $slugReason = trim((string)preg_replace('/[^a-zA-Z0-9_-]+/', '-', strtolower($reason)), '-');
+            if ($slugReason === '') {
+                $slugReason = 'manual';
+            }
+            $baseName = sprintf('%s-%s-%s', $type, gmdate('Ymd-His'), $slugReason);
+            $filename = $baseName . '.json';
+            for ($suffix = 1; file_exists("$backupDir/$filename") || is_link("$backupDir/$filename"); $suffix++) {
+                $filename = $baseName . '-' . $suffix . '.json';
+            }
+            $payload = [
+                'schemaVersion' => FVPLUS_EXPORT_SCHEMA_VERSION,
+                'pluginVersion' => readInstalledVersion(),
+                'exportedAt' => gmdate('c'),
+                'createdAt' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.uP'),
+                'type' => $type,
+                'mode' => 'full',
+                'reason' => $reason,
                 'traceId' => getRequestTraceId(),
                 'transactionId' => getRequestTransactionId(),
-                'pruned' => [],
-                'skipped' => true,
-                'skipReason' => 'empty-folder-map'
+                'configurationMetadata' => readConfigMetadata($type, true),
+                'folders' => $folders,
+                'prefs' => $prefs
             ];
-        }
-        $prefs = readTypePrefs($type);
-        $backupDir = getBackupsDirPath();
-        if (!is_dir($backupDir)) {
-            @mkdir($backupDir, 0770, true);
-        }
-        $slugReason = trim((string)preg_replace('/[^a-zA-Z0-9_-]+/', '-', strtolower($reason)), '-');
-        if ($slugReason === '') {
-            $slugReason = 'manual';
-        }
-        $filename = sprintf('%s-%s-%s.json', $type, gmdate('Ymd-His'), $slugReason);
-        $payload = [
-            'schemaVersion' => FVPLUS_EXPORT_SCHEMA_VERSION,
-            'pluginVersion' => readInstalledVersion(),
-            'exportedAt' => gmdate('c'),
-            'type' => $type,
-            'mode' => 'full',
-            'reason' => $reason,
-            'traceId' => getRequestTraceId(),
-            'transactionId' => getRequestTransactionId(),
-            'configurationMetadata' => readConfigMetadata($type, true),
-            'folders' => $folders,
-            'prefs' => $prefs
-        ];
-        writeJsonObjectAtomic("$backupDir/$filename", $payload);
-        $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type)) : [];
-        try {
-            appendDiagnosticsHistoryEvent('backup_create', $type, [
-                'reason' => $reason,
+            writeJsonObjectAtomic("$backupDir/$filename", $payload);
+            $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type)) : [];
+            try {
+                appendDiagnosticsHistoryEvent('backup_create', $type, [
+                    'reason' => $reason,
+                    'name' => $filename,
+                    'folderCount' => $folderCount,
+                    'prunedCount' => count($pruned)
+                ], 'ok', 'server');
+            } catch (Throwable $err) {
+                // Keep backup creation non-fatal.
+            }
+            return [
                 'name' => $filename,
-                'folderCount' => $folderCount,
-                'prunedCount' => count($pruned)
-            ], 'ok', 'server');
-        } catch (Throwable $err) {
-            // Keep backup creation non-fatal.
-        }
-        return [
-            'name' => $filename,
-            'createdAt' => gmdate('c'),
-            'count' => $folderCount,
-            'traceId' => getRequestTraceId(),
-            'transactionId' => getRequestTransactionId(),
-            'pruned' => $pruned,
-            'skipped' => false
-        ];
+                'createdAt' => gmdate('c'),
+                'count' => $folderCount,
+                'traceId' => getRequestTraceId(),
+                'transactionId' => getRequestTransactionId(),
+                'pruned' => $pruned,
+                'skipped' => false
+            ];
+        });
     }
 
     function findRecentPrefsBackupSnapshot(string $type, int $windowSeconds): ?array {
@@ -135,32 +142,16 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if ($windowSeconds <= 0 || !is_dir($backupDir)) {
             return null;
         }
-        $latestPath = '';
-        $latestMtime = 0;
-        foreach ((array)@scandir($backupDir) as $file) {
-            if (!is_string($file) || !preg_match('/^' . preg_quote($type, '/') . '-.*-before-prefs-update\.json$/', $file)) {
+        foreach (listBackupSnapshots($type) as $snapshot) {
+            if (!preg_match('/^' . preg_quote($type, '/') . '-.*-before-prefs-update(?:-[0-9]+)?\.json$/', $snapshot['name'])) {
                 continue;
             }
-            $path = "$backupDir/$file";
-            $mtime = is_file($path) ? (int)@filemtime($path) : 0;
-            if ($mtime > $latestMtime) {
-                $latestMtime = $mtime;
-                $latestPath = $path;
-            }
+            $mtime = strtotime($snapshot['createdAt']) ?: 0;
+            if (max(0, time() - $mtime) > $windowSeconds) return null;
+            $snapshot['reason'] = 'before-prefs-update';
+            return $snapshot;
         }
-        if ($latestPath === '' || max(0, time() - $latestMtime) > $windowSeconds) {
-            return null;
-        }
-        $decoded = @json_decode((string)@file_get_contents($latestPath), true);
-        return [
-            'name' => basename($latestPath),
-            'createdAt' => gmdate('c', $latestMtime),
-            'size' => (int)@filesize($latestPath),
-            'reason' => 'before-prefs-update',
-            'count' => getBackupPayloadFolderCount($decoded),
-            'traceId' => is_array($decoded) ? normalizeRequestTraceId((string)($decoded['traceId'] ?? '')) : '',
-            'transactionId' => is_array($decoded) ? normalizeRequestTransactionId((string)($decoded['transactionId'] ?? '')) : ''
-        ];
+        return null;
     }
 
     function createCoalescedPrefsBackupSnapshot(string $type, int $windowSeconds = 30): array {
@@ -210,7 +201,12 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 $traceId = normalizeRequestTraceId((string)($decoded['traceId'] ?? ''));
                 $transactionId = normalizeRequestTransactionId((string)($decoded['transactionId'] ?? ''));
             }
+            $created = gmdate('Y-m-d\TH:i:s', (int)@filemtime($path)) . '.000000+00:00';
+            if (is_string($decoded['createdAt'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+00:00$/D', $decoded['createdAt'])) {
+                $created = $decoded['createdAt'];
+            }
             $entries[] = [
+                '_sortCreated' => $created,
                 'name' => $file,
                 'createdAt' => gmdate('c', (int)@filemtime($path)),
                 'size' => (int)@filesize($path),
@@ -221,8 +217,10 @@ function getBackupSnapshotPath(string $type, string $name): string {
             ];
         }
         usort($entries, function($a, $b) {
-            return strcmp($b['createdAt'], $a['createdAt']);
+            return strcmp($b['_sortCreated'], $a['_sortCreated']) ?: strnatcmp($b['name'], $a['name']);
         });
+        foreach ($entries as &$entry) unset($entry['_sortCreated']);
+        unset($entry);
         return $entries;
     }
 

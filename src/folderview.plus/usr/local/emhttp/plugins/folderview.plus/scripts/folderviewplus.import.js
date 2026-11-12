@@ -97,6 +97,7 @@ const selectJsonFile = () => new Promise((resolve, reject) => {
     input.type = 'file';
     input.accept = '.json,application/json';
     input.style.display = 'none';
+    input.oncancel = () => { input.remove(); resolve(null); };
     input.onchange = async (event) => {
         const file = event.target.files?.[0];
         document.body.removeChild(input);
@@ -388,7 +389,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         });
     };
     const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
-        .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
+        .filter((_, element) => element.classList.contains('fv-import-apply-button') || String($(element).text() || '').trim().toLowerCase() === 'apply import')
         .first();
     const applyImportDialogButtonSkin = (element) => {
         if (!element?.style) return;
@@ -895,7 +896,7 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         return { completed: 0, total: 0 };
     }
 
-    emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1�", totalSteps));
+    emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1...", totalSteps));
     const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates });
     emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 

@@ -449,14 +449,14 @@
                             charts = createCharts(tooltipDom, ct, settings, CPU, MEM);
                         }
                     };
-                    if (typeof win.Chart === 'function') {
-                        mountCharts();
-                    } else if (win.FolderViewPlusAssetLoader?.ensureChartStack) {
+                    if (win.FolderViewPlusAssetLoader?.ensureChartStack) {
                         win.FolderViewPlusAssetLoader.ensureChartStack().then(mountCharts).catch((error) => {
                             tooltipDom.find('.folder-graph').empty().append(
                                 jq('<div class="fv-tooltip-lazy-loading"></div>').text(`Graph unavailable: ${String(error?.message || error)}`)
                             );
                         });
+                    } else if (typeof win.Chart === 'function') {
+                        mountCharts();
                     }
                     const cpuTextElement = tooltipDom.find(`.cpu-${ct.shortId}`).get(0);
                     if (cpuTextElement && typeof win?.MutationObserver === 'function') {

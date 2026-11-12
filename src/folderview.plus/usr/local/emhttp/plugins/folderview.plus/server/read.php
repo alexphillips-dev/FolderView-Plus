@@ -9,8 +9,9 @@ header('Expires: 0');
 try {
     fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-    $foldersJson = readFolder($type);
-    $metadata = readConfigMetadata($type, true);
+    [$foldersJson, $metadata] = withConfigMutationLock(static function () use ($type): array {
+        return [readFolder($type), readConfigMetadata($type, true)];
+    });
     if (!headers_sent()) {
         header('X-FV-Config-Schema: ' . (string)($metadata['schemaVersion'] ?? FVPLUS_CONFIG_METADATA_SCHEMA_VERSION));
         header('X-FV-Folder-Revision: ' . (string)($metadata['folderRevision'] ?? 0));

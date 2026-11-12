@@ -101,11 +101,11 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
     api.bindLifecycleEventControlPatch();
     window.eventControl({ action: 'start', container: 'abc123' }, 'loadlist');
 
-    assert.equal(hostCalls[0][1], '__fvplusDashboardDockerLifecycleRefresh');
+    assert.match(hostCalls[0][1], /^__fvplusDashboardDockerLifecycleRefresh_\d+$/);
     assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123' }]);
-    assert.deepEqual(scheduled.map(({ delayMs }) => delayMs), [0, 300, 750, 1500, 2500]);
+    assert.deepEqual(scheduled.filter(({ delayMs }) => delayMs !== 120000).map(({ delayMs }) => delayMs), [0, 300, 750, 1500, 2500]);
 
-    for (const item of scheduled) {
+    for (const item of scheduled.filter(({ delayMs }) => delayMs !== 120000)) {
         item.handler();
         await flushPromises();
     }
@@ -179,7 +179,7 @@ test('Docker page lifecycle defaults resolve container ids and clear expanded pr
     });
 
     api.runDockerLifecycleRefresh({ action: 'start', container: 'abc123def456' });
-    scheduled[0].handler();
+    scheduled.find(({ delayMs }) => delayMs === 0).handler();
     await flushPromises();
 
     assert.deepEqual(Array.from(syncedNames), ['example-container']);
@@ -207,7 +207,7 @@ test('Docker restart lifecycle keeps its pending surface through the initial run
     });
 
     api.runDockerLifecycleRefresh({ action: 'restart', container: 'abc123def456' });
-    scheduled[0].handler();
+    scheduled.find(({ delayMs }) => delayMs === 0).handler();
     await flushPromises();
     assert.equal(finalized.length, 0);
 
@@ -289,7 +289,7 @@ test('Docker native lifecycle hook marks and restores a matching compact preview
     assert.equal(surfaceAttributes.get('aria-busy'), 'true');
     assert.equal(surfaceAttributes.get('data-fv-lifecycle-action'), 'restart');
 
-    scheduled[0].handler();
+    scheduled.find(({ delayMs }) => delayMs === 0).handler();
     await flushPromises();
     assert.equal(iconAttributes.get('class'), 'fa fa-play fv-preview-status-started');
     assert.equal(surfaceAttributes.has('aria-busy'), false);
@@ -336,13 +336,14 @@ test('Dashboard stop followed by start cancels the stale stop tail and converges
 
     api.bindLifecycleEventControlPatch();
     window.eventControl({ action: 'stop', container: 'abc123' }, 'loadlist');
-    scheduled[0].handler();
+    scheduled.find(({ delayMs }) => delayMs === 0).handler();
     await flushPromises();
     assert.equal(running, false);
 
     window.eventControl({ action: 'start', container: 'abc123' }, 'loadlist');
-    const startTimers = scheduled.slice(3);
-    scheduled.slice(1, 3).forEach(({ handler }) => handler());
+    const refreshTimers = scheduled.filter(({ delayMs }) => delayMs !== 120000);
+    const startTimers = refreshTimers.slice(3);
+    refreshTimers.slice(1, 3).forEach(({ handler }) => handler());
     for (const { handler } of startTimers) {
         handler();
         await flushPromises();

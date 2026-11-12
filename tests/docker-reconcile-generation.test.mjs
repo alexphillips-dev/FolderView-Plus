@@ -7,7 +7,7 @@ const { createApi } = require('../src/folderview.plus/usr/local/emhttp/plugins/f
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
 for (const rejected of [false, true]) {
-    test(`superseded Docker lifecycle ${rejected ? 'failure' : 'success'} cannot publish or restart a settled action`, async () => {
+    test(`superseded same-container Docker lifecycle ${rejected ? 'failure' : 'success'} cannot publish or restart a settled action`, async () => {
         const timers = [], events = [], finalized = [];
         let finishOld, requests = 0, observations = 0;
         const api = createApi({
@@ -21,13 +21,14 @@ for (const rejected of [false, true]) {
             appendDockerBulkUpdateTrace: (event, details) => events.push({ event, details }),
             finalizeDockerLifecycleSurface: (request, outcome) => finalized.push({ request, outcome })
         });
-        api.runDockerLifecycleRefresh({ action: 'start', container: 'older' });
+        api.runDockerLifecycleRefresh({ action: 'stop', container: 'current' });
         timers[0]();
         api.runDockerLifecycleRefresh({ action: 'start', container: 'current' });
         timers[2]();
         await flush();
         assert.equal(finalized.length, 1);
         assert.equal(finalized[0].request.container, 'current');
+        assert.equal(finalized[0].request.action, 'start');
         const priorEventCount = events.length, priorObservations = observations;
         finishOld();
         await flush();

@@ -32,6 +32,13 @@
     function collectRuntimeOverrideEntries(string $type): array {
         $safeType = ensureType($type);
         $entries = [];
+        $managedStylePath = fvplusThemeWorkspaceGeneratedCssPath($safeType);
+        $managedStyleResolved = false;
+        $generatedMarker = '/* FolderView Plus generated Theme Workspace asset. Do not edit manually. */' . "\n";
+        if (!is_link($managedStylePath) && is_file($managedStylePath)
+            && @file_get_contents($managedStylePath, false, null, 0, strlen($generatedMarker)) === $generatedMarker) {
+            $managedStyleResolved = realpath($managedStylePath);
+        }
         $patterns = [
             'scripts' => "/\..*{$safeType}.*\.js$/",
             'styles' => "/\..*{$safeType}.*\.css$/"
@@ -43,16 +50,25 @@
                 if ($baseDir === false) {
                     continue;
                 }
+                $normalizedBaseDir = DIRECTORY_SEPARATOR === '\\'
+                    ? rtrim(str_replace('\\', '/', $baseDir), '/')
+                    : $baseDir;
                 $files = dirToArrayOfFiles(pathToMultiDimArray($overrideDir), $filePattern, "/.*\.disabled$/");
                 foreach ($files as $file) {
                     if (!is_array($file) || empty($file['path'])) {
                         continue;
                     }
                     $resolved = realpath($file['path']);
-                    if ($resolved === false || strpos($resolved, $baseDir . '/') !== 0) {
+                    $normalizedResolved = $resolved === false ? '' : (DIRECTORY_SEPARATOR === '\\'
+                        ? str_replace('\\', '/', $resolved)
+                        : $resolved);
+                    if ($resolved === false || strpos($normalizedResolved, $normalizedBaseDir . '/') !== 0) {
                         continue;
                     }
-                    $relativePath = ltrim(substr($resolved, strlen($baseDir)), '/');
+                    if ($kind === 'styles' && $resolved === $managedStyleResolved) {
+                        continue;
+                    }
+                    $relativePath = ltrim(substr($normalizedResolved, strlen($normalizedBaseDir)), '/');
                     $displayPath = ($relativePath === '' || $relativePath === false)
                         ? basename($resolved)
                         : str_replace('\\', '/', $relativePath);

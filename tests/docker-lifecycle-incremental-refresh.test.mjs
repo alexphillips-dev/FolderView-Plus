@@ -91,31 +91,185 @@ test('Docker lifecycle actions replace the destructive host loadlist callback', 
     const result = harness.window.eventControl({ action: 'stop', container: 'abc123' }, 'loadlist');
     assert.equal(result, 'host-result');
     assert.equal(harness.hostCalls.length, 1);
-    assert.equal(
-        harness.hostCalls[0][1],
-        reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME
-    );
+    const callbackName = harness.hostCalls[0][1];
+    assert.ok(callbackName.startsWith(reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME));
     assert.notEqual(harness.hostCalls[0][1], 'loadlist');
-    assert.equal(typeof harness.window[reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME], 'function');
+    assert.equal(typeof harness.window[callbackName], 'function');
 
-    harness.window[reconcileModule.DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME]();
+    harness.window[callbackName]();
+    assert.equal(harness.window[callbackName], undefined);
     assert.deepEqual(
-        harness.scheduled.map((entry) => entry.delayMs),
+        harness.scheduled.filter((entry) => entry.delayMs !== 120000).map((entry) => entry.delayMs),
         [...reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS]
     );
-    for (const scheduled of harness.scheduled) {
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
         scheduled.handler();
         await flushPromises();
     }
     assert.equal(harness.refreshCalls.length, reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length);
     harness.refreshCalls.forEach((options) => {
-        assert.deepEqual(options, {
-            liveUpdateStatus: true,
-            preserveGroupedDom: true,
-            containerId: 'abc123'
-        });
+        assert.equal(options.liveUpdateStatus, true);
+        assert.equal(options.preserveGroupedDom, true);
+        assert.equal(options.containerId, 'abc123');
+        assert.equal(typeof options.isCurrent, 'function');
     });
     assert.ok(harness.trace.some((entry) => entry.eventType === 'lifecycleLoadlistIntercepted'));
+});
+
+test('two host callbacks refresh their own containers even when they finish in reverse order', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    harness.window.eventControl({ action: 'stop', container: 'second' }, 'loadlist');
+    const [first, second] = harness.hostCalls.map((call) => call[1]);
+    assert.notEqual(first, second);
+    harness.window[second]();
+    harness.window[first]();
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.deepEqual([...new Set(harness.refreshCalls.map((entry) => entry.containerId))].sort(), ['first', 'second']);
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 2);
+});
+
+test('a newer action replaces only the same container refresh', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+    harness.window.eventControl({ action: 'stop', container: 'first' }, 'loadlist');
+    harness.window[harness.hostCalls[0][1]]();
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    harness.window[harness.hostCalls[1][1]]();
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.equal(harness.refreshCalls.length, reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length);
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 1);
+});
+
+test('an earlier same-container host action completing last reconciles its final state', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+    harness.window.eventControl({ action: 'stop', container: 'first' }, 'loadlist');
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    const [stopCallback, startCallback] = harness.hostCalls.map((call) => call[1]);
+    harness.window[startCallback]();
+    harness.window[stopCallback]();
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.equal(harness.refreshCalls.length, reconcileModule.DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length);
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 1);
+    assert.equal(harness.trace.find((entry) => entry.eventType === 'lifecycleSurfaceFinalized').details.action, 'stop');
+});
+
+test('an earlier completion does not finalize while a same-container host action is pending', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+    harness.window.eventControl({ action: 'stop', container: 'first' }, 'loadlist');
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    const [stopCallback, startCallback] = harness.hostCalls.map((call) => call[1]);
+    harness.window[stopCallback]();
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 0);
+    harness.window[startCallback]();
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.equal(harness.trace.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').length, 1);
+});
+
+test('finishing one container keeps another container preview pending', async () => {
+    const element = (initial = {}) => {
+        const attrs = new Map(Object.entries(initial));
+        return {
+            getAttribute: (name) => attrs.get(name) || null,
+            hasAttribute: (name) => attrs.has(name),
+            setAttribute: (name, value) => attrs.set(name, value),
+            removeAttribute: (name) => attrs.delete(name)
+        };
+    };
+    const surfaces = ['aaaaaaaaaaaa', 'bbbbbbbbbbbb'].map((id) => {
+        const surface = element({ 'data-fv-container-id': id });
+        surface.icon = element({ class: 'fa fa-play started' });
+        surface.querySelectorAll = () => [surface.icon];
+        return surface;
+    });
+    const scheduled = [];
+    const window = {
+        eventControl: () => {},
+        setTimeout: (handler, delayMs) => { scheduled.push({ handler, delayMs }); return scheduled.length; }
+    };
+    const document = { querySelectorAll: (selector) => selector.startsWith('.folder-preview [data-fv-container-id]')
+        ? surfaces : surfaces.filter((surface) => surface.icon.hasAttribute('data-fv-lifecycle-icon-class')).map((surface) => surface.icon) };
+    const hostAdapter = hostAdaptersModule.createHostAdapter('docker', { window, document });
+    const api = reconcileModule.createApi({ window, document,
+        getDockerHostGuardsApi: () => ({ wrapHostHook: (...args) => hostAdapter.wrapHook(...args) }),
+        refreshDockerRuntimeStateInPlace: async () => true,
+        isDockerLifecycleStateSettled: () => true,
+        lifecycleRefreshDelaysMs: [0] });
+    api.bindLifecycleEventControlPatch();
+    window.eventControl({ action: 'start', container: 'aaaaaaaaaaaa' }, 'loadlist');
+    const firstCallback = Object.keys(window).find((key) => key.startsWith('__fvplusDockerLifecycleRefresh_'));
+    window.eventControl({ action: 'start', container: 'bbbbbbbbbbbb' }, 'loadlist');
+    assert.equal(surfaces.every((surface) => surface.hasAttribute('data-fv-lifecycle-pending')), true);
+    window[firstCallback]();
+    scheduled.find((entry) => entry.delayMs === 0).handler();
+    await flushPromises();
+    assert.equal(surfaces[0].hasAttribute('data-fv-lifecycle-pending'), false);
+    assert.equal(surfaces[1].hasAttribute('data-fv-lifecycle-pending'), true);
+    api.disposeLifecycleRefreshes();
+});
+
+test('unreturned host callbacks expire and page exit removes outstanding callbacks', async () => {
+    const harness = createHarness();
+    harness.api.bindLifecycleEventControlPatch();
+    harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist');
+    const first = harness.hostCalls[0][1];
+    harness.scheduled.find((entry) => entry.delayMs === 120000).handler();
+    assert.equal(harness.window[first], undefined);
+    for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+        scheduled.handler();
+        await flushPromises();
+    }
+    assert.ok(harness.trace.some((entry) => entry.details.reason === 'callback-timeout'));
+    harness.window.eventControl({ action: 'start', container: 'second' }, 'loadlist');
+    const second = harness.hostCalls[1][1];
+    harness.api.disposeLifecycleRefreshes();
+    assert.equal(harness.window[second], undefined);
+    assert.equal(harness.api.bindLifecycleEventControlPatch(), false);
+});
+
+test('failed host lifecycle actions remove their callbacks and finalize the pending surface', async () => {
+    for (const failure of ['throw', 'reject']) {
+        const harness = createHarness();
+        const hostFailure = Error('fixture host action failed');
+        harness.window.eventControl = (_request, callbackName) => {
+            harness.hostCalls.push([_request, callbackName]);
+            if (failure === 'throw') throw hostFailure;
+            return Promise.reject(hostFailure);
+        };
+        harness.api.bindLifecycleEventControlPatch();
+        if (failure === 'throw') {
+            assert.throws(() => harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist'), hostFailure);
+        } else {
+            await assert.rejects(harness.window.eventControl({ action: 'start', container: 'first' }, 'loadlist'), hostFailure);
+            await flushPromises();
+        }
+        assert.equal(harness.window[harness.hostCalls[0][1]], undefined);
+        for (const scheduled of harness.scheduled.filter((entry) => entry.delayMs !== 120000)) {
+            scheduled.handler();
+            await flushPromises();
+        }
+        assert.ok(harness.trace.some((entry) => entry.eventType === 'lifecycleSurfaceFinalized'
+            && entry.details.reason === 'host-action-failed'), failure);
+    }
 });
 
 test('Docker lifecycle patch leaves structural and unrelated host callbacks unchanged', () => {

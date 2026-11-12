@@ -40,6 +40,7 @@ namespace {
     foreach (['config', 'source', 'host'] as $dir) mkdir("$root/$dir", 0700, true);
     putenv("FVPLUS_TEST_CONFIG_DIR=$root/config");
     putenv("FVPLUS_TEST_SOURCE_DIR=$root/source");
+    putenv("FVPLUS_TEST_DOCKER_AUTOSTART_FILE=$root/config/native-autostart");
     $_SERVER['DOCUMENT_ROOT'] = "$root/host";
     require "$server/lib.php";
     if ($mode === 'folder' || $mode === 'prefs') {

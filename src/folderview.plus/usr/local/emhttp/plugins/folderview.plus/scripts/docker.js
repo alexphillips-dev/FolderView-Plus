@@ -67,6 +67,8 @@ const dockerApiCoordinatorModule = window.FolderViewPlusFoundationModules?.docke
 let dockerApiIntegration = null;
 let dockerRuntimePageDisposed = false;
 let dockerRuntimeRefreshGeneration = 0;
+let dockerRuntimeRefreshRequestGeneration = 0;
+let dockerRuntimeRefreshQueue = Promise.resolve();
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerChildFolderPreviewMenuModule = window.FolderViewPlusFoundationModules?.dockerChildFolderPreviewMenu || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
@@ -7507,26 +7509,37 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
         });
     }
 };
-const refreshDockerRuntimeStateInPlace = async (options = {}) => {
-    const refreshGeneration = ++dockerRuntimeRefreshGeneration;
+const refreshDockerRuntimeStateInPlace = (options = {}) => {
+    const lifecycleRequest = options.preserveGroupedDom === true && String(options.containerId || '').trim() !== '';
+    const requestGeneration = lifecycleRequest ? 0 : ++dockerRuntimeRefreshRequestGeneration;
     const renderGeneration = dockerBootstrapGeneration;
-    const isCurrent = () => !dockerRuntimePageDisposed && refreshGeneration === dockerRuntimeRefreshGeneration
-        && renderGeneration === dockerBootstrapGeneration && options.isCurrent?.() !== false;
-    if (!isCurrent()) return false;
-    const guardedOptions = { ...options, isCurrent };
-    if (options?.apiFirst !== false) {
-        try {
-            const integration = getDockerApiIntegration();
-            const method = options.apiMethod === 'tick' ? 'tick' : 'refresh';
-            const applied = await integration?.[method]?.(guardedOptions);
-            if (!isCurrent()) return false;
-            if (applied === true) return true;
-        } catch (_error) {
-            // The established PHP runtime snapshot remains the non-fatal fallback.
+    const refresh = async () => {
+        if (dockerRuntimePageDisposed || renderGeneration !== dockerBootstrapGeneration
+            || options.isCurrent?.() === false
+            || (!lifecycleRequest && requestGeneration !== dockerRuntimeRefreshRequestGeneration)) return false;
+        const refreshGeneration = ++dockerRuntimeRefreshGeneration;
+        const isCurrent = () => !dockerRuntimePageDisposed && renderGeneration === dockerBootstrapGeneration
+            && (lifecycleRequest || refreshGeneration === dockerRuntimeRefreshGeneration)
+            && (lifecycleRequest || requestGeneration === dockerRuntimeRefreshRequestGeneration)
+            && options.isCurrent?.() !== false;
+        const guardedOptions = { ...options, isCurrent };
+        if (options?.apiFirst !== false) {
+            try {
+                const integration = getDockerApiIntegration();
+                const method = options.apiMethod === 'tick' ? 'tick' : 'refresh';
+                const applied = await integration?.[method]?.(guardedOptions);
+                if (!isCurrent()) return false;
+                if (applied === true) return true;
+            } catch (_error) {
+                // The established PHP runtime snapshot remains the non-fatal fallback.
+            }
         }
-    }
-    if (!isCurrent()) return false;
-    return refreshDockerRuntimeStateFromPhp({ ...guardedOptions, apiFirst: false });
+        if (!isCurrent()) return false;
+        return refreshDockerRuntimeStateFromPhp({ ...guardedOptions, apiFirst: false });
+    };
+    const queued = dockerRuntimeRefreshQueue.then(refresh, refresh);
+    dockerRuntimeRefreshQueue = queued.then(() => undefined, () => undefined);
+    return queued;
 };
 const readDockerHostOrderFromDom = () => {
     const order = [];
@@ -7910,6 +7923,7 @@ window.addEventListener('pagehide', () => {
     dockerRuntimePageDisposed = true;
     dockerBootstrapGeneration += 1;
     dockerRuntimeRefreshGeneration += 1;
+    getDockerRuntimeReconcileApi()?.disposeLifecycleRefreshes?.();
     dockerPageTitle.dispose();
     dockerRuntimeLayoutStabilityTracker?.destroy?.();
     dockerQuickFinderApi?.dispose();

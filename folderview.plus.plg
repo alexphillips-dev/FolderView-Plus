@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.01">
-<!ENTITY md5 "3ea003f309268d5d7845c5a6c539e6c7">
-<!ENTITY sha256 "b8b18587a6f3e9a09991c2ead1d9d5876f62b55a99e7471d960e78336b9589be">
+<!ENTITY version "2026.11.12.02">
+<!ENTITY md5 "f0dfad04506cacfedf6e2cbf8449bcc0">
+<!ENTITY sha256 "cceb52833bb4476d58736c05fdaee6080ae1a4a88c0df3fe68478de48130c795">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.02
+- Fix: Keep Docker container rows and pending indicators in sync when start or stop actions overlap, including actions that finish out of order.
+- Fix: Treat Theme Workspace generated Docker and VM styles as managed appearance assets instead of degraded runtime overrides, while continuing to warn about custom scripts and styles.
+- Security: Refresh pinned CodeQL and release attestation Actions and regenerate the dependency inventory.
+- Maintenance: Upgrade Playwright browser test tooling to 1.65.0.
+- Maintenance: Isolate Docker autostart data in backend test fixtures and record the measured JavaScript size increase while retaining the existing 8% growth limit.
+- Compatibility: Hard-refresh the webGUI after installing this dev update. Check Docker start/stop actions, Theme Workspace styling, and neighboring Settings, VM, and Dashboard pages; live Unraid acceptance remains required.
+
 
 ###2026.11.12.01
 - Fix: Preserve Docker and VM member identities during bulk moves and FolderView3 migration. Keep saved members, including unavailable resources, and nested folder order when cloning Docker folders.

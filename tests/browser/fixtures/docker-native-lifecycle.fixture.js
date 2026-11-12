@@ -4,6 +4,7 @@
     const coordinator = window.FolderViewPlusFoundationModules.dockerApiCoordinator;
     const id = 'abcdef123456' + '0'.repeat(52);
     const nativeId = id.slice(0, 12);
+    const secondId = 'bbbbbbbbbbbb' + '0'.repeat(52);
     const row = document.getElementById(nativeId).closest('tr');
     const icon = document.getElementById(`load-${nativeId}`);
     const menu = document.getElementById('fixture-menu');
@@ -11,6 +12,7 @@
     const traces = [];
     const requests = [];
     let state = 'running';
+    let secondState = 'running';
     let menuOpens = 0;
     let hostReloads = 0;
     let preview = null;
@@ -20,6 +22,14 @@
             info: { Id: id, Name: 'fixture-app', State: { Running: true, Paused: false } }
         }, { id: `server:${id}`, name: 'fixture-app', shortId: id, state: 'running' })
     };
+    if (scenario === 'concurrent') {
+        const secondRow = document.getElementById('ct-unrelated');
+        secondRow.querySelector('i').id = `load-${secondId.slice(0, 12)}`;
+        runtimeMap.unrelated = coordinator.mergeContainerIntoRuntimeEntry({
+            shortId: secondId.slice(0, 12),
+            info: { Id: secondId, Name: 'unrelated', State: { Running: true, Paused: false } }
+        }, { id: `server:${secondId}`, name: 'unrelated', shortId: secondId, state: 'running' });
+    }
     if (scenario === 'canonical') row.id = 'ct-fixture-app';
     if (scenario === 'expanded') row.classList.add('folder-element');
     if (scenario === 'name-only') document.getElementById(nativeId).removeAttribute('id');
@@ -44,7 +54,12 @@
     });
     const sync = () => {
         const entries = { 'fixture-app': renderEntry() };
-        actionsApi.syncDockerRuntimeRows(entries, new Set(['fixture-app']));
+        if (scenario === 'concurrent') entries.unrelated = {
+            ...runtimeMap.unrelated, name: 'unrelated',
+            state: runtimeMap.unrelated.info.State.Running,
+            pause: runtimeMap.unrelated.info.State.Paused
+        };
+        actionsApi.syncDockerRuntimeRows(entries, new Set(Object.keys(entries)));
         if (preview) {
             actionsApi.syncDockerLeafFolderPreviewActions('fixture', { settings: { preview: 1, context: 1 } }, entries);
         }
@@ -52,12 +67,17 @@
     window.loadlist = () => { hostReloads += 1; };
     window.eventControl = (request, callback) => {
         requests.push({ ...request, callback });
-        $(row).find('i').removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
+        const targetRow = request.container === secondId.slice(0, 12)
+            ? document.getElementById('ct-unrelated') : row;
+        $(targetRow).find('i').removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
         menu.hidden = true;
         window.setTimeout(() => {
-            state = request.action === 'stop' ? 'exited' : (request.action === 'pause' ? 'paused' : 'running');
+            const nextState = request.action === 'stop' ? 'exited' : (request.action === 'pause' ? 'paused' : 'running');
+            if (targetRow === row) state = nextState;
+            else secondState = nextState;
             window[callback]();
-        }, 20);
+        }, (scenario === 'concurrent' && targetRow === row)
+            || (scenario === 'same-container' && request.action === 'stop') ? 40 : 20);
         return true;
     };
     window.addDockerContainerContext = (_name, _image, _template, running, paused) => {
@@ -79,8 +99,11 @@
     const provider = {
         supports: () => true,
         getCapabilities: () => ({}),
-        listContainers: async () => [model.normalizeContainer({ id: `server:${id}`, name: 'fixture-app', state })],
-        reconcileContainer: async () => model.normalizeContainer({ id: `server:${id}`, name: 'fixture-app', state })
+        listContainers: async () => [model.normalizeContainer({ id: `server:${id}`, name: 'fixture-app', state }),
+            ...(scenario === 'concurrent' ? [model.normalizeContainer({ id: `server:${secondId}`, name: 'unrelated', state: secondState })] : [])],
+        reconcileContainer: async (identity) => identity === secondId.slice(0, 12)
+            ? model.normalizeContainer({ id: `server:${secondId}`, name: 'unrelated', state: secondState })
+            : model.normalizeContainer({ id: `server:${id}`, name: 'fixture-app', state })
     };
     const integration = coordinator.createIntegration({
         providerRegistry: { getDefault: () => provider, prepare: async () => provider },
@@ -116,8 +139,16 @@
             callbacks: requests.map((request) => request.callback),
             finalizations: traces.filter((entry) => entry.eventType === 'lifecycleSurfaceFinalized').map((entry) => entry.details),
             rowPreserved: row.isConnected && row.querySelector('i[id^="load-"]') === icon,
-            unrelatedLabel: document.getElementById('ct-unrelated').querySelector('span.state').textContent,
+            unrelatedLabel: document.getElementById('ct-unrelated').querySelector('span.state').textContent.trim(),
             busyIcons: document.querySelectorAll('.fa-spin').length
-        })
+        }),
+        runConcurrent: () => {
+            window.eventControl({ action: 'stop', container: nativeId }, 'loadlist');
+            window.eventControl({ action: 'pause', container: secondId.slice(0, 12) }, 'loadlist');
+        },
+        runSameContainer: () => {
+            window.eventControl({ action: 'stop', container: nativeId }, 'loadlist');
+            window.eventControl({ action: 'start', container: nativeId }, 'loadlist');
+        }
     };
 }());

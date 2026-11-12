@@ -70,7 +70,8 @@ const loadMain = (from, until, scope, result = from) => {
     return new Function('scope', 'with (scope) {\n' + mainSource.slice(start, end) + '\nreturn ' + result + ';\n}')(scope);
 };
 const mainScope = (extra = {}) => ({
-    dockerRuntimePageDisposed: false, dockerRuntimeRefreshGeneration: 0, dockerBootstrapGeneration: 1,
+    dockerRuntimePageDisposed: false, dockerRuntimeRefreshGeneration: 0,
+    dockerRuntimeRefreshRequestGeneration: 0, dockerRuntimeRefreshQueue: Promise.resolve(), dockerBootstrapGeneration: 1,
     ...extra
 });
 
@@ -106,6 +107,26 @@ test('configuration replacement handled by API tick does not also invoke PHP fal
     assert.equal(structural, 1); assert.equal(php, 0); assert.equal(item.reads(), 0);
 });
 
+test('concurrent container lifecycle requests reach API refresh with their own identities', async () => {
+    const firstResult = deferred(), calls = [];
+    const scope = mainScope({
+        getDockerApiIntegration: () => ({ refresh: (options) => {
+            calls.push(options.containerId);
+            return options.containerId === 'first' ? firstResult.promise : Promise.resolve(true);
+        } }),
+        refreshDockerRuntimeStateFromPhp: () => assert.fail('successful API refresh must not fall back to PHP')
+    });
+    const refresh = loadMain('refreshDockerRuntimeStateInPlace', 'const readDockerHostOrderFromDom =', scope);
+    const first = refresh({ preserveGroupedDom: true, containerId: 'first' });
+    const second = refresh({ preserveGroupedDom: true, containerId: 'second' });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(calls, ['first']);
+    firstResult.resolve(true);
+    assert.equal(await first, true);
+    assert.equal(await second, true);
+    assert.deepEqual(calls, ['first', 'second']);
+});
+
 test('late API outcome cannot start PHP fallback after disposal, a new render or a newer refresh', async () => {
     for (const invalidation of ['disposal', 'render', 'refresh']) {
         const pending = deferred(); let php = 0;
@@ -113,6 +134,7 @@ test('late API outcome cannot start PHP fallback after disposal, a new render or
             refreshDockerRuntimeStateFromPhp: async () => { php++; return true; } });
         const refresh = loadMain('refreshDockerRuntimeStateInPlace', 'const readDockerHostOrderFromDom =', scope);
         const running = refresh();
+        await new Promise((resolve) => setImmediate(resolve));
         if (invalidation === 'disposal') scope.dockerRuntimePageDisposed = true;
         if (invalidation === 'render') scope.dockerBootstrapGeneration++;
         if (invalidation === 'refresh') scope.dockerRuntimeRefreshGeneration++;
@@ -166,11 +188,14 @@ test('older PHP refresh cannot overwrite a newer refresh and stale follow-up tim
     const first = deferred(), second = deferred(); let request = 0;
     const item = phpScope({ pluginRequestClient: { getJson: () => (++request === 1 ? first.promise : second.promise) } });
     const refresh = loadMain('refreshDockerRuntimeStateFromPhp', 'const readDockerHostOrderFromDom =', item.scope, 'refreshDockerRuntimeStateInPlace');
-    const older = refresh({ apiFirst: false }), newer = refresh({ apiFirst: false, followupDelayMs: 10 });
-    second.resolve({ runtime: { app: { state: 'newer' } } });
-    assert.equal(await newer, true);
+    const older = refresh({ apiFirst: false });
+    await new Promise((resolve) => setImmediate(resolve));
+    const newer = refresh({ apiFirst: false, followupDelayMs: 10 });
     first.resolve({ runtime: { app: { state: 'older' } } });
     assert.equal(await older, false);
+    await new Promise((resolve) => setImmediate(resolve));
+    second.resolve({ runtime: { app: { state: 'newer' } } });
+    assert.equal(await newer, true);
     assert.equal(item.scope.dockerRuntimeInfoByName.app.state, 'newer');
     item.scope.dockerRuntimePageDisposed = true;
     item.timers[0]();

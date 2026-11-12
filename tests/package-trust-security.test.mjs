@@ -32,7 +32,7 @@ test('stable release publishes pinned provenance and SBOM attestations', () => {
     assert.match(workflow, /^permissions:\s*\n  contents:\s*read\s*$/m);
     const releaseJob = workflow.match(/^  release:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
     assert.match(releaseJob, /permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/);
-    const attestUses = workflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4\.2\.0/g) || [];
+    const attestUses = workflow.match(/uses:\s*actions\/attest@1e69f48acb82d1966a394da916b4c1698aa569d6\s+# v4\.2\.2/g) || [];
     assert.equal(attestUses.length, 2);
     assert.match(workflow, /Attest release archive provenance[\s\S]*subject-path:[\s\S]*archive[\s\S]*checksum/);
     assert.match(workflow, /Attest release archive SBOM[\s\S]*sbom-path:\s*docs\/sbom\.cdx\.json/);

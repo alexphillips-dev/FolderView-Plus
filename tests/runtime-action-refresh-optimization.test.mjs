@@ -20,7 +20,8 @@ test('docker runtime actions refresh visible state in place instead of forcing a
         dockerRuntimeActionsJs.indexOf('const getDockerDialogRefreshCallbackName =')
     );
     assert.match(dockerJs, /refreshDockerRuntimeState:\s*\(options = \{\}\) => refreshDockerRuntimeStateInPlace\(options\)/);
-    assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = async \(options = \{\}\) => \{/);
+    assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = \(options = \{\}\) => \{/);
+    assert.match(dockerJs, /dockerRuntimeRefreshQueue\.then\(refresh, refresh\)/);
     assert.match(dockerJs, /const preserveGroupedDom = options\?\.preserveGroupedDom === true;/);
     assert.match(dockerJs, /if \(preserveGroupedDom\) \{[\s\S]*mode: 'incremental-retry'/);
     assert.match(dockerJs, /const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches\(snapshot\);/);

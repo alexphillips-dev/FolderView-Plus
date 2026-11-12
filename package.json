@@ -16,7 +16,7 @@
     "fast-check": "4.10.2",
     "jquery": "3.7.1",
     "opencc-js": "1.4.2",
-    "playwright": "1.64.1"
+    "playwright": "1.65.0"
   },
   "overrides": {
     "glob": "14.0.6",

@@ -152,9 +152,7 @@
             return { surfaces, iconCount };
         };
         const clearDockerLifecycleSurfacePending = (request = {}) => {
-            const matched = getDockerLifecyclePreviewSurfaces(request);
-            const pending = Array.from(doc?.querySelectorAll?.(`[${DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE}="true"]`) || []);
-            const surfaces = Array.from(new Set([...matched, ...pending]));
+            const surfaces = getDockerLifecyclePreviewSurfaces(request);
             let restoredIconCount = 0;
             surfaces.forEach((surface) => {
                 getDockerLifecycleStatusIcons(surface).forEach((icon) => {
@@ -241,9 +239,10 @@
         let dockerPostUpdateRuntimePollPending = false;
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
         let dockerPostUpdateRuntimePollRemaining = 0;
-        let dockerLifecycleRefreshGeneration = 0;
-        let dockerLifecycleSettledGeneration = 0;
-        let dockerLifecycleFinalizedGeneration = 0;
+        const dockerLifecycleRefreshes = new Map();
+        const dockerLifecycleCallbacks = new Map();
+        let dockerLifecycleCallbackCount = 0;
+        let dockerLifecycleDisposed = false;
         let pendingDockerLifecycleRequest = {};
 
         const bindDockerContainerContextStatePatch = () => {
@@ -575,21 +574,19 @@
             const container = String(request?.container || '').trim();
             return DOCKER_LIFECYCLE_ACTIONS.has(action) && container.length > 0;
         };
-        const runDockerLifecycleRefresh = (request = {}) => {
+        const runDockerLifecycleRefresh = (request = {}, failureReason = '') => {
             const action = String(request?.action || '').trim().toLowerCase();
-            const generation = ++dockerLifecycleRefreshGeneration;
-            dockerLifecycleSettledGeneration = 0;
-            dockerLifecycleFinalizedGeneration = 0;
+            const refreshKey = String(request?.container || '').trim();
+            if (dockerLifecycleDisposed || !refreshKey) return;
+            const refresh = {};
+            dockerLifecycleRefreshes.set(refreshKey, refresh);
+            const isCurrentRefresh = () => !dockerLifecycleDisposed && dockerLifecycleRefreshes.get(refreshKey) === refresh;
             const finalizeGeneration = (outcome = {}) => {
-                if (generation !== dockerLifecycleRefreshGeneration || generation === dockerLifecycleFinalizedGeneration) {
-                    return;
-                }
-                dockerLifecycleFinalizedGeneration = generation;
+                if (!isCurrentRefresh()) return;
+                dockerLifecycleRefreshes.delete(refreshKey);
+                if ([...dockerLifecycleCallbacks.values()].some((entry) => entry.request.container === refreshKey)) return;
                 try {
-                    finalizeDockerLifecycleSurface(request, {
-                        generation,
-                        ...outcome
-                    });
+                    finalizeDockerLifecycleSurface(request, { ...outcome, reason: failureReason || outcome.reason });
                 } catch (_error) {
                     // Diagnostics and visual cleanup must never break host lifecycle actions.
                 }
@@ -605,19 +602,15 @@
                     ? win.setTimeout.bind(win)
                     : setTimeout;
                 schedule(() => {
-                    if (
-                        generation !== dockerLifecycleRefreshGeneration
-                        || generation === dockerLifecycleSettledGeneration
-                    ) {
-                        return;
-                    }
+                    if (!isCurrentRefresh()) return;
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
                         liveUpdateStatus: true,
                         preserveGroupedDom: true,
-                        containerId: String(request?.container || '').trim()
+                        containerId: refreshKey,
+                        isCurrent: isCurrentRefresh
                     }))
                         .then((success) => {
-                            if (generation !== dockerLifecycleRefreshGeneration) return;
+                            if (!isCurrentRefresh()) return;
                             const observedState = getDockerLifecycleStateSnapshot(request);
                             const restartWarmupPending = action === 'restart'
                                 && attemptIndex === 0
@@ -626,9 +619,6 @@
                                 && restartWarmupPending !== true
                                 && isDockerLifecycleStateSettled
                                 && isDockerLifecycleStateSettled(request) === true;
-                            if (settled) {
-                                dockerLifecycleSettledGeneration = generation;
-                            }
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
                                 containerId: String(request?.container || '').trim(),
@@ -657,7 +647,7 @@
                             }
                         })
                         .catch(() => {
-                            if (generation !== dockerLifecycleRefreshGeneration) return;
+                            if (!isCurrentRefresh()) return;
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
                                 containerId: String(request?.container || '').trim(),
@@ -678,14 +668,40 @@
                 }, delayMs);
             });
         };
+        const removeLifecycleCallback = (name) => {
+            const registered = dockerLifecycleCallbacks.get(name);
+            if (!registered) return null;
+            dockerLifecycleCallbacks.delete(name);
+            if (registered.timer !== null) win?.clearTimeout?.(registered.timer);
+            if (win?.[name] === registered.callback) delete win[name];
+            return registered.request;
+        };
+        const failLifecycleCallback = (name, reason) => {
+            const registered = dockerLifecycleCallbacks.get(name);
+            if (!registered) return;
+            const request = removeLifecycleCallback(name);
+            if (request && !dockerLifecycleDisposed) {
+                try { runDockerLifecycleRefresh(request, reason); }
+                catch (_error) { /* Host failures must not break page cleanup. */ }
+            }
+        };
+        const disposeLifecycleRefreshes = () => {
+            dockerLifecycleDisposed = true;
+            dockerLifecycleRefreshes.clear();
+            for (const name of dockerLifecycleCallbacks.keys()) removeLifecycleCallback(name);
+            if (win?.[dockerLifecycleRefreshCallbackName] === fallbackLifecycleCallback) {
+                delete win[dockerLifecycleRefreshCallbackName];
+            }
+        };
+        const fallbackLifecycleCallback = () => {
+            if (!dockerLifecycleDisposed) runDockerLifecycleRefresh(pendingDockerLifecycleRequest);
+        };
         const bindLifecycleEventControlPatch = () => {
-            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+            if (dockerLifecycleDisposed || !win || (typeof win !== 'object' && typeof win !== 'function')) {
                 return false;
             }
             if (typeof win[dockerLifecycleRefreshCallbackName] !== 'function') {
-                win[dockerLifecycleRefreshCallbackName] = () => {
-                    runDockerLifecycleRefresh(pendingDockerLifecycleRequest);
-                };
+                win[dockerLifecycleRefreshCallbackName] = fallbackLifecycleCallback;
             }
             if (typeof win.eventControl !== 'function') {
                 return false;
@@ -702,22 +718,45 @@
                     && (refreshTarget === 'loadlist' || refreshTarget === dockerLifecycleRefreshCallbackName)
                 ) {
                     const interceptedHostLoadlist = refreshTarget === 'loadlist';
-                    args[1] = dockerLifecycleRefreshCallbackName;
                     const callbackRequest = {
                         action: String(request.action || '').trim().toLowerCase(),
                         container: String(request.container || '').trim()
                     };
+                    const callbackName = `${dockerLifecycleRefreshCallbackName}_${++dockerLifecycleCallbackCount}`;
+                    const callback = () => {
+                        removeLifecycleCallback(callbackName);
+                        if (!dockerLifecycleDisposed) runDockerLifecycleRefresh(callbackRequest);
+                    };
+                    const timer = win.setTimeout?.(() => failLifecycleCallback(callbackName, 'callback-timeout'), 120000) ?? null;
+                    dockerLifecycleCallbacks.set(callbackName, { request: callbackRequest, callback, timer });
+                    dockerLifecycleRefreshes.delete(callbackRequest.container);
+                    win[callbackName] = callback;
+                    args[1] = callbackName;
                     pendingDockerLifecycleRequest = callbackRequest;
-                    prepareDockerLifecycleSurface(callbackRequest);
-                    if (interceptedHostLoadlist) {
-                        appendDockerBulkUpdateTrace('lifecycleLoadlistIntercepted', {
-                            action: callbackRequest.action,
-                            containerId: callbackRequest.container,
-                            strategy: 'incremental-runtime-rows'
-                        });
+                    try {
+                        prepareDockerLifecycleSurface(callbackRequest);
+                        if (interceptedHostLoadlist) {
+                            appendDockerBulkUpdateTrace('lifecycleLoadlistIntercepted', {
+                                action: callbackRequest.action,
+                                containerId: callbackRequest.container,
+                                strategy: 'incremental-runtime-rows'
+                            });
+                        }
+                    } catch (error) {
+                        failLifecycleCallback(callbackName, 'preparation-failed');
+                        throw error;
                     }
                 }
-                return invokeOriginal(...args);
+                try {
+                    const result = invokeOriginal(...args);
+                    if (result && typeof result.then === 'function') {
+                        Promise.resolve(result).catch(() => failLifecycleCallback(args[1], 'host-action-failed'));
+                    }
+                    return result;
+                } catch (error) {
+                    failLifecycleCallback(args[1], 'host-action-failed');
+                    throw error;
+                }
             }, {
                 legacyAlias: 'eventControl_original',
                 captureStep: 'Docker lifecycle action hook captured',
@@ -744,6 +783,7 @@
             isDockerLifecycleRequest,
             runDockerLifecycleRefresh,
             bindLifecycleEventControlPatch,
+            disposeLifecycleRefreshes,
             getLifecycleRefreshCallbackName: () => dockerLifecycleRefreshCallbackName
         };
     };

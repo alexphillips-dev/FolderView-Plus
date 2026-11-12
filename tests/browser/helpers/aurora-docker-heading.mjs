@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createPageTitleHost } from './page-title-host.mjs';
 import { verifyAuroraHeaderBeforeRuntime } from './aurora-docker-header-bootstrap.mjs';
+import { verifyDockerFolderStatusWidth } from './docker-folder-status-width.mjs';
 
 export const verifyAuroraDockerHeading = async (page, baseUrl) => {
     const host = await createPageTitleHost(page);
@@ -30,6 +31,7 @@ export const verifyAuroraDockerHeading = async (page, baseUrl) => {
         header.append(crumb); document.body.prepend(header);
     }));
     try {
+        await verifyDockerFolderStatusWidth(page, host.baseUrl);
         for (const [colorScheme, viewport] of [['dark', { width: 1180, height: 720 }], ['light', { width: 390, height: 844 }]]) {
             await page.emulateMedia({ colorScheme }); await page.setViewportSize(viewport);
             await verifyAuroraHeaderBeforeRuntime(page, host.baseUrl);

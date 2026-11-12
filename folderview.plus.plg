@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.05">
-<!ENTITY md5 "1ac09ffacbfbddd1ef22a9af87516ee8">
-<!ENTITY sha256 "da3f1363ace2fea67c2d93545b92c55673d44ffbea10b67f95ac336d47cedeaa">
+<!ENTITY version "2026.11.12.06">
+<!ENTITY md5 "7b7174186db474f2aed9a2dabc214680">
+<!ENTITY sha256 "a9dda88a91e9318abec47222efd4d83f640de692512587d3af5b22653aa121df">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.06
+- Fix: Prevent Aurora's status-width restriction from unnecessarily truncating Docker folder running, paused, and stopped labels when space is available in the Application column.
+- Compatibility: Hard-refresh Docker after installing this dev update. Folder name truncation and the existing narrow-column overflow handling are preserved.
+
 
 ###2026.11.12.05
 - Fix: Suppress Aurora's Docker heading and FolderView support beta button during the initial page bootstrap, preventing the brief header flash while the main Docker runtime loads.

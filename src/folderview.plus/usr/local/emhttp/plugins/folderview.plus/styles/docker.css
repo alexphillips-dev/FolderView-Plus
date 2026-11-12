@@ -621,6 +621,11 @@ span.folder-state {
     white-space: nowrap;
 }
 
+/* Keep host theme clamps from shortening a folder status within its measured column. */
+#docker_list > tr.folder > td.folder-name .folder-inner > span.folder-state {
+    max-width: 100%;
+}
+
 span.folder-state.fv-folder-state-paused {
     color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }

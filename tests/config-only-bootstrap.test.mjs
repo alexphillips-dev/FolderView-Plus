@@ -102,6 +102,10 @@ test('nonce, create, and appearance update persist with revision and replay guar
                 content: JSON.stringify(changed) }, once);
             assert.equal(updated.status, 200);
             assert.equal(updated.response.metadata.folderRevision, revision + 1);
+            for (const key of ['bootstrapMs', 'guardMs', 'saveMs']) {
+                assert.ok(Number.isInteger(updated.response.timings[key]) && updated.response.timings[key] >= 0
+                    && updated.response.timings[key] <= 600000);
+            }
             const persisted = JSON.parse(fs.readFileSync(config, 'utf8'))[id];
             assert.equal(persisted.settings.preview_rows, 4);
             assert.deepEqual(persisted.containers, initial.containers);

@@ -1021,6 +1021,19 @@
       "exports": ["render"]
     },
     {
+      "file": "scripts/folder.editor.submit.js",
+      "owner": "folder-editor-submit",
+      "consumers": ["folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderEditorSubmit",
+      "loader": "commonjs",
+      "typeChecked": false,
+      "exports": ["createSubmitHandler", "recordSubmitDiagnostics"]
+    },
+    {
       "file": "scripts/folder.editor.defaults.js",
       "owner": "folder-defaults-editor",
       "consumers": ["folder-editor"],

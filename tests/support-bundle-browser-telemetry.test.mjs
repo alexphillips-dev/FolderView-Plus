@@ -60,6 +60,21 @@ const loadTelemetryModule = (root = {}, integrationAvailable = true) => {
     return context.module.exports;
 };
 
+test('sanitized folder editor diagnostics retain submit phase numbers and flags after navigation', () => {
+    const telemetry = loadTelemetryModule();
+    const redactor = telemetry.createUiTelemetryRedactor({}, 'sanitized');
+    const lastSubmit = { checkedAt: '2026-11-12T18:00:00.000Z', requestMs: 3400, syncMs: 0,
+        preparationMs: 4, bootstrapMs: 2, guardMs: 900, saveMs: 1800, durationMs: 3404,
+        unchanged: false, ok: true };
+    const safe = redactor.sanitizeValue('uiTelemetry.folderEditorDebug', 'folderEditorDebug', {
+        bootstrap: { lastSubmit, routeFolderId: 'private-folder-id', pageUrl: 'https://private-host/Docker/Folder?id=secret' }
+    });
+    assert.deepEqual(JSON.parse(JSON.stringify(safe.bootstrap.lastSubmit)), lastSubmit);
+    assert.equal(JSON.stringify(safe).includes('private-folder-id'), false);
+    assert.equal(JSON.stringify(safe).includes('private-host'), false);
+    assert.equal(JSON.stringify(safe).includes('id=secret'), false);
+});
+
 test('sanitized column movement exports allow only bounded geometry, flags and canonical triggers', () => {
     const telemetry = loadTelemetryModule(), secret = 'private-container-https://host.invalid/token';
     const raw = { available: true, sampleCount: 55, aurora: { detected: true, stylesheet: secret },

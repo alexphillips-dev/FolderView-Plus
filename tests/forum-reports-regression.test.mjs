@@ -99,8 +99,7 @@ test('custom icons start with form data and failed responses never trigger a sec
 });
 
 test('defaults submit saves only the transferable profile with revision checking and no folder mutation', async () => {
-    const source = read('scripts/folder.js');
-    const submit = source.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\};/)[1];
+    const submitModule = require(path.join(root, 'scripts/folder.editor.submit.js'));
     const transfer = require(path.join(root, 'scripts/folder.settings-transfer.js')).createApi({});
     for (const reject of [false, true]) {
         const calls = [];
@@ -112,9 +111,16 @@ test('defaults submit saves only the transferable profile with revision checking
             activeFolderEditorFolderId: '', folderId: '', type: 'docker', allFoldersById: {},
             getFolderSettingsTransferApi: () => transfer, folderEditorTypePrefs: { _metadata: { prefsRevision: 7 } },
             securePost: async (url, payload) => { calls.push({ url, payload }); if (reject) throw new Error('Conflict'); },
-            suppressUnloadPrompt: false, location, extractAjaxErrorMessage: (error) => error.message, alert: () => {}
+            suppressUnloadPrompt: false, location, extractAjaxErrorMessage: (error) => error.message, alert: () => {},
+            recordFolderEditorSubmitDiagnostics: () => {}
         };
-        await vm.runInNewContext(`(async(e,saveAsCopy=false)=>{${submit}})`, context)({});
+        const submit = submitModule.createSubmitHandler({ ...context,
+            window: { ...context.window, location, alert: context.alert }, getState: () => context,
+            saveDefaults: folder => context.window.FolderViewPlusFoundationModules.folderDefaults.save({
+                folder, type: context.type, prefs: context.folderEditorTypePrefs, transfer, post: context.securePost }),
+            recordDiagnostics: () => {}, setSuppressUnloadPrompt: value => { context.suppressUnloadPrompt = value; }
+        });
+        await submit({});
         assert.equal(calls.length, 1);
         assert.equal(calls[0].url, '/plugins/folderview.plus/server/prefs.php');
         assert.equal(calls[0].payload.expectedRevision, 7);

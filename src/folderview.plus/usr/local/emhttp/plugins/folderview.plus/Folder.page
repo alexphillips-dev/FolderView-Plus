@@ -142,6 +142,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.preview-model.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.defaults.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.submit.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>

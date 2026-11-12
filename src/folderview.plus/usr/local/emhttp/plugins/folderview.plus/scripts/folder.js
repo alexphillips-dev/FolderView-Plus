@@ -4357,75 +4357,17 @@ const applyFolderSettingsToFolders = async () => {
     return false;
 };
 
-const submitForm = async (e, saveAsCopy = false) => {
-    if (!validateForm()) {
-        return false;
-    }
-    const folder = buildFolderPayloadFromForm(e);
-    const currentFolderId = String(activeFolderEditorFolderId || folderId || '').trim();
-    const previousFolder = !saveAsCopy && currentFolderId && allFoldersById[currentFolderId]
-        ? normalizeFolderRecordForEditor(allFoldersById[currentFolderId])
-        : null;
-    if (saveAsCopy) {
-        folder.name = generateCopyName(folder.name, folder.parentId);
-    }
-    if (!folder.name && !editingFolderDefaults) {
-        setFieldError('name', surfaceT("common.runtime.folder-name-is-required", "Folder name is required."));
-        return false;
-    }
-    try {
-        // send the data to the right endpoint
-        if (editingFolderDefaults) {
-            await window.FolderViewPlusFoundationModules.folderDefaults.save({ folder, type, prefs: folderEditorTypePrefs, transfer: getFolderSettingsTransferApi(), post: securePost });
-            suppressUnloadPrompt = true;
-            location.href = '/Settings/FolderViewPlus';
-            return false;
-        } else if (folderId && !saveAsCopy) {
-            const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
-                type: type,
-                content: JSON.stringify(folder),
-                id: folderId,
-                expectedRevision: folderEditorExpectedFolderRevision
-            });
-            const savedRevision = Number.parseInt(String(saveResponse?.metadata?.folderRevision ?? ''), 10);
-            if (Number.isFinite(savedRevision) && savedRevision >= 0) {
-                folderEditorExpectedFolderRevision = savedRevision;
-            }
-        } else {
-            await securePost('/plugins/folderview.plus/server/create.php', {
-                type: type,
-                content: JSON.stringify(folder)
-            });
-        }
-
-        await flushPostSaveTypeSync({
-            force: saveAsCopy || !currentFolderId,
-            folder,
-            folderId: currentFolderId,
-            previousFolder
-        });
-    } catch (error) {
-        const message = extractAjaxErrorMessage(error, 'folder save');
-        if (typeof swal === 'function') {
-            swal({
-                title: 'Save failed',
-                text: message,
-                type: 'error'
-            });
-        } else {
-        alert(window.FolderViewPlusI18n?.message?.(message) || message);
-        }
-        return false;
-    }
-
-    // return to the right tab
-    suppressUnloadPrompt = true;
-    let loc = location.pathname.split('/');
-    loc.pop();
-    location.href = loc.join('/');
-    
-    return false;
-};
+const submitForm = window.FolderViewPlusFoundationModules.folderEditorSubmit.createSubmitHandler({
+    window, storageKey: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
+    getState: () => ({ activeFolderEditorFolderId, folderId, allFoldersById, editingFolderDefaults,
+        initialSnapshot, folderEditorExpectedFolderRevision, type }),
+    validateForm, buildFolderPayloadFromForm, normalizeFolderRecordForEditor, generateCopyName,
+    setFieldError, surfaceT, computeFormSnapshot, securePost, flushPostSaveTypeSync, extractAjaxErrorMessage,
+    saveDefaults: folder => window.FolderViewPlusFoundationModules.folderDefaults.save({ folder, type,
+        prefs: folderEditorTypePrefs, transfer: getFolderSettingsTransferApi(), post: securePost }),
+    setExpectedRevision: value => { folderEditorExpectedFolderRevision = value; },
+    setSuppressUnloadPrompt: value => { suppressUnloadPrompt = value; }
+});
 
 /**
  * Handles the button to return to the tab

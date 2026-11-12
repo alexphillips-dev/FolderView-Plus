@@ -4,6 +4,7 @@ import { mountSettingsEditor } from '../helpers/folder-editor-settings-host.mjs'
 import { checkFolderHelpTouch } from '../helpers/folder-editor-help-touch.mjs';
 import { checkFolderHeadings } from '../helpers/folder-editor-headings.mjs';
 import { verifyAuroraEditorHeading } from '../helpers/aurora-editor-heading.mjs';
+import { verifyFolderEditorSubmit } from '../helpers/folder-editor-submit.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const tooltipAppearance = element => {
     const luminance = color => {
@@ -93,6 +94,7 @@ export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
             await page.locator('[name="folder_accent_enabled"]').evaluate(field => { field.checked = false; field.dispatchEvent(new Event('change', { bubbles: true })); });
         }
         await checkFolderHelpTouch(page, baseUrl);
+        await verifyFolderEditorSubmit(page, baseUrl);
         await verifyAuroraEditorHeading(page, baseUrl);
     });
 };

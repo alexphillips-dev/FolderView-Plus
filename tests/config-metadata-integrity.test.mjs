@@ -178,7 +178,9 @@ test('API and editor contracts expose revisions without breaking the legacy fold
     assert.match(readEndpoint, /\$_GET\['includeMetadata'\]/);
     assert.match(readEndpoint, /header\('X-FV-Folder-Revision: '/);
     assert.match(folderEditor, /folderEditorExpectedFolderRevision/);
-    assert.match(folderEditor, /expectedRevision:\s*folderEditorExpectedFolderRevision/);
+    const submitEditor = fs.readFileSync(path.join(pluginRoot, 'scripts/folder.editor.submit.js'), 'utf8');
+    assert.match(folderEditor, /folderEditorSubmit\.createSubmitHandler\(/);
+    assert.match(submitEditor, /expectedRevision:\s*folderEditorExpectedFolderRevision/);
     assert.match(folderEditorRules, /filter\(\(\[key\]\) => key !== '_metadata'\)/);
     assert.match(settingsRuntime, /filter\(\(\[key\]\) => key !== '_metadata'\)/);
 });

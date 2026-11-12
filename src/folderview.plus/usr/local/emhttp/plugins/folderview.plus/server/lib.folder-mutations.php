@@ -1,5 +1,6 @@
 <?php
 function updateFolder(string $type, string $content, string $id = '', $expectedRevision = '') : array {
+        $startedAt = microtime(true);
         $type = ensureType($type);
         if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
             throw new RuntimeException('Folder payload exceeds raw upload limit.');
@@ -17,6 +18,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             }
         }
         $fileData = readRawFolderMap($type);
+        $originalFileData = $fileData;
         $decodedContent = json_decode($content, true);
         if (!is_array($decodedContent)) {
             throw new RuntimeException('Invalid folder payload.');
@@ -33,6 +35,17 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         if (strlen($normalizedPreview) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
             throw new RuntimeException('Folder payload too large after normalization.');
         }
+        $fileData[$id] = $nextFolder;
+        $fileData = normalizeFolderParentLinks($fileData);
+        if (!$isCreate && is_array($existingFolder)) {
+            $beforeComparable = $originalFileData;
+            $afterComparable = $fileData;
+            unset($beforeComparable[$id]['createdAt'], $beforeComparable[$id]['updatedAt'],
+                $afterComparable[$id]['createdAt'], $afterComparable[$id]['updatedAt']);
+            if (fvplus_security_canonicalize($beforeComparable) === fvplus_security_canonicalize($afterComparable)) {
+                return readConfigMetadata($type, false);
+            }
+        }
         $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
         if (is_array($existingFolder)) {
             $existingCreatedAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
@@ -43,17 +56,22 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         if ($createdAt === '') {
             $createdAt = gmdate('c');
         }
-        $nextFolder['createdAt'] = $createdAt;
-        $nextFolder['updatedAt'] = gmdate('c');
-        $fileData[$id] = $nextFolder;
-        $fileData = normalizeFolderParentLinks($fileData);
+        $fileData[$id]['createdAt'] = $createdAt;
+        $fileData[$id]['updatedAt'] = gmdate('c');
+        $validatedAt = microtime(true);
         writeRawFolderMap($type, $fileData);
+        $persistedAt = microtime(true);
         syncManualOrderWithFolders($type, $fileData);
+        $syncedAt = microtime(true);
         try {
             appendDiagnosticsHistoryEvent($isCreate ? 'folder_create' : 'folder_update', $type, [
                 'folderId' => $id,
                 'folderCount' => count($fileData),
-                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? '')),
+                'validationReadMs' => max(0, min(86400000, (int)round(($validatedAt - $startedAt) * 1000))),
+                'folderPersistenceMs' => max(0, min(86400000, (int)round(($persistedAt - $validatedAt) * 1000))),
+                'manualOrderSyncMs' => max(0, min(86400000, (int)round(($syncedAt - $persistedAt) * 1000))),
+                'durationMs' => max(0, min(86400000, (int)round(($syncedAt - $startedAt) * 1000)))
             ], 'ok', 'server');
         } catch (Throwable $err) {
             // Keep update flow non-fatal.

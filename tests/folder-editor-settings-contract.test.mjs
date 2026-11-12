@@ -86,7 +86,9 @@ test('modern folder editor load path covers every schema-backed field', () => {
 });
 
 test('modern folder editor save path references every schema-backed field', () => {
-    assert.match(folderJs, /const folder = buildFolderPayloadFromForm\(e\);/);
+    const submitJs = fs.readFileSync(path.join(path.dirname(folderJsPath), 'folder.editor.submit.js'), 'utf8');
+    assert.match(folderJs, /folderEditorSubmit\.createSubmitHandler\(/);
+    assert.match(submitJs, /const folder = buildFolderPayloadFromForm\(e\);/);
     assert.match(buildFolderPayloadBlock, /parentId:\s*normalizeParentFolderId\(e\.parent_folder_id\?\.value \|\| ''\)/);
 
     const fieldsSavedDirectly = schemaFields.filter((fieldName) => fieldName !== 'parent_folder_id');

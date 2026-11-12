@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.07">
-<!ENTITY md5 "ca403afa4c19871c6002d9bdd772ec84">
-<!ENTITY sha256 "fed750d7f85c84a2fd7ad0c203fe965ffcb4fd0400bcf3c0f8b28091b484d271">
+<!ENTITY version "2026.11.12.08">
+<!ENTITY md5 "30fd79c01b485c9adf09ec52d1144bb2">
+<!ENTITY sha256 "dea16e8f421b01ea81769c9c18966e92e3392feed9fed1aacaaf006ec0051fe3">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.08
+- Fix: Submit now leaves an unchanged existing folder immediately instead of issuing an unnecessary save. Equivalent updates received by the server also preserve the saved timestamps and revision without rewriting the folder.
+- Diagnostics: Retain folder-submit phase timings across navigation and include save-stage timings in sanitized support bundles to help identify delays when saving actual changes.
+- Compatibility: Actual changes still wait for a confirmed save and any required Docker order synchronization. Hard-refresh after installing this dev update, then test both an unchanged Submit and an appearance edit.
+
 
 ###2026.11.12.07
 - Fix: Remove unnecessary Docker and VM service initialization from folder-save and security-token requests, including appearance-only edits. Keep save security, revision checks, and durable storage protection in place.

@@ -54,6 +54,7 @@
             'prunedcount', 'deletedcount', 'failedcount', 'requestedcount', 'updatedcount', 'createdcount',
             'renamecount', 'identitycount', 'targetcount', 'unchangedcount', 'targetfoldercount',
             'assignedcount', 'skippedinvalidcount', 'changedfoldercount', 'durationms', 'patchfieldcount',
+            'validationreadms', 'folderpersistencems', 'manualordersyncms',
             'rulecount', 'pinnedfoldercount', 'hiddenfoldercount', 'requested', 'executed', 'succeeded',
             'failed', 'skipped', 'count', 'total', 'bytes', 'size', 'width', 'height',
             'verified', 'checkpointavailable', 'nativeautostartrequested', 'nativeautostartincluded',

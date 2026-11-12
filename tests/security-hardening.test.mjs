@@ -209,8 +209,10 @@ test('folder editor supports unicode names and secure guarded create/update post
     assert.match(folderIconApiJs, /requestClient\.postJson\(url, data, \{ retries: 0 \}\)/);
     assert.match(requestClientJs, /'X-FV-Request': '1'/);
     assert.match(requestClientJs, /payload\._fv_request = '1';/);
-    assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
-    assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
+    const submitJs = fs.readFileSync(path.join(pluginPageDir, 'scripts/folder.editor.submit.js'), 'utf8');
+    assert.match(folderJs, /folderEditorSubmit\.createSubmitHandler\(/);
+    assert.match(submitJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
+    assert.match(submitJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
 });
 
 test('strict request guard requires the mutation marker, token, and same-origin context', () => {

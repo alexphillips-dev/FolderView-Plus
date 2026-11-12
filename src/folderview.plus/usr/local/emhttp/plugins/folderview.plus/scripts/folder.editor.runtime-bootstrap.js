@@ -78,11 +78,33 @@
                 apply();
             }
         };
-        const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
-            const script = doc.createElement('script');
+        const scriptUrl = relativePath => {
             const separator = relativePath.includes('?') ? '&' : '?';
             const retryQuery = bootAttempt > 1 ? `&boot=${encodeURIComponent(bootNonce)}&attempt=${bootAttempt}` : '';
-            const src = `${relativePath}${separator}v=${assetVersion}${retryQuery}`;
+            return `${relativePath}${separator}v=${assetVersion}${retryQuery}`;
+        };
+        const preloadScripts = () => {
+            const links = [];
+            try {
+                if (!doc.head?.appendChild) return links;
+                for (const relativePath of scriptQueue) {
+                    const link = doc.createElement('link');
+                    if (link.relList?.supports?.('preload') !== true) break;
+                    link.rel = 'preload';
+                    link.as = 'script';
+                    link.href = scriptUrl(relativePath);
+                    link.dataset.fvFolderEditorBootPreload = '1';
+                    links.push(link);
+                    doc.head.appendChild(link);
+                }
+            } catch (_error) {
+                // Resource hints are optional; ordered script loading remains authoritative.
+            }
+            return links;
+        };
+        const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
+            const script = doc.createElement('script');
+            const src = scriptUrl(relativePath);
             const moduleName = relativePath.split('/').pop() || relativePath;
             const startedAt = new Date().toISOString();
             const startedMs = Date.now();
@@ -147,7 +169,8 @@
             win.FolderViewPlusFolderEditorRuntimeLastError = '';
             win.FolderViewPlusFolderEditorRuntimeScriptState = 'injecting';
             win.FolderViewPlusFolderEditorRuntimeScriptSource = '';
-            doc.querySelectorAll(managedSelector).forEach((node) => node.remove());
+            doc.querySelectorAll(`${managedSelector}, link[data-fv-folder-editor-boot-preload="1"]`).forEach((node) => node.remove());
+            const preloadLinks = preloadScripts();
             let chain = Promise.resolve();
             scriptQueue.forEach((relativePath, index) => {
                 chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
@@ -168,6 +191,10 @@
                     throw error;
                 }
                 return null;
+            }).finally(() => {
+                preloadLinks.forEach(link => {
+                    try { link.remove(); } catch (_error) { /* Resource hint cleanup is best-effort. */ }
+                });
             });
         };
         win.FolderViewPlusFatalBanner?.registerRecoveryHandler?.('retry', () => run({ propagateFailure: true }));

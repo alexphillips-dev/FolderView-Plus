@@ -51,7 +51,8 @@ namespace {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
         $_GET = $_REQUEST = ['type' => 'vm', 'includeMetadata' => '1'];
-        $source = preg_replace('/^<\?php\s+require_once\([^\n]+\);/', '', file_get_contents("$server/$endpoint"));
+        $source = preg_replace('/^<\?php\s*/', '', file_get_contents("$server/$endpoint"));
+        $source = preg_replace('/^require_once\([^\n]+\);\s*$/m', '', $source);
         ob_start();
         eval('namespace AuditRead;' . str_replace('?>', '', $source));
         $response = json_decode(ob_get_clean(), true);

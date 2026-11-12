@@ -6,6 +6,7 @@ Markdown="false"
 ---
 
 <?php
+define('FVPLUS_CONFIG_ONLY_BOOTSTRAP', true);
 $fvplusI18nNamespaces = ['editor', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');

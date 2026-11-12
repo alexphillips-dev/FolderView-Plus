@@ -9,18 +9,36 @@ $_SERVER = [
 ];
 $_POST = $request['post'] ?? [];
 $_GET = $request['get'] ?? [];
-$_REQUEST = $_POST;
+$_REQUEST = $_GET + $_POST;
 
 if (($request['operation'] ?? '') === 'bootstrap') {
     if (array_key_exists('configOnly', $request)) define('FVPLUS_CONFIG_ONLY_BOOTSTRAP', $request['configOnly']);
     require $server . '/lib.php';
     $response = null;
+} elseif (($request['operation'] ?? '') === 'editor-page') {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_SERVER['SCRIPT_NAME'] = '/Docker/Folder';
+    $_SESSION = ['locale' => 'en'];
+    $display = ['theme' => 'black'];
+    $plugin = str_replace('\\', '/', dirname($server));
+    $languageSource = str_replace('/usr/local/emhttp/plugins/folderview.plus/', $plugin . '/',
+        file_get_contents($plugin . '/langs/script.php'));
+    $body = explode("\n---\n", file_get_contents($plugin . '/Folder.page'), 2)[1];
+    $body = str_replace("require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');", "eval('?>' . \$languageSource);", $body);
+    $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/', $plugin . '/', $body);
+    ob_start();
+    eval('?>' . $body);
+    $html = ob_get_clean();
+    preg_match('/<meta name="fvplus-folder-editor-context" content="([^"]*)"/', $html, $context);
+    $response = ['form' => str_contains($html, 'id="fvFolderEditorForm"'),
+        'context' => json_decode(html_entity_decode($context[1] ?? '', ENT_QUOTES), true),
+        'submitModule' => str_contains($html, '/scripts/folder.editor.submit.js')];
 } else {
     $endpoint = $request['endpoint'];
-    if (!in_array($endpoint, ['security.php', 'create.php', 'update.php', 'read_info.php'], true)) {
+    if (!in_array($endpoint, ['security.php', 'create.php', 'update.php', 'read_info.php', 'read.php'], true)) {
         throw new RuntimeException('Unsupported fixture endpoint.');
     }
-    if ($endpoint === 'read_info.php') $_SERVER['REQUEST_METHOD'] = 'GET';
+    if (in_array($endpoint, ['read_info.php', 'read.php'], true)) $_SERVER['REQUEST_METHOD'] = 'GET';
     $_SERVER['SCRIPT_FILENAME'] = $server . '/' . $endpoint;
     $_SERVER['SCRIPT_NAME'] = '/plugins/folderview.plus/server/' . $endpoint;
     $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/',

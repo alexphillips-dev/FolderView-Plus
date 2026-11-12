@@ -5,6 +5,7 @@ import { checkFolderHelpTouch } from '../helpers/folder-editor-help-touch.mjs';
 import { checkFolderHeadings } from '../helpers/folder-editor-headings.mjs';
 import { verifyAuroraEditorHeading } from '../helpers/aurora-editor-heading.mjs';
 import { verifyFolderEditorSubmit } from '../helpers/folder-editor-submit.mjs';
+import { verifyEditorStartupPreload } from '../helpers/editor-startup-preload.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const tooltipAppearance = element => {
     const luminance = color => {
@@ -95,6 +96,7 @@ export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
         }
         await checkFolderHelpTouch(page, baseUrl);
         await verifyFolderEditorSubmit(page, baseUrl);
+        await verifyEditorStartupPreload(page, baseUrl);
         await verifyAuroraEditorHeading(page, baseUrl);
     });
 };

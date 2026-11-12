@@ -70,6 +70,33 @@ test('the runtime read_info endpoint retains host SDK bootstrap and reports unav
     });
 });
 
+test('Docker and VM editor pages and folder reads bootstrap without host SDK initialization', () => {
+    withHostFixture(({ root, run }) => {
+        for (const type of ['docker', 'vm']) {
+            fs.writeFileSync(path.join(root, `config/${type}.json`), JSON.stringify({ fixture: {
+                name: 'Fixture', containers: ['fixture-member'], settings: { preview_rows: 2 }
+            } }));
+            const get = { type, id: 'fixture' };
+            const page = run({ operation: 'editor-page', get });
+            assert.deepEqual(page.sdkAttempts, []);
+            assert.equal(page.dependencies.helpers.loaded, true);
+            assert.equal(page.response.form, true);
+            assert.equal(page.response.submitModule, true);
+            assert.equal(page.response.context.pageType, type);
+            assert.equal(page.response.context.resolvedId, 'fixture');
+            assert.equal(page.response.context.bootstrapContext.folder.name, 'Fixture');
+            const legacy = run({ endpoint: 'read.php', get });
+            assert.deepEqual(legacy.sdkAttempts, []);
+            assert.equal(legacy.response.fixture.name, 'Fixture');
+            const read = run({ endpoint: 'read.php', get: { ...get, includeMetadata: '1' } });
+            assert.deepEqual(read.sdkAttempts, []);
+            assert.equal(read.response.ok, true);
+            assert.equal(read.response.folders.fixture.settings.preview_rows, 2);
+            assert.ok(Number.isInteger(read.response.metadata.folderRevision));
+        }
+    });
+});
+
 test('nonce, create, and appearance update persist with revision and replay guards without host SDKs', () => {
     withHostFixture(({ root, run }) => {
         let transaction = 0;

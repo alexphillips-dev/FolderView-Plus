@@ -583,6 +583,9 @@ while IFS= read -r -d '' file; do
     cp --parents -f "$file" "$tmpdir/"
 done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" \) -print0)
 
+plugin_package_root="$tmpdir/usr/local/emhttp/plugins/folderview.plus"
+"${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "$CWD/scripts/package_page_format.mjs")" \
+    --normalize "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root")"
 apply_branch_channel_messaging "$tmpdir" "$branch"
 
 build_metadata_path="$tmpdir/usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
@@ -623,7 +626,6 @@ cat > "$build_metadata_path" <<EOF
 }
 EOF
 
-plugin_package_root="$tmpdir/usr/local/emhttp/plugins/folderview.plus"
 "${NODE_BIN}" \
     "$(fvplus::path_for_command "${NODE_BIN}" "$runtime_integrity_generator")" \
     --root "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root")" \

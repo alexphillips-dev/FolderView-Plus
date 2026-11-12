@@ -385,6 +385,12 @@ if [[ ! -f "${SOURCE_SERVER_UPDATE_NOTES}" ]]; then
 fi
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
+while IFS= read -r archive_page; do
+  [[ "${archive_page}" == *.page ]] || continue
+  tar -xOf "${ARCHIVE_FILE}" "${archive_page}" | \
+    "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}/scripts/package_page_format.mjs")" \
+      --check-stdin "${archive_page}"
+done <<< "${ARCHIVE_LIST}"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
 ARCHIVE_FILES_ONLY="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -Ev '/$' || true)"
 if grep -q '^usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/' <<< "${ARCHIVE_LIST_NORMALIZED}"; then

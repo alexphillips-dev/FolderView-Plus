@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.08">
-<!ENTITY md5 "30fd79c01b485c9adf09ec52d1144bb2">
-<!ENTITY sha256 "dea16e8f421b01ea81769c9c18966e92e3392feed9fed1aacaaf006ec0051fe3">
+<!ENTITY version "2026.11.12.09">
+<!ENTITY md5 "92257480eef525f4c925d17cfd12579c">
+<!ENTITY sha256 "0159a7228f888398c47909c8058d92bb933f2f6c1cd5a5c097c84d414bf85ec9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.09
+- Fix: Restore folder editor loading after the previous dev update by packaging Unraid page templates with the required Unix line endings.
+- Reliability: Normalize staged page templates before generating package hashes and reject archives whose page format would leave Unraid with an empty page body.
+- Compatibility: Install this update and reload the folder editor. The unchanged-Submit shortcut and save diagnostics from the previous update are retained.
+
 
 ###2026.11.12.08
 - Fix: Submit now leaves an unchanged existing folder immediately instead of issuing an unnecessary save. Equivalent updates received by the server also preserve the saved timestamps and revision without rewriting the folder.

@@ -84,11 +84,13 @@ const dockerRuntimeColumnControllerModule = window.FolderViewPlusFoundationModul
 const dockerT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
 );
-const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
-    themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
+const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => {
+    document.body?.classList.toggle('fvplus-docker-hide-aurora-heading',
+        window.FolderViewPlusFoundationModules?.themeIntegration?.readAuroraEnvironment?.(document, window)?.detected === true);
+    return themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
-        : null
-);
+        : null;
+};
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#55b72d',
     paused: '#b8860b',

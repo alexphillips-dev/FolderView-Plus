@@ -4,7 +4,7 @@ import { installHost, switchHost } from '../helpers/host-theme.mjs';
 import { verifySettingsSearchAlignment, verifyBasicToolbarLayout } from './settings-search-layout.mjs';
 import { installSettingsIconFont, verifySettingsIconAlignment } from '../helpers/settings-icons.mjs';
 import { verifySettingsHostHeading } from '../helpers/settings-host-heading.mjs';
-
+import { verifyAuroraDockerHeading } from '../helpers/aurora-docker-heading.mjs';
 const controlsCss=fs.readFileSync(new URL('../fixtures/vendor/aurora-controls.css',import.meta.url),'utf8');
 export const registerAuroraControlCases = ({test,baseUrl}) => {
 test('Host theme Aurora header icons cannot resize Settings actions', async ({page}) => {
@@ -75,5 +75,6 @@ test('Host theme Aurora header icons cannot resize Settings actions', async ({pa
     await page.evaluate(()=>{window.fixtureHostMode='auto';window.fixtureHostBinding.runApply('restore');});
     await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'));
     await page.evaluate(()=>window.fixtureHostBinding.disconnect());
+    await verifyAuroraDockerHeading(page,baseUrl);
 });
 };

@@ -2,7 +2,13 @@ import fs from 'node:fs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const source = fs.readFileSync(`${plugin}/scripts/folder.js`, 'utf8');
 const extract = (name, next) => source.slice(source.indexOf(`const ${name} = `) + `const ${name} = `.length, source.indexOf(`\nconst ${next} = `)).trim().replace(/;$/, '');
-export const mountSettingsEditor = async (page, baseUrl, type) => {
+export const mountSettingsEditor = async (page, baseUrl, type, eventSource = source) => {
+    // The optional source enables exact historical-handler characterization without a synthetic refresh listener.
+    const eventRuntime = [eventSource.match(/function updateForm\(\) \{[\s\S]*?\n\}/)[0],
+        eventSource.match(/const runEditorRecalculation = \(\) => \{[\s\S]*?\n\};/)[0],
+        eventSource.match(/const scheduleEditorRecalculation = \(delayMs = 0\) => \{[\s\S]*?\n\};/)[0],
+        eventSource.match(/\$\(form\)\.on\('input change', ':input', \(event\) => \{[\s\S]*?\n    \}\);/)[0]].join('\n');
+    const inputDelay = Number(eventSource.match(/const EDITOR_INPUT_RECALC_DEBOUNCE_MS = (\d+);/)[1]);
     const markup = fs.readFileSync(`${plugin}/Folder.page`, 'utf8').match(/<form\b[\s\S]*?<\/form>/)[0].replace(/<\?php[\s\S]*?\?>/g, '');
     await page.route(`${baseUrl}/folder-editor`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Folder settings</title><link rel="stylesheet" href="/plugin/styles/theme.tokens.css"><link rel="stylesheet" href="/plugin/styles/csp.utilities.css"><link rel="stylesheet" href="/plugin/styles/folder.css"></head><body><script src="/vendor/jquery.js"></script></body></html>' }));
     await page.goto(`${baseUrl}/folder-editor`);
@@ -15,7 +21,7 @@ export const mountSettingsEditor = async (page, baseUrl, type) => {
         document.body.style.cssText = 'background:var(--fvplus-ui-page);color:var(--fvplus-ui-text-primary);font:14px Arial,sans-serif;margin:16px';
     }, { markup, type });
     for (const name of ['folderviewplus.folder-contract', 'folder.editor.shared', 'folder.editor.schema', `folder.editor.type-${type}`, 'folder.editor.chrome', 'folder.editor.preview-runtime']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
-    await page.evaluate(({ type, applyMode, serializer }) => {
+    await page.evaluate(({ type, applyMode, serializer, eventRuntime, inputDelay }) => {
         const form = document.querySelector('form');
         const schema = window.FolderViewPlusFolderEditorSchema.createModernSchema();
         Object.values(schema.SECTION_DEFAULT_VALUES).forEach(fields => Object.entries(fields).forEach(([key, value]) => {
@@ -34,10 +40,16 @@ export const mountSettingsEditor = async (page, baseUrl, type) => {
             DEFAULT_BORDER_COLOR: contract.DEFAULT_PREVIEW_BORDER_COLOR };
         const serialize = new Function(...Object.keys(helpers), `return ${serializer};`)(...Object.values(helpers));
         window.settingsFixture = { form, schema, refresh: api.updatePreviewConstraints, switchSection, serialize: () => serialize(form) };
-        $(form).on('change', ':input', api.updatePreviewConstraints);
+        // Only unrelated editor validation, summaries and name/regex integrations are stubbed.
+        new Function('$', 'form', 'getFolderEditorPreviewRuntimeApi', `let isFormInitialized = true, folderId = 'fixture', editorRecalcTimer = null;
+            const EDITOR_INPUT_RECALC_DEBOUNCE_MS = ${inputDelay}, noop = () => {};
+            const validateForm = noop, updateLiveSummary = noop, updateRegexSimulator = noop, updateUnsavedIndicator = noop, updateSectionStateIndicators = noop, updateChangeSummaryPanel = noop,
+                markSmartDefaultFieldTouched = noop, markUnsavedIndicatorDirty = noop, scheduleNameDrivenRegexSync = noop, updateRegex = noop, scheduleEditorPreviewRender = noop;
+            ${eventRuntime}`)($, form, () => api);
+        window.updateForm = () => api.updatePreviewConstraints();
         $('.fv-section-nav > button').on('click.settingsFixture', function () { switchSection($(this).attr('data-target')); });
         api.updatePreviewConstraints();
         window.FolderViewPlusRevealModernEditorStage?.({ force: true });
         form.classList.remove('fv-modern-editor-booting');
-    }, { type, applyMode: extract('applyAdvancedMode', 'getIncludedMemberNames'), serializer: extract('buildFolderPayloadFromForm', 'buildFolderSettingsSummaryHtml') });
+    }, { type, applyMode: extract('applyAdvancedMode', 'getIncludedMemberNames'), serializer: extract('buildFolderPayloadFromForm', 'buildFolderSettingsSummaryHtml'), eventRuntime, inputDelay });
 };

@@ -1666,6 +1666,7 @@ const markUnsavedIndicatorDirty = () => {
 };
 
 const runEditorRecalculation = () => {
+    updateForm();
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();

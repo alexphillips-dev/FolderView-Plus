@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mountSettingsEditor } from '../helpers/folder-editor-settings-host.mjs';
 import { mountActionSettings } from '../helpers/folder-action-settings-host.mjs';
+import { verifyFolderEditorDependencies } from '../helpers/folder-editor-dependencies.mjs';
 export const registerFolderEditorSettingsCases = ({ test, baseUrl }) => {
     test('Folder editor dependencies remain visible and preserve inactive values across tabs', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
@@ -55,6 +56,7 @@ export const registerFolderEditorSettingsCases = ({ test, baseUrl }) => {
             });
             assert.equal(await page.locator('[name="folder_accent_color"]').isEnabled(), true);
         }
+        await verifyFolderEditorDependencies(page, baseUrl);
         await mountActionSettings(page);
         const dialog = page.locator('.dialogCustomAction');
         assert.equal(await dialog.locator('[name="action_script"]').isVisible(), true);

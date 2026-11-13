@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.11.13.01">
-<!ENTITY md5 "0e4846fbe037f857ef24627a76ec79d6">
-<!ENTITY sha256 "4fa0628e18e4b4b3b040d04a0a15d1829c5a8ed614c455202240e0f48142453f">
+<!ENTITY version "2026.11.13.02">
+<!ENTITY md5 "9f9366ab74076c284f845711fa503e47">
+<!ENTITY sha256 "a1d13becebe716d0e877b83db4dc731bf8aaf25d1adb1de019ed3d54cee5d5c2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,28 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.13.02
+- Fix: Keep newly installed and other standalone Docker containers below the complete folder tree, preserving membership, standalone order, and native controls.
+- Fix: Keep Docker rows and pending indicators consistent during overlapping lifecycle actions, out-of-order completion, and navigation. Preserve current folder expansion choices and clean up page-specific runtime work.
+- Fix: Open the native container editor from editable names in multi-row Docker previews while icons and status indicators retain their native menus, including nested and overflow previews. Names without a native Edit action remain non-editable.
+- Fix: Preserve explicit and unavailable Docker and VM members, resource identities, nested ordering, custom actions, and zero-percent warning thresholds through edit, clone, bulk assignment, and FolderView3 migration.
+- Improvement: Refine folder-editor Members, WebUI, Status, and Advanced layouts; hide empty nested-folder panels, restore Docker Health controls and help, and enable dependent controls immediately. Cancel continues to discard unsaved changes.
+- Performance: Reduce folder-editor startup and save preparation, skip unchanged submissions, and download editor, Settings, Docker, and graph scripts together while preserving stage boundaries, compatibility checks, dependency order, retries, and lazy graph loading.
+- Fix: Suppress Aurora-added Docker and editor headings and the support beta chip during initial loading, and prevent unnecessary folder-status label truncation. Other themes retain their headers.
+- Reliability: Preserve newer Settings tree, Dashboard, Appearance, and folder-expansion changes when delayed reads, refreshes, imports, or saves finish.
+- Fix: Prevent failed imports from restoring stale state over concurrent changes, and distinguish a completed environment import from a later refresh failure.
+- Fix: Keep custom-icon replacement and deletion consistent across persistent and public copies, restore prior state after failures, and prevent deleted mirrored icons from reappearing.
+- Reliability: Keep same-second backups distinct and correctly ordered, read saved data with its revision, publish shared caches safely, and enforce subprocess output limits.
+- Fix: Support non-Latin Settings searches and multilingual WebUI-profile names, retain deselected setup templates, and report missing assignment targets or failed preset saves.
+- Fix: Correct cloud and synchronization setup suggestions and handle VM detail rows safely when updating folder autostart.
+- Security: Strengthen managed-theme CSS and theme/icon directory boundaries, reject symlinked icon caches, escape preview colors, and update vulnerable development dependencies and pinned security and release tooling.
+- Privacy: Redact private error and context details in sanitized diagnostics, recovery copies, startup reports, and support-bundle fallback paths. Retain numeric folder-save phase timings for troubleshooting.
+- Reliability: Package Unraid pages with required Unix line endings and reject malformed page formatting that could produce a blank folder editor.
+- Improvement: Recognize Improvement, Dependencies, Deprecation, Removal, and Breaking change release-note categories consistently in validation and update summaries.
+- Compatibility: Restore dependable cross-browser release checks for file selection, font and icon controls, and accessibility with a compatible development test toolchain; keep all required checks enabled.
+- Compatibility: Hard-refresh the webGUI after updating. Existing folder configuration and settings are preserved. Actual changes still await confirmed persistence and any required Docker order synchronization. Check Settings, Docker, VMs, and Dashboard after navigation and reload.
+
 
 ###2026.11.13.01
 - Fix: Keep newly installed and other standalone Docker containers below the complete folder tree, preserving membership, standalone order, and native controls.

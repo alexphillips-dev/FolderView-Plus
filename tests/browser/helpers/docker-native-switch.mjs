@@ -20,6 +20,7 @@ jQuery.widget = (name, definition) => {
 };
 `;
 const widget = fs.readFileSync(new URL('../fixtures/vendor/unraid-switchbutton.js', import.meta.url), 'utf8');
+export const nativeSwitchSource = adapter + '\n' + widget;
 export const nativeSwitchHost = source => source.replace('window.loadlist = () => window.listview();', `
 const nativeRows = document.getElementById('docker_list').innerHTML
     .replaceAll('<input type="checkbox">', '<input type="checkbox" class="autostart" checked>');
@@ -29,5 +30,5 @@ window.loadlist = () => {
     jQuery('.autostart').switchButton({ labels_placement: 'right' });
     window.listview();
 };
-`) + '\n' + adapter + '\n' + widget;
+`) + '\n' + nativeSwitchSource;
 export const nativeSwitchCss = '.switch-button-background{position:relative;width:25px;height:11px;border:1px solid #aaa;background:#ccc;display:inline-block}.switch-button-background.checked{background:#486dba}.switch-button-button{position:absolute;left:-1px;top:-1px;width:12px;height:11px;border:1px solid #aaa;background:#fafafa}';

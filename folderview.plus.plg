@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.11">
-<!ENTITY md5 "87fe6bafd66d518f0358a5f753ee8258">
-<!ENTITY sha256 "bfe6235931cdd6096a939c86f35b3a8110cbe6b9dedf7bb5e2fbfb234a6f4db1">
+<!ENTITY version "2026.11.12.12">
+<!ENTITY md5 "9024150bfe95b9fcce16c1ac740e09f0">
+<!ENTITY sha256 "3082ec73310c0c6fb85afcb9e9023c72c32fd4fa899c32515f122e58c1a3a3c0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.12
+- Fix: Keep Name, Folder WebUI, and WebUI URL together in one evenly aligned row in the folder editor on desktop. Smaller screens continue to stack these fields.
+- Fix: Center the Folder WebUI On/Off label beside its toggle instead of letting it wrap underneath.
+- Compatibility: Hard-refresh after installing this update. Existing WebUI URLs and their enabled or disabled state are preserved.
+
 
 ###2026.11.12.11
 - Fix: Vertically center nested-folder icons, names, and item counts alongside the reorder controls in the folder editor's Members tab.

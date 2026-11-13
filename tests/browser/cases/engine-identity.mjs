@@ -55,11 +55,15 @@ export const registerEngineIdentityCases = ({ test }) => {
                 ]);
                 assert.equal(await page.locator('tr.folder-id-identity div.folder-storage > tr').count(), 2, 'preview omission retains both original native members');
                 assert.equal(await visible.locator(`[data-fv-container-name="${names[0]}"]`).count(), 0);
+                await page.waitForLoadState('networkidle');
             }
         } finally {
-            await page.goto('about:blank');
-            await page.unrouteAll({ behavior: 'wait' });
-            await host.close();
+            try {
+                await page.waitForLoadState('networkidle');
+                await page.goto('about:blank');
+            } finally {
+                try { await page.unrouteAll({ behavior: 'wait' }); } finally { await host.close(); }
+            }
         }
     }, { skipAccessibility: true });
 };

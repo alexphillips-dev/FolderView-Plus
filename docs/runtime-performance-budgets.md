@@ -45,8 +45,18 @@ unchanged script requests, and generally four extra mutation records.
 | Small cold | 110 | 112 | 2 | 98 |
 | Small warm | 109 | 110 | 1 | 96 |
 | Normal cold | 112 | 114 | 2 | 101 |
+| Normal warm | 110 | 112 | 2 | 100 |
+| RTL cold | 111 | 114 | 3 | 103 |
+| RTL warm | 109 | 111 | 2 | 99 |
 
-Only those five callback references include the observed net-growth allowances.
+All eight measured Docker callback references include the observed net-growth allowances.
+The first correction covered only five failing cases. Candidate .04 retained the
+same Docker work but recorded RTL warm callback samples of 112/112/110 against
+the earlier 111/111/112; node and request totals were identical and mutation
+records were unchanged or lower. The three remaining references now receive
+only their already observed stable-to-.02 deltas, rather than new allowances
+from that later fluctuation. No focused retry was performed because independent
+WebKit fixture teardown failures also required correction.
 These separate hosted runs are not controlled causal per-feature measurements;
 mutation batching and hosted machines vary. Comparing against the qualified
 stable release avoids duplicating its existing October credits. Timing and

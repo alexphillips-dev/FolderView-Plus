@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHideEmptySettingsHost } from '../helpers/settings-hide-empty-host.mjs';
+import { createHideEmptySettingsHost, waitForSettingsRuntimeHydration } from '../helpers/settings-hide-empty-host.mjs';
 import { verifySettingsOrderControls } from '../helpers/settings-order-controls.mjs';
 
 export const registerSettingsNestedDisplayCases = ({ test }) => {
@@ -12,7 +12,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 await page.setViewportSize({ width: 1440, height: 1000 });
                 await page.goto(host.url, { waitUntil: 'domcontentloaded' });
                 host.releaseRuntime();
-                await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
+                await waitForSettingsRuntimeHydration(page);
                 await row('leaf').waitFor();
                 // Unraid default-base.css applies this native button margin outside the plugin.
                 await page.addStyleTag({ content: '.row-order-actions button, .row-order-actions button[type="button"] { margin: 10px 12px 10px 0; }' });
@@ -64,7 +64,7 @@ export const registerSettingsNestedDisplayCases = ({ test }) => {
                 await page.screenshot({ path: `tmp/fixture-browser-artifacts/nested-${type}-${await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')}.png`, fullPage: true });
                 await page.setViewportSize({ width: 390, height: 844 });
                 await page.reload({ waitUntil: 'domcontentloaded' });
-                await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
+                await waitForSettingsRuntimeHydration(page);
                 await row('leaf').waitFor();
                 const layout = await row('leaf').evaluate(node => {
                     const cell = node.querySelector('.name-cell').getBoundingClientRect();

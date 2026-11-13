@@ -57,7 +57,7 @@
     { "file": "tests/browser/cases/engine-runtime-facts.mjs", "limit": 50, "owner": "canonical update facts in Command overview and member cards" },
     { "file": "tests/browser/helpers/docker-config-fixture-state.mjs", "limit": 50, "owner": "shared Docker fixture configuration snapshots and atomic revision guards" },
     { "file": "tests/browser/helpers/docker-hierarchy-move-interactions.mjs", "limit": 50, "owner": "native hierarchy menu and interaction fixture adapters" },
-    { "file": "tests/browser/cases/engine-identity.mjs", "limit": 65, "owner": "production preview identity and native action regression" },
+    { "file": "tests/browser/cases/engine-identity.mjs", "limit": 69, "owner": "production preview identity and native action regression" },
     { "file": "tests/browser/cases/neoraid.mjs", "limit": 80, "owner": "pinned NeoRaid Settings, palette and native switch regressions" },
     { "file": "tests/browser/helpers/neoraid.mjs", "limit": 80, "owner": "isolated pinned NeoRaid stylesheet and script fixture" },
     { "file": "tests/browser/helpers/docker-detail-hydration.mjs", "limit": 100, "owner": "production detail hydration with native switch lifetime" },
@@ -118,7 +118,7 @@
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
     { "file": "tests/browser/helpers/dashboard-row-expansion.mjs", "limit": 60, "owner": "production Dashboard expansion handlers in an isolated host" },
     { "file": "tests/browser/cases/settings-hide-empty.mjs", "limit": 65, "owner": "Manage Folders descendant visibility regression" },
-    { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 85, "owner": "isolated production Settings hierarchy host" },
+    { "file": "tests/browser/helpers/settings-hide-empty-host.mjs", "limit": 88, "owner": "isolated production Settings hierarchy host" },
     { "file": "tests/browser/cases/docker-hide-empty.mjs", "limit": 85, "owner": "Docker runtime descendant visibility and refresh regression" },
     { "file": "tests/browser/helpers/docker-hide-empty-host.mjs", "limit": 80, "owner": "isolated production Docker hierarchy host" },
     { "file": "tests/browser/cases/docker-hierarchy-move.mjs", "limit": 100, "owner": "Docker hierarchy move interaction and rollback regression" },
@@ -312,7 +312,7 @@
       ],
       "testCount": 160,
       "assertionCount": 2173,
-      "pageEvaluateCount": 747,
+      "pageEvaluateCount": 745,
       "orderedTitleSha256": "e978db096f6c60cf4f985eb91d2f773c54cb30a8617ca9125b3f96356e340a54"
     }
   }

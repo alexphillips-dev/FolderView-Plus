@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { installHost } from './host-theme.mjs';
 import { installNeoraid } from './neoraid.mjs';
+import { waitForSettingsRuntimeHydration } from './settings-hide-empty-host.mjs';
 
 const aurora = fs.readFileSync(new URL('../fixtures/vendor/aurora-controls.css', import.meta.url), 'utf8');
 export const verifySettingsOrderControls = async (page, url, type) => {
@@ -29,7 +30,7 @@ export const verifySettingsOrderControls = async (page, url, type) => {
     for (const theme of ['native', 'aurora', 'neoraid']) {
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.reload({ waitUntil: 'load' });
-        await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
+        await waitForSettingsRuntimeHydration(page);
         await page.locator(`tbody#${tbody} tr[data-folder-id="leaf"]`).waitFor();
         await page.addStyleTag({ content: 'html{font-size:10px}.row-order-actions button{margin:10px 12px 10px 0}' });
         if (theme !== 'native') {

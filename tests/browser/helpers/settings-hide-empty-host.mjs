@@ -1,6 +1,13 @@
 import path from 'node:path';
 import { createProductionPerfFixture } from '../../../scripts/lib/production-perf-fixture.mjs';
 
+export const waitForSettingsRuntimeHydration = async page => {
+    await page.waitForFunction(() => window.FolderViewPlusSettingsBootstrapState?.ready === true
+        && window.FolderViewPlusSettingsBootstrapState.failed !== true
+        && typeof window.FolderViewPlusSettingsRuntimeHydrationPromise?.then === 'function', undefined, { timeout: 10000 });
+    await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
+};
+
 export const createHideEmptySettingsHost = async (page, type) => {
     const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, 'en');
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
@@ -45,15 +52,37 @@ export const createHideEmptySettingsHost = async (page, type) => {
         await route.fulfill({ json: { ok: true, prefs, metadata: prefs._metadata, clientMutationId: payload.clientMutationId } });
     });
     await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+        if (location.pathname !== '/settings') return;
         const dark = matchMedia('(prefers-color-scheme: dark)').matches;
         window.display.theme = dark ? 'black' : 'white';
         document.body.style.backgroundColor = dark ? '#1d1d1f' : '#f5f6f8';
         document.body.style.color = dark ? '#eeeeee' : '#2b3441';
     }));
     await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
-    return { url: `http://127.0.0.1:${host.server.address().port}/settings`, releaseRuntime,
+    const url = `http://127.0.0.1:${host.server.address().port}/settings`;
+    return { url, releaseRuntime,
         prefs: () => prefs, close: async () => {
             releaseRuntime();
-            await new Promise(resolve => host.server.close(resolve));
+            try {
+                if (!page.isClosed() && page.url().startsWith(url)) {
+                    await waitForSettingsRuntimeHydration(page);
+                    await page.waitForLoadState('networkidle', { timeout: 10000 });
+                }
+            } finally {
+                try {
+                    if (!page.isClosed()) await page.goto('about:blank', { timeout: 5000 });
+                } finally {
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            host.server.closeAllConnections();
+                            reject(new Error('Settings fixture server did not close after page exit'));
+                        }, 5000);
+                        host.server.close(error => {
+                            clearTimeout(timeout);
+                            if (error) reject(error); else resolve();
+                        });
+                    });
+                }
+            }
         } };
 };

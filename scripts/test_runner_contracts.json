@@ -82,6 +82,8 @@
     { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
     { "file": "tests/browser/helpers/folder-editor-dependencies.mjs", "limit": 165, "owner": "Production form event dependency updates, native switch usability and Cancel versus Submit persistence" },
     { "file": "tests/browser/cases/folder-editor-status.mjs", "limit": 25, "owner": "Status tab layout and late Docker Health hydration cases" },
+    { "file": "tests/browser/cases/folder-editor-advanced.mjs", "limit": 20, "owner": "Advanced tab native toggle and paired field layout case", "requiredImports": ["../helpers/folder-editor-advanced-layout.mjs"] },
+    { "file": "tests/browser/helpers/folder-editor-advanced-layout.mjs", "limit": 125, "owner": "Advanced native switch geometry, paired responsive fields and retained draft values" },
     { "file": "tests/browser/helpers/folder-editor-status-layout.mjs", "limit": 145, "owner": "Native Accent and Lock geometry, responsive Status layout and retained draft values" },
     { "file": "tests/browser/helpers/folder-editor-health-hydration.mjs", "limit": 90, "owner": "Late Docker Health row visibility, preserved help and VM visibility boundaries" },
     { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
@@ -171,6 +173,7 @@
         "tests/browser/cases/backup-schedule.mjs",
         "tests/browser/cases/folder-editor-help.mjs",
         "tests/browser/cases/folder-editor-status.mjs",
+        "tests/browser/cases/folder-editor-advanced.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
@@ -265,6 +268,7 @@
         "tests/browser/helpers/folder-editor-settings-host.mjs",
         "tests/browser/helpers/folder-editor-dependencies.mjs",
         "tests/browser/helpers/folder-editor-status-layout.mjs",
+        "tests/browser/helpers/folder-editor-advanced-layout.mjs",
         "tests/browser/helpers/folder-editor-health-hydration.mjs",
         "tests/browser/helpers/folder-action-settings-host.mjs",
         "tests/browser/helpers/folderview3-host.mjs",
@@ -296,10 +300,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 153,
-      "assertionCount": 2071,
-      "pageEvaluateCount": 680,
-      "orderedTitleSha256": "be6b9f279781069f5cdf180e07c9c0c3d85126e5f8656e645c4af93267363897"
+      "testCount": 154,
+      "assertionCount": 2094,
+      "pageEvaluateCount": 692,
+      "orderedTitleSha256": "0458b5390b3a6ceab07e7246260cb660ced83fd09a4adbfe32f1f88a55bf20c7"
     }
   }
 }

@@ -1061,9 +1061,9 @@ try {
         </div>
         <div class="basic">
             <dl>
-                <dt>Dashboard overflow mode:</dt>
+                <dt><span id="fvDashboardOverflowLabel">Dashboard overflow mode:</span></dt>
                 <dd>
-                    <select name="dashboard_overflow">
+                    <select name="dashboard_overflow" aria-labelledby="fvDashboardOverflowLabel">
                         <option value="default">Default</option>
                         <option value="expand_row">Expand row</option>
                         <option value="scroll">Scrollable panel</option>

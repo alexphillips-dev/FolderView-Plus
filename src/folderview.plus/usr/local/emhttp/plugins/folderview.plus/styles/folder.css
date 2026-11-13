@@ -2793,6 +2793,16 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     grid-area: docker;
 }
 
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel:is([data-editor-panel="action-behavior"], [data-editor-panel="expansion"]) .fv-editor-panel-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel:is([data-editor-panel="action-behavior"], [data-editor-panel="expansion"]) .fv-modern-field-row {
+    align-self: stretch;
+    min-width: 0;
+}
+
 .fv-section-shell[data-section-shell="preview"] .fv-editor-panel {
     grid-column: 1 / -1;
 }
@@ -3928,7 +3938,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 @media (max-width: 920px) {
-    .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="status-colors"] .fv-editor-panel-body {
+    .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="status-colors"] .fv-editor-panel-body,
+    .fv-section-shell[data-section-shell="advanced"] .fv-editor-panel:is([data-editor-panel="action-behavior"], [data-editor-panel="expansion"]) .fv-editor-panel-body {
         grid-template-columns: minmax(0, 1fr);
     }
 
@@ -4292,7 +4303,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-modern-field-row.is-webui-row > dl > dd,
-.fv-editor-panel[data-editor-panel="status-colors"] .fv-modern-field-row.is-toggle-row > dl > dd {
+.fv-editor-panel[data-editor-panel="status-colors"] .fv-modern-field-row.is-toggle-row > dl > dd,
+.fv-section-shell[data-section-shell="advanced"] .fv-modern-field-row.is-toggle-row > dl > dd {
     align-self: stretch;
     flex-direction: row;
     justify-content: flex-start;
@@ -4303,6 +4315,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 
 .fv-modern-field-row.is-webui-row > dl > dd > :is(.switch-button-background, .switch-button-label),
 .fv-editor-panel[data-editor-panel="status-colors"] .fv-modern-field-row.is-toggle-row > dl > dd > :is(.switch-button-background, .switch-button-label),
+.fv-section-shell[data-section-shell="advanced"] .fv-modern-field-row.is-toggle-row > dl > dd > :is(.switch-button-background, .switch-button-label),
 .fv-accent-enable-control > :is(.switch-button-background, .switch-button-label) {
     flex: 0 0 auto;
     margin: 0 !important;
@@ -4310,6 +4323,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 
 .fv-modern-field-row.is-webui-row > dl > dd > .switch-button-label,
 .fv-editor-panel[data-editor-panel="status-colors"] .fv-modern-field-row.is-toggle-row > dl > dd > .switch-button-label,
+.fv-section-shell[data-section-shell="advanced"] .fv-modern-field-row.is-toggle-row > dl > dd > .switch-button-label,
 .fv-accent-enable-control > .switch-button-label {
     width: auto !important;
 }

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.18">
-<!ENTITY md5 "40f24e1ed4d6a9e8c3c6d72356ce8d06">
-<!ENTITY sha256 "ba8bc3fcf9256bed55fae92e441bd97967b963d1de4ce7bad8a892c902e0a3d2">
+<!ENTITY version "2026.11.13.03">
+<!ENTITY md5 "75c4c2504d0c798b8d4f483ab818ed3b">
+<!ENTITY sha256 "fa0d6e99b713105af8a3492dfe94d55ad3f00121cfe513dd4b2064d20b8cf6f7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.13.03
+- Performance: Keep initial Settings runtime hydration behind core startup and a bounded localization wait so background member rendering cannot take over the critical startup path or stall indefinitely after localization bootstrap failure. Manual refresh still waits for complete hydration.
+- Reliability: Retry failed lazy chart assets with a fresh request while preserving successful dependencies, ordered execution, and deferred loading.
+- Reliability: Account for measured Docker header and preload delivery work in narrowly reviewed callback references; retain startup timing, mutation-record, request, and absolute limits.
+- Fix: Give decorative Settings folder icons an empty alternative so screen readers use the adjacent folder name.
+- Compatibility: Hard-refresh after updating, then verify Settings startup, refresh, and Dashboard graphs. Existing folders and preferences are preserved.
+
 
 ###2026.11.12.18
 - Performance: Fetch Settings scripts together within each loading stage while preserving their initialization order and startup recovery.

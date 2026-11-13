@@ -6267,7 +6267,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" data-fv-onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass} fv-folder-depth-${folderDepth}">${treeToggleHtml}<img src="${safeIcon}" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass} fv-folder-depth-${folderDepth}">${treeToggleHtml}<img src="${safeIcon}" alt="" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}">${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
@@ -8351,7 +8351,25 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
     });
 };
 
-const refreshCoreData = async () => {
+let releaseInitialSettingsHydration = null;
+const hydrateSettingsRuntime = async (initialBootstrap = false) => {
+    if (initialBootstrap) {
+        const ready = await new Promise(resolve => { releaseInitialSettingsHydration = resolve; });
+        if (!ready) return [];
+        // Cold catalog loading and the config-only surface get the first task.
+        // Missing bootstrap data can leave localization pending indefinitely.
+        // Bound that wait so English fallback still gets runtime discovery.
+        await new Promise(resolve => {
+            const finish = () => { window.clearTimeout(timeout); resolve(); };
+            const timeout = window.setTimeout(finish, 5000);
+            Promise.resolve(window.FolderViewPlusI18n?.ready).then(finish, finish);
+        });
+        await new Promise(resolve => window.setTimeout(resolve, 0));
+    }
+    return Promise.allSettled([refreshType('docker'), refreshType('vm')]);
+};
+
+const refreshCoreData = async (options = {}) => {
     const startedAt = perfNowMs();
     runtimeHydrationStateByType = { docker: 'pending', vm: 'pending' };
     let refreshResults;
@@ -8388,10 +8406,7 @@ const refreshCoreData = async () => {
         dataSource: configDataSource,
         requestCount: configRequestCount
     });
-    const runtimeHydrationPromise = Promise.allSettled([
-        refreshType('docker'),
-        refreshType('vm')
-    ]);
+    const runtimeHydrationPromise = hydrateSettingsRuntime(options.initialBootstrap === true);
     window.FolderViewPlusSettingsRuntimeHydrationPromise = runtimeHydrationPromise;
     const degradedReasons = [];
     const dockerResult = refreshResults[0];
@@ -10655,7 +10670,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             setFatalBannerPhase('bootstrap-data');
             recordFatalBannerAction('Start Settings core bootstrap');
             markFatalBannerStep('Starting Settings core bootstrap');
-            const result = await refreshCoreData();
+            const result = await refreshCoreData({ initialBootstrap: true });
             bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
             if (bootstrapDegradedReasons.length > 0) {
                 markSettingsBootstrapState({
@@ -10794,5 +10809,10 @@ if (window.FolderViewPlusUI?.registerAction) {
             });
         }
         showError(surfaceT("common.repair.initialization-failed-8dc5f7", "Initialization failed"), error);
+    } finally {
+        const release = releaseInitialSettingsHydration;
+        releaseInitialSettingsHydration = null;
+        const state = window.FolderViewPlusSettingsBootstrapState;
+        release?.(state?.ready === true && state.failed !== true);
     }
 })();

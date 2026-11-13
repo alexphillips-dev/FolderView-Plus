@@ -36,6 +36,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/settings-initial-hydration.mjs", "limit": 70, "owner": "Initial Settings hydration waits for visible core bootstrap and localization before runtime discovery" },
     { "file": "tests/browser/cases/script-preloads.mjs", "limit": 30, "owner": "Ordered Settings Docker and Dashboard script fetch regressions", "requiredImports": ["../helpers/script-preloads.mjs", "../helpers/docker-script-preload.mjs"] },
     { "file": "tests/browser/helpers/script-preloads.mjs", "limit": 160, "owner": "Settings staged fetch and lazy chart fetch overlap with ordered retry" },
     { "file": "tests/browser/helpers/docker-script-preload.mjs", "limit": 100, "owner": "Docker runtime fetch overlap with compatibility preparation custom override and exit gates" },
@@ -198,6 +199,7 @@
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings-search-unicode.mjs",
+        "tests/browser/cases/settings-initial-hydration.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/settings-rules.mjs",
         "tests/browser/cases/settings-rules-preview.mjs",
@@ -308,10 +310,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 159,
-      "assertionCount": 2160,
-      "pageEvaluateCount": 742,
-      "orderedTitleSha256": "ad67af903e9f6ff8df8816102ee7b2cb0b84a50d025e318f19e0ad99a68dfa30"
+      "testCount": 160,
+      "assertionCount": 2173,
+      "pageEvaluateCount": 747,
+      "orderedTitleSha256": "e978db096f6c60cf4f985eb91d2f773c54cb30a8617ca9125b3f96356e340a54"
     }
   }
 }

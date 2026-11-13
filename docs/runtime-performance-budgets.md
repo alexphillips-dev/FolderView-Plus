@@ -29,6 +29,32 @@ differences remain significant, duplicate DOM references do not multiply
 requests, and distinct resource entries remain counted. Functional readiness,
 membership, localization, cache reuse, and error checks remain independent.
 
+## November 13 Docker delivery callback allowances
+
+The previous stable [hosted report](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/41115418118)
+and the [.02 candidate report](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/43494738697)
+used Chromium 156.0.8078.4, identical scenarios and three samples per case.
+The audited source adds the early Docker header stylesheet and a temporary
+runtime preload. The reports show one extra final DOM node and request,
+unchanged script requests, and generally four extra mutation records.
+
+| Docker case | Previous stable callback median | Candidate median | Net credit | Reference after review |
+| --- | ---: | ---: | ---: | ---: |
+| Representative cold | 110 | 113 | 3 | 101 |
+| Representative warm | 108 | 111 | 3 | 98 |
+| Small cold | 110 | 112 | 2 | 98 |
+| Small warm | 109 | 110 | 1 | 96 |
+| Normal cold | 112 | 114 | 2 | 101 |
+
+Only those five callback references include the observed net-growth allowances.
+These separate hosted runs are not controlled causal per-feature measurements;
+mutation batching and hosted machines vary. Comparing against the qualified
+stable release avoids duplicating its existing October credits. Timing and
+all other references, percentage/floor policies and absolute limits are retained.
+The Settings cold-readiness failure receives no allowance. No workspace
+performance measurement or full baseline refresh was used, and a fresh exact
+candidate must pass the unchanged gates after correction.
+
 ## Earlier measured changes
 
 The October 30 hosted investigation (CI run

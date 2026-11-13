@@ -295,7 +295,7 @@ test('Settings bootstrap paints config first and hydrates Docker and VM runtime 
     assert.match(settingsJs, /diagnosticsPrefsCoordinator\.reconcile\(resolvedType, snapshotPrefs/);
     assert.match(settingsJs, /const fallbackRequests = \[fetchFolders\(type\), fetchPrefs\(type\)\];[\s\S]*if \(!configOnly\) \{\s*fallbackRequests\.push\(fetchTypeInfo\(type\)\);/);
     assert.match(settingsJs, /fetchSettingsCombinedConfigSnapshots\(\)[\s\S]*snapshot: combined\.snapshots\.docker[\s\S]*snapshot: combined\.snapshots\.vm[\s\S]*per-type-config-fallback/);
-    assert.match(settingsJs, /const runtimeHydrationPromise = Promise\.allSettled\(\[\s*refreshType\('docker'\),\s*refreshType\('vm'\)\s*\]\);/);
+    assert.match(settingsJs, /const runtimeHydrationPromise = hydrateSettingsRuntime\(options\.initialBootstrap === true\);/);
     assert.match(settingsJs, /window\.FolderViewPlusSettingsRuntimeHydrationPromise = runtimeHydrationPromise;/);
     assert.match(settingsJs, /const hideEmptyFolders = runtimeReady[\s\S]*hideEmptyFolders === true;/);
 });

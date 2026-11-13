@@ -606,8 +606,8 @@ test('settings bootstrap renders core surfaces together while later refreshes ca
     assert.doesNotMatch(settingsJs, /normalizeExpandedAdvancedSections\(\)/);
     assert.match(settingsJs, /buildSettingsSections\(\{ force: true \}\);/);
     assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*scheduleSettingsSecondarySurfaces\(type, \{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*?\n\};/);
-    assert.match(settingsJs, /const refreshCoreData = async \(\) => \{[\s\S]*refreshType\('docker', \{ render: false, configOnly: true \}\),[\s\S]*refreshType\('vm', \{ render: false, configOnly: true \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
-    assert.match(settingsJs, /const runtimeHydrationPromise = Promise\.allSettled\(\[\s*refreshType\('docker'\),\s*refreshType\('vm'\)\s*\]\);/);
+    assert.match(settingsJs, /const refreshCoreData = async \(options = \{\}\) => \{[\s\S]*refreshType\('docker', \{ render: false, configOnly: true \}\),[\s\S]*refreshType\('vm', \{ render: false, configOnly: true \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
+    assert.match(settingsJs, /const runtimeHydrationPromise = hydrateSettingsRuntime\(options\.initialBootstrap === true\);/);
     const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';
     const ensureAdvancedBlock = settingsJs.match(/const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*?\n\};/)?.[0] || '';
     assert.doesNotMatch(renderTableBlock, /renderRulesTable\(type\)/);

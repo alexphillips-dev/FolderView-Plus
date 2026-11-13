@@ -111,6 +111,13 @@ Revisit this pin when a patched toolchain passes the file-selection, font/icon,
 and full required browser suites. This development-only pin does not change
 the installed plugin or its supported user browsers.
 
+The layout job reserves 20 minutes for setup, the complete existing desktop/mobile
+light/dark suite, and artifact upload. Candidate CI 43494738697 completed all 468
+layout checks successfully in 877 seconds, then hit the old 15-minute job limit
+before artifact publication. Only that job's execution timeout changed; case
+selection, assertions, tolerances, artifact requirements and performance jobs
+remain unchanged.
+
 Performance-sensitive shared runtime modules select both Settings and Docker
 startup benchmarks. Settings-only or Docker-only modules select the affected
 startup surface. VM and Dashboard changes retain component benchmarks and

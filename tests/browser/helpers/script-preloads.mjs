@@ -111,18 +111,35 @@ export const verifyDashboardPreloads = async ({ page, baseUrl }) => {
 
     await preparePreloadPage(page, baseUrl, 'dashboard-retry');
     let failing = true;
+    const cachedResponses = new Map();
     await page.route('**/preload-assets/retry-chart-*.js*', async route => {
-        const name = new URL(route.request().url()).pathname.split('/').pop();
-        if (failing && name === 'retry-chart-adapter.js') return route.fulfill({ status: 503, body: '' });
+        const url = route.request().url(), name = new URL(url).pathname.split('/').pop();
+        // Keep a failed response stale under its original cache key after recovery.
+        if (!cachedResponses.has(url)) cachedResponses.set(url, failing && name === 'retry-chart-adapter.js' ? 503 : 200);
+        if (cachedResponses.get(url) === 503) return route.fulfill({ status: 503, body: '' });
         await route.fulfill(scriptResponse(`window.fixtureScriptExecution.push(${JSON.stringify(name)});${name === 'retry-chart-core.js' ? 'window.Chart=function Chart(){};' : ''}`));
     });
-    await page.evaluate(() => { window.FolderViewPlusAssetUrls = { chartStack: ['core', 'adapter'].map(name => `/preload-assets/retry-chart-${name}.js?v=fixture`) }; });
+    await page.evaluate(() => {
+        window.fixturePreloadHistory = [];
+        new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
+            if (node.tagName === 'LINK' && node.rel === 'preload') window.fixturePreloadHistory.push(node.href);
+        }))).observe(document.head, { childList: true });
+        window.FolderViewPlusAssetUrls = { chartStack: ['core', 'adapter'].map(name => `/preload-assets/retry-chart-${name}.js?v=fixture`) };
+    });
     await page.addScriptTag({ content: runtimeSource('runtime.asset-loader.js') });
     const failure = await page.evaluate(() => window.FolderViewPlusAssetLoader.ensureChartStack().then(() => '', error => error.message));
     assert.match(failure, /retry-chart-adapter/);
     assert.equal(await page.locator('link[rel="preload"][as="script"]').count(), 0);
     failing = false;
-    await page.evaluate(() => window.FolderViewPlusAssetLoader.ensureChartStack());
-    assert.deepEqual(await page.evaluate(() => window.fixtureScriptExecution), ['retry-chart-core.js', 'retry-chart-adapter.js']);
+    const retry = await page.evaluate(async () => {
+        window.fixturePreloadHistory = [];
+        await window.FolderViewPlusAssetLoader.ensureChartStack();
+        return { execution: window.fixtureScriptExecution, hints: window.fixturePreloadHistory,
+            url: document.querySelector('script[src*="retry-chart-adapter.js"]').src };
+    });
+    assert.deepEqual(retry.execution, ['retry-chart-core.js', 'retry-chart-adapter.js']);
+    assert.match(retry.url, /retry-chart-adapter\.js\?v=fixture&fv_retry=1$/);
+    assert.ok(retry.hints.includes(retry.url), 'the retry preload and actual script must use the same cache key');
+    assert.equal(retry.hints.every(url => url === retry.url), true, 'successful core assets are not preloaded again');
     assert.equal(await page.locator('link[rel="preload"][as="script"]').count(), 0);
 };

@@ -67,6 +67,26 @@
         }
     };
 
+    const preloadStageScripts = (stage, retry) => {
+        const links = [];
+        try {
+            if (!doc.head?.append) return links;
+            for (let index = state.index; index < queue.length && queue[index].stage === stage; index += 1) {
+                const link = doc.createElement('link');
+                if (link.relList?.supports?.('preload') !== true) break;
+                link.rel = 'preload';
+                link.as = 'script';
+                link.href = buildAttemptUrl(queue[index].url, retry && index === state.index);
+                link.dataset.fvplusSettingsPreload = stage;
+                links.push(link);
+                doc.head.append(link);
+            }
+        } catch (_error) {
+            // Resource hints are optional; ordered loading owns failures and retries.
+        }
+        return links;
+    };
+
     const readResourceTiming = (url) => {
         try {
             const rows = win.performance?.getEntriesByName?.(url) || [];
@@ -168,6 +188,14 @@
     });
 
     const run = async ({ retry = false } = {}) => {
+        let preloadLinks = [];
+        let preloadedStage = '';
+        const clearPreloads = () => {
+            preloadLinks.forEach((link) => {
+                try { link.remove(); } catch (_error) { /* Optional hint cleanup is best-effort. */ }
+            });
+            preloadLinks = [];
+        };
         try {
             if (state.index < manifest.foundation.length) {
                 state.phase = 'foundation';
@@ -176,11 +204,16 @@
             }
             while (state.index < queue.length) {
                 const entry = queue[state.index];
+                if (preloadedStage && preloadedStage !== entry.stage) clearPreloads();
                 if (entry.stage === 'workspace' && state.phase !== 'workspace') {
                     state.phase = 'workspace';
                     fatal?.setPhase?.('bootstrap-workspace');
                     await waitForWorkspaceOpportunity();
                     if (!retry) report('Load deferred Settings workspace modules');
+                }
+                if (preloadedStage !== entry.stage) {
+                    preloadLinks = preloadStageScripts(entry.stage, retry);
+                    preloadedStage = entry.stage;
                 }
                 await loadScript(entry, { retry });
                 state.index += 1;
@@ -221,6 +254,8 @@
                 summary: 'FolderView Plus could not load the Settings runtime.'
             });
             throw error;
+        } finally {
+            clearPreloads();
         }
     };
 

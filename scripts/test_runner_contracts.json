@@ -36,6 +36,9 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/cases/script-preloads.mjs", "limit": 30, "owner": "Ordered Settings Docker and Dashboard script fetch regressions", "requiredImports": ["../helpers/script-preloads.mjs", "../helpers/docker-script-preload.mjs"] },
+    { "file": "tests/browser/helpers/script-preloads.mjs", "limit": 160, "owner": "Settings staged fetch and lazy chart fetch overlap with ordered retry" },
+    { "file": "tests/browser/helpers/docker-script-preload.mjs", "limit": 100, "owner": "Docker runtime fetch overlap with compatibility preparation custom override and exit gates" },
     { "file": "tests/browser/helpers/docker-preview-name-edit.mjs", "limit": 260, "owner": "Native Docker preview name editing, independent icon menus and refresh-safe bindings" },
     {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
@@ -177,6 +180,7 @@
         "tests/browser/cases/folder-editor-advanced.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
+        "tests/browser/cases/script-preloads.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
@@ -245,6 +249,8 @@
         "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/script-preloads.mjs",
+        "tests/browser/helpers/docker-script-preload.mjs",
         "tests/browser/helpers/docker-preview-name-edit.mjs",
         "tests/browser/helpers/folder-editor-submit.mjs",
         "tests/browser/helpers/editor-startup-preload.mjs",
@@ -302,10 +308,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 156,
-      "assertionCount": 2114,
-      "pageEvaluateCount": 697,
-      "orderedTitleSha256": "c390502ebab7789cac2e35b297179ca5d4b538bbd3225fc1f7e66e90299d40ea"
+      "testCount": 159,
+      "assertionCount": 2153,
+      "pageEvaluateCount": 734,
+      "orderedTitleSha256": "ad67af903e9f6ff8df8816102ee7b2cb0b84a50d025e318f19e0ad99a68dfa30"
     }
   }
 }

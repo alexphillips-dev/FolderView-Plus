@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 
+let runtimeProbe = 0;
 export const verifyAuroraHeaderBeforeRuntime = async (page, hostUrl) => {
     for (const theme of ['aurora', 'native', 'neoraid']) {
         let releaseRuntime, runtimeFinished;
@@ -15,7 +16,11 @@ export const verifyAuroraHeaderBeforeRuntime = async (page, hostUrl) => {
             const response = await route.fetch();
             const link = theme === 'aurora' ? '/plugins/Aurora-Theme/styles/theme.css'
                 : theme === 'neoraid' ? '/plugins/neoraid/sheets/Neoraid.css' : '';
-            const html = (await response.text()).replace('<head>', `<head>${link ? `<link rel="stylesheet" href="${link}">` : ''}`);
+            const original = await response.text();
+            // Isolate the withheld script from WebKit's preload cache across navigations.
+            const runtimeHtml = original.replace('docker.js?v=benchmark', `docker.js?v=header-probe-${++runtimeProbe}`);
+            assert.notEqual(runtimeHtml, original, 'the controlled runtime URL must be unique');
+            const html = runtimeHtml.replace('<head>', `<head>${link ? `<link rel="stylesheet" href="${link}">` : ''}`);
             await route.fulfill({ response, body: html });
         });
         try {

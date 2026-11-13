@@ -27,14 +27,37 @@
         transport: window.FolderViewPlusRuntimeTransport || null
     }) || null;
 
+    let runtimePreload = null;
+    const releaseRuntimePreload = () => {
+        try { runtimePreload?.remove?.(); } catch (_error) { /* Resource hints are optional. */ }
+        runtimePreload = null;
+    };
     const start = async () => {
         const timing = window.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('docker', { window, document: window.document });
         timing?.begin?.('providerPreparation');
         let pageExited = false;
         window.addEventListener?.('pagehide', () => {
             pageExited = true;
+            releaseRuntimePreload();
             providerRegistry?.dispose?.();
         }, { once: true });
+        try {
+            const source = String(window.FolderViewPlusDockerRuntimeAssetUrl || '').trim();
+            if (decision.runtimeActivationAllowed === true && source && window.document?.head?.appendChild
+                && !window.document.querySelector?.('script[data-fvplus-docker-runtime="true"]')) {
+                const link = window.document.createElement('link');
+                if (link.relList?.supports?.('preload') === true) {
+                    link.rel = 'preload';
+                    link.as = 'script';
+                    link.href = source;
+                    link.dataset.fvplusDockerRuntimePreload = 'true';
+                    runtimePreload = link;
+                    window.document.head.appendChild(link);
+                }
+            }
+        } catch (_error) {
+            // Preload failure leaves the authoritative runtime load unchanged.
+        }
         await providerRegistry?.prepare?.({
             hostGeneration: decision.hostGeneration
         });
@@ -122,6 +145,6 @@
             error.fvplusBannerShown = true;
         }
         throw error;
-    });
+    }).finally(releaseRuntimePreload);
     window.FolderViewPlusDockerBootstrapModuleLoaded = true;
 }(window));

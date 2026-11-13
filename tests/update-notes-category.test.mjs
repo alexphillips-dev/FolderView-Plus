@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -79,11 +80,28 @@ const runCategoryContractHarness = () => {
     fs.writeFileSync(harnessPath, `<?php
 $_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
 require_once ${phpSingleQuote(libPath)};
+$intentHeadlines = [
+    'Improvement' => 'Smoother existing controls.',
+    'Dependencies' => 'Refresh bundled libraries.',
+    'Deprecation' => 'Prefer the supported interface.',
+    'Removal' => 'Retire the obsolete interface.',
+    'Breaking change' => 'Existing installations require manual migration.'
+];
+$intentResults = [];
+foreach ($intentHeadlines as $tag => $headline) {
+    $line = $tag . ': ' . $headline;
+    $intentResults[$tag] = [
+        'category' => classifyChangesCategory([$line]),
+        'strippedHeadline' => stripChangesLineDecoration($line),
+        'selectedHeadline' => buildChangesHeadline([$line])
+    ];
+}
 echo json_encode([
     'tags' => releaseNoteCategoryTags(),
     'privacyCategory' => classifyChangesCategory(['Privacy: Redacted exported network details.']),
     'reliabilityCategory' => classifyChangesCategory(['Reliability: Preserved atomic recovery state.']),
-    'localizedHeadline' => stripChangesLineDecoration('Localization: Completed the translated catalog.')
+    'localizedHeadline' => stripChangesLineDecoration('Localization: Completed the translated catalog.'),
+    'intentResults' => $intentResults
 ], JSON_UNESCAPED_SLASHES);
 `, 'utf8');
     try {
@@ -162,6 +180,7 @@ test('release-note category contract includes the supported specialized tags wit
     assert.equal(new Set(tags.map((tag) => tag.toLowerCase())).size, tags.length);
     assert.deepEqual(tags, [
         'Feature',
+        'Improvement',
         'Fix',
         'Security',
         'Performance',
@@ -173,6 +192,10 @@ test('release-note category contract includes the supported specialized tags wit
         'Localization',
         'Diagnostics',
         'Maintenance',
+        'Dependencies',
+        'Deprecation',
+        'Removal',
+        'Breaking change',
         'Docs',
         'Test',
         'Quality',
@@ -185,6 +208,8 @@ test('release-note category contract includes the supported specialized tags wit
     )));
     assert.ok(!tags.includes('Responsive design'));
     assert.ok(!tags.includes('Testing'));
+    assert.ok(!tags.includes('Enhancement'));
+    assert.ok(!tags.includes('Documentation'));
     assert.ok(!tags.includes('Support'));
 });
 
@@ -194,6 +219,41 @@ test('release-note backend consumes specialized tags from the canonical contract
     assert.deepEqual(result.privacyCategory, { id: 'security', label: 'Security Update' });
     assert.deepEqual(result.reliabilityCategory, { id: 'bugfix', label: 'Bug Fix Update' });
     assert.equal(result.localizedHeadline, 'Completed the translated catalog.');
+    const expectedHeadlines = {
+        Improvement: 'Smoother existing controls.',
+        Dependencies: 'Refresh bundled libraries.',
+        Deprecation: 'Prefer the supported interface.',
+        Removal: 'Retire the obsolete interface.',
+        'Breaking change': 'Existing installations require manual migration.'
+    };
+    for (const [tag, headline] of Object.entries(expectedHeadlines)) {
+        const expectedCategory = tag === 'Improvement'
+            ? { id: 'feature', label: 'Feature Update' }
+            : { id: 'maintenance', label: 'Maintenance Update' };
+        assert.deepEqual(result.intentResults[tag], {
+            category: expectedCategory, strippedHeadline: headline, selectedHeadline: headline
+        }, tag);
+    }
+    assert.deepEqual([...new Set(categoryContract.categories.map(entry => entry.summaryCategory))].sort(),
+        ['bugfix', 'feature', 'maintenance', 'performance', 'security', 'ui']);
+    const start = settingsJs.indexOf('let updateNotesCategoryTags = []');
+    const end = settingsJs.indexOf('const getUpdateNotesSeenVersion =', start);
+    assert.ok(start >= 0 && end > start, 'inspect the actual frontend category and headline helpers');
+    const context = {};
+    vm.runInNewContext(settingsJs.slice(start, end) + `
+        globalThis.categoryHarness = {
+            load: (tags) => { updateNotesCategoryTags = normalizeReleaseNoteCategoryTags(tags); },
+            tags: () => updateNotesCategoryTags,
+            strip: stripUpdateNotesLineDecoration,
+            headline: buildUpdateNotesHeadline
+        };
+    `, context);
+    context.categoryHarness.load([...result.tags, ' improvement ', 'Invalid: tag']);
+    assert.deepEqual(Array.from(context.categoryHarness.tags()), result.tags);
+    for (const [tag, headline] of Object.entries(expectedHeadlines)) {
+        assert.equal(context.categoryHarness.strip(`## ${tag}: ${headline}`), headline, tag);
+        assert.equal(context.categoryHarness.headline([`${tag}: ${headline}`]), headline, tag);
+    }
 });
 
 test('update-notes headline has no canned generic release summary', () => {

@@ -9,6 +9,32 @@ commit it on dev and apply it to current main, then use
 runtime, package and SBOM changes, retains exact-candidate qualification and all
 main push guards, and preserves the published plugin version and release assets.
 
+## Release-note categories
+
+`src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/release-note-categories.json`
+is the shared source of truth for supported category tags and their summary
+groups. Shell release guards read the tags from this file; the PHP update-notes
+parser reads both fields and returns the tags through the update-notes API for
+frontend headline handling. Add or change a tag in the canonical JSON and update
+the contract tests together. Keep the existing summary groups so update labels
+and translations remain compatible.
+
+Use the exact canonical spelling followed by a colon in release-note bullets.
+Choose the tag that describes the user-visible outcome, including these intents:
+
+| Tag | Use | Existing summary group |
+| --- | --- | --- |
+| `Improvement:` | Improve an existing capability; use `Feature:` for a new capability | `feature` |
+| `Dependencies:` | Update bundled libraries or other dependencies | `maintenance` |
+| `Deprecation:` | Announce a supported capability's planned retirement and its replacement | `maintenance` |
+| `Removal:` | Describe a capability that has been removed | `maintenance` |
+| `Breaking change:` | Explain a change that requires existing users to act or migrate | `maintenance` |
+
+Removal and breaking-change notes must identify who is affected and provide the
+required migration or replacement steps. Deprecation notes should identify the
+replacement and retirement timing when known. Existing tags remain available;
+avoid adding synonym aliases such as `Enhancement`, `Testing`, or `Documentation`.
+
 ## Prepare and qualify once
 
 1. Fetch main and dev, verify clean aligned worktrees, and inspect the full

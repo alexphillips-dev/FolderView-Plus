@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "categories": [
     { "tag": "Feature", "summaryCategory": "feature" },
+    { "tag": "Improvement", "summaryCategory": "feature" },
     { "tag": "Fix", "summaryCategory": "bugfix" },
     { "tag": "Security", "summaryCategory": "security" },
     { "tag": "Performance", "summaryCategory": "performance" },
@@ -13,6 +14,10 @@
     { "tag": "Localization", "summaryCategory": "ui" },
     { "tag": "Diagnostics", "summaryCategory": "maintenance" },
     { "tag": "Maintenance", "summaryCategory": "maintenance" },
+    { "tag": "Dependencies", "summaryCategory": "maintenance" },
+    { "tag": "Deprecation", "summaryCategory": "maintenance" },
+    { "tag": "Removal", "summaryCategory": "maintenance" },
+    { "tag": "Breaking change", "summaryCategory": "maintenance" },
     { "tag": "Docs", "summaryCategory": "maintenance" },
     { "tag": "Test", "summaryCategory": "maintenance" },
     { "tag": "Quality", "summaryCategory": "maintenance" },

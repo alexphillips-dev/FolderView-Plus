@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const repoRoot = path.resolve(process.cwd());
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
@@ -218,6 +219,7 @@ test('release_guard enforces explicit changelog category contract for current ve
     assert.match(releaseNoteCategoriesShell, /FVPLUS_RELEASE_NOTE_CATEGORY_FILE=/);
     assert.deepEqual(releaseNoteCategoryContract.categories.map((entry) => entry.tag), [
         'Feature',
+        'Improvement',
         'Fix',
         'Security',
         'Performance',
@@ -229,6 +231,10 @@ test('release_guard enforces explicit changelog category contract for current ve
         'Localization',
         'Diagnostics',
         'Maintenance',
+        'Dependencies',
+        'Deprecation',
+        'Removal',
+        'Breaking change',
         'Docs',
         'Test',
         'Quality',
@@ -236,6 +242,22 @@ test('release_guard enforces explicit changelog category contract for current ve
         'Compatibility',
         'Refactor'
     ]);
+});
+
+test('canonical release-note tags are accepted by the shared shell reader without synonym aliases', () => {
+    const output = execFileSync('bash', ['-s'], {
+        cwd: repoRoot, encoding: 'utf8', timeout: 30000, input: `set -euo pipefail
+source scripts/release_note_categories.sh
+for category in Improvement Dependencies Deprecation Removal 'Breaking change'; do
+    fvplus::is_release_note_category "$category"
+done
+for category in Enhancement Testing Documentation; do
+    if fvplus::is_release_note_category "$category"; then exit 1; fi
+done
+fvplus::release_note_categories
+`
+    });
+    assert.deepEqual(output.trim().split(/\r?\n/), releaseNoteCategoryContract.categories.map(entry => entry.tag));
 });
 
 test('release_guard enforces archive size, file-count, and extension policy', () => {

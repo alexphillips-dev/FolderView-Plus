@@ -34,10 +34,35 @@
         pending.set(source, promise);
         return promise;
     };
-    const loadSequential = (urls) => (Array.isArray(urls) ? urls : []).reduce(
-        (chain, url) => chain.then(() => loadScript(url)),
-        Promise.resolve()
-    );
+    const loadSequential = (urls) => {
+        const sources = Array.isArray(urls) ? urls : [];
+        const preloads = [];
+        try {
+            if (document.head?.appendChild) {
+                for (const source of new Set(sources.map((url) => String(url || '').trim()).filter(Boolean))) {
+                    if (pending.has(source)) continue;
+                    const link = document.createElement('link');
+                    if (link.relList?.supports?.('preload') !== true) break;
+                    link.rel = 'preload';
+                    link.as = 'script';
+                    link.href = source;
+                    link.dataset.fvplusLazyPreload = 'true';
+                    preloads.push(link);
+                    document.head.appendChild(link);
+                }
+            }
+        } catch (_error) {
+            // Optional hints never replace ordered loading or its failure/retry path.
+        }
+        return sources.reduce(
+            (chain, url) => chain.then(() => loadScript(url)),
+            Promise.resolve()
+        ).finally(() => {
+            preloads.forEach((link) => {
+                try { link.remove(); } catch (_error) { /* Resource hint cleanup is best-effort. */ }
+            });
+        });
+    };
     const ensureChartStack = () => {
         const urls = window.FolderViewPlusAssetUrls?.chartStack || [];
         return loadSequential(urls).then(() => {

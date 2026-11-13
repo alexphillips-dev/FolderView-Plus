@@ -263,3 +263,110 @@ test('settings loader identifies a stalled module with a bounded timeout', async
     assert.equal(moduleEvents.some((entry) => entry.outcome === 'timed-out'), true);
     assert.equal(window.FolderViewPlusSettingsLoader.snapshot().currentModule, 'stalled.js');
 });
+
+const createPreloadLoaderHarness = (manifest, { supportsPreload = true, failHint = false } = {}) => {
+    const scripts = [], hints = [], activeHints = new Set(), timers = [];
+    let workspaceOpportunity;
+    const document = {
+        createElement: (tagName) => {
+            const listeners = {};
+            const node = {
+                tagName, dataset: {}, relList: { supports: () => supportsPreload },
+                addEventListener: (name, handler) => { listeners[name] = handler; },
+                remove: () => activeHints.delete(node), _listeners: listeners
+            };
+            return node;
+        },
+        head: { append: (node) => {
+            if (node.tagName === 'link') {
+                hints.push(node); activeHints.add(node);
+                if (failHint) throw new Error('Optional preload hint could not be appended');
+            } else scripts.push(node);
+        } }
+    };
+    const window = {
+        document,
+        location: { href: 'https://example.test/Settings/FolderViewPlus', origin: 'https://example.test' },
+        FolderViewPlusSettingsLoaderManifest: manifest,
+        addEventListener() {}, removeEventListener() {},
+        requestIdleCallback: (handler) => { workspaceOpportunity = handler; },
+        setTimeout: (handler) => { timers.push(handler); return { unref() {} }; }, clearTimeout() {}
+    };
+    vm.runInNewContext(loaderSource, { window, globalThis: window, URL }, { filename: loaderPath });
+    return {
+        scripts, hints, activeHints, timers, loader: window.FolderViewPlusSettingsLoader,
+        releaseWorkspace: () => workspaceOpportunity()
+    };
+};
+const flushLoaderTasks = () => new Promise(resolve => setImmediate(resolve));
+
+test('settings preloads each stage before its first script completes and keeps workspace deferred', async () => {
+    const harness = createPreloadLoaderHarness({
+        foundation: ['/one.js?v=42', '/two.js?v=42'],
+        workspace: ['/three.js?v=42', '/main.js?v=42']
+    });
+    const { scripts, hints, activeHints, loader } = harness;
+    assert.deepEqual(hints.map(node => [node.href, node.rel, node.as, node.dataset.fvplusSettingsPreload]), [
+        ['/one.js?v=42', 'preload', 'script', 'foundation'],
+        ['/two.js?v=42', 'preload', 'script', 'foundation']
+    ]);
+    assert.deepEqual(scripts.map(node => node.src), ['/one.js?v=42'], 'prefetching must not execute later modules');
+    scripts[0]._listeners.load(); await flushLoaderTasks();
+    assert.deepEqual(scripts.map(node => node.src), ['/one.js?v=42', '/two.js?v=42']);
+    scripts[1]._listeners.load(); await flushLoaderTasks();
+    assert.equal(activeHints.size, 0, 'foundation hints are removed before waiting for workspace opportunity');
+    assert.equal(hints.length, 2, 'workspace requests must wait for the stage boundary');
+    harness.releaseWorkspace(); await flushLoaderTasks();
+    assert.deepEqual(hints.slice(2).map(node => node.href), ['/three.js?v=42', '/main.js?v=42']);
+    assert.deepEqual(scripts.map(node => node.src), ['/one.js?v=42', '/two.js?v=42', '/three.js?v=42']);
+    scripts[2]._listeners.load(); await flushLoaderTasks();
+    scripts[3]._listeners.load();
+    assert.equal((await loader.ready).loadedCount, 4);
+    assert.equal(activeHints.size, 0, 'successful startup cleans every preload hint');
+    assert.equal(scripts.every(node => node.async === false), true);
+});
+
+test('settings retry preloads only remaining modules with the exact failed-attempt cache URL', async () => {
+    const { scripts, hints, activeHints, loader } = createPreloadLoaderHarness({
+        foundation: ['/one.js?v=42', '/two.js?v=42#module', '/three.js?v=42'], workspace: []
+    });
+    scripts[0]._listeners.load(); await flushLoaderTasks();
+    scripts[1]._listeners.error();
+    await assert.rejects(loader.ready, /Failed to load Settings module/);
+    assert.equal(activeHints.size, 0, 'failure removes hints before retry');
+    const retry = loader.retry();
+    assert.deepEqual(hints.slice(3).map(node => node.href), ['/two.js?v=42&fv_retry=1#module', '/three.js?v=42']);
+    assert.equal(scripts[2].src, hints[3].href, 'script and preload must use the same retry URL');
+    scripts[2]._listeners.load(); await flushLoaderTasks();
+    assert.equal(scripts[3].src, '/three.js?v=42', 'later modules retain their original versioned URL');
+    scripts[3]._listeners.load();
+    const result = await retry;
+    assert.equal(result.loadedCount, 3);
+    assert.equal(result.retryCount, 1);
+    assert.equal(scripts.filter(node => node.src === '/one.js?v=42').length, 1, 'successful modules must not execute again');
+    assert.equal(activeHints.size, 0);
+});
+
+for (const options of [{ supportsPreload: false }, { failHint: true }]) {
+    test(`settings ordered startup tolerates optional preload failure ${JSON.stringify(options)}`, async () => {
+        const { scripts, activeHints, loader } = createPreloadLoaderHarness({
+            foundation: ['/one.js', '/two.js'], workspace: []
+        }, options);
+        assert.equal(scripts.length, 1);
+        scripts[0]._listeners.load(); await flushLoaderTasks();
+        assert.equal(scripts[1].src, '/two.js');
+        scripts[1]._listeners.load();
+        assert.equal((await loader.ready).loadedCount, 2);
+        assert.equal(activeHints.size, 0);
+    });
+}
+
+test('settings timeout cleans stage preload hints and retains the failed module for recovery', async () => {
+    const { activeHints, timers, loader } = createPreloadLoaderHarness({ foundation: ['/stalled.js', '/later.js'], workspace: [] });
+    assert.equal(activeHints.size, 2);
+    timers[0]();
+    await assert.rejects(loader.ready, /timed out/);
+    assert.equal(activeHints.size, 0);
+    assert.equal(loader.snapshot().currentModule, 'stalled.js');
+    assert.equal(loader.snapshot().nextModule, 'stalled.js');
+});

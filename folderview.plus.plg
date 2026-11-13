@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.17">
-<!ENTITY md5 "685fc917c93d2a42a69c0d28d1858615">
-<!ENTITY sha256 "f7909717539ae02894c2b6de08ed891aabe6f3c4c74c0a04329d2cb803433eef">
+<!ENTITY version "2026.11.12.18">
+<!ENTITY md5 "40f24e1ed4d6a9e8c3c6d72356ce8d06">
+<!ENTITY sha256 "ba8bc3fcf9256bed55fae92e441bd97967b963d1de4ce7bad8a892c902e0a3d2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.18
+- Performance: Fetch Settings scripts together within each loading stage while preserving their initialization order and startup recovery.
+- Performance: Fetch the Docker runtime while startup preparation runs, then activate it after the existing compatibility and custom-script checks.
+- Performance: Fetch Dashboard graph libraries together when a graph is first requested, preserving lazy loading, dependency order, and retries.
+- Improvement: Recognize Improvement, Dependencies, Deprecation, Removal, and Breaking change release-note categories in validation and update summaries.
+- Compatibility: Hard-refresh after installing this update. Existing settings and folder data are preserved.
+
 
 ###2026.11.12.17
 - Fix: Clicking an editable container name in a multi-row Docker folder preview now opens the container editor. Container icons continue to open the native context menu.

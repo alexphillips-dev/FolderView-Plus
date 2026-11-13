@@ -8,6 +8,7 @@ import { verifyFolderEditorSubmit } from '../helpers/folder-editor-submit.mjs';
 import { verifyEditorStartupPreload } from '../helpers/editor-startup-preload.mjs';
 import { verifyNestedFolderMembers } from '../helpers/nested-folder-members.mjs';
 import { verifyFolderEditorWebuiLayout } from '../helpers/folder-editor-webui-layout.mjs';
+import { registerFolderEditorStatusCases } from './folder-editor-status.mjs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const tooltipAppearance = element => {
     const luminance = color => {
@@ -103,4 +104,5 @@ export const registerFolderEditorHelpCases = ({ test, baseUrl }) => {
         await verifyFolderEditorWebuiLayout(page, baseUrl);
         await verifyAuroraEditorHeading(page, baseUrl);
     });
+    registerFolderEditorStatusCases({ test, baseUrl });
 };

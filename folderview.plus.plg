@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.14">
-<!ENTITY md5 "4bb0fe94973ee441f4e1c03163c3707b">
-<!ENTITY sha256 "e90b64ca2d3244d7f4c0e51252f16d3d97444a7a4dc7a343c02d66961537922f">
+<!ENTITY version "2026.11.12.15">
+<!ENTITY md5 "8a1b42a1606c1cfa8343eb4920aadb9a">
+<!ENTITY sha256 "fcce977be18ac64c29f2342bf4c2b9367909e5ee78d3166df78205e95b99e6d7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.15
+- Fix: Keep Accent color On/Off text beside its toggle and place the Bar color picker farther to the right, with wrapping on narrow screens.
+- Fix: Place Lock status colors alongside the status color controls on desktop and give those controls more room by making the Accent Bar panel narrower.
+- Fix: Restore Docker Health controls and their Info tooltips when opening the folder editor, preventing an empty Health panel after startup. Keep Docker-only health settings hidden in VM editors.
+- Compatibility: Hard-refresh after installing this update. Existing colors, lock settings, health overrides, and unsaved-edit behavior are preserved.
+
 
 ###2026.11.12.14
 - Fix: Dependent folder editor options become usable and lose their disabled styling immediately when their required settings are enabled, including changes made with native toggles. Submitting the folder first is no longer necessary.

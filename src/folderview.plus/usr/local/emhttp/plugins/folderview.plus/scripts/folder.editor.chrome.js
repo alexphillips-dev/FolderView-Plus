@@ -748,6 +748,7 @@
     const decorateSectionRows = (form) => {
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
+            if (row.classList.contains('fv-orphan-editor-row') && row.style.display === 'none') row.style.removeProperty('display');
             row.classList.remove('fv-orphan-editor-row');
             row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-preview-border-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
             if (row.classList.contains('order-section')) {
@@ -798,7 +799,6 @@
                 row.classList.add('is-preview-border-color-row');
             }
         });
-
         Array.from(form.querySelectorAll('.fv-section-shell ul')).forEach((list) => {
             list.classList.add('fv-modern-group-list');
             if (list.querySelector('.folder-status-colors-dd')) {

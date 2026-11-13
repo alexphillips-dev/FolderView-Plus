@@ -1,12 +1,14 @@
 <?php
 $server = $argv[1]; $root = $argv[2]; $operation = $argv[3] ?? 'rollback';
 $_SERVER['DOCUMENT_ROOT'] = $root . '/host';
-if (in_array($operation, ['writer', 'checkpoint-writer'], true)) file_put_contents($root . '/writer-started', 'yes');
+if ($operation === 'writer') file_put_contents($root . '/writer-started', 'yes');
 if ($operation === 'checkpoint-writer') {
     $probe = fopen($root . '/config/.config-mutation.lock', 'c+');
     $locked = flock($probe, LOCK_EX | LOCK_NB);
     if ($locked) flock($probe, LOCK_UN);
-    fclose($probe); file_put_contents($root . '/writer-started', $locked ? 'unlocked' : 'blocked');
+    fclose($probe);
+    file_put_contents($root . '/writer-started.ready', $locked ? 'unlocked' : 'blocked');
+    rename($root . '/writer-started.ready', $root . '/writer-started');
 }
 class DockerClient {
     public function getDockerContainers(): array { return []; }

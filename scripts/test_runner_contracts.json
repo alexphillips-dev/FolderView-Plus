@@ -81,6 +81,9 @@
     { "file": "tests/browser/cases/folder-editor-diagnostics.mjs", "limit": 110, "owner": "Editor capture lifecycle, Settings bundle persistence, layout evidence and privacy", "requiredImports": ["../helpers/icon-browser-host.mjs", "../helpers/folder-editor-settings-host.mjs"] },
     { "file": "tests/browser/helpers/folder-editor-settings-host.mjs", "limit": 70, "owner": "Production folder markup and section lifecycle fixture" },
     { "file": "tests/browser/helpers/folder-editor-dependencies.mjs", "limit": 165, "owner": "Production form event dependency updates, native switch usability and Cancel versus Submit persistence" },
+    { "file": "tests/browser/cases/folder-editor-status.mjs", "limit": 25, "owner": "Status tab layout and late Docker Health hydration cases" },
+    { "file": "tests/browser/helpers/folder-editor-status-layout.mjs", "limit": 145, "owner": "Native Accent and Lock geometry, responsive Status layout and retained draft values" },
+    { "file": "tests/browser/helpers/folder-editor-health-hydration.mjs", "limit": 90, "owner": "Late Docker Health row visibility, preserved help and VM visibility boundaries" },
     { "file": "tests/browser/helpers/folder-action-settings-host.mjs", "limit": 45, "owner": "Production custom action dependency lifecycle with host widget adapters" },
     { "file": "tests/browser/cases/icon-browser.mjs", "limit": 150, "owner": "staged icon selection, browsing context and upload lifecycle", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
     { "file": "tests/browser/cases/icon-picker-cancel.mjs", "limit": 75, "owner": "applied icon rollback, external edits and invalidated upload cancellation", "requiredImports": ["../helpers/icon-browser-host.mjs"] },
@@ -167,6 +170,7 @@
         "tests/browser/cases/neoraid.mjs",
         "tests/browser/cases/backup-schedule.mjs",
         "tests/browser/cases/folder-editor-help.mjs",
+        "tests/browser/cases/folder-editor-status.mjs",
         "tests/browser/cases/folder-editor-settings.mjs",
         "tests/browser/cases/browser-storage.mjs",
         "tests/browser/cases/foundation.mjs",
@@ -260,6 +264,8 @@
         "tests/browser/helpers/folder-editor-help-touch.mjs",
         "tests/browser/helpers/folder-editor-settings-host.mjs",
         "tests/browser/helpers/folder-editor-dependencies.mjs",
+        "tests/browser/helpers/folder-editor-status-layout.mjs",
+        "tests/browser/helpers/folder-editor-health-hydration.mjs",
         "tests/browser/helpers/folder-action-settings-host.mjs",
         "tests/browser/helpers/folderview3-host.mjs",
         "tests/browser/helpers/settings-workspace-controls.mjs",
@@ -290,10 +296,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 151,
-      "assertionCount": 2030,
-      "pageEvaluateCount": 665,
-      "orderedTitleSha256": "0e56a8613154f3444ce7ab7a06309f974358ec3f0225b668dc07136bb8974c1b"
+      "testCount": 153,
+      "assertionCount": 2071,
+      "pageEvaluateCount": 680,
+      "orderedTitleSha256": "be6b9f279781069f5cdf180e07c9c0c3d85126e5f8656e645c4af93267363897"
     }
   }
 }

@@ -102,7 +102,7 @@
     { "file": "tests/browser/helpers/settings-order-controls.mjs", "limit": 85, "owner": "Native, Aurora and NeoRaid Basic tree-control geometry and interaction", "requiredImports": ["./host-theme.mjs", "./neoraid.mjs"] },
     { "file": "tests/browser/helpers/settings-host-heading.mjs", "limit": 85, "owner": "Scoped native and Aurora Settings headings with action and navigation preservation" },
     {"file": "tests/browser/cases/folderview3-migration.mjs", "limit": 80, "owner": "FolderView3 production endpoint preview apply and reload cases", "requiredImports": ["../helpers/folderview3-host.mjs"]},
-    {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 50, "owner": "isolated PHP migration endpoint and browser controller host"},
+    {"file": "tests/browser/helpers/folderview3-host.mjs", "limit": 65, "owner": "isolated PHP migration endpoint and browser controller host"},
     { "file": "tests/browser/cases/csrf-requests.mjs", "limit": 85, "owner": "Unraid CSRF and multipart request integration" },
     { "file": "tests/browser/cases/browser-storage.mjs", "limit": 80, "owner": "restricted browser storage production startup and server persistence" },
     { "file": "tests/browser/cases/custom-icon-rename.mjs", "limit": 85, "owner": "custom icon rename refusal and editor selection persistence" },
@@ -309,8 +309,8 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 159,
-      "assertionCount": 2153,
-      "pageEvaluateCount": 735,
+      "assertionCount": 2160,
+      "pageEvaluateCount": 742,
       "orderedTitleSha256": "ad67af903e9f6ff8df8816102ee7b2cb0b84a50d025e318f19e0ad99a68dfa30"
     }
   }

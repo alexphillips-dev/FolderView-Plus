@@ -100,6 +100,17 @@ dependencies are reused only with a matching installation stamp; missing or
 changed lockfiles cause a clean install. CI publishes lane results and timing
 artifacts so duration claims can be checked against actual runs.
 
+The development browser toolchain is pinned to Playwright **1.64.1**. The
+1.65.0 Firefox integration emits a spurious file-picker Cancel before selected
+files are delivered ([upstream issue](https://github.com/microsoft/playwright/issues/43994)).
+Its role queries and accessibility checks also exposed the cross-world ARIA
+reflection crash tracked in [Mozilla bug 2090055](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055).
+A controlled run of the same four font/icon cases passed with 1.64.1 and its
+matching Firefox build, keeping every assertion and accessibility rule enabled.
+Revisit this pin when a patched toolchain passes the file-selection, font/icon,
+and full required browser suites. This development-only pin does not change
+the installed plugin or its supported user browsers.
+
 Performance-sensitive shared runtime modules select both Settings and Docker
 startup benchmarks. Settings-only or Docker-only modules select the affected
 startup surface. VM and Dashboard changes retain component benchmarks and

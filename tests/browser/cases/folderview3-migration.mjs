@@ -3,11 +3,16 @@ import { migrationFixture } from '../../helpers/folderview3-fixture.mjs';
 import { withFolderView3Host } from '../helpers/folderview3-host.mjs';
 export const registerFolderView3MigrationCases = ({ test, baseUrl }) => {
     test('FolderView3 full-backup file selection previews, cancels, applies, refreshes and reloads actual storage', async ({ page }) => {
-        await withFolderView3Host(page, baseUrl, async (call, editorBlock) => {
+        await withFolderView3Host(page, baseUrl, async (call, editorBlock, selectFile) => {
             const before = call({ action: 'fixture_read' });
-            const picker = page.waitForEvent('filechooser');
-            await page.getByRole('button', { name: 'Preview full backup' }).click();
-            await (await picker).setFiles({ name: 'synthetic-v1.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(migrationFixture)) });
+            await selectFile(null);
+            assert.equal(await page.getByRole('button', { name: 'Apply verified migration' }).count(), 0);
+            assert.match(await page.locator('#fv-recovery-folderview3-summary').innerText(), /read-only until you approve/);
+            assert.deepEqual(await page.evaluate(() => window.migrationRequests), [], 'Cancel must not send a preview or mutation request');
+            assert.deepEqual(await page.evaluate(() => window.migrationErrors), []);
+            assert.deepEqual(call({ action: 'fixture_read' }), before);
+            await selectFile({ name: 'synthetic-v1.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(migrationFixture)) });
+            assert.equal(await page.evaluate(() => window.migrationPickerActivations), 2, 'Selection after Cancel must activate a fresh picker');
             await page.getByRole('button', { name: 'Apply verified migration' }).waitFor();
             assert.deepEqual(call({ action: 'fixture_read' }), before);
             const report = await page.locator('#fv-recovery-folderview3-summary').innerText();
@@ -36,7 +41,7 @@ export const registerFolderView3MigrationCases = ({ test, baseUrl }) => {
         });
     });
     test('FolderView3 malformed full backup reports rejection and leaves existing storage intact', async ({ page }) => {
-        await withFolderView3Host(page, baseUrl, async call => {
+        await withFolderView3Host(page, baseUrl, async (call, _editorBlock, selectFile) => {
             const before = call({ action: 'fixture_read' });
             const error = await page.evaluate(async () => {
                 try { await window.migrationApi.previewSelection({ name: 'damaged.json', text: '{"fv3_export_version":1}' }); return ''; }
@@ -45,14 +50,14 @@ export const registerFolderView3MigrationCases = ({ test, baseUrl }) => {
             assert.match(error, /missing required/); assert.deepEqual(call({ action: 'fixture_read' }), before);
             assert.equal(await page.getByRole('button', { name: 'Apply verified migration' }).count(), 0);
             for (const buffer of [Buffer.from('{'), Buffer.from([0xff])]) {
-                const picker = page.waitForEvent('filechooser');
                 const previous = await page.evaluate(() => window.migrationErrors.length);
-                await page.getByRole('button', { name: 'Preview full backup' }).click();
-                await (await picker).setFiles({ name: 'damaged.json', mimeType: 'application/json', buffer });
+                await selectFile({ name: 'damaged.json', mimeType: 'application/json', buffer });
                 await page.waitForFunction(count => window.migrationErrors.length > count, previous);
                 assert.match(await page.evaluate(() => window.migrationErrors.at(-1)), /not valid JSON/);
                 assert.deepEqual(call({ action: 'fixture_read' }), before);
             }
         });
+        assert.equal(await page.evaluate(() => HTMLInputElement.prototype.click === window.migrationNativeInputClick
+            && window.migrationFileInput === null), true, 'The fixture must restore native activation and release its captured input');
     });
 };

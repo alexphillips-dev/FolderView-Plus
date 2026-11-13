@@ -30,7 +30,10 @@ export const registerPageTitleCases = ({ test }) => {
                     assert.ok(geometry.left >= 0 && geometry.right <= geometry.viewport + 1);
                     assert.ok(geometry.bottom <= geometry.tableTop + 1, `title clears table in ${mode}: ${JSON.stringify(geometry)}`);
                 }
-            } finally { await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close(); }
+            } finally {
+                try { await page.goto('about:blank'); }
+                finally { try { await page.unrouteAll({ behavior: 'wait' }); } finally { await host.close(); } }
+            }
         }
     }, { skipAccessibility: true });
     test('Docker page title saves from the reorganized cards and keeps header controls at the right', async ({ page }) => {
@@ -119,7 +122,10 @@ export const registerPageTitleCases = ({ test }) => {
             await page.goto(`${host.baseUrl}/docker`); await waitDocker();
             assert.equal(await title.count(), 0);
             assert.deepEqual(await positions(), before, 'disabling restores the original toolbar');
-        } finally { await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close(); }
+        } finally {
+            try { await page.goto('about:blank'); }
+            finally { try { await page.unrouteAll({ behavior: 'wait' }); } finally { await host.close(); } }
+        }
     }, { skipAccessibility: true });
     test('Docker page title font picker previews bundled fonts and supports keyboard, dismissal and persistence', async ({ page }) => {
         const host = await createPageTitleHost(page);
@@ -179,6 +185,9 @@ export const registerPageTitleCases = ({ test }) => {
             const appearance = await page.locator('#fvplus-docker-page-title').evaluate(node => ({ family: getComputedStyle(node).fontFamily,
                 loaded: [...document.fonts].filter(face => face.family.includes('FV Title caveat')).every(face => face.status === 'loaded'), count: [...document.fonts].filter(face => face.family.includes('FV Title ')).length }));
             assert.ok(appearance.family.includes('FV Title caveat')); assert.equal(appearance.loaded, true); assert.equal(appearance.count, 1, 'Docker registers only the selected bundled font');
-        } finally { await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close(); }
+        } finally {
+            try { await page.goto('about:blank'); }
+            finally { try { await page.unrouteAll({ behavior: 'wait' }); } finally { await host.close(); } }
+        }
     }, { skipAccessibility: true });
 };

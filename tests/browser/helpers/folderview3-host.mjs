@@ -16,7 +16,15 @@ export const withFolderView3Host = async (page, baseUrl, run) => {
         await page.evaluate(() => {
             document.getElementById('fv-settings-root').innerHTML = '<h1>FolderView3 migration fixture</h1><button data-fv-folderview3-action="preview-export">Preview full backup</button><div id="fv-recovery-folderview3-summary" role="status" aria-live="polite"></div><div id="fixture-result" role="status"></div>';
             window.migrationErrors = []; window.migrationRefreshCount = 0;
+            window.migrationRequests = []; window.migrationPickerActivations = 0;
+            // Playwright #43994: Firefox's intercepted native picker cancels before setFiles.
+            window.migrationNativeInputClick = HTMLInputElement.prototype.click;
+            HTMLInputElement.prototype.click = function() {
+                if (this.type !== 'file') return window.migrationNativeInputClick.call(this);
+                window.migrationFileInput = this; window.migrationPickerActivations++;
+            };
             window.migrationPost = async (url, data) => {
+                window.migrationRequests.push(data.action);
                 const r = await fetch(url, { method: 'POST', body: new URLSearchParams(data) }); const json = await r.json();
                 if (json.ok === false) throw new Error(json.error); return json;
             };
@@ -31,8 +39,23 @@ export const withFolderView3Host = async (page, baseUrl, run) => {
             }); window.migrationApi.bind();
         });
         const editor = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js', 'utf8');
-        await run(call, editor.slice(editor.indexOf('    const includedMemberNames ='), editor.indexOf('    const memberIdentities =', editor.indexOf('const buildFolderPayloadFromForm'))));
+        const selectFile = async file => {
+            await page.getByRole('button', { name: 'Preview full backup' }).click();
+            const input = await page.evaluateHandle(() => window.migrationFileInput);
+            try {
+                if (file === null) await input.evaluate(node => node.dispatchEvent(new Event('cancel')));
+                else await input.asElement().setInputFiles(file);
+            } finally {
+                await page.evaluate(() => { window.migrationFileInput = null; });
+                await input.dispose();
+            }
+        };
+        await run(call, editor.slice(editor.indexOf('    const includedMemberNames ='), editor.indexOf('    const memberIdentities =', editor.indexOf('const buildFolderPayloadFromForm'))), selectFile);
     } finally {
+        await page.evaluate(() => {
+            if (window.migrationNativeInputClick) HTMLInputElement.prototype.click = window.migrationNativeInputClick;
+            window.migrationFileInput = null; window.migrationApi?.disconnect();
+        }).catch(() => {});
         const resolved = path.resolve(root);
         if (!resolved.startsWith(path.resolve(os.tmpdir()) + path.sep) || !path.basename(resolved).startsWith('fvplus-browser-migration-')) throw new Error('Unexpected fixture cleanup path');
         fs.rmSync(resolved, { recursive: true, force: true });

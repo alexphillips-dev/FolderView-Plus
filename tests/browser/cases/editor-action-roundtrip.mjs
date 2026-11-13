@@ -5,7 +5,14 @@ import { mountActionSettings } from '../helpers/folder-action-settings-host.mjs'
 export const registerEditorActionRoundtripCases = ({ test }) => {
     const mount = async page => {
         await page.setContent('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Folder action fixture</title></head><body><div class="custom-action-wrapper"></div></body></html>');
-        await page.addStyleTag({ path: path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/csp.utilities.css') });
+        for (const style of ['theme.tokens.css', 'ui.primitives.css', 'ui.host-buttons.css', 'csp.utilities.css', 'folder.css']) {
+            await page.addStyleTag({ path: path.resolve(`src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/${style}`) });
+        }
+        await page.evaluate(() => {
+            document.documentElement.dataset.fvplusHostTheme = matchMedia('(prefers-color-scheme: light)').matches ? 'white' : 'black';
+            document.documentElement.style.fontSize = '10px';
+            document.body.style.cssText = 'background:var(--fvplus-ui-page);color:var(--fvplus-ui-text-primary);font:14px Arial,sans-serif;margin:16px';
+        });
         await page.addScriptTag({ path: path.resolve('node_modules/jquery/dist/jquery.js') });
         await page.addScriptTag({ path: path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js') });
         await mountActionSettings(page);

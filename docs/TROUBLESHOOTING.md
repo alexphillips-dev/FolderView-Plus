@@ -152,7 +152,7 @@ Standard, Adaptive, and Maximum must preserve configured preview content. If onl
 
 ### A Preview Container Menu Does Not Open
 
-Confirm the folder uses the Default preview context, then test the icon, name, and status in both the first visible preview row and the affected later row. Also test keyboard activation with Enter or Space. If the failure depends on Preview Rows `2`, `3`, `4`, or `Unlimited`, leave that setting unchanged while exporting the support bundle.
+Confirm the folder uses the Default preview context, then test the icon and status in both the first visible preview row and the affected later row. The icon and status open the native menu with a click. Focus the menu trigger and use Enter or Space to open it from the keyboard. An editable container name opens the native container editor with a click or Enter; a name without a native Edit action stays non-editable. If the failure depends on Preview Rows `2`, `3`, `4`, or `Unlimited`, leave that setting unchanged while exporting the support bundle.
 
 The sanitized bundle retains a privacy-safe `uiTelemetry.dockerDiagnostics.previewContextBridge` summary across navigation to Settings. It records row-mode and numeric row-index buckets, eligible and bound bridge counts, post-layout handler-integrity results, dispatch attempts and outcomes, mouse or keyboard input, and icon/name/status/card trigger categories. It never records folder names, container names, IDs, selectors, URLs, or click coordinates.
 

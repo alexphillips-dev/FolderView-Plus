@@ -122,15 +122,25 @@ test('tag-only pre-push avoids repeated guards but mixed main pushes require can
     f.write('scripts/release_validation.mjs', "process.stderr.write('fixture rejects unqualified main'); process.exit(1);\n");
     const sha = f.commit('Hook fixture'); f.git('branch', '-M', 'main');
     const zeros = '0'.repeat(40), tag = `refs/tags/fvplus-release-candidate-${sha}`;
-    const check = input => spawnSync('bash', ['.githooks/pre-push'], { cwd: f.directory, input, encoding: 'utf8' });
+    const check = (input, environment = {}) => spawnSync('bash', ['.githooks/pre-push'], {
+        cwd: f.directory, input, encoding: 'utf8',
+        env: { ...process.env, FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '0', GITHUB_ACTIONS: 'false', ...environment }
+    });
     assert.equal(check(`${tag} ${sha} ${tag} ${zeros}\n`).status, 0);
     assert.equal(check(`(delete) ${zeros} ${tag} ${sha}\n`).status, 0);
     assert.equal(fs.existsSync(path.join(f.directory, 'hook.log')), false);
     assert.notEqual(check(`${tag} ${'a'.repeat(40)} ${tag} ${zeros}\n`).status, 0);
-    const main = check(`${tag} ${sha} ${tag} ${zeros}\nrefs/heads/main ${sha} refs/heads/main ${zeros}\n`);
-    assert.notEqual(main.status, 0);
-    assert.match(main.stderr, /rejects unqualified main/);
-    assert.equal(fs.readFileSync(path.join(f.directory, 'hook.log'), 'utf8').trim().split('\n').length, 7);
+    for (const [environment, expectedGuards] of [
+        [{}, 7],
+        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' }, 6],
+        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1', GITHUB_ACTIONS: 'true' }, 7]
+    ]) {
+        f.write('hook.log', '');
+        const main = check(`${tag} ${sha} ${tag} ${zeros}\nrefs/heads/main ${sha} refs/heads/main ${zeros}\n`, environment);
+        assert.notEqual(main.status, 0);
+        assert.match(main.stderr, /rejects unqualified main/);
+        assert.equal(fs.readFileSync(path.join(f.directory, 'hook.log'), 'utf8').trim().split('\n').length, expectedGuards);
+    }
 });
 
 test('release profile rejects missing or invalid baselines before qualification', shellOnly, t => {

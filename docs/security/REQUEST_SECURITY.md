@@ -18,8 +18,11 @@ a string. Native uploads send both the `csrf_token` POST field and the
 with earlier supported Unraid versions. The browser supplies the multipart
 boundary. Progress, cancellation, timeout, and plugin authorization still apply.
 
-Docker folder saves await a nonce-protected order-sync response before leaving
-the editor. Beacon acceptance is only a queued request, never proof of success.
+Docker folder changes await confirmed persistence before leaving the editor.
+Changes that require Docker order synchronization also await its nonce-protected
+response. Submitting an unchanged existing folder exits without issuing a save;
+appearance-only changes can skip order synchronization. Beacon acceptance is
+only a queued request, never proof of success.
 The synchronous keepalive helper requires a previously issued nonce, sends the
 CSRF field in the beacon body, and retains it with the header in a fetch fallback.
 Custom icons use form-encoded URL-safe Base64 instead of multipart. The 16 MiB

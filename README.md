@@ -103,11 +103,17 @@ Install from Unraid:
 2. Choose `Install Plugin`.
 3. Paste the stable plugin URL:
 
+```text
+https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
+```
+
+Alternatively, run this command in the Unraid terminal:
+
 ```bash
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
 ```
 
-Dev testing branch:
+For directed dev testing, use this terminal command:
 
 ```bash
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg

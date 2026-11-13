@@ -41,7 +41,7 @@ Choose **My groups** to build your own reusable group. Enter a group name, add f
 
 Groups create root-level folders using the existing folder creation defaults. They store folder names and icons, without member assignments; use the folder editor for nesting, members, and other settings. The Basic toolbar's **Ctrl+K** shortcut (or **Cmd+K** on macOS) focuses the folder search in the current table, or the first visible table when focus is elsewhere.
 
-The modern folder editor separates controls into General, Members, Preview, Chevron, Status, Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
+The modern folder editor separates controls into General, Members, Preview, Chevron, Status, WebUI Profiles (Docker only), Rules, Actions, and Advanced tabs. The preview is a design preview; the Docker, VM, and Dashboard pages remain the final runtime check.
 
 ### Folder icons
 

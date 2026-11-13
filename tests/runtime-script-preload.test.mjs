@@ -139,11 +139,44 @@ test('Dashboard hints stay demand-only and concurrent requests share ordered exe
     document.scripts[1].events.error(); await Promise.all(failures);
     assert.equal(hints(document).length, 0);
     assert.equal(api.pendingCount(), 1, 'the successful Chart asset stays reusable');
-    const retry = api.ensureChartStack(); await turn();
+    const retry = api.ensureChartStack(), concurrentRetry = api.ensureChartStack();
+    const retryHint = hints(document)[0].href;
+    assert.equal(retryHint, 'https://fixture.test/adapter.js?v=version&fv_retry=1');
+    await turn();
     assert.equal(document.scripts.length, 2, 'only the failed adapter is inserted again');
+    assert.equal(document.scripts[1].src, retryHint, 'the authoritative retry must reuse its preload cache key');
     loaded(document.scripts[1]);
     assert.equal(await retry, window.Chart);
+    assert.equal(await concurrentRetry, window.Chart);
     assert.equal(hints(document).length, 0);
+});
+
+test('lazy asset retries advance the failed URL while preserving version, fragment and successful deduplication', async () => {
+    const document = createDocument(), window = { location: { href: 'https://fixture.test/Dashboard' } };
+    vm.runInNewContext(source('runtime.asset-loader.js'), { window, document, URL });
+    const api = window.FolderViewPlusAssetLoader;
+    const original = 'https://fixture.test/adapter.js?v=version#module';
+    for (let attempt = 0; attempt < 3; attempt++) {
+        const ready = api.loadSequential([original]);
+        const expected = attempt ? `https://fixture.test/adapter.js?v=version&fv_retry=${attempt}#module` : original;
+        assert.equal(hints(document)[0].href, expected);
+        await turn();
+        assert.equal(document.scripts.length, 1);
+        assert.equal(document.scripts[0].src, expected);
+        assert.equal(api.loadScript(original), api.loadScript(original), 'concurrent callers share the original URL key');
+        if (attempt < 2) {
+            const rejected = assert.rejects(ready, /Failed to load/);
+            document.scripts[0].events.error();
+            await rejected;
+            assert.equal(api.pendingCount(), 0);
+        } else {
+            loaded(document.scripts[0]);
+            await ready;
+            await api.loadScript(original);
+            assert.equal(document.scripts.length, 1, 'a successful retry stays reusable through the original URL');
+        }
+        assert.equal(hints(document).length, 0);
+    }
 });
 
 for (const options of [{ supported: false }, { throwHint: true }]) {

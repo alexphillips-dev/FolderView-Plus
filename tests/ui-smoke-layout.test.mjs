@@ -1005,8 +1005,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /label:\s*'Trust'/);
     assert.match(settingsRuntime, /is-trust-\$\{trust\.level\}/);
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
-    assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
-    assert.match(settingsJs, /const pluginVersionPromise = fetchPluginVersion\(\);[\s\S]*const result = await refreshCoreData\(\);/);
+    assert.match(settingsJs, /const refreshCoreData = async \(options = \{\}\) =>/);
+    assert.match(settingsJs, /const pluginVersionPromise = fetchPluginVersion\(\);[\s\S]*const result = await refreshCoreData\(\{ initialBootstrap: true \}\);/);
     assert.doesNotMatch(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);/);
     assert.match(settingsJs, /void getThemeWorkspaceApi\(\)\.readWorkspace\(\)/);
     assert.match(settingsJs, /void pluginVersionPromise\s*\.then\(\(\) => maybeShowUpdateNotesPanel\(\)\)/);

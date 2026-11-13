@@ -36,6 +36,7 @@
     }
   ],
   "modules": [
+    { "file": "tests/browser/helpers/docker-preview-name-edit.mjs", "limit": 260, "owner": "Native Docker preview name editing, independent icon menus and refresh-safe bindings" },
     {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
@@ -244,6 +245,7 @@
         "tests/browser/cases/engine-runtime-facts.mjs"
       ],
       "supportFiles": [
+        "tests/browser/helpers/docker-preview-name-edit.mjs",
         "tests/browser/helpers/folder-editor-submit.mjs",
         "tests/browser/helpers/editor-startup-preload.mjs",
         "tests/browser/helpers/nested-folder-members.mjs",
@@ -300,10 +302,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 154,
-      "assertionCount": 2094,
-      "pageEvaluateCount": 692,
-      "orderedTitleSha256": "0458b5390b3a6ceab07e7246260cb660ced83fd09a4adbfe32f1f88a55bf20c7"
+      "testCount": 156,
+      "assertionCount": 2114,
+      "pageEvaluateCount": 697,
+      "orderedTitleSha256": "c390502ebab7789cac2e35b297179ca5d4b538bbd3225fc1f7e66e90299d40ea"
     }
   }
 }

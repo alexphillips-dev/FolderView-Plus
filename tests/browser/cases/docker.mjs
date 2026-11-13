@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { exerciseDockerColumnDiagnostics } from '../helpers/docker-column-diagnostics.mjs';
 import { exerciseDockerFolderGrouping } from '../helpers/docker-folder-grouping.mjs';
 import { exerciseDockerMembershipRefresh } from '../helpers/docker-membership-refresh.mjs'; import { exerciseDockerDetailHydration } from '../helpers/docker-detail-hydration.mjs';
+import { exerciseDockerPreviewNameEdit, exerciseDockerPreviewNameEditLifecycle } from '../helpers/docker-preview-name-edit.mjs';
 import {
     exerciseChildFolderPreviewContext,
     exerciseDockerPreviewContextDiagnostics,
@@ -40,7 +41,7 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
     assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
-test('Docker late wizard folders claim canonical host rows before hide-empty filtering', exerciseDockerFolderGrouping);
+test('Docker late wizard folders claim canonical host rows before hide-empty filtering', async ({ page }) => exerciseDockerFolderGrouping({ page, baseUrl }));
 
 test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
@@ -71,6 +72,14 @@ test('Docker lifecycle pending colors follow each action destination state', asy
 
 test('Docker multi-row previews bridge native context without cloned handlers or duplicate ids', async ({ page }) => {
     await exerciseDockerPreviewContextDiagnostics({ page, baseUrl });
+});
+
+test('Docker preview names edit native containers independently of icons across row layouts', async ({ page }) => {
+    await exerciseDockerPreviewNameEdit({ page, baseUrl });
+});
+
+test('Docker preview name editing survives source replacement, nested binding, and repeated reconciliation', async ({ page }) => {
+    await exerciseDockerPreviewNameEditLifecycle({ page, baseUrl });
 });
 
 test('Docker child-folder preview chip opens its action menu after multi-row reflow', async ({ page }) => {

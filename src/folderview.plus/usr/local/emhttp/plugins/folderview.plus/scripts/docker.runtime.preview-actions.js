@@ -354,7 +354,7 @@
                 : false;
         };
 
-        const dispatchDockerNativePreviewContext = ($nativeTrigger, $item, event = null) => {
+        const dispatchDockerNativePreviewClick = ($nativeTrigger, $item, event = null) => {
             const trigger = $nativeTrigger?.get?.(0) || null;
             if (!trigger || typeof trigger.dispatchEvent !== 'function') {
                 return { ok: false, reason: 'native-trigger-missing' };
@@ -381,7 +381,7 @@
         };
 
         const recordDockerPreviewContextDispatch = ($nativeTrigger, $item, event = null) => {
-            const result = dispatchDockerNativePreviewContext($nativeTrigger, $item, event);
+            const result = dispatchDockerNativePreviewClick($nativeTrigger, $item, event);
             previewContextDiagnostics.recordDispatch({
                 success: result.ok,
                 reason: result.reason,
@@ -399,6 +399,10 @@
                 previewContextDiagnostics.recordBinding({ success: false, reason: 'item-missing', rowMode });
                 return false;
             }
+            $item.off('.fvDockerNativePreviewContext').removeAttr('role tabindex data-fv-preview-context aria-haspopup aria-label');
+            $item.find('[data-fv-preview-context], [data-fv-preview-edit]')
+                .off('.fvDockerNativePreviewContext')
+                .removeAttr('role tabindex data-fv-preview-context data-fv-preview-edit aria-haspopup aria-label');
             $item.attr('data-fv-preview-context-eligible', 'true').attr('data-fv-preview-row-mode', rowMode);
             const $nativeTrigger = resolveDockerNativePreviewContextTrigger($sourceRow);
             if (!$nativeTrigger || !$nativeTrigger.length) {
@@ -408,7 +412,38 @@
             }
             const nativeTitle = String($nativeTrigger.attr('title') || '').trim();
             sanitizeDockerPreviewContextClone($item);
-            const $keyboardTarget = $item.find('span.hand, span.appname').first();
+            // Native rows may be replaced by loadlist while a preview is retained.
+            const resolveSourceRow = () => {
+                const sourceNode = $sourceRow?.get?.(0);
+                if (sourceNode && sourceNode.isConnected !== false) return $sourceRow;
+                const replacement = sourceNode?.id ? doc?.getElementById?.(sourceNode.id) : null;
+                return replacement ? jq(replacement) : findDockerRuntimeSourceRow({
+                    name: $item.attr('data-fv-container-name'),
+                    id: $item.attr('data-fv-container-id')
+                });
+            };
+            const resolveNativeEditTarget = () => resolveSourceRow()
+                .find('td.ct-name > span.outer > span.inner > span.appname > a.exec').first();
+            const $appName = $item.find('span.appname').first();
+            let $editTarget = $appName.children('a.exec').first();
+            if (resolveNativeEditTarget().length && $appName.length) {
+                if (!$editTarget.length) {
+                    $editTarget = jq('<a class="exec"></a>').append($appName.contents()).appendTo($appName);
+                }
+                $editTarget.attr('role', 'link').attr('tabindex', '0').attr('data-fv-preview-edit', 'native');
+                $editTarget.on('keydown.fvDockerNativePreviewContext', function(event) {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dispatchDockerNativePreviewClick(resolveNativeEditTarget(), $editTarget, event);
+                });
+            } else {
+                // Model previews must not invent Edit for Compose/no-template rows.
+                $editTarget.contents().unwrap();
+                $editTarget = jq();
+            }
+            let $keyboardTarget = $item.find('span.hand, .fv-preview-status-compact, span.state').first();
+            if (!$keyboardTarget.length) $keyboardTarget = $item;
             $item
                 .removeClass('fv-preview-trigger fv-preview-tooltip-proxy')
                 .removeAttr('role tabindex data-fv-preview-context')
@@ -416,9 +451,12 @@
                 .removeClass('fv-preview-trigger fv-preview-tooltip-proxy');
             if ($keyboardTarget.length) {
                 $keyboardTarget
-                    .attr('role', 'button')
+                    .attr('role', $keyboardTarget.is($item) ? 'group' : 'button')
                     .attr('tabindex', '0')
                     .attr('data-fv-preview-context', 'native');
+                if ($keyboardTarget.is($item)) {
+                    $keyboardTarget.attr('aria-haspopup', 'menu').attr('aria-label', nativeTitle || $appName.text());
+                }
                 if (nativeTitle) {
                     $keyboardTarget.attr('title', nativeTitle);
                 }
@@ -433,17 +471,23 @@
                     }
                     event.preventDefault();
                     event.stopPropagation();
-                    recordDockerPreviewContextDispatch($nativeTrigger, $item, event);
+                    if (jq(event.target).closest('span.appname').length) {
+                        if ($editTarget.length) {
+                            dispatchDockerNativePreviewClick(resolveNativeEditTarget(), $editTarget, event);
+                        }
+                        return;
+                    }
+                    recordDockerPreviewContextDispatch(resolveDockerNativePreviewContextTrigger(resolveSourceRow()), $item, event);
                 });
             $keyboardTarget
-                .off('.fvDockerNativePreviewContext')
+                .off('keydown.fvDockerNativePreviewContext')
                 .on('keydown.fvDockerNativePreviewContext', function(event) {
-                    if (!['Enter', ' '].includes(event.key)) {
+                    if (event.target !== this || !['Enter', ' '].includes(event.key)) {
                         return;
                     }
                     event.preventDefault();
                     event.stopPropagation();
-                    recordDockerPreviewContextDispatch($nativeTrigger, $item, event);
+                    recordDockerPreviewContextDispatch(resolveDockerNativePreviewContextTrigger(resolveSourceRow()), $item, event);
                 });
             previewContextDiagnostics.recordBinding({
                 success: true,
@@ -513,12 +557,17 @@
                 const rowIndex = resolveDockerPreviewContextRowIndex($item);
                 const row = rows.get(rowIndex) || { rowIndex, eligible: 0, bound: 0, missing: 0, handlerFailures: 0 };
                 const bound = $item.attr('data-fv-preview-context-bound') === 'true';
-                const $keyboardTarget = $item.find('[data-fv-preview-context="native"]').first();
+                const $keyboardTarget = $item.filter('[data-fv-preview-context="native"]')
+                    .add($item.find('[data-fv-preview-context="native"]')).first();
+                const $editTarget = $item.find('[data-fv-preview-edit="native"]').first();
                 const clickHandlerPresent = hasNamespacedPreviewContextHandler(node, 'click');
                 const keyboardHandlerPresent = $keyboardTarget.length
                     ? hasNamespacedPreviewContextHandler($keyboardTarget.get(0), 'keydown')
                     : null;
-                const handlerMissing = clickHandlerPresent === false || keyboardHandlerPresent === false;
+                const editHandlerPresent = $editTarget.length
+                    ? hasNamespacedPreviewContextHandler($editTarget.get(0), 'keydown')
+                    : null;
+                const handlerMissing = clickHandlerPresent === false || keyboardHandlerPresent === false || editHandlerPresent === false;
                 $item.attr('data-fv-preview-row-index', String(rowIndex));
                 eligibleTargetsAudited += 1;
                 row.eligible += 1;

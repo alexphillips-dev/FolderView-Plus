@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.16">
-<!ENTITY md5 "14d0e7b3e0f0c7d923ebde107dfb764d">
-<!ENTITY sha256 "a91db6ae66056959cc6b133db1e4240d1c57544b421218ae82bd60d4980a329b">
+<!ENTITY version "2026.11.12.17">
+<!ENTITY md5 "685fc917c93d2a42a69c0d28d1858615">
+<!ENTITY sha256 "f7909717539ae02894c2b6de08ed891aabe6f3c4c74c0a04329d2cb803433eef">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.17
+- Fix: Clicking an editable container name in a multi-row Docker folder preview now opens the container editor. Container icons continue to open the native context menu.
+- Fix: Preserve separate name and menu actions with Expand or Scroll overflow, nested container previews, keyboard navigation, and Docker row refreshes. Containers without a native Edit action retain non-editable names.
+- Compatibility: Hard-refresh after installing this update. Existing preview settings, quick actions, and advanced popups are preserved.
+
 
 ###2026.11.12.16
 - Fix: Keep every Advanced-tab On/Off label directly beside its toggle and vertically centered.

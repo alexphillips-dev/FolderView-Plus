@@ -21,11 +21,13 @@ export const exerciseDockerPreviewContextDiagnostics = async ({ page, baseUrl })
             result.diagnostics.lastEvent.rowIndex, result.diagnostics.lastEvent.triggerSource, result.diagnostics.lastEvent.inputMethod],
         ['dispatch', 'success', '2', 1, 'icon', 'mouse']
     );
+    const dispatchesBeforeName = result.diagnostics.counters.dispatchAttempts;
     result = await exercise('#fixture-context-preview-unlimited .folder-preview-row:first-of-type .appname');
-    assert.deepEqual([result.openCount, result.editCount, result.lastKey], [1, 0, 'unlimited']);
+    assert.deepEqual([result.openCount, result.editCount, result.lastKey], [0, 1, '']);
+    assert.equal(result.diagnostics.counters.dispatchAttempts, dispatchesBeforeName, 'editing a name must not dispatch a context-menu click');
     assert.deepEqual(
         [result.diagnostics.lastEvent.rowMode, result.diagnostics.lastEvent.rowIndex, result.diagnostics.lastEvent.triggerSource],
-        ['unlimited', 1, 'name']
+        ['2', 1, 'icon']
     );
     result = await exercise('#fixture-context-preview-rows-2 .folder-preview-row:nth-of-type(2) .state');
     assert.deepEqual([result.openCount, result.lastKey], [1, 'rows-2']);
@@ -52,10 +54,10 @@ export const exerciseDockerPreviewContextDiagnostics = async ({ page, baseUrl })
             result.diagnostics.counters.missingBridgeTargets, result.diagnostics.counters.handlerIntegrityFailures,
             result.diagnostics.counters.dispatchAttempts, result.diagnostics.counters.dispatchSuccesses,
             result.diagnostics.counters.dispatchFailures],
-        [4, 4, 0, 4, 8, 8, 0, 0, 5, 5, 0]
+        [4, 4, 0, 4, 8, 8, 0, 0, 4, 4, 0]
     );
     assert.equal(result.diagnostics.rowModes['2'].dispatchSuccesses, 3);
-    assert.equal(result.diagnostics.rowModes.unlimited.dispatchSuccesses, 2);
+    assert.equal(result.diagnostics.rowModes.unlimited.dispatchSuccesses, 1);
     assert.equal(result.diagnostics.rowIndexes['2'].dispatchSuccesses, 2);
     assert.equal(result.diagnostics.triggerSources.status, 1);
     assert.equal(result.diagnostics.inputMethods.keyboard, 2);
@@ -67,7 +69,7 @@ export const exerciseDockerPreviewContextDiagnostics = async ({ page, baseUrl })
     assert.deepEqual(
         [persisted.counters.dispatchSuccesses, persisted.rowModes['2'].dispatchSuccesses,
             persisted.rowModes.unlimited.dispatchSuccesses, persisted.rowIndexes['2'].dispatchSuccesses],
-        [5, 3, 2, 2]
+        [4, 3, 1, 2]
     );
     const failedAudit = await page.evaluate(() => window.fixtureNativePreviewContext.breakRows2HandlersAndAudit());
     result = await snapshot();

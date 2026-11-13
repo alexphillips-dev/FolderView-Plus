@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.12.12">
-<!ENTITY md5 "9024150bfe95b9fcce16c1ac740e09f0">
-<!ENTITY sha256 "3082ec73310c0c6fb85afcb9e9023c72c32fd4fa899c32515f122e58c1a3a3c0">
+<!ENTITY version "2026.11.12.13">
+<!ENTITY md5 "8f25fb6d9b39850ad2111181e8204184">
+<!ENTITY sha256 "c28e70bf7f6a5c35e37acfad291b27cd73a79616a7c5d39b30156d2d6e30b5a3">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.12.13
+- Fix: Keep the Folder WebUI toggle against the left of its card with the On/Off text vertically centered directly beside it, including on host pages that stack controls vertically.
+- Fix: Expand the WebUI URL input across the available width of its card, including wide desktop layouts and when the field is disabled.
+- Compatibility: Hard-refresh after installing this update. Existing WebUI URL values and toggle behavior are preserved.
+
 
 ###2026.11.12.12
 - Fix: Keep Name, Folder WebUI, and WebUI URL together in one evenly aligned row in the folder editor on desktop. Smaller screens continue to stack these fields.

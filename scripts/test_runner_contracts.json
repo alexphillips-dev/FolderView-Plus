@@ -289,7 +289,7 @@
         "tests/browser/helpers/host-theme.mjs"
       ],
       "testCount": 151,
-      "assertionCount": 2010,
+      "assertionCount": 2013,
       "pageEvaluateCount": 650,
       "orderedTitleSha256": "0e56a8613154f3444ce7ab7a06309f974358ec3f0225b668dc07136bb8974c1b"
     }

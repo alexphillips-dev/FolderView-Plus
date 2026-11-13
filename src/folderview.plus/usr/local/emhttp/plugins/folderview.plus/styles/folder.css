@@ -2977,7 +2977,12 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row {
+    --fv-editor-wide-field-width: 100%;
     grid-column: auto;
+}
+
+.fv-modern-field-row.is-webui-url-row > dl > dd {
+    align-self: stretch;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row {
@@ -4157,8 +4162,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 .fv-modern-field-row.is-wide-row input[type="number"],
 .fv-modern-field-row.is-wide-row select,
 .fv-modern-field-row.is-wide-row textarea {
-    width: min(100%, 640px) !important;
-    max-width: min(100%, 640px) !important;
+    width: min(100%, var(--fv-editor-wide-field-width, 640px)) !important;
+    max-width: min(100%, var(--fv-editor-wide-field-width, 640px)) !important;
 }
 
 .fv-modern-field-row.is-compact-text-row input[type="text"],
@@ -4269,6 +4274,8 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 
 .fv-modern-field-row.is-webui-row > dl > dd {
     align-self: stretch;
+    flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
     flex-wrap: nowrap;
     min-height: 38px;

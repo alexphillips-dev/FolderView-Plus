@@ -5,11 +5,19 @@ import { nativeSwitchSource, nativeSwitchCss } from './docker-native-switch.mjs'
 const readLayout = () => {
     const form = settingsFixture.form;
     const rect = node => { const { x, y, width, height } = node.getBoundingClientRect(); return { x, y, width, height }; };
+    const content = node => {
+        const box = rect(node), style = getComputedStyle(node);
+        const left = parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth), right = parseFloat(style.paddingRight) + parseFloat(style.borderRightWidth);
+        return { x: box.x + left, width: box.width - left - right };
+    };
     const row = form.folder_webui.closest('.basic');
+    const url = form.folder_webui_url;
     return {
         cards: ['name', 'folder_webui', 'folder_webui_url'].map(name => rect(form.elements.namedItem(name).closest('.basic'))),
         toggle: rect(row.querySelector('.switch-button-background')),
         label: rect([...row.querySelectorAll('.switch-button-label')].find(node => getComputedStyle(node).display !== 'none')),
+        toggleContent: content(row.querySelector('dd')),
+        urlCardContent: content(url.closest('.basic')), urlContainer: content(url.closest('dd')), urlInput: rect(url),
         overflow: document.documentElement.scrollWidth > innerWidth,
         disabled: form.folder_webui_url.disabled,
         checked: form.folder_webui.checked
@@ -26,18 +34,23 @@ const assertLayout = (layout, width, context) => {
     } else {
         assert.ok(cards[0].y + cards[0].height < cards[1].y && cards[1].y + cards[1].height < cards[2].y, `${context}: narrow cards stack`);
     }
+    assert.ok(Math.abs(toggle.x - layout.toggleContent.x) <= 1.5, `${context}: switch is anchored to the left`);
     assert.ok(label.x >= toggle.x + toggle.width, `${context}: visible On/Off text is to the right`);
     assert.ok(Math.abs(label.y + label.height / 2 - toggle.y - toggle.height / 2) <= 1.5, `${context}: On/Off text is vertically centered`);
+    assert.ok(Math.abs(layout.urlContainer.x - layout.urlCardContent.x) <= 1.5 && Math.abs(layout.urlContainer.width - layout.urlCardContent.width) <= 1.5, `${context}: URL container fills the card content`);
+    assert.ok(Math.abs(layout.urlInput.x - layout.urlContainer.x) <= 1.5 && Math.abs(layout.urlInput.width - layout.urlContainer.width) <= 1.5, `${context}: URL input fills its container`);
     assert.equal(layout.overflow, false, `${context}: no horizontal page overflow`);
 };
 export const verifyFolderEditorWebuiLayout = async (page, baseUrl) => {
     for (const colorScheme of ['dark', 'light']) {
         await page.emulateMedia({ colorScheme });
-        for (const width of [1440, 390]) {
+        for (const width of [1920, 1440, 390]) {
             await page.setViewportSize({ width, height: 844 });
             for (const type of ['docker', 'vm']) {
                 await mountSettingsEditor(page, baseUrl, type);
                 await page.addStyleTag({ content: nativeSwitchCss });
+                // Unraid 7.3.2 default-base.css responsive dd contract; centering below is a separate synthetic host challenge.
+                await page.addStyleTag({ content: '@media(min-width:769px){dd{display:flex;flex-direction:column;gap:.5rem}}' });
                 await page.addScriptTag({ content: nativeSwitchSource });
                 await page.evaluate(() => $('[name="folder_webui"]').switchButton({ labels_placement: 'right', off_label: 'Off', on_label: 'On' }));
                 const context = `${type}/${colorScheme}/${width}`;
@@ -50,7 +63,7 @@ export const verifyFolderEditorWebuiLayout = async (page, baseUrl) => {
                 await page.locator('[name="folder_webui_url"]').fill('https://example.invalid/folder');
                 assertLayout(await page.evaluate(readLayout), width, `${context}/native/on`);
                 // Synthetic host conflicts, not an Aurora stylesheet: full-width labels and floated switch margins.
-                await page.addStyleTag({ content: 'body .switch-button-label{display:block;width:100%;line-height:26px;margin:8px 0 4px}body .switch-button-background{float:left;width:44px!important;height:24px!important;margin:9px 12px 5px 0}' });
+                await page.addStyleTag({ content: 'form dl dd{flex-direction:column;align-items:center;justify-content:center}body .switch-button-label{display:block;width:100%;line-height:26px;margin:8px 0 4px}body .switch-button-background{float:left;width:44px!important;height:24px!important;margin:9px 12px 5px 0}' });
                 await page.evaluate(() => {
                     const labels = document.querySelector('.is-webui-row').querySelectorAll('.switch-button-label');
                     labels[0].textContent = 'Deaktiviert'; labels[1].textContent = 'Eingeschaltet';

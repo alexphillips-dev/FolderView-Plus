@@ -1,5 +1,36 @@
 # Runtime performance budgets
 
+## November 13 aggregate size reconciliation
+
+The previous stable [hosted qualification](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/41115418118)
+measured commit `72897703f7deca9949d7b1f2acddfb2baae68bcc`. The first November 13
+[candidate qualification](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/43484809117)
+measured `4293a421f58db593470c91d4850c8fa97e34c830` and stopped at the static size
+ratchet. Both guard logs use the same per-file gzip level 9 calculation.
+
+| Aggregate gzip bytes | Previous hosted stable | Hosted candidate | Net increase | Already credited | Additional credit | Baseline after review |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| JavaScript | 1,015,315 | 1,022,056 | 6,741 | 2,919 | 3,822 | 947,003 |
+| CSS | 114,807 | 115,424 | 617 | 0 | 617 | 106,925 |
+
+Only the uncredited aggregate gzip increases are added. Raw-byte and per-asset
+baselines, combined Settings totals, the 8% growth rule, timing/count policies,
+and absolute limits remain unchanged. The logs used Node 24.22.1 and 24.22.2;
+these are separate hosted source totals, rather than a controlled same-runtime
+immutable-blob experiment or isolated per-feature attribution. No workspace
+performance check or full baseline refresh was run for this correction. These
+credits do not establish qualification: every corrected candidate must pass
+fresh hosted checks.
+
+Startup script accounting also recognizes a link-initiated resource only when
+its fetch URL matches an actual script element. This includes consumed script
+preloads while excluding unused hints and unrelated styles. Query/version
+differences remain significant, duplicate DOM references do not multiply
+requests, and distinct resource entries remain counted. Functional readiness,
+membership, localization, cache reuse, and error checks remain independent.
+
+## Earlier measured changes
+
 The October 30 hosted investigation (CI run
 [`41111531450`](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/41111531450),
 diagnostic commit `2fc51ca8c74e2d9b1ddab11307056badcbd231eb`) compared immutable

@@ -62,6 +62,55 @@ test('Settings readiness records the actual transition before delayed browser po
     assert.equal(state.readyMs, 60, 'The late translation event must use the initialization timestamp');
 });
 
+const startupResourceSnapshot = (resources, scripts) => {
+    const window = {};
+    const context = vm.createContext({ window, document: {
+        baseURI: 'https://fixture.test/docker', scripts,
+        querySelectorAll: () => ({ length: 0 }), addEventListener() {}
+    }, performance: { now: () => 100, getEntriesByType: type => type === 'resource' ? resources : [] }, URL,
+    PerformanceObserver: class { observe() {} disconnect() {} },
+    MutationObserver: class { observe() {} disconnect() {} }, requestAnimationFrame() {} });
+    vm.runInContext(`(${observeProductionStartup.toString()})()`, context);
+    return window.productionPerf.finish();
+};
+
+test('production startup accounts for consumed script preloads without counting unused hints or styles', () => {
+    const resources = [
+        ['normal.js?v=2', 'script'], ['docker.js?v=2', 'link'], ['docker.js?v=1', 'link'],
+        ['unused.js', 'link'], ['folder.css', 'link'], ['folder.png', 'img']
+    ].map(([file, initiatorType]) => ({ name: `https://fixture.test/assets/${file}`, initiatorType,
+        transferSize: 100, decodedBodySize: 50 }));
+    const result = startupResourceSnapshot(resources, [
+        { src: '/assets/docker.js?v=2#module' }, { src: '/assets/docker.js?v=2#module' }, { src: '' }
+    ]);
+    assert.deepEqual(Array.from(result.scripts), ['/assets/normal.js', '/assets/docker.js']);
+    assert.equal(result.scriptRequests, 2, 'DOM duplicates do not multiply an observed resource request');
+    assert.equal(result.cachedScriptRequests, 0);
+    assert.equal(result.readyMs, undefined, 'Resource accounting cannot establish functional readiness');
+    assert.equal(result.requests, 6, 'Unused hints and non-script resources remain in total request accounting');
+    assert.equal(result.transferBytes, 600);
+});
+
+test('production startup preserves repeated fetches and warm-cache accounting for consumed preloads', () => {
+    const resources = [
+        ['shared.js?v=2', 'link', 100, 80], ['shared.js?v=2', 'script', 0, 80],
+        ['shared.js?v=2', 'link', 0, 80], ['removed.js', 'script', 0, 80],
+        ['unused.js', 'link', 0, 80], ['folder.css', 'link', 0, 80], ['empty.js', 'script', 0, 0]
+    ].map(([file, initiatorType, transferSize, decodedBodySize]) => ({
+        name: `https://fixture.test/assets/${file}`, initiatorType, transferSize, decodedBodySize
+    }));
+    const result = startupResourceSnapshot(resources, [
+        { src: 'https://fixture.test/assets/shared.js?v=2' }, { src: 'https://fixture.test/assets/shared.js?v=2' }
+    ]);
+    assert.deepEqual(Array.from(result.scripts), [
+        '/assets/shared.js', '/assets/shared.js', '/assets/shared.js', '/assets/removed.js', '/assets/empty.js'
+    ]);
+    assert.equal(result.scriptRequests, 5, 'Every resource entry remains counted even when URLs repeat');
+    assert.equal(result.cachedScriptRequests, 3, 'Only script requests with a decoded cached body count as cache reuse');
+    assert.equal(result.requests, 7);
+    assert.equal(result.transferBytes, 100);
+});
+
 test('production benchmark rejects missing samples and enforces absolute and baseline limits', () => {
     for (const values of [[], [undefined], [NaN], [-1], [1, Infinity]]) assert.throws(() => median(values));
     assert.equal(median([9,1,5]), 5);

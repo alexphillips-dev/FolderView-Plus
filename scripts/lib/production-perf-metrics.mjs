@@ -69,7 +69,16 @@ export function observeProductionStartup({ folderCount } = {}) {
     window.productionPerf = { state, markReady, finish() {
         state.stopped = true; observer.disconnect(); mutations.disconnect();
         const resources = performance.getEntriesByType('resource');
-        const scripts = resources.filter(e => e.initiatorType === 'script');
+        const fetchUrl = value => {
+            const url = new URL(value, document.baseURI);
+            url.hash = '';
+            return url.href;
+        };
+        const scriptUrls = new Set(Array.from(document.scripts, script => script.src).filter(Boolean).map(fetchUrl));
+        // Consumed preloads retain their link initiator even after script execution.
+        // Keep resource entries distinct: repeated fetches are still separate requests.
+        const scripts = resources.filter(e => e.initiatorType === 'script'
+            || (e.initiatorType === 'link' && scriptUrls.has(fetchUrl(e.name))));
         return { readyMs: state.readyMs, settledMs: performance.now(),
             longTaskCount: state.longTasks.length, longTaskTotalMs: state.longTasks.reduce((sum,e)=>sum+e.duration,0),
             longestTaskMs: Math.max(0,...state.longTasks.map(e=>e.duration)),

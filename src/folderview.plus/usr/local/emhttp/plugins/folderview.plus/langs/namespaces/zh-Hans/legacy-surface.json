@@ -2513,7 +2513,7 @@
     "legacy.surface.d701c12d5099a57c": "未加载所需的插件文件。",
     "legacy.surface.d70cf603eae9a2b2": "强调色：",
     "legacy.surface.d71a690c533f0773": "应用模板",
-    "legacy.surface.d72bb01b908b7d9c": "$1 直接会员 | $2 包括嵌套文件夹",
+    "legacy.surface.d72bb01b908b7d9c": "$1 个直属成员 | 含子文件夹共 $2 个成员",
     "legacy.surface.d73006334c7fee4e": "页 $1 / $2",
     "legacy.surface.d774c76450f8f86b": "冲突已消除。 FolderView Plus 再次激活。",
     "legacy.surface.d77c58c250b6c1e0": "$1 的等待时间",

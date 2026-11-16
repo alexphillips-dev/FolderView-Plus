@@ -32,7 +32,7 @@
     "dashboard.quick.expand-all-short": "展开所有文件夹",
     "dashboard.quick.view-options": "视图选项",
     "dashboard.quick.capture-diagnostics": "采集布局诊断信息",
-    "dashboard.quick.capture-success-title": "已采集布局诊断信息,
+    "dashboard.quick.capture-success-title": "已采集布局诊断信息",
     "dashboard.quick.capture-export-message": "从 FolderView Plus 设置中导出支持包，即可附上本次采集结果。",
     "dashboard.quick.capture-storage-message": "浏览器无法保存本次采集结果。请允许此站点使用浏览器存储空间后重试。",
     "dashboard.quick.capture-unavailable-title": "布局诊断不可用",

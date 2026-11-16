@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics",
-        "translation-context-revision": "08bc843f999289733eae89b2ab189dc155b02379f25c0a41efbc7b54abc663a4"
+        "translation-context-revision": "f25cc59e903467f1974e65c686d381350b0e953e07aa04041d16bfe2b16ede63"
     },
     "diagnostics.cards.theme-integration": "প্যালেট উত্স: $1৷ পুনরুদ্ধারের কারণ: $2। নেটিভ সাইজিং: $3৷",
     "diagnostics.title": "ডায়াগনস্টিকস",

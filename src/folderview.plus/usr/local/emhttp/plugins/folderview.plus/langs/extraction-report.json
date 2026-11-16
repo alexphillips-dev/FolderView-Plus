@@ -1,6 +1,6 @@
 {
     "catalog-version": "2026.08.10.1",
-    "generated-at": "2026-11-12",
+    "generated-at": "2026-11-16",
     "candidate-count": 0,
     "auto-bound-message-count": 2989,
     "catalog-message-count": 4743,
@@ -10,7 +10,7 @@
         "scripts/folderviewplus.js": 253,
         "scripts/folderviewplus.wizard.js": 202,
         "Folder.page": 186,
-        "scripts/folder.js": 117,
+        "scripts/folder.js": 116,
         "scripts/folder.editor.chrome.js": 106,
         "scripts/folderviewplus.import.js": 92,
         "scripts/folderviewplus.activity-diagnostics.js": 58,

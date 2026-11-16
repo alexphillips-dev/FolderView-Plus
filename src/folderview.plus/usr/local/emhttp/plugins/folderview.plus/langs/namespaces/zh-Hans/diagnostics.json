@@ -236,7 +236,7 @@
     "diagnostics.capture.page": "$1 页",
     "diagnostics.capture.runtime-summary": "视口：$1；文件夹：$2；成员：$3；加载控件：$4。",
     "diagnostics.support.export-calculation": "有 $1 个字段将在生成导出文件时计算。",
-    "diagnostics.support.none-reported": "$1：没有报告",
+    "diagnostics.support.none-reported": "$1：无记录",
     "diagnostics.activity.empty": "最近没有活动。",
     "diagnostics.activity.errors": "需要注意的问题：$1。",
     "diagnostics.activity.warnings": "需要审查的项目：$1。",

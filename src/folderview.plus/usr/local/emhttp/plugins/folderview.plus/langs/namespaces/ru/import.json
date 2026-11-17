@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "import",
-        "translation-context-revision": "f25cc59e903467f1974e65c686d381350b0e953e07aa04041d16bfe2b16ede63"
+        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
     },
     "import.subtitle": "Выберите, как обрабатывать существующие папки. Ничего не изменится, пока вы не выберете Применить импорт.",
     "import.behavior.question": "Как следует обрабатывать существующие папки?",

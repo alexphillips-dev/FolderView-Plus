@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "dashboard",
-        "translation-context-revision": "f25cc59e903467f1974e65c686d381350b0e953e07aa04041d16bfe2b16ede63"
+        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
     },
     "dashboard.folder.toggle-members": "展开或折叠文件夹成员",
     "dashboard.widget.docker": "Docker",
@@ -13,7 +13,7 @@
     "dashboard.quick.layout": "布局",
     "dashboard.quick.choose-layout": "选择布局",
     "dashboard.quick.display": "显示",
-    "dashboard.quick.running-only": "仅显示运行中",
+    "dashboard.quick.running-only": "仅显示运行中的项目",
     "dashboard.quick.running-only-help": "隐藏停止的成员和文件夹。",
     "dashboard.quick.health-emphasis": "突出显示健康状态",
     "dashboard.quick.health-emphasis-help": "让运行状态更容易一眼辨认。",

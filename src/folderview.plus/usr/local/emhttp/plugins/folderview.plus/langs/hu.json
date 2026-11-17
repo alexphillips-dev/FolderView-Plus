@@ -5,8 +5,8 @@
         ],
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
-        "last-reviewed": "2026-11-16",
-        "last-updated": "2026-11-16",
+        "last-reviewed": "2026-11-17",
+        "last-updated": "2026-11-17",
         "locale": "hu",
         "native-name": "Magyar",
         "reviewed": true,
@@ -14,7 +14,7 @@
         "status": "complete",
         "translated-messages": 4743,
         "total-source-messages": 4743,
-        "translation-context-revision": "f25cc59e903467f1974e65c686d381350b0e953e07aa04041d16bfe2b16ede63"
+        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
     },
     "add-folder": "Mappa hozzáadása",
     "up-to-date": "naprakész",

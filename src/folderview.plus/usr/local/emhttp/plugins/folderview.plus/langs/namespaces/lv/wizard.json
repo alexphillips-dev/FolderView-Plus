@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "wizard",
-        "translation-context-revision": "f25cc59e903467f1974e65c686d381350b0e953e07aa04041d16bfe2b16ede63"
+        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
     },
     "wizard.title": "Iestatīšanas palīgs",
     "wizard.welcome.kicker": "FolderView Plus iestatīšanas palīgs",

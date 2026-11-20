@@ -5,8 +5,8 @@
         ],
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
-        "last-reviewed": "2026-11-12",
-        "last-updated": "2026-11-12",
+        "last-reviewed": "2026-11-19",
+        "last-updated": "2026-11-19",
         "locale": "hr",
         "native-name": "Hrvatski",
         "reviewed": true,
@@ -14,7 +14,7 @@
         "status": "complete",
         "translated-messages": 4743,
         "total-source-messages": 4743,
-        "translation-context-revision": "08bc843f999289733eae89b2ab189dc155b02379f25c0a41efbc7b54abc663a4"
+        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
     },
     "add-folder": "Dodaj mapu",
     "up-to-date": "ažuran",

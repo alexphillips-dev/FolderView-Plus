@@ -54,7 +54,7 @@
     "sv": ["Sorteringsordning", "Manuellt tilldelat", "Alla statusar", "Kontrollera", "Ikonpaket", "Typ av ikonpaket", "Inkludera visade medlemmar", "Uteslut visade medlemmar", "Exportera och importera plugininställningar", "Kontrollera och tillämpa ändringar", "Ingen pekskärm", "Musklick", "Rensa mappfokusfiltret"],
     "tr": ["Sıralama düzeni", "Elle atanmış", "Tüm durumlar", "Kontrol et", "Simge paketi", "Simge paketi türü", "Gösterilen üyeleri dahil et", "Gösterilen üyeleri hariç tut", "Eklenti yapılandırmasını dışa ve içe aktarma", "Kontrol et ve değişiklikleri uygula", "Dokunmatik ekran yok", "Fare tıklaması", "Klasör odak filtresini temizle"],
     "uk": ["Порядок сортування", "Призначено вручну", "Усі стани", "Перевірити", "Набір піктограм", "Тип набору піктограм", "Включити показані елементи", "Виключити показані елементи", "Експорт та імпорт налаштувань плагіна", "Перевірити й застосувати зміни", "Без сенсорного екрана", "Клацання мишею", "Скинути фільтр вибраної теки"],
-    "zh-Hans": ["排序顺序", "手动分配", "所有状态", "检查", "图标包", "图标包类型", "包含显示的成员", "排除显示的成员", "导出和导入插件配置", "检查并应用更改", "无触摸屏", "鼠标单击", "清除文件夹聚焦筛选"],
+    "zh-Hans": ["排序顺序", "手动分配", "所有状态", "检查", "图标包", "图标包类型", "包含显示的成员", "排除显示的成员", "导出和导入插件配置", "检查并应用更改", "不支持触控", "鼠标单击", "清除文件夹聚焦筛选"],
     "zh-Hant": ["排序順序", "手動指派", "所有狀態", "檢查", "圖示套件", "圖示套件類型", "包含顯示的成員", "排除顯示的成員", "匯出和匯入外掛程式設定", "檢查並套用變更", "無觸控螢幕", "滑鼠點擊", "清除資料夾焦點篩選"]
   }
 }

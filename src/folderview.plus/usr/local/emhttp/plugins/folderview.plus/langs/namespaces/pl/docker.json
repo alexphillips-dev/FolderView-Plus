@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Wyświetl skopiowane ustawienia…",
     "docker.transfer.clear": "Wyczyść skopiowane ustawienia",
     "docker.transfer.clone-settings": "Tylko ustawienia klonowania",
-    "docker.transfer.clone-settings-menu": "Tylko ustawienia klonowania…"
+    "docker.transfer.clone-settings-menu": "Tylko ustawienia klonowania…",
+    "docker.native-order.folderview-only": "Przejdź do widoku FolderView, aby zapisać kolejność pojemników.",
+    "docker.actions.save-native-order": "Zapisz bieżącą kolejność w Unraid",
+    "docker.native-order.not-ready": "Lista Dockerów na tej stronie jest niekompletna lub nieaktualna. Nic nie zostało zmienione. Załaduj ponownie kartę Docker i spróbuj ponownie.",
+    "docker.native-order.incomplete": "Tych kontenerów nie ma na liście na tej stronie: $1. Unraid przenosi każdy kontener pominięty po zapisaniu kolejności kontenerów na górę listy, więc nic nie zostało zmienione. Załaduj ponownie kartę Docker i spróbuj ponownie.",
+    "docker.native-order.folder": "Folder: $1",
+    "docker.native-order.intro": "Unraid zapisze kontenery w poniższej kolejności. Unraid używa tej kolejności na karcie Docker, gdy FolderView Plus nie jest zainstalowany, i sortuje według niej swoją listę autostartu, więc może to zmienić kolejność, w której zaczynają się kontenery.",
+    "docker.native-order.start-managed": "Następnie FolderView Plus stosuje własne ustawienie kolejności uruchamiania kontenerów, tak jak ma to miejsce po przeciągnięciu wiersza.",
+    "docker.native-order.start-unmanaged": "FolderView Plus jest ustawiony tak, aby pozostawić kolejność startową Unraid, więc nic później nie zmienia wyniku: kontenery z włączonym autostartem będą uruchamiane w poniższej kolejności.",
+    "docker.native-order.saved-title": "Kolejność kontenerów została zapisana",
+    "docker.native-order.not-saved-title": "Kolejność kontenerów nie została zapisana",
+    "docker.native-order.unconfirmed-title": "Nie udało się potwierdzić zapisu",
+    "docker.native-order.read-failed": "Nie można odczytać listy kontenerów z Unraid ($1), dlatego nie można było sprawdzić kolejności kontenerów. Nic nie zostało zmienione.",
+    "docker.native-order.changed": "Lista Dockerów, czyli kolejność kontenerów zapisanych w Unraid, uległa zmianie, gdy podgląd był otwarty. Nic nie zostało zmienione. Sprawdź listę i spróbuj ponownie.",
+    "docker.native-order.request-failed": "Unraid nie potwierdził żądania zapisu ($1). Załaduj ponownie zakładkę Docker, aby zobaczyć kolejność kontenerów zapisaną w Unraid.",
+    "docker.native-order.unverified": "Żądanie zapisania zostało wysłane, ale nie udało się odczytać kolejności kontenerów z Unraid ($1), więc zapis nie został potwierdzony. Załaduj ponownie kartę Docker, aby to sprawdzić.",
+    "docker.native-order.saved": "W Unraid zapisano teraz kontenery w kolejności pokazanej na podglądzie.",
+    "docker.native-order.mismatch": "Kolejność kontenerów zapisanych w Unraid różni się teraz od kolejności, która została wysłana. Inna strona Dockera prawdopodobnie w tym samym momencie zapisała własną kolejność kontenerów. Sprawdź zakładkę Docker i zapisz ponownie."
 }

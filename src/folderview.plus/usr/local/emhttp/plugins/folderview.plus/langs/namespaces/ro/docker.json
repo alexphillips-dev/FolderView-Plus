@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Vedeți setările copiate...",
     "docker.transfer.clear": "Ștergeți setările copiate",
     "docker.transfer.clone-settings": "Numai setările de clonare",
-    "docker.transfer.clone-settings-menu": "Numai setările de clonare..."
+    "docker.transfer.clone-settings-menu": "Numai setările de clonare...",
+    "docker.native-order.folderview-only": "Comutați la vizualizarea FolderView pentru a salva ordinea containerelor sale.",
+    "docker.actions.save-native-order": "Salvează ordinea curentă în Unraid",
+    "docker.native-order.not-ready": "Lista Docker de pe această pagină este incompletă sau depășită. Nu s-a schimbat nimic. Reîncărcați fila Docker și încercați din nou.",
+    "docker.native-order.incomplete": "Aceste containere nu sunt în lista de pe această pagină: $1. Unraid mută orice container care este lăsat afară atunci când ordinea containerelor este salvată în partea de sus a listei sale, astfel încât nimic nu a fost schimbat. Reîncărcați fila Docker și încercați din nou.",
+    "docker.native-order.folder": "Dosar: $1",
+    "docker.native-order.intro": "Unraid va salva containerele în ordinea de mai jos. Unraid folosește acea ordine în fila Docker atunci când FolderView Plus nu este instalat și își sortează lista de pornire automată după ea, astfel încât aceasta poate schimba ordinea în care încep containerele.",
+    "docker.native-order.start-managed": "FolderView Plus aplică apoi propria sa setare pentru ordinea în care pornesc containerele, așa cum se întâmplă după ce un rând este tras.",
+    "docker.native-order.start-unmanaged": "FolderView Plus este setat să lase ordinea de pornire pe Unraid, așa că nimic nu ajustează rezultatul ulterior: containerele cu pornire automată activată vor începe în ordinea de mai jos.",
+    "docker.native-order.saved-title": "Ordinea containerelor a fost salvată",
+    "docker.native-order.not-saved-title": "Ordinea containerelor nu a fost salvată",
+    "docker.native-order.unconfirmed-title": "Salvarea nu a putut fi confirmată",
+    "docker.native-order.read-failed": "Lista de containere nu a putut fi citită din Unraid ($1), așa că ordinea containerelor nu a putut fi verificată. Nu s-a schimbat nimic.",
+    "docker.native-order.changed": "Lista Docker, sau ordinea containerelor salvate în Unraid, s-a schimbat în timp ce previzualizarea era deschisă. Nu s-a schimbat nimic. Verificați lista și încercați din nou.",
+    "docker.native-order.request-failed": "Unraid nu a confirmat cererea de salvare ($1). Reîncărcați fila Docker pentru a vedea ordinea containerelor care este salvată în Unraid.",
+    "docker.native-order.unverified": "Solicitarea de salvare a fost trimisă, dar ordinea containerelor nu a putut fi citită înapoi din Unraid ($1), așa că salvarea nu este confirmată. Reîncărcați fila Docker pentru a o verifica.",
+    "docker.native-order.saved": "Unraid are acum containerele salvate în ordinea afișată în previzualizare.",
+    "docker.native-order.mismatch": "Ordinea containerelor salvate în Unraid diferă acum de ordinea trimisă. O altă pagină Docker și-a salvat probabil propria ordine a containerelor în același moment. Verificați fila Docker și salvați din nou."
 }

@@ -97,6 +97,8 @@ Changing views does not delete folder configuration. Use `Reset view` to clear t
 
 Each Docker folder menu includes four quick actions: focus, pin, lock, and hide. Hiding a parent hides its complete nested branch and member rows from FolderView without deleting configuration or changing assignments. Use the temporary `Undo` notice immediately after hiding, or open `View -> Hidden folders` to reveal hidden rows. Revealed rows are dimmed and labeled `Hidden`; restore one from its folder menu or choose `Restore all hidden folders`. Hidden folders remain visible in Host list mode because that mode intentionally restores Unraid's native table.
 
+`Tools -> Save current order to Unraid` saves the container order shown by the FolderView view as Unraid's own Docker order, which Unraid uses when FolderView Plus is not installed. The action first previews the flat container list, with the members of nested folders in place, and saves only after you confirm. It sends the request Unraid sends when a row is dragged, so Unraid also sorts its autostart list by the saved order and the start order can change; a managed Docker start order mode is applied again afterwards. Nothing is saved while a container is missing from the page or when the list or Unraid's saved order changes during the preview. After saving, the order is read back, and a difference is reported as not saved. Page loads and imports never save Unraid's order.
+
 VM and Dashboard surfaces use the same saved Docker or VM folder configuration where applicable. Runtime state is reconciled incrementally so start, stop, pause, resume, and update results can update without rebuilding the entire page.
 
 ## Quick finder on Docker and VMs

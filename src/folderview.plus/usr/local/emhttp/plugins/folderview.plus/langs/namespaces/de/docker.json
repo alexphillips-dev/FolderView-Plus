@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Kopierte Einstellungen anzeigen…",
     "docker.transfer.clear": "Kopierte Einstellungen löschen",
     "docker.transfer.clone-settings": "Nur Kloneinstellungen",
-    "docker.transfer.clone-settings-menu": "Nur Kloneinstellungen…"
+    "docker.transfer.clone-settings-menu": "Nur Kloneinstellungen…",
+    "docker.native-order.folderview-only": "Wechseln Sie zur FolderView-Ansicht, um die Reihenfolge der Container zu speichern.",
+    "docker.actions.save-native-order": "Aktuelle Reihenfolge in Unraid speichern",
+    "docker.native-order.not-ready": "Die Docker-Liste auf dieser Seite ist unvollständig oder veraltet. Es wurde nichts geändert. Laden Sie die Docker-Registerkarte neu und versuchen Sie es erneut.",
+    "docker.native-order.incomplete": "Diese Container sind nicht in der Liste auf dieser Seite: $1. Unraid verschiebt alle Container, die beim Speichern der Containerreihenfolge ausgelassen werden, an den Anfang der Liste, es wurde also nichts geändert. Laden Sie die Docker-Registerkarte neu und versuchen Sie es erneut.",
+    "docker.native-order.folder": "Ordner: $1",
+    "docker.native-order.intro": "Unraid speichert die Container in der unten angegebenen Reihenfolge. Unraid verwendet diese Reihenfolge auf der Docker-Registerkarte, wenn FolderView Plus nicht installiert ist, und sortiert seine Autostart-Liste danach, sodass sich dadurch die Startreihenfolge der Container ändern kann.",
+    "docker.native-order.start-managed": "FolderView Plus wendet dann eine eigene Einstellung für die Reihenfolge an, in der Container beginnen, wie es auch nach dem Ziehen einer Zeile der Fall ist.",
+    "docker.native-order.start-unmanaged": "FolderView Plus ist so eingestellt, dass die Startreihenfolge Unraid überlassen bleibt, daher passt danach nichts das Ergebnis an: Container mit aktiviertem Autostart werden in der unten angegebenen Reihenfolge gestartet.",
+    "docker.native-order.saved-title": "Die Reihenfolge der Container wurde gespeichert",
+    "docker.native-order.not-saved-title": "Die Reihenfolge der Container wurde nicht gespeichert",
+    "docker.native-order.unconfirmed-title": "Das Speichern konnte nicht bestätigt werden",
+    "docker.native-order.read-failed": "Die Containerliste konnte nicht aus Unraid ($1) gelesen werden, daher konnte die Reihenfolge der Container nicht überprüft werden. Es wurde nichts geändert.",
+    "docker.native-order.changed": "Die Docker-Liste bzw. die Reihenfolge der in Unraid gespeicherten Container hat sich geändert, während die Vorschau geöffnet war. Es wurde nichts geändert. Überprüfen Sie die Liste und versuchen Sie es erneut.",
+    "docker.native-order.request-failed": "Unraid hat die Speicheranforderung nicht bestätigt ($1). Laden Sie die Registerkarte „Docker“ neu, um die Reihenfolge der in Unraid gespeicherten Container anzuzeigen.",
+    "docker.native-order.unverified": "Die Speicheranfrage wurde gesendet, aber die Reihenfolge der Container konnte nicht von Unraid ($1) zurückgelesen werden, sodass die Speicherung nicht bestätigt wird. Laden Sie die Registerkarte „Docker“ neu, um sie zu überprüfen.",
+    "docker.native-order.saved": "Bei Unraid werden die Container jetzt in der in der Vorschau angezeigten Reihenfolge gespeichert.",
+    "docker.native-order.mismatch": "Die Reihenfolge der in Unraid gespeicherten Container weicht nun von der gesendeten Reihenfolge ab. Eine andere Docker-Seite hat vermutlich im selben Moment ihre eigene Reihenfolge der Container gespeichert. Überprüfen Sie die Registerkarte „Docker“ und speichern Sie erneut."
 }

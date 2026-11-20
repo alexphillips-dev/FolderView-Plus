@@ -112,7 +112,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js",
-      "line": 347,
+      "line": 353,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

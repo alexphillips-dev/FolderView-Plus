@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "docker",
-        "content-revision": "aac53a1058433fc076ac2eed9a4dbe967b0617253be75b6d1771bbf89f8559af"
+        "content-revision": "b91af9f1d1de7a50bbc9cd31950fa5c7bd4129bedf6a34f5aae8fe6d3ce47596"
     },
     "docker.folder.move-reload": "資料夾設定已變更。請重新整理後再移動資料夾。",
     "docker.actions.label": "FolderView 操作",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "檢視複製的設定...",
     "docker.transfer.clear": "清除複製的設定",
     "docker.transfer.clone-settings": "僅克隆設定",
-    "docker.transfer.clone-settings-menu": "僅克隆設定..."
+    "docker.transfer.clone-settings-menu": "僅克隆設定...",
+    "docker.native-order.folderview-only": "切換到FolderView 檢視以儲存其容器的順序。",
+    "docker.actions.save-native-order": "將目前順序儲存到 Unraid",
+    "docker.native-order.not-ready": "此頁面上的 Docker 清單不完整或過時。一切都沒有改變。重新載入 Docker 選項卡並重試。",
+    "docker.native-order.incomplete": "這些容器不在本頁的清單中：$1。 Unraid 會將容器順序儲存到其清單頂部時遺漏的所有容器移至清單頂部，因此不會發生任何變更。重新載入 Docker 選項卡並重試。",
+    "docker.native-order.folder": "資料夾：$1",
+    "docker.native-order.intro": "Unraid 將依照以下順序儲存容器。當未安裝FolderView Plus 時，Unraid 在 Docker 標籤上使用該順序，並按該順序對其自動啟動清單進行排序，因此這可以更改容器的啟動順序。",
+    "docker.native-order.start-managed": "然後，FolderView Plus 將其自己的設定應用於容器啟動的順序，就像拖曳行後一樣。",
+    "docker.native-order.start-unmanaged": "FolderView Plus 設定為將啟動順序保留為 Unraid，因此之後不會調整結果：啟用自動啟動的容器將依照下列順序啟動。",
+    "docker.native-order.saved-title": "容器的順序已儲存",
+    "docker.native-order.not-saved-title": "容器的順序未儲存",
+    "docker.native-order.unconfirmed-title": "無法確認是否已儲存",
+    "docker.native-order.read-failed": "無法從 Unraid ($1) 讀取容器列表，因此無法檢查容器的順序。一切都沒有改變。",
+    "docker.native-order.changed": "Docker 清單或 Unraid 中儲存的容器的順序在預覽開啟時發生了變化。一切都沒有改變。檢查列表並重試。",
+    "docker.native-order.request-failed": "Unraid 未確認儲存請求 ($1)。重新載入 Docker 標籤以檢視 Unraid 中儲存的容器的順序。",
+    "docker.native-order.unverified": "已傳送儲存要求，但無法從 Unraid ($1) 中讀回容器的順序，因此未確認儲存。重新載入 Docker 選項卡進行檢查。",
+    "docker.native-order.stored-missing": "未找到 userprefs.cfg 檔案",
+    "docker.native-order.stored-unreadable": "無法讀取 userprefs.cfg 檔案",
+    "docker.native-order.stored-invalid": "userprefs.cfg 檔案不是 Unraid 寫入的格式",
+    "docker.native-order.saved": "Unraid 現在已依照預覽中顯示的順序儲存容器。",
+    "docker.native-order.mismatch": "現在，Unraid 中儲存的容器的順序與傳送的順序不同。要麼 Unraid 沒有儲存它，要麼另一個 Docker 頁面同時儲存了自己的容器順序。檢查 Docker 選項卡並再次儲存。"
 }

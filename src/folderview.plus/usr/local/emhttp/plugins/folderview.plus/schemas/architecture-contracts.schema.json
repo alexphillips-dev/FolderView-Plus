@@ -779,7 +779,7 @@
       "dependsOn": ["server/lib.custom-icon-storage.php", "server/lib.docker-runtime.php", "server/lib.runtime-inventory.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 11, "sha256": "fbd5c7813bc66ba7f303851d21ddad9ce57f754379c49fdfe3d25739ecb4bc19" }
+      "functionInventory": { "count": 12, "sha256": "475500166dcf56124f2b8ae58457c2c0ec220272a73d4e27ec08d5d26da32306" }
     },
     {
       "file": "server/lib.diagnostics-redaction.php",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "docker",
-        "content-revision": "ed8fc515d48df0be4c4ff0f5e150b38c7dd1fe5ab40f70139595ff691379d1d4"
+        "content-revision": "0229c85552456c7fc1dd365dd27811cd5c89535f2a82ee0164f51705d50747e4"
     },
     "docker.folder.move-reload": "Mappkonfigurationen har ändrats. Uppdatera innan du flyttar mappen igen.",
     "docker.actions.label": "Åtgärder i mappvy",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Visa kopierade inställningar...",
     "docker.transfer.clear": "Rensa kopierade inställningar",
     "docker.transfer.clone-settings": "Endast kloninställningar",
-    "docker.transfer.clone-settings-menu": "Endast kloninställningar..."
+    "docker.transfer.clone-settings-menu": "Endast kloninställningar...",
+    "docker.native-order.folderview-only": "Växla till vyn FolderView för att spara ordningen på dess behållare.",
+    "docker.actions.save-native-order": "Spara aktuell ordning i Unraid",
+    "docker.native-order.not-ready": "Docker-listan på den här sidan är ofullständig eller inaktuell. Ingenting ändrades. Ladda om Docker-fliken och försök igen.",
+    "docker.native-order.incomplete": "Dessa behållare finns inte i listan på denna sida: $1. Unraid flyttar alla behållare som utelämnas när behållarnas ordning sparas till toppen av listan, så ingenting ändrades. Ladda om Docker-fliken och försök igen.",
+    "docker.native-order.folder": "Mapp: $1",
+    "docker.native-order.intro": "Unraid kommer att spara behållarna i ordningen nedan. Unraid använder den ordningen på Docker-fliken när FolderView Plus inte är installerad, och den sorterar sin autostartlista efter den, så att detta kan ändra ordningsbehållarna som börjar i.",
+    "docker.native-order.start-managed": "FolderView Plus tillämpar sedan sin egen inställning för i vilken ordning behållare startar, som den gör efter att en rad har dragits.",
+    "docker.native-order.start-unmanaged": "FolderView Plus är inställd på att lämna startordningen till Unraid, så ingenting justerar resultatet efteråt: containrar med autostart på kommer att starta i ordningen nedan.",
+    "docker.native-order.saved-title": "Ordningen på behållarna sparades",
+    "docker.native-order.not-saved-title": "Ordningen på behållarna sparades inte",
+    "docker.native-order.unconfirmed-title": "Sparandet kunde inte bekräftas",
+    "docker.native-order.read-failed": "Behållarlistan kunde inte läsas från Unraid ($1), så ordningen på behållarna kunde inte kontrolleras. Ingenting ändrades.",
+    "docker.native-order.changed": "Docker-listan, eller ordningen på behållarna som sparats i Unraid, ändrades medan förhandsgranskningen var öppen. Ingenting ändrades. Kontrollera listan och försök igen.",
+    "docker.native-order.request-failed": "Unraid bekräftade inte sparbegäran ($1). Ladda om fliken Docker för att se ordningen på behållarna som sparas i Unraid.",
+    "docker.native-order.unverified": "Sparningsförfrågan skickades, men behållarnas ordning kunde inte läsas tillbaka från Unraid ($1), så lagringen är inte bekräftad. Ladda om Docker-fliken för att kontrollera den.",
+    "docker.native-order.stored-missing": "userprefs.cfg hittades inte",
+    "docker.native-order.stored-unreadable": "userprefs.cfg kunde inte läsas",
+    "docker.native-order.stored-invalid": "userprefs.cfg har inte det format som Unraid skriver",
+    "docker.native-order.saved": "Unraid har nu behållarna sparade i den ordning som visas i förhandsgranskningen.",
+    "docker.native-order.mismatch": "Ordningen på behållarna som sparats i Unraid skiljer sig nu från den ordning som skickades. Antingen sparade Unraid den inte, eller så sparade en annan Docker-sida sin egen ordning på behållarna i samma ögonblick. Kontrollera Docker-fliken och spara igen."
 }

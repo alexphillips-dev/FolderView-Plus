@@ -97,6 +97,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['customIconUploadStageDirectory', 'stageCustomIconUploadChunk', 'resolveCustomIconUploadSource']) additions.add(name);
         for (const name of ['fvplusRuntimeInventoryFailure', 'fvplusReadRuntimeEntityList', 'fvplusReadVmInfoState',
             'fvplusReadRepairInventory', 'fvplusAssertRepairMembersNotRenamed', 'renameCustomIconUnlocked']) additions.add(name);
+        additions.add('readUnraidStoredDockerOrder');
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);

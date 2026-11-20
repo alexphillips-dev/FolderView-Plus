@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "docker",
-        "content-revision": "045dd3b97c2d28d6bbcde038dad4081f9c72b9e6a06a4c9239e16115551ae0fe"
+        "content-revision": "50a4d213ae8b73864cdcf42f8c3c7078b64b891a0ed200edf1b3bd09873d6153"
     },
     "docker.folder.move-reload": "Klasör yapılandırması değiştirildi. Klasörü tekrar taşımadan önce yenileyin.",
     "docker.actions.label": "Klasör Görünümü eylemleri",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Kopyalanan ayarları görüntüle…",
     "docker.transfer.clear": "Kopyalanan ayarları temizle",
     "docker.transfer.clone-settings": "Yalnızca ayarları klonla",
-    "docker.transfer.clone-settings-menu": "Yalnızca ayarları kopyala…"
+    "docker.transfer.clone-settings-menu": "Yalnızca ayarları kopyala…",
+    "docker.native-order.folderview-only": "Kapsayıcılarının sırasını kaydetmek için FolderView görünümüne geçin.",
+    "docker.actions.save-native-order": "Geçerli sıralamayı Unraid'e kaydet",
+    "docker.native-order.not-ready": "Bu sayfadaki Docker listesi eksik veya güncel değil. Hiçbir şey değişmedi. Docker sekmesini yeniden yükleyin ve tekrar deneyin.",
+    "docker.native-order.incomplete": "Bu kapsayıcılar bu sayfadaki listede yok: $1. Unraid, kapların sırası listenin en üstüne kaydedildiğinde dışarıda kalan tüm kapları taşır, böylece hiçbir şey değişmez. Docker sekmesini yeniden yükleyin ve tekrar deneyin.",
+    "docker.native-order.folder": "Klasör: $1",
+    "docker.native-order.intro": "Unraid, kapları aşağıdaki sıraya göre kaydedecektir. Unraid, FolderView Plus yüklü olmadığında Docker sekmesindeki bu sırayı kullanır ve otomatik başlatma listesini buna göre sıralar, böylece bu, kapsayıcıların başlama sırasını değiştirebilir.",
+    "docker.native-order.start-managed": "FolderView Plus daha sonra, bir satır sürüklendikten sonra olduğu gibi kapların başlama sırasına göre kendi ayarını uygular.",
+    "docker.native-order.start-unmanaged": "FolderView Plus, başlangıç sırasını Unraid'e bırakacak şekilde ayarlanmıştır, bu nedenle daha sonra hiçbir şey sonucu değiştirmez: otomatik başlatmanın açık olduğu kapsayıcılar aşağıdaki sırayla başlayacaktır.",
+    "docker.native-order.saved-title": "Konteynerlerin sırası kaydedildi",
+    "docker.native-order.not-saved-title": "Konteynerlerin sırası kaydedilmedi",
+    "docker.native-order.unconfirmed-title": "Kaydetme doğrulanamadı",
+    "docker.native-order.read-failed": "Kapsayıcı listesi Unraid'den ($1) okunamadı, dolayısıyla kapların sırası kontrol edilemedi. Hiçbir şey değişmedi.",
+    "docker.native-order.changed": "Önizleme açıkken Docker listesi veya Unraid'e kaydedilen kapsayıcıların sırası değişti. Hiçbir şey değişmedi. Listeyi kontrol edip tekrar deneyin.",
+    "docker.native-order.request-failed": "Unraid kaydetme isteğini onaylamadı ($1). Unraid'e kaydedilen konteynerlerin sırasını görmek için Docker sekmesini yeniden yükleyin.",
+    "docker.native-order.unverified": "Kaydetme isteği gönderildi ancak kapsayıcıların sırası Unraid'den ($1) okunamadı, dolayısıyla kaydetme onaylanmadı. Kontrol etmek için Docker sekmesini yeniden yükleyin.",
+    "docker.native-order.stored-missing": "userprefs.cfg dosyası bulunamadı",
+    "docker.native-order.stored-unreadable": "userprefs.cfg dosyası okunamadı",
+    "docker.native-order.stored-invalid": "userprefs.cfg dosyası Unraid'in yazdığı biçimde değil",
+    "docker.native-order.saved": "Unraid artık kapları önizlemede gösterilen sıraya göre kaydetmiş durumda.",
+    "docker.native-order.mismatch": "Unraid'e kaydedilen konteynerlerin sırası artık gönderilen sıradan farklı. Ya Unraid bunu kaydetmedi ya da başka bir Docker sayfası aynı anda kendi konteyner sırasını kaydetti. Docker sekmesini kontrol edin ve tekrar kaydedin."
 }

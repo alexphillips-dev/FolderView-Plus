@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4748,
-        "total-source-messages": 4748,
+        "translated-messages": 4768,
+        "total-source-messages": 4768,
         "content-revision": "02fa2845d1d911a1e63d2c35620c84cf9eb8b2bab334e7c7b3d52221efa01661",
-        "locale-content-revision": "d9b4a01111af76511c8d6fbdc41ecb2536419921d0f50e95010736787603b990"
+        "locale-content-revision": "76df0222b633d325ef4a19eaf19bc135dfbd8772bfc714de0972184adcdbf2cd"
     },
     "add-folder": "フォルダーを追加",
     "up-to-date": "最新の状態",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "docker",
-        "content-revision": "d5b45e19b69068119ded25a421242ff6c32d03857f47f1937bd71c27fe6a28b8"
+        "content-revision": "86111416b862338649395d3ad0366e6bd28052d1be9c4e095d9adf0ee8a85d1c"
     },
     "docker.folder.move-reload": "Configuração da pasta alterada. Atualize antes de mover a pasta novamente.",
     "docker.actions.label": "Ações do FolderView",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Ver definições copiadas…",
     "docker.transfer.clear": "Limpar definições copiadas",
     "docker.transfer.clone-settings": "Clonar apenas definições",
-    "docker.transfer.clone-settings-menu": "Clonar apenas definições…"
+    "docker.transfer.clone-settings-menu": "Clonar apenas definições…",
+    "docker.native-order.folderview-only": "Mude para a vista FolderView para guardar a ordem dos respetivos contentores.",
+    "docker.actions.save-native-order": "Guardar a ordem atual no Unraid",
+    "docker.native-order.not-ready": "A lista do Docker nesta página está incompleta ou desatualizada. Nada foi alterado. Recarregue o separador Docker e tente novamente.",
+    "docker.native-order.incomplete": "Estes contentores não estão na lista desta página: $1. Quando a ordem dos contentores é guardada, o Unraid move para o topo da sua lista qualquer contentor que fique de fora, por isso nada foi alterado. Recarregue o separador Docker e tente novamente.",
+    "docker.native-order.folder": "Pasta: $1",
+    "docker.native-order.intro": "O Unraid vai guardar os contentores pela ordem abaixo. O Unraid usa essa ordem no separador Docker quando o FolderView Plus não está instalado e ordena por ela a sua lista de arranque automático, por isso isto pode alterar a ordem pela qual os contentores arrancam.",
+    "docker.native-order.start-managed": "Em seguida, o FolderView Plus aplica a sua própria definição para a ordem pela qual os contentores arrancam, tal como acontece depois de arrastar uma linha.",
+    "docker.native-order.start-unmanaged": "O FolderView Plus está configurado para deixar a ordem de arranque ao Unraid, pelo que nada ajusta o resultado depois: os contentores com arranque automático ativado vão arrancar pela ordem abaixo.",
+    "docker.native-order.saved-title": "A ordem dos contentores foi guardada",
+    "docker.native-order.not-saved-title": "A ordem dos contentores não foi guardada",
+    "docker.native-order.unconfirmed-title": "Não foi possível confirmar a gravação",
+    "docker.native-order.read-failed": "Não foi possível ler a lista de contentores do Unraid ($1), pelo que não foi possível verificar a ordem dos contentores. Nada foi alterado.",
+    "docker.native-order.changed": "A lista do Docker, ou a ordem dos contentores guardada no Unraid, mudou enquanto a pré-visualização estava aberta. Nada foi alterado. Verifique a lista e tente novamente.",
+    "docker.native-order.request-failed": "O Unraid não confirmou o pedido de gravação ($1). Recarregue o separador Docker para ver a ordem dos contentores guardada no Unraid.",
+    "docker.native-order.unverified": "O pedido de gravação foi enviado, mas não foi possível voltar a ler do Unraid a ordem dos contentores ($1), pelo que a gravação não está confirmada. Recarregue o separador Docker para a verificar.",
+    "docker.native-order.stored-missing": "ficheiro userprefs.cfg não encontrado",
+    "docker.native-order.stored-unreadable": "o ficheiro userprefs.cfg não pôde ser lido",
+    "docker.native-order.stored-invalid": "o ficheiro userprefs.cfg não está no formato que o Unraid escreve",
+    "docker.native-order.saved": "O Unraid tem agora os contentores guardados pela ordem mostrada na pré-visualização.",
+    "docker.native-order.mismatch": "A ordem dos contentores guardada no Unraid é agora diferente da ordem enviada. Ou o Unraid não a guardou, ou outra página do Docker guardou a sua própria ordem dos contentores no mesmo momento. Verifique o separador Docker e guarde novamente."
 }

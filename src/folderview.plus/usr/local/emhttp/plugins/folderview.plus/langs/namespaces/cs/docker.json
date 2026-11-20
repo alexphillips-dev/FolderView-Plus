@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "docker",
-        "content-revision": "3f888960e4d579a21cd4a003316dbbd8cc3693269cd1823c39a9542068906cf8"
+        "content-revision": "098039bd3e509ec273380cee6e3583be5532ddcd18fa13a4ad60e5d40c0e7acc"
     },
     "docker.folder.move-reload": "Konfigurace složky se změnila. Před opětovným přesunem složky aktualizujte.",
     "docker.actions.label": "Akce FolderView",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Zobrazit zkopírovaná nastavení…",
     "docker.transfer.clear": "Vymazat zkopírovaná nastavení",
     "docker.transfer.clone-settings": "Pouze nastavení klonování",
-    "docker.transfer.clone-settings-menu": "Pouze nastavení klonování…"
+    "docker.transfer.clone-settings-menu": "Pouze nastavení klonování…",
+    "docker.native-order.folderview-only": "Přepněte do zobrazení FolderView a uložte pořadí jeho kontejnerů.",
+    "docker.actions.save-native-order": "Uložit aktuální pořadí do Unraidu",
+    "docker.native-order.not-ready": "Seznam Docker na této stránce je neúplný nebo zastaralý. Nic se nezměnilo. Znovu načtěte kartu Docker a zkuste to znovu.",
+    "docker.native-order.incomplete": "Tyto kontejnery nejsou v seznamu na této stránce: $1. Unraid přesune jakýkoli kontejner, který je vynechán, když je pořadí kontejnerů uloženo na začátek seznamu, takže se nic nezměnilo. Znovu načtěte kartu Docker a zkuste to znovu.",
+    "docker.native-order.folder": "Složka: $1",
+    "docker.native-order.intro": "Unraid uloží kontejnery v níže uvedeném pořadí. Unraid používá toto pořadí na kartě Docker, když není nainstalován FolderView Plus, a seřadí podle něj svůj seznam automatického spuštění, takže to může změnit pořadí, ve kterém se kontejnery spouštějí.",
+    "docker.native-order.start-managed": "FolderView Plus pak použije vlastní nastavení pro pořadí, ve kterém kontejnery začínají, stejně jako po přetažení řádku.",
+    "docker.native-order.start-unmanaged": "FolderView Plus je nastaven tak, aby ponechal počáteční pořadí na Unraid, takže výsledek poté nic neupraví: kontejnery se zapnutým automatickým spuštěním se spustí v níže uvedeném pořadí.",
+    "docker.native-order.saved-title": "Pořadí kontejnerů bylo uloženo",
+    "docker.native-order.not-saved-title": "Pořadí kontejnerů nebylo uloženo",
+    "docker.native-order.unconfirmed-title": "Uložení se nepodařilo potvrdit",
+    "docker.native-order.read-failed": "Seznam kontejnerů nelze přečíst z Unraid ($1), takže nebylo možné zkontrolovat pořadí kontejnerů. Nic se nezměnilo.",
+    "docker.native-order.changed": "Seznam Dockeru nebo pořadí kontejnerů uložených v Unraid se změnilo, když byl náhled otevřený. Nic se nezměnilo. Zkontrolujte seznam a zkuste to znovu.",
+    "docker.native-order.request-failed": "Unraid nepotvrdil požadavek na uložení ($1). Znovu načtěte kartu Docker, abyste viděli pořadí kontejnerů, které je uloženo v Unraid.",
+    "docker.native-order.unverified": "Požadavek na uložení byl odeslán, ale pořadí kontejnerů nebylo možné přečíst zpět z Unraid ($1), takže uložení není potvrzeno. Znovu načtěte kartu Docker a zkontrolujte ji.",
+    "docker.native-order.stored-missing": "soubor userprefs.cfg nebyl nalezen",
+    "docker.native-order.stored-unreadable": "soubor userprefs.cfg se nepodařilo přečíst",
+    "docker.native-order.stored-invalid": "soubor userprefs.cfg není ve formátu, který zapisuje Unraid",
+    "docker.native-order.saved": "Unraid má nyní kontejnery uložené v pořadí zobrazeném v náhledu.",
+    "docker.native-order.mismatch": "Pořadí kontejnerů uložených v Unraid se nyní liší od pořadí, které bylo odesláno. Buď ho Unraid neuložil, nebo jiná stránka Dockeru ve stejnou chvíli uložila vlastní pořadí kontejnerů. Zkontrolujte kartu Docker a znovu uložte."
 }

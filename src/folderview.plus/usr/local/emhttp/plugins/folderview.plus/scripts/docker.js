@@ -3792,6 +3792,15 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
         expandFolderBranch,
         collapseFolderBranch,
         createFolder: () => createFolderBtn(),
+        nativeOrder: {
+            // The request Unraid's Docker page sends after a drag; the UserPrefs.php hooks further down apply to it too.
+            save: (data) => $.ajax({ type: 'POST', url: '/plugins/dynamix.docker.manager/include/UserPrefs.php', data, timeout: 15000 }),
+            // stored=1 adds the raw entries of userprefs.cfg, so a save is checked against what Unraid stored.
+            read: () => pluginRequestClient.getJson('/plugins/folderview.plus/server/read_unraid_order.php', {
+                data: { type: 'docker', stored: '1' },
+                retries: 0
+            })
+        },
         showError: (message) => swal({
             title: 'FolderView action failed',
             text: escapeHtml(String(message || 'The action could not be completed.')),

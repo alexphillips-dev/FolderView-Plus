@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "docker",
-        "content-revision": "3849314e18e06f9598583fd38b574ee9b16528a0e56480d71409069facdbc1c9"
+        "content-revision": "db2f30e2b5c67c8115f041adf01708a737f569921dd1282748588f8b015a1dd9"
     },
     "docker.folder.move-reload": "La configuration du dossier a été modifiée. Actualisez avant de déplacer à nouveau le dossier.",
     "docker.actions.label": "Actions de la vue Dossier",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Afficher les paramètres copiés…",
     "docker.transfer.clear": "Effacer les paramètres copiés",
     "docker.transfer.clone-settings": "Paramètres de clonage uniquement",
-    "docker.transfer.clone-settings-menu": "Cloner les paramètres uniquement…"
+    "docker.transfer.clone-settings-menu": "Cloner les paramètres uniquement…",
+    "docker.native-order.folderview-only": "Basculez vers la vue FolderView pour enregistrer l’ordre de ses conteneurs.",
+    "docker.actions.save-native-order": "Enregistrer l'ordre actuel dans Unraid",
+    "docker.native-order.not-ready": "La liste Docker sur cette page est incomplète ou obsolète. Rien n'a été changé. Rechargez l'onglet Docker et réessayez.",
+    "docker.native-order.incomplete": "Ces conteneurs ne figurent pas dans la liste sur cette page : $1. Unraid déplace tout conteneur laissé de côté lorsque l'ordre des conteneurs est enregistré en haut de sa liste, donc rien n'a été modifié. Rechargez l'onglet Docker et réessayez.",
+    "docker.native-order.folder": "Dossier : $1",
+    "docker.native-order.intro": "Unraid enregistrera les conteneurs dans l'ordre ci-dessous. Unraid utilise cet ordre sur l'onglet Docker lorsque FolderView Plus n'est pas installé et trie sa liste de démarrage automatique en fonction de celui-ci, ce qui peut modifier l'ordre de démarrage des conteneurs.",
+    "docker.native-order.start-managed": "FolderView Plus applique ensuite son propre paramètre pour l'ordre dans lequel les conteneurs démarrent, comme il le fait après le déplacement d'une ligne.",
+    "docker.native-order.start-unmanaged": "FolderView Plus est configuré pour laisser l'ordre de démarrage à Unraid, donc rien n'ajuste le résultat par la suite : les conteneurs avec démarrage automatique démarreront dans l'ordre ci-dessous.",
+    "docker.native-order.saved-title": "L'ordre des conteneurs a été enregistré",
+    "docker.native-order.not-saved-title": "L'ordre des conteneurs n'a pas été enregistré",
+    "docker.native-order.unconfirmed-title": "L'enregistrement n'a pas pu être confirmé",
+    "docker.native-order.read-failed": "La liste des conteneurs n'a pas pu être lue depuis Unraid ($1), donc l'ordre des conteneurs n'a pas pu être vérifié. Rien n'a été changé.",
+    "docker.native-order.changed": "La liste Docker, ou l'ordre des conteneurs enregistrés dans Unraid, a changé pendant l'ouverture de l'aperçu. Rien n'a été changé. Vérifiez la liste et réessayez.",
+    "docker.native-order.request-failed": "Unraid n'a pas confirmé la demande de sauvegarde ($1). Rechargez l'onglet Docker pour voir l'ordre des conteneurs enregistrés dans Unraid.",
+    "docker.native-order.unverified": "La demande de sauvegarde a été envoyée, mais l'ordre des conteneurs n'a pas pu être relu depuis Unraid ($1), la sauvegarde n'est donc pas confirmée. Rechargez l'onglet Docker pour le vérifier.",
+    "docker.native-order.stored-missing": "fichier userprefs.cfg introuvable",
+    "docker.native-order.stored-unreadable": "le fichier userprefs.cfg n'a pas pu être lu",
+    "docker.native-order.stored-invalid": "le fichier userprefs.cfg n'est pas au format écrit par Unraid",
+    "docker.native-order.saved": "Unraid enregistre désormais les conteneurs dans l'ordre indiqué dans l'aperçu.",
+    "docker.native-order.mismatch": "L'ordre des conteneurs enregistrés dans Unraid diffère désormais de l'ordre envoyé. Soit Unraid ne l'a pas enregistré, soit une autre page Docker a enregistré son propre ordre des conteneurs au même moment. Vérifiez l'onglet Docker et enregistrez à nouveau."
 }

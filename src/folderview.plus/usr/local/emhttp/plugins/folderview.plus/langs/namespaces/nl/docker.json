@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "docker",
-        "content-revision": "0926dd5ee43d2f4788e819ea075e5b85e44469f7ff0909a5728f651f928317e1"
+        "content-revision": "02ef6329d88629a9bc78306693baf614901d85c96c37542b2edf2b10ac5bce97"
     },
     "docker.folder.move-reload": "Mapconfiguratie gewijzigd. Vernieuw voordat u de map opnieuw verplaatst.",
     "docker.actions.label": "Mapweergave acties",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Gekopieerde instellingen bekijken…",
     "docker.transfer.clear": "Wis gekopieerde instellingen",
     "docker.transfer.clone-settings": "Alleen klooninstellingen",
-    "docker.transfer.clone-settings-menu": "Alleen instellingen klonen..."
+    "docker.transfer.clone-settings-menu": "Alleen instellingen klonen...",
+    "docker.native-order.folderview-only": "Schakel over naar de FolderView-weergave om de volgorde van de containers op te slaan.",
+    "docker.actions.save-native-order": "Huidige volgorde opslaan in Unraid",
+    "docker.native-order.not-ready": "De Docker-lijst op deze pagina is onvolledig of verouderd. Er werd niets veranderd. Laad het Docker-tabblad opnieuw en probeer het opnieuw.",
+    "docker.native-order.incomplete": "Deze containers staan niet in de lijst op deze pagina: $1. Unraid verplaatst elke container die is weggelaten wanneer de volgorde van de containers wordt opgeslagen naar de top van de lijst, dus er is niets veranderd. Laad het Docker-tabblad opnieuw en probeer het opnieuw.",
+    "docker.native-order.folder": "Map: $1",
+    "docker.native-order.intro": "Unraid slaat de containers in de onderstaande volgorde op. Unraid gebruikt die volgorde op het Docker-tabblad als FolderView Plus niet is geïnstalleerd, en sorteert de autostart-lijst daarop, zodat dit de volgorde kan wijzigen waarin containers starten.",
+    "docker.native-order.start-managed": "FolderView Plus past vervolgens een eigen instelling toe voor de volgorde waarin containers starten, net als nadat een rij is gesleept.",
+    "docker.native-order.start-unmanaged": "FolderView Plus is zo ingesteld dat de startvolgorde aan Unraid wordt overgelaten, dus niets past het resultaat achteraf aan: containers met autostart aan zullen in de onderstaande volgorde starten.",
+    "docker.native-order.saved-title": "De volgorde van de containers is opgeslagen",
+    "docker.native-order.not-saved-title": "De volgorde van de containers is niet opgeslagen",
+    "docker.native-order.unconfirmed-title": "Het opslaan kon niet worden bevestigd",
+    "docker.native-order.read-failed": "De containerlijst kon niet worden gelezen uit Unraid ($1), dus de volgorde van de containers kon niet worden gecontroleerd. Er werd niets veranderd.",
+    "docker.native-order.changed": "De Docker-lijst, of de volgorde van de containers die zijn opgeslagen in Unraid, veranderde terwijl de preview open was. Er werd niets veranderd. Controleer de lijst en probeer het opnieuw.",
+    "docker.native-order.request-failed": "Unraid heeft het opslagverzoek ($1) niet bevestigd. Laad het Docker-tabblad opnieuw om de volgorde te zien van de containers die zijn opgeslagen in Unraid.",
+    "docker.native-order.unverified": "Het opslagverzoek is verzonden, maar de volgorde van de containers kan niet worden teruggelezen uit Unraid ($1), dus het opslaan is niet bevestigd. Laad het Docker-tabblad opnieuw om het te controleren.",
+    "docker.native-order.stored-missing": "userprefs.cfg niet gevonden",
+    "docker.native-order.stored-unreadable": "userprefs.cfg kon niet worden gelezen",
+    "docker.native-order.stored-invalid": "userprefs.cfg heeft niet het formaat dat Unraid schrijft",
+    "docker.native-order.saved": "Unraid heeft nu de containers opgeslagen in de volgorde die in het voorbeeld wordt weergegeven.",
+    "docker.native-order.mismatch": "De volgorde van de containers die in Unraid zijn opgeslagen, wijkt nu af van de volgorde die is verzonden. Unraid heeft hem niet opgeslagen, of een andere Docker-pagina heeft op hetzelfde moment zijn eigen volgorde van de containers opgeslagen. Controleer het Docker-tabblad en sla opnieuw op."
 }

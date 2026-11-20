@@ -64,9 +64,11 @@
         const svgIcon = typeof hiddenFolders.svgIcon === 'function'
             ? hiddenFolders.svgIcon
             : ((name, options = {}) => `<i class="fa ${name === 'eye-off' ? 'fa-eye-slash' : 'fa-eye'} ${escapeHtml(options.className || '')}" aria-hidden="true"></i>`);
+        const nativeOrder = deps.nativeOrder || {};
         const translate = typeof deps.translate === 'function'
             ? deps.translate
-            : ((key, fallback = '') => win?.FolderViewPlusI18n?.t?.(key, fallback) || fallback || key);
+            : ((key, fallback = '', ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params)
+                || params.reduce((text, value, index) => text.split(`$${index + 1}`).join(String(value)), fallback || key));
         const pageDiagnostics = win?.FolderViewPlusFoundationModules?.runtimePageDiagnostics?.createController?.({
             window: win,
             document: doc,
@@ -229,7 +231,8 @@
                 </button>`;
         };
 
-        const buildToolsMenuHtml = () => {
+        const buildToolsMenuHtml = (currentMode) => {
+            const canSaveOrder = currentMode === 'folderview';
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
             const focusActive = !!String(getFocusedFolderId() || '').trim();
             return `
@@ -241,6 +244,9 @@
                 </button>
                 <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="refresh">
                     <i class="fa fa-refresh" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.refresh-state', 'Refresh folder state'))}</span>
+                </button>
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="save-native-order" ${canSaveOrder ? '' : `disabled title="${escapeHtml(translate('docker.native-order.folderview-only', 'Switch to the FolderView view to save the order of its containers.'))}"`}>
+                    <i class="fa fa-floppy-o" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.save-native-order', 'Save current order to Unraid'))}</span>
                 </button>
                 <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="capture-diagnostics">
                     <i class="fa fa-camera" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.capture-diagnostics', 'Capture page diagnostics'))}</span>
@@ -326,7 +332,7 @@
                         <button type="button" class="fvplus-docker-action-button fv-ui-button${actionMenuOpen === 'tools' ? ' is-active' : ''}" data-fvplus-docker-menu="tools" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'tools' ? 'true' : 'false'}">
                             <i class="fa fa-wrench" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.tools', 'Tools'))}</span><i class="fa fa-caret-down fvplus-docker-action-menu-caret" aria-hidden="true"></i>
                         </button>
-                        <span class="fvplus-docker-action-menu${actionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildToolsMenuHtml()}</span>
+                        <span class="fvplus-docker-action-menu${actionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildToolsMenuHtml(resolvedMode)}</span>
                     </span>
                 </div>
                 ${undoActive ? `<div class="fvplus-docker-visibility-notice is-undo" role="status">
@@ -478,6 +484,144 @@
             sync();
         };
 
+        // Unraid's Docker page stores one flat order through its own UserPrefs.php when a row is dragged.
+        // The save below sends that same request with the rows as this page shows them.
+        const collectNativeOrder = () => Array.from(doc?.querySelectorAll?.('#docker_list td.ct-name') || []).map((cell) => {
+            const row = cell.closest?.('tr') || null;
+            const folderId = String(readFolderIdFromRow(row) || '');
+            return {
+                name: Array.from(cell.querySelectorAll?.('.appname') || []).map((node) => String(node.textContent || '')).join('').trim(),
+                folderId,
+                ownerId: folderId ? '' : String(readFolderOwnerFromRow(row) || '')
+            };
+        });
+        const nativeOrderContainers = (entries) => entries.filter((entry) => !entry.folderId).map((entry) => entry.name);
+        const sameNativeOrder = (left, right) => left.length === right.length && left.every((name, index) => name === right[index]);
+        // `order`: every container in the order Unraid uses for it, with a name order fallback and unlisted
+        // containers added. `stored`: the entries in userprefs.cfg as written, and whether the file could be read.
+        // Anything else is a failed read.
+        const storedStatuses = ['ok', 'missing', 'unreadable', 'invalid'];
+        const readNativeOrderState = async () => {
+            const state = await nativeOrder.read();
+            const stored = state?.stored;
+            if (!Array.isArray(state?.order) || !storedStatuses.includes(stored?.status) || !Array.isArray(stored?.entries)
+                || stored.entries.some((entry) => typeof entry?.index !== 'string' || typeof entry?.name !== 'string')) {
+                throw new Error('unexpected response');
+            }
+            return { order: state.order.map(String), status: stored.status, entries: stored.entries.map((entry) => `${entry.index}=${entry.name}`) };
+        };
+        const describeStoredStatus = (status) => {
+            if (status === 'missing') return translate('docker.native-order.stored-missing', 'userprefs.cfg not found');
+            if (status === 'unreadable') return translate('docker.native-order.stored-unreadable', 'userprefs.cfg could not be read');
+            if (status === 'invalid') return translate('docker.native-order.stored-invalid', 'userprefs.cfg is not in the format Unraid writes');
+            return status;
+        };
+        const findNativeOrderProblem = (entries, inventory) => {
+            const names = entries.map((entry) => entry.name);
+            const containers = nativeOrderContainers(entries);
+            const drawnFolders = new Set(entries.map((entry) => entry.folderId).filter(Boolean));
+            const folderRowsPending = Object.keys(getFolders() || {}).some((id) => !drawnFolders.has(id)
+                && Object.keys(getScopedContainers(id) || {}).length > 0);
+            if (!containers.length || folderRowsPending || new Set(names).size !== names.length
+                || names.some((name) => !name || name.includes(';')) || containers.some((name) => !inventory.includes(name))) {
+                return translate('docker.native-order.not-ready', 'The Docker list on this page is incomplete or out of date. Nothing was changed. Reload the Docker tab and try again.');
+            }
+            const missing = inventory.filter((name) => !containers.includes(name));
+            return missing.length
+                ? translate('docker.native-order.incomplete', 'These containers are not in the list on this page: $1. Unraid moves any container that is left out when the order of the containers is saved to the top of its list, so nothing was changed. Reload the Docker tab and try again.', missing.join(', '))
+                : '';
+        };
+        const buildNativeOrderPreviewHtml = (entries) => {
+            const folders = getFolders() || {};
+            const managed = String(utils.normalizePrefs(getPrefs() || {})?.dockerStartOrder?.mode || 'docker-page') !== 'unmanaged';
+            const items = entries.filter((entry) => !entry.folderId).map((entry) => {
+                const folderName = entry.ownerId ? String(folders[entry.ownerId]?.name || entry.ownerId) : '';
+                return `<li><span class="fvplus-native-order-name">${escapeHtml(entry.name)}</span>${folderName
+                    ? ` <span class="fvplus-native-order-folder">${escapeHtml(translate('docker.native-order.folder', 'Folder: $1', folderName))}</span>` : ''}</li>`;
+            }).join('');
+            return `<div class="fvplus-native-order-preview">
+                <p>${escapeHtml(translate('docker.native-order.intro', 'Unraid will save the containers in the order below. Unraid uses that order on the Docker tab when FolderView Plus is not installed, and it sorts its autostart list by it, so this can change the order containers start in.'))}</p>
+                <p>${escapeHtml(managed
+                    ? translate('docker.native-order.start-managed', 'FolderView Plus then applies its own setting for the order in which containers start, as it does after a row is dragged.')
+                    : translate('docker.native-order.start-unmanaged', 'FolderView Plus is set to leave the start order to Unraid, so nothing adjusts the result afterwards: containers with autostart on will start in the order below.'))}</p>
+                <ol class="fvplus-native-order-list">${items}</ol>
+            </div>`;
+        };
+        const describeRequestError = (error) => String(error?.status ? `HTTP ${error.status}` : (error?.message || error?.statusText || 'no response'));
+        const showNativeOrderResult = (saved, message, unconfirmed = false) => {
+            let title = translate('docker.native-order.not-saved-title', 'The order of the containers was not saved');
+            if (saved) title = translate('docker.native-order.saved-title', 'The order of the containers was saved');
+            // The request went out but nothing shows what Unraid stored, so the title must not claim either outcome.
+            else if (unconfirmed) title = translate('docker.native-order.unconfirmed-title', 'The save could not be confirmed');
+            const ui = win?.FolderViewPlusUI;
+            if (typeof ui?.alert === 'function') ui.alert({ title, message, tone: saved ? 'success' : 'danger' });
+            else if (!saved) showError(message);
+            return saved;
+        };
+        const saveNativeOrder = async () => {
+            const ui = win?.FolderViewPlusUI;
+            if (typeof nativeOrder.read !== 'function' || typeof nativeOrder.save !== 'function' || typeof ui?.openModal !== 'function') {
+                return showNativeOrderResult(false, translate('docker.native-order.not-ready', 'The Docker list on this page is incomplete or out of date. Nothing was changed. Reload the Docker tab and try again.'));
+            }
+            const readFailed = (error) => showNativeOrderResult(false, translate('docker.native-order.read-failed', 'The container list could not be read from Unraid ($1), so the order of the containers could not be checked. Nothing was changed.', describeRequestError(error)));
+            const entries = collectNativeOrder();
+            let before;
+            try {
+                before = await readNativeOrderState();
+            } catch (error) {
+                return readFailed(error);
+            }
+            const problem = findNativeOrderProblem(entries, before.order);
+            if (problem) return showNativeOrderResult(false, problem);
+            const modal = ui.openModal({
+                title: translate('docker.actions.save-native-order', 'Save current order to Unraid'),
+                content: buildNativeOrderPreviewHtml(entries),
+                actions: `${ui.button({ label: translate('common.cancel', 'Cancel'), action: 'modal-cancel' })}${ui.button({ label: translate('docker.actions.save-native-order', 'Save current order to Unraid'), tone: 'primary', action: 'modal-confirm' })}`,
+                tone: 'warning',
+                closeOnBackdrop: false,
+                initialFocus: '[data-fv-ui-action="modal-cancel"]'
+            });
+            if (!modal) return false;
+            modal.element.querySelector('[data-fv-ui-action="modal-cancel"]')?.addEventListener('click', () => modal.close('cancel'));
+            modal.element.querySelector('[data-fv-ui-action="modal-confirm"]')?.addEventListener('click', () => modal.close('confirm'));
+            if (await modal.closed !== 'confirm') return false;
+            // The preview may have been open for a while: send only what was previewed, and only if neither
+            // the page nor Unraid's stored order moved in the meantime.
+            let now;
+            try {
+                now = await readNativeOrderState();
+            } catch (error) {
+                return readFailed(error);
+            }
+            const names = entries.map((entry) => entry.name);
+            // The stored entries are compared too: a save elsewhere that moved only folder entries, or created the
+            // file with the order Unraid already used, leaves the effective order as it was.
+            if (!sameNativeOrder(collectNativeOrder().map((entry) => entry.name), names)
+                || !sameNativeOrder(now.order, before.order) || now.status !== before.status
+                || !sameNativeOrder(now.entries, before.entries)) {
+                return showNativeOrderResult(false, translate('docker.native-order.changed', 'The Docker list, or the order of the containers saved in Unraid, changed while the preview was open. Nothing was changed. Check the list and try again.'));
+            }
+            try {
+                await nativeOrder.save({ names: `${names.join(';')};`, index: `${names.map((_, index) => index).join(';')};` });
+            } catch (error) {
+                return showNativeOrderResult(false, translate('docker.native-order.request-failed', 'Unraid did not confirm the save request ($1). Reload the Docker tab to see the order of the containers that is saved in Unraid.', describeRequestError(error)), true);
+            }
+            const unverified = (cause) => showNativeOrderResult(false, translate('docker.native-order.unverified', 'The save request was sent, but the order of the containers could not be read back from Unraid ($1), so the save is not confirmed. Reload the Docker tab to check it.', cause), true);
+            let after;
+            try {
+                after = await readNativeOrderState();
+            } catch (error) {
+                return unverified(describeRequestError(error));
+            }
+            // UserPrefs.php answers without saying whether it wrote the file, and the effective order can match the
+            // preview without any write (name order fallback, unlisted containers). Only the stored entries count:
+            // every name sent, folder entries included, under the index sent, in the order sent, and nothing else.
+            if (after.status !== 'ok') return unverified(describeStoredStatus(after.status));
+            return sameNativeOrder(after.entries, names.map((name, index) => `${index}=${name}`))
+                ? showNativeOrderResult(true, translate('docker.native-order.saved', 'Unraid now has the containers saved in the order shown in the preview.'))
+                : showNativeOrderResult(false, translate('docker.native-order.mismatch', 'The order of the containers saved in Unraid now differs from the order that was sent. Either Unraid did not store it, or another Docker page saved its own order of the containers at the same moment. Check the Docker tab and save again.'));
+        };
+
         const clearHiddenFolderUndo = (folderId = '') => {
             const expectedId = String(folderId || '').trim();
             if (expectedId && String(hiddenFolderUndo?.folderId || '') !== expectedId) return false;
@@ -580,6 +724,7 @@
                     sync();
                 }
                 if (tool === 'refresh') runTask(refreshRuntimeView);
+                if (tool === 'save-native-order') runTask(saveNativeOrder);
                 if (tool === 'capture-diagnostics') {
                     const snapshot = pageDiagnostics?.capture?.({
                         variant: resolvePageViewMode(getPrefs()),
@@ -667,7 +812,9 @@
             resetView,
             getFilterMode: () => folderFilterMode,
             offerHiddenFolderUndo,
-            clearHiddenFolderUndo
+            clearHiddenFolderUndo,
+            collectNativeOrder,
+            saveNativeOrder
         });
     };
 

@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4748,
-        "total-source-messages": 4748,
+        "translated-messages": 4768,
+        "total-source-messages": 4768,
         "content-revision": "64aeae22e9a1914237867f084abb1b18b4e638370c7df260fb44125ba1b75ead",
-        "locale-content-revision": "c9f6ecceff813518dca24aa1d1615d1ef03e5bfed00da4f29a695852c0611a9e"
+        "locale-content-revision": "ba54f28c187178233775779254043cf33363ff19c92b03f62d22b7b39942779b"
     },
     "add-folder": "Dodaj mapu",
     "up-to-date": "ažuran",

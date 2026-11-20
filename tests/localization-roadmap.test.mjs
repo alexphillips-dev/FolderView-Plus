@@ -99,7 +99,7 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
 test('Simplified Chinese includes native labels across every primary plugin surface', () => {
     const cases = {
         common: { 'common.close': '关闭' },
-        dashboard: { 'dashboard.folder.toggle-members': '切换文件夹成员' },
+        dashboard: { 'dashboard.folder.toggle-members': '展开或折叠文件夹成员' },
         diagnostics: { 'diagnostics.title': '诊断' },
         docker: { 'docker.actions.add-folder': '添加文件夹' },
         editor: { 'editor.actions.add-custom': '添加自定义操作' },

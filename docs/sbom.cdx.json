@@ -119,9 +119,9 @@
     {
       "type": "application",
       "name": "google/osv-scanner-action",
-      "version": "9a96bc4d2b09685b6142bcfe25a3dc17cb2d7347",
+      "version": "32d3cd482bdadfb38b186c0ad1b031902d55d932",
       "scope": "optional",
-      "purl": "pkg:github/google/osv-scanner-action@9a96bc4d2b09685b6142bcfe25a3dc17cb2d7347",
+      "purl": "pkg:github/google/osv-scanner-action@32d3cd482bdadfb38b186c0ad1b031902d55d932",
       "properties": [
         {
           "name": "folderview-plus:usage",

@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "عرض الإعدادات المنسوخة...",
     "docker.transfer.clear": "مسح الإعدادات المنسوخة",
     "docker.transfer.clone-settings": "إعدادات النسخ فقط",
-    "docker.transfer.clone-settings-menu": "إعدادات النسخ فقط..."
+    "docker.transfer.clone-settings-menu": "إعدادات النسخ فقط...",
+    "docker.native-order.folderview-only": "قم بالتبديل إلى طريقة عرض FolderView لحفظ ترتيب الحاويات الخاصة به.",
+    "docker.actions.save-native-order": "حفظ الترتيب الحالي في Unraid",
+    "docker.native-order.not-ready": "قائمة Docker الموجودة في هذه الصفحة غير مكتملة أو قديمة. لم يتغير شيء. أعد تحميل علامة التبويب Docker وحاول مرة أخرى.",
+    "docker.native-order.incomplete": "هذه الحاويات غير موجودة في القائمة الموجودة في هذه الصفحة: $1. يقوم Unraid بنقل أي حاوية تم تركها عند حفظ ترتيب الحاويات في أعلى قائمتها، لذلك لم يتم تغيير أي شيء. أعد تحميل علامة التبويب Docker وحاول مرة أخرى.",
+    "docker.native-order.folder": "المجلد: $1",
+    "docker.native-order.intro": "سيقوم Unraid بحفظ الحاويات بالترتيب أدناه. يستخدم Unraid هذا الترتيب في علامة التبويب Docker عندما لا يتم تثبيت FolderView Plus، ويقوم بفرز قائمة التشغيل التلقائي الخاصة به من خلاله، لذلك يمكن أن يؤدي ذلك إلى تغيير حاويات الترتيب التي تبدأ فيها.",
+    "docker.native-order.start-managed": "يقوم FolderView Plus بعد ذلك بتطبيق الإعداد الخاص به للترتيب الذي تبدأ به الحاويات، كما يحدث بعد سحب الصف.",
+    "docker.native-order.start-unmanaged": "تم ضبط FolderView Plus على ترك أمر البدء على Unraid، لذلك لا شيء يعدل النتيجة بعد ذلك: ستبدأ الحاويات التي تم تشغيلها تلقائيًا بالترتيب أدناه.",
+    "docker.native-order.saved-title": "تم حفظ ترتيب الحاويات",
+    "docker.native-order.not-saved-title": "لم يتم حفظ ترتيب الحاويات",
+    "docker.native-order.unconfirmed-title": "تعذّر تأكيد الحفظ",
+    "docker.native-order.read-failed": "تعذرت قراءة قائمة الحاويات من Unraid ($1)، لذا تعذر التحقق من ترتيب الحاويات. لم يتغير شيء.",
+    "docker.native-order.changed": "تم تغيير قائمة Docker، أو ترتيب الحاويات المحفوظة في Unraid، أثناء فتح المعاينة. لم يتغير شيء. تحقق من القائمة وحاول مرة أخرى.",
+    "docker.native-order.request-failed": "لم يؤكد Unraid طلب الحفظ ($1). أعد تحميل علامة التبويب Docker لمعرفة ترتيب الحاويات المحفوظة في Unraid.",
+    "docker.native-order.unverified": "تم إرسال طلب الحفظ، ولكن تعذرت قراءة ترتيب الحاويات مرة أخرى من Unraid ($1)، لذلك لم يتم تأكيد الحفظ. أعد تحميل علامة التبويب Docker للتحقق منها.",
+    "docker.native-order.saved": "يحتوي Unraid الآن على الحاويات المحفوظة بالترتيب الموضح في المعاينة.",
+    "docker.native-order.mismatch": "يختلف ترتيب الحاويات المحفوظة في Unraid الآن عن الترتيب الذي تم إرساله. ربما قامت صفحة Docker أخرى بحفظ ترتيبها الخاص للحاويات في نفس اللحظة. تحقق من علامة التبويب Docker واحفظها مرة أخرى."
 }

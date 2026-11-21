@@ -1871,3 +1871,9 @@ body.fvplus-privacy-docker-runtime-mask-names .fv-docker-feedback-name { filter:
 .fvplus-docker-context-menu.fv-settings-transfer-menu { box-sizing: border-box; margin: 0; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); white-space: normal; overflow-wrap: anywhere; overflow: auto !important; }
 .fv-settings-transfer-menu > li > a { white-space: normal; overflow-wrap: anywhere; }
 @media (pointer: coarse) { .fv-settings-transfer-menu > li > a { box-sizing: border-box; min-height: 44px; } }
+
+.fvplus-native-order-preview p { line-height: 1.5; margin: 0 0 0.7rem; }
+.fvplus-native-order-list { list-style: decimal; margin: 0; padding-left: 3.2rem; }
+.fvplus-native-order-list li { line-height: 1.7; overflow-wrap: anywhere; }
+.fvplus-native-order-name { font-weight: 600; }
+.fvplus-native-order-folder { color: var(--fvplus-ui-text-muted); margin-left: 0.5rem; }

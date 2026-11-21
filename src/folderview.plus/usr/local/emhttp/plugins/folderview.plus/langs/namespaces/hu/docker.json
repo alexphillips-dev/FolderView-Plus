@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Másolt beállítások megtekintése…",
     "docker.transfer.clear": "A másolt beállítások törlése",
     "docker.transfer.clone-settings": "Csak klónozási beállítások",
-    "docker.transfer.clone-settings-menu": "Csak a klónozási beállítások…"
+    "docker.transfer.clone-settings-menu": "Csak a klónozási beállítások…",
+    "docker.native-order.folderview-only": "Váltson a FolderView nézetre a tárolók sorrendjének mentéséhez.",
+    "docker.actions.save-native-order": "Jelenlegi sorrend mentése az Unraidbe",
+    "docker.native-order.not-ready": "Az ezen az oldalon található Docker-lista hiányos vagy elavult. Semmi sem változott. Töltse be újra a Docker lapot, és próbálja újra.",
+    "docker.native-order.incomplete": "Ezek a tárolók nem szerepelnek ezen az oldalon a listában: $1. Az Unraid a konténerek sorrendjének elmentésekor kimaradt tárolókat a lista elejére helyezi, így semmi sem változott. Töltse be újra a Docker lapot, és próbálja újra.",
+    "docker.native-order.folder": "Mappa: $1",
+    "docker.native-order.intro": "Az Unraid az alábbi sorrendben menti el a konténereket. Az Unraid ezt a sorrendet használja a Docker lapon, ha a FolderView Plus nincs telepítve, és ez alapján rendezi az automatikus indítási listát, így ez megváltoztathatja a sorrendtárolók kezdési sorrendjét.",
+    "docker.native-order.start-managed": "A FolderView Plus ezután saját beállítást alkalmaz a tárolók kezdési sorrendjére, ahogy ez egy sor elhúzása után is történik.",
+    "docker.native-order.start-unmanaged": "A FolderView Plus úgy van beállítva, hogy az indítási sorrendet az Unraid-re hagyja, így utólag semmi sem módosítja az eredményt: az automatikus indítású konténerek az alábbi sorrendben indulnak el.",
+    "docker.native-order.saved-title": "A konténerek sorrendje el lett mentve",
+    "docker.native-order.not-saved-title": "A konténerek sorrendje nem lett elmentve",
+    "docker.native-order.unconfirmed-title": "A mentést nem sikerült megerősíteni",
+    "docker.native-order.read-failed": "A tárolólista nem olvasható az Unraid-ből ($1), így a tárolók sorrendje nem ellenőrizhető. Semmi sem változott.",
+    "docker.native-order.changed": "A Docker-lista vagy az Unraidben mentett tárolók sorrendje módosult, amíg az előnézet nyitva volt. Semmi sem változott. Ellenőrizze a listát, és próbálja újra.",
+    "docker.native-order.request-failed": "Az Unraid nem erősítette meg a mentési kérelmet ($1). Töltse be újra a Docker lapot, hogy megtekinthesse az Unraidben mentett tárolók sorrendjét.",
+    "docker.native-order.unverified": "A mentési kérést elküldtük, de a konténerek sorrendjét nem lehetett visszaolvasni az Unraid-ből ($1), így a mentést nem erősítik meg. Az ellenőrzéshez töltse be újra a Docker lapot.",
+    "docker.native-order.saved": "Az Unraid most már az előnézetben látható sorrendben menti a tárolókat.",
+    "docker.native-order.mismatch": "Az Unraidben elmentett konténerek sorrendje most eltér az elküldött sorrendtől. Egy másik Docker-oldal valószínűleg ugyanabban a pillanatban mentette el a tárolók saját sorrendjét. Ellenőrizze a Docker lapot, és mentse újra."
 }

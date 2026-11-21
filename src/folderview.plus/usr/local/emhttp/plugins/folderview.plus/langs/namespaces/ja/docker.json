@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "コピーした設定を表示…",
     "docker.transfer.clear": "コピーした設定をクリアする",
     "docker.transfer.clone-settings": "クローン設定のみ",
-    "docker.transfer.clone-settings-menu": "クローン設定のみ…"
+    "docker.transfer.clone-settings-menu": "クローン設定のみ…",
+    "docker.native-order.folderview-only": "FolderView ビューに切り替えて、コンテナーの順序を保存します。",
+    "docker.actions.save-native-order": "現在の順序を Unraid に保存",
+    "docker.native-order.not-ready": "このページの Docker リストは不完全であるか、最新ではありません。何も変わりませんでした。 Docker タブをリロードして、再試行してください。",
+    "docker.native-order.incomplete": "これらのコンテナはこのページのリストにありません: $1。 Unraid は、コンテナーの順序を保存するときに除外されたコンテナーをリストの先頭に移動するため、何も変更されません。 Docker タブをリロードして、再試行してください。",
+    "docker.native-order.folder": "フォルダー: $1",
+    "docker.native-order.intro": "Unraid は以下の順序でコンテナを保存します。 Unraid は、FolderView Plus がインストールされていない場合、[Docker] タブでその順序を使用し、それによって自動起動リストを並べ替えるため、コンテナーの開始順序が変更される可能性があります。",
+    "docker.native-order.start-managed": "次に、FolderView Plus は、行がドラッグされた後と同様に、コンテナーの開始順序に独自の設定を適用します。",
+    "docker.native-order.start-unmanaged": "FolderView Plus は開始順序を Unraid のままにするように設定されているため、後で結果を調整することはありません。自動開始がオンになっているコンテナーは以下の順序で開始されます。",
+    "docker.native-order.saved-title": "コンテナの順序が保存されました",
+    "docker.native-order.not-saved-title": "コンテナの順序が保存されませんでした",
+    "docker.native-order.unconfirmed-title": "保存を確認できませんでした",
+    "docker.native-order.read-failed": "Unraid ($1) からコンテナリストを読み取れなかったため、コンテナの順序を確認できませんでした。何も変わりませんでした。",
+    "docker.native-order.changed": "Docker リスト、または Unraid に保存されたコンテナーの順序が、プレビューを開いている間に変更されました。何も変わりませんでした。リストを確認して再試行してください。",
+    "docker.native-order.request-failed": "Unraid は保存リクエスト ($1) を確認しませんでした。 Docker タブをリロードして、Unraid に保存されているコンテナーの順序を確認します。",
+    "docker.native-order.unverified": "保存リクエストは送信されましたが、コンテナの順序を Unraid ($1) から読み取ることができなかったため、保存は確認されませんでした。 Docker タブをリロードして確認します。",
+    "docker.native-order.saved": "Unraid では、プレビューに表示されている順序でコンテナが保存されるようになりました。",
+    "docker.native-order.mismatch": "Unraid に保存されたコンテナの順序は、送信された順序と異なります。別の Docker ページが、おそらく同時にコンテナの独自の順序を保存しました。 [Docker] タブを確認し、再度保存します。"
 }

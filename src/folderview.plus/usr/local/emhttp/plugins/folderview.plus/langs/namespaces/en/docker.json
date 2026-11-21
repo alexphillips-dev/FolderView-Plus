@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "View copied settings…",
     "docker.transfer.clear": "Clear copied settings",
     "docker.transfer.clone-settings": "Clone settings only",
-    "docker.transfer.clone-settings-menu": "Clone settings only…"
+    "docker.transfer.clone-settings-menu": "Clone settings only…",
+    "docker.native-order.folderview-only": "Switch to the FolderView view to save the order of its containers.",
+    "docker.actions.save-native-order": "Save current order to Unraid",
+    "docker.native-order.not-ready": "The Docker list on this page is incomplete or out of date. Nothing was changed. Reload the Docker tab and try again.",
+    "docker.native-order.incomplete": "These containers are not in the list on this page: $1. Unraid moves any container that is left out when the order of the containers is saved to the top of its list, so nothing was changed. Reload the Docker tab and try again.",
+    "docker.native-order.folder": "Folder: $1",
+    "docker.native-order.intro": "Unraid will save the containers in the order below. Unraid uses that order on the Docker tab when FolderView Plus is not installed, and it sorts its autostart list by it, so this can change the order containers start in.",
+    "docker.native-order.start-managed": "FolderView Plus then applies its own setting for the order in which containers start, as it does after a row is dragged.",
+    "docker.native-order.start-unmanaged": "FolderView Plus is set to leave the start order to Unraid, so nothing adjusts the result afterwards: containers with autostart on will start in the order below.",
+    "docker.native-order.saved-title": "The order of the containers was saved",
+    "docker.native-order.not-saved-title": "The order of the containers was not saved",
+    "docker.native-order.unconfirmed-title": "The save could not be confirmed",
+    "docker.native-order.read-failed": "The container list could not be read from Unraid ($1), so the order of the containers could not be checked. Nothing was changed.",
+    "docker.native-order.changed": "The Docker list, or the order of the containers saved in Unraid, changed while the preview was open. Nothing was changed. Check the list and try again.",
+    "docker.native-order.request-failed": "Unraid did not confirm the save request ($1). Reload the Docker tab to see the order of the containers that is saved in Unraid.",
+    "docker.native-order.unverified": "The save request was sent, but the order of the containers could not be read back from Unraid ($1), so the save is not confirmed. Reload the Docker tab to check it.",
+    "docker.native-order.saved": "Unraid now has the containers saved in the order shown in the preview.",
+    "docker.native-order.mismatch": "The order of the containers saved in Unraid now differs from the order that was sent. Another Docker page probably saved its own order of the containers at the same moment. Check the Docker tab and save again."
 }

@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Prikaži kopirane postavke…",
     "docker.transfer.clear": "Obrišite kopirane postavke",
     "docker.transfer.clone-settings": "Samo postavke kloniranja",
-    "docker.transfer.clone-settings-menu": "Samo postavke kloniranja…"
+    "docker.transfer.clone-settings-menu": "Samo postavke kloniranja…",
+    "docker.native-order.folderview-only": "Prebacite se na prikaz FolderView da biste spremili redoslijed njegovih spremnika.",
+    "docker.actions.save-native-order": "Spremi trenutni redoslijed u Unraid",
+    "docker.native-order.not-ready": "Docker popis na ovoj stranici je nepotpun ili zastario. Ništa se nije promijenilo. Ponovno učitajte karticu Docker i pokušajte ponovno.",
+    "docker.native-order.incomplete": "Ovi spremnici nisu na popisu na ovoj stranici: $1. Unraid premješta svaki spremnik koji je izostavljen kada se spremi redoslijed spremnika na vrh popisa, tako da se ništa nije promijenilo. Ponovno učitajte karticu Docker i pokušajte ponovno.",
+    "docker.native-order.folder": "Mapa: $1",
+    "docker.native-order.intro": "Unraid će spremiti spremnike donjim redoslijedom. Unraid koristi taj redoslijed na kartici Docker kada FolderView Plus nije instaliran i sortira svoj popis za automatsko pokretanje prema njemu, tako da to može promijeniti redoslijed kojim počinju spremnici.",
+    "docker.native-order.start-managed": "FolderView Plus tada primjenjuje vlastitu postavku za redoslijed kojim spremnici počinju, kao što to čini nakon povlačenja retka.",
+    "docker.native-order.start-unmanaged": "FolderView Plus je postavljen da pusti redoslijed pokretanja na Unraid, tako da ništa ne prilagođava rezultat nakon toga: spremnici s uključenim automatskim pokretanjem pokrenut će se redoslijedom ispod.",
+    "docker.native-order.saved-title": "Redoslijed spremnika je spremljen",
+    "docker.native-order.not-saved-title": "Redoslijed spremnika nije spremljen",
+    "docker.native-order.unconfirmed-title": "Spremanje nije bilo moguće potvrditi",
+    "docker.native-order.read-failed": "Popis spremnika nije se mogao pročitati iz Unraida ($1), tako da se redoslijed spremnika nije mogao provjeriti. Ništa se nije promijenilo.",
+    "docker.native-order.changed": "Docker popis ili redoslijed spremnika spremljenih u Unraidu promijenio se dok je pregled bio otvoren. Ništa se nije promijenilo. Provjerite popis i pokušajte ponovno.",
+    "docker.native-order.request-failed": "Unraid nije potvrdio zahtjev za spremanje ($1). Ponovno učitajte karticu Docker da vidite redoslijed spremnika koji su spremljeni u Unraidu.",
+    "docker.native-order.unverified": "Zahtjev za spremanje je poslan, ali se redoslijed spremnika nije mogao očitati iz Unraida ($1), tako da spremanje nije potvrđeno. Ponovno učitajte karticu Docker da je provjerite.",
+    "docker.native-order.saved": "Unraid sada ima spremnike spremljene redoslijedom prikazanim u pregledu.",
+    "docker.native-order.mismatch": "Redoslijed spremnika spremljenih u Unraidu sada se razlikuje od redoslijeda koji je poslan. Druga je Docker stranica vjerojatno spremila vlastiti redoslijed spremnika u istom trenutku. Provjerite karticu Docker i ponovno spremite."
 }

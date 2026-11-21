@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "복사된 설정 보기…",
     "docker.transfer.clear": "복사된 설정 지우기",
     "docker.transfer.clone-settings": "설정만 복제",
-    "docker.transfer.clone-settings-menu": "설정만 복제..."
+    "docker.transfer.clone-settings-menu": "설정만 복제...",
+    "docker.native-order.folderview-only": "컨테이너 순서를 저장하려면 FolderView 보기로 전환하세요.",
+    "docker.actions.save-native-order": "현재 순서를 Unraid에 저장",
+    "docker.native-order.not-ready": "이 페이지의 Docker 목록은 불완전하거나 오래되었습니다. 아무것도 변경되지 않았습니다. Docker 탭을 다시 로드하고 다시 시도하세요.",
+    "docker.native-order.incomplete": "다음 컨테이너는 이 페이지의 목록에 없습니다: $1. Unraid는 컨테이너 순서를 저장할 때 누락된 컨테이너를 목록의 맨 위로 이동하므로 변경된 사항이 없습니다. Docker 탭을 다시 로드하고 다시 시도하세요.",
+    "docker.native-order.folder": "폴더: $1",
+    "docker.native-order.intro": "Unraid는 아래 순서대로 컨테이너를 저장합니다. Unraid는 FolderView Plus가 설치되지 않은 경우 Docker 탭에서 해당 순서를 사용하고 자동 시작 목록을 기준으로 정렬하므로 컨테이너가 시작되는 순서가 변경될 수 있습니다.",
+    "docker.native-order.start-managed": "그런 다음 FolderView Plus는 행을 드래그한 후와 마찬가지로 컨테이너가 시작되는 순서에 대한 자체 설정을 적용합니다.",
+    "docker.native-order.start-unmanaged": "FolderView Plus는 시작 순서를 Unraid로 유지하도록 설정되어 있으므로 나중에 결과를 조정하는 것은 없습니다. 자동 시작이 설정된 컨테이너는 아래 순서로 시작됩니다.",
+    "docker.native-order.saved-title": "컨테이너의 순서가 저장되었습니다",
+    "docker.native-order.not-saved-title": "컨테이너의 순서가 저장되지 않았습니다",
+    "docker.native-order.unconfirmed-title": "저장을 확인할 수 없습니다",
+    "docker.native-order.read-failed": "Unraid($1)에서 컨테이너 목록을 읽어올 수 없어 컨테이너 순서를 확인할 수 없었습니다. 아무것도 변경되지 않았습니다.",
+    "docker.native-order.changed": "미리보기가 열려 있는 동안 Docker 목록 또는 Unraid에 저장된 컨테이너의 순서가 변경되었습니다. 아무것도 변경되지 않았습니다. 목록을 확인하고 다시 시도하세요.",
+    "docker.native-order.request-failed": "Unraid가 저장 요청을 확인하지 않았습니다($1). Unraid에 저장된 컨테이너의 순서를 보려면 Docker 탭을 다시 로드하세요.",
+    "docker.native-order.unverified": "저장 요청을 보냈으나 Unraid($1)에서 컨테이너 순서를 다시 읽을 수 없어 저장이 확인되지 않았습니다. Docker 탭을 다시 로드하여 확인하세요.",
+    "docker.native-order.saved": "이제 Unraid에는 미리보기에 표시된 순서대로 컨테이너가 저장되어 있습니다.",
+    "docker.native-order.mismatch": "이제 Unraid에 저장된 컨테이너의 순서가 전송된 순서와 다릅니다. 다른 Docker 페이지는 아마도 동시에 자체 컨테이너 순서를 저장했을 것입니다. Docker 탭을 확인하고 다시 저장하세요."
 }

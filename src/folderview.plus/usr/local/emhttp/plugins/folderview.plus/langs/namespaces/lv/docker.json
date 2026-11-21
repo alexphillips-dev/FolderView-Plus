@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Skatīt kopētos iestatījumus…",
     "docker.transfer.clear": "Notīrīt kopētos iestatījumus",
     "docker.transfer.clone-settings": "Tikai klonēšanas iestatījumi",
-    "docker.transfer.clone-settings-menu": "Klonēt tikai iestatījumus…"
+    "docker.transfer.clone-settings-menu": "Klonēt tikai iestatījumus…",
+    "docker.native-order.folderview-only": "Pārslēdzieties uz FolderView skatu, lai saglabātu tā konteineru secību.",
+    "docker.actions.save-native-order": "Saglabāt pašreizējo secību Unraid",
+    "docker.native-order.not-ready": "Docker saraksts šajā lapā ir nepilnīgs vai novecojis. Nekas netika mainīts. Atkārtoti ielādējiet cilni Docker un mēģiniet vēlreiz.",
+    "docker.native-order.incomplete": "Šie konteineri nav šīs lapas sarakstā: $1. Unraid pārvieto jebkuru konteineru, kas tiek izlaists, kad konteineru secība tiek saglabāta, uz tā saraksta augšdaļu, tāpēc nekas netika mainīts. Atkārtoti ielādējiet cilni Docker un mēģiniet vēlreiz.",
+    "docker.native-order.folder": "Mape: $1",
+    "docker.native-order.intro": "Unraid saglabās konteinerus tālāk norādītajā secībā. Unraid izmanto šo secību cilnē Docker, kad FolderView Plus nav instalēts, un sakārto automātiskās palaišanas sarakstu pēc tā, tādējādi var mainīt secību, kādā sākas konteineri.",
+    "docker.native-order.start-managed": "Pēc tam FolderView Plus lieto savu iestatījumu secībai, kādā konteineri sākas, tāpat kā pēc rindas vilkšanas.",
+    "docker.native-order.start-unmanaged": "FolderView Plus ir iestatīts atstāt sākuma secību uz Unraid, tāpēc nekas pēc tam nepielāgo rezultātu: konteineri ar ieslēgtu automātisko palaišanu tiks palaisti tālāk norādītajā secībā.",
+    "docker.native-order.saved-title": "Konteineru secība tika saglabāta",
+    "docker.native-order.not-saved-title": "Konteineru secība netika saglabāta",
+    "docker.native-order.unconfirmed-title": "Saglabāšanu neizdevās apstiprināt",
+    "docker.native-order.read-failed": "Konteineru sarakstu nevarēja nolasīt no Unraid ($1), tāpēc nevarēja pārbaudīt konteineru secību. Nekas netika mainīts.",
+    "docker.native-order.changed": "Kamēr priekšskatījums bija atvērts, tika mainīts Docker saraksts vai Unraid saglabāto konteineru secība. Nekas netika mainīts. Pārbaudiet sarakstu un mēģiniet vēlreiz.",
+    "docker.native-order.request-failed": "Unraid neapstiprināja saglabāšanas pieprasījumu ($1). Atkārtoti ielādējiet cilni Docker, lai redzētu pakalpojumā Unraid saglabāto konteineru secību.",
+    "docker.native-order.unverified": "Saglabāšanas pieprasījums tika nosūtīts, bet konteineru secību nevarēja nolasīt atpakaļ no Unraid ($1), tāpēc saglabāšana netiek apstiprināta. Lai to pārbaudītu, atkārtoti ielādējiet cilni Docker.",
+    "docker.native-order.saved": "Tagad Unraid konteineri ir saglabāti priekšskatījumā parādītajā secībā.",
+    "docker.native-order.mismatch": "Unraid saglabāto konteineru secība tagad atšķiras no secības, kas tika nosūtīta. Cita Docker lapa, iespējams, tajā pašā brīdī saglabāja savu konteineru secību. Pārbaudiet cilni Docker un saglabājiet vēlreiz."
 }

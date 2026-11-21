@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "查看复制的设置...",
     "docker.transfer.clear": "清除复制的设置",
     "docker.transfer.clone-settings": "仅克隆设置",
-    "docker.transfer.clone-settings-menu": "仅克隆设置..."
+    "docker.transfer.clone-settings-menu": "仅克隆设置...",
+    "docker.native-order.folderview-only": "切换到FolderView 视图以保存其容器的顺序。",
+    "docker.actions.save-native-order": "将当前顺序保存到 Unraid",
+    "docker.native-order.not-ready": "此页面上的 Docker 列表不完整或已过时。一切都没有改变。重新加载 Docker 选项卡并重试。",
+    "docker.native-order.incomplete": "这些容器不在本页的列表中：$1。 Unraid 会将容器顺序保存到其列表顶部时遗漏的所有容器移至列表顶部，因此不会发生任何更改。重新加载 Docker 选项卡并重试。",
+    "docker.native-order.folder": "文件夹：$1",
+    "docker.native-order.intro": "Unraid 将按以下顺序保存容器。当未安装FolderView Plus 时，Unraid 在 Docker 选项卡上使用该顺序，并按该顺序对其自动启动列表进行排序，因此这可以更改容器的启动顺序。",
+    "docker.native-order.start-managed": "然后，FolderView Plus 将其自己的设置应用于容器启动的顺序，就像拖动行后一样。",
+    "docker.native-order.start-unmanaged": "FolderView Plus 设置为将启动顺序保留为 Unraid，因此之后不会调整结果：启用自动启动的容器将按以下顺序启动。",
+    "docker.native-order.saved-title": "容器的顺序已保存",
+    "docker.native-order.not-saved-title": "容器的顺序未保存",
+    "docker.native-order.unconfirmed-title": "无法确认是否已保存",
+    "docker.native-order.read-failed": "无法从 Unraid ($1) 读取容器列表，因此无法检查容器的顺序。一切都没有改变。",
+    "docker.native-order.changed": "Docker 列表或 Unraid 中保存的容器的顺序在预览打开时发生了变化。一切都没有改变。检查列表并重试。",
+    "docker.native-order.request-failed": "Unraid 未确认保存请求 ($1)。重新加载 Docker 选项卡以查看 Unraid 中保存的容器的顺序。",
+    "docker.native-order.unverified": "已发送保存请求，但无法从 Unraid ($1) 中读回容器的顺序，因此未确认保存。重新加载 Docker 选项卡进行检查。",
+    "docker.native-order.saved": "Unraid 现在已按照预览中显示的顺序保存容器。",
+    "docker.native-order.mismatch": "现在，Unraid 中保存的容器的顺序与发送的顺序不同。另一个 Docker 页面可能同时保存了自己的容器顺序。检查 Docker 选项卡并再次保存。"
 }

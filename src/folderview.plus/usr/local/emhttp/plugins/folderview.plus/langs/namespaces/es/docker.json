@@ -119,5 +119,22 @@
     "docker.transfer.view-menu": "Ver configuraciones copiadas…",
     "docker.transfer.clear": "Borrar configuraciones copiadas",
     "docker.transfer.clone-settings": "Solo clonar configuraciones",
-    "docker.transfer.clone-settings-menu": "Solo clonar configuraciones..."
+    "docker.transfer.clone-settings-menu": "Solo clonar configuraciones...",
+    "docker.native-order.folderview-only": "Cambie a la vista FolderView para guardar el orden de sus contenedores.",
+    "docker.actions.save-native-order": "Guardar el orden actual en Unraid",
+    "docker.native-order.not-ready": "La lista de Docker en esta página está incompleta o desactualizada. No se cambió nada. Vuelva a cargar la pestaña Docker e inténtelo de nuevo.",
+    "docker.native-order.incomplete": "Estos contenedores no están en la lista de esta página: $1. Unraid mueve cualquier contenedor que quede fuera cuando se guarda el orden de los contenedores al principio de su lista, por lo que no se cambió nada. Vuelva a cargar la pestaña Docker e inténtelo de nuevo.",
+    "docker.native-order.folder": "Carpeta: $1",
+    "docker.native-order.intro": "Unraid guardará los contenedores en el orden siguiente. Unraid usa ese orden en la pestaña Docker cuando FolderView Plus no está instalado y ordena su lista de inicio automático por él, por lo que esto puede cambiar el orden en el que comienzan los contenedores.",
+    "docker.native-order.start-managed": "Luego, FolderView Plus aplica su propia configuración para el orden en que comienzan los contenedores, como lo hace después de arrastrar una fila.",
+    "docker.native-order.start-unmanaged": "FolderView Plus está configurado para dejar el orden de inicio a Unraid, por lo que nada ajusta el resultado después: los contenedores con inicio automático activado se iniciarán en el orden siguiente.",
+    "docker.native-order.saved-title": "Se guardó el orden de los contenedores.",
+    "docker.native-order.not-saved-title": "No se guardó el orden de los contenedores.",
+    "docker.native-order.unconfirmed-title": "No se pudo confirmar el guardado",
+    "docker.native-order.read-failed": "La lista de contenedores no se pudo leer desde Unraid ($1), por lo que no se pudo verificar el orden de los contenedores. No se cambió nada.",
+    "docker.native-order.changed": "La lista de Docker, o el orden de los contenedores guardados en Unraid, cambió mientras la vista previa estaba abierta. No se cambió nada. Consulta la lista y vuelve a intentarlo.",
+    "docker.native-order.request-failed": "Unraid no confirmó la solicitud de guardado ($1). Vuelva a cargar la pestaña Docker para ver el orden de los contenedores que se guardan en Unraid.",
+    "docker.native-order.unverified": "Se envió la solicitud de guardado, pero el orden de los contenedores no se pudo leer desde Unraid ($1), por lo que el guardado no se confirma. Vuelva a cargar la pestaña Docker para comprobarlo.",
+    "docker.native-order.saved": "Unraid ahora tiene los contenedores guardados en el orden que se muestra en la vista previa.",
+    "docker.native-order.mismatch": "El orden de los contenedores guardados en Unraid ahora difiere del orden en que se enviaron. Otra página de Docker probablemente guardó su propio orden de los contenedores al mismo tiempo. Verifique la pestaña Docker y guárdela nuevamente."
 }

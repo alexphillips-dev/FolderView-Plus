@@ -361,7 +361,7 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
     assert.match(dashboardSource, /dashboardDockerLifecycleApi\?\.bindDockerContainerContextStatePatch\?\.\(\)/);
     assert.match(
         dashboardSource,
-        /refreshDockerRuntimeStateInPlace: \(\) => refreshDashboardTypeRuntimeStateInPlace\('docker'\)/
+        /refreshDockerRuntimeStateInPlace: \(options\) => refreshDashboardTypeRuntimeStateInPlace\('docker', options\)/
     );
     assert.ok(
         dashboardPage.indexOf('/scripts/runtime.host-adapter.js')
@@ -371,6 +371,56 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
         dashboardPage.indexOf('/scripts/docker.runtime.reconcile.js')
         < dashboardPage.indexOf('/scripts/dashboard.js')
     );
+});
+
+test('Dashboard runtime refresh ignores superseded generations, lifecycle actions and earlier replies', async () => {
+    const start = dashboardSource.indexOf('const refreshDashboardTypeRuntimeStateInPlace =');
+    const end = dashboardSource.indexOf('const resolveDashboardDockerLifecycleEntry =', start);
+    assert.ok(start >= 0 && end > start);
+    const pending = [];
+    const patchedStates = [];
+    const scope = {
+        folderReq: { docker: [] },
+        dashboardHostAdapter: { isDisposed: () => false },
+        dashboardRuntimeReadsByType: { docker: { requested: 0, applied: 0 } },
+        requestClient: { getJson: () => new Promise((resolve) => pending.push(resolve)) },
+        runtimeSnapshotApi: {
+            buildUrl: () => '/fixture',
+            parsePayload: (payload) => payload,
+            diffRuntimeRows: () => ({ changed: ['app'], structuralChanged: false, hasChanges: true })
+        },
+        dashboardRuntimeInfoByType: { docker: { app: { state: 'running' } } },
+        dashboardRuntimeSnapshotConfigMatches: () => true,
+        normalizeDashboardRuntimeInfoMap: (_type, data) => data,
+        folderTypePrefs: { docker: {} },
+        utils: { getMembershipSignature: () => '' },
+        lastDashboardStateSignatures: { docker: '' },
+        buildDockerStateSignature: () => '',
+        rememberDashboardRuntimeSnapshot: () => {},
+        syncDashboardRuntimeRows: () => patchedStates.push(scope.dashboardRuntimeInfoByType.docker.app.state)
+    };
+    const refresh = vm.runInNewContext(dashboardSource.slice(start, end) + '\nrefreshDashboardTypeRuntimeStateInPlace;', scope);
+    const reply = (state) => ({ runtime: { app: { state } } });
+
+    const oldGrouping = refresh('docker');
+    scope.folderReq.docker = [];
+    pending.shift()(reply('stopped'));
+    assert.equal(await oldGrouping, null);
+
+    let activeAction = true;
+    const oldAction = refresh('docker', { isCurrent: () => activeAction });
+    activeAction = false;
+    pending.shift()(reply('stopped'));
+    assert.equal(await oldAction, null);
+
+    const olderRead = refresh('docker');
+    const laterRead = refresh('docker');
+    const [resolveOlder, resolveLater] = pending;
+    resolveLater(reply('paused'));
+    assert.equal(await laterRead, true);
+    resolveOlder(reply('stopped'));
+    assert.equal(await olderRead, null);
+    assert.deepEqual(patchedStates, ['paused']);
 });
 
 test('Dashboard runtime reconciliation clears host lifecycle spinner classes', () => {

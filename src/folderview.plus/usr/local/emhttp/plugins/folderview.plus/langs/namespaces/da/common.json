@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "content-revision": "5aa2ec96d4ee2473d62143f0deae5c8988da3c89d4c048df07eabab03e53ce9b"
+        "content-revision": "d98cdfe8c4846e6816101a7d67e877c5f51443d1408b70c3ceb8df13c2fa50be"
     },
+    "runtime.action.requests-result": "$1 accepteret · $2 mislykkedes",
+    "runtime.action.user-script-failed": "User Scripts kunne ikke starte denne handling. Kontrollér, at pluginet og scriptet er tilgængelige.",
     "common.labels.optional": "Valgfrit",
     "common.badges.recommended": "Anbefales",
     "common.badges.can-delete": "Kan slette",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Der blev ikke fundet nogen kompatible Docker-, VM- eller Dashboard CSS-filer.",
     "common.server.theme-not-found-3d8f8d": "Tema ikke fundet.",
     "common.server.theme-is-required-81b1f0": "Tema er påkrævet.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Temaet har ikke en gemt GitHub-kilde at opdatere fra.",
     "common.server.appearance-profile-not-found-8798a2": "Udseendeprofil blev ikke fundet.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Den endelige udseendeprofil kan ikke slettes.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Ikke-understøttet udseendeprofilomfang.",

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "content-revision": "47d1ae6ac175ec6fc559601ab7ba049cb295ef145c6dbd8a705a39ca73250735"
+        "content-revision": "556b571a235687a022294e91ef3a853bbbfb37e3599e79cf66756a49e5413d62"
     },
+    "settings.theme.github-directory": "选择 CSS 目录",
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",
     "settings.rules.match-placeholder": "例如 arr、sonarr、audiobooks",

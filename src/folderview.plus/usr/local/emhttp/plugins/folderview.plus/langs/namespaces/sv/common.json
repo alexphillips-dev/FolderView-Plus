@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "content-revision": "8cc5d3c0793281b985b39d2cb02ad5ca1016304373bdf3386025fc32d666e62a"
+        "content-revision": "cba3eb512a6a65d9c4714862caf41241f19c8d7d199beac82ff40f90ccfe5e0f"
     },
+    "runtime.action.requests-result": "$1 godkända · $2 misslyckade",
+    "runtime.action.user-script-failed": "User Scripts kunde inte starta den här åtgärden. Kontrollera att tillägget och skriptet är tillgängliga.",
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
     "common.badges.can-delete": "Kan raderas",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Inga kompatibla Docker-, VM- eller Dashboard CSS-filer hittades.",
     "common.server.theme-not-found-3d8f8d": "Temat hittades inte.",
     "common.server.theme-is-required-81b1f0": "Tema krävs.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Theme har ingen sparad GitHub-källa att uppdatera från.",
     "common.server.appearance-profile-not-found-8798a2": "Utseendeprofilen hittades inte.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Den slutliga utseendeprofilen kan inte raderas.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Utseendeprofilomfång stöds inte.",

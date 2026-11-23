@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "content-revision": "e0e117a37358c68bb9914a4ac4cdce965e3a60eb4b2d660c00c7bd45b1056d13"
+        "content-revision": "6c5a8d9e3a7bce2f243fc2854bf0baa9d3993e7067f504de9d7de7f054dde426"
     },
+    "runtime.action.requests-result": "受付 $1 件 · 失敗 $2 件",
+    "runtime.action.user-script-failed": "User Scripts でこの操作を開始できませんでした。プラグインとスクリプトが利用できるか確認してください。",
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
     "common.badges.can-delete": "削除可能",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "互換性のある Docker、VM、またはダッシュボード CSS ファイルが見つかりませんでした。",
     "common.server.theme-not-found-3d8f8d": "テーマが見つかりません。",
     "common.server.theme-is-required-81b1f0": "テーマは必須です。",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "テーマには、更新元となる保存された GitHub ソースがありません。",
     "common.server.appearance-profile-not-found-8798a2": "外観プロファイルが見つかりません。",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "最終的な外観プロファイルは削除できません。",
     "common.server.unsupported-appearance-profile-scope-0a722d": "サポートされていない外観プロファイルの範囲です。",

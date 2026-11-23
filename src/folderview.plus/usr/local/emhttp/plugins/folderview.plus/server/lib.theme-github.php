@@ -18,7 +18,6 @@ require_once __DIR__ . '/lib.theme-css.php';
             3
         );
     }
-
     function fvplusThemeWorkspaceFetchJson(string $url, int $timeoutSeconds = 10): array {
         $response = fvplusThemeWorkspaceFetchText($url, $timeoutSeconds);
         if (!$response['ok']) {
@@ -37,24 +36,15 @@ require_once __DIR__ . '/lib.theme-css.php';
         if ($raw === '') {
             throw new RuntimeException('Theme source is required.');
         }
-        if (preg_match('#^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.+?\.css)$#i', $raw, $match)) {
+        $direct = preg_replace('#^https?://github\.com/([^/]+)/([^/]+)/(?:blob|raw)/#i', 'https://raw.githubusercontent.com/$1/$2/', $raw);
+        if (preg_match('#^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/((?:refs/(?:heads|tags)/)?[^/]+)/(.+?\.css)$#i', $direct, $match)) {
             return [
                 'kind' => 'github_file',
                 'owner' => $match[1],
                 'repo' => $match[2],
-                'branch' => $match[3],
-                'path' => $match[4],
-                'rawUrl' => $raw
-            ];
-        }
-        if (preg_match('#^https?://github\.com/([^/]+)/([^/]+)/(blob|raw)/([^/]+)/(.+?\.css)$#i', $raw, $match)) {
-            return [
-                'kind' => 'github_file',
-                'owner' => $match[1],
-                'repo' => $match[2],
-                'branch' => $match[4],
-                'path' => $match[5],
-                'rawUrl' => 'https://raw.githubusercontent.com/' . $match[1] . '/' . $match[2] . '/' . $match[4] . '/' . $match[5]
+                'branch' => rawurldecode($match[3]),
+                'path' => rawurldecode($match[4]),
+                'rawUrl' => $direct
             ];
         }
         if (preg_match('#^https?://github\.com/([^/]+)/([^/]+)(?:/tree/([^/]+)(?:/(.+))?)?$#i', $raw, $match)) {
@@ -62,8 +52,8 @@ require_once __DIR__ . '/lib.theme-css.php';
                 'kind' => 'github_repo',
                 'owner' => $match[1],
                 'repo' => $match[2],
-                'branch' => trim((string)($match[3] ?? '')),
-                'path' => trim((string)($match[4] ?? '')),
+                'branch' => rawurldecode(trim((string)($match[3] ?? ''))),
+                'path' => rawurldecode(trim((string)($match[4] ?? ''))),
                 'rawUrl' => ''
             ];
         }
@@ -72,7 +62,7 @@ require_once __DIR__ . '/lib.theme-css.php';
                 'kind' => 'github_repo',
                 'owner' => $match[1],
                 'repo' => $match[2],
-                'branch' => trim((string)($match[3] ?? '')),
+                'branch' => rawurldecode(trim((string)($match[3] ?? ''))),
                 'path' => trim((string)($match[4] ?? '')),
                 'rawUrl' => ''
             ];
@@ -93,127 +83,179 @@ require_once __DIR__ . '/lib.theme-css.php';
     }
 
     function fvplusResolveGithubBranchHeadSha(string $owner, string $repo, string $branch): string {
-        $apiUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/branches/' . rawurlencode($branch);
+        $apiUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/commits/' . rawurlencode($branch);
         $response = fvplusThemeWorkspaceFetchJson($apiUrl, 10);
         if (!$response['ok']) {
             return '';
         }
-        return trim((string)($response['json']['commit']['sha'] ?? ''));
+        return strtolower(trim((string)($response['json']['sha'] ?? '')));
     }
 
-    function fvplusImportGithubThemeFiles(string $sourceInput): array {
+    function fvplusThemeGithubManifest(string $sourceInput, string $commitSha = '', ?string $directory = null, bool $discover = false): array {
         $parsed = fvplusParseGithubThemeSourceInput($sourceInput);
-        $owner = trim((string)($parsed['owner'] ?? ''));
-        $repo = trim((string)($parsed['repo'] ?? ''));
-        $branch = trim((string)($parsed['branch'] ?? ''));
-        $pathPrefix = ltrim(trim((string)($parsed['path'] ?? '')), '/');
-        if ($owner === '' || $repo === '') {
-            throw new RuntimeException('Theme source is missing repository information.');
-        }
-        $repoMeta = fvplusResolveGithubThemeRepoMeta($owner, $repo);
-        if ($branch === '') {
-            $branch = trim((string)($repoMeta['defaultBranch'] ?? 'main')) ?: 'main';
-        }
-        $commitSha = fvplusResolveGithubBranchHeadSha($owner, $repo, $branch);
-        $warnings = [];
-        $files = [];
-        if (($parsed['kind'] ?? '') === 'github_file') {
-            $filePath = $pathPrefix;
-            $rawUrl = trim((string)($parsed['rawUrl'] ?? ''));
-            $fileResponse = fvplusThemeWorkspaceFetchText($rawUrl, 10);
-            if (!$fileResponse['ok']) {
-                throw new RuntimeException('Failed to fetch GitHub CSS file.');
-            }
-            $scan = fvplusThemeWorkspaceScanCss((string)$fileResponse['content']);
-            if (count($scan['severe']) > 0) {
-                throw new RuntimeException(implode(' ', $scan['severe']));
-            }
-            $warnings = array_values(array_unique(array_merge($warnings, (array)$scan['warnings'])));
-            $files[] = [
-                'name' => basename($filePath),
-                'path' => $filePath,
-                'sourceUrl' => $rawUrl,
-                'tabs' => fvplusThemeWorkspaceDetectTabsFromPath($filePath, 1),
-                'content' => (string)$fileResponse['content']
-            ];
-        } else {
-            $treeUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/git/trees/' . rawurlencode($branch) . '?recursive=1';
-            $treeResponse = fvplusThemeWorkspaceFetchJson($treeUrl, 12);
-            if (!$treeResponse['ok']) {
-                throw new RuntimeException('Failed to read GitHub repository tree.');
-            }
-            $tree = is_array($treeResponse['json']['tree'] ?? null) ? $treeResponse['json']['tree'] : [];
-            $cssCandidates = [];
-            foreach ($tree as $entry) {
-                if (!is_array($entry)) {
-                    continue;
-                }
-                if (trim((string)($entry['type'] ?? '')) !== 'blob') {
-                    continue;
-                }
-                $entryPath = ltrim(trim((string)($entry['path'] ?? '')), '/');
-                if ($entryPath === '' || !preg_match('/\.css$/i', $entryPath)) {
-                    continue;
-                }
-                if ($pathPrefix !== '' && strpos($entryPath, rtrim($pathPrefix, '/') . '/') !== 0) {
-                    continue;
-                }
-                if (preg_match('#(^|/)(node_modules|vendor|dist|build|coverage|\.git)/#i', $entryPath)) {
-                    continue;
-                }
-                $cssCandidates[] = $entryPath;
-            }
-            if (count($cssCandidates) <= 0) {
+        $owner = trim($parsed['owner']);
+        $repo = trim($parsed['repo']);
+        if ($owner === '' || $repo === '') throw new RuntimeException('Theme source is missing repository information.');
+        $branch = $parsed['branch'];
+        $path = trim($parsed['path'], '/');
+        $isFile = $parsed['kind'] === 'github_file';
+        if ($directory !== null && !$isFile) {
+            if ($path !== '' && $directory !== $path && !str_starts_with($directory, "$path/")) {
                 throw new RuntimeException('No CSS theme files were found in the selected GitHub repository.');
             }
-            $fallbackCssCount = count($cssCandidates);
-            foreach ($cssCandidates as $entryPath) {
-                $tabs = fvplusThemeWorkspaceDetectTabsFromPath($entryPath, $fallbackCssCount);
-                if (count($tabs) <= 0) {
-                    continue;
-                }
-                $rawUrl = 'https://raw.githubusercontent.com/' . $owner . '/' . $repo . '/' . $branch . '/' . $entryPath;
-                $fileResponse = fvplusThemeWorkspaceFetchText($rawUrl, 10);
-                if (!$fileResponse['ok']) {
-                    continue;
-                }
-                $scan = fvplusThemeWorkspaceScanCss((string)$fileResponse['content']);
-                if (count($scan['severe']) > 0) {
-                    throw new RuntimeException(implode(' ', $scan['severe']));
-                }
-                $warnings = array_values(array_unique(array_merge($warnings, (array)$scan['warnings'])));
-                $files[] = [
-                    'name' => basename($entryPath),
-                    'path' => $entryPath,
-                    'sourceUrl' => $rawUrl,
-                    'tabs' => $tabs,
-                    'content' => (string)$fileResponse['content']
-                ];
-                if (count($files) >= FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME) {
-                    break;
+            $path = trim($directory, '/');
+        }
+        if ($branch === '') {
+            $branch = fvplusResolveGithubThemeRepoMeta($owner, $repo)['defaultBranch'] ?: 'main';
+        }
+        $repoPath = rawurlencode($owner) . '/' . rawurlencode($repo);
+        $commitSha = $commitSha !== '' ? $commitSha : fvplusResolveGithubBranchHeadSha($owner, $repo, $branch);
+        // Raw URLs with slash-containing refs leave their ref/path boundary implicit.
+        if ($commitSha === '' && $isFile && str_contains($path, '/')) {
+            $qualified = str_starts_with($branch, 'refs/');
+            $fullPath = "$branch/$path";
+            $resolvedRef = $resolvedPrefix = '';
+            foreach ($qualified ? [substr($branch, 5)] : ["heads/$branch", "tags/$branch"] as $prefix) {
+                $refs = fvplusThemeWorkspaceFetchJson("https://api.github.com/repos/$repoPath/git/matching-refs/" . rawurlencode($prefix));
+                foreach ($refs['json'] ?? [] as $ref) {
+                    $candidate = (string)($ref['ref'] ?? '');
+                    $inputPrefix = $qualified ? $candidate : preg_replace('#^refs/(?:heads|tags)/#', '', $candidate);
+                    if (strlen($inputPrefix) > strlen($resolvedPrefix) && str_starts_with($fullPath, "$inputPrefix/")) {
+                        $resolvedRef = $candidate;
+                        $resolvedPrefix = $inputPrefix;
+                    }
                 }
             }
-            if (count($files) <= 0) {
-                throw new RuntimeException('No compatible Docker, VM, or Dashboard CSS files were found.');
+            if ($resolvedRef !== '') {
+                $branch = $resolvedRef;
+                $path = substr($fullPath, strlen($resolvedPrefix) + 1);
+                $sourceInput = "https://raw.githubusercontent.com/$repoPath/" . rawurlencode($branch) . '/'
+                    . implode('/', array_map('rawurlencode', explode('/', $path)));
+                $commitSha = fvplusResolveGithubBranchHeadSha($owner, $repo, $branch);
             }
         }
+        if (!preg_match('/\A[a-f0-9]{40}\z/', $commitSha)) {
+            throw new RuntimeException('Failed to read GitHub repository metadata.');
+        }
+        $response = fvplusThemeWorkspaceFetchJson("https://api.github.com/repos/$repoPath/git/trees/$commitSha?recursive=1", 12);
+        $tree = $response['json']['tree'] ?? null;
+        if (!$response['ok'] || !is_array($tree) || !empty($response['json']['truncated'])) {
+            throw new RuntimeException('Failed to read GitHub repository tree.');
+        }
+        $scopes = [$path => []];
+        foreach ($tree as $entry) {
+            $filePath = (string)($entry['path'] ?? '');
+            if (($entry['type'] ?? '') !== 'blob' || !preg_match('/\.css\z/i', $filePath)
+                || ($isFile ? $filePath !== $path : ($path !== '' && !str_starts_with($filePath, "$path/")))
+                || (!$isFile && preg_match('#(^|/)(node_modules|vendor|dist|build|coverage|\.git)/#i', $filePath))) {
+                continue;
+            }
+            $scopes[$path][] = $entry;
+            if ($discover && !$isFile) {
+                for ($parent = dirname($filePath); $parent !== '.' && $parent !== $path; $parent = dirname($parent)) {
+                    $scopes[$parent][] = $entry;
+                }
+            }
+        }
+        foreach ($scopes as &$entries) {
+            $cssCount = count($entries);
+            $entries = array_values(array_filter(array_map(static function (array $entry) use ($cssCount): array {
+                $entry['tabs'] = fvplusThemeWorkspaceDetectTabsFromPath($entry['path'], $cssCount);
+                return $entry;
+            }, $entries), static fn(array $entry): bool => $entry['tabs'] !== []));
+        }
+        unset($entries);
+        $directories = [];
+        if ($discover && !$isFile && count($scopes) > 1) {
+            foreach ($scopes as $directoryPath => $entries) {
+                if ($entries && count($entries) <= FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME
+                    && !array_filter($entries, static fn(array $file): bool => !fvplusThemeGithubValidFile($file))) {
+                    $directories[] = (string)$directoryPath;
+                }
+            }
+        }
+        if ($directory !== null && !$isFile) {
+            $encodedPath = implode('/', array_map('rawurlencode', explode('/', $path)));
+            $sourceInput = "https://github.com/$repoPath/tree/" . rawurlencode($branch) . ($encodedPath === '' ? '' : "/$encodedPath");
+        }
+        if (strlen($sourceInput) > 512) {
+            throw new RuntimeException('Unsupported GitHub theme source format.');
+        }
         return [
-            'name' => $owner . '/' . $repo,
-            'warnings' => $warnings,
-            'files' => $files,
             'source' => [
                 'input' => $sourceInput,
-                'kind' => (string)($parsed['kind'] ?? 'github_repo'),
+                'kind' => $parsed['kind'],
                 'owner' => $owner,
                 'repo' => $repo,
                 'branch' => $branch,
-                'path' => $pathPrefix,
-                'defaultBranch' => trim((string)($repoMeta['defaultBranch'] ?? 'main')),
+                'path' => $path,
+                'defaultBranch' => $branch,
                 'commitSha' => $commitSha,
                 'canCheckUpdates' => true,
-                'rawUrl' => trim((string)($parsed['rawUrl'] ?? ''))
-            ]
+                'rawUrl' => $parsed['rawUrl']
+            ],
+            'repoPath' => $repoPath,
+            'files' => $scopes[$path],
+            'directories' => $directories
         ];
+    }
+
+    function fvplusThemeGithubFingerprint(array $files): string {
+        $manifest = array_map(static function (array $file): array {
+            $content = (string)($file['content'] ?? '');
+            return [$file['path'], $file['tabs'], $file['sha'] ?? sha1('blob ' . strlen($content) . "\0" . $content)];
+        }, $files);
+        return hash('sha256', json_encode($manifest, JSON_THROW_ON_ERROR));
+    }
+
+    function fvplusThemeGithubValidFile(array $file): bool {
+        $path = $file['path'];
+        $size = $file['size'] ?? null;
+        return trim($path) === $path && strlen($path) <= 512 && preg_match('//u', $path)
+            && !preg_match('#(?:^|/)\.{1,2}(?:/|$)|[\\\\\x00-\x1F\x7F]#', $path)
+            && in_array($file['mode'] ?? null, ['100644', '100755'], true)
+            && is_int($size) && $size > 0 && $size <= FVPLUS_THEME_WORKSPACE_MAX_FILE_BYTES
+            && preg_match('/\A[a-f0-9]{40}\z/', (string)($file['sha'] ?? '')) === 1;
+    }
+
+    function fvplusImportGithubThemeFiles(string $sourceInput, string $commitSha = '', ?array $manifest = null): array {
+        $manifest = $manifest ?? fvplusThemeGithubManifest($sourceInput, $commitSha);
+        $source = $manifest['source'];
+        $commit = $source['commitSha'];
+        $repoPath = $manifest['repoPath'];
+        if (!$manifest['files']) {
+            throw new RuntimeException('No compatible Docker, VM, or Dashboard CSS files were found.');
+        }
+        if (count($manifest['files']) > FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME) {
+            throw new RuntimeException('Failed to fetch GitHub CSS file.');
+        }
+        $paths = [];
+        $files = [];
+        $warnings = [];
+        foreach ($manifest['files'] as $file) {
+            $path = $file['path'];
+            $size = $file['size'] ?? null;
+            $blobSha = (string)($file['sha'] ?? '');
+            if (isset($paths[$path]) || !fvplusThemeGithubValidFile($file)) {
+                throw new RuntimeException('Failed to fetch GitHub CSS file.');
+            }
+            $paths[$path] = true;
+            $encodedPath = implode('/', array_map('rawurlencode', explode('/', $path)));
+            $rawUrl = "https://raw.githubusercontent.com/$repoPath/$commit/$encodedPath";
+            $response = fvplusThemeWorkspaceFetchText($rawUrl, 10);
+            $content = (string)($response['content'] ?? '');
+            if (!$response['ok'] || strlen($content) !== $size || !preg_match('//u', $content)
+                || !hash_equals($blobSha, sha1("blob $size\0" . $content))) {
+                throw new RuntimeException('Failed to fetch GitHub CSS file.');
+            }
+            $scan = fvplusThemeWorkspaceScanCss($content);
+            if ($scan['severe']) {
+                throw new RuntimeException(implode(' ', $scan['severe']));
+            }
+            $warnings = array_values(array_unique(array_merge($warnings, $scan['warnings'])));
+            $files[] = ['name' => basename($path), 'path' => $path, 'sourceUrl' => $rawUrl, 'tabs' => $file['tabs'], 'content' => $content];
+        }
+        return ['name' => $source['owner'] . '/' . $source['repo'], 'warnings' => $warnings, 'files' => $files, 'source' => $source];
     }
 
     function fvplusThemeWorkspaceBuildThemeRecordFromImport(array $imported): array {
@@ -232,9 +274,13 @@ require_once __DIR__ . '/lib.theme-css.php';
         ]);
     }
 
-    function scanThemeWorkspaceGithub(string $sourceInput): array {
-        $workspace = readThemeWorkspace();
-        $imported = fvplusImportGithubThemeFiles($sourceInput);
+    function scanThemeWorkspaceGithub(string $sourceInput, string $commitSha = '', ?string $directory = null, bool $discover = false): array {
+        $manifest = fvplusThemeGithubManifest($sourceInput, $commitSha, $directory, $discover);
+        if ($manifest['directories']) {
+            return ['directories' => $manifest['directories'], 'commitSha' => $manifest['source']['commitSha']];
+        }
+        $workspace = readThemeWorkspace(false);
+        $imported = fvplusImportGithubThemeFiles($sourceInput, '', $manifest);
         $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
         $themeId = trim((string)($themeRecord['id'] ?? ''));
         $exists = false;
@@ -252,9 +298,18 @@ require_once __DIR__ . '/lib.theme-css.php';
         ];
     }
 
-    function importThemeWorkspaceGithub(string $sourceInput): array {
-        $workspace = readThemeWorkspace();
-        $imported = fvplusImportGithubThemeFiles($sourceInput);
+    function fvplusThemeWorkspaceWriteGithubChange(array $before, array $workspace): array {
+        return withConfigMutationLock(static function () use ($before, $workspace): array {
+            if (jsonObjectsDiffer($before, readThemeWorkspace(false))) {
+                throw new RuntimeException('FolderView Plus configuration is busy. Please retry the action.');
+            }
+            return writeThemeWorkspace($workspace);
+        });
+    }
+
+    function importThemeWorkspaceGithub(string $sourceInput, string $commitSha = ''): array {
+        $before = $workspace = readThemeWorkspace(false);
+        $imported = fvplusImportGithubThemeFiles($sourceInput, $commitSha);
         $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
         $themeId = trim((string)($themeRecord['id'] ?? ''));
         $themes = [];
@@ -275,7 +330,7 @@ require_once __DIR__ . '/lib.theme-css.php';
         if (trim((string)($workspace['activeThemeId'] ?? '')) === '') {
             $workspace['activeThemeId'] = $themeId;
         }
-        $saved = writeThemeWorkspace($workspace);
+        $saved = fvplusThemeWorkspaceWriteGithubChange($before, $workspace);
         return [
             'theme' => $themeRecord,
             'workspace' => $saved
@@ -333,71 +388,37 @@ require_once __DIR__ . '/lib.theme-css.php';
     }
 
     function checkThemeWorkspaceUpdates(): array {
-        $workspace = readThemeWorkspace();
+        $before = $workspace = readThemeWorkspace(false);
         $themes = [];
         $checkedAt = gmdate('c');
         $updateCount = 0;
-        foreach ((array)($workspace['themes'] ?? []) as $theme) {
-            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
-            $source = is_array($normalizedTheme['source'] ?? null) ? $normalizedTheme['source'] : [];
-            $canCheck = !empty($source['canCheckUpdates']);
-            $latestSha = '';
-            if ($canCheck) {
-                $latestSha = fvplusResolveGithubBranchHeadSha(
-                    (string)($source['owner'] ?? ''),
-                    (string)($source['repo'] ?? ''),
-                    (string)($source['branch'] ?? ($source['defaultBranch'] ?? 'main'))
-                );
+        $failedCount = 0;
+        $checkedCount = 0;
+        foreach ($workspace['themes'] as $theme) {
+            $source = $theme['source'];
+            if (!empty($source['canCheckUpdates']) && !empty($source['input'])) {
+                try {
+                    $manifest = fvplusThemeGithubManifest($source['input']);
+                    $theme['updateAvailable'] = fvplusThemeGithubFingerprint($manifest['files'])
+                        !== fvplusThemeGithubFingerprint($theme['files']);
+                    $theme['lastCheckedAt'] = $checkedAt;
+                    $checkedCount++;
+                    if ($theme['updateAvailable']) $updateCount++;
+                } catch (RuntimeException $error) {
+                    $failedCount++;
+                }
             }
-            $normalizedTheme['lastCheckedAt'] = $checkedAt;
-            $normalizedTheme['updateAvailable'] = $latestSha !== '' && $latestSha !== trim((string)($source['commitSha'] ?? ''));
-            if ($normalizedTheme['updateAvailable']) {
-                $updateCount += 1;
-            }
-            $themes[] = $normalizedTheme;
+            $themes[] = $theme;
         }
-        $workspace['themes'] = $themes;
-        $workspace['lastCheckedAt'] = $checkedAt;
-        $saved = writeThemeWorkspace($workspace);
+        if ($checkedCount > 0) {
+            $workspace['themes'] = $themes;
+            $workspace['lastCheckedAt'] = $checkedAt;
+            $workspace = fvplusThemeWorkspaceWriteGithubChange($before, $workspace);
+        }
         return [
-            'workspace' => $saved,
+            'workspace' => $workspace,
             'updateCount' => $updateCount,
-            'checkedAt' => $checkedAt
+            'failedCount' => $failedCount,
+            'checkedAt' => $workspace['lastCheckedAt']
         ];
-    }
-
-    function updateThemeWorkspaceTheme(string $themeId): array {
-        $workspace = readThemeWorkspace();
-        $safeThemeId = truncateUtf8String(trim($themeId), 64);
-        if ($safeThemeId === '') {
-            throw new RuntimeException('Theme is required.');
-        }
-        $themes = [];
-        $updated = false;
-        foreach ((array)($workspace['themes'] ?? []) as $theme) {
-            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
-            if (trim((string)($normalizedTheme['id'] ?? '')) !== $safeThemeId) {
-                $themes[] = $normalizedTheme;
-                continue;
-            }
-            $source = is_array($normalizedTheme['source'] ?? null) ? $normalizedTheme['source'] : [];
-            $sourceInput = trim((string)($source['input'] ?? ''));
-            if ($sourceInput === '') {
-                throw new RuntimeException('Theme does not have a saved GitHub source to update from.');
-            }
-            $imported = fvplusImportGithubThemeFiles($sourceInput);
-            $replacement = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
-            $replacement['id'] = $safeThemeId;
-            $replacement['importedAt'] = (string)($normalizedTheme['importedAt'] ?? gmdate('c'));
-            $replacement['lastCheckedAt'] = gmdate('c');
-            $replacement['updateAvailable'] = false;
-            $themes[] = fvplusThemeWorkspaceNormalizeThemeRecord($replacement);
-            $updated = true;
-        }
-        if (!$updated) {
-            throw new RuntimeException('Theme not found.');
-        }
-        $workspace['themes'] = $themes;
-        $workspace['lastCheckedAt'] = gmdate('c');
-        return writeThemeWorkspace($workspace);
     }

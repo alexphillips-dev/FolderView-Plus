@@ -312,7 +312,7 @@ test('runtime pages patch state changes incrementally and retain structural fall
     assert.match(vmJs, /const refreshVmRuntimeStateInPlace = async \(options = \{\}\) =>/);
     assert.match(vmJs, /runtimeSnapshotApi\.diffRuntimeRows\('vm',\s*vmRuntimeInfoByName,\s*nextRuntimeInfo\)/);
     assert.match(vmJs, /syncVmRuntimeRows\(rowDiff\.changed\)/);
-    assert.match(dashboardJs, /const refreshDashboardTypeRuntimeStateInPlace = async \(type\) =>/);
+    assert.match(dashboardJs, /const refreshDashboardTypeRuntimeStateInPlace = async \(type, \{ isCurrent = \(\) => true \} = \{\}\) =>/);
     assert.match(dashboardJs, /runtimeSnapshotApi\.diffRuntimeRows\(resolvedType,\s*dashboardRuntimeInfoByType\[resolvedType\],\s*nextRuntimeInfo\)/);
     assert.match(dashboardJs, /syncDashboardRuntimeRows\(resolvedType,\s*rowDiff\.changed\)/);
 });

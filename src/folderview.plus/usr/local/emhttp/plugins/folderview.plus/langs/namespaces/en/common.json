@@ -1,9 +1,11 @@
 {
+    "runtime.action.requests-result": "$1 accepted · $2 failed",
+    "runtime.action.user-script-failed": "User Scripts could not launch this action. Check that the plugin and script are available.",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "content-revision": "af416edbe2b24da644bea5d09fb000f42e3b857f28c32b1732bb6eec6db34e68"
+        "content-revision": "412dca3cff443314a1d475351f08463bb6ea0c914207c99ebc2f4b6b1e20cce4"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "No compatible Docker, VM, or Dashboard CSS files were found.",
     "common.server.theme-not-found-3d8f8d": "Theme not found.",
     "common.server.theme-is-required-81b1f0": "Theme is required.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Theme does not have a saved GitHub source to update from.",
     "common.server.appearance-profile-not-found-8798a2": "Appearance profile not found.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "The final appearance profile cannot be deleted.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Unsupported appearance profile scope.",

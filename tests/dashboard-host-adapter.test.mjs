@@ -28,7 +28,7 @@ test('Dashboard loads shared ordering after the host adapter and before its runt
 });
 
 const nextTurn = () => new Promise((resolve) => setTimeout(resolve, 0));
-const createHarness = ({ renderFolders = async () => true } = {}) => {
+const createHarness = ({ renderFolders = async () => true, hasWidget = (type) => type === 'docker' } = {}) => {
     const prefilters = [];
     const nativeCalls = [];
     const preparedTypes = [];
@@ -58,6 +58,7 @@ const createHarness = ({ renderFolders = async () => true } = {}) => {
         document,
         $,
         runtimeHostAdapter,
+        hasWidget,
         prepareFolderRequests: (type) => preparedTypes.push(type),
         renderFolders,
         hideSpinner: () => { spinnerHideCount += 1; }
@@ -165,6 +166,65 @@ test('Dashboard ignores a pending native response after disposal', async () => {
     assert.deepEqual(harness.adapter.getSnapshot(), before);
 });
 
+test('Dashboard skips clock synchronization requests and hydrates a direct initial native request', async () => {
+    const harness = createHarness();
+    harness.adapter.bind();
+    const jqXHR = { promise: () => Promise.resolve() };
+    harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php', data: 'ntp=ntp' }, {}, jqXHR);
+    await nextTurn();
+    assert.deepEqual(harness.preparedTypes, []);
+    harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php', data: { docker: '1' } }, {}, jqXHR);
+    await nextTurn();
+    assert.deepEqual(harness.preparedTypes, ['docker', 'vm']);
+    assert.deepEqual(harness.adapter.getSnapshot().widgetRenderStates, { docker: 'ready', vm: 'skipped' });
+});
+
+test('Dashboard aborts an older unfinished native request on the next load', async () => {
+    const harness = createHarness();
+    harness.adapter.bind();
+    harness.window.loadlist('old');
+    let aborted = false;
+    let abortRequest;
+    const response = new Promise((_, reject) => { abortRequest = reject; });
+    harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, {
+        promise: () => response,
+        abort() {
+            aborted = true;
+            abortRequest(new Error('aborted'));
+        }
+    });
+    harness.window.loadlist('new');
+    await nextTurn();
+    assert.equal(aborted, true);
+    assert.equal(harness.adapter.getSnapshot().nativeRowsLoadedCount, 0);
+});
+
+for (const readyType of ['docker', 'vm']) {
+    test(`Dashboard renders ${readyType} independently of a failing sibling widget`, async () => {
+        const pending = new Map();
+        const failedType = readyType === 'vm' ? 'docker' : 'vm';
+        const harness = createHarness({
+            hasWidget: () => true,
+            renderFolders: ({ type }) => new Promise((resolve, reject) => pending.set(type, { resolve, reject }))
+        });
+        harness.adapter.bind();
+        harness.window.loadlist();
+        harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
+        await nextTurn();
+        assert.deepEqual(harness.adapter.getSnapshot().widgetRenderStates, { docker: 'pending', vm: 'pending' });
+        assert.equal(harness.getSpinnerHideCount(), 1);
+        pending.get(readyType).resolve(true);
+        await nextTurn();
+        assert.equal(harness.adapter.getSnapshot().widgetRenderStates[readyType], 'ready');
+        assert.equal(harness.adapter.getSnapshot().widgetRenderStates[failedType], 'pending');
+        pending.get(failedType).reject(new Error('fixture failure'));
+        await nextTurn();
+        assert.deepEqual(harness.adapter.getSnapshot().widgetRenderStates, { [readyType]: 'ready', [failedType]: 'failed' });
+        assert.equal(harness.adapter.getSnapshot().renderFailureCount, 1);
+        assert.equal(harness.getSpinnerHideCount(), 1);
+    });
+}
+
 for (const outcome of ['success', 'failure']) {
     test(`Dashboard ignores pending render ${outcome} after disposal`, async () => {
         let resolveRender;
@@ -176,11 +236,12 @@ for (const outcome of ['success', 'failure']) {
         harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
         await nextTurn();
         harness.adapter.dispose({ restoreLoadlist: true });
+        const beforeSpinner = harness.getSpinnerHideCount();
         const before = harness.adapter.getSnapshot();
         if (outcome === 'success') resolveRender(true);
         else rejectRender(new Error('fixture render failure'));
         await nextTurn();
-        assert.equal(harness.getSpinnerHideCount(), 0);
+        assert.equal(harness.getSpinnerHideCount(), beforeSpinner);
         assert.deepEqual(harness.adapter.getSnapshot(), before);
     });
 }
@@ -196,18 +257,19 @@ for (const outcome of ['false', 'true', 'failure']) {
             await nextTurn();
         }
         assert.equal(pending.length, 2);
+        const beforeSpinner = harness.getSpinnerHideCount();
         if (outcome === 'failure') pending[0].reject(new Error('old render failure'));
         else pending[0].resolve(outcome === 'true');
         await nextTurn();
         assert.equal(harness.adapter.getSnapshot().renderGeneration, 2);
-        assert.equal(harness.getSpinnerHideCount(), 0);
+        assert.equal(harness.getSpinnerHideCount(), beforeSpinner);
         harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
         await nextTurn();
         assert.equal(pending.length, 2, 'a stale completion must not allow duplicate current-generation rendering');
         pending[1].resolve(true);
         await nextTurn();
         assert.equal(harness.adapter.getSnapshot().foldersGroupedCount, 1);
-        assert.equal(harness.getSpinnerHideCount(), 1);
+        assert.equal(harness.getSpinnerHideCount(), beforeSpinner);
     });
 }
 

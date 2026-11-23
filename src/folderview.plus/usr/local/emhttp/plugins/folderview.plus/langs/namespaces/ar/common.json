@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "content-revision": "57b56c306e4adb107af55b29d6c0c1bb0fd9cee26be9de7b3a3a568a04544ba8"
+        "content-revision": "37b89dcbd82d87978193c7c3192f77b79b35f4f0c9fd54f0ee462ff9be4dc508"
     },
+    "runtime.action.requests-result": "تم قبول $1 · فشل $2",
+    "runtime.action.user-script-failed": "تعذر على User Scripts تشغيل هذا الإجراء. تحقق من توفر الإضافة والبرنامج النصي.",
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
     "common.badges.can-delete": "يمكن حذف",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "لم يتم العثور على ملفات Docker أو VM أو Dashboard CSS متوافقة.",
     "common.server.theme-not-found-3d8f8d": "لم يتم العثور على الموضوع.",
     "common.server.theme-is-required-81b1f0": "الموضوع مطلوب.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "لا يحتوي المظهر على مصدر GitHub محفوظ للتحديث منه.",
     "common.server.appearance-profile-not-found-8798a2": "لم يتم العثور على ملف تعريف المظهر.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "لا يمكن حذف ملف تعريف المظهر النهائي.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "نطاق ملف تعريف المظهر غير مدعوم.",

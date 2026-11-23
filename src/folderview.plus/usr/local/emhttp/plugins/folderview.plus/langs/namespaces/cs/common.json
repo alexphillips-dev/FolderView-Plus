@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "content-revision": "644119e608f8a1a2ae209092076a3f1f1752638e907b8516ed414b6f877a6af7"
+        "content-revision": "0447e6b0b9923a944d97aedabb1e3f6d18145119ff15fc114d530107674c2e2a"
     },
+    "runtime.action.requests-result": "Přijato $1 · Selhalo $2",
+    "runtime.action.user-script-failed": "User Scripts nemohl spustit tuto akci. Ověřte, že jsou doplněk a skript dostupné.",
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
     "common.badges.can-delete": "Lze smazat",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Nebyly nalezeny žádné kompatibilní soubory CSS Docker, VM nebo Dashboard.",
     "common.server.theme-not-found-3d8f8d": "Motiv nenalezen.",
     "common.server.theme-is-required-81b1f0": "Téma je povinné.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Motiv nemá uložený zdroj GitHub k aktualizaci.",
     "common.server.appearance-profile-not-found-8798a2": "Profil vzhledu nebyl nalezen.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Profil konečného vzhledu nelze smazat.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Nepodporovaný rozsah profilu vzhledu.",

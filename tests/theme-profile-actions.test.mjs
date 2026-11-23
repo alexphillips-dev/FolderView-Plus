@@ -82,7 +82,7 @@ test('managed theme batch updates fetch every replacement before one atomic work
     assert.match(bulkUpdatePhp, /function prepareThemeWorkspaceThemeUpdates/);
     assert.match(bulkUpdatePhp, /function updateThemeWorkspaceThemes/);
     assert.match(bulkUpdatePhp, /fvplusImportGithubThemeFiles/);
-    assert.match(bulkUpdatePhp, /return \['workspace' => writeThemeWorkspace\(\$workspace\), 'plan' => \$plan\];/);
+    assert.match(bulkUpdatePhp, /return \['workspace' => fvplusThemeWorkspaceWriteGithubChange\(\$before, \$workspace\), 'plan' => \$plan\];/);
     const actions = endpointManifest.endpoints['theme_workspace.php'].actions;
     assert.equal(actions.preview_theme_updates.access, 'read-only');
     assert.equal(actions.update_themes.requestToken, 'mutation');

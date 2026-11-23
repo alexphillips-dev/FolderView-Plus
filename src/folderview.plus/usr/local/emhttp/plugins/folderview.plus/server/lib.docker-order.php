@@ -49,6 +49,50 @@ function dockerSyncOrderLockPath(): string {
         return $delay > 0 ? $name . ' ' . $delay : $name;
     }
 
+    function dockerPageHasFolderSort(array $prefs): bool {
+        return ($prefs['sortMode'] ?? 'created') !== 'created' || !empty($prefs['pinnedFolderIds']);
+    }
+
+    function composeDockerSavedOrder(array $nativeOrder, array $orderedFolders, array $prefs): array {
+        $folderPlaceholders = array_map(static fn($id) => 'folder-' . $id, array_keys($orderedFolders));
+        $folderTokens = array_fill_keys($folderPlaceholders, true);
+        $sortSlots = dockerPageHasFolderSort($prefs);
+        $slotIndex = 0;
+        $seen = [];
+        $nextOrder = [];
+        foreach ($nativeOrder as $entry) {
+            $value = trim((string)$entry);
+            if ($sortSlots && isset($folderTokens[$value])) $value = $folderPlaceholders[$slotIndex++] ?? '';
+            // An unknown folder-prefixed token may be a real container name.
+            fvplus_append_unique_name($nextOrder, $seen, $value);
+        }
+        // Folders without a host slot keep their established top placement.
+        $missing = array_values(array_diff($folderPlaceholders, $nextOrder));
+        return array_merge($missing, $nextOrder);
+    }
+
+    function buildDockerPageOrderModel(array $currentOrder, array $orderedFolders, array $prefs, array $allContainerNames): array {
+        $savedOrder = composeDockerSavedOrder($currentOrder, $orderedFolders, $prefs);
+        $slotFolders = [];
+        $sortSlots = dockerPageHasFolderSort($prefs);
+        $preferredIds = $sortSlots ? orderFolderBranchIds($orderedFolders, $prefs['pinnedFolderIds'] ?? []) : [];
+        foreach ($savedOrder as $entry) {
+            if (strpos($entry, 'folder-') !== 0) continue;
+            $id = substr($entry, 7);
+            if (!isset($orderedFolders[$id])) continue;
+            if ($sortSlots) $id = $preferredIds[count($slotFolders)];
+            $slotFolders[$id] = $orderedFolders[$id];
+        }
+        // The render starts with a saved-name reconciliation and appends newly discovered rows.
+        natcasesort($allContainerNames);
+        $names = array_values(array_unique(array_merge(array_intersect($savedOrder, $allContainerNames), $allContainerNames)));
+        return [
+            'displayFolderIds' => array_keys($slotFolders),
+            'pageFolderIds' => orderFolderBranchIds($slotFolders, [], true),
+            'names' => $names
+        ];
+    }
+
     function buildDockerStartOrderContext(?array $verifiedInventory = null): array {
         global $configDir;
 
@@ -58,7 +102,7 @@ function dockerSyncOrderLockPath(): string {
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
 
         $foldersFile = "$configDir/docker.json";
-        $folders = file_exists($foldersFile) ? (json_decode(file_get_contents($foldersFile), true) ?: []) : [];
+        $folders = file_exists($foldersFile) ? normalizeFolderMapPayload(json_decode(file_get_contents($foldersFile), true)) : [];
 
         $allContainerNames = [];
         if ($verifiedInventory === null) {
@@ -78,8 +122,9 @@ function dockerSyncOrderLockPath(): string {
             $allContainerNames = array_keys($infoByName);
         }
 
-        $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
-        $snapshot = fvplusBuildMembershipSnapshot('docker', $folders, $rules, $infoByName, $allContainerNames, array_keys($orderedFolders));
+        $orderedFolders = reorderFolderMapByPrefs('docker', $folders, $prefs);
+        $pageModel = buildDockerPageOrderModel($currentOrder, $orderedFolders, $prefs, $allContainerNames);
+        $snapshot = fvplusBuildMembershipSnapshot('docker', $orderedFolders, $rules, $infoByName, $pageModel['names'], $pageModel['displayFolderIds']);
         $folderContainers = []; $folderNames = []; $assignedContainers = [];
         foreach ($orderedFolders as $folderId => $folder) {
             $placeholder = "folder-$folderId";
@@ -120,6 +165,8 @@ function dockerSyncOrderLockPath(): string {
             'folderNames' => $folderNames,
             'assignedContainers' => array_values(array_unique($assignedContainers)),
             'allContainerNames' => array_values($allContainerNames),
+            'pageContainerNames' => $pageModel['names'],
+            'pageFolderIds' => $pageModel['pageFolderIds'],
             'autoStartFile' => $autoStartFile,
             'autoStartContent' => $autoStartContent,
             'autoStartMap' => $autoStartMap,
@@ -128,50 +175,18 @@ function dockerSyncOrderLockPath(): string {
     }
 
     function buildDockerPageStartOrder(array $context): array {
-        $allContainerNames = (array)($context['allContainerNames'] ?? []);
         $folderContainers = (array)($context['folderContainers'] ?? []);
-        $folderPlaceholders = array_keys($folderContainers);
-        $assignedContainers = (array)($context['assignedContainers'] ?? []);
-        $currentOrder = (array)($context['currentOrder'] ?? []);
-        $currentPrefs = $context['currentPrefs'] ?? false;
-
-        if (!$currentPrefs) {
-            $currentOrder = array_values($allContainerNames);
-            natcasesort($currentOrder);
-            $currentOrder = array_values($currentOrder);
-        }
-
+        $assignedContainers = array_fill_keys($context['assignedContainers'], true);
         $newOrder = [];
         $seen = [];
-        foreach ($currentOrder as $item) {
-            $item = trim((string)$item);
-            if ($item === '') {
-                continue;
-            }
-            if (in_array($item, $folderPlaceholders, true)) {
-                foreach ((array)($folderContainers[$item] ?? []) as $ct) {
-                    fvplus_append_unique_name($newOrder, $seen, (string)$ct);
-                }
-                continue;
-            }
-            if (in_array($item, $assignedContainers, true)) {
-                continue;
-            }
-            if (in_array($item, $allContainerNames, true)) {
-                fvplus_append_unique_name($newOrder, $seen, $item);
-            }
-        }
-
-        foreach ($allContainerNames as $name) {
-            if (!in_array($name, $assignedContainers, true)) {
+        foreach ($context['pageFolderIds'] as $id) {
+            foreach ($folderContainers['folder-' . $id] ?? [] as $name) {
                 fvplus_append_unique_name($newOrder, $seen, (string)$name);
             }
         }
 
-        foreach ($folderPlaceholders as $placeholder) {
-            foreach ((array)($folderContainers[$placeholder] ?? []) as $ct) {
-                fvplus_append_unique_name($newOrder, $seen, (string)$ct);
-            }
+        foreach ($context['pageContainerNames'] as $name) {
+            if (!isset($assignedContainers[$name])) fvplus_append_unique_name($newOrder, $seen, (string)$name);
         }
 
         return $newOrder;

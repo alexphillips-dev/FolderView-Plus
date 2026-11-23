@@ -817,8 +817,10 @@ const readDashboardNativeOrderSnapshotForType = async (type) => {
         return [];
     }
 };
-const restoreDashboardNativeRowsForType = async (type) => {
+const restoreDashboardNativeRowsForType = async (type, isCurrent) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const orderSnapshot = await readDashboardNativeOrderSnapshotForType(resolvedType);
+    if (!isCurrent()) return;
     const $container = resolveDashboardWidgetInlineHostForType(resolvedType).first();
     if (!$container.length) {
         return;
@@ -840,7 +842,6 @@ const restoreDashboardNativeRowsForType = async (type) => {
         entry.$row.detach();
     });
     $container.children('.folder-showcase-outer').remove();
-    const orderSnapshot = await readDashboardNativeOrderSnapshotForType(resolvedType);
     const rowMap = new Map();
     const appended = new Set();
     for (const entry of rowEntries) {
@@ -961,10 +962,13 @@ const saveDashboardLayoutPrefForType = async (type, layout) => {
 };
 const rerenderDashboardWidgetStructureForType = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const previousRequests = folderReq[resolvedType];
+    const isCurrent = () => !dashboardHostAdapter?.isDisposed?.() && previousRequests === folderReq[resolvedType];
     dashboardLayoutTransitionInFlightByType[resolvedType] = true;
     scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
     try {
-        await restoreDashboardNativeRowsForType(resolvedType);
+        await restoreDashboardNativeRowsForType(resolvedType, isCurrent);
+        if (!isCurrent()) return;
         if (isDashboardLegacyLayoutForType(resolvedType)) {
             scheduleDashboardLayoutApplyForType(resolvedType);
             syncDashboardWidgetLayoutQuickControlForType(resolvedType);
@@ -972,7 +976,7 @@ const rerenderDashboardWidgetStructureForType = async (type) => {
             return;
         }
         prepareDashboardFolderRequestsForType(resolvedType);
-        await createFolders([resolvedType]);
+        await createFolders(resolvedType);
         scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
     } finally {
         dashboardLayoutTransitionInFlightByType[resolvedType] = false;
@@ -1178,21 +1182,25 @@ const showDashboardRuntimeLoadingRow = (type) => {
     const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
     const label = resolvedType === 'docker' ? 'Docker' : 'VM';
     const tbody = $(`tbody#${tbodyId}`);
-    if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
+    tbody.children('tr.fv-dashboard-load-failed').remove();
+    if (!tbody.length || tbody.children('tr.fv-runtime-loading-row').length) {
         return;
     }
-    tbody.prepend(`<tr class="fv-runtime-loading-row"><td colspan="18"><i class="fa fa-circle-o-notch fa-spin"></i> Loading ${label} folders...</td></tr>`);
+    tbody.children('tr.updated').before(`<tr class="fv-runtime-loading-row"><td colspan="18"><span role="status"><i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Loading ${label} folders...</span></td></tr>`);
 };
 
 const hideDashboardRuntimeLoadingRow = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
-    $(`tbody#${tbodyId} tr.fv-runtime-loading-row`).remove();
+    $(`tbody#${tbodyId} > tr.fv-runtime-loading-row`).remove();
 };
 
-let createFoldersInFlight = false;
-let createFoldersQueued = false;
-let createFoldersPromise = null;
+const showDashboardRuntimeFailedRow = (type) => {
+    const tbody = $(dashboardTypeMeta(type).tbodySelector);
+    const row = $('<tr class="fv-dashboard-load-failed"><td colspan="18"><span role="status"></span></td></tr>');
+    row.find('[role="status"]').text(dashboardT('common.folder-render.title', 'Some folders could not be displayed.'));
+    tbody.children('tr.updated').before(row);
+};
 const dashboardRequestDiagnostics = {
     docker: [],
     vm: []
@@ -1224,8 +1232,21 @@ const recordDashboardRequestFallback = (type, label, error) => {
     }
 };
 const getDashboardRequestWithFallback = (type, label, url, fallback) => requestClient.getText(url)
-    .then((data) => data, (error) => {
+    .then((data) => {
+        let value = data;
+        try {
+            if (typeof data === 'string') value = JSON.parse(data.replace(/^\uFEFF/, ''));
+        } catch (_error) {
+            value = null;
+        }
+        if (!value || typeof value !== 'object' || value.ok === false) {
+            throw new Error('Dashboard request returned invalid data.');
+        }
+        return data;
+    })
+    .catch((error) => {
         recordDashboardRequestFallback(type, label, error);
+        if (fallback === undefined) throw error;
         return JSON.stringify(fallback);
     });
 const ensureDashboardFolderDefaults = (folder) => {
@@ -1317,30 +1338,25 @@ const buildDashboardDebugPayload = async (type, details) => {
         ...details
     };
 };
+const downloadDashboardRenderDebug = async (type, details, isCurrent) => {
+    const data = await buildDashboardDebugPayload(type, JSON.parse(JSON.stringify(details)));
+    if (!isCurrent()) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    const element = document.createElement('a');
+    element.href = url;
+    element.download = `debug-DASHBOARD-${type === 'vm' ? 'VM' : 'DOCKER'}.json`;
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    element.remove();
+    URL.revokeObjectURL(url);
+};
 
-/**
- * Handles the creation of all folders
- */
 const dashboardFolderRenderRecovery = Object.fromEntries(['docker', 'vm'].map((type) => [type,
     window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage(type, type === 'docker' ? '#docker_view' : '#vm_view')
 ]));
 
-const createFolders = async (types = ['docker', 'vm']) => {
-    const renderTypes = new Set(
-        (Array.isArray(types) ? types : [types])
-            .map((type) => (type === 'vm' ? 'vm' : 'docker'))
-    );
-    // ########################################
-    // ##########       DOCKER       ##########
-    // ########################################
-
-    // if docker is enabled
-    if (renderTypes.has('docker') && $('tbody#docker_view').length > 0) {
-        dashboardFolderRenderRecovery.docker.begin();
-        dashboardFolderRenderCompleteByType.docker = false;
-        showDashboardRuntimeLoadingRow('docker');
-        try {
-        let prom = await Promise.all(folderReq.docker);
+const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allDockerFolders = normalizeDashboardFolderMap(folders);
@@ -1357,7 +1373,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         recordDashboardLayoutHydration('docker', folderTypePrefs.docker);
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
-        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
+        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker, 'docker');
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
         if (isDashboardLegacyLayoutForType('docker')) {
@@ -1378,24 +1394,14 @@ const createFolders = async (types = ['docker', 'vm']) => {
         }
 
         // debug mode, download the debug json file
-        if(folderDebugMode) {
-            const debugData = JSON.stringify(await buildDashboardDebugPayload('docker', {
+        if (captureDebug) {
+            downloadDashboardRenderDebug('docker', {
                 folders,
                 unraidOrder,
                 newOnes,
                 order,
                 containersInfo: sanitizeDashboardInfoForDebug('docker', containersInfo)
-            }));
-            const blob = new Blob([debugData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const element = document.createElement('a');
-            element.href = url;
-            element.download = 'debug-DASHBOARD-DOCKER.json';
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            URL.revokeObjectURL(url);
+            }, isActive).catch(() => {});
             dashboardDebugLog('Docker Order:', [...order]);
         }
     
@@ -1431,8 +1437,9 @@ const createFolders = async (types = ['docker', 'vm']) => {
                     Object.keys(foldersDone),
                     dockerFullMatchCache[childId] || null,
                     {
-                        appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
-                        preserveWhenEmpty: childHasChildren
+                        appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `#docker_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        preserveWhenEmpty: childHasChildren,
+                        captureDebug
                     }
                 );
                 if (!dashboardFolderRenderRecovery.docker.hasFailed(childId)) foldersDone[childId] = allDockerFolders[childId];
@@ -1458,7 +1465,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                         containersInfo,
                         Object.keys(foldersDone),
                         rootCacheEntry,
-                        { preserveWhenEmpty: hasChildren }
+                        { preserveWhenEmpty: hasChildren, captureDebug }
                     );
                     if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) {
                         key -= newOnes.length;
@@ -1488,7 +1495,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 containersInfo,
                 Object.keys(foldersDone),
                 rootCacheEntry,
-                { preserveWhenEmpty: hasChildren }
+                { preserveWhenEmpty: hasChildren, captureDebug }
             );
             // Move the folder to the done object and delete it from the undone one
             if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) foldersDone[id] = folders[id];
@@ -1528,24 +1535,9 @@ const createFolders = async (types = ['docker', 'vm']) => {
         dashboardFolderRenderCompleteByType.docker = true;
         scheduleDashboardLayoutApplyForType('docker');
         }
-        } finally {
-            hideDashboardRuntimeLoadingRow('docker');
-            dashboardFolderRenderRecovery.docker.finish();
-        }
-    }
+};
 
-
-    // ########################################
-    // ##########         VMS        ##########
-    // ########################################
-
-    // if vm is enabled
-    if (renderTypes.has('vm') && $('tbody#vm_view').length > 0) {
-        dashboardFolderRenderRecovery.vm.begin();
-        dashboardFolderRenderCompleteByType.vm = false;
-        showDashboardRuntimeLoadingRow('vm');
-        try {
-        const prom = await Promise.all(folderReq.vm);
+const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allVmFolders = normalizeDashboardFolderMap(folders);
@@ -1583,24 +1575,14 @@ const createFolders = async (types = ['docker', 'vm']) => {
         }
 
         // debug mode, download the debug json file
-        if(folderDebugMode) {
-            const debugData = JSON.stringify(await buildDashboardDebugPayload('vm', {
+        if (captureDebug) {
+            downloadDashboardRenderDebug('vm', {
                 folders,
                 unraidOrder,
                 newOnes,
                 order,
                 vmInfo: sanitizeDashboardInfoForDebug('vm', vmInfo)
-            }));
-            const blob = new Blob([debugData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const element = document.createElement('a');
-            element.href = url;
-            element.download = 'debug-DASHBOARD-VM.json';
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            URL.revokeObjectURL(url);
+            }, isActive).catch(() => {});
             dashboardDebugLog('VM Order:', [...order]);
         }
     
@@ -1636,8 +1618,9 @@ const createFolders = async (types = ['docker', 'vm']) => {
                     Object.keys(foldersDone),
                     vmFullMatchCache[childId] || null,
                     {
-                        appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
-                        preserveWhenEmpty: childHasChildren
+                        appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `#vm_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        preserveWhenEmpty: childHasChildren,
+                        captureDebug
                     }
                 );
                 if (!dashboardFolderRenderRecovery.vm.hasFailed(childId)) foldersDone[childId] = allVmFolders[childId];
@@ -1663,7 +1646,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                         vmInfo,
                         Object.keys(foldersDone),
                         rootCacheEntry,
-                        { preserveWhenEmpty: hasChildren }
+                        { preserveWhenEmpty: hasChildren, captureDebug }
                     );
                     if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) {
                         key -= newOnes.length;
@@ -1693,7 +1676,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 vmInfo,
                 Object.keys(foldersDone),
                 rootCacheEntry,
-                { preserveWhenEmpty: hasChildren }
+                { preserveWhenEmpty: hasChildren, captureDebug }
             );
             // Move the folder to the done object and delete it from the undone one
             if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) foldersDone[id] = folders[id];
@@ -1732,16 +1715,37 @@ const createFolders = async (types = ['docker', 'vm']) => {
         dashboardFolderRenderCompleteByType.vm = true;
         scheduleDashboardLayoutApplyForType('vm');
         }
-        } finally {
-            hideDashboardRuntimeLoadingRow('vm');
-            dashboardFolderRenderRecovery.vm.finish();
+};
+
+const createFolders = async (type, { isCurrent = () => true, captureDebug = false } = {}) => {
+    const requests = folderReq[type];
+    const widget = document.querySelector(dashboardTypeMeta(type).tbodySelector);
+    const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
+        && requests === folderReq[type] && widget?.isConnected;
+    if (!requests.length || !isActive()) return false;
+    dashboardFolderRenderCompleteByType[type] = false;
+    showDashboardRuntimeLoadingRow(type);
+    let rendering = false;
+    try {
+        const prom = await Promise.all(requests);
+        if (!isActive()) return false;
+        dashboardFolderRenderRecovery[type].begin();
+        rendering = true;
+        const render = type === 'vm' ? renderDashboardVmFolders : renderDashboardDockerFolders;
+        render(prom, captureDebug, isActive);
+        applyDashboardRuntimePrefs();
+        return true;
+    } catch (error) {
+        if (!isActive()) return false;
+        dashboardFolderRenderCompleteByType[type] = false;
+        showDashboardRuntimeFailedRow(type);
+        throw error;
+    } finally {
+        if (isActive()) {
+            hideDashboardRuntimeLoadingRow(type);
+            if (rendering) dashboardFolderRenderRecovery[type].finish();
         }
     }
-
-    folderDebugMode  = false;
-    applyDashboardRuntimePrefs();
-    scheduleDashboardLayoutApplyForType('docker');
-    scheduleDashboardLayoutApplyForType('vm');
 };
 
 // Render one folder transactionally and return the number of earlier order entries moved.
@@ -1913,7 +1917,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
                 $containerEl.find('.blue-text').addClass('orange-text');
             }
 
-            if(folderDebugMode) {
+            if (options.captureDebug) {
                 dashboardDebugLog(`Docker ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
 
@@ -1953,7 +1957,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
     if (folderTypePrefs?.docker?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
-        $(`.folder-showcase-outer-${id}`).remove();
+        $(`#docker_view .folder-showcase-outer-${id}`).remove();
         return remBefore;
     }
 
@@ -1984,22 +1988,23 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
         applyDashboardFolderStatusTextColor($statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`), statusColors.text);
     }
 
+    const $cardSurfaces = sel.closest('.folder-showcase-outer').add(sel.parent());
     if(autostart === 0) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('no-autostart');
+        $cardSurfaces.addClass('no-autostart');
     } else if (autostart > 0 && autostartStarted === 0) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-off');
+        $cardSurfaces.addClass('autostart-off');
     } else if (autostart > 0 && autostartStarted > 0 && autostart !== autostartStarted) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-partial');
+        $cardSurfaces.addClass('autostart-partial');
     } else if (autostart > 0 && autostartStarted > 0 && autostart === autostartStarted) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-full');
+        $cardSurfaces.addClass('autostart-full');
     }
 
     if(managed === 0) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('no-managed');
+        $cardSurfaces.addClass('no-managed');
     } else if (managed > 0 && managed < Object.values(folder.containers).length) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('managed-partial');
+        $cardSurfaces.addClass('managed-partial');
     } else if (managed > 0 && managed === Object.values(folder.containers).length) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('managed-full');
+        $cardSurfaces.addClass('managed-full');
     }
 
     // set the status
@@ -2172,7 +2177,7 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 'data-fv-runtime-state': getDashboardRuntimeStateMeta('vm', ct).state
             }).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
 
-            if(folderDebugMode) {
+            if (options.captureDebug) {
                 dashboardDebugLog(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
             
@@ -2208,7 +2213,7 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
     if (folderTypePrefs?.vm?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
-        $(`.folder-showcase-outer-${id}`).remove();
+        $(`#vm_view .folder-showcase-outer-${id}`).remove();
         return remBefore;
     }
 
@@ -2233,14 +2238,15 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
         applyDashboardFolderStatusTextColor($statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`), statusColors.text);
     }
 
+    const $cardSurfaces = sel.closest('.folder-showcase-outer').add(sel.parent());
     if(autostart === 0) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('no-autostart');
+        $cardSurfaces.addClass('no-autostart');
     } else if (autostart > 0 && autostartStarted === 0) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-off');
+        $cardSurfaces.addClass('autostart-off');
     } else if (autostart > 0 && autostartStarted > 0 && autostart !== autostartStarted) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-partial');
+        $cardSurfaces.addClass('autostart-partial');
     } else if (autostart > 0 && autostartStarted > 0 && autostart === autostartStarted) {
-        $(`.folder-showcase-outer-${id}, .folder-showcase-outer-${id} > span.outer`).addClass('autostart-full');
+        $cardSurfaces.addClass('autostart-full');
     }
 
     // set the status
@@ -2438,6 +2444,10 @@ let lastDashboardSnapshotRevisions = {
 let dashboardRuntimeInfoByType = {
     docker: {},
     vm: {}
+};
+const dashboardRuntimeReadsByType = {
+    docker: { requested: 0, applied: 0 },
+    vm: { requested: 0, applied: 0 }
 };
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
@@ -2710,8 +2720,14 @@ const syncDashboardRuntimeRows = (type, changedNames) => {
     };
 };
 
-const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
+const refreshDashboardTypeRuntimeStateInPlace = async (type, { isCurrent = () => true } = {}) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const requests = folderReq[resolvedType];
+    const reads = dashboardRuntimeReadsByType[resolvedType];
+    const revision = ++reads.requested;
+    const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
+        && requests === folderReq[resolvedType] && revision >= reads.applied;
+    if (!isActive()) return null;
     try {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
         const payload = await requestClient.getJson(useSnapshot
@@ -2720,6 +2736,7 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
                 data: useSnapshot ? undefined : { type: resolvedType, mode: 'state', nocache: 1 },
                 cache: false
             });
+        if (!isActive()) return null;
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseDashboardPayloadOr(payload, {});
         if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !dashboardRuntimeSnapshotConfigMatches(resolvedType, snapshot))) return false;
@@ -2730,6 +2747,7 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
         const matchingInputs = { type: resolvedType, rules: folderTypePrefs[resolvedType]?.autoRules || [] };
         const membershipChanged = utils.getMembershipSignature({ ...matchingInputs, infoByName: dashboardRuntimeInfoByType[resolvedType] })
             !== utils.getMembershipSignature({ ...matchingInputs, infoByName: nextRuntimeInfo });
+        reads.applied = revision;
         dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
         lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
             ? buildDockerStateSignature(parsed, true)
@@ -2751,7 +2769,7 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
         if (rowDiff.hasChanges) syncDashboardRuntimeRows(resolvedType, rowDiff.changed);
         return true;
     } catch (_error) {
-        return false;
+        return isActive() ? false : null;
     }
 };
 
@@ -2865,7 +2883,7 @@ const getDashboardDockerRuntimeReconcileApi = () => {
         dashboardDockerRuntimeReconcileApi = dockerRuntimeReconcileModule.createApi({
             window,
             document,
-            refreshDockerRuntimeStateInPlace: () => refreshDashboardTypeRuntimeStateInPlace('docker'),
+            refreshDockerRuntimeStateInPlace: (options) => refreshDashboardTypeRuntimeStateInPlace('docker', options),
             getDockerRuntimeContainerInfo: (containerName) => (
                 dashboardRuntimeInfoByType.docker?.[String(containerName || '').trim()] || null
             ),
@@ -2895,19 +2913,22 @@ const dashboardLiveRefreshController = runtimeLiveRefreshModule.createController
     },
     tick: async (type) => {
         const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const requests = folderReq[resolvedType];
+        const isCurrent = () => requests === folderReq[resolvedType] && !dashboardHostAdapter?.isDisposed?.();
         let check = null;
         try {
             check = await fetchDashboardTypeSnapshotCheck(resolvedType);
         } catch (_error) {
             check = null;
         }
+        if (!isCurrent()) return false;
         if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
             queueLoadlistRefresh();
             return false;
         }
         if (check.notModified !== true) {
-            const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType);
-            if (patched !== true) queueLoadlistRefresh();
+            const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType, { isCurrent });
+            if (patched === false && isCurrent()) queueLoadlistRefresh();
         }
         return true;
     }
@@ -2995,68 +3016,57 @@ const refreshDashboardDockerCpuCores = () => requestClient.getText('/plugins/fol
 
 refreshDashboardDockerCpuCores();
 
-const queueCreateFoldersRender = () => {
-    if (createFoldersInFlight) {
-        createFoldersQueued = true;
-        return createFoldersPromise || Promise.resolve(false);
-    }
-    createFoldersInFlight = true;
-    createFoldersPromise = Promise.resolve()
-        .then(() => createFolders())
-        .then(() => true)
-        .catch((error) => {
-            if (window.console && typeof window.console.warn === 'function') {
-                console.warn('[FolderView Plus] Dashboard folder render failed.', error);
-            }
-            throw error;
-        })
-        .finally(() => {
-            createFoldersInFlight = false;
-            createFoldersPromise = null;
-            if (createFoldersQueued) {
-                createFoldersQueued = false;
-                queueLoadlistRefresh();
-            }
-        });
-    return createFoldersPromise;
+const renderDashboardWidget = ({ type, isCurrent }) => {
+    const captureDebug = folderDebugMode;
+    // The adapter starts both widgets in the same turn.
+    if (captureDebug) queueMicrotask(() => { folderDebugMode = false; });
+    return createFolders(type, { isCurrent, captureDebug });
 };
+const hasDashboardWidget = (type) => $(dashboardTypeMeta(type).tbodySelector).length > 0;
 const prepareDashboardFolderRequestsForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const hasWidget = resolvedType === 'vm'
-        ? $('tbody#vm_view').length > 0
-        : $('tbody#docker_view').length > 0;
-    if (!hasWidget) {
+    hideDashboardRuntimeLoadingRow(resolvedType);
+    if (!hasDashboardWidget(resolvedType)) {
         folderReq[resolvedType] = [];
         return [];
     }
     const legacyFactories = [
-        () => getDashboardRequestWithFallback(resolvedType, 'folders', `/plugins/folderview.plus/server/read.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'folders', `/plugins/folderview.plus/server/read.php?type=${resolvedType}`),
         () => getDashboardRequestWithFallback(resolvedType, 'folder order', `/plugins/folderview.plus/server/read_order.php?type=${resolvedType}`, {}),
-        () => getDashboardRequestWithFallback(resolvedType, 'runtime info', `/plugins/folderview.plus/server/read_info.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'runtime info', `/plugins/folderview.plus/server/read_info.php?type=${resolvedType}`),
         () => getDashboardRequestWithFallback(resolvedType, 'unraid order', `/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`, {}),
-        () => getDashboardRequestWithFallback(resolvedType, 'preferences', `/plugins/folderview.plus/server/prefs.php?type=${resolvedType}`, { ok: false, prefs: {} })
+        () => getDashboardRequestWithFallback(resolvedType, 'preferences', `/plugins/folderview.plus/server/prefs.php?type=${resolvedType}`)
     ];
+    let requests;
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
-        folderReq[resolvedType] = legacyFactories.map((factory) => factory());
-        return folderReq[resolvedType];
-    }
-    const snapshotRequest = requestClient.getJson(runtimeSnapshotApi.buildUrl(resolvedType, 'full', {
-        cacheBust: Date.now()
-    }), { cache: false }).then((data) => data, (error) => {
-        recordDashboardRequestFallback(resolvedType, 'runtime snapshot', error);
-        throw error;
-    });
-    folderReq[resolvedType] = runtimeSnapshotApi.createProjectedBundle(
-        snapshotRequest,
-        ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
-        {
+        requests = legacyFactories.map((factory) => factory());
+    } else {
+        const snapshotRequest = requestClient.getJson(runtimeSnapshotApi.buildUrl(resolvedType, 'full', {
+            cacheBust: Date.now()
+        }), { cache: false }).then((data) => {
+            if (data?.type !== resolvedType || ![data.folders, data.runtime, data.prefs].every(value => value && typeof value === 'object')) {
+                throw new Error('Dashboard snapshot did not include the requested widget data.');
+            }
+            return data;
+        }).catch((error) => {
+            recordDashboardRequestFallback(resolvedType, 'runtime snapshot', error);
+            throw error;
+        });
+        requests = runtimeSnapshotApi.createProjectedBundle(snapshotRequest,
+            ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'], {
             onSnapshot: (snapshot) => {
-                rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
+                if (requests === folderReq[resolvedType] && !dashboardHostAdapter?.isDisposed?.()) {
+                    rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
+                }
             },
             fallbackFactories: legacyFactories
-        }
-    );
-    return folderReq[resolvedType];
+        });
+    }
+    // Requests start during loadlist, before the native rows are ready to group.
+    // Observe early rejections while preserving the rejected field for the renderer.
+    requests.forEach((request) => request.catch(() => {}));
+    folderReq[resolvedType] = requests;
+    return requests;
 };
 
 dashboardHostAdapter = dashboardHostAdapterModule.getOrCreate({
@@ -3064,8 +3074,9 @@ dashboardHostAdapter = dashboardHostAdapterModule.getOrCreate({
     document,
     $,
     runtimeHostAdapter: dashboardDockerHostAdapter,
+    hasWidget: hasDashboardWidget,
     prepareFolderRequests: prepareDashboardFolderRequestsForType,
-    renderFolders: queueCreateFoldersRender,
+    renderFolders: renderDashboardWidget,
     hideSpinner: () => $('div.spinner.fixed').hide(),
     onEvent: (event = {}) => {
         const eventName = String(event?.name || 'dashboardEvent');

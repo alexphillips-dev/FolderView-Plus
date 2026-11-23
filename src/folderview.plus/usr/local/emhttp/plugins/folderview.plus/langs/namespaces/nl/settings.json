@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "content-revision": "5ffcf8a305c266c27f33c3bdae92679f43e82bed8059ad999cd20ea1e9beb2ef"
+        "content-revision": "3de49f29e4042623d8f880ca3772b07a39b651094d8ea3151b3aa27e0faad92c"
     },
+    "settings.theme.github-directory": "Kies een CSS-map",
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",
     "settings.rules.match-placeholder": "bijv. arr, sonarr, audioboeken",

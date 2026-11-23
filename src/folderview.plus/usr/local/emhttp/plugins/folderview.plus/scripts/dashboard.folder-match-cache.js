@@ -141,14 +141,15 @@
             return output;
         };
 
-        const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
+        const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, type = 'vm') => {
             if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.reorderFolderSlotsInBaseOrder !== 'function') {
                 throw new Error('FolderView Plus runtime folder ordering is unavailable.');
             }
             return runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
                 orderFolders: getPrefsOrderedFolderMap,
                 folderTokenPrefix: 'folder-',
-                isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+                isFolderToken: (entry) => folderRegex.test(entry)
+                    && (type !== 'docker' || Object.prototype.hasOwnProperty.call(folders || {}, entry.slice(7)))
             });
         };
 

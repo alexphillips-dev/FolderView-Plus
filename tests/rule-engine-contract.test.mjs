@@ -370,8 +370,15 @@ test('Docker startup follows shared display ownership while preserving FV3 defin
         migrated: { name: 'Migrated', containers: ['media-fixture'], membershipPolicy: 'folderview3' } };
     const info = { 'media-fixture': { id: 'stable', Labels: { 'folder.view3': 'Migrated' } } }, rules = [rule({ folderId: 'b' })];
     const server = runPhp({ operation: 'startup', folders, rules, info });
-    const snapshot = utils.buildMembershipSnapshot({ type: 'docker', folders: server.folders, rules, infoByName: info, displayFolderIds: server.order });
+    const ordering = require(path.join(plugin, 'scripts/runtime.folder-ordering.js'));
+    const isFolderToken = token => token.startsWith('folder-') && Object.hasOwn(server.folders, token.slice(7));
+    const slots = ordering.reorderFolderSlotsInBaseOrder(server.order, server.folders, server.prefs, {
+        orderFolders: utils.orderFoldersByPrefs, isFolderToken
+    });
+    const displayFolderIds = slots.filter(isFolderToken).map(token => token.slice(7));
+    const snapshot = utils.buildMembershipSnapshot({ type: 'docker', folders: server.folders, rules, infoByName: info, displayFolderIds });
     for (const id of Object.keys(folders)) assert.deepEqual(server.members['folder-' + id], snapshot.byFolder[id].displayMembers);
+    assert.deepEqual(server.members['folder-migrated'], ['media-fixture']);
 });
 
 test('lightweight Docker and Dashboard metadata refreshes replace images and removed labels', () => {

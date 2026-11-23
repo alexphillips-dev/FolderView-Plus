@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "content-revision": "b9235e89ded284c5d992f64a08ca526c77d4f7e05d2d67bd1e7d9f5eb1c6a0a7"
+        "content-revision": "b5b3d8187cc723a771f6f533952de07891416e368ec1c5a2de3017308b5b7b5b"
     },
+    "runtime.action.requests-result": "Przyjęto: $1 · Niepowodzenia: $2",
+    "runtime.action.user-script-failed": "User Scripts nie mógł uruchomić tej akcji. Sprawdź, czy wtyczka i skrypt są dostępne.",
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
     "common.badges.can-delete": "Można usunąć",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Nie znaleziono kompatybilnych plików CSS Dockera, VM ani Dashboardu.",
     "common.server.theme-not-found-3d8f8d": "Nie znaleziono motywu.",
     "common.server.theme-is-required-81b1f0": "Temat jest wymagany.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Motyw nie ma zapisanego źródła GitHub, z którego można dokonać aktualizacji.",
     "common.server.appearance-profile-not-found-8798a2": "Nie znaleziono profilu wyglądu.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Ostatecznego profilu wyglądu nie można usunąć.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Nieobsługiwany zakres profilu wyglądu.",

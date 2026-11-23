@@ -1,8 +1,8 @@
 // @ts-check
 (function(root, factory) {
-    if (typeof module === 'object' && module.exports) module.exports = factory();
-    else root.FolderViewPlusDockerFolderFeedback = factory();
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    if (typeof module === 'object' && module.exports) module.exports = factory(require('./runtime.native-actions.js'));
+    else root.FolderViewPlusDockerFolderFeedback = factory(root.FolderViewPlusFoundationModules.runtimeNativeActions);
+}(typeof globalThis !== 'undefined' ? globalThis : this, function({ nativeActionOutcome }) {
     const instances = new WeakMap();
     const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params)
         || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
@@ -101,8 +101,13 @@
                 details.append(node('summary', '', surfaceT('docker.feedback.view-details', 'View details')));
                 for (const failure of operation.failures) {
                     const item = node('div', 'fv-docker-operation-failure');
-                    item.append(node('span', 'fv-docker-feedback-name', failure.name || surfaceT('docker.feedback.container', 'Container')), doc.createTextNode(' · '),
-                        node('span', '', failure.message));
+                    item.append(node('span', 'fv-docker-feedback-name', failure.name || surfaceT('docker.feedback.container', 'Container')), doc.createTextNode(' · '));
+                    if (failure.reason) {
+                        item.append(node('span', 'fv-docker-feedback-native-reason', failure.reason),
+                            node('span', 'fv-docker-feedback-generic-reason', failure.message));
+                    } else {
+                        item.append(node('span', '', failure.message));
+                    }
                     details.append(item);
                 }
                 root.append(details);
@@ -190,15 +195,23 @@
             if (!jobs.length) { finish(operation, 'success', surfaceT('docker.feedback.no-matching', 'No containers need this action')); return true; }
             await Promise.all(jobs.map(async job => {
                 try {
-                    if (!job.entry.id) throw new Error('missing-identity');
-                    const response = await request(job.entry);
-                    if (response?.success !== true) throw new Error('rejected');
-                } catch (error) {
-                    job.failed = true;
-                    operation.failures.push({ name: job.name, message: error?.message === 'missing-identity'
-                        ? surfaceT('docker.feedback.missing-identity', 'The container identifier is unavailable; refresh the page') : error?.message === 'rejected'
-                        ? surfaceT('docker.feedback.rejected', 'The container action was rejected')
-                        : surfaceT('docker.feedback.request-failed', 'The request failed or timed out') });
+                    if (!job.entry.id) {
+                        job.failed = true;
+                        operation.failures.push({ name: job.name,
+                            message: surfaceT('docker.feedback.missing-identity', 'The container identifier is unavailable; refresh the page') });
+                        return;
+                    }
+                    const outcome = await Promise.resolve().then(() => request(job.entry)).then(
+                        response => nativeActionOutcome(response),
+                        error => nativeActionOutcome(error?.responseJSON, true)
+                    );
+                    if (!outcome.accepted) {
+                        job.failed = true;
+                        operation.failures.push({ name: job.name, reason: outcome.reason,
+                            message: outcome.code === 'refused'
+                                ? surfaceT('docker.feedback.rejected', 'The container action was rejected')
+                                : surfaceT('docker.feedback.request-failed', 'The request failed or timed out') });
+                    }
                 } finally {
                     operation.completed++;
                     operation.message = surfaceT('docker.feedback.progress', '$1 · $2 of $3 requests completed', actionLabel(action), operation.completed, jobs.length);

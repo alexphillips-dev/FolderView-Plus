@@ -54,3 +54,25 @@ test('unchanged workspace still adopts fresh server state and propagates read fa
     const failing = createApi({ apiGetJson: async () => { throw new Error('synthetic'); } });
     await assert.rejects(failing.readWorkspace(), /synthetic/);
 });
+
+test('a stale GitHub scan cannot replace a newer reviewed source or be imported', async () => {
+    const scans = [];
+    const imports = [];
+    const api = createApi({
+        apiPostJson: (_url, payload) => {
+            if (payload.action === 'scan_github') return new Promise(resolve => scans.push(resolve));
+            imports.push(payload);
+            return Promise.resolve({ workspace: {} });
+        }
+    });
+    const old = api.scanGithub('owner/old');
+    const current = api.scanGithub('owner/current');
+    const source = { input: 'https://github.com/owner/current/tree/main/compact', commitSha: 'a'.repeat(40) };
+    scans[1]({ theme: { source } });
+    await current;
+    scans[0]({ theme: { source: { input: 'owner/old', commitSha: 'b'.repeat(40) } } });
+    assert.equal(await old, null);
+    assert.equal(await api.importGithub('owner/old'), null);
+    await api.importGithub('owner/current');
+    assert.deepEqual(imports, [{ action: 'import_github', source: source.input, commitSha: source.commitSha }]);
+});

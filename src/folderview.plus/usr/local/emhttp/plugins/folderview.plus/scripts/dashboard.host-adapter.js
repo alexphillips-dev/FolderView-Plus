@@ -13,6 +13,7 @@
     'use strict';
 
     const DASHBOARD_APPS_PATH = '/webGui/include/DashboardApps.php';
+    const WIDGET_TYPES = ['docker', 'vm'];
     const registry = new WeakMap();
 
     const isoNow = () => new Date().toISOString();
@@ -40,6 +41,7 @@
         const prepareFolderRequests = typeof deps.prepareFolderRequests === 'function'
             ? deps.prepareFolderRequests
             : () => [];
+        const hasWidget = typeof deps.hasWidget === 'function' ? deps.hasWidget : () => true;
         const renderFolders = typeof deps.renderFolders === 'function'
             ? deps.renderFolders
             : () => Promise.resolve(false);
@@ -49,6 +51,7 @@
         const onEvent = typeof deps.onEvent === 'function' ? deps.onEvent : () => {};
         const maxEvents = Math.max(10, Number(deps.maxEvents || 60));
         const events = [];
+        const pendingNativeRequests = new Set();
         const state = {
             bound: false,
             loadlistBound: false,
@@ -57,6 +60,7 @@
             generation: 0,
             foldersGrouped: false,
             renderGeneration: 0,
+            widgetRenderStates: { docker: 'idle', vm: 'idle' },
             nativeRequestCount: 0,
             nativeRowsLoadedCount: 0,
             foldersGroupedCount: 0,
@@ -89,8 +93,14 @@
             state.generation += 1;
             state.foldersGrouped = false;
             state.renderGeneration = 0;
+            state.widgetRenderStates = { docker: 'idle', vm: 'idle' };
             state.lastError = null;
             emit('nativeRowsLoading', { reason });
+            // The native success callback replaces both tile bodies. Superseding the
+            // previous request also prevents its body from replacing newer grouped rows.
+            for (const request of pendingNativeRequests) request.abort?.();
+            pendingNativeRequests.clear();
+            WIDGET_TYPES.forEach((type) => prepareFolderRequests(type));
             return state.generation;
         };
 
@@ -123,32 +133,45 @@
         const markRenderFailed = (generation, error) => {
             if (state.disposed || generation !== state.generation) return false;
             state.foldersGrouped = false;
-            state.renderGeneration = 0;
             state.renderFailureCount += 1;
             state.lastError = String(error?.message || error || 'Dashboard folder render failed.');
             emit('folderRenderFailed', { message: state.lastError });
             return true;
         };
-        const handleNativeRowsResponse = (generation, requestUrl) => {
-            if (state.disposed || !markNativeRowsLoaded(generation, { requestUrl })) return Promise.resolve(false);
-            if (state.foldersGrouped || state.renderGeneration === generation) return Promise.resolve(false);
+        const handleNativeRowsResponse = async (generation, requestUrl) => {
+            if (state.disposed || !markNativeRowsLoaded(generation, { requestUrl })) return false;
+            const isCurrent = () => !state.disposed && generation === state.generation;
+            if (!isCurrent()) return false;
+            if (state.renderGeneration === generation) return false;
             state.renderGeneration = generation;
-            return Promise.resolve(renderFolders({ generation, requestUrl }))
-                .then((rendered) => {
-                    if (state.disposed || generation !== state.generation) return false;
-                    if (rendered === false) {
-                        state.renderGeneration = 0;
-                        return false;
-                    }
-                    return markFoldersGrouped(generation, { requestUrl });
-                })
-                .catch((error) => {
-                    markRenderFailed(generation, error);
-                    throw error;
-                })
-                .finally(() => {
-                    if (!state.disposed && generation === state.generation) hideSpinner();
-                });
+            const renders = WIDGET_TYPES.map(async (type) => {
+                if (!isCurrent()) return;
+                if (!hasWidget(type)) {
+                    state.widgetRenderStates[type] = 'skipped';
+                    return;
+                }
+                state.widgetRenderStates[type] = 'pending';
+                let outcome;
+                try {
+                    const rendered = await renderFolders({ type, generation, requestUrl, isCurrent });
+                    outcome = rendered === false ? 'skipped' : 'ready';
+                } catch (_error) {
+                    outcome = 'failed';
+                }
+                if (!isCurrent()) return;
+                state.widgetRenderStates[type] = outcome;
+                emit('widgetRenderSettled', { type, outcome });
+            });
+            // Each widget now has its own loading indicator. Keep the ready one usable
+            // even if the other request takes a long time to settle.
+            if (isCurrent()) hideSpinner();
+            await Promise.all(renders);
+            if (!isCurrent()) return false;
+            if (Object.values(state.widgetRenderStates).includes('failed')) {
+                markRenderFailed(generation, new Error('Dashboard widget render failed.'));
+                return false;
+            }
+            return markFoldersGrouped(generation, { requestUrl });
         };
 
         const bindLoadlist = () => {
@@ -157,8 +180,6 @@
             runtimeHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
                 if (state.disposed) return invokeOriginal(...args);
                 beginGeneration('loadlist');
-                prepareFolderRequests('docker');
-                prepareFolderRequests('vm');
                 return invokeOriginal(...args);
             }, { legacyAlias: 'loadlist_original' });
             state.loadlistBound = true;
@@ -170,15 +191,22 @@
             if (!jquery || typeof jquery.ajaxPrefilter !== 'function') return false;
             jquery.ajaxPrefilter((options = {}, _originalOptions, jqXHR) => {
                 if (state.disposed || !isDashboardAppsRequest(options.url, win.location?.href)) return;
+                const data = options.data;
+                // Unraid uses the same endpoint for the clock synchronization tooltip.
+                if (data && (typeof data === 'string' ? new URLSearchParams(data).has('ntp') : Object.hasOwn(data, 'ntp'))) return;
                 const generation = state.generation > 0 ? state.generation : beginGeneration('dashboard-apps-request');
                 const requestUrl = String(options.url || DASHBOARD_APPS_PATH);
                 state.nativeRequestCount += 1;
                 const promise = typeof jqXHR?.promise === 'function' ? jqXHR.promise() : jqXHR;
+                if (jqXHR) pendingNativeRequests.add(jqXHR);
                 Promise.resolve(promise)
-                    .then(() => handleNativeRowsResponse(generation, requestUrl))
+                    .then(() => {
+                        pendingNativeRequests.delete(jqXHR);
+                        return handleNativeRowsResponse(generation, requestUrl);
+                    })
                     .catch(() => {
-                        // Render failures are recorded by handleNativeRowsResponse. Native request
-                        // failures remain owned by Unraid and must not produce an unhandled rejection.
+                        // Native request failures remain owned by Unraid.
+                        pendingNativeRequests.delete(jqXHR);
                     });
             });
             state.prefilterBound = true;
@@ -209,6 +237,7 @@
             generation: state.generation,
             foldersGrouped: state.foldersGrouped,
             renderGeneration: state.renderGeneration,
+            widgetRenderStates: { ...state.widgetRenderStates },
             nativeRequestCount: state.nativeRequestCount,
             nativeRowsLoadedCount: state.nativeRowsLoadedCount,
             foldersGroupedCount: state.foldersGroupedCount,
@@ -226,6 +255,7 @@
         const dispose = (options = {}) => {
             state.disposed = true;
             state.bound = false;
+            pendingNativeRequests.clear();
             if (options.restoreLoadlist === true && state.loadlistBound) {
                 runtimeHostAdapter?.restoreHook?.('loadlist');
             }
@@ -237,6 +267,7 @@
             bindLoadlist,
             bindAjaxPrefilter,
             beginGeneration,
+            isDisposed: () => state.disposed,
             isFoldersGrouped: () => state.foldersGrouped,
             markFoldersGrouped,
             markRenderFailed,

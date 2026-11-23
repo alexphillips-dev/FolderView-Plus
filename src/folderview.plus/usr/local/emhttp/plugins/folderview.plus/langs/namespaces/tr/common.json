@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "content-revision": "d458e51f4bf8688cc1ec6e0f99203044cd646f6f867e8a65442b1b4924f83c4a"
+        "content-revision": "46014fc82dda573187f056785477b2cc8038528fcd1019deab90449559855ee8"
     },
+    "runtime.action.requests-result": "$1 kabul edildi · $2 başarısız",
+    "runtime.action.user-script-failed": "User Scripts bu işlemi başlatamadı. Eklentinin ve betiğin kullanılabilir olduğunu kontrol edin.",
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
     "common.badges.can-delete": "Silinebilir",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Uyumlu Docker, VM veya Dashboard CSS dosyası bulunamadı.",
     "common.server.theme-not-found-3d8f8d": "Tema bulunamadı.",
     "common.server.theme-is-required-81b1f0": "Tema gerekli.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Temanın güncelleneceği kayıtlı bir GitHub kaynağı yok.",
     "common.server.appearance-profile-not-found-8798a2": "Görünüm profili bulunamadı.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Son görünüm profili silinemez.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Desteklenmeyen görünüm profili kapsamı.",

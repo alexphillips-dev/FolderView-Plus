@@ -35,7 +35,6 @@ export const registerDockerFolderFeedbackCases = ({ test }) => {
             assert.equal(await tip.count(), 0);
         } finally { await host.close(); }
     }, { skipAccessibility: true });
-
     test('Docker folder feedback reports partial failures and guards duplicate actions without blocking the page', async ({ page }) => {
         const host = await createDockerFolderMenuHost(page);
         host.folders.direct.containers = Object.keys(host.runtime);
@@ -47,7 +46,7 @@ export const registerDockerFolderFeedbackCases = ({ test }) => {
             requests++;
             const data = new URLSearchParams(route.request().postData());
             const entry = Object.values(host.runtime).find(entry => entry.id.startsWith(data.get('container')));
-            if (requests === 2) { await gate; return route.fulfill({ json: { success: false, text: '<img src=x onerror=alert(1)>' } }); }
+            if (requests === 2) { await gate; return route.fulfill({ json: { success: false, text: '<img title="refused">' } }); }
             Object.assign(entry, { running: false, state: 'stopped', State: { Running: false, Paused: false }, info: { ...entry.info, State: { Running: false, Paused: false } } });
             await route.fulfill({ json: { success: true } });
         });
@@ -69,7 +68,7 @@ export const registerDockerFolderFeedbackCases = ({ test }) => {
             await notice.getByRole('button', { name: 'Close', exact: true }).click();
             assert.equal(await indicator.evaluate(node => node.isConnected && node === document.activeElement), true); assert.equal(await notice.count(), 0);
             await openStop(); assert.equal(requests, 2);
-            await page.evaluate(() => document.body.classList.add('fvplus-privacy-docker-runtime-mask-names'));
+            await page.evaluate(() => document.body.classList.add('fvplus-privacy-docker-runtime', 'fvplus-privacy-docker-runtime-mask-names'));
             release();
             await page.waitForFunction(() => document.querySelector('.fv-docker-operation-icon')?.dataset.state === 'warning');
             await indicator.click();
@@ -77,10 +76,11 @@ export const registerDockerFolderFeedbackCases = ({ test }) => {
             await notice.locator('summary').click();
             assert.match(await notice.innerText(), /The container action was rejected/);
             await page.evaluate(() => window.FolderViewPlusDockerFolderFeedback.getApi(window).decorateStatus('direct', {}, {}, false)); assert.equal(await notice.locator('details').getAttribute('open'), '');
-            assert.equal(await notice.locator('img').count(), 0);
             assert.equal(await notice.locator('.fv-docker-feedback-name').last().evaluate(node => getComputedStyle(node).filter), 'blur(5px)');
-            await page.evaluate(() => document.body.classList.remove('fvplus-privacy-docker-runtime-mask-names'));
+            await page.evaluate(() => document.body.classList.remove('fvplus-privacy-docker-runtime', 'fvplus-privacy-docker-runtime-mask-names'));
             assert.equal(await notice.locator('.fv-docker-feedback-name').last().evaluate(node => getComputedStyle(node).filter), 'none');
+            assert.match(await notice.innerText(), /<img title="refused">/);
+            assert.equal(await notice.locator('img').count(), 0);
             await page.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
             assert.deepEqual(await page.evaluate(async () => (await window.axe.run(document.getElementById('fvplus-docker-folder-operation-details'))).violations), []);
             await notice.getByRole('button', { name: 'Dismiss', exact: true }).click(); assert.equal(await notice.count(), 0);

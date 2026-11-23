@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "content-revision": "1eb1ea73d5bce3e23672041f66c5837d7d2b70036b10a870a095957c70f36961"
+        "content-revision": "4f10106a90ea303c40586021d2ce4b42e743343c238e7f572064c447549ec64a"
     },
+    "settings.theme.github-directory": "CSS ディレクトリを選択",
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",
     "settings.rules.match-placeholder": "例: ARR、ソナー、オーディオブック",

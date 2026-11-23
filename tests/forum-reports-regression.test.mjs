@@ -34,15 +34,15 @@ test('PHP order response preserves mixed slots before browser hydration', () => 
         fs.writeFileSync(path.join(tmp, 'dockerMan/userprefs.cfg'), '0="folder-b"\n1="one"\n2="folder-a"\n3="two"\n4="folder-stale"\n');
         const body = read('server/lib.php').match(/function readUserPrefs\(string \$type\) : string \{[\s\S]*?\n    \}\n/)[0]
             .replace('$userPrefsDir = "/boot/config/plugins";', '$userPrefsDir = getenv("FV_ORDER_TEST_DIR");');
-        const helper = read('server/lib.docker-order.php').match(/function fvplus_append_unique_name\([\s\S]*?\n    \}/)[0];
-        const script = `${helper}\n${body}
+        const helper = JSON.stringify(path.join(root, 'server/lib.docker-order.php').replaceAll('\\', '/'));
+        const script = `require ${helper};\n${body}
             function readRawFolderMap($type) { return ['a'=>[], 'b'=>[], 'c'=>[]]; }
             function reorderFolderMapByPrefs($type, $folders) { return $folders; }
             function readTypePrefs($type) { return ['sortMode'=>getenv('FV_ORDER_TEST_SORT')]; }
             echo readUserPrefs('docker');`;
         for (const [sort, expected] of [
-            ['created', ['folder-c', 'folder-b', 'one', 'folder-a', 'two']],
-            ['manual', ['folder-c', 'folder-a', 'one', 'folder-b', 'two']]
+            ['created', ['folder-c', 'folder-b', 'one', 'folder-a', 'two', 'folder-stale']],
+            ['manual', ['folder-c', 'folder-a', 'one', 'folder-b', 'two', 'folder-stale']]
         ]) {
             const result = spawnSync('php', ['-r', script], { encoding: 'utf8', env: { ...process.env, FV_ORDER_TEST_DIR: tmp, FV_ORDER_TEST_SORT: sort } });
             assert.equal(result.status, 0, result.stderr);

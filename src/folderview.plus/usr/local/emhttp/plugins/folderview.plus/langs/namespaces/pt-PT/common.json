@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "content-revision": "c27e6a08adb69e6a4c2668457dda8ab3b5bec59b8969cd7a8bc779689ffcb9cf"
+        "content-revision": "128984805581d415d49ffc51bac8286f8796a3f14bc8e67b6e6dce8e6c018e73"
     },
+    "runtime.action.requests-result": "$1 aceites · $2 falharam",
+    "runtime.action.user-script-failed": "O User Scripts não conseguiu iniciar esta ação. Verifique se o plugin e o script estão disponíveis.",
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
     "common.badges.can-delete": "Pode eliminar",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Nenhum ficheiro Docker, VM ou Dashboard CSS compatível foi encontrado.",
     "common.server.theme-not-found-3d8f8d": "Tema não encontrado.",
     "common.server.theme-is-required-81b1f0": "O tema é obrigatório.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "O tema não tem uma fonte GitHub guardada para atualização.",
     "common.server.appearance-profile-not-found-8798a2": "Perfil de aparência não encontrado.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "O perfil de aparência final não pode ser eliminado.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Âmbito do perfil de aparência não compatível.",

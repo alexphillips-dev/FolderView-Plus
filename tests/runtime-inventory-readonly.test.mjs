@@ -37,12 +37,12 @@ test('cached full and state reads preserve native bytes without runtime discover
     }
 });
 
-test('explicit managed sync uses fresh authority to clean stale records while retaining order and native waits', () => {
+test('explicit managed sync uses fresh authority to remove stale records in Docker page order with native waits', () => {
     for (const scenario of ['healthy', 'stale-cache', 'failed-detail']) {
         const result = runInventoryRepair({ type: 'docker', operation: 'sync', scenario });
         assert.equal(result.error, '');
         assert.equal(result.response.ok, true);
-        assert.equal(result.native, 'docker-extra 19\ndocker-present 7\n');
+        assert.equal(result.native, 'docker-present 7\ndocker-extra 19\n');
         assert.ok(result.calls.some(([call, count]) => call === 'docker-list' && count === 5));
         assert.ok(result.calls.every(([call]) => call !== 'docker-cached-list'));
     }

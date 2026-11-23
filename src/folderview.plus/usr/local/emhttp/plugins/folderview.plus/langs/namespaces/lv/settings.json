@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "content-revision": "01bd2023fef92d7210295e378465f6112be583185985f313af0bd25a0024ed55"
+        "content-revision": "8b1d8885727807c3a369d92823064ccd5923169491fc64ec14ffbf2f0c146113"
     },
+    "settings.theme.github-directory": "Izvēlieties CSS direktoriju",
     "settings.rules.save-changes": "Saglabāt izmaiņas",
     "settings.rules.regex-placeholder": "Regex modelis (piem., ^media-)",
     "settings.rules.match-placeholder": "piem. arr, sonar, audiogrāmatas",

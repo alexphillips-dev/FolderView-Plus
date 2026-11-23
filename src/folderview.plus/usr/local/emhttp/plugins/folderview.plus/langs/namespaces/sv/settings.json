@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "content-revision": "d5b1850d2c03ff8b9f60fa81ca9e927f9e49c8146f374cdfce849194b8fdca88"
+        "content-revision": "8e3c4e0d687d26de3d211b779d3825f0da12591a90434b9101dd3d3e2b4c9fbc"
     },
+    "settings.theme.github-directory": "Välj en CSS-katalog",
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",
     "settings.rules.match-placeholder": "t.ex. arr, sonarr, ljudböcker",

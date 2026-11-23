@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "content-revision": "acd45a0d8e0bc44a2a89e21f78a3010d60432f0b316e423418a8e8d6dee3ee42"
+        "content-revision": "4e9abf5aa4802b64c0e42497d837a5272941797bb32021429ab2da1017fa3b44"
     },
+    "settings.theme.github-directory": "একটি CSS ডিরেক্টরি বেছে নিন",
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",
     "settings.rules.match-placeholder": "যেমন arr, sonarr, audiobooks",

@@ -222,7 +222,10 @@ test('installer verifies, stages, activates, reuses, and links the pack', () => 
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
+        const previousArchive = path.join(configDir, 'folderview.plus-icons-0.9.0.txz');
+        fs.writeFileSync(previousArchive, 'previous boot asset');
         runInstaller(pluginDir, configDir, cacheDir, sha256);
+        assert.equal(fs.readFileSync(previousArchive, 'utf8'), 'previous boot asset');
         const markerPath = path.join(cacheDir, `icons-${version}`, '.folderview-plus-asset-pack');
         assert.equal(fs.readFileSync(markerPath, 'utf8').trim(), `${version}:${sha256}`);
         assert.equal(fs.existsSync(path.join(pluginDir, 'icon-asset-pack.json')), true);

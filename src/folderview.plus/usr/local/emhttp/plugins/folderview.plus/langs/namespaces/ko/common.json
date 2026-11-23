@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "content-revision": "6c16d54eeac852d9efb055eae56e0efd00e3657ca01f57ec9bdbfd314e2468f1"
+        "content-revision": "8d6cbb1b7acf65f48cf2cc9022bf19cd1d04d3b6035a86f195ef4161ff393bed"
     },
+    "runtime.action.requests-result": "$1개 수락 · $2개 실패",
+    "runtime.action.user-script-failed": "User Scripts에서 이 작업을 시작하지 못했습니다. 플러그인과 스크립트를 사용할 수 있는지 확인하세요.",
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
     "common.badges.can-delete": "삭제할 수 있음",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "호환되는 Docker, VM 또는 Dashboard CSS 파일을 찾을 수 없습니다.",
     "common.server.theme-not-found-3d8f8d": "테마를 찾을 수 없습니다.",
     "common.server.theme-is-required-81b1f0": "테마가 필요합니다.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "테마에는 업데이트할 저장된 GitHub 소스가 없습니다.",
     "common.server.appearance-profile-not-found-8798a2": "외모 프로필을 찾을 수 없습니다.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "최종 모양 프로파일은 삭제할 수 없습니다.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "지원되지 않는 모양 프로필 범위입니다.",

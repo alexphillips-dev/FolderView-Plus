@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { exerciseDockerColumnDiagnostics } from '../helpers/docker-column-diagnostics.mjs';
 import { exerciseDockerFolderGrouping } from '../helpers/docker-folder-grouping.mjs';
+import { exerciseDockerPageStartOrder } from '../helpers/docker-page-start-order.mjs';
 import { exerciseDockerMembershipRefresh } from '../helpers/docker-membership-refresh.mjs'; import { exerciseDockerDetailHydration } from '../helpers/docker-detail-hydration.mjs';
 import { exerciseDockerPreviewNameEdit, exerciseDockerPreviewNameEditLifecycle } from '../helpers/docker-preview-name-edit.mjs';
 import {
@@ -42,6 +43,7 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
 });
 
 test('Docker late wizard folders claim canonical host rows before hide-empty filtering', async ({ page }) => exerciseDockerFolderGrouping({ page, baseUrl }));
+test('Docker startup plan matches the fully expanded Docker page', exerciseDockerPageStartOrder);
 
 test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });

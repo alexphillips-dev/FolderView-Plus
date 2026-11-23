@@ -408,3 +408,47 @@ test('failure history rejects injected fields, unknown codes, private paths and 
     assert.equal(api.failureDiagnostics().length, 1);
     assert.doesNotMatch(JSON.stringify(api.failureDiagnostics()), /private/);
 });
+
+test('empty and malformed successful mutation responses are recorded as failures without leaking bodies', async () => {
+    for (const [method, data, jqXHR, source] of [
+        ['postJson', '', { status: 200 }, 'client'],
+        ['postJson', '<h1>fixture private proxy error</h1>', { status: 200 }, 'client'],
+        ['uploadJson', '{fixture private incomplete output', {
+            status: 200, getResponseHeader: key => key === 'X-FV-API-Contract' ? 'v1' : null
+        }, 'folderview-plus']
+    ]) {
+        const { api, getCallCount } = loadRequestClient({ token: 'fixture', plan: [{ type: 'success', data, jqXHR }] });
+        await assert.rejects(api[method]('/plugins/folderview.plus/server/update.php?name=fixture-private', {}), (error) => {
+            assert.equal(error.reasonCode, 'unexpected-response');
+            assert.equal(error.failureSource, source);
+            assert.equal(error.status, 200);
+            assert.equal(error.responseBody, undefined);
+            assert.doesNotMatch(error.message, /fixture private|fixture-private/);
+            return true;
+        });
+        assert.equal(getCallCount(), 2);
+        assert.equal(api.diagnostics().at(-1).outcome, 'error');
+        assert.equal(api.failureDiagnostics().length, 1);
+        assert.equal(api.failureDiagnostics()[0].reasonCode, 'unexpected-response');
+    }
+});
+
+test('recognizable host login markup guides a reload while marked plugin output stays a parse failure', async () => {
+    const responseText = '<form method="post" action="/login"><input type="password" value="fixture-private"></form>';
+    for (const marker of ['', 'v1']) {
+        const { api } = loadRequestClient({ token: 'fixture', plan: [{
+            type: 'error',
+            textStatus: 'parsererror',
+            errorThrown: 'fixture-private',
+            jqXHR: { status: 200, responseText, getResponseHeader: key => key === 'X-FV-API-Contract' ? marker : null }
+        }] });
+        await assert.rejects(api.postJson('/plugins/folderview.plus/server/update.php', {}), (error) => {
+            assert.equal(error.reasonCode, marker ? 'unexpected-response' : 'authentication-required');
+            if (!marker) assert.match(error.message, /Refresh the webGUI and sign in again/);
+            assert.doesNotMatch(error.message, /fixture-private/);
+            return true;
+        });
+        assert.equal(api.diagnostics().at(-1).outcome, 'error');
+        assert.doesNotMatch(JSON.stringify(api.failureDiagnostics()), /fixture-private/);
+    }
+});

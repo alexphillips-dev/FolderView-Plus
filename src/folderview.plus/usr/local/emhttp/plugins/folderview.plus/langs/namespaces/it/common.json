@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "content-revision": "922609933a0de2b4307780094210d77cbd69808e61796d037e0320d99251a16b"
+        "content-revision": "c5ae4a08f0dc3842f94e2bd6dede2f80e0b21c0e7f823baefd119a1ae1534fbd"
     },
+    "runtime.action.requests-result": "$1 accettate · $2 non riuscite",
+    "runtime.action.user-script-failed": "User Scripts non ha potuto avviare questa azione. Verifica che il plugin e lo script siano disponibili.",
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
     "common.badges.can-delete": "Può eliminare",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Non è stato trovato alcun file CSS Docker, VM o Dashboard compatibile.",
     "common.server.theme-not-found-3d8f8d": "Tema non trovato.",
     "common.server.theme-is-required-81b1f0": "Il tema è obbligatorio.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Il tema non dispone di un'origine GitHub salvata da cui eseguire l'aggiornamento.",
     "common.server.appearance-profile-not-found-8798a2": "Profilo aspetto non trovato.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Il profilo aspetto finale non può essere eliminato.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Ambito del profilo aspetto non supportato.",

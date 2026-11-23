@@ -19,7 +19,8 @@ const settingsCss = [
 const libPhp = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-workspace.php',
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-github.php'
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-github.php',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.theme-bulk-update.php'
 ].map(read).join('\n');
 const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
@@ -358,7 +359,7 @@ test('Themes manages imported themes separately from the Appearance customizatio
     assert.doesNotMatch(themeWorkspaceJs, /fv-theme-workspace-preview-style/);
     assert.match(themeWorkspacePhp, /scan_github/);
     assert.match(themeWorkspacePhp, /update_theme/);
-    assert.match(libPhp, /function scanThemeWorkspaceGithub\(string \$sourceInput\): array/);
+    assert.match(libPhp, /function scanThemeWorkspaceGithub\(string \$sourceInput,/);
     assert.match(libPhp, /function updateThemeWorkspaceTheme\(string \$themeId\): array/);
     assert.match(libPhp, /function fvplusThemeWorkspaceNormalizeColorValue\(\$value\): string/);
     const window = {};

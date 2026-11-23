@@ -2986,9 +2986,11 @@ const importThemeWorkspaceGithub = async () => {
         });
         return false;
     }
-    await getThemeWorkspaceApi().importGithub(source);
-    $('#fv-theme-github-source').val('');
-    return true;
+    const imported = await getThemeWorkspaceApi().importGithub(source);
+    if (imported && String($('#fv-theme-github-source').val() || '').trim() === source) {
+        $('#fv-theme-github-source').val('');
+    }
+    return Boolean(imported);
 };
 
 const scanThemeWorkspaceGithub = async () => {

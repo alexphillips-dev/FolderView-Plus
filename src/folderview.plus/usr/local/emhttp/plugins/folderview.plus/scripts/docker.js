@@ -2024,18 +2024,21 @@ const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepth
     maxDepth: 8
 });
 
+const isKnownDockerFolderToken = (entry, folders) => folderRegex.test(entry)
+    && Object.prototype.hasOwnProperty.call(folders || {}, entry.slice(7));
+
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
     runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
         orderFolders: getPrefsOrderedFolderMap,
         folderTokenPrefix: 'folder-',
-        isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders)
     })
 );
 
 const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => (
     runtimeFolderOrdering.reconcileOrderWithFolderSlots(liveOrder, savedOrder, folders, {
         folderTokenPrefix: 'folder-',
-        isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders)
     })
 );
 
@@ -4809,7 +4812,7 @@ const createFolders = async () => {
     if (folderTypePrefs?.hideEmptyFolders === true) {
         dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr.folder-id-${id}, tr#name-${id}`).remove());
     }
-    dockerFolderGroupingSession.placeStandaloneRowsLast();
+    dockerFolderGroupingSession.placeStandaloneRowsLast(reconciledOrder.order);
     syncDockerPinnedFolderUi();
     queueDockerPinnedFolderServerReconcile('post-render', 160);
 
@@ -6242,138 +6245,53 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
  * @param {number} actionIndex
  */
 const folderCustomAction = async (id, actionIndex) => {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}, actionIndex: ${actionIndex}): Entry.`);
-    $('div.spinner.fixed').show('slow');
     const folder = globalFolders[id];
-    if (!folder || !folder.actions || !folder.actions[actionIndex]) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] folderCustomAction: Folder or action definition not found for id ${id}, actionIndex ${actionIndex}.`);
-        $('div.spinner.fixed').hide('slow');
-        return;
-    }
-    let act = folder.actions[actionIndex];
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action details:`, {...act});
-    let prom = [];
+    const act = folder?.actions?.[actionIndex];
+    if (!act) return;
 
-    if(act.type === 0) { // Standard Docker action
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 0 (Standard Docker).`);
-        const containersMap = getFolderRuntimeContainers(folder);
-        // Keep legacy typo key (`conatiners`) but accept correctly-spelled `containers` too.
-        const actionContainers = Array.isArray(act.conatiners)
-            ? act.conatiners
-            : (Array.isArray(act.containers) ? act.containers : []);
-        const cts = actionContainers.map((name) => containersMap[name]).filter((e) => e);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Targeted containers data:`, [...cts]);
-
-        let ctAction = null;
-        if(act.action === 0) { // Cycle
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Standard action type 0 (Cycle). Mode: ${act.modes}.`);
-            if(act.modes === 0) { // Start - Stop
-                ctAction = (e_ct) => {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Cycle Start-Stop for ${e_ct.id}): State: ${e_ct.state}`);
-                    if(e_ct.state) { // if running
-                        prom.push($.post(eventURL, {action: 'stop', container:e_ct.id}, null,'json').promise());
-                    } else { // if stopped
-                        prom.push($.post(eventURL, {action: 'start', container:e_ct.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 1) { // Pause - Resume
-                ctAction = (e_ct) => {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Cycle Pause-Resume for ${e_ct.id}): State: ${e_ct.state}, Paused: ${e_ct.pause}`);
-                    if(e_ct.state) { // if running (can be paused or not)
-                        if(e_ct.pause) { // if paused
-                            prom.push($.post(eventURL, {action: 'resume', container:e_ct.id}, null,'json').promise());
-                        } else { // if running but not paused
-                            prom.push($.post(eventURL, {action: 'pause', container:e_ct.id}, null,'json').promise());
-                        }
-                    }
-                };
+    const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
+    if (!nativeActions.validateFolderAction(act)) return;
+    return runDockerGuardedAction('docker-custom-action', async () => {
+        const spinner = $('div.spinner.fixed');
+        spinner.show('slow');
+        try {
+            if (act.type === 1) {
+                await nativeActions.runUserScript(act, { openBox });
+                loadlist();
+                return;
             }
-        } else if(act.action === 1) { // Set
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Standard action type 1 (Set). Mode: ${act.modes}.`);
-            if(act.modes === 0) { // Start
-                ctAction = (e_ct) => {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Set Start for ${e_ct.id}): State: ${e_ct.state}`);
-                    if(!e_ct.state) { prom.push($.post(eventURL, {action: 'start', container:e_ct.id}, null,'json').promise()); }
-                };
-            } else if(act.modes === 1) { // Stop
-                ctAction = (e_ct) => {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Set Stop for ${e_ct.id}): State: ${e_ct.state}`);
-                    if(e_ct.state) { prom.push($.post(eventURL, {action: 'stop', container:e_ct.id}, null,'json').promise()); }
-                };
-            } else if(act.modes === 2) { // Pause
-                ctAction = (e_ct) => {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Set Pause for ${e_ct.id}): State: ${e_ct.state}, Paused: ${e_ct.pause}`);
-                    if(e_ct.state && !e_ct.pause) { prom.push($.post(eventURL, {action: 'pause', container:e_ct.id}, null,'json').promise()); }
-                };
-            } else if(act.modes === 3) { // Resume
-                ctAction = (e_ct) => {
-                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Set Resume for ${e_ct.id}): State: ${e_ct.state}, Paused: ${e_ct.pause}`);
-                    if(e_ct.state && e_ct.pause) { prom.push($.post(eventURL, {action: 'resume', container:e_ct.id}, null,'json').promise()); }
-                };
-            }
-        } else if(act.action === 2) { // Restart
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Standard action type 2 (Restart).`);
-            ctAction = (e_ct) => {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (Restart for ${e_ct.id})`);
-                prom.push($.post(eventURL, {action: 'restart', container:e_ct.id}, null,'json').promise());
+            const containersMap = getFolderRuntimeContainers(folder);
+            // The misspelled key is part of the persisted action format.
+            const actionContainers = Array.isArray(act.conatiners) ? act.conatiners : (Array.isArray(act.containers) ? act.containers : []);
+            const selectAction = (entry) => {
+                if (act.action === 0 && act.modes === 0) return entry.state ? 'stop' : 'start';
+                if (act.action === 0 && act.modes === 1 && entry.state) return entry.pause ? 'resume' : 'pause';
+                if (act.action === 1) {
+                    if (act.modes === 0 && !entry.state) return 'start';
+                    if (act.modes === 1 && entry.state) return 'stop';
+                    if (act.modes === 2 && entry.state && !entry.pause) return 'pause';
+                    if (act.modes === 3 && entry.state && entry.pause) return 'resume';
+                }
+                return act.action === 2 ? 'restart' : '';
             };
-        }
-        if (typeof ctAction === 'function') {
-            cts.forEach((e_ct_data) => { // e_ct_data is like {id: "...", state: true, ...}
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Applying defined ctAction to container data:`, e_ct_data);
-                ctAction(e_ct_data);
+            const memberActions = [...new Set(actionContainers)].flatMap(name => {
+                const entry = containersMap[name];
+                const action = entry && selectAction(entry);
+                return action ? [{ name, action, container: entry.id }] : [];
             });
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed ${prom.length} standard actions to promise array.`);
-        } else {
-            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
-            console.warn(`folderview.plus: Unsupported Docker custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+            const outcomes = await nativeActions.settleNativeActionRequests(memberActions, ({ action, container }) => {
+                if (!container) throw new Error();
+                return $.ajax({ url: eventURL, type: 'POST', data: { action, container }, dataType: 'json', timeout: 30000 });
+            });
+            nativeActions.showNativeActionFailures(outcomes, {
+                escapeHtml,
+                privacy: document.body.classList.contains('fvplus-privacy-docker-runtime')
+            });
+            await refreshDockerRuntimeStateInPlace({ followupDelayMs: 650 });
+        } finally {
+            spinner.hide('slow');
         }
-
-    } else if(act.type === 1) { // User Script
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 1 (User Script). Script: ${act.script}, Sync: ${act.script_sync}, Args: ${act.script_args}`);
-        const args = act.script_args || '';
-        if(act.script_sync) { // Synchronous (foreground) script
-            let scriptVariables = {};
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Sync script. Getting script variables.`);
-            let rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Raw script variables:`, rawVars);
-            rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1] });
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Parsed script variables:`, scriptVariables);
-
-            if(scriptVariables['directPHP']) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): directPHP detected. Posting directRunScript.`);
-                // This is a POST that then has a callback to openBox. It's not added to `prom`.
-                $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): directRunScript callback. Data:`, data);
-                    if(data) { openBox(data,act.name,800,1200, 'loadlist'); }
-                });
-            } else {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Not directPHP. Posting convertScript then openBox.`);
-                // This is also a POST with a callback. Not added to `prom`.
-                $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {
-                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): convertScript callback. Data:`, data);
-                    if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}
-                });
-            }
-        } else { // Asynchronous (background) script
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Async script. Posting convertScript then GET logging.htm.`);
-            const cmd = await $.post("/plugins/user.scripts/exec.php",{action:'convertScript', path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Converted script cmd:`, cmd);
-            prom.push($.get('/logging.htm?cmd=/plugins/user.scripts/backgroundScript.sh&arg1='+cmd+'&arg2='+args+'&csrf_token='+csrf_token+'&done=Done').promise());
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed async script call to promise array.`);
-        }
-    }
-
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Awaiting ${prom.length} promises for custom action.`);
-    await Promise.all(prom);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): All promises resolved. Refreshing runtime state.`);
-    if (act.type === 0) {
-        await refreshDockerRuntimeStateInPlace({ followupDelayMs: 650 });
-    } else {
-        loadlist();
-    }
-    $('div.spinner.fixed').hide('slow');
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Exit.`);
+    });
 };
 
 

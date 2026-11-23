@@ -13,6 +13,7 @@
         "./lib/fixture-browser-config.mjs",
         "../tests/browser/cases/foundation.mjs",
         "../tests/browser/cases/docker.mjs",
+        "../tests/browser/cases/dashboard-tile-loading.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -133,8 +134,10 @@
     { "file": "scripts/lib/fixture-icon-upload.mjs", "limit": 60, "owner": "fixture form uploads and bounded part assembly" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
-    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs"] },
+    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs", "../helpers/docker-page-start-order.mjs"] },
     { "file": "tests/browser/helpers/docker-folder-grouping.mjs", "limit": 35, "owner": "canonical Docker grouping, standalone bottom placement and native node preservation" },
+    { "file": "tests/browser/helpers/docker-page-start-order.mjs", "limit": 47, "owner": "Docker row order and PHP startup plan parity" },
+    { "file": "tests/browser/cases/dashboard-tile-loading.mjs", "limit": 140, "owner": "independent Dashboard loading and overlapping host refreshes" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
@@ -184,6 +187,7 @@
         "tests/browser/cases/script-preloads.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
+        "tests/browser/cases/dashboard-tile-loading.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
@@ -263,6 +267,7 @@
         "tests/browser/helpers/aurora-docker-header-bootstrap.mjs",
         "tests/browser/helpers/aurora-docker-heading.mjs",
         "tests/browser/helpers/docker-folder-grouping.mjs",
+        "tests/browser/helpers/docker-page-start-order.mjs",
         "tests/browser/helpers/settings-icons.mjs",
         "tests/browser/helpers/docker-config-fixture-state.mjs",
         "tests/browser/helpers/docker-hierarchy-move-interactions.mjs",
@@ -310,10 +315,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 160,
-      "assertionCount": 2174,
-      "pageEvaluateCount": 745,
-      "orderedTitleSha256": "e978db096f6c60cf4f985eb91d2f773c54cb30a8617ca9125b3f96356e340a54"
+      "testCount": 165,
+      "assertionCount": 2196,
+      "pageEvaluateCount": 748,
+      "orderedTitleSha256": "63a25bfe30554c2feedabb683d80b6079573457a2be957dd0f3ae736ad7f7306"
     }
   }
 }

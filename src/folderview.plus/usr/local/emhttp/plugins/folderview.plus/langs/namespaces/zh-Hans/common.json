@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "content-revision": "1401082789e951dc6ac875ff2b3728e700d83ed57982097636891511f2e25201"
+        "content-revision": "c6c82d5442533745bcda8d7dff75226a1f2b66b319c5c9ca64cb54ac5c1da1c8"
     },
+    "runtime.action.requests-result": "已接受 $1 项 · 失败 $2 项",
+    "runtime.action.user-script-failed": "User Scripts 无法启动此操作。请检查插件和脚本是否可用。",
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
     "common.badges.can-delete": "可以删除",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "未找到兼容的 Docker、VM 或仪表板 CSS 文件。",
     "common.server.theme-not-found-3d8f8d": "未找到主题。",
     "common.server.theme-is-required-81b1f0": "主题为必填项。",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "主题没有保存的 GitHub 源可供更新。",
     "common.server.appearance-profile-not-found-8798a2": "未找到外观配置方案。",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "最终的外观配置文件无法删除。",
     "common.server.unsupported-appearance-profile-scope-0a722d": "不支持的外观配置文件范围。",

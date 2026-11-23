@@ -1,13 +1,12 @@
 <?php
-function prepareThemeWorkspaceThemeUpdates($themeIds): array {
-    $workspace = readThemeWorkspace();
+function prepareThemeWorkspaceThemeUpdates($themeIds, ?array $workspace = null): array {
+    $workspace = $workspace ?? readThemeWorkspace(false);
     $ids = array_values(array_unique(array_filter(array_map(static fn($value): string => truncateUtf8String(trim((string)$value), 64), is_array($themeIds) ? $themeIds : []))));
     if (count($ids) <= 0 || count($ids) > FVPLUS_THEME_WORKSPACE_MAX_THEMES) {
         throw new RuntimeException('Select one or more managed themes to update.');
     }
     $selected = [];
     foreach ((array)$workspace['themes'] as $theme) {
-        $theme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
         if (!in_array((string)$theme['id'], $ids, true)) {
             continue;
         }
@@ -23,26 +22,27 @@ function prepareThemeWorkspaceThemeUpdates($themeIds): array {
 }
 
 function updateThemeWorkspaceThemes($themeIds): array {
-    $plan = prepareThemeWorkspaceThemeUpdates($themeIds);
-    $workspace = readThemeWorkspace();
+    $before = $workspace = readThemeWorkspace(false);
+    $plan = prepareThemeWorkspaceThemeUpdates($themeIds, $workspace);
     $selected = array_fill_keys($plan['themeIds'], true);
-    $themes = [];
-    foreach ((array)$workspace['themes'] as $theme) {
-        $normalized = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
-        $id = (string)$normalized['id'];
+    $checkedAt = gmdate('c');
+    $workspace['themes'] = array_map(static function (array $theme) use ($selected, $checkedAt): array {
+        $id = $theme['id'];
         if (!isset($selected[$id])) {
-            $themes[] = $normalized;
-            continue;
+            return $theme;
         }
-        $imported = fvplusImportGithubThemeFiles((string)$normalized['source']['input']);
+        $imported = fvplusImportGithubThemeFiles($theme['source']['input']);
         $replacement = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
-        $replacement['id'] = $id;
-        $replacement['importedAt'] = (string)$normalized['importedAt'];
-        $replacement['lastCheckedAt'] = gmdate('c');
-        $replacement['updateAvailable'] = false;
-        $themes[] = fvplusThemeWorkspaceNormalizeThemeRecord($replacement);
+        return array_replace($replacement, ['id' => $id, 'importedAt' => $theme['importedAt'], 'lastCheckedAt' => $checkedAt]);
+    }, $workspace['themes']);
+    $workspace['lastCheckedAt'] = $checkedAt;
+    return ['workspace' => fvplusThemeWorkspaceWriteGithubChange($before, $workspace), 'plan' => $plan];
+}
+
+function updateThemeWorkspaceTheme(string $themeId): array {
+    $safeThemeId = truncateUtf8String(trim($themeId), 64);
+    if ($safeThemeId === '') {
+        throw new RuntimeException('Theme is required.');
     }
-    $workspace['themes'] = $themes;
-    $workspace['lastCheckedAt'] = gmdate('c');
-    return ['workspace' => writeThemeWorkspace($workspace), 'plan' => $plan];
+    return updateThemeWorkspaceThemes([$safeThemeId])['workspace'];
 }

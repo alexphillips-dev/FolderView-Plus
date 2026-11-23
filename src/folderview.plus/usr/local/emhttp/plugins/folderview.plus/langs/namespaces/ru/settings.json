@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "content-revision": "2765f0ee53262d731c894dfad46bfa67d30e0fe9fc83321691983d4df1457624"
+        "content-revision": "c4a457d14515703b231c985f557f3f62602fe1171de1e1cbb5d1974516113957"
     },
+    "settings.theme.github-directory": "Выберите каталог CSS",
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",
     "settings.rules.match-placeholder": "например обр, сонарр, аудиокниги",

@@ -187,13 +187,17 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
     test('Themes managed controls scan, import, activate, update and delete through existing actions', async ({ page }) => {
         await mount(page, baseUrl);
         await page.evaluate(() => {
-            const theme = { id: 'fixture', name: 'Fixture theme', files: [{ path: 'docker.css', tabs: ['docker'] }], source: { input: 'fixture/theme' } };
+            const theme = { id: 'fixture', name: 'Fixture theme', files: [{ path: 'docker.css', tabs: ['docker'] }],
+                source: { input: 'fixture/theme', commitSha: 'a'.repeat(40) } };
             window.themePost = async payload => {
                 if (payload.action === 'scan_github') return { theme };
                 if (payload.action === 'import_github') themeState = { ...themeApi.getWorkspace(), themes: [theme], activeThemeId: theme.id };
                 if (payload.action === 'deactivate') themeState.activeThemeId = '';
                 if (payload.action === 'activate') themeState.activeThemeId = payload.themeId;
-                if (payload.action === 'check_updates') themeState.themes[0].updateAvailable = true;
+                if (payload.action === 'check_updates') {
+                    themeState.themes[0].updateAvailable = true;
+                    return { workspace: structuredClone(themeState), failedCount: 1 };
+                }
                 if (payload.action === 'update_theme' || payload.action === 'update_themes') themeState.themes[0].updateAvailable = false;
                 if (payload.action === 'preview_theme_updates') return { plan: { updateCount: 1 } };
                 if (payload.action === 'delete') themeState = { ...themeState, themes: [], activeThemeId: '' };
@@ -212,6 +216,7 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await page.locator('.fv-theme-workspace-entry.is-active').waitFor();
         await page.locator('[data-fv-onclick="checkThemeWorkspaceUpdates()"]').click();
         await page.waitForFunction(() => !document.getElementById('fv-theme-update-available').disabled);
+        await page.waitForFunction(() => document.getElementById('fv-theme-workspace-status').textContent.includes('1 failed'));
         await page.locator('#fv-theme-update-available').click();
         await page.waitForFunction(() => document.getElementById('fv-theme-update-available').disabled);
         await page.locator('[data-fv-onclick^="updateThemeWorkspaceTheme"]').click();
@@ -219,6 +224,41 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await page.waitForFunction(() => themeApi.getWorkspace().themes.length === 0);
         assert.deepEqual(await page.evaluate(() => themeCalls.map(call => call.action)), ['scan_github', 'import_github', 'deactivate', 'activate', 'check_updates', 'preview_theme_updates', 'update_themes', 'update_theme', 'delete']);
         assert.equal(await page.evaluate(() => themeErrors.length), 0);
+    });
+
+    test('Themes chooses and reviews one pinned GitHub CSS directory before import', async ({ page }) => {
+        await mount(page, baseUrl);
+        await page.evaluate(() => {
+            window.themePost = async payload => {
+                if (payload.action === 'scan_github' && payload.discover === '1') {
+                    return { directories: ['', 'classic', 'compact'], commitSha: 'a'.repeat(40) };
+                }
+                const theme = { id: 'fixture', name: 'Fixture theme', files: [{ path: 'compact/docker.css', tabs: ['docker'] }],
+                    source: { input: 'https://github.com/fixture/theme/tree/main/compact', commitSha: 'a'.repeat(40) } };
+                if (payload.action === 'scan_github') return { theme };
+                if (payload.action === 'import_github') return { workspace: { themes: [theme], activeThemeId: theme.id } };
+                return {};
+            };
+        });
+        await page.locator('#fv-theme-github-source').fill('fixture/theme');
+        const apply = page.locator('#fv-theme-github-import');
+        assert.equal(await apply.isDisabled(), true);
+        await page.locator('[data-fv-onclick="scanThemeWorkspaceGithub()"]').click();
+        const picker = page.getByRole('combobox', { name: 'Choose a CSS directory' });
+        await picker.waitFor({ state: 'visible' });
+        assert.equal(await apply.isDisabled(), true);
+        await picker.selectOption({ label: 'compact' });
+        await page.locator('#fv-theme-scan-result').getByText('compact/docker.css').waitFor();
+        assert.equal(await page.locator('.fv-theme-workspace-entry').count(), 0);
+        await apply.click();
+        await page.locator('.fv-theme-workspace-entry.is-active').waitFor();
+        assert.deepEqual(await page.evaluate(() => themeCalls), [
+            { action: 'scan_github', source: 'fixture/theme', discover: '1' },
+            { action: 'scan_github', source: 'fixture/theme', directory: 'compact', commitSha: 'a'.repeat(40) },
+            { action: 'import_github', source: 'https://github.com/fixture/theme/tree/main/compact', commitSha: 'a'.repeat(40) }
+        ]);
+        await page.locator('#fv-theme-github-source').fill('fixture/another-theme');
+        assert.equal(await apply.isDisabled(), true);
     });
 
     test('Appearance keeps scoped preview, profile saves and errors visible after the tab split', async ({ page }) => {

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.23.02">
-<!ENTITY md5 "43dd19eb31acb7227be9d8c29f889e51">
-<!ENTITY sha256 "87afd0a2d705ccfd2b98d72b144ab6157a90cc4bc49dc12e1e1832309b7461a3">
+<!ENTITY version "2026.11.23.03">
+<!ENTITY md5 "d56358d7dcf8eff77e98dd15167ee4a8">
+<!ENTITY sha256 "d226794a36cef01d604d3c63cbbf72de7f530ecf8dc5ed1973d5c9b84bbdc35a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.23.03
+- Reliability: Keep the core and icon archives required by the registered Unraid manifest if a new install or update fails.
+- Fix: Preserve User Scripts arguments containing spaces or punctuation. Report refused Docker and VM folder actions, including partial success, and send VM Resume and Restart to the correct native actions.
+- Fix: Record invalid save responses as failures and show reload guidance when Unraid rejects an expired session.
+- Fix: Follow the displayed Docker folder and container order when computing Docker autostart. Keep dated folders sorted correctly when legacy folders have no dates.
+- Improvement: Load Docker and VM Dashboard folders independently so a stalled or failed tile leaves the other tile available.
+- Reliability: Verify all selected GitHub theme stylesheets from one revision before applying them. Detect stylesheet changes independently of unrelated commits.
+- Feature: Choose a GitHub theme directory during the read-only import review.
+
 
 ###2026.11.23.02
 - Fix: Settings Docker and VM folder actions now recheck the preview after confirmation and before dispatch. Changed membership or eligibility requires a new preview.
@@ -10155,9 +10165,13 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_report="&plugdir;/scripts/install_report.sh"
             icon_status="/tmp/folderview.plus-icon-pack-status"
             scheduler_status="registered"
+            version_stage=""
             install_failure() {
                 exit_code=$?
                 trap - EXIT
+                if [ -n "${version_stage}" ]; then
+                    rm -f -- "${version_stage}" || true
+                fi
                 if [ -f "${install_report}" ]; then
                     /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
                 fi
@@ -10166,7 +10180,6 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             trap install_failure EXIT
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
-            find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
             install_stage="obsolete runtime cleanup"
             rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js" \
                 "&plugdir;/scripts/docker.runtime.layout-geometry.js"
@@ -10178,11 +10191,29 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             if ! /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1; then
                 scheduler_status="registered-restart-warning"
             fi
-            install_stage="version metadata"
-            echo "&version;" > /boot/config/plugins/&name;/version
             install_stage="installation report"
-            /bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}"
+            install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
+            install_stage="version metadata"
+            version_stage="$(mktemp /boot/config/plugins/&name;/.version.XXXXXX)"
+            printf '%s\n' "&version;" > "${version_stage}"
+            mv -fT -- "${version_stage}" /boot/config/plugins/&name;/version
             trap - EXIT
+            printf '%s\n' "${install_summary}"
+
+            # Unraid registers the incoming manifest after this hook returns. Keep the files
+            # named by both manifests until registration is visible on a later install or boot.
+            registered_manifest="/boot/config/plugins/&name;.plg"
+            if [ -r "${registered_manifest}" ]; then
+                if registered_version="$(sed -n 's/^&lt;!ENTITY version "\([0-9.]*\)">$/\1/p' "${registered_manifest}")" \
+                    &amp;&amp; registered_icon_pack="$(sed -n 's/^&lt;!ENTITY iconPackVersion "\([0-9.]*\)">$/\1/p' "${registered_manifest}")" \
+                    &amp;&amp; [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                    &amp;&amp; [[ "${registered_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    find /boot/config/plugins/&name; -maxdepth 1 -regextype posix-extended -type f \( \
+                        -regex '.*/folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.txz' ! -name '&name;-&version;.txz' ! -name "&name;-${registered_version}.txz" -o \
+                        -regex '.*/folderview[.]plus-icons-[0-9]+\.[0-9]+\.[0-9]+\.txz' ! -name '&name;-icons-&iconPackVersion;.txz' ! -name "&name;-icons-${registered_icon_pack}.txz" \
+                        \) -delete || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
+                fi
+            fi
         </INLINE>
     </FILE>
 

@@ -183,9 +183,10 @@
             if (!token || !listRoot) return null;
             if (token.startsWith('folder-')) {
                 const folderId = token.slice(7);
-                return Array.from(listRoot.children || []).find((row) => (
+                const folderRow = Array.from(listRoot.children || []).find((row) => (
                     normalizeToken(row?.dataset?.fvFolderId) === folderId
-                )) || null;
+                ));
+                if (folderRow) return folderRow;
             }
             const canonicalName = identityIndex.resolve(token) || token;
             return rowByCanonicalName.get(canonicalName) || null;
@@ -261,11 +262,18 @@
                 if (removedByHideEmpty) removeFolderRow(id);
             }
         };
-        const placeStandaloneRowsLast = () => {
+        const placeStandaloneRowsLast = (order = []) => {
+            const remainingRows = new Set();
             for (const { row, canonicalName } of rowRecords) {
                 if (claimedNames.has(canonicalName) || !isDirectListRow(row)) continue;
-                listRoot.appendChild(row);
+                remainingRows.add(row);
             }
+            for (const entry of asArray(order)) {
+                const token = normalizeToken(entry);
+                const row = rowByCanonicalName.get(identityIndex.resolve(token) || token);
+                if (remainingRows.delete(row)) listRoot.appendChild(row);
+            }
+            for (const row of remainingRows) listRoot.appendChild(row);
         };
         const snapshot = () => {
             const entries = [...folderEntries.values()];

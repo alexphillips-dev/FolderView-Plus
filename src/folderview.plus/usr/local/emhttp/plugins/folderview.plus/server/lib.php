@@ -1407,6 +1407,44 @@
         return $folders;
     }
 
+    function orderFolderBranchIds(array $folders, array $pins = [], bool $useChildOrder = false): array {
+        $children = [];
+        $roots = [];
+        foreach ($folders as $id => $folder) {
+            $id = (string)$id;
+            $parent = (string)($folder['parentId'] ?? '');
+            if ($parent !== '' && isset($folders[$parent])) {
+                $children[$parent][] = $id;
+            } else {
+                $roots[] = $id;
+            }
+        }
+        $pinnedRoots = [];
+        foreach ($pins as $id) {
+            if (!isset($folders[$id])) continue;
+            // Parent links have already been normalized to an acyclic tree.
+            $parent = $folders[$id]['parentId'] ?? '';
+            while ($parent !== '' && isset($folders[$parent])) {
+                $id = $parent;
+                $parent = $folders[$id]['parentId'] ?? '';
+            }
+            $pinnedRoots[] = $id;
+        }
+        $ordered = [];
+        $stack = array_reverse(array_values(array_unique(array_merge($pinnedRoots, $roots))));
+        while ($stack) {
+            $id = array_pop($stack);
+            $ordered[] = $id;
+            $childIds = $children[$id] ?? [];
+            if ($useChildOrder && $childIds) {
+                $saved = $folders[$id]['settings']['child_folder_order'] ?? [];
+                $childIds = array_merge(array_intersect($saved, $childIds), array_diff($childIds, $saved));
+            }
+            foreach (array_reverse($childIds) as $childId) $stack[] = $childId;
+        }
+        return $ordered;
+    }
+
     function normalizeIsoTimestamp($value): string {
         $raw = trim((string)$value);
         if ($raw === '') {
@@ -1683,8 +1721,8 @@
         return $reordered;
     }
 
-    function reorderFolderMapByPrefs(string $type, array $folders): array {
-        $prefs = readTypePrefs($type);
+    function reorderFolderMapByPrefs(string $type, array $folders, ?array $prefs = null): array {
+        $prefs = $prefs ?? readTypePrefs($type);
         $sortMode = $prefs['sortMode'] ?? 'created';
         $sortKeysByComparator = function(array $sourceKeys, callable $comparator): array {
             $originalIndex = array_flip($sourceKeys);
@@ -1698,12 +1736,18 @@
             return $sourceKeys;
         };
         $normalizeSortTimestamp = function($value): ?int {
-            $raw = trim((string)$value);
-            if ($raw === '') {
+            $raw = is_string($value) ? trim($value) : '';
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}(?:[T ](?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?(?:Z|[+-](?:[01]\d|2[0-3]):?[0-5]\d)?)?\z/', $raw)) {
                 return null;
             }
-            $parsed = strtotime($raw);
-            return $parsed === false ? null : (int)$parsed;
+            try {
+                $date = new DateTimeImmutable($raw, new DateTimeZone('UTC'));
+                $errors = DateTimeImmutable::getLastErrors();
+                if ($errors && ($errors['warning_count'] || $errors['error_count'])) return null;
+                return ((int)$date->format('U') * 1000) + (int)$date->format('v');
+            } catch (Exception $error) {
+                return null;
+            }
         };
         $applyPinnedOrder = function(array $ordered) use ($prefs): array {
             $pinnedIds = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
@@ -1760,9 +1804,11 @@
             $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders, $normalizeSortTimestamp, $timestampField, $descending) {
                 $timeA = $normalizeSortTimestamp($folders[$a][$timestampField] ?? '');
                 $timeB = $normalizeSortTimestamp($folders[$b][$timestampField] ?? '');
-                if ($timeA === null || $timeB === null || $timeA === $timeB) {
+                if ($timeA === $timeB) {
                     return 0;
                 }
+                if ($timeA === null) return 1;
+                if ($timeB === null) return -1;
                 return $descending ? ($timeB <=> $timeA) : ($timeA <=> $timeB);
             });
             $ordered = [];
@@ -2265,26 +2311,9 @@
         $order = array_values($parsedIni ?: []);
         if ($type === 'docker') {
             $folders = readRawFolderMap('docker');
-            $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
-            $folderPlaceholders = array_map(function($id) {
-                return 'folder-' . (string)$id;
-            }, array_keys($orderedFolders));
             $prefs = readTypePrefs('docker');
-            $sortSlots = ($prefs['sortMode'] ?? 'created') !== 'created' || !empty($prefs['pinnedFolderIds']);
-            $slotIndex = 0;
-            $seen = [];
-            $nextOrder = [];
-            foreach ($order as $entry) {
-                $value = trim((string)$entry);
-                if (strpos($value, 'folder-') === 0) {
-                    if (!in_array($value, $folderPlaceholders, true)) continue;
-                    if ($sortSlots) $value = $folderPlaceholders[$slotIndex++] ?? '';
-                }
-                fvplus_append_unique_name($nextOrder, $seen, $value);
-            }
-            // New folders have no host slot yet. Keep their established top placement.
-            $missing = array_values(array_diff($folderPlaceholders, $nextOrder));
-            $order = array_merge($missing, $nextOrder);
+            $orderedFolders = reorderFolderMapByPrefs('docker', $folders, $prefs);
+            $order = composeDockerSavedOrder($order, $orderedFolders, $prefs);
         }
         return json_encode($order);
     }

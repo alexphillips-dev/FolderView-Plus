@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "content-revision": "acc2783aa50d46941f733990363dba65fff19eb38d2520d9688b53c927abceb1"
+        "content-revision": "45bf61678c977f9c027503c721e892d18f0bbbc35cb2f088c6fa83d2f9955026"
     },
+    "settings.theme.github-directory": "Alegeți un director CSS",
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",
     "settings.rules.match-placeholder": "de ex. arr, sonarr, audiobooks",

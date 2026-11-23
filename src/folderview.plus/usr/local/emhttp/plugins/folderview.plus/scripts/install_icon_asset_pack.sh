@@ -173,12 +173,6 @@ for stale_root in "${CACHE_BASE}"/icons-*; do
         safe_remove_cache_tree "${stale_root}"
     fi
 done
-for stale_archive in "${CONFIG_DIR}"/folderview.plus-icons-*.txz; do
-    if [ "${stale_archive}" != "${ICON_PACK_ARCHIVE}" ]; then
-        rm -f "${stale_archive}"
-    fi
-done
-
 write_status "${ICON_PACK_INSTALL_STATE}" "${ICON_PACK_FILE_COUNT}" ""
 if [ -z "${ICON_PACK_STATUS_FILE}" ]; then
     echo "[OK] FolderView Plus icon asset pack ${ICON_PACK_VERSION} is ready (${ICON_PACK_FILE_COUNT} icons; ${ICON_PACK_INSTALL_STATE})."

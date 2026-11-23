@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "content-revision": "dd9196cddf555bfb5560e1fd875a2e6ef3e1d72ece482afc7e9786a7d9994292"
+        "content-revision": "9dc84c393106cf3321dc7ea089badfbb94672dc3232a829ee343356d83113ee8"
     },
+    "settings.theme.github-directory": "Wybierz katalog CSS",
     "settings.rules.save-changes": "Zapisz zmiany",
     "settings.rules.regex-placeholder": "Wzorzec wyrażenia regularnego (np. ^media-)",
     "settings.rules.match-placeholder": "np. arr, sonarr, audiobooki",

@@ -204,7 +204,8 @@ test('runtime refresh uses API-first reads and lightweight PHP fallback snapshot
     assert.match(dashboardJs, /queuedLoadlistRequestedAt/);
     assert.match(dockerJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(vmJs, /const queueCreateFoldersRender = \(\) =>/);
-    assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
+    assert.match(dashboardJs, /renderFolders: renderDashboardWidget/);
+    assert.match(dashboardJs, /return createFolders\(type, \{ isCurrent, captureDebug \}\);/);
     assert.match(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}/s);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
@@ -353,7 +354,8 @@ test('dashboard widget supports nested child folders and constrains expanded tra
     assert.match(dashboardFolderMatchCacheJs, /const sortFolderIdsByPrefs = \(ids,\s*folders,\s*prefs\) =>/);
     assert.match(dashboardJs, /const renderDockerChildren = \(parentId\) =>/);
     assert.match(dashboardJs, /const renderVmChildren = \(parentId\) =>/);
-    assert.match(dashboardJs, /appendTo: dashboardFolderRenderRecovery\.(?:docker|vm)\.hasFailed\(parentKey\) \? undefined : `\.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
+    assert.match(dashboardJs, /appendTo: dashboardFolderRenderRecovery\.docker\.hasFailed\(parentKey\) \? undefined : `#docker_view \.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
+    assert.match(dashboardJs, /appendTo: dashboardFolderRenderRecovery\.vm\.hasFailed\(parentKey\) \? undefined : `#vm_view \.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
     assert.match(dashboardJs, /const getDashboardCard = \(type, id\) =>/);
     assert.match(dashboardJs, /const card = getDashboardCard\(meta\.type,\s*safeId\);/);
     assert.match(dashboardCss, /\.folder-showcase\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*100%;/);

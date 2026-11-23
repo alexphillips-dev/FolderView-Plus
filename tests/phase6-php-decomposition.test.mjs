@@ -79,6 +79,10 @@ test('decomposition preserves every historical public PHP function name', () => 
             'fvplusFolderView3PresetProfiles', 'preserveMigratedFolderReferences', 'buildLegacyFolderMembership']) additions.add(name);
         additions.add('fvplusTransactionRestoreFiles');
         additions.add('fvplusTransactionRestoreAfterFailure');
+        for (const name of ['fvplusThemeGithubManifest', 'fvplusThemeGithubFingerprint', 'fvplusThemeGithubValidFile',
+            'fvplusThemeWorkspaceWriteGithubChange']) additions.add(name);
+        for (const name of ['dockerPageHasFolderSort', 'composeDockerSavedOrder', 'orderFolderBranchIds',
+            'buildDockerPageOrderModel']) additions.add(name);
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
         for (const name of ['fvplusTypeTransactionPaths', 'diagnosticsSupportBundleEventLabel',

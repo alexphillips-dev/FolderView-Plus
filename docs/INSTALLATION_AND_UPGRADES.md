@@ -67,7 +67,7 @@ Use `Plugins -> Check for Updates`, then install the available FolderView Plus u
 - Keeps configuration under `/boot/config/plugins/folderview.plus`.
 - Downloads or reuses the pinned icon asset pack.
 - Recreates the scheduled-backup cron entry.
-- Removes older core package archives after the new package is installed.
+- Keeps the core and icon archives referenced by the currently registered manifest while a replacement is installing. It removes obsolete archives after setup succeeds, while retaining the registered version's boot files until a later successful install or boot.
 
 Reload the affected browser page after an update. FolderView Plus emits versioned assets and a page-version sentinel, but a hard refresh with `Ctrl+F5` is still useful when the browser or an intermediary cache serves stale markup.
 
@@ -143,6 +143,27 @@ Downgrades are not guaranteed to understand configuration fields introduced by a
 - Avoid saving extensively from the older version until the required behavior is verified.
 
 Returning to the latest version and restoring the pre-downgrade export is safer than manually editing folder or preference JSON.
+
+### Reinstall a previous stable version
+
+If you need to return to stable version 2026.11.13.05, first save an external configuration backup. Run this on the Unraid terminal without uninstalling. The command pins the core and icon downloads to the same commit as the manifest, so the files remain available when newer archives replace them on the branch. Unraid verifies the checksums from that manifest. Future updates follow the stable channel.
+
+```bash
+(
+    set -e
+    revision=64c3c3396fd6f83e7993f1f2a7bd7f47cd455abe
+    recovery_dir=$(mktemp -d /tmp/folderview-plus-recovery.XXXXXX)
+    trap 'rm -f "$recovery_dir/source.plg" "$recovery_dir/folderview.plus.plg"; rmdir "$recovery_dir"' EXIT
+    curl -fsSL "https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/$revision/folderview.plus.plg" \
+        -o "$recovery_dir/source.plg"
+    sed -e "s|/main/archive/|/$revision/archive/|g" \
+        -e "s|/main/asset-packs/|/$revision/asset-packs/|g" \
+        "$recovery_dir/source.plg" > "$recovery_dir/folderview.plus.plg"
+    plugin install "$recovery_dir/folderview.plus.plg" forced
+)
+```
+
+Confirm the version in Plugins, then verify your Docker and VM folders, preferences, custom icons, and backups. If the plugin is covered by an automatic updater, pause updates for it while you investigate the newer version.
 
 ## Uninstall
 

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "content-revision": "7418a1a14b0487145d50bcabd543938861c0fc4f83198ca01c5101293ec5ff2d"
+        "content-revision": "eee0494db45d50a4567ae2a9654dabc194f159961bedf7bf08c1ed1af9a700b3"
     },
+    "settings.theme.github-directory": "CSS 디렉터리 선택",
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",
     "settings.rules.match-placeholder": "예를 들어 도착, 소나르, 오디오북",

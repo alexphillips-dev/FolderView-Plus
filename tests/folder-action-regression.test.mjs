@@ -34,7 +34,7 @@ test('dashboard folder action errors do not trigger an immediate second reload',
     assert.match(dashboardJs, /dashboardHostAdapterModule\.getOrCreate\(/);
     assert.match(dashboardJs, /runtimeHostAdapter: dashboardDockerHostAdapter/);
     assert.match(dashboardJs, /prepareFolderRequests: prepareDashboardFolderRequestsForType/);
-    assert.match(dashboardJs, /renderFolders: queueCreateFoldersRender/);
+    assert.match(dashboardJs, /renderFolders: renderDashboardWidget/);
     assert.match(dashboardJs, /dashboardHostAdapter\.bind\(\);/);
     assert.doesNotMatch(dashboardJs, /window\.loadlist\s*=(?!=)/);
     assert.doesNotMatch(dashboardJs, /\$\.ajaxPrefilter\(/);
@@ -57,8 +57,11 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
     assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(normalizeVmPrefsResponse\(prefsResponse\)\);/);
     assert.match(vmJs, /const cacheBust = Date\.now\(\);[\s\S]*?const snapshotRequest = createVmRuntimeRequest\(runtimeSnapshotApi\.buildUrl\('vm', 'full', \{[\s\S]*?cacheBust[\s\S]*?\}\)/);
     assert.match(vmJs, /createProjectedBundle\([\s\S]*?\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
-    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, \(\) => \{ void refreshVmRuntimeStateInPlace\(\); \}\);\s*\} else if \(vmLifecycleApi[\s\S]*?await vmLifecycleApi\.run\(lifecycleRequests, \{ source: 'folder-action' \}\);/s);
-    assert.doesNotMatch(vmJs, /if \(errors\.length > 0\)[\s\S]{0,800}queueLoadlistRefresh\(\)/);
+    const settleActions = vmJs.slice(vmJs.indexOf('const settleVmFolderActions ='), vmJs.indexOf('const actionFolder ='));
+    assert.match(settleActions, /nativeActions\.showNativeActionFailures\(results,/);
+    assert.match(settleActions, /await vmLifecycleApi\.run\(accepted, \{ source \}\);/);
+    assert.match(settleActions, /accepted\.length < results\.length[\s\S]*?await refreshVmRuntimeStateInPlace\(\);/);
+    assert.doesNotMatch(settleActions, /queueLoadlistRefresh\(\)/);
 });
 
 test('vm page reloads when settings changes vm pinned folders', () => {

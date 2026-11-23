@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "content-revision": "6c52e81e026b4d8432273b017f02289bebe12058d5053eb9bee94fe139064c84"
+        "content-revision": "5acd9d8db35e30af83a71e4b382331215ded658c48a94f09cc29ab7735ab7bdc"
     },
+    "runtime.action.requests-result": "$1 acceptades · $2 fallides",
+    "runtime.action.user-script-failed": "User Scripts no ha pogut iniciar aquesta acció. Comproveu que el connector i l’script estiguin disponibles.",
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
     "common.badges.can-delete": "Es pot eliminar",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "No s'han trobat fitxers CSS Docker, VM o Dashboard compatibles.",
     "common.server.theme-not-found-3d8f8d": "No s'ha trobat el tema.",
     "common.server.theme-is-required-81b1f0": "El tema és obligatori.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "El tema no té cap font de GitHub desada per actualitzar-se.",
     "common.server.appearance-profile-not-found-8798a2": "No s'ha trobat el perfil d'aparença.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "El perfil d'aparença final no es pot suprimir.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Abast del perfil d'aparença no compatible.",

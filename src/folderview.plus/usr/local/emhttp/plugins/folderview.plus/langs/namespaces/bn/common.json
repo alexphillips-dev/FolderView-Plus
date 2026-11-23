@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "content-revision": "2934707f1c134917ea04dda20f2ff507a3e2c720895d9c0122a7a432b647b409"
+        "content-revision": "f7ae3bbe0714cb34115fee2d7186054bea8d7f0d9a6b45d4a27762d2dbf6bfc0"
     },
+    "runtime.action.requests-result": "$1টি গৃহীত · $2টি ব্যর্থ",
+    "runtime.action.user-script-failed": "User Scripts এই কাজটি চালু করতে পারেনি। প্লাগইন ও স্ক্রিপ্টটি উপলব্ধ আছে কি না যাচাই করুন।",
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
     "common.badges.can-delete": "মুছে দিতে পারে",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "কোনো সামঞ্জস্যপূর্ণ ডকার, ভিএম বা ড্যাশবোর্ড CSS ফাইল পাওয়া যায়নি।",
     "common.server.theme-not-found-3d8f8d": "থিম পাওয়া যায়নি.",
     "common.server.theme-is-required-81b1f0": "থিম প্রয়োজন.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "থিমের আপডেট করার জন্য একটি সংরক্ষিত GitHub উৎস নেই।",
     "common.server.appearance-profile-not-found-8798a2": "চেহারা প্রোফাইল পাওয়া যায়নি.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "চূড়ান্ত চেহারা প্রোফাইল মুছে ফেলা যাবে না.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "অসমর্থিত চেহারা প্রোফাইল সুযোগ.",

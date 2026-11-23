@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "content-revision": "dca044b61c50b38225b0726b79d654e6aea3808daa57ef0e31760a7e06807952"
+        "content-revision": "61f3c0fa110473ac18c9ebe80884826714ae99a89b893ee0f1e195a44c3eee9e"
     },
+    "settings.theme.github-directory": "Виберіть каталог CSS",
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",
     "settings.rules.match-placeholder": "напр. arr, sonarr, аудіокниги",

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -11,6 +12,7 @@ const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const runtimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const nativeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.native-actions.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderTypeVmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-vm.js');
 const memberIdentityJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.member-identity.js');
@@ -42,13 +44,23 @@ test('custom action handlers support legacy and corrected container key names', 
 
 test('custom action handlers do not silently no-op on unsupported action modes', () => {
     for (const source of [dockerJs, vmJs]) {
-        assert.doesNotMatch(source, /let ctAction = \(e\) => \{\s*\}/);
-        assert.match(source, /let ctAction = null;/);
-        assert.match(source, /if \(typeof ctAction === 'function'\)/);
-        assert.match(source, /console\.warn\(`folderview\.plus: Unsupported/);
+        assert.match(source, /if \(!nativeActions\.validateFolderAction\(act\)\) return;/);
     }
-    assert.doesNotMatch(dashboardJs, /let ctAction = null;/);
-    assert.doesNotMatch(dashboardJs, /console\.warn\(`folderview\.plus: Unsupported/);
+    assert.doesNotMatch(dashboardJs, /validateFolderAction\(/);
+    const warnings = [];
+    const window = { console: { warn: message => warnings.push(message) } };
+    vm.runInNewContext(nativeActionsJs, { window });
+    const { validateFolderAction } = window.FolderViewPlusFoundationModules.runtimeNativeActions;
+    for (const [action, modes] of [[0, 0], [0, 1], [1, 0], [1, 1], [1, 2], [1, 3], [2, undefined]]) {
+        assert.equal(validateFolderAction({ type: 0, action, modes }), true);
+    }
+    assert.equal(validateFolderAction({ type: 1 }), true);
+    assert.deepEqual(warnings, []);
+    for (const [action, modes] of [[0, 2], [1, 4], [3, 0]]) {
+        assert.equal(validateFolderAction({ type: 0, action, modes, name: 'fixture private' }), false);
+    }
+    assert.equal(warnings.length, 3);
+    assert.ok(warnings.every(message => message === 'folderview.plus: Unsupported custom action configuration.'));
 });
 
 test('runtime helper APIs omit audited no-op and unconsumed surfaces', () => {

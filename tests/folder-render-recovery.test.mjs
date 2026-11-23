@@ -30,6 +30,7 @@ for (const [file, type, suffix, index] of [
         const broken = folders.broken;
         const context = {
             folders, foldersDone: {}, order: ['folder-broken', 'folder-healthy'], folderRegex: /^folder-/,
+            captureDebug: false,
             containersInfo: {}, vmInfo: {}, newOnes: [], folderMatchCache: {}, folderDepthById: {},
             dockerChildrenByParent: {}, vmChildrenByParent: {}, dockerFullMatchCache: {}, dockerMatchCache: {},
             vmFullMatchCache: {}, vmMatchCache: {}, createdRootIds: [], createdRootVmIds: [],
@@ -84,6 +85,7 @@ for (const [type, title, func] of [['docker', 'Docker', 'Docker'], ['vm', 'Vm', 
             ['createdNested' + (type === 'vm' ? 'Vm' : '') + 'Ids']: new Set(),
             folderTypePrefs: { [type]: {} }, sortFolderIdsByPrefs: (ids) => ids,
             [type + 'FullMatchCache']: {}, order, containersInfo: {}, vmInfo: {}, foldersDone: {},
+            captureDebug: false,
             ['createFolder' + func]: (folder, id, _position, liveOrder, _info, _done, _cache, options) =>
                 controller.render(folder, id, liveOrder, () => {
                     if (id === 'failedChild') throw new Error('child failed');

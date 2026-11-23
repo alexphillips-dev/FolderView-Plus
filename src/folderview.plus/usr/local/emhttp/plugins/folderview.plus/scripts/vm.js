@@ -2426,95 +2426,68 @@ const editFolder = (id) => {
     location.href = targetUrl;
 };
 
-/**
- * 
- * @param {string} id The id of the folder
- * @param {string} action the desired action
- */
+const resolveVmFolderAction = (action, state) => {
+    const current = String(state || '').toLowerCase();
+    switch (action) {
+        case 'domain-start':
+            return ['running', 'pmsuspended', 'paused', 'unknown'].includes(current) ? '' : action;
+        case 'domain-stop':
+        case 'domain-pause':
+        case 'domain-restart':
+        case 'domain-pmsuspend':
+            return current === 'running' ? action : '';
+        case 'domain-resume':
+            if (current === 'pmsuspended') return 'domain-pmwakeup';
+            return current === 'paused' || current === 'unknown' ? action : '';
+        case 'domain-destroy':
+            return ['running', 'pmsuspended', 'paused', 'unknown'].includes(current) ? action : '';
+        default:
+            return '';
+    }
+};
+
+const settleVmFolderActions = async (requests, source) => {
+    if (!requests.length) return;
+    const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
+    const results = await nativeActions.settleNativeActionRequests(requests, ({ action, uuid }) => {
+        if (!uuid) throw new Error();
+        return $.ajax({ url: '/plugins/dynamix.vm.manager/include/VMajax.php', type: 'POST',
+            data: { action, uuid }, dataType: 'json', timeout: 30000 });
+    });
+    nativeActions.showNativeActionFailures(results, {
+        escapeHtml,
+        privacy: document.body.classList.contains('fvplus-privacy-vm-runtime')
+    });
+    const accepted = results.filter(result => result.accepted).map(({ action, uuid }) => ({ action, uuid }));
+    if (accepted.length && typeof vmLifecycleApi?.run === 'function') {
+        await vmLifecycleApi.run(accepted, { source });
+    }
+    if (!accepted.length || accepted.length < results.length || typeof vmLifecycleApi?.run !== 'function') {
+        await refreshVmRuntimeStateInPlace();
+        window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
+    }
+};
+
 const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
     return vmSafeUiActionRunner.run(`vm-folder-action:${id}:${action}:${includeDescendants ? 'branch' : 'direct'}`, async () => {
         await runVmGuardedAction('vm-folder-action', async () => {
-            if (!ensureVmFolderUnlocked(id, 'Folder action')) {
-                return;
-            }
+            if (!ensureVmFolderUnlocked(id, 'Folder action')) return;
             const folder = globalFolders[id];
-            if (!folder) {
-                return;
-            }
-            const containersMap = getScopedVmRuntimeContainersForFolder(id, includeDescendants);
-            const entries = Object.values(containersMap);
-            if (!entries.length) {
-                return;
-            }
-            let proms = [];
-            const lifecycleRequests = [];
+            if (!folder) return;
+
+            const entries = Object.entries(getScopedVmRuntimeContainersForFolder(id, includeDescendants));
             const originalAction = String(action || '').trim();
+            const requests = entries.flatMap(([name, entry]) => {
+                const requestAction = resolveVmFolderAction(originalAction, entry?.state);
+                return requestAction ? [{ name, action: requestAction, uuid: entry?.id }] : [];
+            });
+            if (!requests.length) return;
 
             vmRuntimeStateStore.set({ inFlightAction: `action:${id}:${originalAction}` });
             $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
             $('div.spinner.fixed').show('slow');
-
             try {
-                for (const entry of entries) {
-                    const cid = String(entry?.id || '').trim();
-                    if (!cid) {
-                        continue;
-                    }
-                    const state = String(entry?.state || '').toLowerCase();
-                    let requestAction = originalAction;
-                    let pass = false;
-                    switch (originalAction) {
-                        case 'domain-start':
-                            pass = state !== 'running' && state !== 'pmsuspended' && state !== 'paused' && state !== 'unknown';
-                            break;
-                        case 'domain-stop':
-                        case 'domain-pause':
-                        case 'domain-restart':
-                        case 'domain-pmsuspend':
-                            pass = state === 'running';
-                            break;
-                        case 'domain-resume':
-                            pass = state === 'paused' || state === 'unknown';
-                            if (!pass && state === 'pmsuspended') {
-                                pass = true;
-                                requestAction = 'domain-pmwakeup';
-                            }
-                            break;
-                        case 'domain-destroy':
-                            pass = state === 'running' || state === 'pmsuspended' || state === 'paused' || state === 'unknown';
-                            break;
-                        default:
-                            pass = false;
-                            break;
-                    }
-                    if (pass) {
-                        lifecycleRequests.push({ action: requestAction, uuid: cid });
-                        proms.push($.post('/plugins/dynamix.vm.manager/include/VMajax.php', { action: requestAction, uuid: cid }, null, 'json').promise());
-                    }
-                }
-
-                if (!proms.length) {
-                    return;
-                }
-
-                const results = await Promise.all(proms);
-                const errors = results.filter((result) => result.success !== true);
-                const errorMessages = errors.map((result) => result.text || JSON.stringify(result));
-
-                if (errors.length > 0) {
-                    swal({
-                        title: $.i18n('exec-error'),
-                        text: errorMessages.join('<br>'),
-                        type: 'error',
-                        html: true,
-                        confirmButtonText: 'Ok'
-                    }, () => { void refreshVmRuntimeStateInPlace(); });
-                } else if (vmLifecycleApi && typeof vmLifecycleApi.run === 'function') {
-                    await vmLifecycleApi.run(lifecycleRequests, { source: 'folder-action' });
-                } else {
-                    await refreshVmRuntimeStateInPlace();
-                    window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
-                }
+                await settleVmFolderActions(requests, 'folder-action');
             } finally {
                 updateVmFolderRuntimeSummary(id, folder);
                 vmRuntimeStateStore.set({ inFlightAction: '' });
@@ -2534,122 +2507,41 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
 const folderCustomAction = async (id, action) => {
     return vmSafeUiActionRunner.run(`vm-custom-action:${id}:${action}`, async () => {
         await runVmGuardedAction('vm-custom-action', async () => {
-            if (!ensureVmFolderUnlocked(id, 'Custom action')) {
-                return;
-            }
-            $('div.spinner.fixed').show('slow');
-            vmRuntimeStateStore.set({ inFlightAction: `custom:${id}:${action}` });
-            const eventURL = '/plugins/dynamix.vm.manager/include/VMajax.php';
+            if (!ensureVmFolderUnlocked(id, 'Custom action')) return;
             const folder = globalFolders[id];
-            let act = folder.actions[action];
-            let prom = [];
-            const lifecycleRequests = [];
-            const queueLifecyclePost = (requestAction, uuid) => {
-                lifecycleRequests.push({ action: requestAction, uuid });
-                prom.push($.post(eventURL, { action: requestAction, uuid }, null, 'json').promise());
-            };
+            const act = folder?.actions?.[action];
+            if (!act) return;
+
+            const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
+            if (!nativeActions.validateFolderAction(act)) return;
+            const spinner = $('div.spinner.fixed');
+            spinner.show('slow');
+            vmRuntimeStateStore.set({ inFlightAction: `custom:${id}:${action}` });
             try {
-                if(act.type === 0) {
-                    const actionContainers = Array.isArray(act.conatiners)
-                        ? act.conatiners
-                        : (Array.isArray(act.containers) ? act.containers : []);
-                    const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
-                    let ctAction = null;
-                    if(act.action === 0) {
-
-                        if(act.modes === 0) {
-                            ctAction = (e) => {
-                                if(e.state === "running") {
-                                    queueLifecyclePost('domain-stop', e.id);
-                                } else if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown"){
-                                    queueLifecyclePost('domain-start', e.id);
-                                }
-                            };
-                        } else if(act.modes === 1) {
-                            ctAction = (e) => {
-                                if(e.state === "running") {
-                                    queueLifecyclePost('domain-pause', e.id);
-                                } else if(e.state === "paused" || e.state === "unknown") {
-                                    queueLifecyclePost('domain-resume', e.id);
-                                }
-                            };
-                        }
-
-                    } else if(act.action === 1) {
-
-                        if(act.modes === 0) {
-                            ctAction = (e) => {
-                                if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown") {
-                                    queueLifecyclePost('domain-start', e.id);
-                                }
-                            };
-                        } else if(act.modes === 1) {
-                            ctAction = (e) => {
-                                if(e.state === "running") {
-                                    queueLifecyclePost('domain-stop', e.id);
-                                }
-                            };
-                        } else if(act.modes === 2) {
-                            ctAction = (e) => {
-                                if(e.state === "running") {
-                                    queueLifecyclePost('domain-pause', e.id);
-                                }
-                            };
-                        } else if(act.modes === 3) {
-                            ctAction = (e) => {
-                                if(e.state === "paused" || e.state === "unknown") {
-                                    queueLifecyclePost('domain-restart', e.id);
-                                }
-                            };
-                        }
-
-                    } else if(act.action === 2) {
-
-                        ctAction = (e) => {
-                            if(e.state === "running") {
-                                queueLifecyclePost('domain-pause', e.id);
-                            }
-                        };
-
-                    }
-
-                    if (typeof ctAction === 'function') {
-                        cts.forEach((e) => {
-                            ctAction(e);
-                        });
-                    } else {
-                        const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
-                        console.warn(`folderview.plus: Unsupported VM custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
-                    }
-                } else if(act.type === 1) {
-                    const args = act.script_args || '';
-                    if(act.script_sync) {
-                        const scriptVariables = {};
-                        const rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-                        rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1]; });
-                        if(scriptVariables['directPHP']) {
-                            $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}});
-                        } else {
-                            $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}});
-                        }
-                    } else {
-                        const cmd = await $.post("/plugins/user.scripts/exec.php",{action:'convertScript', path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-                        prom.push($.get('/logging.htm?cmd=/plugins/user.scripts/backgroundScript.sh&arg1='+cmd+'&arg2='+args+'&csrf_token='+csrf_token+'&done=Done').promise());
-                    }
-                }
-
-                await Promise.all(prom);
-                if (lifecycleRequests.length > 0 && vmLifecycleApi && typeof vmLifecycleApi.run === 'function') {
-                    await vmLifecycleApi.run(lifecycleRequests, { source: 'custom-folder-action' });
-                } else {
+                if (act.type === 1) {
+                    await nativeActions.runUserScript(act, { openBox });
                     queueLoadlistRefresh();
+                    return;
                 }
+                const actionContainers = Array.isArray(act.conatiners) ? act.conatiners
+                    : (Array.isArray(act.containers) ? act.containers : []);
+                const requests = [...new Set(actionContainers)].flatMap(name => {
+                    const entry = folder.containers?.[name];
+                    if (!entry) return [];
+                    const state = String(entry.state || '').toLowerCase();
+                    let intent = '';
+                    if (act.action === 0 && act.modes === 0) intent = state === 'running' ? 'domain-stop' : 'domain-start';
+                    if (act.action === 0 && act.modes === 1) intent = state === 'running' ? 'domain-pause' : 'domain-resume';
+                    if (act.action === 1) intent = ['domain-start', 'domain-stop', 'domain-pause', 'domain-resume'][act.modes];
+                    if (act.action === 2) intent = 'domain-restart';
+                    const requestAction = resolveVmFolderAction(intent, state);
+                    return requestAction ? [{ name, action: requestAction, uuid: entry.id }] : [];
+                });
+                await settleVmFolderActions(requests, 'custom-folder-action');
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
-                $('div.spinner.fixed').hide('slow');
+                spinner.hide('slow');
             }
-        }, {
-            userMessage: $.i18n('exec-error')
         });
     });
 };

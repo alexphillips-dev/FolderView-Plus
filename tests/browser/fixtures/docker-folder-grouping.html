@@ -95,9 +95,15 @@
                 const list = document.getElementById('docker_list');
                 list.replaceChildren();
                 const names = fixture.names.slice(0, 4);
+                const original = fixture.containersInfo[names[3]];
+                names[3] = 'folder-app';
+                const containersInfo = { ...fixture.containersInfo, [names[3]]: {
+                    ...original, info: { ...original.info, Name: '/folder-app' }
+                } };
+                delete containersInfo[fixture.names[3]];
                 const rows = names.map(name => {
                     const row = document.createElement('tr');
-                    row.id = `ct-${fixture.containersInfo[name].shortId}`;
+                    row.id = `ct-${containersInfo[name].shortId}`;
                     row.className = 'sortable';
                     const cell = document.createElement('td');
                     cell.className = 'ct-name';
@@ -109,7 +115,7 @@
                     list.append(row);
                     return row;
                 });
-                const session = window.FolderViewPlusFoundationModules.dockerFolderGrouping.createSession({ document, containersInfo: fixture.containersInfo });
+                const session = window.FolderViewPlusFoundationModules.dockerFolderGrouping.createSession({ document, containersInfo });
                 const order = savedMiddle
                     ? ['folder-a', names[1], 'folder-b', names[0], names[2], names[3]]
                     : ['folder-a', 'folder-b', names[0], names[2], names[3], names[1]];
@@ -132,10 +138,11 @@
                 }
                 const readOrder = () => Array.from(list.children).map(row => row.dataset.fvFolderId ? `folder-${row.dataset.fvFolderId}` : row.querySelector('.appname').textContent);
                 const before = readOrder();
-                session.placeStandaloneRowsLast();
+                session.placeStandaloneRowsLast(order);
                 const after = readOrder();
-                session.placeStandaloneRowsLast();
-                return { before, after, repeated: readOrder(), expected: ['folder-a', 'folder-b', names[1], names[3]],
+                session.placeStandaloneRowsLast(order);
+                const standalone = savedMiddle ? [names[1], names[3]] : [names[3], names[1]];
+                return { before, after, repeated: readOrder(), expected: ['folder-a', 'folder-b', ...standalone],
                     preserved: grouped[0] === rows[0] && grouped[1] === rows[2] && rows.every(row => row.isConnected),
                     groupedMembers: list.querySelectorAll('.folder-storage > tr').length };
             };

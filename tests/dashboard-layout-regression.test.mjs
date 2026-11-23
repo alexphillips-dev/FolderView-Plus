@@ -203,7 +203,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /dashboardLayoutQuickRailModule\.createController\(/);
     assert.match(dashboardScript, /const isDashboardLegacyLayoutForType = \(type\) =>/);
     assert.match(dashboardScript, /const isDashboardLayoutTransitionInFlightForType = \(type\) =>/);
-    assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type\) =>/);
+    assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type, isCurrent\) =>/);
     assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
@@ -223,11 +223,10 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const parseDashboardPayloadOr = \(payload, fallback\) =>/);
     assert.match(dashboardScript, /let prefsResponse = parseDashboardPayloadOr\(prom\[4\], \{\}\);/);
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = typeof utils\.normalizeDashboardOverflowMode === 'function'/);
-    assert.match(dashboardScript, /const createFolders = async \(types = \['docker', 'vm'\]\) =>/);
+    assert.match(dashboardScript, /const createFolders = async \(type,/);
     assert.match(dashboardScript, /const dockerTreeIndex = buildFolderChildrenIndex\(allDockerFolders\);/);
     assert.match(dashboardScript, /const vmTreeIndex = buildFolderChildrenIndex\(allVmFolders\);/);
-    assert.match(dashboardScript, /if \(renderTypes\.has\('docker'\) && \$\('tbody#docker_view'\)\.length > 0\) \{/);
-    assert.match(dashboardScript, /if \(renderTypes\.has\('vm'\) && \$\('tbody#vm_view'\)\.length > 0\) \{/);
+    assert.match(dashboardScript, /const render = type === 'vm' \? renderDashboardVmFolders : renderDashboardDockerFolders;/);
     assert.doesNotMatch(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
     assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
@@ -497,11 +496,9 @@ test('dashboard render waits for successful folder hydration and has request fal
     assert.match(dashboardScript, /const legacyFactories = \[[\s\S]*getDashboardRequestWithFallback\(resolvedType, 'runtime info'/);
     assert.match(dashboardScript, /fallbackFactories: legacyFactories/);
     assert.match(dashboardScript, /prepareFolderRequests: prepareDashboardFolderRequestsForType/);
-    assert.match(dashboardScript, /const queueCreateFoldersRender = \(\) => \{/);
-    assert.match(dashboardScript, /let createFoldersPromise = null;/);
-    assert.match(dashboardScript, /return createFoldersPromise \|\| Promise\.resolve\(false\);/);
-    assert.match(dashboardScript, /createFoldersPromise = Promise\.resolve\(\)[\s\S]*\.then\(\(\) => createFolders\(\)\)[\s\S]*\.then\(\(\) => true\)/);
-    assert.match(dashboardScript, /renderFolders: queueCreateFoldersRender/);
+    assert.match(dashboardScript, /const prom = await Promise\.all\(requests\);\s*if \(!isActive\(\)\) return false;/);
+    assert.match(dashboardScript, /renderFolders: renderDashboardWidget/);
+    assert.doesNotMatch(dashboardScript, /let createFoldersPromise =/);
     assert.doesNotMatch(dashboardScript, /let loadedFolder =/);
 });
 

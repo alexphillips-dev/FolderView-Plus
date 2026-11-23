@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "content-revision": "6e0c6edfe849923e7c5da9ec1fcec98de36ccbe7c5cb19b5740d4904c0d3b772"
+        "content-revision": "2282230a96baaa561e2f12f8cda0b1ccbbf36cb209fc4e111ec47e11ae9d5f77"
     },
+    "runtime.action.requests-result": "$1 angenommen · $2 fehlgeschlagen",
+    "runtime.action.user-script-failed": "User Scripts konnte diese Aktion nicht starten. Prüfe, ob das Plugin und das Skript verfügbar sind.",
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
     "common.badges.can-delete": "Kann löschen",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Es wurden keine kompatiblen Docker-, VM- oder Dashboard-CSS-Dateien gefunden.",
     "common.server.theme-not-found-3d8f8d": "Thema nicht gefunden.",
     "common.server.theme-is-required-81b1f0": "Thema ist erforderlich.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Das Theme verfügt nicht über eine gespeicherte GitHub-Quelle, von der aus Aktualisierungen durchgeführt werden können.",
     "common.server.appearance-profile-not-found-8798a2": "Darstellungsprofil nicht gefunden.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Das endgültige Erscheinungsbildprofil kann nicht gelöscht werden.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Nicht unterstützter Darstellungsprofilbereich.",

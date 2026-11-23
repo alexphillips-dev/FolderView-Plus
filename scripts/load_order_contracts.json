@@ -171,6 +171,7 @@
         "scripts/docker.runtime.info.js",
         "scripts/docker.runtime.preview-actions.js",
         "scripts/docker.runtime.child-folder-preview-menu.js",
+        "scripts/runtime.native-actions.js",
         "scripts/docker.runtime.folder-feedback.js",
         "scripts/docker.runtime.hierarchy.js",
         "scripts/docker.runtime.actions.js",
@@ -240,6 +241,7 @@
         "scripts/folder.runtime.state-observers.js",
         "scripts/folder.runtime.row-actions.js",
         "scripts/vm.runtime.lifecycle.js",
+        "scripts/runtime.native-actions.js",
         "scripts/vm.js"
       ]
     },

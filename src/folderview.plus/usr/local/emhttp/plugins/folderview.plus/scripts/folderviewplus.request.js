@@ -312,13 +312,36 @@
 
 
 
+    const classifyMutationResponseFailure = (error, failure) => {
+        const { reasonCode } = failure;
+        const xhr = error?.jqXHR;
+        const status = Number(xhr?.status || 0);
+        if (status < 200 || status >= 300
+            || !['unexpected-response', 'nonce-response-invalid'].includes(reasonCode)) return failure;
+        if (xhr.getResponseHeader?.('X-FV-API-Contract') || xhr.getResponseHeader?.('X-FV-Trace')) {
+            return { failureSource: 'folderview-plus', reasonCode };
+        }
+        const body = String(error.responseBody ?? xhr.responseText ?? '').slice(0, 32768);
+        // Require a host login form before attributing unexpected output to an expired session.
+        if (/<form\b[^>]*\baction\s*=\s*["']\/login(?:\.php)?(?:[?"'])/i.test(body)
+            && /<input\b[^>]*\btype\s*=\s*["']?password\b/i.test(body)) {
+            return { failureSource: 'unraid', reasonCode: 'authentication-required' };
+        }
+        return { failureSource: 'client', reasonCode };
+    };
+
     const reportFailure = (error, { method, url, traceId, transactionId, phase = 'request', startedAt, attempts = 1 }) => {
-        const failure = classifyFailure(error);
+        const classified = classifyFailure(error);
+        const failure = method === 'POST' && transport.isPluginUrl(url)
+            ? classifyMutationResponseFailure(error, classified)
+            : classified;
         const formatted = formatAjaxError(error, url, traceId);
         Object.assign(formatted, failure, { phase, method, attempts, traceId, transactionId, retryable: failure.failureSource === 'transport' && shouldRetryError(error) });
         const message = failureMessage(failure.reasonCode);
         if (message) {
             formatted.message = `${message} ${translate('request.failure.support-code', 'Support code: $1', `FVPLUS/${phase}/${failure.reasonCode}`)}`;
+        } else if (failure.reasonCode === 'unexpected-response') {
+            formatted.message = `Invalid JSON response from ${sanitizeDiagnosticUrl(url)}.`;
         }
         formatted.status = Number(error?.jqXHR?.status || formatted.status || 0);
         formatted.httpStatus = formatted.status;
@@ -347,7 +370,8 @@
         xhrFields = undefined,
         signal = null,
         onRequest = null,
-        onProgress = null
+        onProgress = null,
+        parseMutationJson = false
     }) => {
         if (!url) {
             throw new Error('Request URL is required.');
@@ -407,6 +431,19 @@
                     : await toAjaxPromise(ajaxOptions, signal, onRequest, onProgress);
                 response.traceId = traceId;
                 response.transactionId = transactionId;
+                let result = response;
+                if (parseMutationJson) {
+                    try {
+                        result = parseResponseJson(response, url);
+                    } catch (_error) {
+                        throw Object.assign(new Error(), {
+                            jqXHR: response.jqXHR,
+                            responseBody: response.data,
+                            textStatus: 'parsererror',
+                            reasonCode: 'unexpected-response'
+                        });
+                    }
+                }
                 recordDiagnostic({
                     method: normalizedMethod,
                     url,
@@ -417,7 +454,7 @@
                     traceId,
                     transactionId
                 });
-                return response;
+                return result;
             } catch (error) {
                 lastError = error;
                 const shouldRetry = attempt < safeRetries && shouldRetryError(error);
@@ -553,7 +590,7 @@
         tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
         signal = null
     } = {}) => {
-        const response = await request({
+        return request({
             method: 'POST',
             url,
             data,
@@ -562,9 +599,9 @@
             retryDelayMs,
             headers,
             tokenStorageKey,
-            signal
+            signal,
+            parseMutationJson: true
         });
-        return parseResponseJson(response, url);
     };
 
     const postBlob = async (url, data = {}, {
@@ -600,7 +637,7 @@
         onRequest = null
     } = {}) => {
         const multipart = typeof FormData !== 'undefined' && data instanceof FormData;
-        const response = await request({
+        return request({
             method: 'POST',
             url,
             data,
@@ -614,9 +651,9 @@
             dataType: 'text',
             signal,
             onRequest,
-            onProgress
+            onProgress,
+            parseMutationJson: true
         });
-        return parseResponseJson(response, url);
     };
 
     const sendKeepalive = (url, data = {}, {

@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4744,
-        "total-source-messages": 4744,
+        "translated-messages": 4746,
+        "total-source-messages": 4746,
         "content-revision": "97b6319fd042467e6b37ebd46d298391cf29fdda33cd082502a2b584a1cc9d4d",
-        "locale-content-revision": "92ca6fb26afda057cfff8c031484a73993f856bc882e4ef6d771cbf1021036fa"
+        "locale-content-revision": "486deb1939a8abec2acaef6d66b625a96c78fc58b2283566deb252ec035ce6e6"
     },
     "add-folder": "Pievienot mapi",
     "up-to-date": "aktuāls",

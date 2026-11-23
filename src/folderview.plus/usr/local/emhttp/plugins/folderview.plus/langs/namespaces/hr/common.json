@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "content-revision": "b5654fb79cae55af7b1e8e4adee16b75559e2b4c61d4207a05f9fe3d87b2119d"
+        "content-revision": "06253bee90ea9a3234770020cf154b98168756a641f8ffcb790af01ad31d2f90"
     },
+    "runtime.action.requests-result": "Prihvaćeno $1 · Neuspjelo $2",
+    "runtime.action.user-script-failed": "User Scripts nije mogao pokrenuti ovu radnju. Provjerite jesu li dodatak i skripta dostupni.",
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
     "common.badges.can-delete": "Može brisati",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Nisu pronađene kompatibilne datoteke Docker, VM ili Dashboard CSS.",
     "common.server.theme-not-found-3d8f8d": "Tema nije pronađena.",
     "common.server.theme-is-required-81b1f0": "Tema je obavezna.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Tema nema spremljen GitHub izvor za ažuriranje.",
     "common.server.appearance-profile-not-found-8798a2": "Profil izgleda nije pronađen.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Profil konačnog izgleda ne može se izbrisati.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Nepodržani opseg profila izgleda.",

@@ -216,7 +216,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["docker"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/runtime.page-title.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js", "scripts/folder.webui-profiles.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/runtime.page-title.js", "scripts/docker.runtime.container-model.js", "scripts/docker.runtime.folder-grouping.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/docker.runtime.refresh-diagnostics.js", "scripts/docker.runtime.column-controller.js", "scripts/docker.runtime.provider-health.js", "scripts/docker.runtime.child-folder-preview-menu.js", "scripts/docker.runtime.hidden-folders.js", "scripts/folder.webui-profiles.js", "scripts/runtime.native-actions.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addDockerFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -226,7 +226,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["vm"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/vm.runtime.lifecycle.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/runtime.folder-badges.js", "scripts/vm.runtime.lifecycle.js", "scripts/runtime.native-actions.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["addVMFolderContext", "dropDownButton", "editFolder", "createFolderBtn"]
     },
@@ -617,7 +617,7 @@
       "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-profiles.php", "server/lib.remote.php", "server/lib.theme-css.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 15, "sha256": "8394dbcb2e412c6c1b668aaaa40557f73b5624ecf38f6a4d34fae7f25005c912" }
+      "functionInventory": { "count": 18, "sha256": "4da5a02559219c0c062da549818214956a602e9829a8057ad3c4f3759bf87b18" }
     },
     {
       "file": "server/lib.theme-profile-actions.php",
@@ -637,7 +637,7 @@
       "dependsOn": ["server/lib.theme-workspace.php", "server/lib.theme-update-plan.php", "server/lib.theme-github.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 2, "sha256": "d3d9aa2bcdc489bf9d148a6a6b53babec078021208faae5c10f493c1c882b8bc" }
+      "functionInventory": { "count": 3, "sha256": "a62eaf0c676c2800e01663847d46fd0442313b0705222f7bb691213aa26cf00e" }
     },
     {
       "file": "server/lib.backup-content.php",
@@ -736,10 +736,10 @@
       "owner": "server-docker-start-order",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php"],
+      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php", "server/lib.rules-engine.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 14, "sha256": "b3528416cb8b15ba5915ec62ca817f16b607a346bf511a352bab9de38ff576c6" }
+      "functionInventory": { "count": 17, "sha256": "d26a80339e85c4a1f3c28d823d9333ee9338a9e3819e9ce290f7f9a446e414f9" }
     },
     {
       "file": "server/lib.folder-batch-order.php",
@@ -2144,11 +2144,23 @@
       ]
     },
     {
+      "file": "scripts/runtime.native-actions.js",
+      "owner": "shared-native-folder-actions",
+      "consumers": ["docker", "vm"],
+      "stateModel": "factory-owned",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimeNativeActions",
+      "loader": "commonjs",
+      "exports": ["validateFolderAction", "nativeActionOutcome", "settleNativeActionRequests", "showNativeActionFailures", "runUserScript"]
+    },
+    {
       "file": "scripts/docker.runtime.folder-feedback.js",
       "owner": "docker-folder-action-and-status-feedback",
       "consumers": ["docker"],
       "stateModel": "factory-owned",
-      "dependsOn": [],
+      "dependsOn": ["scripts/runtime.native-actions.js"],
       "compatibilityGlobals": ["FolderViewPlusDockerFolderFeedback"],
       "global": "FolderViewPlusDockerFolderFeedback",
       "loader": "commonjs",

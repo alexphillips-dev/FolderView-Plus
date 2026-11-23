@@ -11,7 +11,13 @@ if (($request['operation'] ?? '') === 'startup') {
     writeRawFolderMap('docker', $request['folders']);
     writeTypePrefs('docker', array_replace(defaultTypePrefs(), ['autoRules' => $request['rules'], 'sortMode' => 'manual', 'manualOrder' => array_reverse(array_keys($request['folders']))]));
     $context = buildDockerStartOrderContext($request['info']);
-    echo json_encode(['folders' => $context['folders'], 'order' => array_keys($context['orderedFolders']), 'members' => $context['folderContainers']], JSON_THROW_ON_ERROR); exit;
+    echo json_encode([
+        'folders' => $context['orderedFolders'],
+        'order' => composeDockerSavedOrder($context['currentOrder'], $context['orderedFolders'], $context['prefs']),
+        'prefs' => $context['prefs'],
+        'members' => $context['folderContainers']
+    ], JSON_THROW_ON_ERROR);
+    exit;
 }
 if (($request['operation'] ?? '') === 'validate') {
     writeRawFolderMap($request['type'], $request['folders']);

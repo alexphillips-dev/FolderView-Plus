@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "content-revision": "0213807629853cfecf9750c4d45a05a907fd1cf5cf664973d3514bdfa1ab70e4"
+        "content-revision": "aa6601a77c4dfb059219af5987e99effdb9d60e7639d337ebeb94c38db7179f1"
     },
+    "runtime.action.requests-result": "Acceptate: $1 · Eșuate: $2",
+    "runtime.action.user-script-failed": "User Scripts nu a putut porni această acțiune. Verificați dacă extensia și scriptul sunt disponibile.",
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
     "common.badges.can-delete": "Se poate șterge",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Nu au fost găsite fișiere compatibile Docker, VM sau Dashboard CSS.",
     "common.server.theme-not-found-3d8f8d": "Tema nu a fost găsită.",
     "common.server.theme-is-required-81b1f0": "Tema este obligatorie.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Tema nu are o sursă GitHub salvată de la care să se actualizeze.",
     "common.server.appearance-profile-not-found-8798a2": "Profilul de aspect nu a fost găsit.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Profilul de aspect final nu poate fi șters.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Domeniul profilului de aspect neacceptat.",

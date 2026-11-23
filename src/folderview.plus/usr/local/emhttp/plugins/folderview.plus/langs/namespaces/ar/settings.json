@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "content-revision": "bb948db33d42e6e60eaa009be6d95440110795a640b430bb6fae32cfd82f06cd"
+        "content-revision": "45aedd312c29e8c963c412385e11063c2e5e501bf3efce2c75564f952e5ba200"
     },
+    "settings.theme.github-directory": "اختر دليل CSS",
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",
     "settings.rules.match-placeholder": "على سبيل المثال آر، سونار، الكتب الصوتية",

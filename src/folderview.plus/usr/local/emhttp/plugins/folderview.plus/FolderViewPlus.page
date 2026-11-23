@@ -91,8 +91,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-theme-import-row">
                         <input id="fv-theme-github-source" type="text" placeholder="owner/repo, owner/repo/tree/branch, or GitHub raw CSS URL">
                         <button type="button" data-fv-onclick="scanThemeWorkspaceGithub()"><i class="fa fa-search"></i> Scan theme</button>
-                        <button type="button" data-fv-onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
+                        <button id="fv-theme-github-import" type="button" data-fv-onclick="importThemeWorkspaceGithub()" disabled><i class="fa fa-github"></i> Import from GitHub</button>
                     </div>
+                    <select id="fv-theme-github-directory" hidden aria-label="Choose a CSS directory" data-i18n="[aria-label]settings.theme.github-directory"></select>
                     <div id="fv-theme-scan-result" class="fv-theme-scan-result" hidden></div>
                 </section>
                 <section class="fv-theme-module fv-theme-managed-module">

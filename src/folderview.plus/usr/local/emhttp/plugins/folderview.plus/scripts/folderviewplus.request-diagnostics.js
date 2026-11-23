@@ -87,14 +87,13 @@
         };
 
         const formatAjaxError = (error, url, traceId = '') => {
-            if (error instanceof Error) {
-                return error;
-            }
+            if (error instanceof Error) return error.textStatus === 'parsererror' ? new Error(error.message) : error;
             const status = Number(error?.jqXHR?.status || 0);
             const textStatus = String(error?.textStatus || '').trim();
             const statusText = String(error?.jqXHR?.statusText || '').trim();
-            const errorThrown = String(error?.errorThrown || '').trim();
-            const serverDetail = window.FolderViewPlusI18n?.serverMessage?.(error?.jqXHR?.responseJSON || extractServerErrorMessage(error), extractServerErrorMessage(error)) || extractServerErrorMessage(error);
+            const errorThrown = textStatus === 'parsererror' ? '' : String(error?.errorThrown || '').trim();
+            const serverDetail = textStatus === 'parsererror' ? ''
+                : window.FolderViewPlusI18n?.serverMessage?.(error?.jqXHR?.responseJSON || extractServerErrorMessage(error), extractServerErrorMessage(error)) || extractServerErrorMessage(error);
             const pieces = [
                 `Request failed for ${url}.`
             ];

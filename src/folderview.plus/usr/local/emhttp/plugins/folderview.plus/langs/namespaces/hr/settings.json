@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "content-revision": "f34c6e2ae078887105e63e9ace525f2095fd73a4bf788c85f8326a67eae428f9"
+        "content-revision": "5d1956e3a67244d7470cc4cbcf6a28db05aadd12aa6f08ce9e893b40885a3bff"
     },
+    "settings.theme.github-directory": "Odaberite CSS direktorij",
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",
     "settings.rules.match-placeholder": "npr. arr, sonarr, audio knjige",

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { phpOrder } from './helpers/docker-order-fixture.mjs';
 
 const repoRoot = path.resolve(process.cwd());
 const dockerJs = fs.readFileSync(
@@ -18,6 +19,7 @@ const runtimeFolderOrdering = require(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.folder-ordering.js'
 ));
+const utils = require(path.join(serverRoot, '../scripts/folderviewplus.utils-ordering.js'));
 const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders, folderRegex = /^folder-/) => (
     runtimeFolderOrdering.reconcileOrderWithFolderSlots(liveOrder, savedOrder, folders, {
         folderTokenPrefix: 'folder-',
@@ -199,30 +201,72 @@ test('docker runtime only backfills missing folder placeholders when sort mode r
     assert.deepEqual(nextOrder, ['folder-b', 'folder-c', 'folder-a']);
 });
 
-test('docker order sync always rebuilds folder placeholders from prefs-ordered folder map', () => {
-    assert.match(
-        libPhp,
-        /function buildDockerPageStartOrder\(array \$context\): array/
-    );
-    assert.match(libPhp, /\$folderPlaceholders = array_keys\(\$folderContainers\);/);
-    assert.match(libPhp, /foreach \(\$folderPlaceholders as \$placeholder\) \{/);
-    assert.doesNotMatch(libPhp, /\$preserveCurrentPlaceholderOrder =/);
+test('startup preview places an unslotted folder before standalone native rows', () => {
+    const actual = phpOrder({
+        folders: { apps: { name: 'Apps', containers: ['z-member'] } },
+        prefs: { sortMode: 'created' }, native: [], names: ['new-10', 'm-loose', 'z-member', 'new-2']
+    });
+    assert.deepEqual(actual.order, ['z-member', 'm-loose', 'new-2', 'new-10']);
+    assert.deepEqual(actual.sequence.map(({ name }) => name), actual.order);
 });
 
-test('docker order sync uses prefs-ordered folders when explicit sort or pinning is active', () => {
-    assert.match(libPhp, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
-    assert.match(libPhp, /foreach \(\$orderedFolders as \$folderId => \$folder\) \{/);
+test('startup preview preserves saved order of a real folder-prefixed container', () => {
+    const actual = phpOrder({
+        folders: { apps: { name: 'Apps', containers: ['z-member'] } },
+        prefs: { sortMode: 'created' },
+        native: ['folder-app', 'folder-obsolete', 'z-loose'],
+        names: ['new-2', 'folder-app', 'z-loose', 'z-member']
+    });
+    assert.deepEqual(actual.order, ['z-member', 'folder-app', 'z-loose', 'new-2']);
+});
+
+test('startup preview follows native folder slots, child order and promoted pins', () => {
+    const folders = {
+        solo: { name: 'Solo', containers: ['solo-member', 'overlap'] },
+        parent: { name: 'Parent', containers: ['parent-member'], settings: { child_folder_order: ['childB', 'childA'] } },
+        childA: { name: 'Child A', parentId: 'parent', containers: ['a-member', 'overlap'] },
+        childB: { name: 'Child B', parentId: 'parent', containers: ['b-member'] },
+        new: { name: 'Unslotted', containers: ['new-member'], membershipPolicy: 'folderview3' }
+    };
+    const native = ['loose-saved', 'folder-solo', 'folder-childA', 'folder-parent', 'folder-childB', 'folder-obsolete'];
+    const names = ['overlap', 'a-member', 'b-member', 'solo-member', 'parent-member', 'new-member', 'loose-saved', 'aaa-new-loose'];
+    const created = phpOrder({ folders, native, names, prefs: { sortMode: 'created' } });
+    assert.deepEqual(created.order, [
+        'new-member', 'solo-member', 'overlap', 'parent-member', 'b-member', 'a-member', 'loose-saved', 'aaa-new-loose'
+    ]);
+    const pinned = phpOrder({ folders, native, names, prefs: { sortMode: 'created', pinnedFolderIds: ['childA'] } });
+    assert.deepEqual(pinned.order, [
+        'parent-member', 'b-member', 'a-member', 'overlap', 'solo-member', 'new-member', 'loose-saved', 'aaa-new-loose'
+    ]);
+});
+
+test('browser and PHP timestamp sorts keep undated entries last with stable ties', () => {
+    const folders = {
+        older: { name: 'Older', createdAt: '2026-04-01', updatedAt: '2026-05-01 12:00:00.020' },
+        missing: { name: 'Missing' },
+        newer: { name: 'Newer', createdAt: '2026-04-02T12:00:00.020Z', updatedAt: '2026-05-01T12:00:00.012+00:00' },
+        invalid: { name: 'Invalid', createdAt: 'tomorrow', updatedAt: '2026-02-30T00:00:00Z' },
+        same: { name: 'Same', createdAt: '2026-04-02T13:00:00.020+01:00', updatedAt: '2026-05-01T12:00:00.012000Z' },
+        earlierMs: { name: 'Earlier ms', createdAt: '2026-04-02T12:00:00.003Z' }
+    };
+    for (const [sortMode, expected] of [
+        ['created_newest', ['newer', 'same', 'earlierMs', 'older', 'missing', 'invalid']],
+        ['created_oldest', ['older', 'earlierMs', 'newer', 'same', 'missing', 'invalid']],
+        ['updated_newest', ['older', 'newer', 'same', 'missing', 'invalid', 'earlierMs']]
+    ]) {
+        const prefs = { sortMode };
+        assert.deepEqual(Object.keys(utils.orderFoldersByPrefs(folders, prefs)), expected);
+        assert.deepEqual(phpOrder({ folders, prefs }), expected);
+    }
 });
 
 test('docker read order response preserves mixed slots while applying folder sort order', () => {
     const readUserPrefsMatch = libPhp.match(/function readUserPrefs\(string \$type\) : string \{([\s\S]*?)\n    \}\n\n    function normalizeFolderMembers/);
     assert.ok(readUserPrefsMatch, 'readUserPrefs body should be present');
     const body = readUserPrefsMatch[1];
-    assert.match(body, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
-    assert.match(body, /\$folderPlaceholders = array_map/);
-    assert.match(body, /if \(\$sortSlots\) \$value = \$folderPlaceholders\[\$slotIndex\+\+\]/);
-    assert.match(body, /fvplus_append_unique_name\(\$nextOrder, \$seen, \$value\)/);
-    assert.match(body, /\$order = array_merge\(\$missing, \$nextOrder\)/);
+    assert.match(body, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders, \$prefs\);/);
+    assert.match(body, /\$order = composeDockerSavedOrder\(\$order, \$orderedFolders, \$prefs\);/);
+    assert.match(libPhp, /\$savedOrder = composeDockerSavedOrder\(\$currentOrder, \$orderedFolders, \$prefs\);/);
 });
 
 test('docker order sync reads but does not write Docker userprefs', () => {

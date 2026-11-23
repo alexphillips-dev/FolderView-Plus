@@ -16,12 +16,18 @@ fvplus_json_try(function (): array {
 
     if ($action === 'import_github') {
         $source = (string)($_POST['source'] ?? '');
-        return importThemeWorkspaceGithub($source);
+        return importThemeWorkspaceGithub($source, (string)($_POST['commitSha'] ?? ''));
     }
 
     if ($action === 'scan_github') {
         $source = (string)($_POST['source'] ?? $_REQUEST['source'] ?? '');
-        return scanThemeWorkspaceGithub($source);
+        $directory = $_REQUEST['directory'] ?? null;
+        return scanThemeWorkspaceGithub(
+            $source,
+            (string)($_REQUEST['commitSha'] ?? ''),
+            is_string($directory) ? $directory : null,
+            ($_REQUEST['discover'] ?? '') === '1'
+        );
     }
 
     if ($action === 'activate') {

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "settings",
-        "content-revision": "b89a457a8f6957335064a160b5d4972331147d1f7a2a38ccfe7160928c4a0db4"
+        "content-revision": "09b32e629de708c04b20fd3b440abc6cb770989e4aec54aa18706c9327370b05"
     },
+    "settings.theme.github-directory": "Vælg en CSS-mappe",
     "settings.rules.save-changes": "Gem ændringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",
     "settings.rules.match-placeholder": "f.eks. arr, sonarr, lydbøger",

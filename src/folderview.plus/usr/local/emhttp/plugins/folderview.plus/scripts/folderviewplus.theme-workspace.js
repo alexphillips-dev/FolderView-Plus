@@ -80,6 +80,8 @@
         let workspace = normalizeWorkspace({});
         let workspaceRevision = 0;
         let pendingScan = null;
+        let scanRevision = 0;
+        let importingTheme = false;
         let activeScope = 'global';
         let presetBeforeLayer = null;
         let selectedPreset = '';
@@ -271,6 +273,26 @@
             if (!documentRef) {
                 return;
             }
+            const importButton = documentRef.getElementById('fv-theme-github-import');
+            if (importButton) importButton.disabled = importingTheme || !scanResult?.theme;
+            const picker = documentRef.getElementById('fv-theme-github-directory');
+            const directories = scanResult?.directories || [];
+            if (picker) {
+                picker.hidden = !directories.length;
+                if (directories.length && JSON.stringify(directories) !== picker.dataset.paths) {
+                    const option = (value, label) => {
+                        const node = documentRef.createElement('option');
+                        node.value = value;
+                        node.textContent = label;
+                        return node;
+                    };
+                    const placeholder = option('', translate('settings.theme.github-directory', 'Choose a CSS directory'));
+                    placeholder.disabled = true;
+                    picker.replaceChildren(placeholder, ...directories.map((path, index) => option(String(index), path || '/')));
+                    picker.dataset.paths = JSON.stringify(directories);
+                }
+                if (directories.length) picker.selectedIndex = directories.indexOf(scanResult.directory) + 1;
+            }
             const host = documentRef.getElementById('fv-theme-scan-result');
             if (!host) {
                 return;
@@ -436,26 +458,46 @@
         };
 
         const importGithub = async (source) => {
-            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
-                action: 'import_github',
-                source
-            });
-            pendingScan = null;
-            renderScanResult(null);
-            return setWorkspace(response.workspace || {});
+            const reviewed = pendingScan;
+            if (importingTheme || !reviewed?.theme || reviewed.source !== String(source || '').trim()) return null;
+            const { input, commitSha } = reviewed.theme.source || {};
+            if (!input || !commitSha) return null;
+            importingTheme = true;
+            renderScanResult(reviewed);
+            try {
+                const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
+                    action: 'import_github', source: input, commitSha
+                });
+                if (pendingScan === reviewed) pendingScan = null;
+                return setWorkspace(response.workspace || {});
+            } finally {
+                importingTheme = false;
+                renderScanResult(pendingScan);
+            }
         };
 
-        const scanGithub = async (source) => {
-            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
-                action: 'scan_github',
-                source
-            });
-            pendingScan = {
-                source: String(source || '').trim(),
-                ...(response || {})
-            };
+        const scanGithub = async (source, selection = null) => {
+            const revision = ++scanRevision;
+            source = String(source || '').trim();
+            pendingScan = selection ? { ...selection, source } : null;
             renderScanResult(pendingScan);
-            setStatus(surfaceT("common.audit.theme-scan", "Theme scan complete. Review the detected files, then import when ready."));
+            let response;
+            try {
+                response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
+                    action: 'scan_github',
+                    source,
+                    ...(selection ? { directory: selection.directory, commitSha: selection.commitSha } : { discover: '1' })
+                });
+            } catch (error) {
+                if (revision !== scanRevision) return null;
+                throw error;
+            }
+            if (revision !== scanRevision) return null;
+            pendingScan = { ...selection, ...response, source };
+            renderScanResult(pendingScan);
+            setStatus(pendingScan.theme
+                ? surfaceT("common.audit.theme-scan", "Theme scan complete. Review the detected files, then import when ready.")
+                : translate('settings.theme.github-directory', 'Choose a CSS directory'));
             return pendingScan;
         };
 
@@ -558,6 +600,13 @@
                 action: 'check_updates'
             });
             setWorkspace(response.workspace || {});
+            const complete = translate('legacy.surface.4d3d15fe9284ff59', 'Theme update check complete.');
+            const failureCount = Number(response.failedCount) || 0;
+            const message = failureCount > 0
+                ? `${complete} ${translate('legacy.surface.2517b2dd9baadf0e', '$1 failed', failureCount)}.`
+                : complete;
+            setStatus(message);
+            deps.recordActivity?.(message);
             return response;
         };
 
@@ -593,6 +642,18 @@
             if (!$ || !documentRef) {
                 return;
             }
+            $(documentRef).off('input.fvthemesource', '#fv-theme-github-source').on('input.fvthemesource', '#fv-theme-github-source', () => {
+                scanRevision += 1;
+                pendingScan = null;
+                renderScanResult();
+            });
+            $(documentRef).off('change.fvthemesource', '#fv-theme-github-directory').on('change.fvthemesource', '#fv-theme-github-directory', (event) => {
+                const { directories, commitSha, source } = pendingScan || {};
+                const selection = event.target.value;
+                const directory = selection === '' ? undefined : directories?.[Number(selection)];
+                if (typeof directory !== 'string' || !commitSha) return;
+                safeAction('Theme scan', () => scanGithub(source, { directories, commitSha, directory }), '').catch(() => {});
+            });
             $(documentRef).off('input.fvthemeworkspace', '[data-fv-theme-token]').on('input.fvthemeworkspace', '[data-fv-theme-token]', (event) => {
                 const token = String(event?.target?.getAttribute('data-fv-theme-token') || '').trim();
                 const value = String(event?.target?.value || '').trim();
@@ -694,7 +755,7 @@
             deleteTheme: (themeId) => safeAction('Theme deletion', () => deleteTheme(themeId), 'Managed theme deleted.'),
             updateTheme: (themeId) => safeAction('Theme update', () => updateTheme(themeId), 'Managed theme updated.'),
             saveCustomize: () => safeAction('Theme customization save', saveCustomize, 'Customization layer saved.'),
-            checkUpdates: () => safeAction('Theme update check', checkUpdates, 'Theme update check complete.'),
+            checkUpdates: () => safeAction('Theme update check', checkUpdates, ''),
             resetTokens,
             previewPreset,
             undoPreset,

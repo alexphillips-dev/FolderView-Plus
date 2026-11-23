@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "content-revision": "88b9fffdf80c1c55f836a2af2aff1097f2521bc4fa2761d51096c6928f9db7ef"
+        "content-revision": "b11b1b9c290ddcc9d79a3d7f64b0b2b981a87bcc0de05eb1f83ebe128ac0d1eb"
     },
+    "settings.theme.github-directory": "Bir CSS dizini seçin",
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",
     "settings.rules.match-placeholder": "örneğin varış, sonar, sesli kitaplar",

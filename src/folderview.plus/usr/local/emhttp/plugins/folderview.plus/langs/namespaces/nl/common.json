@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "content-revision": "dbc2e9ddc6687cc517efc3933681cf3f92d200c7a4f4ea66109263ca4a7d931a"
+        "content-revision": "7433452110998dfb2db186e8384e4be54379b532136a601590463467781c141e"
     },
+    "runtime.action.requests-result": "$1 geaccepteerd · $2 mislukt",
+    "runtime.action.user-script-failed": "User Scripts kon deze actie niet starten. Controleer of de plug-in en het script beschikbaar zijn.",
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
     "common.badges.can-delete": "Kan verwijderen",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "Er zijn geen compatibele Docker-, VM- of Dashboard CSS-bestanden gevonden.",
     "common.server.theme-not-found-3d8f8d": "Thema niet gevonden.",
     "common.server.theme-is-required-81b1f0": "Thema is vereist.",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "Thema heeft geen opgeslagen GitHub-bron om van te updaten.",
     "common.server.appearance-profile-not-found-8798a2": "Uiterlijkprofiel niet gevonden.",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "Het uiteindelijke verschijningsprofiel kan niet worden verwijderd.",
     "common.server.unsupported-appearance-profile-scope-0a722d": "Niet-ondersteund uiterlijkprofielbereik.",

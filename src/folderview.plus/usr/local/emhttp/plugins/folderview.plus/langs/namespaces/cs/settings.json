@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "content-revision": "9f16a6aad47dcf4236149151524f445ff8ea03d9b022fb849ad98b4d026655e7"
+        "content-revision": "d13946f06b605efb4d602a8eed17d0cd18b4a11b3717df5bf80e46e3c3fccc77"
     },
+    "settings.theme.github-directory": "Vyberte adresář CSS",
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",
     "settings.rules.match-placeholder": "např. arr, sonarr, audioknihy",

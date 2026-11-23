@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "content-revision": "ea8592cc8ce72425784ac3e44b5868881a48b39a5537fb337e5866937163274f"
+        "content-revision": "bd87828848f5944f367ab5ad23e1f336de6de04b1a8b78656c04cd37e3356f66"
     },
+    "runtime.action.requests-result": "已接受 $1 項 · 失敗 $2 項",
+    "runtime.action.user-script-failed": "User Scripts 無法啟動此動作。請確認外掛程式和指令碼可用。",
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
     "common.badges.can-delete": "可以刪除",
@@ -654,7 +656,6 @@
     "common.server.no-compatible-docker-vm-or-dashboard-css-files-were-found-98f7a8": "未找到相容的 Docker、VM 或儀錶板 CSS 檔案。",
     "common.server.theme-not-found-3d8f8d": "未找到主題。",
     "common.server.theme-is-required-81b1f0": "主題為必填項。",
-    "common.server.theme-does-not-have-a-saved-github-source-to-update-from-2044ee": "主題沒有儲存的 GitHub 來源可供更新。",
     "common.server.appearance-profile-not-found-8798a2": "未找到外觀簡介。",
     "common.server.the-final-appearance-profile-cannot-be-deleted-293493": "最終的外觀設定檔無法刪除。",
     "common.server.unsupported-appearance-profile-scope-0a722d": "不支援的外觀設定檔範圍。",

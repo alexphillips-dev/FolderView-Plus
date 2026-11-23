@@ -1,9 +1,10 @@
 {
+    "settings.theme.github-directory": "Choose a CSS directory",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "content-revision": "1cfc06e4430553055ae6f3acc7d7d4bb90aaccf24e15ab33793e2856ebe59735"
+        "content-revision": "8a152e9cff34fa1f1b61d101969aa1f74005e1c20c8ec1497de673086c7c2eb7"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",

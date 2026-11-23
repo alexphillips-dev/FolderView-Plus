@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "content-revision": "9942f87cf9c7e4d2c8cb39b536e67c068931ea38a85c3d886cbec5438944b0f8"
+        "content-revision": "8e6ca1110352f9de8cd81e256a61853e73c13a26f8a0baf043c87bac88e3a753"
     },
+    "settings.theme.github-directory": "Válasszon CSS-könyvtárat",
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",
     "settings.rules.match-placeholder": "pl. arr, sonarr, hangoskönyvek",

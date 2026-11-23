@@ -275,9 +275,12 @@ function getThemeWorkspacePath(): string {
         return readThemeWorkspace();
     }
 
-    function readThemeWorkspace(): array {
-        return withConfigMutationLock(static function () : array {
-            $path = getThemeWorkspacePath();
+    function readThemeWorkspace(bool $repair = true): array {
+        $path = getThemeWorkspacePath();
+        if (!$repair) {
+            return normalizeThemeWorkspacePayload(readJsonObjectFile($path) ?? readJsonObjectFile(getLastGoodJsonPath($path)) ?? defaultThemeWorkspace());
+        }
+        return withConfigMutationLock(static function () use ($path): array {
             fvplusTransactionCaptureFile($path);
             if (!file_exists($path)) {
                 return writeThemeWorkspace(defaultThemeWorkspace());
@@ -288,9 +291,7 @@ function getThemeWorkspacePath(): string {
                 $decoded = recoverJsonObjectFromLastGood($path);
                 $recoveredFromLastGood = is_array($decoded);
             }
-            if (!is_array($decoded)) {
-                $decoded = defaultThemeWorkspace();
-            }
+            $decoded ??= defaultThemeWorkspace();
             $normalized = normalizeThemeWorkspacePayload($decoded);
             if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
                 return writeThemeWorkspace($normalized);

@@ -67,9 +67,9 @@
     {
       "type": "application",
       "name": "actions/dependency-review-action",
-      "version": "a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "version": "bbc44d14a204704ccc493733616cd1e93a0321ec",
       "scope": "optional",
-      "purl": "pkg:github/actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "purl": "pkg:github/actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -132,9 +132,9 @@
     {
       "type": "application",
       "name": "ossf/scorecard-action",
-      "version": "fa7117db83c52d787ae5a89f350999701505d78e",
+      "version": "23f22cd43608bae7a1f1fa2603d7314dee9538a5",
       "scope": "optional",
-      "purl": "pkg:github/ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e",
+      "purl": "pkg:github/ossf/scorecard-action@23f22cd43608bae7a1f1fa2603d7314dee9538a5",
       "properties": [
         {
           "name": "folderview-plus:usage",

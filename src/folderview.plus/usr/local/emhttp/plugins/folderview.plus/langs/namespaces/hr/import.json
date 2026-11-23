@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "import",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "import.subtitle": "Odaberite način rukovanja postojećim mapama. Ništa se ne mijenja dok ne odaberete Primijeni uvoz.",
     "import.behavior.question": "Kako treba postupati s postojećim mapama?",
@@ -67,8 +67,8 @@
     "import.folderview3.inspecting-help": "Ovaj pregled samo za čitanje može potrajati neko vrijeme kada su prisutni prilagođeni stilovi.",
     "import.folderview3.confirm-apply": "Želite li zamijeniti trenutne FolderView Plus Docker mape, VM mape, kompatibilne postavke, vlasništvo nad početnim redoslijedom i podatke profila Theme Workspace? Prvo će se stvoriti kontrolna točka vraćanja i sigurnosne kopije po vrsti.",
     "import.folderview3.confirm-native-suffix": "Omogućavanje automatskog pokretanja izvornog Dockera i čekanja također će biti zamijenjeni.",
-    "import.folderview3.order-invalid": "Snimka narudžbe FolderView3 nije važeća; korišten je redoslijed konfiguracije mape.",
-    "import.folderview3.order-duplicates": "Dvostruki unosi narudžbe FolderView3 zanemareni su.",
+    "import.folderview3.order-invalid": "Snimka redoslijeda mapa u FolderView3 nije valjana. Upotrijebljen je redoslijed iz konfiguracije mapa.",
+    "import.folderview3.order-duplicates": "Dvostruki unosi u redoslijedu mapa u FolderView3 zanemareni su.",
     "import.folderview3.order-unknown": "Reference nepoznate mape u snimkama redoslijeda FolderView3 zanemarene su.",
     "import.folderview3.order-unassigned": "Redoslijed mapa je sačuvan; pozicije nedodijeljenih stavki na Unraid stranici se ne uvoze.",
     "import.folderview3.theme-source": "Izvorni metapodaci teme nisu pretvoreni u upravljana ažuriranja. Skenirajte izvorni izvor teme za upravljanje budućim ažuriranjima.",
@@ -77,7 +77,7 @@
     "import.folderview3.theme-compatibility": "Uvezeni CSS može koristiti selektore FolderView3 ili varijable koje se razlikuju u FolderView Plus. Pregledajte svaki profil izgleda prije aktivacije.",
     "import.folderview3.order-imported": "Uvezeno",
     "import.folderview3.order-fallback": "Redoslijed konfiguracije",
-    "import.folderview3.order-empty": "Nema spremljene narudžbe",
+    "import.folderview3.order-empty": "Nema spremljenog redoslijeda",
     "import.folderview3.order-invalid-status": "Nevažeća snimka; redoslijed konfiguracije",
     "import.folderview3.appearance-profiles": "Dodajte neaktivne profile izgleda FolderView3",
     "import.folderview3.order-summary": "Redoslijed spremljenih mapa: Docker $1; VM-ovi $2.",

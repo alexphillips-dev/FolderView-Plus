@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "import",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "import.subtitle": "既存のフォルダの処理方法を選択してください。［インポートを適用］を選択するまでは、何も変更されません。",
     "import.behavior.question": "既存のフォルダはどのように処理しますか？",
@@ -69,7 +69,7 @@
     "import.folderview3.confirm-native-suffix": "ネイティブ Docker 自動起動の有効化と待機も置き換えられます。",
     "import.folderview3.order-invalid": "FolderView3 の順序スナップショットは無効です。フォルダー構成の順序が使用されました。",
     "import.folderview3.order-duplicates": "重複する FolderView3 順序エントリは無視されました。",
-    "import.folderview3.order-unknown": "FolderView3 オーダーのスナップショット内の不明なフォルダー参照は無視されました。",
+    "import.folderview3.order-unknown": "FolderView3 のフォルダー順序スナップショット内の不明なフォルダー参照は無視されました。",
     "import.folderview3.order-unassigned": "フォルダーの順序は保持されます。 Unraid ページ内の未割り当てアイテムの位置はインポートされません。",
     "import.folderview3.theme-source": "テーマのソース メタデータは管理された更新に変換されませんでした。今後の更新を管理するには、元のテーマのソースをスキャンします。",
     "import.folderview3.theme-unscoped": "認識された FolderView3 ページ スコープのないカスタム スタイルは除外されました。",
@@ -77,7 +77,7 @@
     "import.folderview3.theme-compatibility": "インポートされた CSS は、FolderView Plus とは異なる FolderView3 セレクターまたは変数を使用する場合があります。アクティブ化する前に、各外観プロファイルをプレビューします。",
     "import.folderview3.order-imported": "インポート済み",
     "import.folderview3.order-fallback": "設定の順序",
-    "import.folderview3.order-empty": "保存された注文はありません",
+    "import.folderview3.order-empty": "保存された順序はありません",
     "import.folderview3.order-invalid-status": "無効なスナップショットです。構成の順序",
     "import.folderview3.appearance-profiles": "非アクティブなFolderView3外観プロファイルを追加する",
     "import.folderview3.order-summary": "保存されたフォルダーの順序: Docker $1; VM $2。",

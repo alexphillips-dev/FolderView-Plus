@@ -19,7 +19,8 @@
         const includeNative = options.includeNativeAutostart === true;
         const translate = options.translate || ((key, fallback) => fallback || key);
         const nativeWarning = includeNative ? translate('import.folderview3.confirm-native-suffix', ' Native Docker autostart enablement and waits will also be replaced.') : '';
-        const message = `${translate('import.folderview3.confirm-apply', 'Replace current FolderView Plus Docker folders, VM folders, compatible settings, start-order ownership, and Theme Workspace profile data? A rollback checkpoint and per-type backups will be created first.')}${nativeWarning}`;
+        const confirmation = translate('import.folderview3.confirm-apply', 'Replace current FolderView Plus Docker folders, VM folders, compatible settings, start-order ownership, and Theme Workspace profile data? A rollback checkpoint and per-type backups will be created first.');
+        const message = nativeWarning ? `${confirmation}\n\n${nativeWarning.trim()}` : confirmation;
         if (typeof options.confirm !== 'function' || !options.confirm(message)) {
             return null;
         }

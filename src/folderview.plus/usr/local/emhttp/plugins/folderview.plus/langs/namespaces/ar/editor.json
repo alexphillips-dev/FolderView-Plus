@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "editor",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "editor.settings.information-about": "معلومات حول $1",
     "editor.actions.add-custom": "إضافة إجراء مخصص",
@@ -28,7 +28,7 @@
     "editor.rules.templates.image-repository-placeholder": "المستودع (مثال: linuxserver/)",
     "editor.rules.templates.compose-project": "يؤلف المشروع يساوي",
     "editor.rules.templates.compose-project-placeholder": "اسم المشروع (مثال: الوسائط)",
-    "editor.rules.templates.label-equals": "تسمية عامل الميناء يساوي",
+    "editor.rules.templates.label-equals": "وسم Docker يساوي",
     "editor.rules.templates.label-equals-placeholder": "مفتاح التسمية = القيمة",
     "editor.webui-profiles.title": "ملفات تعريف WebUI المخصصة",
     "editor.webui-profiles.help": "أنشئ مجموعات تشغيل قابلة لإعادة الاستخدام من أعضاء Docker المباشرين لهذا المجلد. يتم التحقق من عناوين WebUI الحالية وحالة التشغيل فقط عند فتح ملف تعريف.",

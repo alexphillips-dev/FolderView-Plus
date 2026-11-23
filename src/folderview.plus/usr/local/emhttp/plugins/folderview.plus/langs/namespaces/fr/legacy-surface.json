@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "legacy-surface",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "legacy.surface.0008eb7acd3f7a56": "Déplacement groupé indisponible",
     "legacy.surface.0012950979762d8c": "Choisissez un instantané à restaurer, télécharger ou supprimer.",
@@ -500,7 +500,7 @@
     "legacy.surface.281b9f6b1d24e804": "Choisissez une exportation JSON pour prévisualiser ce qui sera créé, mis à jour, ignoré ou supprimé.",
     "legacy.surface.2838f3c0b05278fb": "Correspondance de nom : $1",
     "legacy.surface.2847d4f584d08e0c": "Chargement de la vue des commandes Docker...",
-    "legacy.surface.28520c2e2dc5a13a": "ordre de démarrage du docker",
+    "legacy.surface.28520c2e2dc5a13a": "Ordre de démarrage de Docker",
     "legacy.surface.28722b0057efd746": "Un dossier ne peut pas être déplacé sur lui-même.",
     "legacy.surface.2877283790c37a2a": "Lisez le message d'erreur et réessayez.",
     "legacy.surface.2879bfe0c4426cb0": "Actualisation des diagnostics",
@@ -947,7 +947,7 @@
     "legacy.surface.50b43126dddbb314": "Choisissez une cible et sélectionnez des éléments pour voir le plan.",
     "legacy.surface.50cd689c150817d9": "Adaptatif (recommandé)",
     "legacy.surface.50d2bbfa2f1072f9": "Un résumé en direct de la configuration que cet assistant appliquera.",
-    "legacy.surface.513d2091d8a5ee4d": "ordre de démarrage du docker",
+    "legacy.surface.513d2091d8a5ee4d": "Ordre de démarrage de Docker",
     "legacy.surface.517470af5e6f1f96": "Docker et VM séparés",
     "legacy.surface.5196251b14193334": "L'abonnement GraphQL a renvoyé des données non valides.",
     "legacy.surface.519f0a3837bb5386": "La page des paramètres est devenue vide après le bootstrap et n'a pas pu être récupérée.",

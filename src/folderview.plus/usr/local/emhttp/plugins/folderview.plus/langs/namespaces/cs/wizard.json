@@ -3,9 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "wizard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
-    "wizard.title": "Setup Assistant",
+    "wizard.title": "Průvodce nastavením",
     "wizard.welcome.kicker": "FolderView Plus Asistent nastavení",
     "wizard.welcome.title": "Uspořádejte své Docker kontejnery a VMs do složek.",
     "wizard.welcome.description": "FolderView Plus pomáhá seskupovat související aplikace, zobrazovat náhled změn před jejich použitím a volitelně udržovat budoucí aplikace organizovány automaticky.",
@@ -13,7 +13,7 @@
     "wizard.welcome.skip": "Přeskočit průvodce",
     "wizard.welcome.group-title": "Seskupit související aplikace",
     "wizard.welcome.group-description": "Udržujte média, stažené soubory, nástroje, domácí automatizaci a další aplikace pohromadě.",
-    "wizard.welcome.preview-title": "Náhled před aplikací",
+    "wizard.welcome.preview-title": "Náhled před použitím změn",
     "wizard.welcome.preview-description": "Než se cokoliv změní, zkontrolujete složky, přiřazení, pravidla a nastavení.",
     "wizard.welcome.automatic-title": "Zůstaňte organizováni automaticky",
     "wizard.welcome.automatic-description": "Volitelná spouštěcí pravidla mohou umístit budoucí odpovídající aplikace do správných složek.",

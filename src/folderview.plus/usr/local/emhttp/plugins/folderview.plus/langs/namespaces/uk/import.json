@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "import",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "import.subtitle": "Виберіть, як обробляти існуючі папки. Нічого не змінюється, поки ви не натиснете Застосувати імпорт.",
     "import.behavior.question": "Як слід обробляти існуючі папки?",
@@ -65,7 +65,7 @@
     "import.folderview3.applying-help": "Тримайте цю сторінку відкритою, поки конфігурація записується, перевіряється або автоматично відновлюється.",
     "import.folderview3.inspecting": "Перевірка конфігурації FolderView3...",
     "import.folderview3.inspecting-help": "Цей попередній перегляд лише для читання може зайняти деякий час, якщо присутні власні стилі.",
-    "import.folderview3.confirm-apply": "Замінити поточні папки FolderView Plus Docker, папки віртуальної машини, сумісні налаштування, право власності початкового порядку та дані профілю Theme Workspace? Спочатку буде створено контрольну точку відкату та резервні копії для кожного типу.",
+    "import.folderview3.confirm-apply": "Замінити поточні папки Docker і віртуальних машин у FolderView Plus, сумісні налаштування, режим керування порядком запуску та дані профілю робочого простору тем? Спочатку буде створено точку відновлення й окрему резервну копію для кожного типу.",
     "import.folderview3.confirm-native-suffix": "Увімкнення автозапуску та очікування Native Docker також буде замінено.",
     "import.folderview3.order-invalid": "Знімок порядку FolderView3 недійсний; використовувався порядок конфігурації папок.",
     "import.folderview3.order-duplicates": "Повторювані записи порядку FolderView3 були проігноровані.",
@@ -77,7 +77,7 @@
     "import.folderview3.theme-compatibility": "Імпортований CSS може використовувати селектори FolderView3 або змінні, які відрізняються у FolderView Plus. Перегляньте кожен профіль зовнішнього вигляду перед активацією.",
     "import.folderview3.order-imported": "Імпортовано",
     "import.folderview3.order-fallback": "Порядок конфігурації",
-    "import.folderview3.order-empty": "Немає збереженого замовлення",
+    "import.folderview3.order-empty": "Немає збереженого порядку",
     "import.folderview3.order-invalid-status": "Недійсний знімок; порядок конфігурації",
     "import.folderview3.appearance-profiles": "Додайте неактивні профілі вигляду FolderView3",
     "import.folderview3.order-summary": "Збережений порядок папок: Docker $1; Віртуальні машини $2.",

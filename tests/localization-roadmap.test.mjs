@@ -138,12 +138,12 @@ test('new Unraid locales include native labels across every primary plugin surfa
         ar: ['إغلاق', 'تبديل أعضاء المجلد', 'التشخيص', 'إضافة مجلد', 'إضافة إجراء مخصص', 'دمج بأمان', 'إعدادات البحث', 'مساعد الإعداد'],
         bn: ['বন্ধ', 'ফোল্ডার সদস্যদের টগল করুন', 'ডায়াগনস্টিকস', 'ফোল্ডার যোগ করুন', 'একটি কাস্টম কর্ম যোগ করুন', 'নিরাপদে একত্রিত করুন', 'অনুসন্ধান সেটিংস', 'সহকারী সেটআপ করুন'],
         ca: ['Tancar', 'Commuta els membres de la carpeta', 'Diagnòstics', 'Afegeix una carpeta', 'Afegeix una acció personalitzada', 'Combina amb seguretat', 'Configuració de cerca', 'Assistent de configuració'],
-        da: ['Luk', 'Skift mappemedlemmer', 'Diagnostik', 'Tilføj mappe', 'Tilføj en tilpasset handling', 'Flet sikkert sammen', 'Søgeindstillinger', 'Opsætningsassistent'],
+        da: ['Luk', 'Skift mappemedlemmer', 'Diagnostik', 'Tilføj mappe', 'Tilføj en tilpasset handling', 'Flet uden at slette', 'Søgeindstillinger', 'Opsætningsassistent'],
         hr: ['Zatvori', 'Promjena članova mape', 'Dijagnostika', 'Dodaj mapu', 'Dodajte prilagođenu radnju', 'Spojite sigurno', 'Postavke pretraživanja', 'Pomoćnik za postavljanje'],
         hu: ['Bezárás', 'Mappatagok váltása', 'Diagnosztika', 'Mappa hozzáadása', 'Egyéni művelet hozzáadása', 'Egyesítse biztonságosan', 'Keresési beállítások', 'Beállítási asszisztens'],
         lv: ['Aizvērt', 'Pārslēgt mapes dalībniekus', 'Diagnostika', 'Pievienot mapi', 'Pievienojiet pielāgotu darbību', 'Droši sapludiniet', 'Meklēšanas iestatījumi', 'Iestatīšanas palīgs'],
         nb: ['Lukk', 'Veksle mappemedlemmer', 'Diagnostikk', 'Legg til mappe', 'Legg til en egendefinert handling', 'Slå sammen trygt', 'Søkeinnstillinger', 'Oppsettassistent'],
-        'zh-Hant': ['關閉', '切換資料夾成員', '診斷', '新增資料夾', '新增自訂操作', '安全合併', '搜尋設定', '設定助手']
+        'zh-Hant': ['關閉', '展開或收合資料夾成員', '診斷', '新增資料夾', '新增自訂操作', '安全合併', '搜尋設定', '設定助手']
     };
     for (const [locale, translations] of Object.entries(expected)) {
         for (const [index, [namespace, key]] of surfaces.entries()) {

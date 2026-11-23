@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -305,7 +305,7 @@
     "common.repair.settings-table-preferences-save-failed-5207c3": "Opslaan van instellingentabelvoorkeuren mislukt",
     "common.repair.redo-failed-37647f": "Opnieuw uitvoeren mislukt",
     "common.repair.smart-suggestion-save-failed-dcdef2": "Opslaan van slimme suggestie mislukt",
-    "common.repair.docker-start-order-save-failed-76cf07": "Opslaan van Docker-startorder mislukt",
+    "common.repair.docker-start-order-save-failed-76cf07": "Opslaan van de startvolgorde voor Docker is mislukt",
     "common.repair.docker-start-batch-add-failed-29b120": "Docker start batch toevoegen mislukt",
     "common.repair.docker-start-batch-save-failed-9c32df": "Docker starten batch opslaan mislukt",
     "common.repair.docker-start-batch-move-failed-647a75": "Docker start batchverplaatsing mislukt",
@@ -713,7 +713,7 @@
     "common.repair.convert-docker-regex-rules-47b9f6": "Converteer Docker regex-regels",
     "common.repair.convert-vm-regex-rules-9af627": "Converteer VM-regex-regels",
     "common.repair.convert-compatible-settings-and-defaults-594f8b": "Converteer compatibele instellingen en standaardwaarden",
-    "common.repair.convert-folderview3-start-order-ownership-770099": "Converteer FolderView3 startorder-eigendom",
+    "common.repair.convert-folderview3-start-order-ownership-770099": "Beheermodus voor de startvolgorde uit FolderView3 converteren",
     "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc": "Pas de native Docker-autostart-inschakeling opnieuw toe en wacht",
     "common.repair.folderview3-native-organizer-registry-24f28d": "FolderView3 native organisatorregister",
     "common.repair.docker-page-order-8a2b8b": "Docker-paginavolgorde",

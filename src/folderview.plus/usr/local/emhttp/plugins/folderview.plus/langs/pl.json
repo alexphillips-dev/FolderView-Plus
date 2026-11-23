@@ -5,8 +5,8 @@
         ],
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
-        "last-reviewed": "2026-11-19",
-        "last-updated": "2026-11-19",
+        "last-reviewed": "2026-11-23",
+        "last-updated": "2026-11-23",
         "locale": "pl",
         "native-name": "Polski",
         "reviewed": true,
@@ -14,7 +14,7 @@
         "status": "complete",
         "translated-messages": 4743,
         "total-source-messages": 4743,
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "add-folder": "Dodaj folder",
     "up-to-date": "aktualny",
@@ -129,7 +129,7 @@
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i>Importuj",
     "el-name": "Nazwa",
     "el-actions": "Akcje",
-    "docker": "Doker",
+    "docker": "Docker",
     "vms": "Maszyny wirtualne",
     "custom-actions": "Akcje niestandardowe",
     "custom-actions-folder": "Akcje niestandardowe:",

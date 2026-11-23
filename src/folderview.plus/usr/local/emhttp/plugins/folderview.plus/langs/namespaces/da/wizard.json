@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "wizard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "wizard.title": "Opsætningsassistent",
     "wizard.welcome.kicker": "Opsætningsassistent til FolderView Plus",
@@ -13,14 +13,14 @@
     "wizard.welcome.skip": "Spring over guiden",
     "wizard.welcome.group-title": "Grupper relaterede apps",
     "wizard.welcome.group-description": "Hold medier, downloads, hjælpeprogrammer, hjemmeautomatisering og andre apps sammen.",
-    "wizard.welcome.preview-title": "Forhåndsvisning før ansøgning",
-    "wizard.welcome.preview-description": "Du vil gennemgå mapper, opgaver, regler og indstillinger, før noget ændres.",
+    "wizard.welcome.preview-title": "Se ændringerne, før du anvender dem",
+    "wizard.welcome.preview-description": "Du kan gennemgå mapper, tildelinger, regler og indstillinger, før noget ændres.",
     "wizard.welcome.automatic-title": "Forbliv organiseret automatisk",
     "wizard.welcome.automatic-description": "Valgfri startregler kan placere fremtidige matchende apps i de rigtige mapper.",
     "wizard.navigation.next": "Næste",
     "wizard.navigation.back": "Tilbage",
     "wizard.navigation.begin": "Begynd opsætning",
-    "wizard.navigation.run-preview": "Kør forhåndsvisning",
+    "wizard.navigation.run-preview": "Vis forhåndsvisning",
     "wizard.navigation.apply": "Anvend opsætning",
     "wizard.navigation.show-details": "Vis detaljer",
     "wizard.navigation.hide-details": "Skjul detaljer",
@@ -28,5 +28,5 @@
     "wizard.navigation.review": "Kontrollér",
     "wizard.navigation.go-to": "Gå til $1",
     "wizard.progress.step": "Trin $1 af $2",
-    "wizard.impact.live": "Live effekt for dette trin"
+    "wizard.impact.live": "Aktuel virkning af dette trin"
 }

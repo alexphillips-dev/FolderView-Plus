@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -701,7 +701,7 @@
     "common.repair.inactive-ac7c94": "Neaktivan",
     "common.repair.docker-folders-1-rules-2-38e1e6": "Docker — mape: $1; pravila: $2.",
     "common.repair.vms-folders-1-rules-2-c07c56": "VM — mape: $1; pravila: $2.",
-    "common.repair.start-order-1-b1954e": "Početni poredak: $1",
+    "common.repair.start-order-1-b1954e": "Redoslijed pokretanja: $1",
     "common.repair.appearance-profile-1-2f7650": "Profil izgleda: $1",
     "common.repair.operations-included-1-excluded-2-caf034": "Uključene operacije: $1; isključeno: $2.",
     "common.repair.source-plugin-version-1-20e8d3": "Izvorna verzija dodatka: $1",
@@ -713,7 +713,7 @@
     "common.repair.convert-docker-regex-rules-47b9f6": "Pretvorite Docker regex pravila",
     "common.repair.convert-vm-regex-rules-9af627": "Pretvorite VM regex pravila",
     "common.repair.convert-compatible-settings-and-defaults-594f8b": "Pretvorite kompatibilne postavke i zadane postavke",
-    "common.repair.convert-folderview3-start-order-ownership-770099": "Pretvorite vlasništvo FolderView3 za početni nalog",
+    "common.repair.convert-folderview3-start-order-ownership-770099": "Pretvori postavku upravljanja redoslijedom pokretanja iz FolderView3",
     "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc": "Ponovno primijenite izvornu opciju automatskog pokretanja Dockera i pričekajte",
     "common.repair.folderview3-native-organizer-registry-24f28d": "Izvorni registar organizatora FolderView3",
     "common.repair.docker-page-order-8a2b8b": "Redoslijed stranica Docker",

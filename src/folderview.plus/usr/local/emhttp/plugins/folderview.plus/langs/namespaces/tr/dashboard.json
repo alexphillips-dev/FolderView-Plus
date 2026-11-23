@@ -3,10 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "dashboard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "dashboard.folder.toggle-members": "Klasör üyelerini değiştir",
-    "dashboard.widget.docker": "Liman işçisi",
+    "dashboard.widget.docker": "Docker",
     "dashboard.widget.vm": "VM",
     "dashboard.quick.view-options-title": "$1 görüntüleme seçenekleri",
     "dashboard.quick.view-options-help": "Bu Kontrol Paneli widget'ını özelleştirin.",

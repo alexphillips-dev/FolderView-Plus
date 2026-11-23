@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -701,7 +701,7 @@
     "common.repair.inactive-ac7c94": "Inactiu",
     "common.repair.docker-folders-1-rules-2-38e1e6": "Docker — carpetes: $1; regles: $2.",
     "common.repair.vms-folders-1-rules-2-c07c56": "VMs — carpetes: $1; regles: $2.",
-    "common.repair.start-order-1-b1954e": "Comanda d'inici: $1",
+    "common.repair.start-order-1-b1954e": "Ordre d’inici: $1",
     "common.repair.appearance-profile-1-2f7650": "Perfil d'aparença: $1",
     "common.repair.operations-included-1-excluded-2-caf034": "Operacions incloses: $1; exclòs: $2.",
     "common.repair.source-plugin-version-1-20e8d3": "Versió del connector d'origen: $1",
@@ -713,7 +713,7 @@
     "common.repair.convert-docker-regex-rules-47b9f6": "Converteix les regles d'expressió regular de Docker",
     "common.repair.convert-vm-regex-rules-9af627": "Converteix regles d'expressió regular de VM",
     "common.repair.convert-compatible-settings-and-defaults-594f8b": "Converteix paràmetres compatibles i valors predeterminats",
-    "common.repair.convert-folderview3-start-order-ownership-770099": "Converteix la propietat de l'ordre inicial de FolderView3",
+    "common.repair.convert-folderview3-start-order-ownership-770099": "Converteix la configuració de FolderView3 que determina qui gestiona l’ordre d’inici",
     "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc": "Torneu a aplicar l'habilitació nativa d'inici automàtic de Docker i espereu",
     "common.repair.folderview3-native-organizer-registry-24f28d": "Registre natiu de l'organitzador FolderView3",
     "common.repair.docker-page-order-8a2b8b": "Ordre de la pàgina Docker",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Empfohlen",
@@ -713,7 +713,7 @@
     "common.repair.convert-docker-regex-rules-47b9f6": "Konvertieren Sie Docker-Regex-Regeln",
     "common.repair.convert-vm-regex-rules-9af627": "Konvertieren Sie VM-Regex-Regeln",
     "common.repair.convert-compatible-settings-and-defaults-594f8b": "Konvertieren Sie kompatible Einstellungen und Standardeinstellungen",
-    "common.repair.convert-folderview3-start-order-ownership-770099": "Konvertieren Sie den Besitz der FolderView3-Startreihenfolge",
+    "common.repair.convert-folderview3-start-order-ownership-770099": "Verwaltungsmodus der Startreihenfolge aus FolderView3 übernehmen",
     "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc": "Wenden Sie die native Docker-Autostart-Aktivierung erneut an und warten Sie",
     "common.repair.folderview3-native-organizer-registry-24f28d": "Native Organizer-Registrierung von FolderView3",
     "common.repair.docker-page-order-8a2b8b": "Docker-Seitenreihenfolge",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "wizard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "wizard.title": "সহকারী সেটআপ করুন",
     "wizard.welcome.kicker": "ফোল্ডার ভিউ প্লাস সেটআপ সহকারী",
@@ -13,7 +13,7 @@
     "wizard.welcome.skip": "উইজার্ড এড়িয়ে যান",
     "wizard.welcome.group-title": "গ্রুপ সম্পর্কিত অ্যাপ",
     "wizard.welcome.group-description": "মিডিয়া, ডাউনলোড, ইউটিলিটি, হোম অটোমেশন এবং অন্যান্য অ্যাপ একসাথে রাখুন।",
-    "wizard.welcome.preview-title": "আবেদন করার আগে পূর্বরূপ দেখুন",
+    "wizard.welcome.preview-title": "পরিবর্তন প্রয়োগের আগে পূর্বরূপ দেখুন",
     "wizard.welcome.preview-description": "কিছু পরিবর্তন করার আগে আপনি ফোল্ডার, অ্যাসাইনমেন্ট, নিয়ম এবং সেটিংস পর্যালোচনা করবেন।",
     "wizard.welcome.automatic-title": "স্বয়ংক্রিয়ভাবে সংগঠিত থাকুন",
     "wizard.welcome.automatic-description": "ঐচ্ছিক স্টার্টার নিয়ম ভবিষ্যৎ মিলে যাওয়া অ্যাপগুলিকে সঠিক ফোল্ডারে রাখতে পারে।",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "import",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "import.subtitle": "Выберите, как обрабатывать существующие папки. Ничего не изменится, пока вы не выберете Применить импорт.",
     "import.behavior.question": "Как следует обрабатывать существующие папки?",
@@ -67,8 +67,8 @@
     "import.folderview3.inspecting-help": "Этот предварительный просмотр, доступный только для чтения, может занять некоторое время, если присутствуют пользовательские стили.",
     "import.folderview3.confirm-apply": "Заменить текущие папки FolderView Plus Docker, папки виртуальных машин, совместимые настройки, право собственности на порядок запуска и данные профиля Theme Workspace? Сначала будут созданы контрольная точка отката и резервные копии каждого типа.",
     "import.folderview3.confirm-native-suffix": "Также будут заменены встроенные функции автозапуска и ожидания Docker.",
-    "import.folderview3.order-invalid": "Снимок заказа FolderView3 недействителен; использовался порядок конфигурации папок.",
-    "import.folderview3.order-duplicates": "Повторяющиеся записи заказа FolderView3 были проигнорированы.",
+    "import.folderview3.order-invalid": "Снимок порядка папок FolderView3 недействителен. Использован порядок из конфигурации папок.",
+    "import.folderview3.order-duplicates": "Повторяющиеся записи в порядке папок FolderView3 проигнорированы.",
     "import.folderview3.order-unknown": "Ссылки на неизвестные папки в снимках порядка FolderView3 игнорировались.",
     "import.folderview3.order-unassigned": "Порядок папок сохраняется; позиции неназначенных элементов на странице Unraid не импортируются.",
     "import.folderview3.theme-source": "Метаданные источника темы не были преобразованы в управляемые обновления. Сканируйте исходный источник темы, чтобы управлять будущими обновлениями.",
@@ -77,7 +77,7 @@
     "import.folderview3.theme-compatibility": "Импортированный CSS может использовать селекторы или переменные FolderView3, которые отличаются от FolderView Plus. Просмотрите каждый профиль внешнего вида перед активацией.",
     "import.folderview3.order-imported": "Импортировано",
     "import.folderview3.order-fallback": "Порядок конфигурации",
-    "import.folderview3.order-empty": "Нет сохраненного заказа",
+    "import.folderview3.order-empty": "Нет сохранённого порядка",
     "import.folderview3.order-invalid-status": "Неверный снимок; порядок конфигурации",
     "import.folderview3.appearance-profiles": "Добавить неактивные профили внешнего вида FolderView3",
     "import.folderview3.order-summary": "Сохраненный порядок папок: Docker $1; ВМ $2.",

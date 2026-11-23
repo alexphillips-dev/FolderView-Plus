@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "import",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "import.subtitle": "Scegli come gestire le cartelle esistenti. Nulla cambia finché non selezioni Applica importazione.",
     "import.behavior.question": "Come devono essere gestite le cartelle esistenti?",
@@ -67,8 +67,8 @@
     "import.folderview3.inspecting-help": "Questa anteprima di sola lettura potrebbe richiedere qualche istante quando sono presenti stili personalizzati.",
     "import.folderview3.confirm-apply": "Sostituire le cartelle Docker correnti di FolderView Plus, le cartelle VM, le impostazioni compatibili, la proprietà dell'ordine di avvio e i dati del profilo dell'area di lavoro del tema? Verranno innanzitutto creati un checkpoint di rollback e backup per tipo.",
     "import.folderview3.confirm-native-suffix": "Verranno sostituite anche l'abilitazione e le attese dell'avvio automatico nativo di Docker.",
-    "import.folderview3.order-invalid": "Uno snapshot dell'ordine FolderView3 non è valido; è stato utilizzato l'ordine di configurazione delle cartelle.",
-    "import.folderview3.order-duplicates": "Le voci dell'ordine Duplicate di FolderView3 sono state ignorate.",
+    "import.folderview3.order-invalid": "Uno snapshot dell’ordine delle cartelle di FolderView3 non è valido. È stato usato l’ordine della configurazione delle cartelle.",
+    "import.folderview3.order-duplicates": "Le voci duplicate nell’ordine delle cartelle di FolderView3 sono state ignorate.",
     "import.folderview3.order-unknown": "I riferimenti alle cartelle sconosciute nelle istantanee dell'ordine FolderView3 sono stati ignorati.",
     "import.folderview3.order-unassigned": "L'ordine delle cartelle viene mantenuto; le posizioni degli elementi non assegnati nella pagina Unraid non vengono importate.",
     "import.folderview3.theme-source": "I metadati di origine del tema non sono stati convertiti in aggiornamenti gestiti. Scansiona la fonte del tema originale per gestire gli aggiornamenti futuri.",

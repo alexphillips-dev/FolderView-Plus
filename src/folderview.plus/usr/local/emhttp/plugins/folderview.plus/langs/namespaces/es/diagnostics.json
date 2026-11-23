@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "diagnostics",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "diagnostics.cards.theme-integration": "Fuente de la paleta: $1. Motivo de recuperación: $2. Tamaño nativo: $3.",
     "diagnostics.title": "Diagnósticos",
@@ -96,7 +96,7 @@
     "diagnostics.capture.touch": "táctil",
     "diagnostics.capture.non-touch": "Sin pantalla táctil",
     "diagnostics.capture.vm": "Panel de máquina virtual",
-    "diagnostics.capture.docker": "Panel acoplable",
+    "diagnostics.capture.docker": "Panel de Docker",
     "diagnostics.capture.environment-warning": "El entorno de exportación difiere de al menos un entorno de panel capturado.",
     "diagnostics.capture.title": "Evidencia visual del tablero",
     "diagnostics.capture.help": "Estas capturas conservan la geometría del panel renderizada después de navegar a Configuración.",

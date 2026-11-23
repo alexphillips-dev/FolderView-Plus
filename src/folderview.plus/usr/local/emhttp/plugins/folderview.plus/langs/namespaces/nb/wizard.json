@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "wizard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "wizard.title": "Oppsettassistent",
     "wizard.welcome.kicker": "FolderView Plus oppsettassistent",
@@ -13,7 +13,7 @@
     "wizard.welcome.skip": "Hopp over veiviseren",
     "wizard.welcome.group-title": "Grupperelaterte apper",
     "wizard.welcome.group-description": "Hold media, nedlastinger, verktøy, hjemmeautomatisering og andre apper sammen.",
-    "wizard.welcome.preview-title": "Forhåndsvis før du søker",
+    "wizard.welcome.preview-title": "Forhåndsvis endringene før de tas i bruk",
     "wizard.welcome.preview-description": "Du vil gjennomgå mapper, oppgaver, regler og innstillinger før noe endres.",
     "wizard.welcome.automatic-title": "Hold deg organisert automatisk",
     "wizard.welcome.automatic-description": "Valgfrie startregler kan plassere fremtidige matchende apper i de riktige mappene.",

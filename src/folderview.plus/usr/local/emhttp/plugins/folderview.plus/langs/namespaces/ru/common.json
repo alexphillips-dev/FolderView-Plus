@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -713,7 +713,7 @@
     "common.repair.convert-docker-regex-rules-47b9f6": "Преобразование правил регулярных выражений Docker",
     "common.repair.convert-vm-regex-rules-9af627": "Преобразование правил регулярных выражений виртуальной машины",
     "common.repair.convert-compatible-settings-and-defaults-594f8b": "Преобразование совместимых настроек и значений по умолчанию",
-    "common.repair.convert-folderview3-start-order-ownership-770099": "Преобразование владения начальным порядком FolderView3",
+    "common.repair.convert-folderview3-start-order-ownership-770099": "Преобразовать настройку управления порядком запуска из FolderView3",
     "common.repair.reapply-native-docker-autostart-enablement-and-waits-0505bc": "Повторно примените встроенную функцию автозапуска Docker и ожидайте.",
     "common.repair.folderview3-native-organizer-registry-24f28d": "Реестр встроенного органайзера FolderView3",
     "common.repair.docker-page-order-8a2b8b": "Порядок страниц Docker",

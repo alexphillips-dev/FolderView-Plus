@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "wizard",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "wizard.title": "Installationsassistent",
     "wizard.welcome.kicker": "FolderView Plus Installationsassistent",
@@ -13,7 +13,7 @@
     "wizard.welcome.skip": "Hoppa över guiden",
     "wizard.welcome.group-title": "Gruppera relaterade appar",
     "wizard.welcome.group-description": "Håll media, nedladdningar, verktyg, hemautomatisering och andra appar tillsammans.",
-    "wizard.welcome.preview-title": "Förhandsgranska innan du tillämpar",
+    "wizard.welcome.preview-title": "Förhandsgranska ändringarna innan de tillämpas",
     "wizard.welcome.preview-description": "Du kommer att granska mappar, tilldelningar, regler och inställningar innan något ändras.",
     "wizard.welcome.automatic-title": "Håll dig organiserad automatiskt",
     "wizard.welcome.automatic-description": "Valfria startregler kan placera framtida matchande appar i rätt mappar.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "editor",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "editor.settings.information-about": "Informacje o $1",
     "editor.actions.add-custom": "Dodaj niestandardową akcję",
@@ -28,7 +28,7 @@
     "editor.rules.templates.image-repository-placeholder": "Repozytorium (przykład: linuxserver/)",
     "editor.rules.templates.compose-project": "Stworzenie projektu równa się",
     "editor.rules.templates.compose-project-placeholder": "Nazwa projektu (przykład: media)",
-    "editor.rules.templates.label-equals": "Etykieta okna dokowanego równa się",
+    "editor.rules.templates.label-equals": "Etykieta Dockera jest równa",
     "editor.rules.templates.label-equals-placeholder": "Klucz etykiety=wartość",
     "editor.webui-profiles.title": "Niestandardowe profile WebUI",
     "editor.webui-profiles.help": "Utwórz grupy uruchamiania wielokrotnego użytku z bezpośrednich członków Dockera tego folderu. Bieżące adresy WebUI i stan działania są sprawdzane tylko po otwarciu profilu.",

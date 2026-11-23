@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -701,7 +701,7 @@
     "common.repair.inactive-ac7c94": "비활성",
     "common.repair.docker-folders-1-rules-2-38e1e6": "도커 — 폴더: $1; 규칙: $2.",
     "common.repair.vms-folders-1-rules-2-c07c56": "VM — 폴더: $1; 규칙: $2.",
-    "common.repair.start-order-1-b1954e": "시작 주문: $1",
+    "common.repair.start-order-1-b1954e": "시작 순서: $1",
     "common.repair.appearance-profile-1-2f7650": "외관 프로필: $1",
     "common.repair.operations-included-1-excluded-2-caf034": "포함된 작업: $1; 제외됨: $2.",
     "common.repair.source-plugin-version-1-20e8d3": "소스 플러그인 버전: $1",

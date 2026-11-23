@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -701,7 +701,7 @@
     "common.repair.inactive-ac7c94": "Inattivo",
     "common.repair.docker-folders-1-rules-2-38e1e6": "Docker — cartelle: $1; regole: $2.",
     "common.repair.vms-folders-1-rules-2-c07c56": "Macchine virtuali: cartelle: $1; regole: $2.",
-    "common.repair.start-order-1-b1954e": "Inizio ordine: $1",
+    "common.repair.start-order-1-b1954e": "Ordine di avvio: $1",
     "common.repair.appearance-profile-1-2f7650": "Profilo aspetto: $1",
     "common.repair.operations-included-1-excluded-2-caf034": "Operazioni incluse: $1; escluso: $2.",
     "common.repair.source-plugin-version-1-20e8d3": "Versione plugin sorgente: $1",

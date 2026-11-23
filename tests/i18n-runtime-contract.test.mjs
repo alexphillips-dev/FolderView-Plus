@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import folderView3Apply from '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folderview3-apply.js';
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(
@@ -13,6 +14,41 @@ const langsRoot = path.join(pluginRoot, 'langs');
 const runtimeSource = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.i18n.js'), 'utf8');
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const readNamespace = (locale, namespace) => readJson(path.join(langsRoot, 'namespaces', locale, `${namespace}.json`));
+
+test('import mode copy describes which folders can be deleted', () => {
+    const mergeKey = 'import.mode.merge.description';
+    assert.match(readNamespace('zh-Hant', 'import')[mergeKey], /不會刪除任何資料夾/);
+    assert.match(readNamespace('bn', 'import')[mergeKey], /কোনো ফোল্ডার মুছে ফেলা হয় না/);
+    assert.match(readNamespace('hu', 'import')['import.mode.replace.description'], /Az exportban nem szereplő mappák törlődhetnek/);
+});
+
+test('Dashboard retains the Docker brand and Danish status messages are localized', () => {
+    for (const locale of ['ar', 'tr', 'zh-Hant']) {
+        assert.equal(readNamespace(locale, 'dashboard')['dashboard.widget.docker'], 'Docker', locale);
+    }
+    assert.equal(readJson(path.join(langsRoot, 'da.json'))['up-to-date'], 'opdateret');
+    assert.equal(readNamespace('da', 'legacy-surface')['legacy.surface.3a580cdc4b8de001'], 'Mappens tilstand er ændret.');
+});
+
+test('FolderView3 keeps the optional native autostart warning distinct in localized confirmations', async () => {
+    for (const locale of ['en', 'ar', 'tr', 'zh-Hant']) {
+        const catalog = readNamespace(locale, 'import');
+        const confirmation = catalog['import.folderview3.confirm-apply'].trim();
+        const nativeWarning = catalog['import.folderview3.confirm-native-suffix'].trim();
+        const messages = [];
+        const options = {
+            report: { source: { digest: 'fixture-digest' } },
+            selectedSource: { kind: 'export' },
+            translate: (key) => catalog[key].trim(),
+            confirm: (message) => { messages.push(message); return false; },
+            postJson: () => assert.fail('Cancel must leave the preview unapplied')
+        };
+        assert.equal(await folderView3Apply.runApply(options), null);
+        assert.equal(await folderView3Apply.runApply({ ...options, includeNativeAutostart: true }), null);
+        assert.deepEqual(messages, [confirmation, `${confirmation}\n\n${nativeWarning}`], locale);
+    }
+});
 
 const createRuntime = (catalogs, globals = {}) => {
     const messageStore = {

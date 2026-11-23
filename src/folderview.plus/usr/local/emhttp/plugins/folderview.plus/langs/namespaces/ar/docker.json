@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "docker",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "docker.folder.move-reload": "تم تغيير تكوين المجلد. قم بالتحديث قبل نقل المجلد مرة أخرى.",
     "docker.actions.label": "إجراءات عرض المجلد",
@@ -35,7 +35,7 @@
     "docker.views.command": "القيادة",
     "docker.privacy.label": "الخصوصية",
     "docker.privacy.options": "خيارات الخصوصية",
-    "docker.privacy.dialog-label": "خيارات خصوصية عامل الميناء",
+    "docker.privacy.dialog-label": "خيارات خصوصية Docker",
     "docker.privacy.title": "وضع الخصوصية",
     "docker.privacy.description": "اختر ما هو مخفي أثناء تمكين الخصوصية.",
     "docker.privacy.mask-names": "أسماء الأقنعة والرموز",

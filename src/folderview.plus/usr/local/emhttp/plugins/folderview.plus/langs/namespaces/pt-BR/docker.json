@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "docker",
-        "translation-context-revision": "013a7cc397e0416ead685d0481ffcf866baba0752dbe914db857b333ce5278c8"
+        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
     },
     "docker.folder.move-reload": "Configuração da pasta alterada. Atualize antes de mover a pasta novamente.",
     "docker.actions.label": "Ações do FolderView",
@@ -49,7 +49,7 @@
     "docker.actions.capture-diagnostics": "Diagnóstico da página de captura",
     "docker.folder.hide": "Ocultar pasta",
     "docker.folder.restore": "Restaurar pasta",
-    "docker.folder.restore-hidden-branch": "Restaurar branch oculto",
+    "docker.folder.restore-hidden-branch": "Restaurar a pasta oculta e suas subpastas",
     "docker.folder.hidden-indicator": "Oculto",
     "docker.folder.unnamed": "Pasta",
     "docker.folder.visibility-failed": "A preferência de visibilidade da pasta não pôde ser salva.",
@@ -77,7 +77,7 @@
     "docker.feedback.updates-available": "Atualizações disponíveis",
     "docker.feedback.total": "Total: $1 contêineres",
     "docker.feedback.view-details": "Ver detalhes",
-    "docker.feedback.container": "Recipiente",
+    "docker.feedback.container": "Contêiner",
     "docker.feedback.partial": "$1 confirmado · $2 falhou",
     "docker.feedback.confirmed": "$1 contêineres atingiram o estado solicitado",
     "docker.feedback.no-matching": "Nenhum contêiner precisa desta ação",
